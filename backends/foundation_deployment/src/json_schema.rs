@@ -118,7 +118,7 @@ pub fn extract_type_name_from_ref(ref_path: &str) -> Option<String> {
 /// Extract type name from a schema, resolving $ref if present.
 fn extract_type_name_from_schema(
     schema: &JsonSchema,
-    components_schemas: Option<&BTreeMap<String, JsonSchema>>,
+    _components_schemas: Option<&BTreeMap<String, JsonSchema>>,
 ) -> Option<String> {
     if let Some(ref_path) = &schema.ref_path {
         let type_name = match extract_type_name_from_ref(ref_path) {

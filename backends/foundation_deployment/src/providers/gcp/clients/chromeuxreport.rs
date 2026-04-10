@@ -7,7 +7,6 @@
 
 #![cfg(feature = "gcp")]
 
-
 use crate::providers::gcp::clients::types::*;
 use crate::providers::gcp::resources::*;
 use foundation_core::valtron::{
@@ -17,10 +16,11 @@ use foundation_core::valtron::{
 use foundation_core::wire::simple_http::client::{
     body_reader, ClientRequestBuilder, RequestIntro, SimpleHttpClient, SystemDnsResolver,
 };
+use foundation_db::state::resource_identifier::ResourceIdentifier;
 use foundation_macros::JsonHash;
 use serde::Serialize;
 
-/// GET v1/records:queryHistoryRecord
+/// POST v1/records:queryHistoryRecord
 /// Queries the Chrome User Experience Report for a timeseries history record for a given site. Returns a history record that contains one or more metric timeseries corresponding to performance data about the requested site.
 ///
 /// Returns `ClientRequestBuilder` for customization.
@@ -28,7 +28,6 @@ use serde::Serialize;
 
 pub fn chromeuxreport_records_query_history_record_builder(
     client: &SimpleHttpClient,
-    body: &QueryHistoryRequest,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url =
@@ -36,15 +35,13 @@ pub fn chromeuxreport_records_query_history_record_builder(
 
     // Build request
     let builder = client
-        .get(&endpoint_url)
+        .post(&endpoint_url)
         .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
 
-    builder
-        .body_json(body)
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+    Ok(builder)
 }
 
-/// GET v1/records:queryHistoryRecord
+/// POST v1/records:queryHistoryRecord
 /// Queries the Chrome User Experience Report for a timeseries history record for a given site. Returns a history record that contains one or more metric timeseries corresponding to performance data about the requested site.
 ///
 /// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
@@ -118,7 +115,7 @@ pub fn chromeuxreport_records_query_history_record_task(
         .map_pending(|_| ApiPending::Sending))
 }
 
-/// GET v1/records:queryHistoryRecord
+/// POST v1/records:queryHistoryRecord
 /// Queries the Chrome User Experience Report for a timeseries history record for a given site. Returns a history record that contains one or more metric timeseries corresponding to performance data about the requested site.
 ///
 /// Takes a `ClientRequestBuilder`, builds and executes the request,
@@ -150,14 +147,7 @@ pub fn chromeuxreport_records_query_history_record_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
-/// Arguments for [`chromeuxreport_records_query_history_record`].
-#[derive(Debug, Clone, Serialize, JsonHash)]
-pub struct ChromeuxreportRecordsQueryHistoryRecordArgs {
-    /// Request body.
-    pub body: QueryHistoryRequest,
-}
-
-/// GET v1/records:queryHistoryRecord
+/// POST v1/records:queryHistoryRecord
 /// Queries the Chrome User Experience Report for a timeseries history record for a given site. Returns a history record that contains one or more metric timeseries corresponding to performance data about the requested site.
 ///
 /// Simplest API - builds and executes the request in one call.
@@ -170,18 +160,17 @@ pub struct ChromeuxreportRecordsQueryHistoryRecordArgs {
 
 pub fn chromeuxreport_records_query_history_record(
     client: &SimpleHttpClient,
-    args: &ChromeuxreportRecordsQueryHistoryRecordArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<QueryHistoryResponse>, ApiError>, P = ApiPending>
         + Send
         + 'static,
     ApiError,
 > {
-    let builder = chromeuxreport_records_query_history_record_builder(client, &args.body)?;
+    let builder = chromeuxreport_records_query_history_record_builder(client)?;
     chromeuxreport_records_query_history_record_execute(builder)
 }
 
-/// GET v1/records:queryRecord
+/// POST v1/records:queryRecord
 /// Queries the Chrome User Experience for a single record for a given site. Returns a record that contains one or more metrics corresponding to performance data about the requested site.
 ///
 /// Returns `ClientRequestBuilder` for customization.
@@ -189,22 +178,19 @@ pub fn chromeuxreport_records_query_history_record(
 
 pub fn chromeuxreport_records_query_record_builder(
     client: &SimpleHttpClient,
-    body: &QueryRequest,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!("https://chromeuxreport.googleapis.com/v1/records:queryRecord",);
 
     // Build request
     let builder = client
-        .get(&endpoint_url)
+        .post(&endpoint_url)
         .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
 
-    builder
-        .body_json(body)
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+    Ok(builder)
 }
 
-/// GET v1/records:queryRecord
+/// POST v1/records:queryRecord
 /// Queries the Chrome User Experience for a single record for a given site. Returns a record that contains one or more metrics corresponding to performance data about the requested site.
 ///
 /// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
@@ -278,7 +264,7 @@ pub fn chromeuxreport_records_query_record_task(
         .map_pending(|_| ApiPending::Sending))
 }
 
-/// GET v1/records:queryRecord
+/// POST v1/records:queryRecord
 /// Queries the Chrome User Experience for a single record for a given site. Returns a record that contains one or more metrics corresponding to performance data about the requested site.
 ///
 /// Takes a `ClientRequestBuilder`, builds and executes the request,
@@ -310,14 +296,7 @@ pub fn chromeuxreport_records_query_record_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
-/// Arguments for [`chromeuxreport_records_query_record`].
-#[derive(Debug, Clone, Serialize, JsonHash)]
-pub struct ChromeuxreportRecordsQueryRecordArgs {
-    /// Request body.
-    pub body: QueryRequest,
-}
-
-/// GET v1/records:queryRecord
+/// POST v1/records:queryRecord
 /// Queries the Chrome User Experience for a single record for a given site. Returns a record that contains one or more metrics corresponding to performance data about the requested site.
 ///
 /// Simplest API - builds and executes the request in one call.
@@ -330,13 +309,58 @@ pub struct ChromeuxreportRecordsQueryRecordArgs {
 
 pub fn chromeuxreport_records_query_record(
     client: &SimpleHttpClient,
-    args: &ChromeuxreportRecordsQueryRecordArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<QueryResponse>, ApiError>, P = ApiPending>
         + Send
         + 'static,
     ApiError,
 > {
-    let builder = chromeuxreport_records_query_record_builder(client, &args.body)?;
+    let builder = chromeuxreport_records_query_record_builder(client)?;
     chromeuxreport_records_query_record_execute(builder)
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for QueryHistoryResponse
+// =============================================================================
+
+/// ResourceIdentifier implementation for QueryHistoryResponse with ChromeuxreportRecordsQueryHistoryRecordArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<ChromeuxreportRecordsQueryHistoryRecordArgs> for QueryHistoryResponse {
+    fn generate_resource_id(&self, input: &ChromeuxreportRecordsQueryHistoryRecordArgs) -> String {
+        "gcp::chromeuxreport::QueryHistoryResponse".to_string()
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::chromeuxreport::QueryHistoryResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for QueryResponse
+// =============================================================================
+
+/// ResourceIdentifier implementation for QueryResponse with ChromeuxreportRecordsQueryRecordArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<ChromeuxreportRecordsQueryRecordArgs> for QueryResponse {
+    fn generate_resource_id(&self, input: &ChromeuxreportRecordsQueryRecordArgs) -> String {
+        "gcp::chromeuxreport::QueryResponse".to_string()
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::chromeuxreport::QueryResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
 }

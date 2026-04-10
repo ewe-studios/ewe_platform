@@ -12,9 +12,13 @@
 #![cfg(feature = "gcp")]
 
 use crate::providers::gcp::clients::binaryauthorization::{
+    binaryauthorization_projects_get_policy_builder, binaryauthorization_projects_get_policy_task,
     binaryauthorization_projects_update_policy_builder, binaryauthorization_projects_update_policy_task,
     binaryauthorization_projects_attestors_create_builder, binaryauthorization_projects_attestors_create_task,
     binaryauthorization_projects_attestors_delete_builder, binaryauthorization_projects_attestors_delete_task,
+    binaryauthorization_projects_attestors_get_builder, binaryauthorization_projects_attestors_get_task,
+    binaryauthorization_projects_attestors_get_iam_policy_builder, binaryauthorization_projects_attestors_get_iam_policy_task,
+    binaryauthorization_projects_attestors_list_builder, binaryauthorization_projects_attestors_list_task,
     binaryauthorization_projects_attestors_set_iam_policy_builder, binaryauthorization_projects_attestors_set_iam_policy_task,
     binaryauthorization_projects_attestors_test_iam_permissions_builder, binaryauthorization_projects_attestors_test_iam_permissions_task,
     binaryauthorization_projects_attestors_update_builder, binaryauthorization_projects_attestors_update_task,
@@ -22,32 +26,46 @@ use crate::providers::gcp::clients::binaryauthorization::{
     binaryauthorization_projects_platforms_gke_policies_evaluate_builder, binaryauthorization_projects_platforms_gke_policies_evaluate_task,
     binaryauthorization_projects_platforms_policies_create_builder, binaryauthorization_projects_platforms_policies_create_task,
     binaryauthorization_projects_platforms_policies_delete_builder, binaryauthorization_projects_platforms_policies_delete_task,
+    binaryauthorization_projects_platforms_policies_get_builder, binaryauthorization_projects_platforms_policies_get_task,
+    binaryauthorization_projects_platforms_policies_list_builder, binaryauthorization_projects_platforms_policies_list_task,
     binaryauthorization_projects_platforms_policies_replace_platform_policy_builder, binaryauthorization_projects_platforms_policies_replace_platform_policy_task,
+    binaryauthorization_projects_policy_get_iam_policy_builder, binaryauthorization_projects_policy_get_iam_policy_task,
     binaryauthorization_projects_policy_set_iam_policy_builder, binaryauthorization_projects_policy_set_iam_policy_task,
     binaryauthorization_projects_policy_test_iam_permissions_builder, binaryauthorization_projects_policy_test_iam_permissions_task,
+    binaryauthorization_systempolicy_get_policy_builder, binaryauthorization_systempolicy_get_policy_task,
 };
 use crate::providers::gcp::clients::types::{ApiError, ApiPending};
 use crate::providers::gcp::clients::binaryauthorization::Attestor;
 use crate::providers::gcp::clients::binaryauthorization::Empty;
 use crate::providers::gcp::clients::binaryauthorization::EvaluateGkePolicyResponse;
 use crate::providers::gcp::clients::binaryauthorization::IamPolicy;
+use crate::providers::gcp::clients::binaryauthorization::ListAttestorsResponse;
+use crate::providers::gcp::clients::binaryauthorization::ListPlatformPoliciesResponse;
 use crate::providers::gcp::clients::binaryauthorization::PlatformPolicy;
 use crate::providers::gcp::clients::binaryauthorization::Policy;
 use crate::providers::gcp::clients::binaryauthorization::TestIamPermissionsResponse;
 use crate::providers::gcp::clients::binaryauthorization::ValidateAttestationOccurrenceResponse;
 use crate::providers::gcp::clients::binaryauthorization::BinaryauthorizationProjectsAttestorsCreateArgs;
 use crate::providers::gcp::clients::binaryauthorization::BinaryauthorizationProjectsAttestorsDeleteArgs;
+use crate::providers::gcp::clients::binaryauthorization::BinaryauthorizationProjectsAttestorsGetArgs;
+use crate::providers::gcp::clients::binaryauthorization::BinaryauthorizationProjectsAttestorsGetIamPolicyArgs;
+use crate::providers::gcp::clients::binaryauthorization::BinaryauthorizationProjectsAttestorsListArgs;
 use crate::providers::gcp::clients::binaryauthorization::BinaryauthorizationProjectsAttestorsSetIamPolicyArgs;
 use crate::providers::gcp::clients::binaryauthorization::BinaryauthorizationProjectsAttestorsTestIamPermissionsArgs;
 use crate::providers::gcp::clients::binaryauthorization::BinaryauthorizationProjectsAttestorsUpdateArgs;
 use crate::providers::gcp::clients::binaryauthorization::BinaryauthorizationProjectsAttestorsValidateAttestationOccurrenceArgs;
+use crate::providers::gcp::clients::binaryauthorization::BinaryauthorizationProjectsGetPolicyArgs;
 use crate::providers::gcp::clients::binaryauthorization::BinaryauthorizationProjectsPlatformsGkePoliciesEvaluateArgs;
 use crate::providers::gcp::clients::binaryauthorization::BinaryauthorizationProjectsPlatformsPoliciesCreateArgs;
 use crate::providers::gcp::clients::binaryauthorization::BinaryauthorizationProjectsPlatformsPoliciesDeleteArgs;
+use crate::providers::gcp::clients::binaryauthorization::BinaryauthorizationProjectsPlatformsPoliciesGetArgs;
+use crate::providers::gcp::clients::binaryauthorization::BinaryauthorizationProjectsPlatformsPoliciesListArgs;
 use crate::providers::gcp::clients::binaryauthorization::BinaryauthorizationProjectsPlatformsPoliciesReplacePlatformPolicyArgs;
+use crate::providers::gcp::clients::binaryauthorization::BinaryauthorizationProjectsPolicyGetIamPolicyArgs;
 use crate::providers::gcp::clients::binaryauthorization::BinaryauthorizationProjectsPolicySetIamPolicyArgs;
 use crate::providers::gcp::clients::binaryauthorization::BinaryauthorizationProjectsPolicyTestIamPermissionsArgs;
 use crate::providers::gcp::clients::binaryauthorization::BinaryauthorizationProjectsUpdatePolicyArgs;
+use crate::providers::gcp::clients::binaryauthorization::BinaryauthorizationSystempolicyGetPolicyArgs;
 use crate::provider_client::{ProviderClient, ProviderError};
 use foundation_core::valtron::{execute, StreamIterator};
 use foundation_core::wire::simple_http::client::SimpleHttpClient;
@@ -87,6 +105,44 @@ where
             client,
             http_client: Arc::new(http_client),
         }
+    }
+
+    /// Binaryauthorization projects get policy.
+    ///
+    /// Read-only operation - no state tracking.
+    ///
+    /// # Arguments
+    ///
+    /// * `args` - Request arguments
+    ///
+    /// # Returns
+    ///
+    /// StreamIterator yielding the Policy result.
+    ///
+    /// # Errors
+    ///
+    /// Returns ProviderError if the API request fails.
+    pub fn binaryauthorization_projects_get_policy(
+        &self,
+        args: &BinaryauthorizationProjectsGetPolicyArgs,
+    ) -> Result<
+        impl StreamIterator<
+            D = Result<Policy, ProviderError<ApiError>>,
+            P = crate::providers::gcp::clients::types::ApiPending,
+        > + Send
+        + 'static,
+        ProviderError<ApiError>,
+    > {
+        let builder = binaryauthorization_projects_get_policy_builder(
+            &self.http_client,
+            &args.name,
+        )
+        .map_err(ProviderError::Api)?;
+
+        let task = binaryauthorization_projects_get_policy_task(builder)
+            .map_err(ProviderError::Api)?;
+
+        execute(task, None).map_err(|e: String| ProviderError::ExecuteFailed(e.to_string()))
     }
 
     /// Binaryauthorization projects update policy.
@@ -219,6 +275,123 @@ where
         execute(store_task, None).map_err(|e: String| ProviderError::ExecuteFailed(e.to_string()))
     }
 
+    /// Binaryauthorization projects attestors get.
+    ///
+    /// Read-only operation - no state tracking.
+    ///
+    /// # Arguments
+    ///
+    /// * `args` - Request arguments
+    ///
+    /// # Returns
+    ///
+    /// StreamIterator yielding the Attestor result.
+    ///
+    /// # Errors
+    ///
+    /// Returns ProviderError if the API request fails.
+    pub fn binaryauthorization_projects_attestors_get(
+        &self,
+        args: &BinaryauthorizationProjectsAttestorsGetArgs,
+    ) -> Result<
+        impl StreamIterator<
+            D = Result<Attestor, ProviderError<ApiError>>,
+            P = crate::providers::gcp::clients::types::ApiPending,
+        > + Send
+        + 'static,
+        ProviderError<ApiError>,
+    > {
+        let builder = binaryauthorization_projects_attestors_get_builder(
+            &self.http_client,
+            &args.name,
+        )
+        .map_err(ProviderError::Api)?;
+
+        let task = binaryauthorization_projects_attestors_get_task(builder)
+            .map_err(ProviderError::Api)?;
+
+        execute(task, None).map_err(|e: String| ProviderError::ExecuteFailed(e.to_string()))
+    }
+
+    /// Binaryauthorization projects attestors get iam policy.
+    ///
+    /// Read-only operation - no state tracking.
+    ///
+    /// # Arguments
+    ///
+    /// * `args` - Request arguments
+    ///
+    /// # Returns
+    ///
+    /// StreamIterator yielding the IamPolicy result.
+    ///
+    /// # Errors
+    ///
+    /// Returns ProviderError if the API request fails.
+    pub fn binaryauthorization_projects_attestors_get_iam_policy(
+        &self,
+        args: &BinaryauthorizationProjectsAttestorsGetIamPolicyArgs,
+    ) -> Result<
+        impl StreamIterator<
+            D = Result<IamPolicy, ProviderError<ApiError>>,
+            P = crate::providers::gcp::clients::types::ApiPending,
+        > + Send
+        + 'static,
+        ProviderError<ApiError>,
+    > {
+        let builder = binaryauthorization_projects_attestors_get_iam_policy_builder(
+            &self.http_client,
+            &args.resource,
+            &args.options.requestedPolicyVersion,
+        )
+        .map_err(ProviderError::Api)?;
+
+        let task = binaryauthorization_projects_attestors_get_iam_policy_task(builder)
+            .map_err(ProviderError::Api)?;
+
+        execute(task, None).map_err(|e: String| ProviderError::ExecuteFailed(e.to_string()))
+    }
+
+    /// Binaryauthorization projects attestors list.
+    ///
+    /// Read-only operation - no state tracking.
+    ///
+    /// # Arguments
+    ///
+    /// * `args` - Request arguments
+    ///
+    /// # Returns
+    ///
+    /// StreamIterator yielding the ListAttestorsResponse result.
+    ///
+    /// # Errors
+    ///
+    /// Returns ProviderError if the API request fails.
+    pub fn binaryauthorization_projects_attestors_list(
+        &self,
+        args: &BinaryauthorizationProjectsAttestorsListArgs,
+    ) -> Result<
+        impl StreamIterator<
+            D = Result<ListAttestorsResponse, ProviderError<ApiError>>,
+            P = crate::providers::gcp::clients::types::ApiPending,
+        > + Send
+        + 'static,
+        ProviderError<ApiError>,
+    > {
+        let builder = binaryauthorization_projects_attestors_list_builder(
+            &self.http_client,
+            &args.parent,
+            &args.pageSize,
+            &args.pageToken,
+        )
+        .map_err(ProviderError::Api)?;
+
+        let task = binaryauthorization_projects_attestors_list_task(builder)
+            .map_err(ProviderError::Api)?;
+
+        execute(task, None).map_err(|e: String| ProviderError::ExecuteFailed(e.to_string()))
+    }
+
     /// Binaryauthorization projects attestors set iam policy.
     ///
     /// Automatically stores the result in the state store on success.
@@ -264,7 +437,7 @@ where
 
     /// Binaryauthorization projects attestors test iam permissions.
     ///
-    /// Automatically stores the result in the state store on success.
+    /// Read-only operation - no state tracking.
     ///
     /// # Arguments
     ///
@@ -276,7 +449,7 @@ where
     ///
     /// # Errors
     ///
-    /// Returns ProviderError if the API request or state storage fails.
+    /// Returns ProviderError if the API request fails.
     pub fn binaryauthorization_projects_attestors_test_iam_permissions(
         &self,
         args: &BinaryauthorizationProjectsAttestorsTestIamPermissionsArgs,
@@ -297,12 +470,7 @@ where
         let task = binaryauthorization_projects_attestors_test_iam_permissions_task(builder)
             .map_err(ProviderError::Api)?;
 
-        let state_store = self.client.state_store.clone();
-        let stage = Some(self.client.stage.clone());
-
-        let store_task = StoreStateIdentifierTask::new(task, state_store, args, stage);
-
-        execute(store_task, None).map_err(|e: String| ProviderError::ExecuteFailed(e.to_string()))
+        execute(task, None).map_err(|e: String| ProviderError::ExecuteFailed(e.to_string()))
     }
 
     /// Binaryauthorization projects attestors update.
@@ -350,7 +518,7 @@ where
 
     /// Binaryauthorization projects attestors validate attestation occurrence.
     ///
-    /// Automatically stores the result in the state store on success.
+    /// Read-only operation - no state tracking.
     ///
     /// # Arguments
     ///
@@ -362,7 +530,7 @@ where
     ///
     /// # Errors
     ///
-    /// Returns ProviderError if the API request or state storage fails.
+    /// Returns ProviderError if the API request fails.
     pub fn binaryauthorization_projects_attestors_validate_attestation_occurrence(
         &self,
         args: &BinaryauthorizationProjectsAttestorsValidateAttestationOccurrenceArgs,
@@ -383,12 +551,7 @@ where
         let task = binaryauthorization_projects_attestors_validate_attestation_occurrence_task(builder)
             .map_err(ProviderError::Api)?;
 
-        let state_store = self.client.state_store.clone();
-        let stage = Some(self.client.stage.clone());
-
-        let store_task = StoreStateIdentifierTask::new(task, state_store, args, stage);
-
-        execute(store_task, None).map_err(|e: String| ProviderError::ExecuteFailed(e.to_string()))
+        execute(task, None).map_err(|e: String| ProviderError::ExecuteFailed(e.to_string()))
     }
 
     /// Binaryauthorization projects platforms gke policies evaluate.
@@ -522,6 +685,84 @@ where
         execute(store_task, None).map_err(|e: String| ProviderError::ExecuteFailed(e.to_string()))
     }
 
+    /// Binaryauthorization projects platforms policies get.
+    ///
+    /// Read-only operation - no state tracking.
+    ///
+    /// # Arguments
+    ///
+    /// * `args` - Request arguments
+    ///
+    /// # Returns
+    ///
+    /// StreamIterator yielding the PlatformPolicy result.
+    ///
+    /// # Errors
+    ///
+    /// Returns ProviderError if the API request fails.
+    pub fn binaryauthorization_projects_platforms_policies_get(
+        &self,
+        args: &BinaryauthorizationProjectsPlatformsPoliciesGetArgs,
+    ) -> Result<
+        impl StreamIterator<
+            D = Result<PlatformPolicy, ProviderError<ApiError>>,
+            P = crate::providers::gcp::clients::types::ApiPending,
+        > + Send
+        + 'static,
+        ProviderError<ApiError>,
+    > {
+        let builder = binaryauthorization_projects_platforms_policies_get_builder(
+            &self.http_client,
+            &args.name,
+        )
+        .map_err(ProviderError::Api)?;
+
+        let task = binaryauthorization_projects_platforms_policies_get_task(builder)
+            .map_err(ProviderError::Api)?;
+
+        execute(task, None).map_err(|e: String| ProviderError::ExecuteFailed(e.to_string()))
+    }
+
+    /// Binaryauthorization projects platforms policies list.
+    ///
+    /// Read-only operation - no state tracking.
+    ///
+    /// # Arguments
+    ///
+    /// * `args` - Request arguments
+    ///
+    /// # Returns
+    ///
+    /// StreamIterator yielding the ListPlatformPoliciesResponse result.
+    ///
+    /// # Errors
+    ///
+    /// Returns ProviderError if the API request fails.
+    pub fn binaryauthorization_projects_platforms_policies_list(
+        &self,
+        args: &BinaryauthorizationProjectsPlatformsPoliciesListArgs,
+    ) -> Result<
+        impl StreamIterator<
+            D = Result<ListPlatformPoliciesResponse, ProviderError<ApiError>>,
+            P = crate::providers::gcp::clients::types::ApiPending,
+        > + Send
+        + 'static,
+        ProviderError<ApiError>,
+    > {
+        let builder = binaryauthorization_projects_platforms_policies_list_builder(
+            &self.http_client,
+            &args.parent,
+            &args.pageSize,
+            &args.pageToken,
+        )
+        .map_err(ProviderError::Api)?;
+
+        let task = binaryauthorization_projects_platforms_policies_list_task(builder)
+            .map_err(ProviderError::Api)?;
+
+        execute(task, None).map_err(|e: String| ProviderError::ExecuteFailed(e.to_string()))
+    }
+
     /// Binaryauthorization projects platforms policies replace platform policy.
     ///
     /// Automatically stores the result in the state store on success.
@@ -563,6 +804,45 @@ where
         let store_task = StoreStateIdentifierTask::new(task, state_store, args, stage);
 
         execute(store_task, None).map_err(|e: String| ProviderError::ExecuteFailed(e.to_string()))
+    }
+
+    /// Binaryauthorization projects policy get iam policy.
+    ///
+    /// Read-only operation - no state tracking.
+    ///
+    /// # Arguments
+    ///
+    /// * `args` - Request arguments
+    ///
+    /// # Returns
+    ///
+    /// StreamIterator yielding the IamPolicy result.
+    ///
+    /// # Errors
+    ///
+    /// Returns ProviderError if the API request fails.
+    pub fn binaryauthorization_projects_policy_get_iam_policy(
+        &self,
+        args: &BinaryauthorizationProjectsPolicyGetIamPolicyArgs,
+    ) -> Result<
+        impl StreamIterator<
+            D = Result<IamPolicy, ProviderError<ApiError>>,
+            P = crate::providers::gcp::clients::types::ApiPending,
+        > + Send
+        + 'static,
+        ProviderError<ApiError>,
+    > {
+        let builder = binaryauthorization_projects_policy_get_iam_policy_builder(
+            &self.http_client,
+            &args.resource,
+            &args.options.requestedPolicyVersion,
+        )
+        .map_err(ProviderError::Api)?;
+
+        let task = binaryauthorization_projects_policy_get_iam_policy_task(builder)
+            .map_err(ProviderError::Api)?;
+
+        execute(task, None).map_err(|e: String| ProviderError::ExecuteFailed(e.to_string()))
     }
 
     /// Binaryauthorization projects policy set iam policy.
@@ -610,7 +890,7 @@ where
 
     /// Binaryauthorization projects policy test iam permissions.
     ///
-    /// Automatically stores the result in the state store on success.
+    /// Read-only operation - no state tracking.
     ///
     /// # Arguments
     ///
@@ -622,7 +902,7 @@ where
     ///
     /// # Errors
     ///
-    /// Returns ProviderError if the API request or state storage fails.
+    /// Returns ProviderError if the API request fails.
     pub fn binaryauthorization_projects_policy_test_iam_permissions(
         &self,
         args: &BinaryauthorizationProjectsPolicyTestIamPermissionsArgs,
@@ -643,12 +923,45 @@ where
         let task = binaryauthorization_projects_policy_test_iam_permissions_task(builder)
             .map_err(ProviderError::Api)?;
 
-        let state_store = self.client.state_store.clone();
-        let stage = Some(self.client.stage.clone());
+        execute(task, None).map_err(|e: String| ProviderError::ExecuteFailed(e.to_string()))
+    }
 
-        let store_task = StoreStateIdentifierTask::new(task, state_store, args, stage);
+    /// Binaryauthorization systempolicy get policy.
+    ///
+    /// Read-only operation - no state tracking.
+    ///
+    /// # Arguments
+    ///
+    /// * `args` - Request arguments
+    ///
+    /// # Returns
+    ///
+    /// StreamIterator yielding the Policy result.
+    ///
+    /// # Errors
+    ///
+    /// Returns ProviderError if the API request fails.
+    pub fn binaryauthorization_systempolicy_get_policy(
+        &self,
+        args: &BinaryauthorizationSystempolicyGetPolicyArgs,
+    ) -> Result<
+        impl StreamIterator<
+            D = Result<Policy, ProviderError<ApiError>>,
+            P = crate::providers::gcp::clients::types::ApiPending,
+        > + Send
+        + 'static,
+        ProviderError<ApiError>,
+    > {
+        let builder = binaryauthorization_systempolicy_get_policy_builder(
+            &self.http_client,
+            &args.name,
+        )
+        .map_err(ProviderError::Api)?;
 
-        execute(store_task, None).map_err(|e: String| ProviderError::ExecuteFailed(e.to_string()))
+        let task = binaryauthorization_systempolicy_get_policy_task(builder)
+            .map_err(ProviderError::Api)?;
+
+        execute(task, None).map_err(|e: String| ProviderError::ExecuteFailed(e.to_string()))
     }
 
 }

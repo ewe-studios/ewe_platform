@@ -7,7 +7,6 @@
 
 #![cfg(feature = "gcp")]
 
-
 use crate::providers::gcp::clients::types::*;
 use crate::providers::gcp::resources::*;
 use foundation_core::valtron::{
@@ -17,10 +16,11 @@ use foundation_core::valtron::{
 use foundation_core::wire::simple_http::client::{
     body_reader, ClientRequestBuilder, RequestIntro, SimpleHttpClient, SystemDnsResolver,
 };
+use foundation_db::state::resource_identifier::ResourceIdentifier;
 use foundation_macros::JsonHash;
 use serde::Serialize;
 
-/// GET v1/files:annotate
+/// POST v1/files:annotate
 /// Service that performs image detection and annotation for a batch of files. Now only "`application/pdf`", "`image/tiff`" and "`image/gif`" are supported. This service will extract at most 5 (customers can specify which 5 in AnnotateFileRequest.pages) frames (gif) or pages (pdf or tiff) from each file provided and perform detection and annotation for each image extracted.
 ///
 /// Returns `ClientRequestBuilder` for customization.
@@ -28,22 +28,19 @@ use serde::Serialize;
 
 pub fn vision_files_annotate_builder(
     client: &SimpleHttpClient,
-    body: &BatchAnnotateFilesRequest,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!("https://vision.googleapis.com/v1/files:annotate",);
 
     // Build request
     let builder = client
-        .get(&endpoint_url)
+        .post(&endpoint_url)
         .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
 
-    builder
-        .body_json(body)
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+    Ok(builder)
 }
 
-/// GET v1/files:annotate
+/// POST v1/files:annotate
 /// Service that performs image detection and annotation for a batch of files. Now only "`application/pdf`", "`image/tiff`" and "`image/gif`" are supported. This service will extract at most 5 (customers can specify which 5 in AnnotateFileRequest.pages) frames (gif) or pages (pdf or tiff) from each file provided and perform detection and annotation for each image extracted.
 ///
 /// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
@@ -117,7 +114,7 @@ pub fn vision_files_annotate_task(
         .map_pending(|_| ApiPending::Sending))
 }
 
-/// GET v1/files:annotate
+/// POST v1/files:annotate
 /// Service that performs image detection and annotation for a batch of files. Now only "`application/pdf`", "`image/tiff`" and "`image/gif`" are supported. This service will extract at most 5 (customers can specify which 5 in AnnotateFileRequest.pages) frames (gif) or pages (pdf or tiff) from each file provided and perform detection and annotation for each image extracted.
 ///
 /// Takes a `ClientRequestBuilder`, builds and executes the request,
@@ -151,14 +148,7 @@ pub fn vision_files_annotate_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
-/// Arguments for [`vision_files_annotate`].
-#[derive(Debug, Clone, Serialize, JsonHash)]
-pub struct VisionFilesAnnotateArgs {
-    /// Request body.
-    pub body: BatchAnnotateFilesRequest,
-}
-
-/// GET v1/files:annotate
+/// POST v1/files:annotate
 /// Service that performs image detection and annotation for a batch of files. Now only "`application/pdf`", "`image/tiff`" and "`image/gif`" are supported. This service will extract at most 5 (customers can specify which 5 in AnnotateFileRequest.pages) frames (gif) or pages (pdf or tiff) from each file provided and perform detection and annotation for each image extracted.
 ///
 /// Simplest API - builds and executes the request in one call.
@@ -171,7 +161,6 @@ pub struct VisionFilesAnnotateArgs {
 
 pub fn vision_files_annotate(
     client: &SimpleHttpClient,
-    args: &VisionFilesAnnotateArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<BatchAnnotateFilesResponse>, ApiError>,
@@ -180,11 +169,11 @@ pub fn vision_files_annotate(
         + 'static,
     ApiError,
 > {
-    let builder = vision_files_annotate_builder(client, &args.body)?;
+    let builder = vision_files_annotate_builder(client)?;
     vision_files_annotate_execute(builder)
 }
 
-/// GET v1/files:asyncBatchAnnotate
+/// POST v1/files:asyncBatchAnnotate
 /// Run asynchronous image detection and annotation for a list of generic files, such as PDF files, which may contain multiple pages and multiple images per page. Progress and results can be retrieved through the google.longrunning.Operations interface. Operation.metadata contains OperationMetadata (metadata). Operation.response contains AsyncBatchAnnotateFilesResponse (results).
 ///
 /// Returns `ClientRequestBuilder` for customization.
@@ -192,22 +181,19 @@ pub fn vision_files_annotate(
 
 pub fn vision_files_async_batch_annotate_builder(
     client: &SimpleHttpClient,
-    body: &AsyncBatchAnnotateFilesRequest,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!("https://vision.googleapis.com/v1/files:asyncBatchAnnotate",);
 
     // Build request
     let builder = client
-        .get(&endpoint_url)
+        .post(&endpoint_url)
         .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
 
-    builder
-        .body_json(body)
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+    Ok(builder)
 }
 
-/// GET v1/files:asyncBatchAnnotate
+/// POST v1/files:asyncBatchAnnotate
 /// Run asynchronous image detection and annotation for a list of generic files, such as PDF files, which may contain multiple pages and multiple images per page. Progress and results can be retrieved through the google.longrunning.Operations interface. Operation.metadata contains OperationMetadata (metadata). Operation.response contains AsyncBatchAnnotateFilesResponse (results).
 ///
 /// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
@@ -281,7 +267,7 @@ pub fn vision_files_async_batch_annotate_task(
         .map_pending(|_| ApiPending::Sending))
 }
 
-/// GET v1/files:asyncBatchAnnotate
+/// POST v1/files:asyncBatchAnnotate
 /// Run asynchronous image detection and annotation for a list of generic files, such as PDF files, which may contain multiple pages and multiple images per page. Progress and results can be retrieved through the google.longrunning.Operations interface. Operation.metadata contains OperationMetadata (metadata). Operation.response contains AsyncBatchAnnotateFilesResponse (results).
 ///
 /// Takes a `ClientRequestBuilder`, builds and executes the request,
@@ -311,14 +297,7 @@ pub fn vision_files_async_batch_annotate_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
-/// Arguments for [`vision_files_async_batch_annotate`].
-#[derive(Debug, Clone, Serialize, JsonHash)]
-pub struct VisionFilesAsyncBatchAnnotateArgs {
-    /// Request body.
-    pub body: AsyncBatchAnnotateFilesRequest,
-}
-
-/// GET v1/files:asyncBatchAnnotate
+/// POST v1/files:asyncBatchAnnotate
 /// Run asynchronous image detection and annotation for a list of generic files, such as PDF files, which may contain multiple pages and multiple images per page. Progress and results can be retrieved through the google.longrunning.Operations interface. Operation.metadata contains OperationMetadata (metadata). Operation.response contains AsyncBatchAnnotateFilesResponse (results).
 ///
 /// Simplest API - builds and executes the request in one call.
@@ -331,16 +310,15 @@ pub struct VisionFilesAsyncBatchAnnotateArgs {
 
 pub fn vision_files_async_batch_annotate(
     client: &SimpleHttpClient,
-    args: &VisionFilesAsyncBatchAnnotateArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Operation>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = vision_files_async_batch_annotate_builder(client, &args.body)?;
+    let builder = vision_files_async_batch_annotate_builder(client)?;
     vision_files_async_batch_annotate_execute(builder)
 }
 
-/// GET v1/images:annotate
+/// POST v1/images:annotate
 /// Run image detection and annotation for a batch of images.
 ///
 /// Returns `ClientRequestBuilder` for customization.
@@ -348,22 +326,19 @@ pub fn vision_files_async_batch_annotate(
 
 pub fn vision_images_annotate_builder(
     client: &SimpleHttpClient,
-    body: &BatchAnnotateImagesRequest,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!("https://vision.googleapis.com/v1/images:annotate",);
 
     // Build request
     let builder = client
-        .get(&endpoint_url)
+        .post(&endpoint_url)
         .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
 
-    builder
-        .body_json(body)
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+    Ok(builder)
 }
 
-/// GET v1/images:annotate
+/// POST v1/images:annotate
 /// Run image detection and annotation for a batch of images.
 ///
 /// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
@@ -437,7 +412,7 @@ pub fn vision_images_annotate_task(
         .map_pending(|_| ApiPending::Sending))
 }
 
-/// GET v1/images:annotate
+/// POST v1/images:annotate
 /// Run image detection and annotation for a batch of images.
 ///
 /// Takes a `ClientRequestBuilder`, builds and executes the request,
@@ -471,14 +446,7 @@ pub fn vision_images_annotate_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
-/// Arguments for [`vision_images_annotate`].
-#[derive(Debug, Clone, Serialize, JsonHash)]
-pub struct VisionImagesAnnotateArgs {
-    /// Request body.
-    pub body: BatchAnnotateImagesRequest,
-}
-
-/// GET v1/images:annotate
+/// POST v1/images:annotate
 /// Run image detection and annotation for a batch of images.
 ///
 /// Simplest API - builds and executes the request in one call.
@@ -491,7 +459,6 @@ pub struct VisionImagesAnnotateArgs {
 
 pub fn vision_images_annotate(
     client: &SimpleHttpClient,
-    args: &VisionImagesAnnotateArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<BatchAnnotateImagesResponse>, ApiError>,
@@ -500,11 +467,11 @@ pub fn vision_images_annotate(
         + 'static,
     ApiError,
 > {
-    let builder = vision_images_annotate_builder(client, &args.body)?;
+    let builder = vision_images_annotate_builder(client)?;
     vision_images_annotate_execute(builder)
 }
 
-/// GET v1/images:asyncBatchAnnotate
+/// POST v1/images:asyncBatchAnnotate
 /// Run asynchronous image detection and annotation for a list of images. Progress and results can be retrieved through the google.longrunning.Operations interface. Operation.metadata contains OperationMetadata (metadata). Operation.response contains AsyncBatchAnnotateImagesResponse (results). This service will write image annotation outputs to json files in customer GCS bucket, each json file containing BatchAnnotateImagesResponse proto.
 ///
 /// Returns `ClientRequestBuilder` for customization.
@@ -512,22 +479,19 @@ pub fn vision_images_annotate(
 
 pub fn vision_images_async_batch_annotate_builder(
     client: &SimpleHttpClient,
-    body: &AsyncBatchAnnotateImagesRequest,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!("https://vision.googleapis.com/v1/images:asyncBatchAnnotate",);
 
     // Build request
     let builder = client
-        .get(&endpoint_url)
+        .post(&endpoint_url)
         .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
 
-    builder
-        .body_json(body)
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+    Ok(builder)
 }
 
-/// GET v1/images:asyncBatchAnnotate
+/// POST v1/images:asyncBatchAnnotate
 /// Run asynchronous image detection and annotation for a list of images. Progress and results can be retrieved through the google.longrunning.Operations interface. Operation.metadata contains OperationMetadata (metadata). Operation.response contains AsyncBatchAnnotateImagesResponse (results). This service will write image annotation outputs to json files in customer GCS bucket, each json file containing BatchAnnotateImagesResponse proto.
 ///
 /// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
@@ -601,7 +565,7 @@ pub fn vision_images_async_batch_annotate_task(
         .map_pending(|_| ApiPending::Sending))
 }
 
-/// GET v1/images:asyncBatchAnnotate
+/// POST v1/images:asyncBatchAnnotate
 /// Run asynchronous image detection and annotation for a list of images. Progress and results can be retrieved through the google.longrunning.Operations interface. Operation.metadata contains OperationMetadata (metadata). Operation.response contains AsyncBatchAnnotateImagesResponse (results). This service will write image annotation outputs to json files in customer GCS bucket, each json file containing BatchAnnotateImagesResponse proto.
 ///
 /// Takes a `ClientRequestBuilder`, builds and executes the request,
@@ -631,14 +595,7 @@ pub fn vision_images_async_batch_annotate_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
-/// Arguments for [`vision_images_async_batch_annotate`].
-#[derive(Debug, Clone, Serialize, JsonHash)]
-pub struct VisionImagesAsyncBatchAnnotateArgs {
-    /// Request body.
-    pub body: AsyncBatchAnnotateImagesRequest,
-}
-
-/// GET v1/images:asyncBatchAnnotate
+/// POST v1/images:asyncBatchAnnotate
 /// Run asynchronous image detection and annotation for a list of images. Progress and results can be retrieved through the google.longrunning.Operations interface. Operation.metadata contains OperationMetadata (metadata). Operation.response contains AsyncBatchAnnotateImagesResponse (results). This service will write image annotation outputs to json files in customer GCS bucket, each json file containing BatchAnnotateImagesResponse proto.
 ///
 /// Simplest API - builds and executes the request in one call.
@@ -651,16 +608,172 @@ pub struct VisionImagesAsyncBatchAnnotateArgs {
 
 pub fn vision_images_async_batch_annotate(
     client: &SimpleHttpClient,
-    args: &VisionImagesAsyncBatchAnnotateArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Operation>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = vision_images_async_batch_annotate_builder(client, &args.body)?;
+    let builder = vision_images_async_batch_annotate_builder(client)?;
     vision_images_async_batch_annotate_execute(builder)
 }
 
-/// GET v1/operations/{operationsId}:cancel
+/// GET v1/locations/{locationsId}/operations/{operationsId}
+/// Gets the latest state of a long-running operation. Clients can use this method to poll the operation result at intervals as recommended by the API service.
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `vision_locations_operations_get_execute()` to send, or `vision_locations_operations_get` for simplest API.
+
+pub fn vision_locations_operations_get_builder(
+    client: &SimpleHttpClient,
+    name: &String,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!(
+        "https://vision.googleapis.com/v1/locations/{}/operations/{operationsId}",
+        name,
+    );
+
+    // Build request
+    let builder = client
+        .get(&endpoint_url)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// GET v1/locations/{locationsId}/operations/{operationsId}
+/// Gets the latest state of a long-running operation. Clients can use this method to poll the operation result at intervals as recommended by the API service.
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `vision_locations_operations_get_execute()` or `vision_locations_operations_get`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `vision_locations_operations_get_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn vision_locations_operations_get_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<Operation>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: Operation = serde_json::from_str(&body)
+                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// GET v1/locations/{locationsId}/operations/{operationsId}
+/// Gets the latest state of a long-running operation. Clients can use this method to poll the operation result at intervals as recommended by the API service.
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `vision_locations_operations_get_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `vision_locations_operations_get_task()`.
+/// For the simplest API, use `vision_locations_operations_get()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `vision_locations_operations_get_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn vision_locations_operations_get_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<Operation>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let task = vision_locations_operations_get_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`vision_locations_operations_get`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct VisionLocationsOperationsGetArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
+/// GET v1/locations/{locationsId}/operations/{operationsId}
+/// Gets the latest state of a long-running operation. Clients can use this method to poll the operation result at intervals as recommended by the API service.
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `vision_locations_operations_get_builder()` + `vision_locations_operations_get_execute()`.
+/// For task-level control, use `vision_locations_operations_get_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn vision_locations_operations_get(
+    client: &SimpleHttpClient,
+    args: &VisionLocationsOperationsGetArgs,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<Operation>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let builder = vision_locations_operations_get_builder(client, &args.name)?;
+    vision_locations_operations_get_execute(builder)
+}
+
+/// POST v1/operations/{operationsId}:cancel
 /// Starts asynchronous cancellation on a long-running operation. The server makes a best effort to cancel the operation, but success is not guaranteed. If the server doesn't support this method, it returns google.rpc.Code.UNIMPLEMENTED. Clients can use Operations.GetOperation or other methods to check whether the cancellation succeeded or whether the operation completed despite cancellation. On successful cancellation, the operation is not deleted; instead, it becomes an operation with an Operation.error value with a google.rpc.Status.code of 1, corresponding to Code.CANCELLED.
 ///
 /// Returns `ClientRequestBuilder` for customization.
@@ -669,22 +782,22 @@ pub fn vision_images_async_batch_annotate(
 pub fn vision_operations_cancel_builder(
     client: &SimpleHttpClient,
     name: &String,
-    body: &CancelOperationRequest,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
-    let endpoint_url = format!("https://vision.googleapis.com/v1/operations/{}:cancel",);
+    let endpoint_url = format!(
+        "https://vision.googleapis.com/v1/operations/{}:cancel",
+        name,
+    );
 
     // Build request
     let builder = client
-        .get(&endpoint_url)
+        .post(&endpoint_url)
         .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
 
-    builder
-        .body_json(body)
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+    Ok(builder)
 }
 
-/// GET v1/operations/{operationsId}:cancel
+/// POST v1/operations/{operationsId}:cancel
 /// Starts asynchronous cancellation on a long-running operation. The server makes a best effort to cancel the operation, but success is not guaranteed. If the server doesn't support this method, it returns google.rpc.Code.UNIMPLEMENTED. Clients can use Operations.GetOperation or other methods to check whether the cancellation succeeded or whether the operation completed despite cancellation. On successful cancellation, the operation is not deleted; instead, it becomes an operation with an Operation.error value with a google.rpc.Status.code of 1, corresponding to Code.CANCELLED.
 ///
 /// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
@@ -758,7 +871,7 @@ pub fn vision_operations_cancel_task(
         .map_pending(|_| ApiPending::Sending))
 }
 
-/// GET v1/operations/{operationsId}:cancel
+/// POST v1/operations/{operationsId}:cancel
 /// Starts asynchronous cancellation on a long-running operation. The server makes a best effort to cancel the operation, but success is not guaranteed. If the server doesn't support this method, it returns google.rpc.Code.UNIMPLEMENTED. Clients can use Operations.GetOperation or other methods to check whether the cancellation succeeded or whether the operation completed despite cancellation. On successful cancellation, the operation is not deleted; instead, it becomes an operation with an Operation.error value with a google.rpc.Status.code of 1, corresponding to Code.CANCELLED.
 ///
 /// Takes a `ClientRequestBuilder`, builds and executes the request,
@@ -793,11 +906,9 @@ pub fn vision_operations_cancel_execute(
 pub struct VisionOperationsCancelArgs {
     /// Path parameter: name
     pub name: String,
-    /// Request body.
-    pub body: CancelOperationRequest,
 }
 
-/// GET v1/operations/{operationsId}:cancel
+/// POST v1/operations/{operationsId}:cancel
 /// Starts asynchronous cancellation on a long-running operation. The server makes a best effort to cancel the operation, but success is not guaranteed. If the server doesn't support this method, it returns google.rpc.Code.UNIMPLEMENTED. Clients can use Operations.GetOperation or other methods to check whether the cancellation succeeded or whether the operation completed despite cancellation. On successful cancellation, the operation is not deleted; instead, it becomes an operation with an Operation.error value with a google.rpc.Status.code of 1, corresponding to Code.CANCELLED.
 ///
 /// Simplest API - builds and executes the request in one call.
@@ -815,11 +926,11 @@ pub fn vision_operations_cancel(
     impl StreamIterator<D = Result<ApiResponse<Empty>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = vision_operations_cancel_builder(client, &args.name, &args.body)?;
+    let builder = vision_operations_cancel_builder(client, &args.name)?;
     vision_operations_cancel_execute(builder)
 }
 
-/// GET v1/operations/{operationsId}
+/// DELETE v1/operations/{operationsId}
 /// Deletes a long-running operation. This method indicates that the client is no longer interested in the operation result. It does not cancel the operation. If the server doesn't support this method, it returns google.rpc.Code.UNIMPLEMENTED.
 ///
 /// Returns `ClientRequestBuilder` for customization.
@@ -830,17 +941,17 @@ pub fn vision_operations_delete_builder(
     name: &String,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
-    let endpoint_url = format!("https://vision.googleapis.com/v1/operations/{}",);
+    let endpoint_url = format!("https://vision.googleapis.com/v1/operations/{}", name,);
 
     // Build request
     let builder = client
-        .get(&endpoint_url)
+        .delete(&endpoint_url)
         .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
 
     Ok(builder)
 }
 
-/// GET v1/operations/{operationsId}
+/// DELETE v1/operations/{operationsId}
 /// Deletes a long-running operation. This method indicates that the client is no longer interested in the operation result. It does not cancel the operation. If the server doesn't support this method, it returns google.rpc.Code.UNIMPLEMENTED.
 ///
 /// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
@@ -914,7 +1025,7 @@ pub fn vision_operations_delete_task(
         .map_pending(|_| ApiPending::Sending))
 }
 
-/// GET v1/operations/{operationsId}
+/// DELETE v1/operations/{operationsId}
 /// Deletes a long-running operation. This method indicates that the client is no longer interested in the operation result. It does not cancel the operation. If the server doesn't support this method, it returns google.rpc.Code.UNIMPLEMENTED.
 ///
 /// Takes a `ClientRequestBuilder`, builds and executes the request,
@@ -951,7 +1062,7 @@ pub struct VisionOperationsDeleteArgs {
     pub name: String,
 }
 
-/// GET v1/operations/{operationsId}
+/// DELETE v1/operations/{operationsId}
 /// Deletes a long-running operation. This method indicates that the client is no longer interested in the operation result. It does not cancel the operation. If the server doesn't support this method, it returns google.rpc.Code.UNIMPLEMENTED.
 ///
 /// Simplest API - builds and executes the request in one call.
@@ -973,7 +1084,354 @@ pub fn vision_operations_delete(
     vision_operations_delete_execute(builder)
 }
 
-/// GET v1/projects/{projectsId}/files:annotate
+/// GET v1/operations/{operationsId}
+/// Gets the latest state of a long-running operation. Clients can use this method to poll the operation result at intervals as recommended by the API service.
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `vision_operations_get_execute()` to send, or `vision_operations_get` for simplest API.
+
+pub fn vision_operations_get_builder(
+    client: &SimpleHttpClient,
+    name: &String,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!("https://vision.googleapis.com/v1/operations/{}", name,);
+
+    // Build request
+    let builder = client
+        .get(&endpoint_url)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// GET v1/operations/{operationsId}
+/// Gets the latest state of a long-running operation. Clients can use this method to poll the operation result at intervals as recommended by the API service.
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `vision_operations_get_execute()` or `vision_operations_get`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `vision_operations_get_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn vision_operations_get_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<Operation>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: Operation = serde_json::from_str(&body)
+                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// GET v1/operations/{operationsId}
+/// Gets the latest state of a long-running operation. Clients can use this method to poll the operation result at intervals as recommended by the API service.
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `vision_operations_get_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `vision_operations_get_task()`.
+/// For the simplest API, use `vision_operations_get()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `vision_operations_get_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn vision_operations_get_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<Operation>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let task = vision_operations_get_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`vision_operations_get`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct VisionOperationsGetArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
+/// GET v1/operations/{operationsId}
+/// Gets the latest state of a long-running operation. Clients can use this method to poll the operation result at intervals as recommended by the API service.
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `vision_operations_get_builder()` + `vision_operations_get_execute()`.
+/// For task-level control, use `vision_operations_get_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn vision_operations_get(
+    client: &SimpleHttpClient,
+    args: &VisionOperationsGetArgs,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<Operation>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let builder = vision_operations_get_builder(client, &args.name)?;
+    vision_operations_get_execute(builder)
+}
+
+/// GET v1/operations
+/// Lists operations that match the specified filter in the request. If the server doesn't support this method, it returns UNIMPLEMENTED.
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `vision_operations_list_execute()` to send, or `vision_operations_list` for simplest API.
+
+pub fn vision_operations_list_builder(
+    client: &SimpleHttpClient,
+    filter: &Option<Option<String>>,
+    pageSize: &Option<Option<String>>,
+    pageToken: &Option<Option<String>>,
+    returnPartialSuccess: &Option<Option<String>>,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!("https://vision.googleapis.com/v1/operations",);
+
+    // Build request
+    let mut query_parts = Vec::new();
+    if let Some(val) = filter.as_ref() {
+        query_parts.push(format!("filter={}", val));
+    }
+    if let Some(val) = pageSize.as_ref() {
+        query_parts.push(format!("pageSize={}", val));
+    }
+    if let Some(val) = pageToken.as_ref() {
+        query_parts.push(format!("pageToken={}", val));
+    }
+    if let Some(val) = returnPartialSuccess.as_ref() {
+        query_parts.push(format!("returnPartialSuccess={}", val));
+    }
+
+    let url_with_query = if query_parts.is_empty() {
+        endpoint_url
+    } else {
+        format!("{}?{}", endpoint_url, query_parts.join("&"))
+    };
+
+    let builder = client
+        .get(&url_with_query)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// GET v1/operations
+/// Lists operations that match the specified filter in the request. If the server doesn't support this method, it returns UNIMPLEMENTED.
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `vision_operations_list_execute()` or `vision_operations_list`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `vision_operations_list_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn vision_operations_list_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<ListOperationsResponse>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: ListOperationsResponse = serde_json::from_str(&body)
+                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// GET v1/operations
+/// Lists operations that match the specified filter in the request. If the server doesn't support this method, it returns UNIMPLEMENTED.
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `vision_operations_list_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `vision_operations_list_task()`.
+/// For the simplest API, use `vision_operations_list()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `vision_operations_list_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn vision_operations_list_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<ListOperationsResponse>, ApiError>, P = ApiPending>
+        + Send
+        + 'static,
+    ApiError,
+> {
+    let task = vision_operations_list_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`vision_operations_list`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct VisionOperationsListArgs {
+    /// Query parameter: filter
+    pub filter: Option<Option<String>>,
+    /// Query parameter: pageSize
+    pub pageSize: Option<Option<String>>,
+    /// Query parameter: pageToken
+    pub pageToken: Option<Option<String>>,
+    /// Query parameter: returnPartialSuccess
+    pub returnPartialSuccess: Option<Option<String>>,
+}
+
+/// GET v1/operations
+/// Lists operations that match the specified filter in the request. If the server doesn't support this method, it returns UNIMPLEMENTED.
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `vision_operations_list_builder()` + `vision_operations_list_execute()`.
+/// For task-level control, use `vision_operations_list_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn vision_operations_list(
+    client: &SimpleHttpClient,
+    args: &VisionOperationsListArgs,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<ListOperationsResponse>, ApiError>, P = ApiPending>
+        + Send
+        + 'static,
+    ApiError,
+> {
+    let builder = vision_operations_list_builder(
+        client,
+        &args.filter,
+        &args.pageSize,
+        &args.pageToken,
+        &args.returnPartialSuccess,
+    )?;
+    vision_operations_list_execute(builder)
+}
+
+/// POST v1/projects/{projectsId}/files:annotate
 /// Service that performs image detection and annotation for a batch of files. Now only "`application/pdf`", "`image/tiff`" and "`image/gif`" are supported. This service will extract at most 5 (customers can specify which 5 in AnnotateFileRequest.pages) frames (gif) or pages (pdf or tiff) from each file provided and perform detection and annotation for each image extracted.
 ///
 /// Returns `ClientRequestBuilder` for customization.
@@ -982,22 +1440,22 @@ pub fn vision_operations_delete(
 pub fn vision_projects_files_annotate_builder(
     client: &SimpleHttpClient,
     parent: &String,
-    body: &BatchAnnotateFilesRequest,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
-    let endpoint_url = format!("https://vision.googleapis.com/v1/projects/{}/files:annotate",);
+    let endpoint_url = format!(
+        "https://vision.googleapis.com/v1/projects/{}/files:annotate",
+        parent,
+    );
 
     // Build request
     let builder = client
-        .get(&endpoint_url)
+        .post(&endpoint_url)
         .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
 
-    builder
-        .body_json(body)
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+    Ok(builder)
 }
 
-/// GET v1/projects/{projectsId}/files:annotate
+/// POST v1/projects/{projectsId}/files:annotate
 /// Service that performs image detection and annotation for a batch of files. Now only "`application/pdf`", "`image/tiff`" and "`image/gif`" are supported. This service will extract at most 5 (customers can specify which 5 in AnnotateFileRequest.pages) frames (gif) or pages (pdf or tiff) from each file provided and perform detection and annotation for each image extracted.
 ///
 /// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
@@ -1071,7 +1529,7 @@ pub fn vision_projects_files_annotate_task(
         .map_pending(|_| ApiPending::Sending))
 }
 
-/// GET v1/projects/{projectsId}/files:annotate
+/// POST v1/projects/{projectsId}/files:annotate
 /// Service that performs image detection and annotation for a batch of files. Now only "`application/pdf`", "`image/tiff`" and "`image/gif`" are supported. This service will extract at most 5 (customers can specify which 5 in AnnotateFileRequest.pages) frames (gif) or pages (pdf or tiff) from each file provided and perform detection and annotation for each image extracted.
 ///
 /// Takes a `ClientRequestBuilder`, builds and executes the request,
@@ -1110,11 +1568,9 @@ pub fn vision_projects_files_annotate_execute(
 pub struct VisionProjectsFilesAnnotateArgs {
     /// Path parameter: parent
     pub parent: String,
-    /// Request body.
-    pub body: BatchAnnotateFilesRequest,
 }
 
-/// GET v1/projects/{projectsId}/files:annotate
+/// POST v1/projects/{projectsId}/files:annotate
 /// Service that performs image detection and annotation for a batch of files. Now only "`application/pdf`", "`image/tiff`" and "`image/gif`" are supported. This service will extract at most 5 (customers can specify which 5 in AnnotateFileRequest.pages) frames (gif) or pages (pdf or tiff) from each file provided and perform detection and annotation for each image extracted.
 ///
 /// Simplest API - builds and executes the request in one call.
@@ -1136,11 +1592,11 @@ pub fn vision_projects_files_annotate(
         + 'static,
     ApiError,
 > {
-    let builder = vision_projects_files_annotate_builder(client, &args.parent, &args.body)?;
+    let builder = vision_projects_files_annotate_builder(client, &args.parent)?;
     vision_projects_files_annotate_execute(builder)
 }
 
-/// GET v1/projects/{projectsId}/files:asyncBatchAnnotate
+/// POST v1/projects/{projectsId}/files:asyncBatchAnnotate
 /// Run asynchronous image detection and annotation for a list of generic files, such as PDF files, which may contain multiple pages and multiple images per page. Progress and results can be retrieved through the google.longrunning.Operations interface. Operation.metadata contains OperationMetadata (metadata). Operation.response contains AsyncBatchAnnotateFilesResponse (results).
 ///
 /// Returns `ClientRequestBuilder` for customization.
@@ -1149,23 +1605,22 @@ pub fn vision_projects_files_annotate(
 pub fn vision_projects_files_async_batch_annotate_builder(
     client: &SimpleHttpClient,
     parent: &String,
-    body: &AsyncBatchAnnotateFilesRequest,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
-    let endpoint_url =
-        format!("https://vision.googleapis.com/v1/projects/{}/files:asyncBatchAnnotate",);
+    let endpoint_url = format!(
+        "https://vision.googleapis.com/v1/projects/{}/files:asyncBatchAnnotate",
+        parent,
+    );
 
     // Build request
     let builder = client
-        .get(&endpoint_url)
+        .post(&endpoint_url)
         .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
 
-    builder
-        .body_json(body)
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+    Ok(builder)
 }
 
-/// GET v1/projects/{projectsId}/files:asyncBatchAnnotate
+/// POST v1/projects/{projectsId}/files:asyncBatchAnnotate
 /// Run asynchronous image detection and annotation for a list of generic files, such as PDF files, which may contain multiple pages and multiple images per page. Progress and results can be retrieved through the google.longrunning.Operations interface. Operation.metadata contains OperationMetadata (metadata). Operation.response contains AsyncBatchAnnotateFilesResponse (results).
 ///
 /// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
@@ -1239,7 +1694,7 @@ pub fn vision_projects_files_async_batch_annotate_task(
         .map_pending(|_| ApiPending::Sending))
 }
 
-/// GET v1/projects/{projectsId}/files:asyncBatchAnnotate
+/// POST v1/projects/{projectsId}/files:asyncBatchAnnotate
 /// Run asynchronous image detection and annotation for a list of generic files, such as PDF files, which may contain multiple pages and multiple images per page. Progress and results can be retrieved through the google.longrunning.Operations interface. Operation.metadata contains OperationMetadata (metadata). Operation.response contains AsyncBatchAnnotateFilesResponse (results).
 ///
 /// Takes a `ClientRequestBuilder`, builds and executes the request,
@@ -1274,11 +1729,9 @@ pub fn vision_projects_files_async_batch_annotate_execute(
 pub struct VisionProjectsFilesAsyncBatchAnnotateArgs {
     /// Path parameter: parent
     pub parent: String,
-    /// Request body.
-    pub body: AsyncBatchAnnotateFilesRequest,
 }
 
-/// GET v1/projects/{projectsId}/files:asyncBatchAnnotate
+/// POST v1/projects/{projectsId}/files:asyncBatchAnnotate
 /// Run asynchronous image detection and annotation for a list of generic files, such as PDF files, which may contain multiple pages and multiple images per page. Progress and results can be retrieved through the google.longrunning.Operations interface. Operation.metadata contains OperationMetadata (metadata). Operation.response contains AsyncBatchAnnotateFilesResponse (results).
 ///
 /// Simplest API - builds and executes the request in one call.
@@ -1296,12 +1749,11 @@ pub fn vision_projects_files_async_batch_annotate(
     impl StreamIterator<D = Result<ApiResponse<Operation>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder =
-        vision_projects_files_async_batch_annotate_builder(client, &args.parent, &args.body)?;
+    let builder = vision_projects_files_async_batch_annotate_builder(client, &args.parent)?;
     vision_projects_files_async_batch_annotate_execute(builder)
 }
 
-/// GET v1/projects/{projectsId}/images:annotate
+/// POST v1/projects/{projectsId}/images:annotate
 /// Run image detection and annotation for a batch of images.
 ///
 /// Returns `ClientRequestBuilder` for customization.
@@ -1310,22 +1762,22 @@ pub fn vision_projects_files_async_batch_annotate(
 pub fn vision_projects_images_annotate_builder(
     client: &SimpleHttpClient,
     parent: &String,
-    body: &BatchAnnotateImagesRequest,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
-    let endpoint_url = format!("https://vision.googleapis.com/v1/projects/{}/images:annotate",);
+    let endpoint_url = format!(
+        "https://vision.googleapis.com/v1/projects/{}/images:annotate",
+        parent,
+    );
 
     // Build request
     let builder = client
-        .get(&endpoint_url)
+        .post(&endpoint_url)
         .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
 
-    builder
-        .body_json(body)
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+    Ok(builder)
 }
 
-/// GET v1/projects/{projectsId}/images:annotate
+/// POST v1/projects/{projectsId}/images:annotate
 /// Run image detection and annotation for a batch of images.
 ///
 /// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
@@ -1399,7 +1851,7 @@ pub fn vision_projects_images_annotate_task(
         .map_pending(|_| ApiPending::Sending))
 }
 
-/// GET v1/projects/{projectsId}/images:annotate
+/// POST v1/projects/{projectsId}/images:annotate
 /// Run image detection and annotation for a batch of images.
 ///
 /// Takes a `ClientRequestBuilder`, builds and executes the request,
@@ -1438,11 +1890,9 @@ pub fn vision_projects_images_annotate_execute(
 pub struct VisionProjectsImagesAnnotateArgs {
     /// Path parameter: parent
     pub parent: String,
-    /// Request body.
-    pub body: BatchAnnotateImagesRequest,
 }
 
-/// GET v1/projects/{projectsId}/images:annotate
+/// POST v1/projects/{projectsId}/images:annotate
 /// Run image detection and annotation for a batch of images.
 ///
 /// Simplest API - builds and executes the request in one call.
@@ -1464,11 +1914,11 @@ pub fn vision_projects_images_annotate(
         + 'static,
     ApiError,
 > {
-    let builder = vision_projects_images_annotate_builder(client, &args.parent, &args.body)?;
+    let builder = vision_projects_images_annotate_builder(client, &args.parent)?;
     vision_projects_images_annotate_execute(builder)
 }
 
-/// GET v1/projects/{projectsId}/images:asyncBatchAnnotate
+/// POST v1/projects/{projectsId}/images:asyncBatchAnnotate
 /// Run asynchronous image detection and annotation for a list of images. Progress and results can be retrieved through the google.longrunning.Operations interface. Operation.metadata contains OperationMetadata (metadata). Operation.response contains AsyncBatchAnnotateImagesResponse (results). This service will write image annotation outputs to json files in customer GCS bucket, each json file containing BatchAnnotateImagesResponse proto.
 ///
 /// Returns `ClientRequestBuilder` for customization.
@@ -1477,23 +1927,22 @@ pub fn vision_projects_images_annotate(
 pub fn vision_projects_images_async_batch_annotate_builder(
     client: &SimpleHttpClient,
     parent: &String,
-    body: &AsyncBatchAnnotateImagesRequest,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
-    let endpoint_url =
-        format!("https://vision.googleapis.com/v1/projects/{}/images:asyncBatchAnnotate",);
+    let endpoint_url = format!(
+        "https://vision.googleapis.com/v1/projects/{}/images:asyncBatchAnnotate",
+        parent,
+    );
 
     // Build request
     let builder = client
-        .get(&endpoint_url)
+        .post(&endpoint_url)
         .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
 
-    builder
-        .body_json(body)
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+    Ok(builder)
 }
 
-/// GET v1/projects/{projectsId}/images:asyncBatchAnnotate
+/// POST v1/projects/{projectsId}/images:asyncBatchAnnotate
 /// Run asynchronous image detection and annotation for a list of images. Progress and results can be retrieved through the google.longrunning.Operations interface. Operation.metadata contains OperationMetadata (metadata). Operation.response contains AsyncBatchAnnotateImagesResponse (results). This service will write image annotation outputs to json files in customer GCS bucket, each json file containing BatchAnnotateImagesResponse proto.
 ///
 /// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
@@ -1567,7 +2016,7 @@ pub fn vision_projects_images_async_batch_annotate_task(
         .map_pending(|_| ApiPending::Sending))
 }
 
-/// GET v1/projects/{projectsId}/images:asyncBatchAnnotate
+/// POST v1/projects/{projectsId}/images:asyncBatchAnnotate
 /// Run asynchronous image detection and annotation for a list of images. Progress and results can be retrieved through the google.longrunning.Operations interface. Operation.metadata contains OperationMetadata (metadata). Operation.response contains AsyncBatchAnnotateImagesResponse (results). This service will write image annotation outputs to json files in customer GCS bucket, each json file containing BatchAnnotateImagesResponse proto.
 ///
 /// Takes a `ClientRequestBuilder`, builds and executes the request,
@@ -1602,11 +2051,9 @@ pub fn vision_projects_images_async_batch_annotate_execute(
 pub struct VisionProjectsImagesAsyncBatchAnnotateArgs {
     /// Path parameter: parent
     pub parent: String,
-    /// Request body.
-    pub body: AsyncBatchAnnotateImagesRequest,
 }
 
-/// GET v1/projects/{projectsId}/images:asyncBatchAnnotate
+/// POST v1/projects/{projectsId}/images:asyncBatchAnnotate
 /// Run asynchronous image detection and annotation for a list of images. Progress and results can be retrieved through the google.longrunning.Operations interface. Operation.metadata contains OperationMetadata (metadata). Operation.response contains AsyncBatchAnnotateImagesResponse (results). This service will write image annotation outputs to json files in customer GCS bucket, each json file containing BatchAnnotateImagesResponse proto.
 ///
 /// Simplest API - builds and executes the request in one call.
@@ -1624,7 +2071,5075 @@ pub fn vision_projects_images_async_batch_annotate(
     impl StreamIterator<D = Result<ApiResponse<Operation>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder =
-        vision_projects_images_async_batch_annotate_builder(client, &args.parent, &args.body)?;
+    let builder = vision_projects_images_async_batch_annotate_builder(client, &args.parent)?;
     vision_projects_images_async_batch_annotate_execute(builder)
+}
+
+/// POST v1/projects/{projectsId}/locations/{locationsId}/files:annotate
+/// Service that performs image detection and annotation for a batch of files. Now only "`application/pdf`", "`image/tiff`" and "`image/gif`" are supported. This service will extract at most 5 (customers can specify which 5 in AnnotateFileRequest.pages) frames (gif) or pages (pdf or tiff) from each file provided and perform detection and annotation for each image extracted.
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `vision_projects_locations_files_annotate_execute()` to send, or `vision_projects_locations_files_annotate` for simplest API.
+
+pub fn vision_projects_locations_files_annotate_builder(
+    client: &SimpleHttpClient,
+    parent: &String,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!(
+        "https://vision.googleapis.com/v1/projects/{}/locations/{locationsId}/files:annotate",
+        parent,
+    );
+
+    // Build request
+    let builder = client
+        .post(&endpoint_url)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// POST v1/projects/{projectsId}/locations/{locationsId}/files:annotate
+/// Service that performs image detection and annotation for a batch of files. Now only "`application/pdf`", "`image/tiff`" and "`image/gif`" are supported. This service will extract at most 5 (customers can specify which 5 in AnnotateFileRequest.pages) frames (gif) or pages (pdf or tiff) from each file provided and perform detection and annotation for each image extracted.
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `vision_projects_locations_files_annotate_execute()` or `vision_projects_locations_files_annotate`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `vision_projects_locations_files_annotate_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn vision_projects_locations_files_annotate_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<BatchAnnotateFilesResponse>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: BatchAnnotateFilesResponse = serde_json::from_str(&body)
+                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// POST v1/projects/{projectsId}/locations/{locationsId}/files:annotate
+/// Service that performs image detection and annotation for a batch of files. Now only "`application/pdf`", "`image/tiff`" and "`image/gif`" are supported. This service will extract at most 5 (customers can specify which 5 in AnnotateFileRequest.pages) frames (gif) or pages (pdf or tiff) from each file provided and perform detection and annotation for each image extracted.
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `vision_projects_locations_files_annotate_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `vision_projects_locations_files_annotate_task()`.
+/// For the simplest API, use `vision_projects_locations_files_annotate()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `vision_projects_locations_files_annotate_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn vision_projects_locations_files_annotate_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<
+            D = Result<ApiResponse<BatchAnnotateFilesResponse>, ApiError>,
+            P = ApiPending,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    let task = vision_projects_locations_files_annotate_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`vision_projects_locations_files_annotate`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct VisionProjectsLocationsFilesAnnotateArgs {
+    /// Path parameter: parent
+    pub parent: String,
+}
+
+/// POST v1/projects/{projectsId}/locations/{locationsId}/files:annotate
+/// Service that performs image detection and annotation for a batch of files. Now only "`application/pdf`", "`image/tiff`" and "`image/gif`" are supported. This service will extract at most 5 (customers can specify which 5 in AnnotateFileRequest.pages) frames (gif) or pages (pdf or tiff) from each file provided and perform detection and annotation for each image extracted.
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `vision_projects_locations_files_annotate_builder()` + `vision_projects_locations_files_annotate_execute()`.
+/// For task-level control, use `vision_projects_locations_files_annotate_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn vision_projects_locations_files_annotate(
+    client: &SimpleHttpClient,
+    args: &VisionProjectsLocationsFilesAnnotateArgs,
+) -> Result<
+    impl StreamIterator<
+            D = Result<ApiResponse<BatchAnnotateFilesResponse>, ApiError>,
+            P = ApiPending,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    let builder = vision_projects_locations_files_annotate_builder(client, &args.parent)?;
+    vision_projects_locations_files_annotate_execute(builder)
+}
+
+/// POST v1/projects/{projectsId}/locations/{locationsId}/files:asyncBatchAnnotate
+/// Run asynchronous image detection and annotation for a list of generic files, such as PDF files, which may contain multiple pages and multiple images per page. Progress and results can be retrieved through the google.longrunning.Operations interface. Operation.metadata contains OperationMetadata (metadata). Operation.response contains AsyncBatchAnnotateFilesResponse (results).
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `vision_projects_locations_files_async_batch_annotate_execute()` to send, or `vision_projects_locations_files_async_batch_annotate` for simplest API.
+
+pub fn vision_projects_locations_files_async_batch_annotate_builder(
+    client: &SimpleHttpClient,
+    parent: &String,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!(
+        "https://vision.googleapis.com/v1/projects/{}/locations/{locationsId}/files:asyncBatchAnnotate",
+        parent,
+    );
+
+    // Build request
+    let builder = client
+        .post(&endpoint_url)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// POST v1/projects/{projectsId}/locations/{locationsId}/files:asyncBatchAnnotate
+/// Run asynchronous image detection and annotation for a list of generic files, such as PDF files, which may contain multiple pages and multiple images per page. Progress and results can be retrieved through the google.longrunning.Operations interface. Operation.metadata contains OperationMetadata (metadata). Operation.response contains AsyncBatchAnnotateFilesResponse (results).
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `vision_projects_locations_files_async_batch_annotate_execute()` or `vision_projects_locations_files_async_batch_annotate`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `vision_projects_locations_files_async_batch_annotate_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn vision_projects_locations_files_async_batch_annotate_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<Operation>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: Operation = serde_json::from_str(&body)
+                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// POST v1/projects/{projectsId}/locations/{locationsId}/files:asyncBatchAnnotate
+/// Run asynchronous image detection and annotation for a list of generic files, such as PDF files, which may contain multiple pages and multiple images per page. Progress and results can be retrieved through the google.longrunning.Operations interface. Operation.metadata contains OperationMetadata (metadata). Operation.response contains AsyncBatchAnnotateFilesResponse (results).
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `vision_projects_locations_files_async_batch_annotate_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `vision_projects_locations_files_async_batch_annotate_task()`.
+/// For the simplest API, use `vision_projects_locations_files_async_batch_annotate()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `vision_projects_locations_files_async_batch_annotate_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn vision_projects_locations_files_async_batch_annotate_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<Operation>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let task = vision_projects_locations_files_async_batch_annotate_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`vision_projects_locations_files_async_batch_annotate`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct VisionProjectsLocationsFilesAsyncBatchAnnotateArgs {
+    /// Path parameter: parent
+    pub parent: String,
+}
+
+/// POST v1/projects/{projectsId}/locations/{locationsId}/files:asyncBatchAnnotate
+/// Run asynchronous image detection and annotation for a list of generic files, such as PDF files, which may contain multiple pages and multiple images per page. Progress and results can be retrieved through the google.longrunning.Operations interface. Operation.metadata contains OperationMetadata (metadata). Operation.response contains AsyncBatchAnnotateFilesResponse (results).
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `vision_projects_locations_files_async_batch_annotate_builder()` + `vision_projects_locations_files_async_batch_annotate_execute()`.
+/// For task-level control, use `vision_projects_locations_files_async_batch_annotate_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn vision_projects_locations_files_async_batch_annotate(
+    client: &SimpleHttpClient,
+    args: &VisionProjectsLocationsFilesAsyncBatchAnnotateArgs,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<Operation>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let builder =
+        vision_projects_locations_files_async_batch_annotate_builder(client, &args.parent)?;
+    vision_projects_locations_files_async_batch_annotate_execute(builder)
+}
+
+/// POST v1/projects/{projectsId}/locations/{locationsId}/images:annotate
+/// Run image detection and annotation for a batch of images.
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `vision_projects_locations_images_annotate_execute()` to send, or `vision_projects_locations_images_annotate` for simplest API.
+
+pub fn vision_projects_locations_images_annotate_builder(
+    client: &SimpleHttpClient,
+    parent: &String,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!(
+        "https://vision.googleapis.com/v1/projects/{}/locations/{locationsId}/images:annotate",
+        parent,
+    );
+
+    // Build request
+    let builder = client
+        .post(&endpoint_url)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// POST v1/projects/{projectsId}/locations/{locationsId}/images:annotate
+/// Run image detection and annotation for a batch of images.
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `vision_projects_locations_images_annotate_execute()` or `vision_projects_locations_images_annotate`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `vision_projects_locations_images_annotate_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn vision_projects_locations_images_annotate_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<BatchAnnotateImagesResponse>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: BatchAnnotateImagesResponse = serde_json::from_str(&body)
+                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// POST v1/projects/{projectsId}/locations/{locationsId}/images:annotate
+/// Run image detection and annotation for a batch of images.
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `vision_projects_locations_images_annotate_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `vision_projects_locations_images_annotate_task()`.
+/// For the simplest API, use `vision_projects_locations_images_annotate()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `vision_projects_locations_images_annotate_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn vision_projects_locations_images_annotate_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<
+            D = Result<ApiResponse<BatchAnnotateImagesResponse>, ApiError>,
+            P = ApiPending,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    let task = vision_projects_locations_images_annotate_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`vision_projects_locations_images_annotate`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct VisionProjectsLocationsImagesAnnotateArgs {
+    /// Path parameter: parent
+    pub parent: String,
+}
+
+/// POST v1/projects/{projectsId}/locations/{locationsId}/images:annotate
+/// Run image detection and annotation for a batch of images.
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `vision_projects_locations_images_annotate_builder()` + `vision_projects_locations_images_annotate_execute()`.
+/// For task-level control, use `vision_projects_locations_images_annotate_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn vision_projects_locations_images_annotate(
+    client: &SimpleHttpClient,
+    args: &VisionProjectsLocationsImagesAnnotateArgs,
+) -> Result<
+    impl StreamIterator<
+            D = Result<ApiResponse<BatchAnnotateImagesResponse>, ApiError>,
+            P = ApiPending,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    let builder = vision_projects_locations_images_annotate_builder(client, &args.parent)?;
+    vision_projects_locations_images_annotate_execute(builder)
+}
+
+/// POST v1/projects/{projectsId}/locations/{locationsId}/images:asyncBatchAnnotate
+/// Run asynchronous image detection and annotation for a list of images. Progress and results can be retrieved through the google.longrunning.Operations interface. Operation.metadata contains OperationMetadata (metadata). Operation.response contains AsyncBatchAnnotateImagesResponse (results). This service will write image annotation outputs to json files in customer GCS bucket, each json file containing BatchAnnotateImagesResponse proto.
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `vision_projects_locations_images_async_batch_annotate_execute()` to send, or `vision_projects_locations_images_async_batch_annotate` for simplest API.
+
+pub fn vision_projects_locations_images_async_batch_annotate_builder(
+    client: &SimpleHttpClient,
+    parent: &String,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!(
+        "https://vision.googleapis.com/v1/projects/{}/locations/{locationsId}/images:asyncBatchAnnotate",
+        parent,
+    );
+
+    // Build request
+    let builder = client
+        .post(&endpoint_url)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// POST v1/projects/{projectsId}/locations/{locationsId}/images:asyncBatchAnnotate
+/// Run asynchronous image detection and annotation for a list of images. Progress and results can be retrieved through the google.longrunning.Operations interface. Operation.metadata contains OperationMetadata (metadata). Operation.response contains AsyncBatchAnnotateImagesResponse (results). This service will write image annotation outputs to json files in customer GCS bucket, each json file containing BatchAnnotateImagesResponse proto.
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `vision_projects_locations_images_async_batch_annotate_execute()` or `vision_projects_locations_images_async_batch_annotate`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `vision_projects_locations_images_async_batch_annotate_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn vision_projects_locations_images_async_batch_annotate_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<Operation>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: Operation = serde_json::from_str(&body)
+                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// POST v1/projects/{projectsId}/locations/{locationsId}/images:asyncBatchAnnotate
+/// Run asynchronous image detection and annotation for a list of images. Progress and results can be retrieved through the google.longrunning.Operations interface. Operation.metadata contains OperationMetadata (metadata). Operation.response contains AsyncBatchAnnotateImagesResponse (results). This service will write image annotation outputs to json files in customer GCS bucket, each json file containing BatchAnnotateImagesResponse proto.
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `vision_projects_locations_images_async_batch_annotate_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `vision_projects_locations_images_async_batch_annotate_task()`.
+/// For the simplest API, use `vision_projects_locations_images_async_batch_annotate()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `vision_projects_locations_images_async_batch_annotate_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn vision_projects_locations_images_async_batch_annotate_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<Operation>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let task = vision_projects_locations_images_async_batch_annotate_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`vision_projects_locations_images_async_batch_annotate`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct VisionProjectsLocationsImagesAsyncBatchAnnotateArgs {
+    /// Path parameter: parent
+    pub parent: String,
+}
+
+/// POST v1/projects/{projectsId}/locations/{locationsId}/images:asyncBatchAnnotate
+/// Run asynchronous image detection and annotation for a list of images. Progress and results can be retrieved through the google.longrunning.Operations interface. Operation.metadata contains OperationMetadata (metadata). Operation.response contains AsyncBatchAnnotateImagesResponse (results). This service will write image annotation outputs to json files in customer GCS bucket, each json file containing BatchAnnotateImagesResponse proto.
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `vision_projects_locations_images_async_batch_annotate_builder()` + `vision_projects_locations_images_async_batch_annotate_execute()`.
+/// For task-level control, use `vision_projects_locations_images_async_batch_annotate_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn vision_projects_locations_images_async_batch_annotate(
+    client: &SimpleHttpClient,
+    args: &VisionProjectsLocationsImagesAsyncBatchAnnotateArgs,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<Operation>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let builder =
+        vision_projects_locations_images_async_batch_annotate_builder(client, &args.parent)?;
+    vision_projects_locations_images_async_batch_annotate_execute(builder)
+}
+
+/// GET v1/projects/{projectsId}/locations/{locationsId}/operations/{operationsId}
+/// Gets the latest state of a long-running operation. Clients can use this method to poll the operation result at intervals as recommended by the API service.
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `vision_projects_locations_operations_get_execute()` to send, or `vision_projects_locations_operations_get` for simplest API.
+
+pub fn vision_projects_locations_operations_get_builder(
+    client: &SimpleHttpClient,
+    name: &String,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!(
+        "https://vision.googleapis.com/v1/projects/{}/locations/{locationsId}/operations/{operationsId}",
+        name,
+    );
+
+    // Build request
+    let builder = client
+        .get(&endpoint_url)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// GET v1/projects/{projectsId}/locations/{locationsId}/operations/{operationsId}
+/// Gets the latest state of a long-running operation. Clients can use this method to poll the operation result at intervals as recommended by the API service.
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `vision_projects_locations_operations_get_execute()` or `vision_projects_locations_operations_get`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `vision_projects_locations_operations_get_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn vision_projects_locations_operations_get_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<Operation>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: Operation = serde_json::from_str(&body)
+                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// GET v1/projects/{projectsId}/locations/{locationsId}/operations/{operationsId}
+/// Gets the latest state of a long-running operation. Clients can use this method to poll the operation result at intervals as recommended by the API service.
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `vision_projects_locations_operations_get_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `vision_projects_locations_operations_get_task()`.
+/// For the simplest API, use `vision_projects_locations_operations_get()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `vision_projects_locations_operations_get_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn vision_projects_locations_operations_get_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<Operation>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let task = vision_projects_locations_operations_get_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`vision_projects_locations_operations_get`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct VisionProjectsLocationsOperationsGetArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
+/// GET v1/projects/{projectsId}/locations/{locationsId}/operations/{operationsId}
+/// Gets the latest state of a long-running operation. Clients can use this method to poll the operation result at intervals as recommended by the API service.
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `vision_projects_locations_operations_get_builder()` + `vision_projects_locations_operations_get_execute()`.
+/// For task-level control, use `vision_projects_locations_operations_get_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn vision_projects_locations_operations_get(
+    client: &SimpleHttpClient,
+    args: &VisionProjectsLocationsOperationsGetArgs,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<Operation>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let builder = vision_projects_locations_operations_get_builder(client, &args.name)?;
+    vision_projects_locations_operations_get_execute(builder)
+}
+
+/// POST v1/projects/{projectsId}/locations/{locationsId}/productSets/{productSetsId}:addProduct
+/// Adds a Product to the specified ProductSet. If the Product is already present, no change is made. One Product can be added to at most 100 ProductSets. Possible errors: * Returns NOT_FOUND if the Product or the ProductSet doesn't exist.
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `vision_projects_locations_product_sets_add_product_execute()` to send, or `vision_projects_locations_product_sets_add_product` for simplest API.
+
+pub fn vision_projects_locations_product_sets_add_product_builder(
+    client: &SimpleHttpClient,
+    name: &String,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!(
+        "https://vision.googleapis.com/v1/projects/{}/locations/{locationsId}/productSets/{productSetsId}:addProduct",
+        name,
+    );
+
+    // Build request
+    let builder = client
+        .post(&endpoint_url)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// POST v1/projects/{projectsId}/locations/{locationsId}/productSets/{productSetsId}:addProduct
+/// Adds a Product to the specified ProductSet. If the Product is already present, no change is made. One Product can be added to at most 100 ProductSets. Possible errors: * Returns NOT_FOUND if the Product or the ProductSet doesn't exist.
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `vision_projects_locations_product_sets_add_product_execute()` or `vision_projects_locations_product_sets_add_product`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `vision_projects_locations_product_sets_add_product_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn vision_projects_locations_product_sets_add_product_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<Empty>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: Empty = serde_json::from_str(&body)
+                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// POST v1/projects/{projectsId}/locations/{locationsId}/productSets/{productSetsId}:addProduct
+/// Adds a Product to the specified ProductSet. If the Product is already present, no change is made. One Product can be added to at most 100 ProductSets. Possible errors: * Returns NOT_FOUND if the Product or the ProductSet doesn't exist.
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `vision_projects_locations_product_sets_add_product_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `vision_projects_locations_product_sets_add_product_task()`.
+/// For the simplest API, use `vision_projects_locations_product_sets_add_product()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `vision_projects_locations_product_sets_add_product_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn vision_projects_locations_product_sets_add_product_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<Empty>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let task = vision_projects_locations_product_sets_add_product_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`vision_projects_locations_product_sets_add_product`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct VisionProjectsLocationsProductSetsAddProductArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
+/// POST v1/projects/{projectsId}/locations/{locationsId}/productSets/{productSetsId}:addProduct
+/// Adds a Product to the specified ProductSet. If the Product is already present, no change is made. One Product can be added to at most 100 ProductSets. Possible errors: * Returns NOT_FOUND if the Product or the ProductSet doesn't exist.
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `vision_projects_locations_product_sets_add_product_builder()` + `vision_projects_locations_product_sets_add_product_execute()`.
+/// For task-level control, use `vision_projects_locations_product_sets_add_product_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn vision_projects_locations_product_sets_add_product(
+    client: &SimpleHttpClient,
+    args: &VisionProjectsLocationsProductSetsAddProductArgs,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<Empty>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let builder = vision_projects_locations_product_sets_add_product_builder(client, &args.name)?;
+    vision_projects_locations_product_sets_add_product_execute(builder)
+}
+
+/// POST v1/projects/{projectsId}/locations/{locationsId}/productSets
+/// Creates and returns a new ProductSet resource. Possible errors: * Returns INVALID_ARGUMENT if display_name is missing, or is longer than 4096 characters.
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `vision_projects_locations_product_sets_create_execute()` to send, or `vision_projects_locations_product_sets_create` for simplest API.
+
+pub fn vision_projects_locations_product_sets_create_builder(
+    client: &SimpleHttpClient,
+    parent: &String,
+    productSetId: &Option<Option<String>>,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!(
+        "https://vision.googleapis.com/v1/projects/{}/locations/{locationsId}/productSets",
+        parent,
+    );
+
+    // Build request
+    let mut query_parts = Vec::new();
+    if let Some(val) = productSetId.as_ref() {
+        query_parts.push(format!("productSetId={}", val));
+    }
+
+    let url_with_query = if query_parts.is_empty() {
+        endpoint_url
+    } else {
+        format!("{}?{}", endpoint_url, query_parts.join("&"))
+    };
+
+    let builder = client
+        .post(&url_with_query)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// POST v1/projects/{projectsId}/locations/{locationsId}/productSets
+/// Creates and returns a new ProductSet resource. Possible errors: * Returns INVALID_ARGUMENT if display_name is missing, or is longer than 4096 characters.
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `vision_projects_locations_product_sets_create_execute()` or `vision_projects_locations_product_sets_create`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `vision_projects_locations_product_sets_create_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn vision_projects_locations_product_sets_create_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<ProductSet>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: ProductSet = serde_json::from_str(&body)
+                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// POST v1/projects/{projectsId}/locations/{locationsId}/productSets
+/// Creates and returns a new ProductSet resource. Possible errors: * Returns INVALID_ARGUMENT if display_name is missing, or is longer than 4096 characters.
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `vision_projects_locations_product_sets_create_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `vision_projects_locations_product_sets_create_task()`.
+/// For the simplest API, use `vision_projects_locations_product_sets_create()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `vision_projects_locations_product_sets_create_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn vision_projects_locations_product_sets_create_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<ProductSet>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let task = vision_projects_locations_product_sets_create_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`vision_projects_locations_product_sets_create`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct VisionProjectsLocationsProductSetsCreateArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Query parameter: productSetId
+    pub productSetId: Option<Option<String>>,
+}
+
+/// POST v1/projects/{projectsId}/locations/{locationsId}/productSets
+/// Creates and returns a new ProductSet resource. Possible errors: * Returns INVALID_ARGUMENT if display_name is missing, or is longer than 4096 characters.
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `vision_projects_locations_product_sets_create_builder()` + `vision_projects_locations_product_sets_create_execute()`.
+/// For task-level control, use `vision_projects_locations_product_sets_create_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn vision_projects_locations_product_sets_create(
+    client: &SimpleHttpClient,
+    args: &VisionProjectsLocationsProductSetsCreateArgs,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<ProductSet>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let builder = vision_projects_locations_product_sets_create_builder(
+        client,
+        &args.parent,
+        &args.productSetId,
+    )?;
+    vision_projects_locations_product_sets_create_execute(builder)
+}
+
+/// DELETE v1/projects/{projectsId}/locations/{locationsId}/productSets/{productSetsId}
+/// Permanently deletes a ProductSet. Products and ReferenceImages in the ProductSet are not deleted. The actual image files are not deleted from Google Cloud Storage.
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `vision_projects_locations_product_sets_delete_execute()` to send, or `vision_projects_locations_product_sets_delete` for simplest API.
+
+pub fn vision_projects_locations_product_sets_delete_builder(
+    client: &SimpleHttpClient,
+    name: &String,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!(
+        "https://vision.googleapis.com/v1/projects/{}/locations/{locationsId}/productSets/{productSetsId}",
+        name,
+    );
+
+    // Build request
+    let builder = client
+        .delete(&endpoint_url)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// DELETE v1/projects/{projectsId}/locations/{locationsId}/productSets/{productSetsId}
+/// Permanently deletes a ProductSet. Products and ReferenceImages in the ProductSet are not deleted. The actual image files are not deleted from Google Cloud Storage.
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `vision_projects_locations_product_sets_delete_execute()` or `vision_projects_locations_product_sets_delete`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `vision_projects_locations_product_sets_delete_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn vision_projects_locations_product_sets_delete_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<Empty>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: Empty = serde_json::from_str(&body)
+                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// DELETE v1/projects/{projectsId}/locations/{locationsId}/productSets/{productSetsId}
+/// Permanently deletes a ProductSet. Products and ReferenceImages in the ProductSet are not deleted. The actual image files are not deleted from Google Cloud Storage.
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `vision_projects_locations_product_sets_delete_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `vision_projects_locations_product_sets_delete_task()`.
+/// For the simplest API, use `vision_projects_locations_product_sets_delete()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `vision_projects_locations_product_sets_delete_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn vision_projects_locations_product_sets_delete_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<Empty>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let task = vision_projects_locations_product_sets_delete_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`vision_projects_locations_product_sets_delete`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct VisionProjectsLocationsProductSetsDeleteArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
+/// DELETE v1/projects/{projectsId}/locations/{locationsId}/productSets/{productSetsId}
+/// Permanently deletes a ProductSet. Products and ReferenceImages in the ProductSet are not deleted. The actual image files are not deleted from Google Cloud Storage.
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `vision_projects_locations_product_sets_delete_builder()` + `vision_projects_locations_product_sets_delete_execute()`.
+/// For task-level control, use `vision_projects_locations_product_sets_delete_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn vision_projects_locations_product_sets_delete(
+    client: &SimpleHttpClient,
+    args: &VisionProjectsLocationsProductSetsDeleteArgs,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<Empty>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let builder = vision_projects_locations_product_sets_delete_builder(client, &args.name)?;
+    vision_projects_locations_product_sets_delete_execute(builder)
+}
+
+/// GET v1/projects/{projectsId}/locations/{locationsId}/productSets/{productSetsId}
+/// Gets information associated with a ProductSet. Possible errors: * Returns NOT_FOUND if the ProductSet does not exist.
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `vision_projects_locations_product_sets_get_execute()` to send, or `vision_projects_locations_product_sets_get` for simplest API.
+
+pub fn vision_projects_locations_product_sets_get_builder(
+    client: &SimpleHttpClient,
+    name: &String,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!(
+        "https://vision.googleapis.com/v1/projects/{}/locations/{locationsId}/productSets/{productSetsId}",
+        name,
+    );
+
+    // Build request
+    let builder = client
+        .get(&endpoint_url)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// GET v1/projects/{projectsId}/locations/{locationsId}/productSets/{productSetsId}
+/// Gets information associated with a ProductSet. Possible errors: * Returns NOT_FOUND if the ProductSet does not exist.
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `vision_projects_locations_product_sets_get_execute()` or `vision_projects_locations_product_sets_get`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `vision_projects_locations_product_sets_get_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn vision_projects_locations_product_sets_get_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<ProductSet>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: ProductSet = serde_json::from_str(&body)
+                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// GET v1/projects/{projectsId}/locations/{locationsId}/productSets/{productSetsId}
+/// Gets information associated with a ProductSet. Possible errors: * Returns NOT_FOUND if the ProductSet does not exist.
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `vision_projects_locations_product_sets_get_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `vision_projects_locations_product_sets_get_task()`.
+/// For the simplest API, use `vision_projects_locations_product_sets_get()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `vision_projects_locations_product_sets_get_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn vision_projects_locations_product_sets_get_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<ProductSet>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let task = vision_projects_locations_product_sets_get_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`vision_projects_locations_product_sets_get`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct VisionProjectsLocationsProductSetsGetArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
+/// GET v1/projects/{projectsId}/locations/{locationsId}/productSets/{productSetsId}
+/// Gets information associated with a ProductSet. Possible errors: * Returns NOT_FOUND if the ProductSet does not exist.
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `vision_projects_locations_product_sets_get_builder()` + `vision_projects_locations_product_sets_get_execute()`.
+/// For task-level control, use `vision_projects_locations_product_sets_get_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn vision_projects_locations_product_sets_get(
+    client: &SimpleHttpClient,
+    args: &VisionProjectsLocationsProductSetsGetArgs,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<ProductSet>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let builder = vision_projects_locations_product_sets_get_builder(client, &args.name)?;
+    vision_projects_locations_product_sets_get_execute(builder)
+}
+
+/// POST v1/projects/{projectsId}/locations/{locationsId}/productSets:import
+/// Asynchronous API that imports a list of reference images to specified product sets based on a list of image information. The google.longrunning.Operation API can be used to keep track of the progress and results of the request. Operation.metadata contains BatchOperationMetadata. (progress) Operation.response contains ImportProductSetsResponse. (results) The input source of this method is a csv file on Google Cloud Storage. For the format of the csv file please see ImportProductSetsGcsSource.csv_file_uri.
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `vision_projects_locations_product_sets_import_execute()` to send, or `vision_projects_locations_product_sets_import` for simplest API.
+
+pub fn vision_projects_locations_product_sets_import_builder(
+    client: &SimpleHttpClient,
+    parent: &String,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!(
+        "https://vision.googleapis.com/v1/projects/{}/locations/{locationsId}/productSets:import",
+        parent,
+    );
+
+    // Build request
+    let builder = client
+        .post(&endpoint_url)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// POST v1/projects/{projectsId}/locations/{locationsId}/productSets:import
+/// Asynchronous API that imports a list of reference images to specified product sets based on a list of image information. The google.longrunning.Operation API can be used to keep track of the progress and results of the request. Operation.metadata contains BatchOperationMetadata. (progress) Operation.response contains ImportProductSetsResponse. (results) The input source of this method is a csv file on Google Cloud Storage. For the format of the csv file please see ImportProductSetsGcsSource.csv_file_uri.
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `vision_projects_locations_product_sets_import_execute()` or `vision_projects_locations_product_sets_import`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `vision_projects_locations_product_sets_import_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn vision_projects_locations_product_sets_import_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<Operation>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: Operation = serde_json::from_str(&body)
+                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// POST v1/projects/{projectsId}/locations/{locationsId}/productSets:import
+/// Asynchronous API that imports a list of reference images to specified product sets based on a list of image information. The google.longrunning.Operation API can be used to keep track of the progress and results of the request. Operation.metadata contains BatchOperationMetadata. (progress) Operation.response contains ImportProductSetsResponse. (results) The input source of this method is a csv file on Google Cloud Storage. For the format of the csv file please see ImportProductSetsGcsSource.csv_file_uri.
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `vision_projects_locations_product_sets_import_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `vision_projects_locations_product_sets_import_task()`.
+/// For the simplest API, use `vision_projects_locations_product_sets_import()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `vision_projects_locations_product_sets_import_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn vision_projects_locations_product_sets_import_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<Operation>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let task = vision_projects_locations_product_sets_import_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`vision_projects_locations_product_sets_import`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct VisionProjectsLocationsProductSetsImportArgs {
+    /// Path parameter: parent
+    pub parent: String,
+}
+
+/// POST v1/projects/{projectsId}/locations/{locationsId}/productSets:import
+/// Asynchronous API that imports a list of reference images to specified product sets based on a list of image information. The google.longrunning.Operation API can be used to keep track of the progress and results of the request. Operation.metadata contains BatchOperationMetadata. (progress) Operation.response contains ImportProductSetsResponse. (results) The input source of this method is a csv file on Google Cloud Storage. For the format of the csv file please see ImportProductSetsGcsSource.csv_file_uri.
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `vision_projects_locations_product_sets_import_builder()` + `vision_projects_locations_product_sets_import_execute()`.
+/// For task-level control, use `vision_projects_locations_product_sets_import_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn vision_projects_locations_product_sets_import(
+    client: &SimpleHttpClient,
+    args: &VisionProjectsLocationsProductSetsImportArgs,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<Operation>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let builder = vision_projects_locations_product_sets_import_builder(client, &args.parent)?;
+    vision_projects_locations_product_sets_import_execute(builder)
+}
+
+/// GET v1/projects/{projectsId}/locations/{locationsId}/productSets
+/// Lists ProductSets in an unspecified order. Possible errors: * Returns INVALID_ARGUMENT if page_size is greater than 100, or less than 1.
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `vision_projects_locations_product_sets_list_execute()` to send, or `vision_projects_locations_product_sets_list` for simplest API.
+
+pub fn vision_projects_locations_product_sets_list_builder(
+    client: &SimpleHttpClient,
+    parent: &String,
+    pageSize: &Option<Option<String>>,
+    pageToken: &Option<Option<String>>,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!(
+        "https://vision.googleapis.com/v1/projects/{}/locations/{locationsId}/productSets",
+        parent,
+    );
+
+    // Build request
+    let mut query_parts = Vec::new();
+    if let Some(val) = pageSize.as_ref() {
+        query_parts.push(format!("pageSize={}", val));
+    }
+    if let Some(val) = pageToken.as_ref() {
+        query_parts.push(format!("pageToken={}", val));
+    }
+
+    let url_with_query = if query_parts.is_empty() {
+        endpoint_url
+    } else {
+        format!("{}?{}", endpoint_url, query_parts.join("&"))
+    };
+
+    let builder = client
+        .get(&url_with_query)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// GET v1/projects/{projectsId}/locations/{locationsId}/productSets
+/// Lists ProductSets in an unspecified order. Possible errors: * Returns INVALID_ARGUMENT if page_size is greater than 100, or less than 1.
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `vision_projects_locations_product_sets_list_execute()` or `vision_projects_locations_product_sets_list`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `vision_projects_locations_product_sets_list_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn vision_projects_locations_product_sets_list_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<ListProductSetsResponse>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: ListProductSetsResponse = serde_json::from_str(&body)
+                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// GET v1/projects/{projectsId}/locations/{locationsId}/productSets
+/// Lists ProductSets in an unspecified order. Possible errors: * Returns INVALID_ARGUMENT if page_size is greater than 100, or less than 1.
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `vision_projects_locations_product_sets_list_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `vision_projects_locations_product_sets_list_task()`.
+/// For the simplest API, use `vision_projects_locations_product_sets_list()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `vision_projects_locations_product_sets_list_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn vision_projects_locations_product_sets_list_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<ListProductSetsResponse>, ApiError>, P = ApiPending>
+        + Send
+        + 'static,
+    ApiError,
+> {
+    let task = vision_projects_locations_product_sets_list_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`vision_projects_locations_product_sets_list`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct VisionProjectsLocationsProductSetsListArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Query parameter: pageSize
+    pub pageSize: Option<Option<String>>,
+    /// Query parameter: pageToken
+    pub pageToken: Option<Option<String>>,
+}
+
+/// GET v1/projects/{projectsId}/locations/{locationsId}/productSets
+/// Lists ProductSets in an unspecified order. Possible errors: * Returns INVALID_ARGUMENT if page_size is greater than 100, or less than 1.
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `vision_projects_locations_product_sets_list_builder()` + `vision_projects_locations_product_sets_list_execute()`.
+/// For task-level control, use `vision_projects_locations_product_sets_list_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn vision_projects_locations_product_sets_list(
+    client: &SimpleHttpClient,
+    args: &VisionProjectsLocationsProductSetsListArgs,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<ListProductSetsResponse>, ApiError>, P = ApiPending>
+        + Send
+        + 'static,
+    ApiError,
+> {
+    let builder = vision_projects_locations_product_sets_list_builder(
+        client,
+        &args.parent,
+        &args.pageSize,
+        &args.pageToken,
+    )?;
+    vision_projects_locations_product_sets_list_execute(builder)
+}
+
+/// PATCH v1/projects/{projectsId}/locations/{locationsId}/productSets/{productSetsId}
+/// Makes changes to a ProductSet resource. Only display_name can be updated currently. Possible errors: * Returns NOT_FOUND if the ProductSet does not exist. * Returns INVALID_ARGUMENT if display_name is present in update_mask but missing from the request or longer than 4096 characters.
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `vision_projects_locations_product_sets_patch_execute()` to send, or `vision_projects_locations_product_sets_patch` for simplest API.
+
+pub fn vision_projects_locations_product_sets_patch_builder(
+    client: &SimpleHttpClient,
+    name: &String,
+    updateMask: &Option<Option<String>>,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!(
+        "https://vision.googleapis.com/v1/projects/{}/locations/{locationsId}/productSets/{productSetsId}",
+        name,
+    );
+
+    // Build request
+    let mut query_parts = Vec::new();
+    if let Some(val) = updateMask.as_ref() {
+        query_parts.push(format!("updateMask={}", val));
+    }
+
+    let url_with_query = if query_parts.is_empty() {
+        endpoint_url
+    } else {
+        format!("{}?{}", endpoint_url, query_parts.join("&"))
+    };
+
+    let builder = client
+        .patch(&url_with_query)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// PATCH v1/projects/{projectsId}/locations/{locationsId}/productSets/{productSetsId}
+/// Makes changes to a ProductSet resource. Only display_name can be updated currently. Possible errors: * Returns NOT_FOUND if the ProductSet does not exist. * Returns INVALID_ARGUMENT if display_name is present in update_mask but missing from the request or longer than 4096 characters.
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `vision_projects_locations_product_sets_patch_execute()` or `vision_projects_locations_product_sets_patch`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `vision_projects_locations_product_sets_patch_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn vision_projects_locations_product_sets_patch_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<ProductSet>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: ProductSet = serde_json::from_str(&body)
+                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// PATCH v1/projects/{projectsId}/locations/{locationsId}/productSets/{productSetsId}
+/// Makes changes to a ProductSet resource. Only display_name can be updated currently. Possible errors: * Returns NOT_FOUND if the ProductSet does not exist. * Returns INVALID_ARGUMENT if display_name is present in update_mask but missing from the request or longer than 4096 characters.
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `vision_projects_locations_product_sets_patch_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `vision_projects_locations_product_sets_patch_task()`.
+/// For the simplest API, use `vision_projects_locations_product_sets_patch()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `vision_projects_locations_product_sets_patch_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn vision_projects_locations_product_sets_patch_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<ProductSet>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let task = vision_projects_locations_product_sets_patch_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`vision_projects_locations_product_sets_patch`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct VisionProjectsLocationsProductSetsPatchArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Query parameter: updateMask
+    pub updateMask: Option<Option<String>>,
+}
+
+/// PATCH v1/projects/{projectsId}/locations/{locationsId}/productSets/{productSetsId}
+/// Makes changes to a ProductSet resource. Only display_name can be updated currently. Possible errors: * Returns NOT_FOUND if the ProductSet does not exist. * Returns INVALID_ARGUMENT if display_name is present in update_mask but missing from the request or longer than 4096 characters.
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `vision_projects_locations_product_sets_patch_builder()` + `vision_projects_locations_product_sets_patch_execute()`.
+/// For task-level control, use `vision_projects_locations_product_sets_patch_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn vision_projects_locations_product_sets_patch(
+    client: &SimpleHttpClient,
+    args: &VisionProjectsLocationsProductSetsPatchArgs,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<ProductSet>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let builder =
+        vision_projects_locations_product_sets_patch_builder(client, &args.name, &args.updateMask)?;
+    vision_projects_locations_product_sets_patch_execute(builder)
+}
+
+/// POST v1/projects/{projectsId}/locations/{locationsId}/productSets/{productSetsId}:removeProduct
+/// Removes a Product from the specified ProductSet.
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `vision_projects_locations_product_sets_remove_product_execute()` to send, or `vision_projects_locations_product_sets_remove_product` for simplest API.
+
+pub fn vision_projects_locations_product_sets_remove_product_builder(
+    client: &SimpleHttpClient,
+    name: &String,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!(
+        "https://vision.googleapis.com/v1/projects/{}/locations/{locationsId}/productSets/{productSetsId}:removeProduct",
+        name,
+    );
+
+    // Build request
+    let builder = client
+        .post(&endpoint_url)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// POST v1/projects/{projectsId}/locations/{locationsId}/productSets/{productSetsId}:removeProduct
+/// Removes a Product from the specified ProductSet.
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `vision_projects_locations_product_sets_remove_product_execute()` or `vision_projects_locations_product_sets_remove_product`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `vision_projects_locations_product_sets_remove_product_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn vision_projects_locations_product_sets_remove_product_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<Empty>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: Empty = serde_json::from_str(&body)
+                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// POST v1/projects/{projectsId}/locations/{locationsId}/productSets/{productSetsId}:removeProduct
+/// Removes a Product from the specified ProductSet.
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `vision_projects_locations_product_sets_remove_product_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `vision_projects_locations_product_sets_remove_product_task()`.
+/// For the simplest API, use `vision_projects_locations_product_sets_remove_product()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `vision_projects_locations_product_sets_remove_product_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn vision_projects_locations_product_sets_remove_product_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<Empty>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let task = vision_projects_locations_product_sets_remove_product_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`vision_projects_locations_product_sets_remove_product`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct VisionProjectsLocationsProductSetsRemoveProductArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
+/// POST v1/projects/{projectsId}/locations/{locationsId}/productSets/{productSetsId}:removeProduct
+/// Removes a Product from the specified ProductSet.
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `vision_projects_locations_product_sets_remove_product_builder()` + `vision_projects_locations_product_sets_remove_product_execute()`.
+/// For task-level control, use `vision_projects_locations_product_sets_remove_product_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn vision_projects_locations_product_sets_remove_product(
+    client: &SimpleHttpClient,
+    args: &VisionProjectsLocationsProductSetsRemoveProductArgs,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<Empty>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let builder =
+        vision_projects_locations_product_sets_remove_product_builder(client, &args.name)?;
+    vision_projects_locations_product_sets_remove_product_execute(builder)
+}
+
+/// GET v1/projects/{projectsId}/locations/{locationsId}/productSets/{productSetsId}/products
+/// Lists the Products in a ProductSet, in an unspecified order. If the ProductSet does not exist, the products field of the response will be empty. Possible errors: * Returns INVALID_ARGUMENT if page_size is greater than 100 or less than 1.
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `vision_projects_locations_product_sets_products_list_execute()` to send, or `vision_projects_locations_product_sets_products_list` for simplest API.
+
+pub fn vision_projects_locations_product_sets_products_list_builder(
+    client: &SimpleHttpClient,
+    name: &String,
+    pageSize: &Option<Option<String>>,
+    pageToken: &Option<Option<String>>,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!(
+        "https://vision.googleapis.com/v1/projects/{}/locations/{locationsId}/productSets/{productSetsId}/products",
+        name,
+    );
+
+    // Build request
+    let mut query_parts = Vec::new();
+    if let Some(val) = pageSize.as_ref() {
+        query_parts.push(format!("pageSize={}", val));
+    }
+    if let Some(val) = pageToken.as_ref() {
+        query_parts.push(format!("pageToken={}", val));
+    }
+
+    let url_with_query = if query_parts.is_empty() {
+        endpoint_url
+    } else {
+        format!("{}?{}", endpoint_url, query_parts.join("&"))
+    };
+
+    let builder = client
+        .get(&url_with_query)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// GET v1/projects/{projectsId}/locations/{locationsId}/productSets/{productSetsId}/products
+/// Lists the Products in a ProductSet, in an unspecified order. If the ProductSet does not exist, the products field of the response will be empty. Possible errors: * Returns INVALID_ARGUMENT if page_size is greater than 100 or less than 1.
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `vision_projects_locations_product_sets_products_list_execute()` or `vision_projects_locations_product_sets_products_list`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `vision_projects_locations_product_sets_products_list_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn vision_projects_locations_product_sets_products_list_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<ListProductsInProductSetResponse>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: ListProductsInProductSetResponse = serde_json::from_str(&body)
+                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// GET v1/projects/{projectsId}/locations/{locationsId}/productSets/{productSetsId}/products
+/// Lists the Products in a ProductSet, in an unspecified order. If the ProductSet does not exist, the products field of the response will be empty. Possible errors: * Returns INVALID_ARGUMENT if page_size is greater than 100 or less than 1.
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `vision_projects_locations_product_sets_products_list_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `vision_projects_locations_product_sets_products_list_task()`.
+/// For the simplest API, use `vision_projects_locations_product_sets_products_list()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `vision_projects_locations_product_sets_products_list_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn vision_projects_locations_product_sets_products_list_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<
+            D = Result<ApiResponse<ListProductsInProductSetResponse>, ApiError>,
+            P = ApiPending,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    let task = vision_projects_locations_product_sets_products_list_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`vision_projects_locations_product_sets_products_list`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct VisionProjectsLocationsProductSetsProductsListArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Query parameter: pageSize
+    pub pageSize: Option<Option<String>>,
+    /// Query parameter: pageToken
+    pub pageToken: Option<Option<String>>,
+}
+
+/// GET v1/projects/{projectsId}/locations/{locationsId}/productSets/{productSetsId}/products
+/// Lists the Products in a ProductSet, in an unspecified order. If the ProductSet does not exist, the products field of the response will be empty. Possible errors: * Returns INVALID_ARGUMENT if page_size is greater than 100 or less than 1.
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `vision_projects_locations_product_sets_products_list_builder()` + `vision_projects_locations_product_sets_products_list_execute()`.
+/// For task-level control, use `vision_projects_locations_product_sets_products_list_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn vision_projects_locations_product_sets_products_list(
+    client: &SimpleHttpClient,
+    args: &VisionProjectsLocationsProductSetsProductsListArgs,
+) -> Result<
+    impl StreamIterator<
+            D = Result<ApiResponse<ListProductsInProductSetResponse>, ApiError>,
+            P = ApiPending,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    let builder = vision_projects_locations_product_sets_products_list_builder(
+        client,
+        &args.name,
+        &args.pageSize,
+        &args.pageToken,
+    )?;
+    vision_projects_locations_product_sets_products_list_execute(builder)
+}
+
+/// POST v1/projects/{projectsId}/locations/{locationsId}/products
+/// Creates and returns a new product resource. Possible errors: * Returns INVALID_ARGUMENT if display_name is missing or longer than 4096 characters. * Returns INVALID_ARGUMENT if description is longer than 4096 characters. * Returns INVALID_ARGUMENT if product_category is missing or invalid.
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `vision_projects_locations_products_create_execute()` to send, or `vision_projects_locations_products_create` for simplest API.
+
+pub fn vision_projects_locations_products_create_builder(
+    client: &SimpleHttpClient,
+    parent: &String,
+    productId: &Option<Option<String>>,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!(
+        "https://vision.googleapis.com/v1/projects/{}/locations/{locationsId}/products",
+        parent,
+    );
+
+    // Build request
+    let mut query_parts = Vec::new();
+    if let Some(val) = productId.as_ref() {
+        query_parts.push(format!("productId={}", val));
+    }
+
+    let url_with_query = if query_parts.is_empty() {
+        endpoint_url
+    } else {
+        format!("{}?{}", endpoint_url, query_parts.join("&"))
+    };
+
+    let builder = client
+        .post(&url_with_query)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// POST v1/projects/{projectsId}/locations/{locationsId}/products
+/// Creates and returns a new product resource. Possible errors: * Returns INVALID_ARGUMENT if display_name is missing or longer than 4096 characters. * Returns INVALID_ARGUMENT if description is longer than 4096 characters. * Returns INVALID_ARGUMENT if product_category is missing or invalid.
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `vision_projects_locations_products_create_execute()` or `vision_projects_locations_products_create`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `vision_projects_locations_products_create_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn vision_projects_locations_products_create_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<Product>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: Product = serde_json::from_str(&body)
+                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// POST v1/projects/{projectsId}/locations/{locationsId}/products
+/// Creates and returns a new product resource. Possible errors: * Returns INVALID_ARGUMENT if display_name is missing or longer than 4096 characters. * Returns INVALID_ARGUMENT if description is longer than 4096 characters. * Returns INVALID_ARGUMENT if product_category is missing or invalid.
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `vision_projects_locations_products_create_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `vision_projects_locations_products_create_task()`.
+/// For the simplest API, use `vision_projects_locations_products_create()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `vision_projects_locations_products_create_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn vision_projects_locations_products_create_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<Product>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let task = vision_projects_locations_products_create_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`vision_projects_locations_products_create`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct VisionProjectsLocationsProductsCreateArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Query parameter: productId
+    pub productId: Option<Option<String>>,
+}
+
+/// POST v1/projects/{projectsId}/locations/{locationsId}/products
+/// Creates and returns a new product resource. Possible errors: * Returns INVALID_ARGUMENT if display_name is missing or longer than 4096 characters. * Returns INVALID_ARGUMENT if description is longer than 4096 characters. * Returns INVALID_ARGUMENT if product_category is missing or invalid.
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `vision_projects_locations_products_create_builder()` + `vision_projects_locations_products_create_execute()`.
+/// For task-level control, use `vision_projects_locations_products_create_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn vision_projects_locations_products_create(
+    client: &SimpleHttpClient,
+    args: &VisionProjectsLocationsProductsCreateArgs,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<Product>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let builder =
+        vision_projects_locations_products_create_builder(client, &args.parent, &args.productId)?;
+    vision_projects_locations_products_create_execute(builder)
+}
+
+/// DELETE v1/projects/{projectsId}/locations/{locationsId}/products/{productsId}
+/// Permanently deletes a product and its reference images. Metadata of the product and all its images will be deleted right away, but search queries against ProductSets containing the product may still work until all related caches are refreshed.
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `vision_projects_locations_products_delete_execute()` to send, or `vision_projects_locations_products_delete` for simplest API.
+
+pub fn vision_projects_locations_products_delete_builder(
+    client: &SimpleHttpClient,
+    name: &String,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!(
+        "https://vision.googleapis.com/v1/projects/{}/locations/{locationsId}/products/{productsId}",
+        name,
+    );
+
+    // Build request
+    let builder = client
+        .delete(&endpoint_url)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// DELETE v1/projects/{projectsId}/locations/{locationsId}/products/{productsId}
+/// Permanently deletes a product and its reference images. Metadata of the product and all its images will be deleted right away, but search queries against ProductSets containing the product may still work until all related caches are refreshed.
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `vision_projects_locations_products_delete_execute()` or `vision_projects_locations_products_delete`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `vision_projects_locations_products_delete_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn vision_projects_locations_products_delete_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<Empty>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: Empty = serde_json::from_str(&body)
+                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// DELETE v1/projects/{projectsId}/locations/{locationsId}/products/{productsId}
+/// Permanently deletes a product and its reference images. Metadata of the product and all its images will be deleted right away, but search queries against ProductSets containing the product may still work until all related caches are refreshed.
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `vision_projects_locations_products_delete_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `vision_projects_locations_products_delete_task()`.
+/// For the simplest API, use `vision_projects_locations_products_delete()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `vision_projects_locations_products_delete_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn vision_projects_locations_products_delete_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<Empty>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let task = vision_projects_locations_products_delete_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`vision_projects_locations_products_delete`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct VisionProjectsLocationsProductsDeleteArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
+/// DELETE v1/projects/{projectsId}/locations/{locationsId}/products/{productsId}
+/// Permanently deletes a product and its reference images. Metadata of the product and all its images will be deleted right away, but search queries against ProductSets containing the product may still work until all related caches are refreshed.
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `vision_projects_locations_products_delete_builder()` + `vision_projects_locations_products_delete_execute()`.
+/// For task-level control, use `vision_projects_locations_products_delete_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn vision_projects_locations_products_delete(
+    client: &SimpleHttpClient,
+    args: &VisionProjectsLocationsProductsDeleteArgs,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<Empty>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let builder = vision_projects_locations_products_delete_builder(client, &args.name)?;
+    vision_projects_locations_products_delete_execute(builder)
+}
+
+/// GET v1/projects/{projectsId}/locations/{locationsId}/products/{productsId}
+/// Gets information associated with a Product. Possible errors: * Returns NOT_FOUND if the Product does not exist.
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `vision_projects_locations_products_get_execute()` to send, or `vision_projects_locations_products_get` for simplest API.
+
+pub fn vision_projects_locations_products_get_builder(
+    client: &SimpleHttpClient,
+    name: &String,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!(
+        "https://vision.googleapis.com/v1/projects/{}/locations/{locationsId}/products/{productsId}",
+        name,
+    );
+
+    // Build request
+    let builder = client
+        .get(&endpoint_url)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// GET v1/projects/{projectsId}/locations/{locationsId}/products/{productsId}
+/// Gets information associated with a Product. Possible errors: * Returns NOT_FOUND if the Product does not exist.
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `vision_projects_locations_products_get_execute()` or `vision_projects_locations_products_get`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `vision_projects_locations_products_get_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn vision_projects_locations_products_get_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<Product>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: Product = serde_json::from_str(&body)
+                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// GET v1/projects/{projectsId}/locations/{locationsId}/products/{productsId}
+/// Gets information associated with a Product. Possible errors: * Returns NOT_FOUND if the Product does not exist.
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `vision_projects_locations_products_get_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `vision_projects_locations_products_get_task()`.
+/// For the simplest API, use `vision_projects_locations_products_get()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `vision_projects_locations_products_get_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn vision_projects_locations_products_get_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<Product>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let task = vision_projects_locations_products_get_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`vision_projects_locations_products_get`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct VisionProjectsLocationsProductsGetArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
+/// GET v1/projects/{projectsId}/locations/{locationsId}/products/{productsId}
+/// Gets information associated with a Product. Possible errors: * Returns NOT_FOUND if the Product does not exist.
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `vision_projects_locations_products_get_builder()` + `vision_projects_locations_products_get_execute()`.
+/// For task-level control, use `vision_projects_locations_products_get_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn vision_projects_locations_products_get(
+    client: &SimpleHttpClient,
+    args: &VisionProjectsLocationsProductsGetArgs,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<Product>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let builder = vision_projects_locations_products_get_builder(client, &args.name)?;
+    vision_projects_locations_products_get_execute(builder)
+}
+
+/// GET v1/projects/{projectsId}/locations/{locationsId}/products
+/// Lists products in an unspecified order. Possible errors: * Returns INVALID_ARGUMENT if page_size is greater than 100 or less than 1.
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `vision_projects_locations_products_list_execute()` to send, or `vision_projects_locations_products_list` for simplest API.
+
+pub fn vision_projects_locations_products_list_builder(
+    client: &SimpleHttpClient,
+    parent: &String,
+    pageSize: &Option<Option<String>>,
+    pageToken: &Option<Option<String>>,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!(
+        "https://vision.googleapis.com/v1/projects/{}/locations/{locationsId}/products",
+        parent,
+    );
+
+    // Build request
+    let mut query_parts = Vec::new();
+    if let Some(val) = pageSize.as_ref() {
+        query_parts.push(format!("pageSize={}", val));
+    }
+    if let Some(val) = pageToken.as_ref() {
+        query_parts.push(format!("pageToken={}", val));
+    }
+
+    let url_with_query = if query_parts.is_empty() {
+        endpoint_url
+    } else {
+        format!("{}?{}", endpoint_url, query_parts.join("&"))
+    };
+
+    let builder = client
+        .get(&url_with_query)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// GET v1/projects/{projectsId}/locations/{locationsId}/products
+/// Lists products in an unspecified order. Possible errors: * Returns INVALID_ARGUMENT if page_size is greater than 100 or less than 1.
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `vision_projects_locations_products_list_execute()` or `vision_projects_locations_products_list`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `vision_projects_locations_products_list_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn vision_projects_locations_products_list_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<ListProductsResponse>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: ListProductsResponse = serde_json::from_str(&body)
+                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// GET v1/projects/{projectsId}/locations/{locationsId}/products
+/// Lists products in an unspecified order. Possible errors: * Returns INVALID_ARGUMENT if page_size is greater than 100 or less than 1.
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `vision_projects_locations_products_list_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `vision_projects_locations_products_list_task()`.
+/// For the simplest API, use `vision_projects_locations_products_list()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `vision_projects_locations_products_list_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn vision_projects_locations_products_list_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<ListProductsResponse>, ApiError>, P = ApiPending>
+        + Send
+        + 'static,
+    ApiError,
+> {
+    let task = vision_projects_locations_products_list_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`vision_projects_locations_products_list`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct VisionProjectsLocationsProductsListArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Query parameter: pageSize
+    pub pageSize: Option<Option<String>>,
+    /// Query parameter: pageToken
+    pub pageToken: Option<Option<String>>,
+}
+
+/// GET v1/projects/{projectsId}/locations/{locationsId}/products
+/// Lists products in an unspecified order. Possible errors: * Returns INVALID_ARGUMENT if page_size is greater than 100 or less than 1.
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `vision_projects_locations_products_list_builder()` + `vision_projects_locations_products_list_execute()`.
+/// For task-level control, use `vision_projects_locations_products_list_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn vision_projects_locations_products_list(
+    client: &SimpleHttpClient,
+    args: &VisionProjectsLocationsProductsListArgs,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<ListProductsResponse>, ApiError>, P = ApiPending>
+        + Send
+        + 'static,
+    ApiError,
+> {
+    let builder = vision_projects_locations_products_list_builder(
+        client,
+        &args.parent,
+        &args.pageSize,
+        &args.pageToken,
+    )?;
+    vision_projects_locations_products_list_execute(builder)
+}
+
+/// PATCH v1/projects/{projectsId}/locations/{locationsId}/products/{productsId}
+/// Makes changes to a Product resource. Only the display_name, description, and labels fields can be updated right now. If labels are updated, the change will not be reflected in queries until the next index time. Possible errors: * Returns NOT_FOUND if the Product does not exist. * Returns INVALID_ARGUMENT if display_name is present in update_mask but is missing from the request or longer than 4096 characters. * Returns INVALID_ARGUMENT if description is present in update_mask but is longer than 4096 characters. * Returns INVALID_ARGUMENT if product_category is present in update_mask.
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `vision_projects_locations_products_patch_execute()` to send, or `vision_projects_locations_products_patch` for simplest API.
+
+pub fn vision_projects_locations_products_patch_builder(
+    client: &SimpleHttpClient,
+    name: &String,
+    updateMask: &Option<Option<String>>,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!(
+        "https://vision.googleapis.com/v1/projects/{}/locations/{locationsId}/products/{productsId}",
+        name,
+    );
+
+    // Build request
+    let mut query_parts = Vec::new();
+    if let Some(val) = updateMask.as_ref() {
+        query_parts.push(format!("updateMask={}", val));
+    }
+
+    let url_with_query = if query_parts.is_empty() {
+        endpoint_url
+    } else {
+        format!("{}?{}", endpoint_url, query_parts.join("&"))
+    };
+
+    let builder = client
+        .patch(&url_with_query)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// PATCH v1/projects/{projectsId}/locations/{locationsId}/products/{productsId}
+/// Makes changes to a Product resource. Only the display_name, description, and labels fields can be updated right now. If labels are updated, the change will not be reflected in queries until the next index time. Possible errors: * Returns NOT_FOUND if the Product does not exist. * Returns INVALID_ARGUMENT if display_name is present in update_mask but is missing from the request or longer than 4096 characters. * Returns INVALID_ARGUMENT if description is present in update_mask but is longer than 4096 characters. * Returns INVALID_ARGUMENT if product_category is present in update_mask.
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `vision_projects_locations_products_patch_execute()` or `vision_projects_locations_products_patch`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `vision_projects_locations_products_patch_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn vision_projects_locations_products_patch_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<Product>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: Product = serde_json::from_str(&body)
+                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// PATCH v1/projects/{projectsId}/locations/{locationsId}/products/{productsId}
+/// Makes changes to a Product resource. Only the display_name, description, and labels fields can be updated right now. If labels are updated, the change will not be reflected in queries until the next index time. Possible errors: * Returns NOT_FOUND if the Product does not exist. * Returns INVALID_ARGUMENT if display_name is present in update_mask but is missing from the request or longer than 4096 characters. * Returns INVALID_ARGUMENT if description is present in update_mask but is longer than 4096 characters. * Returns INVALID_ARGUMENT if product_category is present in update_mask.
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `vision_projects_locations_products_patch_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `vision_projects_locations_products_patch_task()`.
+/// For the simplest API, use `vision_projects_locations_products_patch()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `vision_projects_locations_products_patch_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn vision_projects_locations_products_patch_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<Product>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let task = vision_projects_locations_products_patch_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`vision_projects_locations_products_patch`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct VisionProjectsLocationsProductsPatchArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Query parameter: updateMask
+    pub updateMask: Option<Option<String>>,
+}
+
+/// PATCH v1/projects/{projectsId}/locations/{locationsId}/products/{productsId}
+/// Makes changes to a Product resource. Only the display_name, description, and labels fields can be updated right now. If labels are updated, the change will not be reflected in queries until the next index time. Possible errors: * Returns NOT_FOUND if the Product does not exist. * Returns INVALID_ARGUMENT if display_name is present in update_mask but is missing from the request or longer than 4096 characters. * Returns INVALID_ARGUMENT if description is present in update_mask but is longer than 4096 characters. * Returns INVALID_ARGUMENT if product_category is present in update_mask.
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `vision_projects_locations_products_patch_builder()` + `vision_projects_locations_products_patch_execute()`.
+/// For task-level control, use `vision_projects_locations_products_patch_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn vision_projects_locations_products_patch(
+    client: &SimpleHttpClient,
+    args: &VisionProjectsLocationsProductsPatchArgs,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<Product>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let builder =
+        vision_projects_locations_products_patch_builder(client, &args.name, &args.updateMask)?;
+    vision_projects_locations_products_patch_execute(builder)
+}
+
+/// POST v1/projects/{projectsId}/locations/{locationsId}/products:purge
+/// Asynchronous API to delete all Products in a ProductSet or all Products that are in no ProductSet. If a Product is a member of the specified ProductSet in addition to other ProductSets, the Product will still be deleted. It is recommended to not delete the specified ProductSet until after this operation has completed. It is also recommended to not add any of the Products involved in the batch delete to a new ProductSet while this operation is running because those Products may still end up deleted. It's not possible to undo the PurgeProducts operation. Therefore, it is recommended to keep the csv files used in ImportProductSets (if that was how you originally built the Product Set) before starting PurgeProducts, in case you need to re-import the data after deletion. If the plan is to purge all of the Products from a ProductSet and then re-use the empty ProductSet to re-import new Products into the empty ProductSet, you must wait until the PurgeProducts operation has finished for that ProductSet. The google.longrunning.Operation API can be used to keep track of the progress and results of the request. Operation.metadata contains BatchOperationMetadata. (progress)
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `vision_projects_locations_products_purge_execute()` to send, or `vision_projects_locations_products_purge` for simplest API.
+
+pub fn vision_projects_locations_products_purge_builder(
+    client: &SimpleHttpClient,
+    parent: &String,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!(
+        "https://vision.googleapis.com/v1/projects/{}/locations/{locationsId}/products:purge",
+        parent,
+    );
+
+    // Build request
+    let builder = client
+        .post(&endpoint_url)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// POST v1/projects/{projectsId}/locations/{locationsId}/products:purge
+/// Asynchronous API to delete all Products in a ProductSet or all Products that are in no ProductSet. If a Product is a member of the specified ProductSet in addition to other ProductSets, the Product will still be deleted. It is recommended to not delete the specified ProductSet until after this operation has completed. It is also recommended to not add any of the Products involved in the batch delete to a new ProductSet while this operation is running because those Products may still end up deleted. It's not possible to undo the PurgeProducts operation. Therefore, it is recommended to keep the csv files used in ImportProductSets (if that was how you originally built the Product Set) before starting PurgeProducts, in case you need to re-import the data after deletion. If the plan is to purge all of the Products from a ProductSet and then re-use the empty ProductSet to re-import new Products into the empty ProductSet, you must wait until the PurgeProducts operation has finished for that ProductSet. The google.longrunning.Operation API can be used to keep track of the progress and results of the request. Operation.metadata contains BatchOperationMetadata. (progress)
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `vision_projects_locations_products_purge_execute()` or `vision_projects_locations_products_purge`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `vision_projects_locations_products_purge_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn vision_projects_locations_products_purge_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<Operation>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: Operation = serde_json::from_str(&body)
+                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// POST v1/projects/{projectsId}/locations/{locationsId}/products:purge
+/// Asynchronous API to delete all Products in a ProductSet or all Products that are in no ProductSet. If a Product is a member of the specified ProductSet in addition to other ProductSets, the Product will still be deleted. It is recommended to not delete the specified ProductSet until after this operation has completed. It is also recommended to not add any of the Products involved in the batch delete to a new ProductSet while this operation is running because those Products may still end up deleted. It's not possible to undo the PurgeProducts operation. Therefore, it is recommended to keep the csv files used in ImportProductSets (if that was how you originally built the Product Set) before starting PurgeProducts, in case you need to re-import the data after deletion. If the plan is to purge all of the Products from a ProductSet and then re-use the empty ProductSet to re-import new Products into the empty ProductSet, you must wait until the PurgeProducts operation has finished for that ProductSet. The google.longrunning.Operation API can be used to keep track of the progress and results of the request. Operation.metadata contains BatchOperationMetadata. (progress)
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `vision_projects_locations_products_purge_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `vision_projects_locations_products_purge_task()`.
+/// For the simplest API, use `vision_projects_locations_products_purge()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `vision_projects_locations_products_purge_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn vision_projects_locations_products_purge_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<Operation>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let task = vision_projects_locations_products_purge_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`vision_projects_locations_products_purge`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct VisionProjectsLocationsProductsPurgeArgs {
+    /// Path parameter: parent
+    pub parent: String,
+}
+
+/// POST v1/projects/{projectsId}/locations/{locationsId}/products:purge
+/// Asynchronous API to delete all Products in a ProductSet or all Products that are in no ProductSet. If a Product is a member of the specified ProductSet in addition to other ProductSets, the Product will still be deleted. It is recommended to not delete the specified ProductSet until after this operation has completed. It is also recommended to not add any of the Products involved in the batch delete to a new ProductSet while this operation is running because those Products may still end up deleted. It's not possible to undo the PurgeProducts operation. Therefore, it is recommended to keep the csv files used in ImportProductSets (if that was how you originally built the Product Set) before starting PurgeProducts, in case you need to re-import the data after deletion. If the plan is to purge all of the Products from a ProductSet and then re-use the empty ProductSet to re-import new Products into the empty ProductSet, you must wait until the PurgeProducts operation has finished for that ProductSet. The google.longrunning.Operation API can be used to keep track of the progress and results of the request. Operation.metadata contains BatchOperationMetadata. (progress)
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `vision_projects_locations_products_purge_builder()` + `vision_projects_locations_products_purge_execute()`.
+/// For task-level control, use `vision_projects_locations_products_purge_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn vision_projects_locations_products_purge(
+    client: &SimpleHttpClient,
+    args: &VisionProjectsLocationsProductsPurgeArgs,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<Operation>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let builder = vision_projects_locations_products_purge_builder(client, &args.parent)?;
+    vision_projects_locations_products_purge_execute(builder)
+}
+
+/// POST v1/projects/{projectsId}/locations/{locationsId}/products/{productsId}/referenceImages
+/// Creates and returns a new ReferenceImage resource. The bounding_poly field is optional. If bounding_poly is not specified, the system will try to detect regions of interest in the image that are compatible with the product_category on the parent product. If it is specified, detection is ALWAYS skipped. The system converts polygons into non-rotated rectangles. Note that the pipeline will resize the image if the image resolution is too large to process (above 50MP). Possible errors: * Returns INVALID_ARGUMENT if the image_uri is missing or longer than 4096 characters. * Returns INVALID_ARGUMENT if the product does not exist. * Returns INVALID_ARGUMENT if bounding_poly is not provided, and nothing compatible with the parent product's product_category is detected. * Returns INVALID_ARGUMENT if bounding_poly contains more than 10 polygons.
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `vision_projects_locations_products_reference_images_create_execute()` to send, or `vision_projects_locations_products_reference_images_create` for simplest API.
+
+pub fn vision_projects_locations_products_reference_images_create_builder(
+    client: &SimpleHttpClient,
+    parent: &String,
+    referenceImageId: &Option<Option<String>>,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!(
+        "https://vision.googleapis.com/v1/projects/{}/locations/{locationsId}/products/{productsId}/referenceImages",
+        parent,
+    );
+
+    // Build request
+    let mut query_parts = Vec::new();
+    if let Some(val) = referenceImageId.as_ref() {
+        query_parts.push(format!("referenceImageId={}", val));
+    }
+
+    let url_with_query = if query_parts.is_empty() {
+        endpoint_url
+    } else {
+        format!("{}?{}", endpoint_url, query_parts.join("&"))
+    };
+
+    let builder = client
+        .post(&url_with_query)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// POST v1/projects/{projectsId}/locations/{locationsId}/products/{productsId}/referenceImages
+/// Creates and returns a new ReferenceImage resource. The bounding_poly field is optional. If bounding_poly is not specified, the system will try to detect regions of interest in the image that are compatible with the product_category on the parent product. If it is specified, detection is ALWAYS skipped. The system converts polygons into non-rotated rectangles. Note that the pipeline will resize the image if the image resolution is too large to process (above 50MP). Possible errors: * Returns INVALID_ARGUMENT if the image_uri is missing or longer than 4096 characters. * Returns INVALID_ARGUMENT if the product does not exist. * Returns INVALID_ARGUMENT if bounding_poly is not provided, and nothing compatible with the parent product's product_category is detected. * Returns INVALID_ARGUMENT if bounding_poly contains more than 10 polygons.
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `vision_projects_locations_products_reference_images_create_execute()` or `vision_projects_locations_products_reference_images_create`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `vision_projects_locations_products_reference_images_create_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn vision_projects_locations_products_reference_images_create_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<ReferenceImage>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: ReferenceImage = serde_json::from_str(&body)
+                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// POST v1/projects/{projectsId}/locations/{locationsId}/products/{productsId}/referenceImages
+/// Creates and returns a new ReferenceImage resource. The bounding_poly field is optional. If bounding_poly is not specified, the system will try to detect regions of interest in the image that are compatible with the product_category on the parent product. If it is specified, detection is ALWAYS skipped. The system converts polygons into non-rotated rectangles. Note that the pipeline will resize the image if the image resolution is too large to process (above 50MP). Possible errors: * Returns INVALID_ARGUMENT if the image_uri is missing or longer than 4096 characters. * Returns INVALID_ARGUMENT if the product does not exist. * Returns INVALID_ARGUMENT if bounding_poly is not provided, and nothing compatible with the parent product's product_category is detected. * Returns INVALID_ARGUMENT if bounding_poly contains more than 10 polygons.
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `vision_projects_locations_products_reference_images_create_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `vision_projects_locations_products_reference_images_create_task()`.
+/// For the simplest API, use `vision_projects_locations_products_reference_images_create()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `vision_projects_locations_products_reference_images_create_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn vision_projects_locations_products_reference_images_create_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<ReferenceImage>, ApiError>, P = ApiPending>
+        + Send
+        + 'static,
+    ApiError,
+> {
+    let task = vision_projects_locations_products_reference_images_create_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`vision_projects_locations_products_reference_images_create`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct VisionProjectsLocationsProductsReferenceImagesCreateArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Query parameter: referenceImageId
+    pub referenceImageId: Option<Option<String>>,
+}
+
+/// POST v1/projects/{projectsId}/locations/{locationsId}/products/{productsId}/referenceImages
+/// Creates and returns a new ReferenceImage resource. The bounding_poly field is optional. If bounding_poly is not specified, the system will try to detect regions of interest in the image that are compatible with the product_category on the parent product. If it is specified, detection is ALWAYS skipped. The system converts polygons into non-rotated rectangles. Note that the pipeline will resize the image if the image resolution is too large to process (above 50MP). Possible errors: * Returns INVALID_ARGUMENT if the image_uri is missing or longer than 4096 characters. * Returns INVALID_ARGUMENT if the product does not exist. * Returns INVALID_ARGUMENT if bounding_poly is not provided, and nothing compatible with the parent product's product_category is detected. * Returns INVALID_ARGUMENT if bounding_poly contains more than 10 polygons.
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `vision_projects_locations_products_reference_images_create_builder()` + `vision_projects_locations_products_reference_images_create_execute()`.
+/// For task-level control, use `vision_projects_locations_products_reference_images_create_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn vision_projects_locations_products_reference_images_create(
+    client: &SimpleHttpClient,
+    args: &VisionProjectsLocationsProductsReferenceImagesCreateArgs,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<ReferenceImage>, ApiError>, P = ApiPending>
+        + Send
+        + 'static,
+    ApiError,
+> {
+    let builder = vision_projects_locations_products_reference_images_create_builder(
+        client,
+        &args.parent,
+        &args.referenceImageId,
+    )?;
+    vision_projects_locations_products_reference_images_create_execute(builder)
+}
+
+/// DELETE v1/projects/{projectsId}/locations/{locationsId}/products/{productsId}/referenceImages/{referenceImagesId}
+/// Permanently deletes a reference image. The image metadata will be deleted right away, but search queries against ProductSets containing the image may still work until all related caches are refreshed. The actual image files are not deleted from Google Cloud Storage.
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `vision_projects_locations_products_reference_images_delete_execute()` to send, or `vision_projects_locations_products_reference_images_delete` for simplest API.
+
+pub fn vision_projects_locations_products_reference_images_delete_builder(
+    client: &SimpleHttpClient,
+    name: &String,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!(
+        "https://vision.googleapis.com/v1/projects/{}/locations/{locationsId}/products/{productsId}/referenceImages/{referenceImagesId}",
+        name,
+    );
+
+    // Build request
+    let builder = client
+        .delete(&endpoint_url)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// DELETE v1/projects/{projectsId}/locations/{locationsId}/products/{productsId}/referenceImages/{referenceImagesId}
+/// Permanently deletes a reference image. The image metadata will be deleted right away, but search queries against ProductSets containing the image may still work until all related caches are refreshed. The actual image files are not deleted from Google Cloud Storage.
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `vision_projects_locations_products_reference_images_delete_execute()` or `vision_projects_locations_products_reference_images_delete`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `vision_projects_locations_products_reference_images_delete_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn vision_projects_locations_products_reference_images_delete_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<Empty>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: Empty = serde_json::from_str(&body)
+                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// DELETE v1/projects/{projectsId}/locations/{locationsId}/products/{productsId}/referenceImages/{referenceImagesId}
+/// Permanently deletes a reference image. The image metadata will be deleted right away, but search queries against ProductSets containing the image may still work until all related caches are refreshed. The actual image files are not deleted from Google Cloud Storage.
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `vision_projects_locations_products_reference_images_delete_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `vision_projects_locations_products_reference_images_delete_task()`.
+/// For the simplest API, use `vision_projects_locations_products_reference_images_delete()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `vision_projects_locations_products_reference_images_delete_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn vision_projects_locations_products_reference_images_delete_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<Empty>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let task = vision_projects_locations_products_reference_images_delete_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`vision_projects_locations_products_reference_images_delete`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct VisionProjectsLocationsProductsReferenceImagesDeleteArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
+/// DELETE v1/projects/{projectsId}/locations/{locationsId}/products/{productsId}/referenceImages/{referenceImagesId}
+/// Permanently deletes a reference image. The image metadata will be deleted right away, but search queries against ProductSets containing the image may still work until all related caches are refreshed. The actual image files are not deleted from Google Cloud Storage.
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `vision_projects_locations_products_reference_images_delete_builder()` + `vision_projects_locations_products_reference_images_delete_execute()`.
+/// For task-level control, use `vision_projects_locations_products_reference_images_delete_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn vision_projects_locations_products_reference_images_delete(
+    client: &SimpleHttpClient,
+    args: &VisionProjectsLocationsProductsReferenceImagesDeleteArgs,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<Empty>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let builder =
+        vision_projects_locations_products_reference_images_delete_builder(client, &args.name)?;
+    vision_projects_locations_products_reference_images_delete_execute(builder)
+}
+
+/// GET v1/projects/{projectsId}/locations/{locationsId}/products/{productsId}/referenceImages/{referenceImagesId}
+/// Gets information associated with a ReferenceImage. Possible errors: * Returns NOT_FOUND if the specified image does not exist.
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `vision_projects_locations_products_reference_images_get_execute()` to send, or `vision_projects_locations_products_reference_images_get` for simplest API.
+
+pub fn vision_projects_locations_products_reference_images_get_builder(
+    client: &SimpleHttpClient,
+    name: &String,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!(
+        "https://vision.googleapis.com/v1/projects/{}/locations/{locationsId}/products/{productsId}/referenceImages/{referenceImagesId}",
+        name,
+    );
+
+    // Build request
+    let builder = client
+        .get(&endpoint_url)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// GET v1/projects/{projectsId}/locations/{locationsId}/products/{productsId}/referenceImages/{referenceImagesId}
+/// Gets information associated with a ReferenceImage. Possible errors: * Returns NOT_FOUND if the specified image does not exist.
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `vision_projects_locations_products_reference_images_get_execute()` or `vision_projects_locations_products_reference_images_get`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `vision_projects_locations_products_reference_images_get_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn vision_projects_locations_products_reference_images_get_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<ReferenceImage>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: ReferenceImage = serde_json::from_str(&body)
+                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// GET v1/projects/{projectsId}/locations/{locationsId}/products/{productsId}/referenceImages/{referenceImagesId}
+/// Gets information associated with a ReferenceImage. Possible errors: * Returns NOT_FOUND if the specified image does not exist.
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `vision_projects_locations_products_reference_images_get_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `vision_projects_locations_products_reference_images_get_task()`.
+/// For the simplest API, use `vision_projects_locations_products_reference_images_get()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `vision_projects_locations_products_reference_images_get_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn vision_projects_locations_products_reference_images_get_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<ReferenceImage>, ApiError>, P = ApiPending>
+        + Send
+        + 'static,
+    ApiError,
+> {
+    let task = vision_projects_locations_products_reference_images_get_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`vision_projects_locations_products_reference_images_get`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct VisionProjectsLocationsProductsReferenceImagesGetArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
+/// GET v1/projects/{projectsId}/locations/{locationsId}/products/{productsId}/referenceImages/{referenceImagesId}
+/// Gets information associated with a ReferenceImage. Possible errors: * Returns NOT_FOUND if the specified image does not exist.
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `vision_projects_locations_products_reference_images_get_builder()` + `vision_projects_locations_products_reference_images_get_execute()`.
+/// For task-level control, use `vision_projects_locations_products_reference_images_get_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn vision_projects_locations_products_reference_images_get(
+    client: &SimpleHttpClient,
+    args: &VisionProjectsLocationsProductsReferenceImagesGetArgs,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<ReferenceImage>, ApiError>, P = ApiPending>
+        + Send
+        + 'static,
+    ApiError,
+> {
+    let builder =
+        vision_projects_locations_products_reference_images_get_builder(client, &args.name)?;
+    vision_projects_locations_products_reference_images_get_execute(builder)
+}
+
+/// GET v1/projects/{projectsId}/locations/{locationsId}/products/{productsId}/referenceImages
+/// Lists reference images. Possible errors: * Returns NOT_FOUND if the parent product does not exist. * Returns INVALID_ARGUMENT if the page_size is greater than 100, or less than 1.
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `vision_projects_locations_products_reference_images_list_execute()` to send, or `vision_projects_locations_products_reference_images_list` for simplest API.
+
+pub fn vision_projects_locations_products_reference_images_list_builder(
+    client: &SimpleHttpClient,
+    parent: &String,
+    pageSize: &Option<Option<String>>,
+    pageToken: &Option<Option<String>>,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!(
+        "https://vision.googleapis.com/v1/projects/{}/locations/{locationsId}/products/{productsId}/referenceImages",
+        parent,
+    );
+
+    // Build request
+    let mut query_parts = Vec::new();
+    if let Some(val) = pageSize.as_ref() {
+        query_parts.push(format!("pageSize={}", val));
+    }
+    if let Some(val) = pageToken.as_ref() {
+        query_parts.push(format!("pageToken={}", val));
+    }
+
+    let url_with_query = if query_parts.is_empty() {
+        endpoint_url
+    } else {
+        format!("{}?{}", endpoint_url, query_parts.join("&"))
+    };
+
+    let builder = client
+        .get(&url_with_query)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// GET v1/projects/{projectsId}/locations/{locationsId}/products/{productsId}/referenceImages
+/// Lists reference images. Possible errors: * Returns NOT_FOUND if the parent product does not exist. * Returns INVALID_ARGUMENT if the page_size is greater than 100, or less than 1.
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `vision_projects_locations_products_reference_images_list_execute()` or `vision_projects_locations_products_reference_images_list`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `vision_projects_locations_products_reference_images_list_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn vision_projects_locations_products_reference_images_list_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<ListReferenceImagesResponse>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: ListReferenceImagesResponse = serde_json::from_str(&body)
+                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// GET v1/projects/{projectsId}/locations/{locationsId}/products/{productsId}/referenceImages
+/// Lists reference images. Possible errors: * Returns NOT_FOUND if the parent product does not exist. * Returns INVALID_ARGUMENT if the page_size is greater than 100, or less than 1.
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `vision_projects_locations_products_reference_images_list_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `vision_projects_locations_products_reference_images_list_task()`.
+/// For the simplest API, use `vision_projects_locations_products_reference_images_list()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `vision_projects_locations_products_reference_images_list_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn vision_projects_locations_products_reference_images_list_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<
+            D = Result<ApiResponse<ListReferenceImagesResponse>, ApiError>,
+            P = ApiPending,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    let task = vision_projects_locations_products_reference_images_list_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`vision_projects_locations_products_reference_images_list`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct VisionProjectsLocationsProductsReferenceImagesListArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Query parameter: pageSize
+    pub pageSize: Option<Option<String>>,
+    /// Query parameter: pageToken
+    pub pageToken: Option<Option<String>>,
+}
+
+/// GET v1/projects/{projectsId}/locations/{locationsId}/products/{productsId}/referenceImages
+/// Lists reference images. Possible errors: * Returns NOT_FOUND if the parent product does not exist. * Returns INVALID_ARGUMENT if the page_size is greater than 100, or less than 1.
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `vision_projects_locations_products_reference_images_list_builder()` + `vision_projects_locations_products_reference_images_list_execute()`.
+/// For task-level control, use `vision_projects_locations_products_reference_images_list_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn vision_projects_locations_products_reference_images_list(
+    client: &SimpleHttpClient,
+    args: &VisionProjectsLocationsProductsReferenceImagesListArgs,
+) -> Result<
+    impl StreamIterator<
+            D = Result<ApiResponse<ListReferenceImagesResponse>, ApiError>,
+            P = ApiPending,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    let builder = vision_projects_locations_products_reference_images_list_builder(
+        client,
+        &args.parent,
+        &args.pageSize,
+        &args.pageToken,
+    )?;
+    vision_projects_locations_products_reference_images_list_execute(builder)
+}
+
+/// GET v1/projects/{projectsId}/operations/{operationsId}
+/// Gets the latest state of a long-running operation. Clients can use this method to poll the operation result at intervals as recommended by the API service.
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `vision_projects_operations_get_execute()` to send, or `vision_projects_operations_get` for simplest API.
+
+pub fn vision_projects_operations_get_builder(
+    client: &SimpleHttpClient,
+    name: &String,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!(
+        "https://vision.googleapis.com/v1/projects/{}/operations/{operationsId}",
+        name,
+    );
+
+    // Build request
+    let builder = client
+        .get(&endpoint_url)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// GET v1/projects/{projectsId}/operations/{operationsId}
+/// Gets the latest state of a long-running operation. Clients can use this method to poll the operation result at intervals as recommended by the API service.
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `vision_projects_operations_get_execute()` or `vision_projects_operations_get`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `vision_projects_operations_get_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn vision_projects_operations_get_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<Operation>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: Operation = serde_json::from_str(&body)
+                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// GET v1/projects/{projectsId}/operations/{operationsId}
+/// Gets the latest state of a long-running operation. Clients can use this method to poll the operation result at intervals as recommended by the API service.
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `vision_projects_operations_get_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `vision_projects_operations_get_task()`.
+/// For the simplest API, use `vision_projects_operations_get()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `vision_projects_operations_get_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn vision_projects_operations_get_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<Operation>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let task = vision_projects_operations_get_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`vision_projects_operations_get`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct VisionProjectsOperationsGetArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
+/// GET v1/projects/{projectsId}/operations/{operationsId}
+/// Gets the latest state of a long-running operation. Clients can use this method to poll the operation result at intervals as recommended by the API service.
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `vision_projects_operations_get_builder()` + `vision_projects_operations_get_execute()`.
+/// For task-level control, use `vision_projects_operations_get_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn vision_projects_operations_get(
+    client: &SimpleHttpClient,
+    args: &VisionProjectsOperationsGetArgs,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<Operation>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let builder = vision_projects_operations_get_builder(client, &args.name)?;
+    vision_projects_operations_get_execute(builder)
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for BatchAnnotateFilesResponse
+// =============================================================================
+
+/// ResourceIdentifier implementation for BatchAnnotateFilesResponse with VisionFilesAnnotateArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<VisionFilesAnnotateArgs> for BatchAnnotateFilesResponse {
+    fn generate_resource_id(&self, input: &VisionFilesAnnotateArgs) -> String {
+        "gcp::vision::BatchAnnotateFilesResponse".to_string()
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::vision::BatchAnnotateFilesResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for Operation
+// =============================================================================
+
+/// ResourceIdentifier implementation for Operation with VisionFilesAsyncBatchAnnotateArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<VisionFilesAsyncBatchAnnotateArgs> for Operation {
+    fn generate_resource_id(&self, input: &VisionFilesAsyncBatchAnnotateArgs) -> String {
+        "gcp::vision::Operation".to_string()
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::vision::Operation"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for BatchAnnotateImagesResponse
+// =============================================================================
+
+/// ResourceIdentifier implementation for BatchAnnotateImagesResponse with VisionImagesAnnotateArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<VisionImagesAnnotateArgs> for BatchAnnotateImagesResponse {
+    fn generate_resource_id(&self, input: &VisionImagesAnnotateArgs) -> String {
+        "gcp::vision::BatchAnnotateImagesResponse".to_string()
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::vision::BatchAnnotateImagesResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for Operation
+// =============================================================================
+
+/// ResourceIdentifier implementation for Operation with VisionImagesAsyncBatchAnnotateArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<VisionImagesAsyncBatchAnnotateArgs> for Operation {
+    fn generate_resource_id(&self, input: &VisionImagesAsyncBatchAnnotateArgs) -> String {
+        "gcp::vision::Operation".to_string()
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::vision::Operation"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for Operation
+// =============================================================================
+
+/// ResourceIdentifier implementation for Operation with VisionLocationsOperationsGetArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<VisionLocationsOperationsGetArgs> for Operation {
+    fn generate_resource_id(&self, input: &VisionLocationsOperationsGetArgs) -> String {
+        format!("gcp::vision::Operation/{}", input.name)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::vision::Operation"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for Empty
+// =============================================================================
+
+/// ResourceIdentifier implementation for Empty with VisionOperationsCancelArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<VisionOperationsCancelArgs> for Empty {
+    fn generate_resource_id(&self, input: &VisionOperationsCancelArgs) -> String {
+        format!("gcp::vision::Empty/{}", input.name)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::vision::Empty"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for Empty
+// =============================================================================
+
+/// ResourceIdentifier implementation for Empty with VisionOperationsDeleteArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<VisionOperationsDeleteArgs> for Empty {
+    fn generate_resource_id(&self, input: &VisionOperationsDeleteArgs) -> String {
+        format!("gcp::vision::Empty/{}", input.name)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::vision::Empty"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for Operation
+// =============================================================================
+
+/// ResourceIdentifier implementation for Operation with VisionOperationsGetArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<VisionOperationsGetArgs> for Operation {
+    fn generate_resource_id(&self, input: &VisionOperationsGetArgs) -> String {
+        format!("gcp::vision::Operation/{}", input.name)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::vision::Operation"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for ListOperationsResponse
+// =============================================================================
+
+/// ResourceIdentifier implementation for ListOperationsResponse with VisionOperationsListArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<VisionOperationsListArgs> for ListOperationsResponse {
+    fn generate_resource_id(&self, input: &VisionOperationsListArgs) -> String {
+        "gcp::vision::ListOperationsResponse".to_string()
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::vision::ListOperationsResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for BatchAnnotateFilesResponse
+// =============================================================================
+
+/// ResourceIdentifier implementation for BatchAnnotateFilesResponse with VisionProjectsFilesAnnotateArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<VisionProjectsFilesAnnotateArgs> for BatchAnnotateFilesResponse {
+    fn generate_resource_id(&self, input: &VisionProjectsFilesAnnotateArgs) -> String {
+        format!("gcp::vision::BatchAnnotateFilesResponse/{}", input.parent)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::vision::BatchAnnotateFilesResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for Operation
+// =============================================================================
+
+/// ResourceIdentifier implementation for Operation with VisionProjectsFilesAsyncBatchAnnotateArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<VisionProjectsFilesAsyncBatchAnnotateArgs> for Operation {
+    fn generate_resource_id(&self, input: &VisionProjectsFilesAsyncBatchAnnotateArgs) -> String {
+        format!("gcp::vision::Operation/{}", input.parent)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::vision::Operation"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for BatchAnnotateImagesResponse
+// =============================================================================
+
+/// ResourceIdentifier implementation for BatchAnnotateImagesResponse with VisionProjectsImagesAnnotateArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<VisionProjectsImagesAnnotateArgs> for BatchAnnotateImagesResponse {
+    fn generate_resource_id(&self, input: &VisionProjectsImagesAnnotateArgs) -> String {
+        format!("gcp::vision::BatchAnnotateImagesResponse/{}", input.parent)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::vision::BatchAnnotateImagesResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for Operation
+// =============================================================================
+
+/// ResourceIdentifier implementation for Operation with VisionProjectsImagesAsyncBatchAnnotateArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<VisionProjectsImagesAsyncBatchAnnotateArgs> for Operation {
+    fn generate_resource_id(&self, input: &VisionProjectsImagesAsyncBatchAnnotateArgs) -> String {
+        format!("gcp::vision::Operation/{}", input.parent)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::vision::Operation"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for BatchAnnotateFilesResponse
+// =============================================================================
+
+/// ResourceIdentifier implementation for BatchAnnotateFilesResponse with VisionProjectsLocationsFilesAnnotateArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<VisionProjectsLocationsFilesAnnotateArgs> for BatchAnnotateFilesResponse {
+    fn generate_resource_id(&self, input: &VisionProjectsLocationsFilesAnnotateArgs) -> String {
+        format!("gcp::vision::BatchAnnotateFilesResponse/{}", input.parent)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::vision::BatchAnnotateFilesResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for Operation
+// =============================================================================
+
+/// ResourceIdentifier implementation for Operation with VisionProjectsLocationsFilesAsyncBatchAnnotateArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<VisionProjectsLocationsFilesAsyncBatchAnnotateArgs> for Operation {
+    fn generate_resource_id(
+        &self,
+        input: &VisionProjectsLocationsFilesAsyncBatchAnnotateArgs,
+    ) -> String {
+        format!("gcp::vision::Operation/{}", input.parent)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::vision::Operation"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for BatchAnnotateImagesResponse
+// =============================================================================
+
+/// ResourceIdentifier implementation for BatchAnnotateImagesResponse with VisionProjectsLocationsImagesAnnotateArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<VisionProjectsLocationsImagesAnnotateArgs> for BatchAnnotateImagesResponse {
+    fn generate_resource_id(&self, input: &VisionProjectsLocationsImagesAnnotateArgs) -> String {
+        format!("gcp::vision::BatchAnnotateImagesResponse/{}", input.parent)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::vision::BatchAnnotateImagesResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for Operation
+// =============================================================================
+
+/// ResourceIdentifier implementation for Operation with VisionProjectsLocationsImagesAsyncBatchAnnotateArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<VisionProjectsLocationsImagesAsyncBatchAnnotateArgs> for Operation {
+    fn generate_resource_id(
+        &self,
+        input: &VisionProjectsLocationsImagesAsyncBatchAnnotateArgs,
+    ) -> String {
+        format!("gcp::vision::Operation/{}", input.parent)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::vision::Operation"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for Operation
+// =============================================================================
+
+/// ResourceIdentifier implementation for Operation with VisionProjectsLocationsOperationsGetArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<VisionProjectsLocationsOperationsGetArgs> for Operation {
+    fn generate_resource_id(&self, input: &VisionProjectsLocationsOperationsGetArgs) -> String {
+        format!("gcp::vision::Operation/{}", input.name)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::vision::Operation"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for Empty
+// =============================================================================
+
+/// ResourceIdentifier implementation for Empty with VisionProjectsLocationsProductSetsAddProductArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<VisionProjectsLocationsProductSetsAddProductArgs> for Empty {
+    fn generate_resource_id(
+        &self,
+        input: &VisionProjectsLocationsProductSetsAddProductArgs,
+    ) -> String {
+        format!("gcp::vision::Empty/{}", input.name)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::vision::Empty"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for ProductSet
+// =============================================================================
+
+/// ResourceIdentifier implementation for ProductSet with VisionProjectsLocationsProductSetsCreateArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<VisionProjectsLocationsProductSetsCreateArgs> for ProductSet {
+    fn generate_resource_id(&self, input: &VisionProjectsLocationsProductSetsCreateArgs) -> String {
+        format!("gcp::vision::ProductSet/{}", input.parent)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::vision::ProductSet"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for Empty
+// =============================================================================
+
+/// ResourceIdentifier implementation for Empty with VisionProjectsLocationsProductSetsDeleteArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<VisionProjectsLocationsProductSetsDeleteArgs> for Empty {
+    fn generate_resource_id(&self, input: &VisionProjectsLocationsProductSetsDeleteArgs) -> String {
+        format!("gcp::vision::Empty/{}", input.name)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::vision::Empty"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for ProductSet
+// =============================================================================
+
+/// ResourceIdentifier implementation for ProductSet with VisionProjectsLocationsProductSetsGetArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<VisionProjectsLocationsProductSetsGetArgs> for ProductSet {
+    fn generate_resource_id(&self, input: &VisionProjectsLocationsProductSetsGetArgs) -> String {
+        format!("gcp::vision::ProductSet/{}", input.name)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::vision::ProductSet"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for Operation
+// =============================================================================
+
+/// ResourceIdentifier implementation for Operation with VisionProjectsLocationsProductSetsImportArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<VisionProjectsLocationsProductSetsImportArgs> for Operation {
+    fn generate_resource_id(&self, input: &VisionProjectsLocationsProductSetsImportArgs) -> String {
+        format!("gcp::vision::Operation/{}", input.parent)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::vision::Operation"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for ListProductSetsResponse
+// =============================================================================
+
+/// ResourceIdentifier implementation for ListProductSetsResponse with VisionProjectsLocationsProductSetsListArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<VisionProjectsLocationsProductSetsListArgs> for ListProductSetsResponse {
+    fn generate_resource_id(&self, input: &VisionProjectsLocationsProductSetsListArgs) -> String {
+        format!("gcp::vision::ListProductSetsResponse/{}", input.parent)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::vision::ListProductSetsResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for ProductSet
+// =============================================================================
+
+/// ResourceIdentifier implementation for ProductSet with VisionProjectsLocationsProductSetsPatchArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<VisionProjectsLocationsProductSetsPatchArgs> for ProductSet {
+    fn generate_resource_id(&self, input: &VisionProjectsLocationsProductSetsPatchArgs) -> String {
+        format!("gcp::vision::ProductSet/{}", input.name)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::vision::ProductSet"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for Empty
+// =============================================================================
+
+/// ResourceIdentifier implementation for Empty with VisionProjectsLocationsProductSetsRemoveProductArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<VisionProjectsLocationsProductSetsRemoveProductArgs> for Empty {
+    fn generate_resource_id(
+        &self,
+        input: &VisionProjectsLocationsProductSetsRemoveProductArgs,
+    ) -> String {
+        format!("gcp::vision::Empty/{}", input.name)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::vision::Empty"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for ListProductsInProductSetResponse
+// =============================================================================
+
+/// ResourceIdentifier implementation for ListProductsInProductSetResponse with VisionProjectsLocationsProductSetsProductsListArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<VisionProjectsLocationsProductSetsProductsListArgs>
+    for ListProductsInProductSetResponse
+{
+    fn generate_resource_id(
+        &self,
+        input: &VisionProjectsLocationsProductSetsProductsListArgs,
+    ) -> String {
+        format!(
+            "gcp::vision::ListProductsInProductSetResponse/{}",
+            input.name
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::vision::ListProductsInProductSetResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for Product
+// =============================================================================
+
+/// ResourceIdentifier implementation for Product with VisionProjectsLocationsProductsCreateArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<VisionProjectsLocationsProductsCreateArgs> for Product {
+    fn generate_resource_id(&self, input: &VisionProjectsLocationsProductsCreateArgs) -> String {
+        format!("gcp::vision::Product/{}", input.parent)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::vision::Product"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for Empty
+// =============================================================================
+
+/// ResourceIdentifier implementation for Empty with VisionProjectsLocationsProductsDeleteArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<VisionProjectsLocationsProductsDeleteArgs> for Empty {
+    fn generate_resource_id(&self, input: &VisionProjectsLocationsProductsDeleteArgs) -> String {
+        format!("gcp::vision::Empty/{}", input.name)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::vision::Empty"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for Product
+// =============================================================================
+
+/// ResourceIdentifier implementation for Product with VisionProjectsLocationsProductsGetArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<VisionProjectsLocationsProductsGetArgs> for Product {
+    fn generate_resource_id(&self, input: &VisionProjectsLocationsProductsGetArgs) -> String {
+        format!("gcp::vision::Product/{}", input.name)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::vision::Product"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for ListProductsResponse
+// =============================================================================
+
+/// ResourceIdentifier implementation for ListProductsResponse with VisionProjectsLocationsProductsListArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<VisionProjectsLocationsProductsListArgs> for ListProductsResponse {
+    fn generate_resource_id(&self, input: &VisionProjectsLocationsProductsListArgs) -> String {
+        format!("gcp::vision::ListProductsResponse/{}", input.parent)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::vision::ListProductsResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for Product
+// =============================================================================
+
+/// ResourceIdentifier implementation for Product with VisionProjectsLocationsProductsPatchArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<VisionProjectsLocationsProductsPatchArgs> for Product {
+    fn generate_resource_id(&self, input: &VisionProjectsLocationsProductsPatchArgs) -> String {
+        format!("gcp::vision::Product/{}", input.name)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::vision::Product"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for Operation
+// =============================================================================
+
+/// ResourceIdentifier implementation for Operation with VisionProjectsLocationsProductsPurgeArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<VisionProjectsLocationsProductsPurgeArgs> for Operation {
+    fn generate_resource_id(&self, input: &VisionProjectsLocationsProductsPurgeArgs) -> String {
+        format!("gcp::vision::Operation/{}", input.parent)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::vision::Operation"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for ReferenceImage
+// =============================================================================
+
+/// ResourceIdentifier implementation for ReferenceImage with VisionProjectsLocationsProductsReferenceImagesCreateArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<VisionProjectsLocationsProductsReferenceImagesCreateArgs>
+    for ReferenceImage
+{
+    fn generate_resource_id(
+        &self,
+        input: &VisionProjectsLocationsProductsReferenceImagesCreateArgs,
+    ) -> String {
+        format!("gcp::vision::ReferenceImage/{}", input.parent)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::vision::ReferenceImage"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for Empty
+// =============================================================================
+
+/// ResourceIdentifier implementation for Empty with VisionProjectsLocationsProductsReferenceImagesDeleteArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<VisionProjectsLocationsProductsReferenceImagesDeleteArgs> for Empty {
+    fn generate_resource_id(
+        &self,
+        input: &VisionProjectsLocationsProductsReferenceImagesDeleteArgs,
+    ) -> String {
+        format!("gcp::vision::Empty/{}", input.name)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::vision::Empty"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for ReferenceImage
+// =============================================================================
+
+/// ResourceIdentifier implementation for ReferenceImage with VisionProjectsLocationsProductsReferenceImagesGetArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<VisionProjectsLocationsProductsReferenceImagesGetArgs> for ReferenceImage {
+    fn generate_resource_id(
+        &self,
+        input: &VisionProjectsLocationsProductsReferenceImagesGetArgs,
+    ) -> String {
+        format!("gcp::vision::ReferenceImage/{}", input.name)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::vision::ReferenceImage"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for ListReferenceImagesResponse
+// =============================================================================
+
+/// ResourceIdentifier implementation for ListReferenceImagesResponse with VisionProjectsLocationsProductsReferenceImagesListArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<VisionProjectsLocationsProductsReferenceImagesListArgs>
+    for ListReferenceImagesResponse
+{
+    fn generate_resource_id(
+        &self,
+        input: &VisionProjectsLocationsProductsReferenceImagesListArgs,
+    ) -> String {
+        format!("gcp::vision::ListReferenceImagesResponse/{}", input.parent)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::vision::ListReferenceImagesResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for Operation
+// =============================================================================
+
+/// ResourceIdentifier implementation for Operation with VisionProjectsOperationsGetArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<VisionProjectsOperationsGetArgs> for Operation {
+    fn generate_resource_id(&self, input: &VisionProjectsOperationsGetArgs) -> String {
+        format!("gcp::vision::Operation/{}", input.name)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::vision::Operation"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
 }

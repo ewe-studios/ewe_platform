@@ -9,7 +9,7 @@
 //! HOW: Uses foundation_openapi spec processing to extract structured data
 //!      about providers, APIs, endpoints, and their builder/task functions.
 
-use crate::{process_spec, EndpointInfo};
+use crate::{process_spec, EndpointInfo, OperationType};
 use std::path::Path;
 
 /// Catalog of all APIs for a provider.
@@ -240,30 +240,85 @@ impl ApiCatalog {
         self.apis.iter().find(|api| api.name == name)
     }
 
-    /// Get mutating endpoints (POST/PUT/PATCH/DELETE) for an API.
+    /// Get mutating endpoints (operations that require state tracking) for an API.
     pub fn mutating_endpoints(&self, api_name: &str) -> Vec<&EndpointInfo> {
         self.get_api(api_name)
             .map(|api| {
                 api.endpoints
                     .iter()
-                    .filter(|ep| {
-                        matches!(
-                            ep.method.as_str(),
-                            "POST" | "PUT" | "PATCH" | "DELETE"
-                        )
-                    })
+                    .filter(|ep| ep.operation_type.requires_state_tracking())
                     .collect()
             })
             .unwrap_or_default()
     }
 
-    /// Get read-only endpoints (GET) for an API.
+    /// Get read-only endpoints (operations that don't modify state) for an API.
     pub fn read_only_endpoints(&self, api_name: &str) -> Vec<&EndpointInfo> {
         self.get_api(api_name)
             .map(|api| {
                 api.endpoints
                     .iter()
-                    .filter(|ep| ep.method.as_str() == "GET")
+                    .filter(|ep| !ep.operation_type.requires_state_tracking())
+                    .collect()
+            })
+            .unwrap_or_default()
+    }
+
+    /// Get create endpoints for an API.
+    pub fn create_endpoints(&self, api_name: &str) -> Vec<&EndpointInfo> {
+        self.get_api(api_name)
+            .map(|api| {
+                api.endpoints
+                    .iter()
+                    .filter(|ep| matches!(ep.operation_type, OperationType::Create))
+                    .collect()
+            })
+            .unwrap_or_default()
+    }
+
+    /// Get read endpoints for an API.
+    pub fn read_endpoints(&self, api_name: &str) -> Vec<&EndpointInfo> {
+        self.get_api(api_name)
+            .map(|api| {
+                api.endpoints
+                    .iter()
+                    .filter(|ep| matches!(ep.operation_type, OperationType::Read))
+                    .collect()
+            })
+            .unwrap_or_default()
+    }
+
+    /// Get update endpoints for an API.
+    pub fn update_endpoints(&self, api_name: &str) -> Vec<&EndpointInfo> {
+        self.get_api(api_name)
+            .map(|api| {
+                api.endpoints
+                    .iter()
+                    .filter(|ep| matches!(ep.operation_type, OperationType::Update))
+                    .collect()
+            })
+            .unwrap_or_default()
+    }
+
+    /// Get delete endpoints for an API.
+    pub fn delete_endpoints(&self, api_name: &str) -> Vec<&EndpointInfo> {
+        self.get_api(api_name)
+            .map(|api| {
+                api.endpoints
+                    .iter()
+                    .filter(|ep| matches!(ep.operation_type, OperationType::Delete))
+                    .collect()
+            })
+            .unwrap_or_default()
+    }
+
+    /// Get action endpoints for an API.
+    pub fn action_endpoints(&self, api_name: &str) -> Vec<&EndpointInfo> {
+        self.get_api(api_name)
+            .map(|api| {
+                api.endpoints
+                    .iter()
+                    .filter(|ep| matches!(ep.operation_type, OperationType::Action(_)))
                     .collect()
             })
             .unwrap_or_default()

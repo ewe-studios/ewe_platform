@@ -16,6 +16,10 @@ use crate::providers::gcp::clients::pubsub::{
     pubsub_projects_schemas_create_builder, pubsub_projects_schemas_create_task,
     pubsub_projects_schemas_delete_builder, pubsub_projects_schemas_delete_task,
     pubsub_projects_schemas_delete_revision_builder, pubsub_projects_schemas_delete_revision_task,
+    pubsub_projects_schemas_get_builder, pubsub_projects_schemas_get_task,
+    pubsub_projects_schemas_get_iam_policy_builder, pubsub_projects_schemas_get_iam_policy_task,
+    pubsub_projects_schemas_list_builder, pubsub_projects_schemas_list_task,
+    pubsub_projects_schemas_list_revisions_builder, pubsub_projects_schemas_list_revisions_task,
     pubsub_projects_schemas_rollback_builder, pubsub_projects_schemas_rollback_task,
     pubsub_projects_schemas_set_iam_policy_builder, pubsub_projects_schemas_set_iam_policy_task,
     pubsub_projects_schemas_test_iam_permissions_builder, pubsub_projects_schemas_test_iam_permissions_task,
@@ -23,6 +27,9 @@ use crate::providers::gcp::clients::pubsub::{
     pubsub_projects_schemas_validate_message_builder, pubsub_projects_schemas_validate_message_task,
     pubsub_projects_snapshots_create_builder, pubsub_projects_snapshots_create_task,
     pubsub_projects_snapshots_delete_builder, pubsub_projects_snapshots_delete_task,
+    pubsub_projects_snapshots_get_builder, pubsub_projects_snapshots_get_task,
+    pubsub_projects_snapshots_get_iam_policy_builder, pubsub_projects_snapshots_get_iam_policy_task,
+    pubsub_projects_snapshots_list_builder, pubsub_projects_snapshots_list_task,
     pubsub_projects_snapshots_patch_builder, pubsub_projects_snapshots_patch_task,
     pubsub_projects_snapshots_set_iam_policy_builder, pubsub_projects_snapshots_set_iam_policy_task,
     pubsub_projects_snapshots_test_iam_permissions_builder, pubsub_projects_snapshots_test_iam_permissions_task,
@@ -30,6 +37,9 @@ use crate::providers::gcp::clients::pubsub::{
     pubsub_projects_subscriptions_create_builder, pubsub_projects_subscriptions_create_task,
     pubsub_projects_subscriptions_delete_builder, pubsub_projects_subscriptions_delete_task,
     pubsub_projects_subscriptions_detach_builder, pubsub_projects_subscriptions_detach_task,
+    pubsub_projects_subscriptions_get_builder, pubsub_projects_subscriptions_get_task,
+    pubsub_projects_subscriptions_get_iam_policy_builder, pubsub_projects_subscriptions_get_iam_policy_task,
+    pubsub_projects_subscriptions_list_builder, pubsub_projects_subscriptions_list_task,
     pubsub_projects_subscriptions_modify_ack_deadline_builder, pubsub_projects_subscriptions_modify_ack_deadline_task,
     pubsub_projects_subscriptions_modify_push_config_builder, pubsub_projects_subscriptions_modify_push_config_task,
     pubsub_projects_subscriptions_patch_builder, pubsub_projects_subscriptions_patch_task,
@@ -39,14 +49,26 @@ use crate::providers::gcp::clients::pubsub::{
     pubsub_projects_subscriptions_test_iam_permissions_builder, pubsub_projects_subscriptions_test_iam_permissions_task,
     pubsub_projects_topics_create_builder, pubsub_projects_topics_create_task,
     pubsub_projects_topics_delete_builder, pubsub_projects_topics_delete_task,
+    pubsub_projects_topics_get_builder, pubsub_projects_topics_get_task,
+    pubsub_projects_topics_get_iam_policy_builder, pubsub_projects_topics_get_iam_policy_task,
+    pubsub_projects_topics_list_builder, pubsub_projects_topics_list_task,
     pubsub_projects_topics_patch_builder, pubsub_projects_topics_patch_task,
     pubsub_projects_topics_publish_builder, pubsub_projects_topics_publish_task,
     pubsub_projects_topics_set_iam_policy_builder, pubsub_projects_topics_set_iam_policy_task,
     pubsub_projects_topics_test_iam_permissions_builder, pubsub_projects_topics_test_iam_permissions_task,
+    pubsub_projects_topics_snapshots_list_builder, pubsub_projects_topics_snapshots_list_task,
+    pubsub_projects_topics_subscriptions_list_builder, pubsub_projects_topics_subscriptions_list_task,
 };
 use crate::providers::gcp::clients::types::{ApiError, ApiPending};
 use crate::providers::gcp::clients::pubsub::DetachSubscriptionResponse;
 use crate::providers::gcp::clients::pubsub::Empty;
+use crate::providers::gcp::clients::pubsub::ListSchemaRevisionsResponse;
+use crate::providers::gcp::clients::pubsub::ListSchemasResponse;
+use crate::providers::gcp::clients::pubsub::ListSnapshotsResponse;
+use crate::providers::gcp::clients::pubsub::ListSubscriptionsResponse;
+use crate::providers::gcp::clients::pubsub::ListTopicSnapshotsResponse;
+use crate::providers::gcp::clients::pubsub::ListTopicSubscriptionsResponse;
+use crate::providers::gcp::clients::pubsub::ListTopicsResponse;
 use crate::providers::gcp::clients::pubsub::Policy;
 use crate::providers::gcp::clients::pubsub::PublishResponse;
 use crate::providers::gcp::clients::pubsub::PullResponse;
@@ -62,6 +84,10 @@ use crate::providers::gcp::clients::pubsub::PubsubProjectsSchemasCommitArgs;
 use crate::providers::gcp::clients::pubsub::PubsubProjectsSchemasCreateArgs;
 use crate::providers::gcp::clients::pubsub::PubsubProjectsSchemasDeleteArgs;
 use crate::providers::gcp::clients::pubsub::PubsubProjectsSchemasDeleteRevisionArgs;
+use crate::providers::gcp::clients::pubsub::PubsubProjectsSchemasGetArgs;
+use crate::providers::gcp::clients::pubsub::PubsubProjectsSchemasGetIamPolicyArgs;
+use crate::providers::gcp::clients::pubsub::PubsubProjectsSchemasListArgs;
+use crate::providers::gcp::clients::pubsub::PubsubProjectsSchemasListRevisionsArgs;
 use crate::providers::gcp::clients::pubsub::PubsubProjectsSchemasRollbackArgs;
 use crate::providers::gcp::clients::pubsub::PubsubProjectsSchemasSetIamPolicyArgs;
 use crate::providers::gcp::clients::pubsub::PubsubProjectsSchemasTestIamPermissionsArgs;
@@ -69,6 +95,9 @@ use crate::providers::gcp::clients::pubsub::PubsubProjectsSchemasValidateArgs;
 use crate::providers::gcp::clients::pubsub::PubsubProjectsSchemasValidateMessageArgs;
 use crate::providers::gcp::clients::pubsub::PubsubProjectsSnapshotsCreateArgs;
 use crate::providers::gcp::clients::pubsub::PubsubProjectsSnapshotsDeleteArgs;
+use crate::providers::gcp::clients::pubsub::PubsubProjectsSnapshotsGetArgs;
+use crate::providers::gcp::clients::pubsub::PubsubProjectsSnapshotsGetIamPolicyArgs;
+use crate::providers::gcp::clients::pubsub::PubsubProjectsSnapshotsListArgs;
 use crate::providers::gcp::clients::pubsub::PubsubProjectsSnapshotsPatchArgs;
 use crate::providers::gcp::clients::pubsub::PubsubProjectsSnapshotsSetIamPolicyArgs;
 use crate::providers::gcp::clients::pubsub::PubsubProjectsSnapshotsTestIamPermissionsArgs;
@@ -76,6 +105,9 @@ use crate::providers::gcp::clients::pubsub::PubsubProjectsSubscriptionsAcknowled
 use crate::providers::gcp::clients::pubsub::PubsubProjectsSubscriptionsCreateArgs;
 use crate::providers::gcp::clients::pubsub::PubsubProjectsSubscriptionsDeleteArgs;
 use crate::providers::gcp::clients::pubsub::PubsubProjectsSubscriptionsDetachArgs;
+use crate::providers::gcp::clients::pubsub::PubsubProjectsSubscriptionsGetArgs;
+use crate::providers::gcp::clients::pubsub::PubsubProjectsSubscriptionsGetIamPolicyArgs;
+use crate::providers::gcp::clients::pubsub::PubsubProjectsSubscriptionsListArgs;
 use crate::providers::gcp::clients::pubsub::PubsubProjectsSubscriptionsModifyAckDeadlineArgs;
 use crate::providers::gcp::clients::pubsub::PubsubProjectsSubscriptionsModifyPushConfigArgs;
 use crate::providers::gcp::clients::pubsub::PubsubProjectsSubscriptionsPatchArgs;
@@ -85,9 +117,14 @@ use crate::providers::gcp::clients::pubsub::PubsubProjectsSubscriptionsSetIamPol
 use crate::providers::gcp::clients::pubsub::PubsubProjectsSubscriptionsTestIamPermissionsArgs;
 use crate::providers::gcp::clients::pubsub::PubsubProjectsTopicsCreateArgs;
 use crate::providers::gcp::clients::pubsub::PubsubProjectsTopicsDeleteArgs;
+use crate::providers::gcp::clients::pubsub::PubsubProjectsTopicsGetArgs;
+use crate::providers::gcp::clients::pubsub::PubsubProjectsTopicsGetIamPolicyArgs;
+use crate::providers::gcp::clients::pubsub::PubsubProjectsTopicsListArgs;
 use crate::providers::gcp::clients::pubsub::PubsubProjectsTopicsPatchArgs;
 use crate::providers::gcp::clients::pubsub::PubsubProjectsTopicsPublishArgs;
 use crate::providers::gcp::clients::pubsub::PubsubProjectsTopicsSetIamPolicyArgs;
+use crate::providers::gcp::clients::pubsub::PubsubProjectsTopicsSnapshotsListArgs;
+use crate::providers::gcp::clients::pubsub::PubsubProjectsTopicsSubscriptionsListArgs;
 use crate::providers::gcp::clients::pubsub::PubsubProjectsTopicsTestIamPermissionsArgs;
 use crate::provider_client::{ProviderClient, ProviderError};
 use foundation_core::valtron::{execute, StreamIterator};
@@ -304,6 +341,166 @@ where
         execute(store_task, None).map_err(|e: String| ProviderError::ExecuteFailed(e.to_string()))
     }
 
+    /// Pubsub projects schemas get.
+    ///
+    /// Read-only operation - no state tracking.
+    ///
+    /// # Arguments
+    ///
+    /// * `args` - Request arguments
+    ///
+    /// # Returns
+    ///
+    /// StreamIterator yielding the Schema result.
+    ///
+    /// # Errors
+    ///
+    /// Returns ProviderError if the API request fails.
+    pub fn pubsub_projects_schemas_get(
+        &self,
+        args: &PubsubProjectsSchemasGetArgs,
+    ) -> Result<
+        impl StreamIterator<
+            D = Result<Schema, ProviderError<ApiError>>,
+            P = crate::providers::gcp::clients::types::ApiPending,
+        > + Send
+        + 'static,
+        ProviderError<ApiError>,
+    > {
+        let builder = pubsub_projects_schemas_get_builder(
+            &self.http_client,
+            &args.name,
+            &args.view,
+        )
+        .map_err(ProviderError::Api)?;
+
+        let task = pubsub_projects_schemas_get_task(builder)
+            .map_err(ProviderError::Api)?;
+
+        execute(task, None).map_err(|e: String| ProviderError::ExecuteFailed(e.to_string()))
+    }
+
+    /// Pubsub projects schemas get iam policy.
+    ///
+    /// Read-only operation - no state tracking.
+    ///
+    /// # Arguments
+    ///
+    /// * `args` - Request arguments
+    ///
+    /// # Returns
+    ///
+    /// StreamIterator yielding the Policy result.
+    ///
+    /// # Errors
+    ///
+    /// Returns ProviderError if the API request fails.
+    pub fn pubsub_projects_schemas_get_iam_policy(
+        &self,
+        args: &PubsubProjectsSchemasGetIamPolicyArgs,
+    ) -> Result<
+        impl StreamIterator<
+            D = Result<Policy, ProviderError<ApiError>>,
+            P = crate::providers::gcp::clients::types::ApiPending,
+        > + Send
+        + 'static,
+        ProviderError<ApiError>,
+    > {
+        let builder = pubsub_projects_schemas_get_iam_policy_builder(
+            &self.http_client,
+            &args.resource,
+            &args.options.requestedPolicyVersion,
+        )
+        .map_err(ProviderError::Api)?;
+
+        let task = pubsub_projects_schemas_get_iam_policy_task(builder)
+            .map_err(ProviderError::Api)?;
+
+        execute(task, None).map_err(|e: String| ProviderError::ExecuteFailed(e.to_string()))
+    }
+
+    /// Pubsub projects schemas list.
+    ///
+    /// Read-only operation - no state tracking.
+    ///
+    /// # Arguments
+    ///
+    /// * `args` - Request arguments
+    ///
+    /// # Returns
+    ///
+    /// StreamIterator yielding the ListSchemasResponse result.
+    ///
+    /// # Errors
+    ///
+    /// Returns ProviderError if the API request fails.
+    pub fn pubsub_projects_schemas_list(
+        &self,
+        args: &PubsubProjectsSchemasListArgs,
+    ) -> Result<
+        impl StreamIterator<
+            D = Result<ListSchemasResponse, ProviderError<ApiError>>,
+            P = crate::providers::gcp::clients::types::ApiPending,
+        > + Send
+        + 'static,
+        ProviderError<ApiError>,
+    > {
+        let builder = pubsub_projects_schemas_list_builder(
+            &self.http_client,
+            &args.parent,
+            &args.pageSize,
+            &args.pageToken,
+            &args.view,
+        )
+        .map_err(ProviderError::Api)?;
+
+        let task = pubsub_projects_schemas_list_task(builder)
+            .map_err(ProviderError::Api)?;
+
+        execute(task, None).map_err(|e: String| ProviderError::ExecuteFailed(e.to_string()))
+    }
+
+    /// Pubsub projects schemas list revisions.
+    ///
+    /// Read-only operation - no state tracking.
+    ///
+    /// # Arguments
+    ///
+    /// * `args` - Request arguments
+    ///
+    /// # Returns
+    ///
+    /// StreamIterator yielding the ListSchemaRevisionsResponse result.
+    ///
+    /// # Errors
+    ///
+    /// Returns ProviderError if the API request fails.
+    pub fn pubsub_projects_schemas_list_revisions(
+        &self,
+        args: &PubsubProjectsSchemasListRevisionsArgs,
+    ) -> Result<
+        impl StreamIterator<
+            D = Result<ListSchemaRevisionsResponse, ProviderError<ApiError>>,
+            P = crate::providers::gcp::clients::types::ApiPending,
+        > + Send
+        + 'static,
+        ProviderError<ApiError>,
+    > {
+        let builder = pubsub_projects_schemas_list_revisions_builder(
+            &self.http_client,
+            &args.name,
+            &args.pageSize,
+            &args.pageToken,
+            &args.view,
+        )
+        .map_err(ProviderError::Api)?;
+
+        let task = pubsub_projects_schemas_list_revisions_task(builder)
+            .map_err(ProviderError::Api)?;
+
+        execute(task, None).map_err(|e: String| ProviderError::ExecuteFailed(e.to_string()))
+    }
+
     /// Pubsub projects schemas rollback.
     ///
     /// Automatically stores the result in the state store on success.
@@ -392,7 +589,7 @@ where
 
     /// Pubsub projects schemas test iam permissions.
     ///
-    /// Automatically stores the result in the state store on success.
+    /// Read-only operation - no state tracking.
     ///
     /// # Arguments
     ///
@@ -404,7 +601,7 @@ where
     ///
     /// # Errors
     ///
-    /// Returns ProviderError if the API request or state storage fails.
+    /// Returns ProviderError if the API request fails.
     pub fn pubsub_projects_schemas_test_iam_permissions(
         &self,
         args: &PubsubProjectsSchemasTestIamPermissionsArgs,
@@ -425,17 +622,12 @@ where
         let task = pubsub_projects_schemas_test_iam_permissions_task(builder)
             .map_err(ProviderError::Api)?;
 
-        let state_store = self.client.state_store.clone();
-        let stage = Some(self.client.stage.clone());
-
-        let store_task = StoreStateIdentifierTask::new(task, state_store, args, stage);
-
-        execute(store_task, None).map_err(|e: String| ProviderError::ExecuteFailed(e.to_string()))
+        execute(task, None).map_err(|e: String| ProviderError::ExecuteFailed(e.to_string()))
     }
 
     /// Pubsub projects schemas validate.
     ///
-    /// Automatically stores the result in the state store on success.
+    /// Read-only operation - no state tracking.
     ///
     /// # Arguments
     ///
@@ -447,7 +639,7 @@ where
     ///
     /// # Errors
     ///
-    /// Returns ProviderError if the API request or state storage fails.
+    /// Returns ProviderError if the API request fails.
     pub fn pubsub_projects_schemas_validate(
         &self,
         args: &PubsubProjectsSchemasValidateArgs,
@@ -468,17 +660,12 @@ where
         let task = pubsub_projects_schemas_validate_task(builder)
             .map_err(ProviderError::Api)?;
 
-        let state_store = self.client.state_store.clone();
-        let stage = Some(self.client.stage.clone());
-
-        let store_task = StoreStateIdentifierTask::new(task, state_store, args, stage);
-
-        execute(store_task, None).map_err(|e: String| ProviderError::ExecuteFailed(e.to_string()))
+        execute(task, None).map_err(|e: String| ProviderError::ExecuteFailed(e.to_string()))
     }
 
     /// Pubsub projects schemas validate message.
     ///
-    /// Automatically stores the result in the state store on success.
+    /// Read-only operation - no state tracking.
     ///
     /// # Arguments
     ///
@@ -490,7 +677,7 @@ where
     ///
     /// # Errors
     ///
-    /// Returns ProviderError if the API request or state storage fails.
+    /// Returns ProviderError if the API request fails.
     pub fn pubsub_projects_schemas_validate_message(
         &self,
         args: &PubsubProjectsSchemasValidateMessageArgs,
@@ -511,12 +698,7 @@ where
         let task = pubsub_projects_schemas_validate_message_task(builder)
             .map_err(ProviderError::Api)?;
 
-        let state_store = self.client.state_store.clone();
-        let stage = Some(self.client.stage.clone());
-
-        let store_task = StoreStateIdentifierTask::new(task, state_store, args, stage);
-
-        execute(store_task, None).map_err(|e: String| ProviderError::ExecuteFailed(e.to_string()))
+        execute(task, None).map_err(|e: String| ProviderError::ExecuteFailed(e.to_string()))
     }
 
     /// Pubsub projects snapshots create.
@@ -603,6 +785,123 @@ where
         let store_task = StoreStateIdentifierTask::new(task, state_store, args, stage);
 
         execute(store_task, None).map_err(|e: String| ProviderError::ExecuteFailed(e.to_string()))
+    }
+
+    /// Pubsub projects snapshots get.
+    ///
+    /// Read-only operation - no state tracking.
+    ///
+    /// # Arguments
+    ///
+    /// * `args` - Request arguments
+    ///
+    /// # Returns
+    ///
+    /// StreamIterator yielding the Snapshot result.
+    ///
+    /// # Errors
+    ///
+    /// Returns ProviderError if the API request fails.
+    pub fn pubsub_projects_snapshots_get(
+        &self,
+        args: &PubsubProjectsSnapshotsGetArgs,
+    ) -> Result<
+        impl StreamIterator<
+            D = Result<Snapshot, ProviderError<ApiError>>,
+            P = crate::providers::gcp::clients::types::ApiPending,
+        > + Send
+        + 'static,
+        ProviderError<ApiError>,
+    > {
+        let builder = pubsub_projects_snapshots_get_builder(
+            &self.http_client,
+            &args.snapshot,
+        )
+        .map_err(ProviderError::Api)?;
+
+        let task = pubsub_projects_snapshots_get_task(builder)
+            .map_err(ProviderError::Api)?;
+
+        execute(task, None).map_err(|e: String| ProviderError::ExecuteFailed(e.to_string()))
+    }
+
+    /// Pubsub projects snapshots get iam policy.
+    ///
+    /// Read-only operation - no state tracking.
+    ///
+    /// # Arguments
+    ///
+    /// * `args` - Request arguments
+    ///
+    /// # Returns
+    ///
+    /// StreamIterator yielding the Policy result.
+    ///
+    /// # Errors
+    ///
+    /// Returns ProviderError if the API request fails.
+    pub fn pubsub_projects_snapshots_get_iam_policy(
+        &self,
+        args: &PubsubProjectsSnapshotsGetIamPolicyArgs,
+    ) -> Result<
+        impl StreamIterator<
+            D = Result<Policy, ProviderError<ApiError>>,
+            P = crate::providers::gcp::clients::types::ApiPending,
+        > + Send
+        + 'static,
+        ProviderError<ApiError>,
+    > {
+        let builder = pubsub_projects_snapshots_get_iam_policy_builder(
+            &self.http_client,
+            &args.resource,
+            &args.options.requestedPolicyVersion,
+        )
+        .map_err(ProviderError::Api)?;
+
+        let task = pubsub_projects_snapshots_get_iam_policy_task(builder)
+            .map_err(ProviderError::Api)?;
+
+        execute(task, None).map_err(|e: String| ProviderError::ExecuteFailed(e.to_string()))
+    }
+
+    /// Pubsub projects snapshots list.
+    ///
+    /// Read-only operation - no state tracking.
+    ///
+    /// # Arguments
+    ///
+    /// * `args` - Request arguments
+    ///
+    /// # Returns
+    ///
+    /// StreamIterator yielding the ListSnapshotsResponse result.
+    ///
+    /// # Errors
+    ///
+    /// Returns ProviderError if the API request fails.
+    pub fn pubsub_projects_snapshots_list(
+        &self,
+        args: &PubsubProjectsSnapshotsListArgs,
+    ) -> Result<
+        impl StreamIterator<
+            D = Result<ListSnapshotsResponse, ProviderError<ApiError>>,
+            P = crate::providers::gcp::clients::types::ApiPending,
+        > + Send
+        + 'static,
+        ProviderError<ApiError>,
+    > {
+        let builder = pubsub_projects_snapshots_list_builder(
+            &self.http_client,
+            &args.project,
+            &args.pageSize,
+            &args.pageToken,
+        )
+        .map_err(ProviderError::Api)?;
+
+        let task = pubsub_projects_snapshots_list_task(builder)
+            .map_err(ProviderError::Api)?;
+
+        execute(task, None).map_err(|e: String| ProviderError::ExecuteFailed(e.to_string()))
     }
 
     /// Pubsub projects snapshots patch.
@@ -693,7 +992,7 @@ where
 
     /// Pubsub projects snapshots test iam permissions.
     ///
-    /// Automatically stores the result in the state store on success.
+    /// Read-only operation - no state tracking.
     ///
     /// # Arguments
     ///
@@ -705,7 +1004,7 @@ where
     ///
     /// # Errors
     ///
-    /// Returns ProviderError if the API request or state storage fails.
+    /// Returns ProviderError if the API request fails.
     pub fn pubsub_projects_snapshots_test_iam_permissions(
         &self,
         args: &PubsubProjectsSnapshotsTestIamPermissionsArgs,
@@ -726,12 +1025,7 @@ where
         let task = pubsub_projects_snapshots_test_iam_permissions_task(builder)
             .map_err(ProviderError::Api)?;
 
-        let state_store = self.client.state_store.clone();
-        let stage = Some(self.client.stage.clone());
-
-        let store_task = StoreStateIdentifierTask::new(task, state_store, args, stage);
-
-        execute(store_task, None).map_err(|e: String| ProviderError::ExecuteFailed(e.to_string()))
+        execute(task, None).map_err(|e: String| ProviderError::ExecuteFailed(e.to_string()))
     }
 
     /// Pubsub projects subscriptions acknowledge.
@@ -904,6 +1198,123 @@ where
         let store_task = StoreStateIdentifierTask::new(task, state_store, args, stage);
 
         execute(store_task, None).map_err(|e: String| ProviderError::ExecuteFailed(e.to_string()))
+    }
+
+    /// Pubsub projects subscriptions get.
+    ///
+    /// Read-only operation - no state tracking.
+    ///
+    /// # Arguments
+    ///
+    /// * `args` - Request arguments
+    ///
+    /// # Returns
+    ///
+    /// StreamIterator yielding the Subscription result.
+    ///
+    /// # Errors
+    ///
+    /// Returns ProviderError if the API request fails.
+    pub fn pubsub_projects_subscriptions_get(
+        &self,
+        args: &PubsubProjectsSubscriptionsGetArgs,
+    ) -> Result<
+        impl StreamIterator<
+            D = Result<Subscription, ProviderError<ApiError>>,
+            P = crate::providers::gcp::clients::types::ApiPending,
+        > + Send
+        + 'static,
+        ProviderError<ApiError>,
+    > {
+        let builder = pubsub_projects_subscriptions_get_builder(
+            &self.http_client,
+            &args.subscription,
+        )
+        .map_err(ProviderError::Api)?;
+
+        let task = pubsub_projects_subscriptions_get_task(builder)
+            .map_err(ProviderError::Api)?;
+
+        execute(task, None).map_err(|e: String| ProviderError::ExecuteFailed(e.to_string()))
+    }
+
+    /// Pubsub projects subscriptions get iam policy.
+    ///
+    /// Read-only operation - no state tracking.
+    ///
+    /// # Arguments
+    ///
+    /// * `args` - Request arguments
+    ///
+    /// # Returns
+    ///
+    /// StreamIterator yielding the Policy result.
+    ///
+    /// # Errors
+    ///
+    /// Returns ProviderError if the API request fails.
+    pub fn pubsub_projects_subscriptions_get_iam_policy(
+        &self,
+        args: &PubsubProjectsSubscriptionsGetIamPolicyArgs,
+    ) -> Result<
+        impl StreamIterator<
+            D = Result<Policy, ProviderError<ApiError>>,
+            P = crate::providers::gcp::clients::types::ApiPending,
+        > + Send
+        + 'static,
+        ProviderError<ApiError>,
+    > {
+        let builder = pubsub_projects_subscriptions_get_iam_policy_builder(
+            &self.http_client,
+            &args.resource,
+            &args.options.requestedPolicyVersion,
+        )
+        .map_err(ProviderError::Api)?;
+
+        let task = pubsub_projects_subscriptions_get_iam_policy_task(builder)
+            .map_err(ProviderError::Api)?;
+
+        execute(task, None).map_err(|e: String| ProviderError::ExecuteFailed(e.to_string()))
+    }
+
+    /// Pubsub projects subscriptions list.
+    ///
+    /// Read-only operation - no state tracking.
+    ///
+    /// # Arguments
+    ///
+    /// * `args` - Request arguments
+    ///
+    /// # Returns
+    ///
+    /// StreamIterator yielding the ListSubscriptionsResponse result.
+    ///
+    /// # Errors
+    ///
+    /// Returns ProviderError if the API request fails.
+    pub fn pubsub_projects_subscriptions_list(
+        &self,
+        args: &PubsubProjectsSubscriptionsListArgs,
+    ) -> Result<
+        impl StreamIterator<
+            D = Result<ListSubscriptionsResponse, ProviderError<ApiError>>,
+            P = crate::providers::gcp::clients::types::ApiPending,
+        > + Send
+        + 'static,
+        ProviderError<ApiError>,
+    > {
+        let builder = pubsub_projects_subscriptions_list_builder(
+            &self.http_client,
+            &args.project,
+            &args.pageSize,
+            &args.pageToken,
+        )
+        .map_err(ProviderError::Api)?;
+
+        let task = pubsub_projects_subscriptions_list_task(builder)
+            .map_err(ProviderError::Api)?;
+
+        execute(task, None).map_err(|e: String| ProviderError::ExecuteFailed(e.to_string()))
     }
 
     /// Pubsub projects subscriptions modify ack deadline.
@@ -1166,7 +1577,7 @@ where
 
     /// Pubsub projects subscriptions test iam permissions.
     ///
-    /// Automatically stores the result in the state store on success.
+    /// Read-only operation - no state tracking.
     ///
     /// # Arguments
     ///
@@ -1178,7 +1589,7 @@ where
     ///
     /// # Errors
     ///
-    /// Returns ProviderError if the API request or state storage fails.
+    /// Returns ProviderError if the API request fails.
     pub fn pubsub_projects_subscriptions_test_iam_permissions(
         &self,
         args: &PubsubProjectsSubscriptionsTestIamPermissionsArgs,
@@ -1199,12 +1610,7 @@ where
         let task = pubsub_projects_subscriptions_test_iam_permissions_task(builder)
             .map_err(ProviderError::Api)?;
 
-        let state_store = self.client.state_store.clone();
-        let stage = Some(self.client.stage.clone());
-
-        let store_task = StoreStateIdentifierTask::new(task, state_store, args, stage);
-
-        execute(store_task, None).map_err(|e: String| ProviderError::ExecuteFailed(e.to_string()))
+        execute(task, None).map_err(|e: String| ProviderError::ExecuteFailed(e.to_string()))
     }
 
     /// Pubsub projects topics create.
@@ -1291,6 +1697,123 @@ where
         let store_task = StoreStateIdentifierTask::new(task, state_store, args, stage);
 
         execute(store_task, None).map_err(|e: String| ProviderError::ExecuteFailed(e.to_string()))
+    }
+
+    /// Pubsub projects topics get.
+    ///
+    /// Read-only operation - no state tracking.
+    ///
+    /// # Arguments
+    ///
+    /// * `args` - Request arguments
+    ///
+    /// # Returns
+    ///
+    /// StreamIterator yielding the Topic result.
+    ///
+    /// # Errors
+    ///
+    /// Returns ProviderError if the API request fails.
+    pub fn pubsub_projects_topics_get(
+        &self,
+        args: &PubsubProjectsTopicsGetArgs,
+    ) -> Result<
+        impl StreamIterator<
+            D = Result<Topic, ProviderError<ApiError>>,
+            P = crate::providers::gcp::clients::types::ApiPending,
+        > + Send
+        + 'static,
+        ProviderError<ApiError>,
+    > {
+        let builder = pubsub_projects_topics_get_builder(
+            &self.http_client,
+            &args.topic,
+        )
+        .map_err(ProviderError::Api)?;
+
+        let task = pubsub_projects_topics_get_task(builder)
+            .map_err(ProviderError::Api)?;
+
+        execute(task, None).map_err(|e: String| ProviderError::ExecuteFailed(e.to_string()))
+    }
+
+    /// Pubsub projects topics get iam policy.
+    ///
+    /// Read-only operation - no state tracking.
+    ///
+    /// # Arguments
+    ///
+    /// * `args` - Request arguments
+    ///
+    /// # Returns
+    ///
+    /// StreamIterator yielding the Policy result.
+    ///
+    /// # Errors
+    ///
+    /// Returns ProviderError if the API request fails.
+    pub fn pubsub_projects_topics_get_iam_policy(
+        &self,
+        args: &PubsubProjectsTopicsGetIamPolicyArgs,
+    ) -> Result<
+        impl StreamIterator<
+            D = Result<Policy, ProviderError<ApiError>>,
+            P = crate::providers::gcp::clients::types::ApiPending,
+        > + Send
+        + 'static,
+        ProviderError<ApiError>,
+    > {
+        let builder = pubsub_projects_topics_get_iam_policy_builder(
+            &self.http_client,
+            &args.resource,
+            &args.options.requestedPolicyVersion,
+        )
+        .map_err(ProviderError::Api)?;
+
+        let task = pubsub_projects_topics_get_iam_policy_task(builder)
+            .map_err(ProviderError::Api)?;
+
+        execute(task, None).map_err(|e: String| ProviderError::ExecuteFailed(e.to_string()))
+    }
+
+    /// Pubsub projects topics list.
+    ///
+    /// Read-only operation - no state tracking.
+    ///
+    /// # Arguments
+    ///
+    /// * `args` - Request arguments
+    ///
+    /// # Returns
+    ///
+    /// StreamIterator yielding the ListTopicsResponse result.
+    ///
+    /// # Errors
+    ///
+    /// Returns ProviderError if the API request fails.
+    pub fn pubsub_projects_topics_list(
+        &self,
+        args: &PubsubProjectsTopicsListArgs,
+    ) -> Result<
+        impl StreamIterator<
+            D = Result<ListTopicsResponse, ProviderError<ApiError>>,
+            P = crate::providers::gcp::clients::types::ApiPending,
+        > + Send
+        + 'static,
+        ProviderError<ApiError>,
+    > {
+        let builder = pubsub_projects_topics_list_builder(
+            &self.http_client,
+            &args.project,
+            &args.pageSize,
+            &args.pageToken,
+        )
+        .map_err(ProviderError::Api)?;
+
+        let task = pubsub_projects_topics_list_task(builder)
+            .map_err(ProviderError::Api)?;
+
+        execute(task, None).map_err(|e: String| ProviderError::ExecuteFailed(e.to_string()))
     }
 
     /// Pubsub projects topics patch.
@@ -1424,7 +1947,7 @@ where
 
     /// Pubsub projects topics test iam permissions.
     ///
-    /// Automatically stores the result in the state store on success.
+    /// Read-only operation - no state tracking.
     ///
     /// # Arguments
     ///
@@ -1436,7 +1959,7 @@ where
     ///
     /// # Errors
     ///
-    /// Returns ProviderError if the API request or state storage fails.
+    /// Returns ProviderError if the API request fails.
     pub fn pubsub_projects_topics_test_iam_permissions(
         &self,
         args: &PubsubProjectsTopicsTestIamPermissionsArgs,
@@ -1457,12 +1980,87 @@ where
         let task = pubsub_projects_topics_test_iam_permissions_task(builder)
             .map_err(ProviderError::Api)?;
 
-        let state_store = self.client.state_store.clone();
-        let stage = Some(self.client.stage.clone());
+        execute(task, None).map_err(|e: String| ProviderError::ExecuteFailed(e.to_string()))
+    }
 
-        let store_task = StoreStateIdentifierTask::new(task, state_store, args, stage);
+    /// Pubsub projects topics snapshots list.
+    ///
+    /// Read-only operation - no state tracking.
+    ///
+    /// # Arguments
+    ///
+    /// * `args` - Request arguments
+    ///
+    /// # Returns
+    ///
+    /// StreamIterator yielding the ListTopicSnapshotsResponse result.
+    ///
+    /// # Errors
+    ///
+    /// Returns ProviderError if the API request fails.
+    pub fn pubsub_projects_topics_snapshots_list(
+        &self,
+        args: &PubsubProjectsTopicsSnapshotsListArgs,
+    ) -> Result<
+        impl StreamIterator<
+            D = Result<ListTopicSnapshotsResponse, ProviderError<ApiError>>,
+            P = crate::providers::gcp::clients::types::ApiPending,
+        > + Send
+        + 'static,
+        ProviderError<ApiError>,
+    > {
+        let builder = pubsub_projects_topics_snapshots_list_builder(
+            &self.http_client,
+            &args.topic,
+            &args.pageSize,
+            &args.pageToken,
+        )
+        .map_err(ProviderError::Api)?;
 
-        execute(store_task, None).map_err(|e: String| ProviderError::ExecuteFailed(e.to_string()))
+        let task = pubsub_projects_topics_snapshots_list_task(builder)
+            .map_err(ProviderError::Api)?;
+
+        execute(task, None).map_err(|e: String| ProviderError::ExecuteFailed(e.to_string()))
+    }
+
+    /// Pubsub projects topics subscriptions list.
+    ///
+    /// Read-only operation - no state tracking.
+    ///
+    /// # Arguments
+    ///
+    /// * `args` - Request arguments
+    ///
+    /// # Returns
+    ///
+    /// StreamIterator yielding the ListTopicSubscriptionsResponse result.
+    ///
+    /// # Errors
+    ///
+    /// Returns ProviderError if the API request fails.
+    pub fn pubsub_projects_topics_subscriptions_list(
+        &self,
+        args: &PubsubProjectsTopicsSubscriptionsListArgs,
+    ) -> Result<
+        impl StreamIterator<
+            D = Result<ListTopicSubscriptionsResponse, ProviderError<ApiError>>,
+            P = crate::providers::gcp::clients::types::ApiPending,
+        > + Send
+        + 'static,
+        ProviderError<ApiError>,
+    > {
+        let builder = pubsub_projects_topics_subscriptions_list_builder(
+            &self.http_client,
+            &args.topic,
+            &args.pageSize,
+            &args.pageToken,
+        )
+        .map_err(ProviderError::Api)?;
+
+        let task = pubsub_projects_topics_subscriptions_list_task(builder)
+            .map_err(ProviderError::Api)?;
+
+        execute(task, None).map_err(|e: String| ProviderError::ExecuteFailed(e.to_string()))
     }
 
 }

@@ -12,28 +12,48 @@
 #![cfg(feature = "gcp")]
 
 use crate::providers::gcp::clients::rapidmigrationassessment::{
+    rapidmigrationassessment_projects_locations_get_builder, rapidmigrationassessment_projects_locations_get_task,
+    rapidmigrationassessment_projects_locations_list_builder, rapidmigrationassessment_projects_locations_list_task,
     rapidmigrationassessment_projects_locations_annotations_create_builder, rapidmigrationassessment_projects_locations_annotations_create_task,
+    rapidmigrationassessment_projects_locations_annotations_get_builder, rapidmigrationassessment_projects_locations_annotations_get_task,
     rapidmigrationassessment_projects_locations_collectors_create_builder, rapidmigrationassessment_projects_locations_collectors_create_task,
     rapidmigrationassessment_projects_locations_collectors_delete_builder, rapidmigrationassessment_projects_locations_collectors_delete_task,
+    rapidmigrationassessment_projects_locations_collectors_get_builder, rapidmigrationassessment_projects_locations_collectors_get_task,
+    rapidmigrationassessment_projects_locations_collectors_list_builder, rapidmigrationassessment_projects_locations_collectors_list_task,
     rapidmigrationassessment_projects_locations_collectors_patch_builder, rapidmigrationassessment_projects_locations_collectors_patch_task,
     rapidmigrationassessment_projects_locations_collectors_pause_builder, rapidmigrationassessment_projects_locations_collectors_pause_task,
     rapidmigrationassessment_projects_locations_collectors_register_builder, rapidmigrationassessment_projects_locations_collectors_register_task,
     rapidmigrationassessment_projects_locations_collectors_resume_builder, rapidmigrationassessment_projects_locations_collectors_resume_task,
     rapidmigrationassessment_projects_locations_operations_cancel_builder, rapidmigrationassessment_projects_locations_operations_cancel_task,
     rapidmigrationassessment_projects_locations_operations_delete_builder, rapidmigrationassessment_projects_locations_operations_delete_task,
+    rapidmigrationassessment_projects_locations_operations_get_builder, rapidmigrationassessment_projects_locations_operations_get_task,
+    rapidmigrationassessment_projects_locations_operations_list_builder, rapidmigrationassessment_projects_locations_operations_list_task,
 };
 use crate::providers::gcp::clients::types::{ApiError, ApiPending};
+use crate::providers::gcp::clients::rapidmigrationassessment::Annotation;
+use crate::providers::gcp::clients::rapidmigrationassessment::Collector;
 use crate::providers::gcp::clients::rapidmigrationassessment::Empty;
+use crate::providers::gcp::clients::rapidmigrationassessment::ListCollectorsResponse;
+use crate::providers::gcp::clients::rapidmigrationassessment::ListLocationsResponse;
+use crate::providers::gcp::clients::rapidmigrationassessment::ListOperationsResponse;
+use crate::providers::gcp::clients::rapidmigrationassessment::Location;
 use crate::providers::gcp::clients::rapidmigrationassessment::Operation;
 use crate::providers::gcp::clients::rapidmigrationassessment::RapidmigrationassessmentProjectsLocationsAnnotationsCreateArgs;
+use crate::providers::gcp::clients::rapidmigrationassessment::RapidmigrationassessmentProjectsLocationsAnnotationsGetArgs;
 use crate::providers::gcp::clients::rapidmigrationassessment::RapidmigrationassessmentProjectsLocationsCollectorsCreateArgs;
 use crate::providers::gcp::clients::rapidmigrationassessment::RapidmigrationassessmentProjectsLocationsCollectorsDeleteArgs;
+use crate::providers::gcp::clients::rapidmigrationassessment::RapidmigrationassessmentProjectsLocationsCollectorsGetArgs;
+use crate::providers::gcp::clients::rapidmigrationassessment::RapidmigrationassessmentProjectsLocationsCollectorsListArgs;
 use crate::providers::gcp::clients::rapidmigrationassessment::RapidmigrationassessmentProjectsLocationsCollectorsPatchArgs;
 use crate::providers::gcp::clients::rapidmigrationassessment::RapidmigrationassessmentProjectsLocationsCollectorsPauseArgs;
 use crate::providers::gcp::clients::rapidmigrationassessment::RapidmigrationassessmentProjectsLocationsCollectorsRegisterArgs;
 use crate::providers::gcp::clients::rapidmigrationassessment::RapidmigrationassessmentProjectsLocationsCollectorsResumeArgs;
+use crate::providers::gcp::clients::rapidmigrationassessment::RapidmigrationassessmentProjectsLocationsGetArgs;
+use crate::providers::gcp::clients::rapidmigrationassessment::RapidmigrationassessmentProjectsLocationsListArgs;
 use crate::providers::gcp::clients::rapidmigrationassessment::RapidmigrationassessmentProjectsLocationsOperationsCancelArgs;
 use crate::providers::gcp::clients::rapidmigrationassessment::RapidmigrationassessmentProjectsLocationsOperationsDeleteArgs;
+use crate::providers::gcp::clients::rapidmigrationassessment::RapidmigrationassessmentProjectsLocationsOperationsGetArgs;
+use crate::providers::gcp::clients::rapidmigrationassessment::RapidmigrationassessmentProjectsLocationsOperationsListArgs;
 use crate::provider_client::{ProviderClient, ProviderError};
 use foundation_core::valtron::{execute, StreamIterator};
 use foundation_core::wire::simple_http::client::SimpleHttpClient;
@@ -73,6 +93,86 @@ where
             client,
             http_client: Arc::new(http_client),
         }
+    }
+
+    /// Rapidmigrationassessment projects locations get.
+    ///
+    /// Read-only operation - no state tracking.
+    ///
+    /// # Arguments
+    ///
+    /// * `args` - Request arguments
+    ///
+    /// # Returns
+    ///
+    /// StreamIterator yielding the Location result.
+    ///
+    /// # Errors
+    ///
+    /// Returns ProviderError if the API request fails.
+    pub fn rapidmigrationassessment_projects_locations_get(
+        &self,
+        args: &RapidmigrationassessmentProjectsLocationsGetArgs,
+    ) -> Result<
+        impl StreamIterator<
+            D = Result<Location, ProviderError<ApiError>>,
+            P = crate::providers::gcp::clients::types::ApiPending,
+        > + Send
+        + 'static,
+        ProviderError<ApiError>,
+    > {
+        let builder = rapidmigrationassessment_projects_locations_get_builder(
+            &self.http_client,
+            &args.name,
+        )
+        .map_err(ProviderError::Api)?;
+
+        let task = rapidmigrationassessment_projects_locations_get_task(builder)
+            .map_err(ProviderError::Api)?;
+
+        execute(task, None).map_err(|e: String| ProviderError::ExecuteFailed(e.to_string()))
+    }
+
+    /// Rapidmigrationassessment projects locations list.
+    ///
+    /// Read-only operation - no state tracking.
+    ///
+    /// # Arguments
+    ///
+    /// * `args` - Request arguments
+    ///
+    /// # Returns
+    ///
+    /// StreamIterator yielding the ListLocationsResponse result.
+    ///
+    /// # Errors
+    ///
+    /// Returns ProviderError if the API request fails.
+    pub fn rapidmigrationassessment_projects_locations_list(
+        &self,
+        args: &RapidmigrationassessmentProjectsLocationsListArgs,
+    ) -> Result<
+        impl StreamIterator<
+            D = Result<ListLocationsResponse, ProviderError<ApiError>>,
+            P = crate::providers::gcp::clients::types::ApiPending,
+        > + Send
+        + 'static,
+        ProviderError<ApiError>,
+    > {
+        let builder = rapidmigrationassessment_projects_locations_list_builder(
+            &self.http_client,
+            &args.name,
+            &args.extraLocationTypes,
+            &args.filter,
+            &args.pageSize,
+            &args.pageToken,
+        )
+        .map_err(ProviderError::Api)?;
+
+        let task = rapidmigrationassessment_projects_locations_list_task(builder)
+            .map_err(ProviderError::Api)?;
+
+        execute(task, None).map_err(|e: String| ProviderError::ExecuteFailed(e.to_string()))
     }
 
     /// Rapidmigrationassessment projects locations annotations create.
@@ -117,6 +217,44 @@ where
         let store_task = StoreStateIdentifierTask::new(task, state_store, args, stage);
 
         execute(store_task, None).map_err(|e: String| ProviderError::ExecuteFailed(e.to_string()))
+    }
+
+    /// Rapidmigrationassessment projects locations annotations get.
+    ///
+    /// Read-only operation - no state tracking.
+    ///
+    /// # Arguments
+    ///
+    /// * `args` - Request arguments
+    ///
+    /// # Returns
+    ///
+    /// StreamIterator yielding the Annotation result.
+    ///
+    /// # Errors
+    ///
+    /// Returns ProviderError if the API request fails.
+    pub fn rapidmigrationassessment_projects_locations_annotations_get(
+        &self,
+        args: &RapidmigrationassessmentProjectsLocationsAnnotationsGetArgs,
+    ) -> Result<
+        impl StreamIterator<
+            D = Result<Annotation, ProviderError<ApiError>>,
+            P = crate::providers::gcp::clients::types::ApiPending,
+        > + Send
+        + 'static,
+        ProviderError<ApiError>,
+    > {
+        let builder = rapidmigrationassessment_projects_locations_annotations_get_builder(
+            &self.http_client,
+            &args.name,
+        )
+        .map_err(ProviderError::Api)?;
+
+        let task = rapidmigrationassessment_projects_locations_annotations_get_task(builder)
+            .map_err(ProviderError::Api)?;
+
+        execute(task, None).map_err(|e: String| ProviderError::ExecuteFailed(e.to_string()))
     }
 
     /// Rapidmigrationassessment projects locations collectors create.
@@ -206,6 +344,86 @@ where
         let store_task = StoreStateIdentifierTask::new(task, state_store, args, stage);
 
         execute(store_task, None).map_err(|e: String| ProviderError::ExecuteFailed(e.to_string()))
+    }
+
+    /// Rapidmigrationassessment projects locations collectors get.
+    ///
+    /// Read-only operation - no state tracking.
+    ///
+    /// # Arguments
+    ///
+    /// * `args` - Request arguments
+    ///
+    /// # Returns
+    ///
+    /// StreamIterator yielding the Collector result.
+    ///
+    /// # Errors
+    ///
+    /// Returns ProviderError if the API request fails.
+    pub fn rapidmigrationassessment_projects_locations_collectors_get(
+        &self,
+        args: &RapidmigrationassessmentProjectsLocationsCollectorsGetArgs,
+    ) -> Result<
+        impl StreamIterator<
+            D = Result<Collector, ProviderError<ApiError>>,
+            P = crate::providers::gcp::clients::types::ApiPending,
+        > + Send
+        + 'static,
+        ProviderError<ApiError>,
+    > {
+        let builder = rapidmigrationassessment_projects_locations_collectors_get_builder(
+            &self.http_client,
+            &args.name,
+        )
+        .map_err(ProviderError::Api)?;
+
+        let task = rapidmigrationassessment_projects_locations_collectors_get_task(builder)
+            .map_err(ProviderError::Api)?;
+
+        execute(task, None).map_err(|e: String| ProviderError::ExecuteFailed(e.to_string()))
+    }
+
+    /// Rapidmigrationassessment projects locations collectors list.
+    ///
+    /// Read-only operation - no state tracking.
+    ///
+    /// # Arguments
+    ///
+    /// * `args` - Request arguments
+    ///
+    /// # Returns
+    ///
+    /// StreamIterator yielding the ListCollectorsResponse result.
+    ///
+    /// # Errors
+    ///
+    /// Returns ProviderError if the API request fails.
+    pub fn rapidmigrationassessment_projects_locations_collectors_list(
+        &self,
+        args: &RapidmigrationassessmentProjectsLocationsCollectorsListArgs,
+    ) -> Result<
+        impl StreamIterator<
+            D = Result<ListCollectorsResponse, ProviderError<ApiError>>,
+            P = crate::providers::gcp::clients::types::ApiPending,
+        > + Send
+        + 'static,
+        ProviderError<ApiError>,
+    > {
+        let builder = rapidmigrationassessment_projects_locations_collectors_list_builder(
+            &self.http_client,
+            &args.parent,
+            &args.filter,
+            &args.orderBy,
+            &args.pageSize,
+            &args.pageToken,
+        )
+        .map_err(ProviderError::Api)?;
+
+        let task = rapidmigrationassessment_projects_locations_collectors_list_task(builder)
+            .map_err(ProviderError::Api)?;
+
+        execute(task, None).map_err(|e: String| ProviderError::ExecuteFailed(e.to_string()))
     }
 
     /// Rapidmigrationassessment projects locations collectors patch.
@@ -466,6 +684,85 @@ where
         let store_task = StoreStateIdentifierTask::new(task, state_store, args, stage);
 
         execute(store_task, None).map_err(|e: String| ProviderError::ExecuteFailed(e.to_string()))
+    }
+
+    /// Rapidmigrationassessment projects locations operations get.
+    ///
+    /// Read-only operation - no state tracking.
+    ///
+    /// # Arguments
+    ///
+    /// * `args` - Request arguments
+    ///
+    /// # Returns
+    ///
+    /// StreamIterator yielding the Operation result.
+    ///
+    /// # Errors
+    ///
+    /// Returns ProviderError if the API request fails.
+    pub fn rapidmigrationassessment_projects_locations_operations_get(
+        &self,
+        args: &RapidmigrationassessmentProjectsLocationsOperationsGetArgs,
+    ) -> Result<
+        impl StreamIterator<
+            D = Result<Operation, ProviderError<ApiError>>,
+            P = crate::providers::gcp::clients::types::ApiPending,
+        > + Send
+        + 'static,
+        ProviderError<ApiError>,
+    > {
+        let builder = rapidmigrationassessment_projects_locations_operations_get_builder(
+            &self.http_client,
+            &args.name,
+        )
+        .map_err(ProviderError::Api)?;
+
+        let task = rapidmigrationassessment_projects_locations_operations_get_task(builder)
+            .map_err(ProviderError::Api)?;
+
+        execute(task, None).map_err(|e: String| ProviderError::ExecuteFailed(e.to_string()))
+    }
+
+    /// Rapidmigrationassessment projects locations operations list.
+    ///
+    /// Read-only operation - no state tracking.
+    ///
+    /// # Arguments
+    ///
+    /// * `args` - Request arguments
+    ///
+    /// # Returns
+    ///
+    /// StreamIterator yielding the ListOperationsResponse result.
+    ///
+    /// # Errors
+    ///
+    /// Returns ProviderError if the API request fails.
+    pub fn rapidmigrationassessment_projects_locations_operations_list(
+        &self,
+        args: &RapidmigrationassessmentProjectsLocationsOperationsListArgs,
+    ) -> Result<
+        impl StreamIterator<
+            D = Result<ListOperationsResponse, ProviderError<ApiError>>,
+            P = crate::providers::gcp::clients::types::ApiPending,
+        > + Send
+        + 'static,
+        ProviderError<ApiError>,
+    > {
+        let builder = rapidmigrationassessment_projects_locations_operations_list_builder(
+            &self.http_client,
+            &args.name,
+            &args.filter,
+            &args.pageSize,
+            &args.pageToken,
+        )
+        .map_err(ProviderError::Api)?;
+
+        let task = rapidmigrationassessment_projects_locations_operations_list_task(builder)
+            .map_err(ProviderError::Api)?;
+
+        execute(task, None).map_err(|e: String| ProviderError::ExecuteFailed(e.to_string()))
     }
 
 }

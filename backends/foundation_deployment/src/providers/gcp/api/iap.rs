@@ -13,13 +13,20 @@
 
 use crate::providers::gcp::clients::iap::{
     iap_projects_brands_create_builder, iap_projects_brands_create_task,
+    iap_projects_brands_get_builder, iap_projects_brands_get_task,
+    iap_projects_brands_list_builder, iap_projects_brands_list_task,
     iap_projects_brands_identity_aware_proxy_clients_create_builder, iap_projects_brands_identity_aware_proxy_clients_create_task,
     iap_projects_brands_identity_aware_proxy_clients_delete_builder, iap_projects_brands_identity_aware_proxy_clients_delete_task,
+    iap_projects_brands_identity_aware_proxy_clients_get_builder, iap_projects_brands_identity_aware_proxy_clients_get_task,
+    iap_projects_brands_identity_aware_proxy_clients_list_builder, iap_projects_brands_identity_aware_proxy_clients_list_task,
     iap_projects_brands_identity_aware_proxy_clients_reset_secret_builder, iap_projects_brands_identity_aware_proxy_clients_reset_secret_task,
     iap_projects_iap_tunnel_locations_dest_groups_create_builder, iap_projects_iap_tunnel_locations_dest_groups_create_task,
     iap_projects_iap_tunnel_locations_dest_groups_delete_builder, iap_projects_iap_tunnel_locations_dest_groups_delete_task,
+    iap_projects_iap_tunnel_locations_dest_groups_get_builder, iap_projects_iap_tunnel_locations_dest_groups_get_task,
+    iap_projects_iap_tunnel_locations_dest_groups_list_builder, iap_projects_iap_tunnel_locations_dest_groups_list_task,
     iap_projects_iap_tunnel_locations_dest_groups_patch_builder, iap_projects_iap_tunnel_locations_dest_groups_patch_task,
     iap_get_iam_policy_builder, iap_get_iam_policy_task,
+    iap_get_iap_settings_builder, iap_get_iap_settings_task,
     iap_set_iam_policy_builder, iap_set_iam_policy_task,
     iap_test_iam_permissions_builder, iap_test_iam_permissions_task,
     iap_update_iap_settings_builder, iap_update_iap_settings_task,
@@ -30,17 +37,27 @@ use crate::providers::gcp::clients::iap::Brand;
 use crate::providers::gcp::clients::iap::Empty;
 use crate::providers::gcp::clients::iap::IapSettings;
 use crate::providers::gcp::clients::iap::IdentityAwareProxyClient;
+use crate::providers::gcp::clients::iap::ListBrandsResponse;
+use crate::providers::gcp::clients::iap::ListIdentityAwareProxyClientsResponse;
+use crate::providers::gcp::clients::iap::ListTunnelDestGroupsResponse;
 use crate::providers::gcp::clients::iap::Policy;
 use crate::providers::gcp::clients::iap::TestIamPermissionsResponse;
 use crate::providers::gcp::clients::iap::TunnelDestGroup;
 use crate::providers::gcp::clients::iap::ValidateIapAttributeExpressionResponse;
 use crate::providers::gcp::clients::iap::IapGetIamPolicyArgs;
+use crate::providers::gcp::clients::iap::IapGetIapSettingsArgs;
 use crate::providers::gcp::clients::iap::IapProjectsBrandsCreateArgs;
+use crate::providers::gcp::clients::iap::IapProjectsBrandsGetArgs;
 use crate::providers::gcp::clients::iap::IapProjectsBrandsIdentityAwareProxyClientsCreateArgs;
 use crate::providers::gcp::clients::iap::IapProjectsBrandsIdentityAwareProxyClientsDeleteArgs;
+use crate::providers::gcp::clients::iap::IapProjectsBrandsIdentityAwareProxyClientsGetArgs;
+use crate::providers::gcp::clients::iap::IapProjectsBrandsIdentityAwareProxyClientsListArgs;
 use crate::providers::gcp::clients::iap::IapProjectsBrandsIdentityAwareProxyClientsResetSecretArgs;
+use crate::providers::gcp::clients::iap::IapProjectsBrandsListArgs;
 use crate::providers::gcp::clients::iap::IapProjectsIapTunnelLocationsDestGroupsCreateArgs;
 use crate::providers::gcp::clients::iap::IapProjectsIapTunnelLocationsDestGroupsDeleteArgs;
+use crate::providers::gcp::clients::iap::IapProjectsIapTunnelLocationsDestGroupsGetArgs;
+use crate::providers::gcp::clients::iap::IapProjectsIapTunnelLocationsDestGroupsListArgs;
 use crate::providers::gcp::clients::iap::IapProjectsIapTunnelLocationsDestGroupsPatchArgs;
 use crate::providers::gcp::clients::iap::IapSetIamPolicyArgs;
 use crate::providers::gcp::clients::iap::IapTestIamPermissionsArgs;
@@ -130,6 +147,82 @@ where
         execute(store_task, None).map_err(|e: String| ProviderError::ExecuteFailed(e.to_string()))
     }
 
+    /// Iap projects brands get.
+    ///
+    /// Read-only operation - no state tracking.
+    ///
+    /// # Arguments
+    ///
+    /// * `args` - Request arguments
+    ///
+    /// # Returns
+    ///
+    /// StreamIterator yielding the Brand result.
+    ///
+    /// # Errors
+    ///
+    /// Returns ProviderError if the API request fails.
+    pub fn iap_projects_brands_get(
+        &self,
+        args: &IapProjectsBrandsGetArgs,
+    ) -> Result<
+        impl StreamIterator<
+            D = Result<Brand, ProviderError<ApiError>>,
+            P = crate::providers::gcp::clients::types::ApiPending,
+        > + Send
+        + 'static,
+        ProviderError<ApiError>,
+    > {
+        let builder = iap_projects_brands_get_builder(
+            &self.http_client,
+            &args.name,
+        )
+        .map_err(ProviderError::Api)?;
+
+        let task = iap_projects_brands_get_task(builder)
+            .map_err(ProviderError::Api)?;
+
+        execute(task, None).map_err(|e: String| ProviderError::ExecuteFailed(e.to_string()))
+    }
+
+    /// Iap projects brands list.
+    ///
+    /// Read-only operation - no state tracking.
+    ///
+    /// # Arguments
+    ///
+    /// * `args` - Request arguments
+    ///
+    /// # Returns
+    ///
+    /// StreamIterator yielding the ListBrandsResponse result.
+    ///
+    /// # Errors
+    ///
+    /// Returns ProviderError if the API request fails.
+    pub fn iap_projects_brands_list(
+        &self,
+        args: &IapProjectsBrandsListArgs,
+    ) -> Result<
+        impl StreamIterator<
+            D = Result<ListBrandsResponse, ProviderError<ApiError>>,
+            P = crate::providers::gcp::clients::types::ApiPending,
+        > + Send
+        + 'static,
+        ProviderError<ApiError>,
+    > {
+        let builder = iap_projects_brands_list_builder(
+            &self.http_client,
+            &args.parent,
+        )
+        .map_err(ProviderError::Api)?;
+
+        let task = iap_projects_brands_list_task(builder)
+            .map_err(ProviderError::Api)?;
+
+        execute(task, None).map_err(|e: String| ProviderError::ExecuteFailed(e.to_string()))
+    }
+
     /// Iap projects brands identity aware proxy clients create.
     ///
     /// Automatically stores the result in the state store on success.
@@ -214,6 +307,84 @@ where
         let store_task = StoreStateIdentifierTask::new(task, state_store, args, stage);
 
         execute(store_task, None).map_err(|e: String| ProviderError::ExecuteFailed(e.to_string()))
+    }
+
+    /// Iap projects brands identity aware proxy clients get.
+    ///
+    /// Read-only operation - no state tracking.
+    ///
+    /// # Arguments
+    ///
+    /// * `args` - Request arguments
+    ///
+    /// # Returns
+    ///
+    /// StreamIterator yielding the IdentityAwareProxyClient result.
+    ///
+    /// # Errors
+    ///
+    /// Returns ProviderError if the API request fails.
+    pub fn iap_projects_brands_identity_aware_proxy_clients_get(
+        &self,
+        args: &IapProjectsBrandsIdentityAwareProxyClientsGetArgs,
+    ) -> Result<
+        impl StreamIterator<
+            D = Result<IdentityAwareProxyClient, ProviderError<ApiError>>,
+            P = crate::providers::gcp::clients::types::ApiPending,
+        > + Send
+        + 'static,
+        ProviderError<ApiError>,
+    > {
+        let builder = iap_projects_brands_identity_aware_proxy_clients_get_builder(
+            &self.http_client,
+            &args.name,
+        )
+        .map_err(ProviderError::Api)?;
+
+        let task = iap_projects_brands_identity_aware_proxy_clients_get_task(builder)
+            .map_err(ProviderError::Api)?;
+
+        execute(task, None).map_err(|e: String| ProviderError::ExecuteFailed(e.to_string()))
+    }
+
+    /// Iap projects brands identity aware proxy clients list.
+    ///
+    /// Read-only operation - no state tracking.
+    ///
+    /// # Arguments
+    ///
+    /// * `args` - Request arguments
+    ///
+    /// # Returns
+    ///
+    /// StreamIterator yielding the ListIdentityAwareProxyClientsResponse result.
+    ///
+    /// # Errors
+    ///
+    /// Returns ProviderError if the API request fails.
+    pub fn iap_projects_brands_identity_aware_proxy_clients_list(
+        &self,
+        args: &IapProjectsBrandsIdentityAwareProxyClientsListArgs,
+    ) -> Result<
+        impl StreamIterator<
+            D = Result<ListIdentityAwareProxyClientsResponse, ProviderError<ApiError>>,
+            P = crate::providers::gcp::clients::types::ApiPending,
+        > + Send
+        + 'static,
+        ProviderError<ApiError>,
+    > {
+        let builder = iap_projects_brands_identity_aware_proxy_clients_list_builder(
+            &self.http_client,
+            &args.parent,
+            &args.pageSize,
+            &args.pageToken,
+        )
+        .map_err(ProviderError::Api)?;
+
+        let task = iap_projects_brands_identity_aware_proxy_clients_list_task(builder)
+            .map_err(ProviderError::Api)?;
+
+        execute(task, None).map_err(|e: String| ProviderError::ExecuteFailed(e.to_string()))
     }
 
     /// Iap projects brands identity aware proxy clients reset secret.
@@ -346,6 +517,84 @@ where
         execute(store_task, None).map_err(|e: String| ProviderError::ExecuteFailed(e.to_string()))
     }
 
+    /// Iap projects iap tunnel locations dest groups get.
+    ///
+    /// Read-only operation - no state tracking.
+    ///
+    /// # Arguments
+    ///
+    /// * `args` - Request arguments
+    ///
+    /// # Returns
+    ///
+    /// StreamIterator yielding the TunnelDestGroup result.
+    ///
+    /// # Errors
+    ///
+    /// Returns ProviderError if the API request fails.
+    pub fn iap_projects_iap_tunnel_locations_dest_groups_get(
+        &self,
+        args: &IapProjectsIapTunnelLocationsDestGroupsGetArgs,
+    ) -> Result<
+        impl StreamIterator<
+            D = Result<TunnelDestGroup, ProviderError<ApiError>>,
+            P = crate::providers::gcp::clients::types::ApiPending,
+        > + Send
+        + 'static,
+        ProviderError<ApiError>,
+    > {
+        let builder = iap_projects_iap_tunnel_locations_dest_groups_get_builder(
+            &self.http_client,
+            &args.name,
+        )
+        .map_err(ProviderError::Api)?;
+
+        let task = iap_projects_iap_tunnel_locations_dest_groups_get_task(builder)
+            .map_err(ProviderError::Api)?;
+
+        execute(task, None).map_err(|e: String| ProviderError::ExecuteFailed(e.to_string()))
+    }
+
+    /// Iap projects iap tunnel locations dest groups list.
+    ///
+    /// Read-only operation - no state tracking.
+    ///
+    /// # Arguments
+    ///
+    /// * `args` - Request arguments
+    ///
+    /// # Returns
+    ///
+    /// StreamIterator yielding the ListTunnelDestGroupsResponse result.
+    ///
+    /// # Errors
+    ///
+    /// Returns ProviderError if the API request fails.
+    pub fn iap_projects_iap_tunnel_locations_dest_groups_list(
+        &self,
+        args: &IapProjectsIapTunnelLocationsDestGroupsListArgs,
+    ) -> Result<
+        impl StreamIterator<
+            D = Result<ListTunnelDestGroupsResponse, ProviderError<ApiError>>,
+            P = crate::providers::gcp::clients::types::ApiPending,
+        > + Send
+        + 'static,
+        ProviderError<ApiError>,
+    > {
+        let builder = iap_projects_iap_tunnel_locations_dest_groups_list_builder(
+            &self.http_client,
+            &args.parent,
+            &args.pageSize,
+            &args.pageToken,
+        )
+        .map_err(ProviderError::Api)?;
+
+        let task = iap_projects_iap_tunnel_locations_dest_groups_list_task(builder)
+            .map_err(ProviderError::Api)?;
+
+        execute(task, None).map_err(|e: String| ProviderError::ExecuteFailed(e.to_string()))
+    }
+
     /// Iap projects iap tunnel locations dest groups patch.
     ///
     /// Automatically stores the result in the state store on success.
@@ -392,7 +641,7 @@ where
 
     /// Iap get iam policy.
     ///
-    /// Automatically stores the result in the state store on success.
+    /// Read-only operation - no state tracking.
     ///
     /// # Arguments
     ///
@@ -404,7 +653,7 @@ where
     ///
     /// # Errors
     ///
-    /// Returns ProviderError if the API request or state storage fails.
+    /// Returns ProviderError if the API request fails.
     pub fn iap_get_iam_policy(
         &self,
         args: &IapGetIamPolicyArgs,
@@ -425,12 +674,45 @@ where
         let task = iap_get_iam_policy_task(builder)
             .map_err(ProviderError::Api)?;
 
-        let state_store = self.client.state_store.clone();
-        let stage = Some(self.client.stage.clone());
+        execute(task, None).map_err(|e: String| ProviderError::ExecuteFailed(e.to_string()))
+    }
 
-        let store_task = StoreStateIdentifierTask::new(task, state_store, args, stage);
+    /// Iap get iap settings.
+    ///
+    /// Read-only operation - no state tracking.
+    ///
+    /// # Arguments
+    ///
+    /// * `args` - Request arguments
+    ///
+    /// # Returns
+    ///
+    /// StreamIterator yielding the IapSettings result.
+    ///
+    /// # Errors
+    ///
+    /// Returns ProviderError if the API request fails.
+    pub fn iap_get_iap_settings(
+        &self,
+        args: &IapGetIapSettingsArgs,
+    ) -> Result<
+        impl StreamIterator<
+            D = Result<IapSettings, ProviderError<ApiError>>,
+            P = crate::providers::gcp::clients::types::ApiPending,
+        > + Send
+        + 'static,
+        ProviderError<ApiError>,
+    > {
+        let builder = iap_get_iap_settings_builder(
+            &self.http_client,
+            &args.name,
+        )
+        .map_err(ProviderError::Api)?;
 
-        execute(store_task, None).map_err(|e: String| ProviderError::ExecuteFailed(e.to_string()))
+        let task = iap_get_iap_settings_task(builder)
+            .map_err(ProviderError::Api)?;
+
+        execute(task, None).map_err(|e: String| ProviderError::ExecuteFailed(e.to_string()))
     }
 
     /// Iap set iam policy.
@@ -478,7 +760,7 @@ where
 
     /// Iap test iam permissions.
     ///
-    /// Automatically stores the result in the state store on success.
+    /// Read-only operation - no state tracking.
     ///
     /// # Arguments
     ///
@@ -490,7 +772,7 @@ where
     ///
     /// # Errors
     ///
-    /// Returns ProviderError if the API request or state storage fails.
+    /// Returns ProviderError if the API request fails.
     pub fn iap_test_iam_permissions(
         &self,
         args: &IapTestIamPermissionsArgs,
@@ -511,12 +793,7 @@ where
         let task = iap_test_iam_permissions_task(builder)
             .map_err(ProviderError::Api)?;
 
-        let state_store = self.client.state_store.clone();
-        let stage = Some(self.client.stage.clone());
-
-        let store_task = StoreStateIdentifierTask::new(task, state_store, args, stage);
-
-        execute(store_task, None).map_err(|e: String| ProviderError::ExecuteFailed(e.to_string()))
+        execute(task, None).map_err(|e: String| ProviderError::ExecuteFailed(e.to_string()))
     }
 
     /// Iap update iap settings.
@@ -565,7 +842,7 @@ where
 
     /// Iap validate attribute expression.
     ///
-    /// Automatically stores the result in the state store on success.
+    /// Read-only operation - no state tracking.
     ///
     /// # Arguments
     ///
@@ -577,7 +854,7 @@ where
     ///
     /// # Errors
     ///
-    /// Returns ProviderError if the API request or state storage fails.
+    /// Returns ProviderError if the API request fails.
     pub fn iap_validate_attribute_expression(
         &self,
         args: &IapValidateAttributeExpressionArgs,
@@ -599,12 +876,7 @@ where
         let task = iap_validate_attribute_expression_task(builder)
             .map_err(ProviderError::Api)?;
 
-        let state_store = self.client.state_store.clone();
-        let stage = Some(self.client.stage.clone());
-
-        let store_task = StoreStateIdentifierTask::new(task, state_store, args, stage);
-
-        execute(store_task, None).map_err(|e: String| ProviderError::ExecuteFailed(e.to_string()))
+        execute(task, None).map_err(|e: String| ProviderError::ExecuteFailed(e.to_string()))
     }
 
 }

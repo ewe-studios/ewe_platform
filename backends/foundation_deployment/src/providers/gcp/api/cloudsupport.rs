@@ -12,22 +12,42 @@
 #![cfg(feature = "gcp")]
 
 use crate::providers::gcp::clients::cloudsupport::{
+    cloudsupport_case_classifications_search_builder, cloudsupport_case_classifications_search_task,
     cloudsupport_cases_close_builder, cloudsupport_cases_close_task,
     cloudsupport_cases_create_builder, cloudsupport_cases_create_task,
     cloudsupport_cases_escalate_builder, cloudsupport_cases_escalate_task,
+    cloudsupport_cases_get_builder, cloudsupport_cases_get_task,
+    cloudsupport_cases_list_builder, cloudsupport_cases_list_task,
     cloudsupport_cases_patch_builder, cloudsupport_cases_patch_task,
+    cloudsupport_cases_search_builder, cloudsupport_cases_search_task,
+    cloudsupport_cases_attachments_list_builder, cloudsupport_cases_attachments_list_task,
     cloudsupport_cases_comments_create_builder, cloudsupport_cases_comments_create_task,
+    cloudsupport_cases_comments_list_builder, cloudsupport_cases_comments_list_task,
+    cloudsupport_media_download_builder, cloudsupport_media_download_task,
     cloudsupport_media_upload_builder, cloudsupport_media_upload_task,
 };
 use crate::providers::gcp::clients::types::{ApiError, ApiPending};
 use crate::providers::gcp::clients::cloudsupport::Attachment;
 use crate::providers::gcp::clients::cloudsupport::Case;
 use crate::providers::gcp::clients::cloudsupport::Comment;
+use crate::providers::gcp::clients::cloudsupport::ListAttachmentsResponse;
+use crate::providers::gcp::clients::cloudsupport::ListCasesResponse;
+use crate::providers::gcp::clients::cloudsupport::ListCommentsResponse;
+use crate::providers::gcp::clients::cloudsupport::Media;
+use crate::providers::gcp::clients::cloudsupport::SearchCaseClassificationsResponse;
+use crate::providers::gcp::clients::cloudsupport::SearchCasesResponse;
+use crate::providers::gcp::clients::cloudsupport::CloudsupportCaseClassificationsSearchArgs;
+use crate::providers::gcp::clients::cloudsupport::CloudsupportCasesAttachmentsListArgs;
 use crate::providers::gcp::clients::cloudsupport::CloudsupportCasesCloseArgs;
 use crate::providers::gcp::clients::cloudsupport::CloudsupportCasesCommentsCreateArgs;
+use crate::providers::gcp::clients::cloudsupport::CloudsupportCasesCommentsListArgs;
 use crate::providers::gcp::clients::cloudsupport::CloudsupportCasesCreateArgs;
 use crate::providers::gcp::clients::cloudsupport::CloudsupportCasesEscalateArgs;
+use crate::providers::gcp::clients::cloudsupport::CloudsupportCasesGetArgs;
+use crate::providers::gcp::clients::cloudsupport::CloudsupportCasesListArgs;
 use crate::providers::gcp::clients::cloudsupport::CloudsupportCasesPatchArgs;
+use crate::providers::gcp::clients::cloudsupport::CloudsupportCasesSearchArgs;
+use crate::providers::gcp::clients::cloudsupport::CloudsupportMediaDownloadArgs;
 use crate::providers::gcp::clients::cloudsupport::CloudsupportMediaUploadArgs;
 use crate::provider_client::{ProviderClient, ProviderError};
 use foundation_core::valtron::{execute, StreamIterator};
@@ -68,6 +88,46 @@ where
             client,
             http_client: Arc::new(http_client),
         }
+    }
+
+    /// Cloudsupport case classifications search.
+    ///
+    /// Read-only operation - no state tracking.
+    ///
+    /// # Arguments
+    ///
+    /// * `args` - Request arguments
+    ///
+    /// # Returns
+    ///
+    /// StreamIterator yielding the SearchCaseClassificationsResponse result.
+    ///
+    /// # Errors
+    ///
+    /// Returns ProviderError if the API request fails.
+    pub fn cloudsupport_case_classifications_search(
+        &self,
+        args: &CloudsupportCaseClassificationsSearchArgs,
+    ) -> Result<
+        impl StreamIterator<
+            D = Result<SearchCaseClassificationsResponse, ProviderError<ApiError>>,
+            P = crate::providers::gcp::clients::types::ApiPending,
+        > + Send
+        + 'static,
+        ProviderError<ApiError>,
+    > {
+        let builder = cloudsupport_case_classifications_search_builder(
+            &self.http_client,
+            &args.pageSize,
+            &args.pageToken,
+            &args.query,
+        )
+        .map_err(ProviderError::Api)?;
+
+        let task = cloudsupport_case_classifications_search_task(builder)
+            .map_err(ProviderError::Api)?;
+
+        execute(task, None).map_err(|e: String| ProviderError::ExecuteFailed(e.to_string()))
     }
 
     /// Cloudsupport cases close.
@@ -199,6 +259,85 @@ where
         execute(store_task, None).map_err(|e: String| ProviderError::ExecuteFailed(e.to_string()))
     }
 
+    /// Cloudsupport cases get.
+    ///
+    /// Read-only operation - no state tracking.
+    ///
+    /// # Arguments
+    ///
+    /// * `args` - Request arguments
+    ///
+    /// # Returns
+    ///
+    /// StreamIterator yielding the Case result.
+    ///
+    /// # Errors
+    ///
+    /// Returns ProviderError if the API request fails.
+    pub fn cloudsupport_cases_get(
+        &self,
+        args: &CloudsupportCasesGetArgs,
+    ) -> Result<
+        impl StreamIterator<
+            D = Result<Case, ProviderError<ApiError>>,
+            P = crate::providers::gcp::clients::types::ApiPending,
+        > + Send
+        + 'static,
+        ProviderError<ApiError>,
+    > {
+        let builder = cloudsupport_cases_get_builder(
+            &self.http_client,
+            &args.name,
+        )
+        .map_err(ProviderError::Api)?;
+
+        let task = cloudsupport_cases_get_task(builder)
+            .map_err(ProviderError::Api)?;
+
+        execute(task, None).map_err(|e: String| ProviderError::ExecuteFailed(e.to_string()))
+    }
+
+    /// Cloudsupport cases list.
+    ///
+    /// Read-only operation - no state tracking.
+    ///
+    /// # Arguments
+    ///
+    /// * `args` - Request arguments
+    ///
+    /// # Returns
+    ///
+    /// StreamIterator yielding the ListCasesResponse result.
+    ///
+    /// # Errors
+    ///
+    /// Returns ProviderError if the API request fails.
+    pub fn cloudsupport_cases_list(
+        &self,
+        args: &CloudsupportCasesListArgs,
+    ) -> Result<
+        impl StreamIterator<
+            D = Result<ListCasesResponse, ProviderError<ApiError>>,
+            P = crate::providers::gcp::clients::types::ApiPending,
+        > + Send
+        + 'static,
+        ProviderError<ApiError>,
+    > {
+        let builder = cloudsupport_cases_list_builder(
+            &self.http_client,
+            &args.parent,
+            &args.filter,
+            &args.pageSize,
+            &args.pageToken,
+        )
+        .map_err(ProviderError::Api)?;
+
+        let task = cloudsupport_cases_list_task(builder)
+            .map_err(ProviderError::Api)?;
+
+        execute(task, None).map_err(|e: String| ProviderError::ExecuteFailed(e.to_string()))
+    }
+
     /// Cloudsupport cases patch.
     ///
     /// Automatically stores the result in the state store on success.
@@ -243,6 +382,87 @@ where
         execute(store_task, None).map_err(|e: String| ProviderError::ExecuteFailed(e.to_string()))
     }
 
+    /// Cloudsupport cases search.
+    ///
+    /// Read-only operation - no state tracking.
+    ///
+    /// # Arguments
+    ///
+    /// * `args` - Request arguments
+    ///
+    /// # Returns
+    ///
+    /// StreamIterator yielding the SearchCasesResponse result.
+    ///
+    /// # Errors
+    ///
+    /// Returns ProviderError if the API request fails.
+    pub fn cloudsupport_cases_search(
+        &self,
+        args: &CloudsupportCasesSearchArgs,
+    ) -> Result<
+        impl StreamIterator<
+            D = Result<SearchCasesResponse, ProviderError<ApiError>>,
+            P = crate::providers::gcp::clients::types::ApiPending,
+        > + Send
+        + 'static,
+        ProviderError<ApiError>,
+    > {
+        let builder = cloudsupport_cases_search_builder(
+            &self.http_client,
+            &args.parent,
+            &args.pageSize,
+            &args.pageToken,
+            &args.query,
+        )
+        .map_err(ProviderError::Api)?;
+
+        let task = cloudsupport_cases_search_task(builder)
+            .map_err(ProviderError::Api)?;
+
+        execute(task, None).map_err(|e: String| ProviderError::ExecuteFailed(e.to_string()))
+    }
+
+    /// Cloudsupport cases attachments list.
+    ///
+    /// Read-only operation - no state tracking.
+    ///
+    /// # Arguments
+    ///
+    /// * `args` - Request arguments
+    ///
+    /// # Returns
+    ///
+    /// StreamIterator yielding the ListAttachmentsResponse result.
+    ///
+    /// # Errors
+    ///
+    /// Returns ProviderError if the API request fails.
+    pub fn cloudsupport_cases_attachments_list(
+        &self,
+        args: &CloudsupportCasesAttachmentsListArgs,
+    ) -> Result<
+        impl StreamIterator<
+            D = Result<ListAttachmentsResponse, ProviderError<ApiError>>,
+            P = crate::providers::gcp::clients::types::ApiPending,
+        > + Send
+        + 'static,
+        ProviderError<ApiError>,
+    > {
+        let builder = cloudsupport_cases_attachments_list_builder(
+            &self.http_client,
+            &args.parent,
+            &args.pageSize,
+            &args.pageToken,
+        )
+        .map_err(ProviderError::Api)?;
+
+        let task = cloudsupport_cases_attachments_list_task(builder)
+            .map_err(ProviderError::Api)?;
+
+        execute(task, None).map_err(|e: String| ProviderError::ExecuteFailed(e.to_string()))
+    }
+
     /// Cloudsupport cases comments create.
     ///
     /// Automatically stores the result in the state store on success.
@@ -284,6 +504,84 @@ where
         let store_task = StoreStateIdentifierTask::new(task, state_store, args, stage);
 
         execute(store_task, None).map_err(|e: String| ProviderError::ExecuteFailed(e.to_string()))
+    }
+
+    /// Cloudsupport cases comments list.
+    ///
+    /// Read-only operation - no state tracking.
+    ///
+    /// # Arguments
+    ///
+    /// * `args` - Request arguments
+    ///
+    /// # Returns
+    ///
+    /// StreamIterator yielding the ListCommentsResponse result.
+    ///
+    /// # Errors
+    ///
+    /// Returns ProviderError if the API request fails.
+    pub fn cloudsupport_cases_comments_list(
+        &self,
+        args: &CloudsupportCasesCommentsListArgs,
+    ) -> Result<
+        impl StreamIterator<
+            D = Result<ListCommentsResponse, ProviderError<ApiError>>,
+            P = crate::providers::gcp::clients::types::ApiPending,
+        > + Send
+        + 'static,
+        ProviderError<ApiError>,
+    > {
+        let builder = cloudsupport_cases_comments_list_builder(
+            &self.http_client,
+            &args.parent,
+            &args.pageSize,
+            &args.pageToken,
+        )
+        .map_err(ProviderError::Api)?;
+
+        let task = cloudsupport_cases_comments_list_task(builder)
+            .map_err(ProviderError::Api)?;
+
+        execute(task, None).map_err(|e: String| ProviderError::ExecuteFailed(e.to_string()))
+    }
+
+    /// Cloudsupport media download.
+    ///
+    /// Read-only operation - no state tracking.
+    ///
+    /// # Arguments
+    ///
+    /// * `args` - Request arguments
+    ///
+    /// # Returns
+    ///
+    /// StreamIterator yielding the Media result.
+    ///
+    /// # Errors
+    ///
+    /// Returns ProviderError if the API request fails.
+    pub fn cloudsupport_media_download(
+        &self,
+        args: &CloudsupportMediaDownloadArgs,
+    ) -> Result<
+        impl StreamIterator<
+            D = Result<Media, ProviderError<ApiError>>,
+            P = crate::providers::gcp::clients::types::ApiPending,
+        > + Send
+        + 'static,
+        ProviderError<ApiError>,
+    > {
+        let builder = cloudsupport_media_download_builder(
+            &self.http_client,
+            &args.name,
+        )
+        .map_err(ProviderError::Api)?;
+
+        let task = cloudsupport_media_download_task(builder)
+            .map_err(ProviderError::Api)?;
+
+        execute(task, None).map_err(|e: String| ProviderError::ExecuteFailed(e.to_string()))
     }
 
     /// Cloudsupport media upload.

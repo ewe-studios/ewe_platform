@@ -15,14 +15,21 @@ use crate::providers::gcp::clients::containeranalysis::{
     containeranalysis_projects_locations_notes_batch_create_builder, containeranalysis_projects_locations_notes_batch_create_task,
     containeranalysis_projects_locations_notes_create_builder, containeranalysis_projects_locations_notes_create_task,
     containeranalysis_projects_locations_notes_delete_builder, containeranalysis_projects_locations_notes_delete_task,
+    containeranalysis_projects_locations_notes_get_builder, containeranalysis_projects_locations_notes_get_task,
     containeranalysis_projects_locations_notes_get_iam_policy_builder, containeranalysis_projects_locations_notes_get_iam_policy_task,
+    containeranalysis_projects_locations_notes_list_builder, containeranalysis_projects_locations_notes_list_task,
     containeranalysis_projects_locations_notes_patch_builder, containeranalysis_projects_locations_notes_patch_task,
     containeranalysis_projects_locations_notes_set_iam_policy_builder, containeranalysis_projects_locations_notes_set_iam_policy_task,
     containeranalysis_projects_locations_notes_test_iam_permissions_builder, containeranalysis_projects_locations_notes_test_iam_permissions_task,
+    containeranalysis_projects_locations_notes_occurrences_list_builder, containeranalysis_projects_locations_notes_occurrences_list_task,
     containeranalysis_projects_locations_occurrences_batch_create_builder, containeranalysis_projects_locations_occurrences_batch_create_task,
     containeranalysis_projects_locations_occurrences_create_builder, containeranalysis_projects_locations_occurrences_create_task,
     containeranalysis_projects_locations_occurrences_delete_builder, containeranalysis_projects_locations_occurrences_delete_task,
+    containeranalysis_projects_locations_occurrences_get_builder, containeranalysis_projects_locations_occurrences_get_task,
     containeranalysis_projects_locations_occurrences_get_iam_policy_builder, containeranalysis_projects_locations_occurrences_get_iam_policy_task,
+    containeranalysis_projects_locations_occurrences_get_notes_builder, containeranalysis_projects_locations_occurrences_get_notes_task,
+    containeranalysis_projects_locations_occurrences_get_vulnerability_summary_builder, containeranalysis_projects_locations_occurrences_get_vulnerability_summary_task,
+    containeranalysis_projects_locations_occurrences_list_builder, containeranalysis_projects_locations_occurrences_list_task,
     containeranalysis_projects_locations_occurrences_patch_builder, containeranalysis_projects_locations_occurrences_patch_task,
     containeranalysis_projects_locations_occurrences_set_iam_policy_builder, containeranalysis_projects_locations_occurrences_set_iam_policy_task,
     containeranalysis_projects_locations_occurrences_test_iam_permissions_builder, containeranalysis_projects_locations_occurrences_test_iam_permissions_task,
@@ -30,14 +37,21 @@ use crate::providers::gcp::clients::containeranalysis::{
     containeranalysis_projects_notes_batch_create_builder, containeranalysis_projects_notes_batch_create_task,
     containeranalysis_projects_notes_create_builder, containeranalysis_projects_notes_create_task,
     containeranalysis_projects_notes_delete_builder, containeranalysis_projects_notes_delete_task,
+    containeranalysis_projects_notes_get_builder, containeranalysis_projects_notes_get_task,
     containeranalysis_projects_notes_get_iam_policy_builder, containeranalysis_projects_notes_get_iam_policy_task,
+    containeranalysis_projects_notes_list_builder, containeranalysis_projects_notes_list_task,
     containeranalysis_projects_notes_patch_builder, containeranalysis_projects_notes_patch_task,
     containeranalysis_projects_notes_set_iam_policy_builder, containeranalysis_projects_notes_set_iam_policy_task,
     containeranalysis_projects_notes_test_iam_permissions_builder, containeranalysis_projects_notes_test_iam_permissions_task,
+    containeranalysis_projects_notes_occurrences_list_builder, containeranalysis_projects_notes_occurrences_list_task,
     containeranalysis_projects_occurrences_batch_create_builder, containeranalysis_projects_occurrences_batch_create_task,
     containeranalysis_projects_occurrences_create_builder, containeranalysis_projects_occurrences_create_task,
     containeranalysis_projects_occurrences_delete_builder, containeranalysis_projects_occurrences_delete_task,
+    containeranalysis_projects_occurrences_get_builder, containeranalysis_projects_occurrences_get_task,
     containeranalysis_projects_occurrences_get_iam_policy_builder, containeranalysis_projects_occurrences_get_iam_policy_task,
+    containeranalysis_projects_occurrences_get_notes_builder, containeranalysis_projects_occurrences_get_notes_task,
+    containeranalysis_projects_occurrences_get_vulnerability_summary_builder, containeranalysis_projects_occurrences_get_vulnerability_summary_task,
+    containeranalysis_projects_occurrences_list_builder, containeranalysis_projects_occurrences_list_task,
     containeranalysis_projects_occurrences_patch_builder, containeranalysis_projects_occurrences_patch_task,
     containeranalysis_projects_occurrences_set_iam_policy_builder, containeranalysis_projects_occurrences_set_iam_policy_task,
     containeranalysis_projects_occurrences_test_iam_permissions_builder, containeranalysis_projects_occurrences_test_iam_permissions_task,
@@ -48,21 +62,32 @@ use crate::providers::gcp::clients::containeranalysis::BatchCreateNotesResponse;
 use crate::providers::gcp::clients::containeranalysis::BatchCreateOccurrencesResponse;
 use crate::providers::gcp::clients::containeranalysis::Empty;
 use crate::providers::gcp::clients::containeranalysis::ExportSBOMResponse;
+use crate::providers::gcp::clients::containeranalysis::ListNoteOccurrencesResponse;
+use crate::providers::gcp::clients::containeranalysis::ListNotesResponse;
+use crate::providers::gcp::clients::containeranalysis::ListOccurrencesResponse;
 use crate::providers::gcp::clients::containeranalysis::Note;
 use crate::providers::gcp::clients::containeranalysis::Occurrence;
 use crate::providers::gcp::clients::containeranalysis::Policy;
 use crate::providers::gcp::clients::containeranalysis::TestIamPermissionsResponse;
+use crate::providers::gcp::clients::containeranalysis::VulnerabilityOccurrencesSummary;
 use crate::providers::gcp::clients::containeranalysis::ContaineranalysisProjectsLocationsNotesBatchCreateArgs;
 use crate::providers::gcp::clients::containeranalysis::ContaineranalysisProjectsLocationsNotesCreateArgs;
 use crate::providers::gcp::clients::containeranalysis::ContaineranalysisProjectsLocationsNotesDeleteArgs;
+use crate::providers::gcp::clients::containeranalysis::ContaineranalysisProjectsLocationsNotesGetArgs;
 use crate::providers::gcp::clients::containeranalysis::ContaineranalysisProjectsLocationsNotesGetIamPolicyArgs;
+use crate::providers::gcp::clients::containeranalysis::ContaineranalysisProjectsLocationsNotesListArgs;
+use crate::providers::gcp::clients::containeranalysis::ContaineranalysisProjectsLocationsNotesOccurrencesListArgs;
 use crate::providers::gcp::clients::containeranalysis::ContaineranalysisProjectsLocationsNotesPatchArgs;
 use crate::providers::gcp::clients::containeranalysis::ContaineranalysisProjectsLocationsNotesSetIamPolicyArgs;
 use crate::providers::gcp::clients::containeranalysis::ContaineranalysisProjectsLocationsNotesTestIamPermissionsArgs;
 use crate::providers::gcp::clients::containeranalysis::ContaineranalysisProjectsLocationsOccurrencesBatchCreateArgs;
 use crate::providers::gcp::clients::containeranalysis::ContaineranalysisProjectsLocationsOccurrencesCreateArgs;
 use crate::providers::gcp::clients::containeranalysis::ContaineranalysisProjectsLocationsOccurrencesDeleteArgs;
+use crate::providers::gcp::clients::containeranalysis::ContaineranalysisProjectsLocationsOccurrencesGetArgs;
 use crate::providers::gcp::clients::containeranalysis::ContaineranalysisProjectsLocationsOccurrencesGetIamPolicyArgs;
+use crate::providers::gcp::clients::containeranalysis::ContaineranalysisProjectsLocationsOccurrencesGetNotesArgs;
+use crate::providers::gcp::clients::containeranalysis::ContaineranalysisProjectsLocationsOccurrencesGetVulnerabilitySummaryArgs;
+use crate::providers::gcp::clients::containeranalysis::ContaineranalysisProjectsLocationsOccurrencesListArgs;
 use crate::providers::gcp::clients::containeranalysis::ContaineranalysisProjectsLocationsOccurrencesPatchArgs;
 use crate::providers::gcp::clients::containeranalysis::ContaineranalysisProjectsLocationsOccurrencesSetIamPolicyArgs;
 use crate::providers::gcp::clients::containeranalysis::ContaineranalysisProjectsLocationsOccurrencesTestIamPermissionsArgs;
@@ -70,14 +95,21 @@ use crate::providers::gcp::clients::containeranalysis::ContaineranalysisProjects
 use crate::providers::gcp::clients::containeranalysis::ContaineranalysisProjectsNotesBatchCreateArgs;
 use crate::providers::gcp::clients::containeranalysis::ContaineranalysisProjectsNotesCreateArgs;
 use crate::providers::gcp::clients::containeranalysis::ContaineranalysisProjectsNotesDeleteArgs;
+use crate::providers::gcp::clients::containeranalysis::ContaineranalysisProjectsNotesGetArgs;
 use crate::providers::gcp::clients::containeranalysis::ContaineranalysisProjectsNotesGetIamPolicyArgs;
+use crate::providers::gcp::clients::containeranalysis::ContaineranalysisProjectsNotesListArgs;
+use crate::providers::gcp::clients::containeranalysis::ContaineranalysisProjectsNotesOccurrencesListArgs;
 use crate::providers::gcp::clients::containeranalysis::ContaineranalysisProjectsNotesPatchArgs;
 use crate::providers::gcp::clients::containeranalysis::ContaineranalysisProjectsNotesSetIamPolicyArgs;
 use crate::providers::gcp::clients::containeranalysis::ContaineranalysisProjectsNotesTestIamPermissionsArgs;
 use crate::providers::gcp::clients::containeranalysis::ContaineranalysisProjectsOccurrencesBatchCreateArgs;
 use crate::providers::gcp::clients::containeranalysis::ContaineranalysisProjectsOccurrencesCreateArgs;
 use crate::providers::gcp::clients::containeranalysis::ContaineranalysisProjectsOccurrencesDeleteArgs;
+use crate::providers::gcp::clients::containeranalysis::ContaineranalysisProjectsOccurrencesGetArgs;
 use crate::providers::gcp::clients::containeranalysis::ContaineranalysisProjectsOccurrencesGetIamPolicyArgs;
+use crate::providers::gcp::clients::containeranalysis::ContaineranalysisProjectsOccurrencesGetNotesArgs;
+use crate::providers::gcp::clients::containeranalysis::ContaineranalysisProjectsOccurrencesGetVulnerabilitySummaryArgs;
+use crate::providers::gcp::clients::containeranalysis::ContaineranalysisProjectsOccurrencesListArgs;
 use crate::providers::gcp::clients::containeranalysis::ContaineranalysisProjectsOccurrencesPatchArgs;
 use crate::providers::gcp::clients::containeranalysis::ContaineranalysisProjectsOccurrencesSetIamPolicyArgs;
 use crate::providers::gcp::clients::containeranalysis::ContaineranalysisProjectsOccurrencesTestIamPermissionsArgs;
@@ -253,9 +285,47 @@ where
         execute(store_task, None).map_err(|e: String| ProviderError::ExecuteFailed(e.to_string()))
     }
 
+    /// Containeranalysis projects locations notes get.
+    ///
+    /// Read-only operation - no state tracking.
+    ///
+    /// # Arguments
+    ///
+    /// * `args` - Request arguments
+    ///
+    /// # Returns
+    ///
+    /// StreamIterator yielding the Note result.
+    ///
+    /// # Errors
+    ///
+    /// Returns ProviderError if the API request fails.
+    pub fn containeranalysis_projects_locations_notes_get(
+        &self,
+        args: &ContaineranalysisProjectsLocationsNotesGetArgs,
+    ) -> Result<
+        impl StreamIterator<
+            D = Result<Note, ProviderError<ApiError>>,
+            P = crate::providers::gcp::clients::types::ApiPending,
+        > + Send
+        + 'static,
+        ProviderError<ApiError>,
+    > {
+        let builder = containeranalysis_projects_locations_notes_get_builder(
+            &self.http_client,
+            &args.name,
+        )
+        .map_err(ProviderError::Api)?;
+
+        let task = containeranalysis_projects_locations_notes_get_task(builder)
+            .map_err(ProviderError::Api)?;
+
+        execute(task, None).map_err(|e: String| ProviderError::ExecuteFailed(e.to_string()))
+    }
+
     /// Containeranalysis projects locations notes get iam policy.
     ///
-    /// Automatically stores the result in the state store on success.
+    /// Read-only operation - no state tracking.
     ///
     /// # Arguments
     ///
@@ -267,7 +337,7 @@ where
     ///
     /// # Errors
     ///
-    /// Returns ProviderError if the API request or state storage fails.
+    /// Returns ProviderError if the API request fails.
     pub fn containeranalysis_projects_locations_notes_get_iam_policy(
         &self,
         args: &ContaineranalysisProjectsLocationsNotesGetIamPolicyArgs,
@@ -288,12 +358,49 @@ where
         let task = containeranalysis_projects_locations_notes_get_iam_policy_task(builder)
             .map_err(ProviderError::Api)?;
 
-        let state_store = self.client.state_store.clone();
-        let stage = Some(self.client.stage.clone());
+        execute(task, None).map_err(|e: String| ProviderError::ExecuteFailed(e.to_string()))
+    }
 
-        let store_task = StoreStateIdentifierTask::new(task, state_store, args, stage);
+    /// Containeranalysis projects locations notes list.
+    ///
+    /// Read-only operation - no state tracking.
+    ///
+    /// # Arguments
+    ///
+    /// * `args` - Request arguments
+    ///
+    /// # Returns
+    ///
+    /// StreamIterator yielding the ListNotesResponse result.
+    ///
+    /// # Errors
+    ///
+    /// Returns ProviderError if the API request fails.
+    pub fn containeranalysis_projects_locations_notes_list(
+        &self,
+        args: &ContaineranalysisProjectsLocationsNotesListArgs,
+    ) -> Result<
+        impl StreamIterator<
+            D = Result<ListNotesResponse, ProviderError<ApiError>>,
+            P = crate::providers::gcp::clients::types::ApiPending,
+        > + Send
+        + 'static,
+        ProviderError<ApiError>,
+    > {
+        let builder = containeranalysis_projects_locations_notes_list_builder(
+            &self.http_client,
+            &args.parent,
+            &args.filter,
+            &args.pageSize,
+            &args.pageToken,
+            &args.returnPartialSuccess,
+        )
+        .map_err(ProviderError::Api)?;
 
-        execute(store_task, None).map_err(|e: String| ProviderError::ExecuteFailed(e.to_string()))
+        let task = containeranalysis_projects_locations_notes_list_task(builder)
+            .map_err(ProviderError::Api)?;
+
+        execute(task, None).map_err(|e: String| ProviderError::ExecuteFailed(e.to_string()))
     }
 
     /// Containeranalysis projects locations notes patch.
@@ -385,7 +492,7 @@ where
 
     /// Containeranalysis projects locations notes test iam permissions.
     ///
-    /// Automatically stores the result in the state store on success.
+    /// Read-only operation - no state tracking.
     ///
     /// # Arguments
     ///
@@ -397,7 +504,7 @@ where
     ///
     /// # Errors
     ///
-    /// Returns ProviderError if the API request or state storage fails.
+    /// Returns ProviderError if the API request fails.
     pub fn containeranalysis_projects_locations_notes_test_iam_permissions(
         &self,
         args: &ContaineranalysisProjectsLocationsNotesTestIamPermissionsArgs,
@@ -418,12 +525,48 @@ where
         let task = containeranalysis_projects_locations_notes_test_iam_permissions_task(builder)
             .map_err(ProviderError::Api)?;
 
-        let state_store = self.client.state_store.clone();
-        let stage = Some(self.client.stage.clone());
+        execute(task, None).map_err(|e: String| ProviderError::ExecuteFailed(e.to_string()))
+    }
 
-        let store_task = StoreStateIdentifierTask::new(task, state_store, args, stage);
+    /// Containeranalysis projects locations notes occurrences list.
+    ///
+    /// Read-only operation - no state tracking.
+    ///
+    /// # Arguments
+    ///
+    /// * `args` - Request arguments
+    ///
+    /// # Returns
+    ///
+    /// StreamIterator yielding the ListNoteOccurrencesResponse result.
+    ///
+    /// # Errors
+    ///
+    /// Returns ProviderError if the API request fails.
+    pub fn containeranalysis_projects_locations_notes_occurrences_list(
+        &self,
+        args: &ContaineranalysisProjectsLocationsNotesOccurrencesListArgs,
+    ) -> Result<
+        impl StreamIterator<
+            D = Result<ListNoteOccurrencesResponse, ProviderError<ApiError>>,
+            P = crate::providers::gcp::clients::types::ApiPending,
+        > + Send
+        + 'static,
+        ProviderError<ApiError>,
+    > {
+        let builder = containeranalysis_projects_locations_notes_occurrences_list_builder(
+            &self.http_client,
+            &args.name,
+            &args.filter,
+            &args.pageSize,
+            &args.pageToken,
+        )
+        .map_err(ProviderError::Api)?;
 
-        execute(store_task, None).map_err(|e: String| ProviderError::ExecuteFailed(e.to_string()))
+        let task = containeranalysis_projects_locations_notes_occurrences_list_task(builder)
+            .map_err(ProviderError::Api)?;
+
+        execute(task, None).map_err(|e: String| ProviderError::ExecuteFailed(e.to_string()))
     }
 
     /// Containeranalysis projects locations occurrences batch create.
@@ -555,9 +698,47 @@ where
         execute(store_task, None).map_err(|e: String| ProviderError::ExecuteFailed(e.to_string()))
     }
 
+    /// Containeranalysis projects locations occurrences get.
+    ///
+    /// Read-only operation - no state tracking.
+    ///
+    /// # Arguments
+    ///
+    /// * `args` - Request arguments
+    ///
+    /// # Returns
+    ///
+    /// StreamIterator yielding the Occurrence result.
+    ///
+    /// # Errors
+    ///
+    /// Returns ProviderError if the API request fails.
+    pub fn containeranalysis_projects_locations_occurrences_get(
+        &self,
+        args: &ContaineranalysisProjectsLocationsOccurrencesGetArgs,
+    ) -> Result<
+        impl StreamIterator<
+            D = Result<Occurrence, ProviderError<ApiError>>,
+            P = crate::providers::gcp::clients::types::ApiPending,
+        > + Send
+        + 'static,
+        ProviderError<ApiError>,
+    > {
+        let builder = containeranalysis_projects_locations_occurrences_get_builder(
+            &self.http_client,
+            &args.name,
+        )
+        .map_err(ProviderError::Api)?;
+
+        let task = containeranalysis_projects_locations_occurrences_get_task(builder)
+            .map_err(ProviderError::Api)?;
+
+        execute(task, None).map_err(|e: String| ProviderError::ExecuteFailed(e.to_string()))
+    }
+
     /// Containeranalysis projects locations occurrences get iam policy.
     ///
-    /// Automatically stores the result in the state store on success.
+    /// Read-only operation - no state tracking.
     ///
     /// # Arguments
     ///
@@ -569,7 +750,7 @@ where
     ///
     /// # Errors
     ///
-    /// Returns ProviderError if the API request or state storage fails.
+    /// Returns ProviderError if the API request fails.
     pub fn containeranalysis_projects_locations_occurrences_get_iam_policy(
         &self,
         args: &ContaineranalysisProjectsLocationsOccurrencesGetIamPolicyArgs,
@@ -590,12 +771,127 @@ where
         let task = containeranalysis_projects_locations_occurrences_get_iam_policy_task(builder)
             .map_err(ProviderError::Api)?;
 
-        let state_store = self.client.state_store.clone();
-        let stage = Some(self.client.stage.clone());
+        execute(task, None).map_err(|e: String| ProviderError::ExecuteFailed(e.to_string()))
+    }
 
-        let store_task = StoreStateIdentifierTask::new(task, state_store, args, stage);
+    /// Containeranalysis projects locations occurrences get notes.
+    ///
+    /// Read-only operation - no state tracking.
+    ///
+    /// # Arguments
+    ///
+    /// * `args` - Request arguments
+    ///
+    /// # Returns
+    ///
+    /// StreamIterator yielding the Note result.
+    ///
+    /// # Errors
+    ///
+    /// Returns ProviderError if the API request fails.
+    pub fn containeranalysis_projects_locations_occurrences_get_notes(
+        &self,
+        args: &ContaineranalysisProjectsLocationsOccurrencesGetNotesArgs,
+    ) -> Result<
+        impl StreamIterator<
+            D = Result<Note, ProviderError<ApiError>>,
+            P = crate::providers::gcp::clients::types::ApiPending,
+        > + Send
+        + 'static,
+        ProviderError<ApiError>,
+    > {
+        let builder = containeranalysis_projects_locations_occurrences_get_notes_builder(
+            &self.http_client,
+            &args.name,
+        )
+        .map_err(ProviderError::Api)?;
 
-        execute(store_task, None).map_err(|e: String| ProviderError::ExecuteFailed(e.to_string()))
+        let task = containeranalysis_projects_locations_occurrences_get_notes_task(builder)
+            .map_err(ProviderError::Api)?;
+
+        execute(task, None).map_err(|e: String| ProviderError::ExecuteFailed(e.to_string()))
+    }
+
+    /// Containeranalysis projects locations occurrences get vulnerability summary.
+    ///
+    /// Read-only operation - no state tracking.
+    ///
+    /// # Arguments
+    ///
+    /// * `args` - Request arguments
+    ///
+    /// # Returns
+    ///
+    /// StreamIterator yielding the VulnerabilityOccurrencesSummary result.
+    ///
+    /// # Errors
+    ///
+    /// Returns ProviderError if the API request fails.
+    pub fn containeranalysis_projects_locations_occurrences_get_vulnerability_summary(
+        &self,
+        args: &ContaineranalysisProjectsLocationsOccurrencesGetVulnerabilitySummaryArgs,
+    ) -> Result<
+        impl StreamIterator<
+            D = Result<VulnerabilityOccurrencesSummary, ProviderError<ApiError>>,
+            P = crate::providers::gcp::clients::types::ApiPending,
+        > + Send
+        + 'static,
+        ProviderError<ApiError>,
+    > {
+        let builder = containeranalysis_projects_locations_occurrences_get_vulnerability_summary_builder(
+            &self.http_client,
+            &args.parent,
+            &args.filter,
+            &args.returnPartialSuccess,
+        )
+        .map_err(ProviderError::Api)?;
+
+        let task = containeranalysis_projects_locations_occurrences_get_vulnerability_summary_task(builder)
+            .map_err(ProviderError::Api)?;
+
+        execute(task, None).map_err(|e: String| ProviderError::ExecuteFailed(e.to_string()))
+    }
+
+    /// Containeranalysis projects locations occurrences list.
+    ///
+    /// Read-only operation - no state tracking.
+    ///
+    /// # Arguments
+    ///
+    /// * `args` - Request arguments
+    ///
+    /// # Returns
+    ///
+    /// StreamIterator yielding the ListOccurrencesResponse result.
+    ///
+    /// # Errors
+    ///
+    /// Returns ProviderError if the API request fails.
+    pub fn containeranalysis_projects_locations_occurrences_list(
+        &self,
+        args: &ContaineranalysisProjectsLocationsOccurrencesListArgs,
+    ) -> Result<
+        impl StreamIterator<
+            D = Result<ListOccurrencesResponse, ProviderError<ApiError>>,
+            P = crate::providers::gcp::clients::types::ApiPending,
+        > + Send
+        + 'static,
+        ProviderError<ApiError>,
+    > {
+        let builder = containeranalysis_projects_locations_occurrences_list_builder(
+            &self.http_client,
+            &args.parent,
+            &args.filter,
+            &args.pageSize,
+            &args.pageToken,
+            &args.returnPartialSuccess,
+        )
+        .map_err(ProviderError::Api)?;
+
+        let task = containeranalysis_projects_locations_occurrences_list_task(builder)
+            .map_err(ProviderError::Api)?;
+
+        execute(task, None).map_err(|e: String| ProviderError::ExecuteFailed(e.to_string()))
     }
 
     /// Containeranalysis projects locations occurrences patch.
@@ -687,7 +983,7 @@ where
 
     /// Containeranalysis projects locations occurrences test iam permissions.
     ///
-    /// Automatically stores the result in the state store on success.
+    /// Read-only operation - no state tracking.
     ///
     /// # Arguments
     ///
@@ -699,7 +995,7 @@ where
     ///
     /// # Errors
     ///
-    /// Returns ProviderError if the API request or state storage fails.
+    /// Returns ProviderError if the API request fails.
     pub fn containeranalysis_projects_locations_occurrences_test_iam_permissions(
         &self,
         args: &ContaineranalysisProjectsLocationsOccurrencesTestIamPermissionsArgs,
@@ -720,17 +1016,12 @@ where
         let task = containeranalysis_projects_locations_occurrences_test_iam_permissions_task(builder)
             .map_err(ProviderError::Api)?;
 
-        let state_store = self.client.state_store.clone();
-        let stage = Some(self.client.stage.clone());
-
-        let store_task = StoreStateIdentifierTask::new(task, state_store, args, stage);
-
-        execute(store_task, None).map_err(|e: String| ProviderError::ExecuteFailed(e.to_string()))
+        execute(task, None).map_err(|e: String| ProviderError::ExecuteFailed(e.to_string()))
     }
 
     /// Containeranalysis projects locations resources export s b o m.
     ///
-    /// Automatically stores the result in the state store on success.
+    /// Read-only operation - no state tracking.
     ///
     /// # Arguments
     ///
@@ -742,7 +1033,7 @@ where
     ///
     /// # Errors
     ///
-    /// Returns ProviderError if the API request or state storage fails.
+    /// Returns ProviderError if the API request fails.
     pub fn containeranalysis_projects_locations_resources_export_s_b_o_m(
         &self,
         args: &ContaineranalysisProjectsLocationsResourcesExportSBOMArgs,
@@ -763,12 +1054,7 @@ where
         let task = containeranalysis_projects_locations_resources_export_s_b_o_m_task(builder)
             .map_err(ProviderError::Api)?;
 
-        let state_store = self.client.state_store.clone();
-        let stage = Some(self.client.stage.clone());
-
-        let store_task = StoreStateIdentifierTask::new(task, state_store, args, stage);
-
-        execute(store_task, None).map_err(|e: String| ProviderError::ExecuteFailed(e.to_string()))
+        execute(task, None).map_err(|e: String| ProviderError::ExecuteFailed(e.to_string()))
     }
 
     /// Containeranalysis projects notes batch create.
@@ -901,9 +1187,47 @@ where
         execute(store_task, None).map_err(|e: String| ProviderError::ExecuteFailed(e.to_string()))
     }
 
+    /// Containeranalysis projects notes get.
+    ///
+    /// Read-only operation - no state tracking.
+    ///
+    /// # Arguments
+    ///
+    /// * `args` - Request arguments
+    ///
+    /// # Returns
+    ///
+    /// StreamIterator yielding the Note result.
+    ///
+    /// # Errors
+    ///
+    /// Returns ProviderError if the API request fails.
+    pub fn containeranalysis_projects_notes_get(
+        &self,
+        args: &ContaineranalysisProjectsNotesGetArgs,
+    ) -> Result<
+        impl StreamIterator<
+            D = Result<Note, ProviderError<ApiError>>,
+            P = crate::providers::gcp::clients::types::ApiPending,
+        > + Send
+        + 'static,
+        ProviderError<ApiError>,
+    > {
+        let builder = containeranalysis_projects_notes_get_builder(
+            &self.http_client,
+            &args.name,
+        )
+        .map_err(ProviderError::Api)?;
+
+        let task = containeranalysis_projects_notes_get_task(builder)
+            .map_err(ProviderError::Api)?;
+
+        execute(task, None).map_err(|e: String| ProviderError::ExecuteFailed(e.to_string()))
+    }
+
     /// Containeranalysis projects notes get iam policy.
     ///
-    /// Automatically stores the result in the state store on success.
+    /// Read-only operation - no state tracking.
     ///
     /// # Arguments
     ///
@@ -915,7 +1239,7 @@ where
     ///
     /// # Errors
     ///
-    /// Returns ProviderError if the API request or state storage fails.
+    /// Returns ProviderError if the API request fails.
     pub fn containeranalysis_projects_notes_get_iam_policy(
         &self,
         args: &ContaineranalysisProjectsNotesGetIamPolicyArgs,
@@ -936,12 +1260,49 @@ where
         let task = containeranalysis_projects_notes_get_iam_policy_task(builder)
             .map_err(ProviderError::Api)?;
 
-        let state_store = self.client.state_store.clone();
-        let stage = Some(self.client.stage.clone());
+        execute(task, None).map_err(|e: String| ProviderError::ExecuteFailed(e.to_string()))
+    }
 
-        let store_task = StoreStateIdentifierTask::new(task, state_store, args, stage);
+    /// Containeranalysis projects notes list.
+    ///
+    /// Read-only operation - no state tracking.
+    ///
+    /// # Arguments
+    ///
+    /// * `args` - Request arguments
+    ///
+    /// # Returns
+    ///
+    /// StreamIterator yielding the ListNotesResponse result.
+    ///
+    /// # Errors
+    ///
+    /// Returns ProviderError if the API request fails.
+    pub fn containeranalysis_projects_notes_list(
+        &self,
+        args: &ContaineranalysisProjectsNotesListArgs,
+    ) -> Result<
+        impl StreamIterator<
+            D = Result<ListNotesResponse, ProviderError<ApiError>>,
+            P = crate::providers::gcp::clients::types::ApiPending,
+        > + Send
+        + 'static,
+        ProviderError<ApiError>,
+    > {
+        let builder = containeranalysis_projects_notes_list_builder(
+            &self.http_client,
+            &args.parent,
+            &args.filter,
+            &args.pageSize,
+            &args.pageToken,
+            &args.returnPartialSuccess,
+        )
+        .map_err(ProviderError::Api)?;
 
-        execute(store_task, None).map_err(|e: String| ProviderError::ExecuteFailed(e.to_string()))
+        let task = containeranalysis_projects_notes_list_task(builder)
+            .map_err(ProviderError::Api)?;
+
+        execute(task, None).map_err(|e: String| ProviderError::ExecuteFailed(e.to_string()))
     }
 
     /// Containeranalysis projects notes patch.
@@ -1033,7 +1394,7 @@ where
 
     /// Containeranalysis projects notes test iam permissions.
     ///
-    /// Automatically stores the result in the state store on success.
+    /// Read-only operation - no state tracking.
     ///
     /// # Arguments
     ///
@@ -1045,7 +1406,7 @@ where
     ///
     /// # Errors
     ///
-    /// Returns ProviderError if the API request or state storage fails.
+    /// Returns ProviderError if the API request fails.
     pub fn containeranalysis_projects_notes_test_iam_permissions(
         &self,
         args: &ContaineranalysisProjectsNotesTestIamPermissionsArgs,
@@ -1066,12 +1427,48 @@ where
         let task = containeranalysis_projects_notes_test_iam_permissions_task(builder)
             .map_err(ProviderError::Api)?;
 
-        let state_store = self.client.state_store.clone();
-        let stage = Some(self.client.stage.clone());
+        execute(task, None).map_err(|e: String| ProviderError::ExecuteFailed(e.to_string()))
+    }
 
-        let store_task = StoreStateIdentifierTask::new(task, state_store, args, stage);
+    /// Containeranalysis projects notes occurrences list.
+    ///
+    /// Read-only operation - no state tracking.
+    ///
+    /// # Arguments
+    ///
+    /// * `args` - Request arguments
+    ///
+    /// # Returns
+    ///
+    /// StreamIterator yielding the ListNoteOccurrencesResponse result.
+    ///
+    /// # Errors
+    ///
+    /// Returns ProviderError if the API request fails.
+    pub fn containeranalysis_projects_notes_occurrences_list(
+        &self,
+        args: &ContaineranalysisProjectsNotesOccurrencesListArgs,
+    ) -> Result<
+        impl StreamIterator<
+            D = Result<ListNoteOccurrencesResponse, ProviderError<ApiError>>,
+            P = crate::providers::gcp::clients::types::ApiPending,
+        > + Send
+        + 'static,
+        ProviderError<ApiError>,
+    > {
+        let builder = containeranalysis_projects_notes_occurrences_list_builder(
+            &self.http_client,
+            &args.name,
+            &args.filter,
+            &args.pageSize,
+            &args.pageToken,
+        )
+        .map_err(ProviderError::Api)?;
 
-        execute(store_task, None).map_err(|e: String| ProviderError::ExecuteFailed(e.to_string()))
+        let task = containeranalysis_projects_notes_occurrences_list_task(builder)
+            .map_err(ProviderError::Api)?;
+
+        execute(task, None).map_err(|e: String| ProviderError::ExecuteFailed(e.to_string()))
     }
 
     /// Containeranalysis projects occurrences batch create.
@@ -1203,9 +1600,47 @@ where
         execute(store_task, None).map_err(|e: String| ProviderError::ExecuteFailed(e.to_string()))
     }
 
+    /// Containeranalysis projects occurrences get.
+    ///
+    /// Read-only operation - no state tracking.
+    ///
+    /// # Arguments
+    ///
+    /// * `args` - Request arguments
+    ///
+    /// # Returns
+    ///
+    /// StreamIterator yielding the Occurrence result.
+    ///
+    /// # Errors
+    ///
+    /// Returns ProviderError if the API request fails.
+    pub fn containeranalysis_projects_occurrences_get(
+        &self,
+        args: &ContaineranalysisProjectsOccurrencesGetArgs,
+    ) -> Result<
+        impl StreamIterator<
+            D = Result<Occurrence, ProviderError<ApiError>>,
+            P = crate::providers::gcp::clients::types::ApiPending,
+        > + Send
+        + 'static,
+        ProviderError<ApiError>,
+    > {
+        let builder = containeranalysis_projects_occurrences_get_builder(
+            &self.http_client,
+            &args.name,
+        )
+        .map_err(ProviderError::Api)?;
+
+        let task = containeranalysis_projects_occurrences_get_task(builder)
+            .map_err(ProviderError::Api)?;
+
+        execute(task, None).map_err(|e: String| ProviderError::ExecuteFailed(e.to_string()))
+    }
+
     /// Containeranalysis projects occurrences get iam policy.
     ///
-    /// Automatically stores the result in the state store on success.
+    /// Read-only operation - no state tracking.
     ///
     /// # Arguments
     ///
@@ -1217,7 +1652,7 @@ where
     ///
     /// # Errors
     ///
-    /// Returns ProviderError if the API request or state storage fails.
+    /// Returns ProviderError if the API request fails.
     pub fn containeranalysis_projects_occurrences_get_iam_policy(
         &self,
         args: &ContaineranalysisProjectsOccurrencesGetIamPolicyArgs,
@@ -1238,12 +1673,127 @@ where
         let task = containeranalysis_projects_occurrences_get_iam_policy_task(builder)
             .map_err(ProviderError::Api)?;
 
-        let state_store = self.client.state_store.clone();
-        let stage = Some(self.client.stage.clone());
+        execute(task, None).map_err(|e: String| ProviderError::ExecuteFailed(e.to_string()))
+    }
 
-        let store_task = StoreStateIdentifierTask::new(task, state_store, args, stage);
+    /// Containeranalysis projects occurrences get notes.
+    ///
+    /// Read-only operation - no state tracking.
+    ///
+    /// # Arguments
+    ///
+    /// * `args` - Request arguments
+    ///
+    /// # Returns
+    ///
+    /// StreamIterator yielding the Note result.
+    ///
+    /// # Errors
+    ///
+    /// Returns ProviderError if the API request fails.
+    pub fn containeranalysis_projects_occurrences_get_notes(
+        &self,
+        args: &ContaineranalysisProjectsOccurrencesGetNotesArgs,
+    ) -> Result<
+        impl StreamIterator<
+            D = Result<Note, ProviderError<ApiError>>,
+            P = crate::providers::gcp::clients::types::ApiPending,
+        > + Send
+        + 'static,
+        ProviderError<ApiError>,
+    > {
+        let builder = containeranalysis_projects_occurrences_get_notes_builder(
+            &self.http_client,
+            &args.name,
+        )
+        .map_err(ProviderError::Api)?;
 
-        execute(store_task, None).map_err(|e: String| ProviderError::ExecuteFailed(e.to_string()))
+        let task = containeranalysis_projects_occurrences_get_notes_task(builder)
+            .map_err(ProviderError::Api)?;
+
+        execute(task, None).map_err(|e: String| ProviderError::ExecuteFailed(e.to_string()))
+    }
+
+    /// Containeranalysis projects occurrences get vulnerability summary.
+    ///
+    /// Read-only operation - no state tracking.
+    ///
+    /// # Arguments
+    ///
+    /// * `args` - Request arguments
+    ///
+    /// # Returns
+    ///
+    /// StreamIterator yielding the VulnerabilityOccurrencesSummary result.
+    ///
+    /// # Errors
+    ///
+    /// Returns ProviderError if the API request fails.
+    pub fn containeranalysis_projects_occurrences_get_vulnerability_summary(
+        &self,
+        args: &ContaineranalysisProjectsOccurrencesGetVulnerabilitySummaryArgs,
+    ) -> Result<
+        impl StreamIterator<
+            D = Result<VulnerabilityOccurrencesSummary, ProviderError<ApiError>>,
+            P = crate::providers::gcp::clients::types::ApiPending,
+        > + Send
+        + 'static,
+        ProviderError<ApiError>,
+    > {
+        let builder = containeranalysis_projects_occurrences_get_vulnerability_summary_builder(
+            &self.http_client,
+            &args.parent,
+            &args.filter,
+            &args.returnPartialSuccess,
+        )
+        .map_err(ProviderError::Api)?;
+
+        let task = containeranalysis_projects_occurrences_get_vulnerability_summary_task(builder)
+            .map_err(ProviderError::Api)?;
+
+        execute(task, None).map_err(|e: String| ProviderError::ExecuteFailed(e.to_string()))
+    }
+
+    /// Containeranalysis projects occurrences list.
+    ///
+    /// Read-only operation - no state tracking.
+    ///
+    /// # Arguments
+    ///
+    /// * `args` - Request arguments
+    ///
+    /// # Returns
+    ///
+    /// StreamIterator yielding the ListOccurrencesResponse result.
+    ///
+    /// # Errors
+    ///
+    /// Returns ProviderError if the API request fails.
+    pub fn containeranalysis_projects_occurrences_list(
+        &self,
+        args: &ContaineranalysisProjectsOccurrencesListArgs,
+    ) -> Result<
+        impl StreamIterator<
+            D = Result<ListOccurrencesResponse, ProviderError<ApiError>>,
+            P = crate::providers::gcp::clients::types::ApiPending,
+        > + Send
+        + 'static,
+        ProviderError<ApiError>,
+    > {
+        let builder = containeranalysis_projects_occurrences_list_builder(
+            &self.http_client,
+            &args.parent,
+            &args.filter,
+            &args.pageSize,
+            &args.pageToken,
+            &args.returnPartialSuccess,
+        )
+        .map_err(ProviderError::Api)?;
+
+        let task = containeranalysis_projects_occurrences_list_task(builder)
+            .map_err(ProviderError::Api)?;
+
+        execute(task, None).map_err(|e: String| ProviderError::ExecuteFailed(e.to_string()))
     }
 
     /// Containeranalysis projects occurrences patch.
@@ -1335,7 +1885,7 @@ where
 
     /// Containeranalysis projects occurrences test iam permissions.
     ///
-    /// Automatically stores the result in the state store on success.
+    /// Read-only operation - no state tracking.
     ///
     /// # Arguments
     ///
@@ -1347,7 +1897,7 @@ where
     ///
     /// # Errors
     ///
-    /// Returns ProviderError if the API request or state storage fails.
+    /// Returns ProviderError if the API request fails.
     pub fn containeranalysis_projects_occurrences_test_iam_permissions(
         &self,
         args: &ContaineranalysisProjectsOccurrencesTestIamPermissionsArgs,
@@ -1368,17 +1918,12 @@ where
         let task = containeranalysis_projects_occurrences_test_iam_permissions_task(builder)
             .map_err(ProviderError::Api)?;
 
-        let state_store = self.client.state_store.clone();
-        let stage = Some(self.client.stage.clone());
-
-        let store_task = StoreStateIdentifierTask::new(task, state_store, args, stage);
-
-        execute(store_task, None).map_err(|e: String| ProviderError::ExecuteFailed(e.to_string()))
+        execute(task, None).map_err(|e: String| ProviderError::ExecuteFailed(e.to_string()))
     }
 
     /// Containeranalysis projects resources export s b o m.
     ///
-    /// Automatically stores the result in the state store on success.
+    /// Read-only operation - no state tracking.
     ///
     /// # Arguments
     ///
@@ -1390,7 +1935,7 @@ where
     ///
     /// # Errors
     ///
-    /// Returns ProviderError if the API request or state storage fails.
+    /// Returns ProviderError if the API request fails.
     pub fn containeranalysis_projects_resources_export_s_b_o_m(
         &self,
         args: &ContaineranalysisProjectsResourcesExportSBOMArgs,
@@ -1411,12 +1956,7 @@ where
         let task = containeranalysis_projects_resources_export_s_b_o_m_task(builder)
             .map_err(ProviderError::Api)?;
 
-        let state_store = self.client.state_store.clone();
-        let stage = Some(self.client.stage.clone());
-
-        let store_task = StoreStateIdentifierTask::new(task, state_store, args, stage);
-
-        execute(store_task, None).map_err(|e: String| ProviderError::ExecuteFailed(e.to_string()))
+        execute(task, None).map_err(|e: String| ProviderError::ExecuteFailed(e.to_string()))
     }
 
 }

@@ -14,38 +14,65 @@
 use crate::providers::gcp::clients::osconfig::{
     osconfig_folders_locations_global_policy_orchestrators_create_builder, osconfig_folders_locations_global_policy_orchestrators_create_task,
     osconfig_folders_locations_global_policy_orchestrators_delete_builder, osconfig_folders_locations_global_policy_orchestrators_delete_task,
+    osconfig_folders_locations_global_policy_orchestrators_get_builder, osconfig_folders_locations_global_policy_orchestrators_get_task,
+    osconfig_folders_locations_global_policy_orchestrators_list_builder, osconfig_folders_locations_global_policy_orchestrators_list_task,
     osconfig_folders_locations_global_policy_orchestrators_patch_builder, osconfig_folders_locations_global_policy_orchestrators_patch_task,
     osconfig_folders_locations_operations_cancel_builder, osconfig_folders_locations_operations_cancel_task,
     osconfig_folders_locations_operations_delete_builder, osconfig_folders_locations_operations_delete_task,
+    osconfig_folders_locations_operations_get_builder, osconfig_folders_locations_operations_get_task,
+    osconfig_folders_locations_operations_list_builder, osconfig_folders_locations_operations_list_task,
     osconfig_organizations_locations_global_policy_orchestrators_create_builder, osconfig_organizations_locations_global_policy_orchestrators_create_task,
     osconfig_organizations_locations_global_policy_orchestrators_delete_builder, osconfig_organizations_locations_global_policy_orchestrators_delete_task,
+    osconfig_organizations_locations_global_policy_orchestrators_get_builder, osconfig_organizations_locations_global_policy_orchestrators_get_task,
+    osconfig_organizations_locations_global_policy_orchestrators_list_builder, osconfig_organizations_locations_global_policy_orchestrators_list_task,
     osconfig_organizations_locations_global_policy_orchestrators_patch_builder, osconfig_organizations_locations_global_policy_orchestrators_patch_task,
     osconfig_organizations_locations_operations_cancel_builder, osconfig_organizations_locations_operations_cancel_task,
     osconfig_organizations_locations_operations_delete_builder, osconfig_organizations_locations_operations_delete_task,
+    osconfig_organizations_locations_operations_get_builder, osconfig_organizations_locations_operations_get_task,
+    osconfig_organizations_locations_operations_list_builder, osconfig_organizations_locations_operations_list_task,
     osconfig_projects_locations_global_policy_orchestrators_create_builder, osconfig_projects_locations_global_policy_orchestrators_create_task,
     osconfig_projects_locations_global_policy_orchestrators_delete_builder, osconfig_projects_locations_global_policy_orchestrators_delete_task,
+    osconfig_projects_locations_global_policy_orchestrators_get_builder, osconfig_projects_locations_global_policy_orchestrators_get_task,
+    osconfig_projects_locations_global_policy_orchestrators_list_builder, osconfig_projects_locations_global_policy_orchestrators_list_task,
     osconfig_projects_locations_global_policy_orchestrators_patch_builder, osconfig_projects_locations_global_policy_orchestrators_patch_task,
     osconfig_projects_locations_operations_cancel_builder, osconfig_projects_locations_operations_cancel_task,
     osconfig_projects_locations_operations_delete_builder, osconfig_projects_locations_operations_delete_task,
+    osconfig_projects_locations_operations_get_builder, osconfig_projects_locations_operations_get_task,
+    osconfig_projects_locations_operations_list_builder, osconfig_projects_locations_operations_list_task,
 };
 use crate::providers::gcp::clients::types::{ApiError, ApiPending};
 use crate::providers::gcp::clients::osconfig::Empty;
+use crate::providers::gcp::clients::osconfig::GoogleCloudOsconfigV2ListPolicyOrchestratorsResponse;
+use crate::providers::gcp::clients::osconfig::GoogleCloudOsconfigV2PolicyOrchestrator;
+use crate::providers::gcp::clients::osconfig::ListOperationsResponse;
 use crate::providers::gcp::clients::osconfig::Operation;
 use crate::providers::gcp::clients::osconfig::OsconfigFoldersLocationsGlobalPolicyOrchestratorsCreateArgs;
 use crate::providers::gcp::clients::osconfig::OsconfigFoldersLocationsGlobalPolicyOrchestratorsDeleteArgs;
+use crate::providers::gcp::clients::osconfig::OsconfigFoldersLocationsGlobalPolicyOrchestratorsGetArgs;
+use crate::providers::gcp::clients::osconfig::OsconfigFoldersLocationsGlobalPolicyOrchestratorsListArgs;
 use crate::providers::gcp::clients::osconfig::OsconfigFoldersLocationsGlobalPolicyOrchestratorsPatchArgs;
 use crate::providers::gcp::clients::osconfig::OsconfigFoldersLocationsOperationsCancelArgs;
 use crate::providers::gcp::clients::osconfig::OsconfigFoldersLocationsOperationsDeleteArgs;
+use crate::providers::gcp::clients::osconfig::OsconfigFoldersLocationsOperationsGetArgs;
+use crate::providers::gcp::clients::osconfig::OsconfigFoldersLocationsOperationsListArgs;
 use crate::providers::gcp::clients::osconfig::OsconfigOrganizationsLocationsGlobalPolicyOrchestratorsCreateArgs;
 use crate::providers::gcp::clients::osconfig::OsconfigOrganizationsLocationsGlobalPolicyOrchestratorsDeleteArgs;
+use crate::providers::gcp::clients::osconfig::OsconfigOrganizationsLocationsGlobalPolicyOrchestratorsGetArgs;
+use crate::providers::gcp::clients::osconfig::OsconfigOrganizationsLocationsGlobalPolicyOrchestratorsListArgs;
 use crate::providers::gcp::clients::osconfig::OsconfigOrganizationsLocationsGlobalPolicyOrchestratorsPatchArgs;
 use crate::providers::gcp::clients::osconfig::OsconfigOrganizationsLocationsOperationsCancelArgs;
 use crate::providers::gcp::clients::osconfig::OsconfigOrganizationsLocationsOperationsDeleteArgs;
+use crate::providers::gcp::clients::osconfig::OsconfigOrganizationsLocationsOperationsGetArgs;
+use crate::providers::gcp::clients::osconfig::OsconfigOrganizationsLocationsOperationsListArgs;
 use crate::providers::gcp::clients::osconfig::OsconfigProjectsLocationsGlobalPolicyOrchestratorsCreateArgs;
 use crate::providers::gcp::clients::osconfig::OsconfigProjectsLocationsGlobalPolicyOrchestratorsDeleteArgs;
+use crate::providers::gcp::clients::osconfig::OsconfigProjectsLocationsGlobalPolicyOrchestratorsGetArgs;
+use crate::providers::gcp::clients::osconfig::OsconfigProjectsLocationsGlobalPolicyOrchestratorsListArgs;
 use crate::providers::gcp::clients::osconfig::OsconfigProjectsLocationsGlobalPolicyOrchestratorsPatchArgs;
 use crate::providers::gcp::clients::osconfig::OsconfigProjectsLocationsOperationsCancelArgs;
 use crate::providers::gcp::clients::osconfig::OsconfigProjectsLocationsOperationsDeleteArgs;
+use crate::providers::gcp::clients::osconfig::OsconfigProjectsLocationsOperationsGetArgs;
+use crate::providers::gcp::clients::osconfig::OsconfigProjectsLocationsOperationsListArgs;
 use crate::provider_client::{ProviderClient, ProviderError};
 use foundation_core::valtron::{execute, StreamIterator};
 use foundation_core::wire::simple_http::client::SimpleHttpClient;
@@ -175,6 +202,86 @@ where
         let store_task = StoreStateIdentifierTask::new(task, state_store, args, stage);
 
         execute(store_task, None).map_err(|e: String| ProviderError::ExecuteFailed(e.to_string()))
+    }
+
+    /// Osconfig folders locations global policy orchestrators get.
+    ///
+    /// Read-only operation - no state tracking.
+    ///
+    /// # Arguments
+    ///
+    /// * `args` - Request arguments
+    ///
+    /// # Returns
+    ///
+    /// StreamIterator yielding the GoogleCloudOsconfigV2PolicyOrchestrator result.
+    ///
+    /// # Errors
+    ///
+    /// Returns ProviderError if the API request fails.
+    pub fn osconfig_folders_locations_global_policy_orchestrators_get(
+        &self,
+        args: &OsconfigFoldersLocationsGlobalPolicyOrchestratorsGetArgs,
+    ) -> Result<
+        impl StreamIterator<
+            D = Result<GoogleCloudOsconfigV2PolicyOrchestrator, ProviderError<ApiError>>,
+            P = crate::providers::gcp::clients::types::ApiPending,
+        > + Send
+        + 'static,
+        ProviderError<ApiError>,
+    > {
+        let builder = osconfig_folders_locations_global_policy_orchestrators_get_builder(
+            &self.http_client,
+            &args.name,
+        )
+        .map_err(ProviderError::Api)?;
+
+        let task = osconfig_folders_locations_global_policy_orchestrators_get_task(builder)
+            .map_err(ProviderError::Api)?;
+
+        execute(task, None).map_err(|e: String| ProviderError::ExecuteFailed(e.to_string()))
+    }
+
+    /// Osconfig folders locations global policy orchestrators list.
+    ///
+    /// Read-only operation - no state tracking.
+    ///
+    /// # Arguments
+    ///
+    /// * `args` - Request arguments
+    ///
+    /// # Returns
+    ///
+    /// StreamIterator yielding the GoogleCloudOsconfigV2ListPolicyOrchestratorsResponse result.
+    ///
+    /// # Errors
+    ///
+    /// Returns ProviderError if the API request fails.
+    pub fn osconfig_folders_locations_global_policy_orchestrators_list(
+        &self,
+        args: &OsconfigFoldersLocationsGlobalPolicyOrchestratorsListArgs,
+    ) -> Result<
+        impl StreamIterator<
+            D = Result<GoogleCloudOsconfigV2ListPolicyOrchestratorsResponse, ProviderError<ApiError>>,
+            P = crate::providers::gcp::clients::types::ApiPending,
+        > + Send
+        + 'static,
+        ProviderError<ApiError>,
+    > {
+        let builder = osconfig_folders_locations_global_policy_orchestrators_list_builder(
+            &self.http_client,
+            &args.parent,
+            &args.filter,
+            &args.orderBy,
+            &args.pageSize,
+            &args.pageToken,
+        )
+        .map_err(ProviderError::Api)?;
+
+        let task = osconfig_folders_locations_global_policy_orchestrators_list_task(builder)
+            .map_err(ProviderError::Api)?;
+
+        execute(task, None).map_err(|e: String| ProviderError::ExecuteFailed(e.to_string()))
     }
 
     /// Osconfig folders locations global policy orchestrators patch.
@@ -307,6 +414,86 @@ where
         execute(store_task, None).map_err(|e: String| ProviderError::ExecuteFailed(e.to_string()))
     }
 
+    /// Osconfig folders locations operations get.
+    ///
+    /// Read-only operation - no state tracking.
+    ///
+    /// # Arguments
+    ///
+    /// * `args` - Request arguments
+    ///
+    /// # Returns
+    ///
+    /// StreamIterator yielding the Operation result.
+    ///
+    /// # Errors
+    ///
+    /// Returns ProviderError if the API request fails.
+    pub fn osconfig_folders_locations_operations_get(
+        &self,
+        args: &OsconfigFoldersLocationsOperationsGetArgs,
+    ) -> Result<
+        impl StreamIterator<
+            D = Result<Operation, ProviderError<ApiError>>,
+            P = crate::providers::gcp::clients::types::ApiPending,
+        > + Send
+        + 'static,
+        ProviderError<ApiError>,
+    > {
+        let builder = osconfig_folders_locations_operations_get_builder(
+            &self.http_client,
+            &args.name,
+        )
+        .map_err(ProviderError::Api)?;
+
+        let task = osconfig_folders_locations_operations_get_task(builder)
+            .map_err(ProviderError::Api)?;
+
+        execute(task, None).map_err(|e: String| ProviderError::ExecuteFailed(e.to_string()))
+    }
+
+    /// Osconfig folders locations operations list.
+    ///
+    /// Read-only operation - no state tracking.
+    ///
+    /// # Arguments
+    ///
+    /// * `args` - Request arguments
+    ///
+    /// # Returns
+    ///
+    /// StreamIterator yielding the ListOperationsResponse result.
+    ///
+    /// # Errors
+    ///
+    /// Returns ProviderError if the API request fails.
+    pub fn osconfig_folders_locations_operations_list(
+        &self,
+        args: &OsconfigFoldersLocationsOperationsListArgs,
+    ) -> Result<
+        impl StreamIterator<
+            D = Result<ListOperationsResponse, ProviderError<ApiError>>,
+            P = crate::providers::gcp::clients::types::ApiPending,
+        > + Send
+        + 'static,
+        ProviderError<ApiError>,
+    > {
+        let builder = osconfig_folders_locations_operations_list_builder(
+            &self.http_client,
+            &args.name,
+            &args.filter,
+            &args.pageSize,
+            &args.pageToken,
+            &args.returnPartialSuccess,
+        )
+        .map_err(ProviderError::Api)?;
+
+        let task = osconfig_folders_locations_operations_list_task(builder)
+            .map_err(ProviderError::Api)?;
+
+        execute(task, None).map_err(|e: String| ProviderError::ExecuteFailed(e.to_string()))
+    }
+
     /// Osconfig organizations locations global policy orchestrators create.
     ///
     /// Automatically stores the result in the state store on success.
@@ -395,6 +582,86 @@ where
         let store_task = StoreStateIdentifierTask::new(task, state_store, args, stage);
 
         execute(store_task, None).map_err(|e: String| ProviderError::ExecuteFailed(e.to_string()))
+    }
+
+    /// Osconfig organizations locations global policy orchestrators get.
+    ///
+    /// Read-only operation - no state tracking.
+    ///
+    /// # Arguments
+    ///
+    /// * `args` - Request arguments
+    ///
+    /// # Returns
+    ///
+    /// StreamIterator yielding the GoogleCloudOsconfigV2PolicyOrchestrator result.
+    ///
+    /// # Errors
+    ///
+    /// Returns ProviderError if the API request fails.
+    pub fn osconfig_organizations_locations_global_policy_orchestrators_get(
+        &self,
+        args: &OsconfigOrganizationsLocationsGlobalPolicyOrchestratorsGetArgs,
+    ) -> Result<
+        impl StreamIterator<
+            D = Result<GoogleCloudOsconfigV2PolicyOrchestrator, ProviderError<ApiError>>,
+            P = crate::providers::gcp::clients::types::ApiPending,
+        > + Send
+        + 'static,
+        ProviderError<ApiError>,
+    > {
+        let builder = osconfig_organizations_locations_global_policy_orchestrators_get_builder(
+            &self.http_client,
+            &args.name,
+        )
+        .map_err(ProviderError::Api)?;
+
+        let task = osconfig_organizations_locations_global_policy_orchestrators_get_task(builder)
+            .map_err(ProviderError::Api)?;
+
+        execute(task, None).map_err(|e: String| ProviderError::ExecuteFailed(e.to_string()))
+    }
+
+    /// Osconfig organizations locations global policy orchestrators list.
+    ///
+    /// Read-only operation - no state tracking.
+    ///
+    /// # Arguments
+    ///
+    /// * `args` - Request arguments
+    ///
+    /// # Returns
+    ///
+    /// StreamIterator yielding the GoogleCloudOsconfigV2ListPolicyOrchestratorsResponse result.
+    ///
+    /// # Errors
+    ///
+    /// Returns ProviderError if the API request fails.
+    pub fn osconfig_organizations_locations_global_policy_orchestrators_list(
+        &self,
+        args: &OsconfigOrganizationsLocationsGlobalPolicyOrchestratorsListArgs,
+    ) -> Result<
+        impl StreamIterator<
+            D = Result<GoogleCloudOsconfigV2ListPolicyOrchestratorsResponse, ProviderError<ApiError>>,
+            P = crate::providers::gcp::clients::types::ApiPending,
+        > + Send
+        + 'static,
+        ProviderError<ApiError>,
+    > {
+        let builder = osconfig_organizations_locations_global_policy_orchestrators_list_builder(
+            &self.http_client,
+            &args.parent,
+            &args.filter,
+            &args.orderBy,
+            &args.pageSize,
+            &args.pageToken,
+        )
+        .map_err(ProviderError::Api)?;
+
+        let task = osconfig_organizations_locations_global_policy_orchestrators_list_task(builder)
+            .map_err(ProviderError::Api)?;
+
+        execute(task, None).map_err(|e: String| ProviderError::ExecuteFailed(e.to_string()))
     }
 
     /// Osconfig organizations locations global policy orchestrators patch.
@@ -527,6 +794,86 @@ where
         execute(store_task, None).map_err(|e: String| ProviderError::ExecuteFailed(e.to_string()))
     }
 
+    /// Osconfig organizations locations operations get.
+    ///
+    /// Read-only operation - no state tracking.
+    ///
+    /// # Arguments
+    ///
+    /// * `args` - Request arguments
+    ///
+    /// # Returns
+    ///
+    /// StreamIterator yielding the Operation result.
+    ///
+    /// # Errors
+    ///
+    /// Returns ProviderError if the API request fails.
+    pub fn osconfig_organizations_locations_operations_get(
+        &self,
+        args: &OsconfigOrganizationsLocationsOperationsGetArgs,
+    ) -> Result<
+        impl StreamIterator<
+            D = Result<Operation, ProviderError<ApiError>>,
+            P = crate::providers::gcp::clients::types::ApiPending,
+        > + Send
+        + 'static,
+        ProviderError<ApiError>,
+    > {
+        let builder = osconfig_organizations_locations_operations_get_builder(
+            &self.http_client,
+            &args.name,
+        )
+        .map_err(ProviderError::Api)?;
+
+        let task = osconfig_organizations_locations_operations_get_task(builder)
+            .map_err(ProviderError::Api)?;
+
+        execute(task, None).map_err(|e: String| ProviderError::ExecuteFailed(e.to_string()))
+    }
+
+    /// Osconfig organizations locations operations list.
+    ///
+    /// Read-only operation - no state tracking.
+    ///
+    /// # Arguments
+    ///
+    /// * `args` - Request arguments
+    ///
+    /// # Returns
+    ///
+    /// StreamIterator yielding the ListOperationsResponse result.
+    ///
+    /// # Errors
+    ///
+    /// Returns ProviderError if the API request fails.
+    pub fn osconfig_organizations_locations_operations_list(
+        &self,
+        args: &OsconfigOrganizationsLocationsOperationsListArgs,
+    ) -> Result<
+        impl StreamIterator<
+            D = Result<ListOperationsResponse, ProviderError<ApiError>>,
+            P = crate::providers::gcp::clients::types::ApiPending,
+        > + Send
+        + 'static,
+        ProviderError<ApiError>,
+    > {
+        let builder = osconfig_organizations_locations_operations_list_builder(
+            &self.http_client,
+            &args.name,
+            &args.filter,
+            &args.pageSize,
+            &args.pageToken,
+            &args.returnPartialSuccess,
+        )
+        .map_err(ProviderError::Api)?;
+
+        let task = osconfig_organizations_locations_operations_list_task(builder)
+            .map_err(ProviderError::Api)?;
+
+        execute(task, None).map_err(|e: String| ProviderError::ExecuteFailed(e.to_string()))
+    }
+
     /// Osconfig projects locations global policy orchestrators create.
     ///
     /// Automatically stores the result in the state store on success.
@@ -615,6 +962,86 @@ where
         let store_task = StoreStateIdentifierTask::new(task, state_store, args, stage);
 
         execute(store_task, None).map_err(|e: String| ProviderError::ExecuteFailed(e.to_string()))
+    }
+
+    /// Osconfig projects locations global policy orchestrators get.
+    ///
+    /// Read-only operation - no state tracking.
+    ///
+    /// # Arguments
+    ///
+    /// * `args` - Request arguments
+    ///
+    /// # Returns
+    ///
+    /// StreamIterator yielding the GoogleCloudOsconfigV2PolicyOrchestrator result.
+    ///
+    /// # Errors
+    ///
+    /// Returns ProviderError if the API request fails.
+    pub fn osconfig_projects_locations_global_policy_orchestrators_get(
+        &self,
+        args: &OsconfigProjectsLocationsGlobalPolicyOrchestratorsGetArgs,
+    ) -> Result<
+        impl StreamIterator<
+            D = Result<GoogleCloudOsconfigV2PolicyOrchestrator, ProviderError<ApiError>>,
+            P = crate::providers::gcp::clients::types::ApiPending,
+        > + Send
+        + 'static,
+        ProviderError<ApiError>,
+    > {
+        let builder = osconfig_projects_locations_global_policy_orchestrators_get_builder(
+            &self.http_client,
+            &args.name,
+        )
+        .map_err(ProviderError::Api)?;
+
+        let task = osconfig_projects_locations_global_policy_orchestrators_get_task(builder)
+            .map_err(ProviderError::Api)?;
+
+        execute(task, None).map_err(|e: String| ProviderError::ExecuteFailed(e.to_string()))
+    }
+
+    /// Osconfig projects locations global policy orchestrators list.
+    ///
+    /// Read-only operation - no state tracking.
+    ///
+    /// # Arguments
+    ///
+    /// * `args` - Request arguments
+    ///
+    /// # Returns
+    ///
+    /// StreamIterator yielding the GoogleCloudOsconfigV2ListPolicyOrchestratorsResponse result.
+    ///
+    /// # Errors
+    ///
+    /// Returns ProviderError if the API request fails.
+    pub fn osconfig_projects_locations_global_policy_orchestrators_list(
+        &self,
+        args: &OsconfigProjectsLocationsGlobalPolicyOrchestratorsListArgs,
+    ) -> Result<
+        impl StreamIterator<
+            D = Result<GoogleCloudOsconfigV2ListPolicyOrchestratorsResponse, ProviderError<ApiError>>,
+            P = crate::providers::gcp::clients::types::ApiPending,
+        > + Send
+        + 'static,
+        ProviderError<ApiError>,
+    > {
+        let builder = osconfig_projects_locations_global_policy_orchestrators_list_builder(
+            &self.http_client,
+            &args.parent,
+            &args.filter,
+            &args.orderBy,
+            &args.pageSize,
+            &args.pageToken,
+        )
+        .map_err(ProviderError::Api)?;
+
+        let task = osconfig_projects_locations_global_policy_orchestrators_list_task(builder)
+            .map_err(ProviderError::Api)?;
+
+        execute(task, None).map_err(|e: String| ProviderError::ExecuteFailed(e.to_string()))
     }
 
     /// Osconfig projects locations global policy orchestrators patch.
@@ -745,6 +1172,86 @@ where
         let store_task = StoreStateIdentifierTask::new(task, state_store, args, stage);
 
         execute(store_task, None).map_err(|e: String| ProviderError::ExecuteFailed(e.to_string()))
+    }
+
+    /// Osconfig projects locations operations get.
+    ///
+    /// Read-only operation - no state tracking.
+    ///
+    /// # Arguments
+    ///
+    /// * `args` - Request arguments
+    ///
+    /// # Returns
+    ///
+    /// StreamIterator yielding the Operation result.
+    ///
+    /// # Errors
+    ///
+    /// Returns ProviderError if the API request fails.
+    pub fn osconfig_projects_locations_operations_get(
+        &self,
+        args: &OsconfigProjectsLocationsOperationsGetArgs,
+    ) -> Result<
+        impl StreamIterator<
+            D = Result<Operation, ProviderError<ApiError>>,
+            P = crate::providers::gcp::clients::types::ApiPending,
+        > + Send
+        + 'static,
+        ProviderError<ApiError>,
+    > {
+        let builder = osconfig_projects_locations_operations_get_builder(
+            &self.http_client,
+            &args.name,
+        )
+        .map_err(ProviderError::Api)?;
+
+        let task = osconfig_projects_locations_operations_get_task(builder)
+            .map_err(ProviderError::Api)?;
+
+        execute(task, None).map_err(|e: String| ProviderError::ExecuteFailed(e.to_string()))
+    }
+
+    /// Osconfig projects locations operations list.
+    ///
+    /// Read-only operation - no state tracking.
+    ///
+    /// # Arguments
+    ///
+    /// * `args` - Request arguments
+    ///
+    /// # Returns
+    ///
+    /// StreamIterator yielding the ListOperationsResponse result.
+    ///
+    /// # Errors
+    ///
+    /// Returns ProviderError if the API request fails.
+    pub fn osconfig_projects_locations_operations_list(
+        &self,
+        args: &OsconfigProjectsLocationsOperationsListArgs,
+    ) -> Result<
+        impl StreamIterator<
+            D = Result<ListOperationsResponse, ProviderError<ApiError>>,
+            P = crate::providers::gcp::clients::types::ApiPending,
+        > + Send
+        + 'static,
+        ProviderError<ApiError>,
+    > {
+        let builder = osconfig_projects_locations_operations_list_builder(
+            &self.http_client,
+            &args.name,
+            &args.filter,
+            &args.pageSize,
+            &args.pageToken,
+            &args.returnPartialSuccess,
+        )
+        .map_err(ProviderError::Api)?;
+
+        let task = osconfig_projects_locations_operations_list_task(builder)
+            .map_err(ProviderError::Api)?;
+
+        execute(task, None).map_err(|e: String| ProviderError::ExecuteFailed(e.to_string()))
     }
 
 }

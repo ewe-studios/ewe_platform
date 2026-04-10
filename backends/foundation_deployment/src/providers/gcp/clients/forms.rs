@@ -7,7 +7,6 @@
 
 #![cfg(feature = "gcp")]
 
-
 use crate::providers::gcp::clients::types::*;
 use crate::providers::gcp::resources::*;
 use foundation_core::valtron::{
@@ -17,10 +16,11 @@ use foundation_core::valtron::{
 use foundation_core::wire::simple_http::client::{
     body_reader, ClientRequestBuilder, RequestIntro, SimpleHttpClient, SystemDnsResolver,
 };
+use foundation_db::state::resource_identifier::ResourceIdentifier;
 use foundation_macros::JsonHash;
 use serde::Serialize;
 
-/// GET v1/forms/{formId}:batchUpdate
+/// POST v1/forms/{formId}:batchUpdate
 /// Change the form with a batch of updates.
 ///
 /// Returns `ClientRequestBuilder` for customization.
@@ -29,7 +29,6 @@ use serde::Serialize;
 pub fn forms_forms_batch_update_builder(
     client: &SimpleHttpClient,
     formId: &String,
-    body: &BatchUpdateFormRequest,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
@@ -39,15 +38,13 @@ pub fn forms_forms_batch_update_builder(
 
     // Build request
     let builder = client
-        .get(&endpoint_url)
+        .post(&endpoint_url)
         .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
 
-    builder
-        .body_json(body)
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+    Ok(builder)
 }
 
-/// GET v1/forms/{formId}:batchUpdate
+/// POST v1/forms/{formId}:batchUpdate
 /// Change the form with a batch of updates.
 ///
 /// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
@@ -121,7 +118,7 @@ pub fn forms_forms_batch_update_task(
         .map_pending(|_| ApiPending::Sending))
 }
 
-/// GET v1/forms/{formId}:batchUpdate
+/// POST v1/forms/{formId}:batchUpdate
 /// Change the form with a batch of updates.
 ///
 /// Takes a `ClientRequestBuilder`, builds and executes the request,
@@ -158,11 +155,9 @@ pub fn forms_forms_batch_update_execute(
 pub struct FormsFormsBatchUpdateArgs {
     /// Path parameter: formId
     pub formId: String,
-    /// Request body.
-    pub body: BatchUpdateFormRequest,
 }
 
-/// GET v1/forms/{formId}:batchUpdate
+/// POST v1/forms/{formId}:batchUpdate
 /// Change the form with a batch of updates.
 ///
 /// Simplest API - builds and executes the request in one call.
@@ -182,11 +177,11 @@ pub fn forms_forms_batch_update(
         + 'static,
     ApiError,
 > {
-    let builder = forms_forms_batch_update_builder(client, &args.formId, &args.body)?;
+    let builder = forms_forms_batch_update_builder(client, &args.formId)?;
     forms_forms_batch_update_execute(builder)
 }
 
-/// GET v1/forms
+/// POST v1/forms
 /// Create a new form using the title given in the provided form message in the request. *Important:* Only the form.info.title and form.info.document_title fields are copied to the new form. All other fields including the form description, items and settings are disallowed. To create a new form and add items, you must first call forms.create to create an empty form with a title and (optional) document title, and then call forms.update to add the items.
 ///
 /// Returns `ClientRequestBuilder` for customization.
@@ -194,8 +189,7 @@ pub fn forms_forms_batch_update(
 
 pub fn forms_forms_create_builder(
     client: &SimpleHttpClient,
-    unpublished: &Option<bool>,
-    body: &Form,
+    unpublished: &Option<Option<String>>,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!("https://forms.googleapis.com/v1/forms",);
@@ -213,15 +207,13 @@ pub fn forms_forms_create_builder(
     };
 
     let builder = client
-        .get(&url_with_query)
+        .post(&url_with_query)
         .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
 
-    builder
-        .body_json(body)
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+    Ok(builder)
 }
 
-/// GET v1/forms
+/// POST v1/forms
 /// Create a new form using the title given in the provided form message in the request. *Important:* Only the form.info.title and form.info.document_title fields are copied to the new form. All other fields including the form description, items and settings are disallowed. To create a new form and add items, you must first call forms.create to create an empty form with a title and (optional) document title, and then call forms.update to add the items.
 ///
 /// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
@@ -295,7 +287,7 @@ pub fn forms_forms_create_task(
         .map_pending(|_| ApiPending::Sending))
 }
 
-/// GET v1/forms
+/// POST v1/forms
 /// Create a new form using the title given in the provided form message in the request. *Important:* Only the form.info.title and form.info.document_title fields are copied to the new form. All other fields including the form description, items and settings are disallowed. To create a new form and add items, you must first call forms.create to create an empty form with a title and (optional) document title, and then call forms.update to add the items.
 ///
 /// Takes a `ClientRequestBuilder`, builds and executes the request,
@@ -329,12 +321,10 @@ pub fn forms_forms_create_execute(
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct FormsFormsCreateArgs {
     /// Query parameter: unpublished
-    pub unpublished: Option<bool>,
-    /// Request body.
-    pub body: Form,
+    pub unpublished: Option<Option<String>>,
 }
 
-/// GET v1/forms
+/// POST v1/forms
 /// Create a new form using the title given in the provided form message in the request. *Important:* Only the form.info.title and form.info.document_title fields are copied to the new form. All other fields including the form description, items and settings are disallowed. To create a new form and add items, you must first call forms.create to create an empty form with a title and (optional) document title, and then call forms.update to add the items.
 ///
 /// Simplest API - builds and executes the request in one call.
@@ -352,7 +342,7 @@ pub fn forms_forms_create(
     impl StreamIterator<D = Result<ApiResponse<Form>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = forms_forms_create_builder(client, &args.unpublished, &args.body)?;
+    let builder = forms_forms_create_builder(client, &args.unpublished)?;
     forms_forms_create_execute(builder)
 }
 
@@ -510,7 +500,7 @@ pub fn forms_forms_get(
     forms_forms_get_execute(builder)
 }
 
-/// GET v1/forms/{formId}:setPublishSettings
+/// POST v1/forms/{formId}:setPublishSettings
 /// Updates the publish settings of a form. Legacy forms aren't supported because they don't have the publish_settings field.
 ///
 /// Returns `ClientRequestBuilder` for customization.
@@ -519,7 +509,6 @@ pub fn forms_forms_get(
 pub fn forms_forms_set_publish_settings_builder(
     client: &SimpleHttpClient,
     formId: &String,
-    body: &SetPublishSettingsRequest,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
@@ -529,15 +518,13 @@ pub fn forms_forms_set_publish_settings_builder(
 
     // Build request
     let builder = client
-        .get(&endpoint_url)
+        .post(&endpoint_url)
         .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
 
-    builder
-        .body_json(body)
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+    Ok(builder)
 }
 
-/// GET v1/forms/{formId}:setPublishSettings
+/// POST v1/forms/{formId}:setPublishSettings
 /// Updates the publish settings of a form. Legacy forms aren't supported because they don't have the publish_settings field.
 ///
 /// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
@@ -611,7 +598,7 @@ pub fn forms_forms_set_publish_settings_task(
         .map_pending(|_| ApiPending::Sending))
 }
 
-/// GET v1/forms/{formId}:setPublishSettings
+/// POST v1/forms/{formId}:setPublishSettings
 /// Updates the publish settings of a form. Legacy forms aren't supported because they don't have the publish_settings field.
 ///
 /// Takes a `ClientRequestBuilder`, builds and executes the request,
@@ -650,11 +637,9 @@ pub fn forms_forms_set_publish_settings_execute(
 pub struct FormsFormsSetPublishSettingsArgs {
     /// Path parameter: formId
     pub formId: String,
-    /// Request body.
-    pub body: SetPublishSettingsRequest,
 }
 
-/// GET v1/forms/{formId}:setPublishSettings
+/// POST v1/forms/{formId}:setPublishSettings
 /// Updates the publish settings of a form. Legacy forms aren't supported because they don't have the publish_settings field.
 ///
 /// Simplest API - builds and executes the request in one call.
@@ -676,7 +661,7 @@ pub fn forms_forms_set_publish_settings(
         + 'static,
     ApiError,
 > {
-    let builder = forms_forms_set_publish_settings_builder(client, &args.formId, &args.body)?;
+    let builder = forms_forms_set_publish_settings_builder(client, &args.formId)?;
     forms_forms_set_publish_settings_execute(builder)
 }
 
@@ -853,9 +838,9 @@ pub fn forms_forms_responses_get(
 pub fn forms_forms_responses_list_builder(
     client: &SimpleHttpClient,
     formId: &String,
-    filter: &Option<String>,
-    pageSize: &Option<i32>,
-    pageToken: &Option<String>,
+    filter: &Option<Option<String>>,
+    pageSize: &Option<Option<String>>,
+    pageToken: &Option<Option<String>>,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!("https://forms.googleapis.com/v1/forms/{}/responses", formId,);
@@ -997,11 +982,11 @@ pub struct FormsFormsResponsesListArgs {
     /// Path parameter: formId
     pub formId: String,
     /// Query parameter: filter
-    pub filter: Option<String>,
+    pub filter: Option<Option<String>>,
     /// Query parameter: pageSize
-    pub pageSize: Option<i32>,
+    pub pageSize: Option<Option<String>>,
     /// Query parameter: pageToken
-    pub pageToken: Option<String>,
+    pub pageToken: Option<Option<String>>,
 }
 
 /// GET v1/forms/{formId}/responses
@@ -1034,7 +1019,7 @@ pub fn forms_forms_responses_list(
     forms_forms_responses_list_execute(builder)
 }
 
-/// GET v1/forms/{formId}/watches
+/// POST v1/forms/{formId}/watches
 /// Create a new watch. If a watch ID is provided, it must be unused. For each invoking project, the per form limit is one watch per Watch.EventType. A watch expires seven days after it is created (see Watch.expire_time).
 ///
 /// Returns `ClientRequestBuilder` for customization.
@@ -1043,22 +1028,19 @@ pub fn forms_forms_responses_list(
 pub fn forms_forms_watches_create_builder(
     client: &SimpleHttpClient,
     formId: &String,
-    body: &CreateWatchRequest,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!("https://forms.googleapis.com/v1/forms/{}/watches", formId,);
 
     // Build request
     let builder = client
-        .get(&endpoint_url)
+        .post(&endpoint_url)
         .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
 
-    builder
-        .body_json(body)
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+    Ok(builder)
 }
 
-/// GET v1/forms/{formId}/watches
+/// POST v1/forms/{formId}/watches
 /// Create a new watch. If a watch ID is provided, it must be unused. For each invoking project, the per form limit is one watch per Watch.EventType. A watch expires seven days after it is created (see Watch.expire_time).
 ///
 /// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
@@ -1132,7 +1114,7 @@ pub fn forms_forms_watches_create_task(
         .map_pending(|_| ApiPending::Sending))
 }
 
-/// GET v1/forms/{formId}/watches
+/// POST v1/forms/{formId}/watches
 /// Create a new watch. If a watch ID is provided, it must be unused. For each invoking project, the per form limit is one watch per Watch.EventType. A watch expires seven days after it is created (see Watch.expire_time).
 ///
 /// Takes a `ClientRequestBuilder`, builds and executes the request,
@@ -1167,11 +1149,9 @@ pub fn forms_forms_watches_create_execute(
 pub struct FormsFormsWatchesCreateArgs {
     /// Path parameter: formId
     pub formId: String,
-    /// Request body.
-    pub body: CreateWatchRequest,
 }
 
-/// GET v1/forms/{formId}/watches
+/// POST v1/forms/{formId}/watches
 /// Create a new watch. If a watch ID is provided, it must be unused. For each invoking project, the per form limit is one watch per Watch.EventType. A watch expires seven days after it is created (see Watch.expire_time).
 ///
 /// Simplest API - builds and executes the request in one call.
@@ -1189,11 +1169,11 @@ pub fn forms_forms_watches_create(
     impl StreamIterator<D = Result<ApiResponse<Watch>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = forms_forms_watches_create_builder(client, &args.formId, &args.body)?;
+    let builder = forms_forms_watches_create_builder(client, &args.formId)?;
     forms_forms_watches_create_execute(builder)
 }
 
-/// GET v1/forms/{formId}/watches/{watchId}
+/// DELETE v1/forms/{formId}/watches/{watchId}
 /// Delete a watch.
 ///
 /// Returns `ClientRequestBuilder` for customization.
@@ -1212,13 +1192,13 @@ pub fn forms_forms_watches_delete_builder(
 
     // Build request
     let builder = client
-        .get(&endpoint_url)
+        .delete(&endpoint_url)
         .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
 
     Ok(builder)
 }
 
-/// GET v1/forms/{formId}/watches/{watchId}
+/// DELETE v1/forms/{formId}/watches/{watchId}
 /// Delete a watch.
 ///
 /// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
@@ -1292,7 +1272,7 @@ pub fn forms_forms_watches_delete_task(
         .map_pending(|_| ApiPending::Sending))
 }
 
-/// GET v1/forms/{formId}/watches/{watchId}
+/// DELETE v1/forms/{formId}/watches/{watchId}
 /// Delete a watch.
 ///
 /// Takes a `ClientRequestBuilder`, builds and executes the request,
@@ -1331,7 +1311,7 @@ pub struct FormsFormsWatchesDeleteArgs {
     pub watchId: String,
 }
 
-/// GET v1/forms/{formId}/watches/{watchId}
+/// DELETE v1/forms/{formId}/watches/{watchId}
 /// Delete a watch.
 ///
 /// Simplest API - builds and executes the request in one call.
@@ -1353,7 +1333,165 @@ pub fn forms_forms_watches_delete(
     forms_forms_watches_delete_execute(builder)
 }
 
-/// GET v1/forms/{formId}/watches/{watchId}:renew
+/// GET v1/forms/{formId}/watches
+/// Return a list of the watches owned by the invoking project. The maximum number of watches is two: For each invoker, the limit is one for each event type per form.
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `forms_forms_watches_list_execute()` to send, or `forms_forms_watches_list` for simplest API.
+
+pub fn forms_forms_watches_list_builder(
+    client: &SimpleHttpClient,
+    formId: &String,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!("https://forms.googleapis.com/v1/forms/{}/watches", formId,);
+
+    // Build request
+    let builder = client
+        .get(&endpoint_url)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// GET v1/forms/{formId}/watches
+/// Return a list of the watches owned by the invoking project. The maximum number of watches is two: For each invoker, the limit is one for each event type per form.
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `forms_forms_watches_list_execute()` or `forms_forms_watches_list`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `forms_forms_watches_list_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn forms_forms_watches_list_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<ListWatchesResponse>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: ListWatchesResponse = serde_json::from_str(&body)
+                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// GET v1/forms/{formId}/watches
+/// Return a list of the watches owned by the invoking project. The maximum number of watches is two: For each invoker, the limit is one for each event type per form.
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `forms_forms_watches_list_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `forms_forms_watches_list_task()`.
+/// For the simplest API, use `forms_forms_watches_list()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `forms_forms_watches_list_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn forms_forms_watches_list_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<ListWatchesResponse>, ApiError>, P = ApiPending>
+        + Send
+        + 'static,
+    ApiError,
+> {
+    let task = forms_forms_watches_list_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`forms_forms_watches_list`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct FormsFormsWatchesListArgs {
+    /// Path parameter: formId
+    pub formId: String,
+}
+
+/// GET v1/forms/{formId}/watches
+/// Return a list of the watches owned by the invoking project. The maximum number of watches is two: For each invoker, the limit is one for each event type per form.
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `forms_forms_watches_list_builder()` + `forms_forms_watches_list_execute()`.
+/// For task-level control, use `forms_forms_watches_list_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn forms_forms_watches_list(
+    client: &SimpleHttpClient,
+    args: &FormsFormsWatchesListArgs,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<ListWatchesResponse>, ApiError>, P = ApiPending>
+        + Send
+        + 'static,
+    ApiError,
+> {
+    let builder = forms_forms_watches_list_builder(client, &args.formId)?;
+    forms_forms_watches_list_execute(builder)
+}
+
+/// POST v1/forms/{formId}/watches/{watchId}:renew
 /// Renew an existing watch for seven days. The state of the watch after renewal is `ACTIVE`, and the expire_time is seven days from the renewal. Renewing a watch in an error state (e.g. SUSPENDED) succeeds if the error is no longer present, but fail otherwise. After a watch has expired, RenewWatch returns NOT_FOUND.
 ///
 /// Returns `ClientRequestBuilder` for customization.
@@ -1363,7 +1501,6 @@ pub fn forms_forms_watches_renew_builder(
     client: &SimpleHttpClient,
     formId: &String,
     watchId: &String,
-    body: &RenewWatchRequest,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
@@ -1373,15 +1510,13 @@ pub fn forms_forms_watches_renew_builder(
 
     // Build request
     let builder = client
-        .get(&endpoint_url)
+        .post(&endpoint_url)
         .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
 
-    builder
-        .body_json(body)
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+    Ok(builder)
 }
 
-/// GET v1/forms/{formId}/watches/{watchId}:renew
+/// POST v1/forms/{formId}/watches/{watchId}:renew
 /// Renew an existing watch for seven days. The state of the watch after renewal is `ACTIVE`, and the expire_time is seven days from the renewal. Renewing a watch in an error state (e.g. SUSPENDED) succeeds if the error is no longer present, but fail otherwise. After a watch has expired, RenewWatch returns NOT_FOUND.
 ///
 /// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
@@ -1455,7 +1590,7 @@ pub fn forms_forms_watches_renew_task(
         .map_pending(|_| ApiPending::Sending))
 }
 
-/// GET v1/forms/{formId}/watches/{watchId}:renew
+/// POST v1/forms/{formId}/watches/{watchId}:renew
 /// Renew an existing watch for seven days. The state of the watch after renewal is `ACTIVE`, and the expire_time is seven days from the renewal. Renewing a watch in an error state (e.g. SUSPENDED) succeeds if the error is no longer present, but fail otherwise. After a watch has expired, RenewWatch returns NOT_FOUND.
 ///
 /// Takes a `ClientRequestBuilder`, builds and executes the request,
@@ -1492,11 +1627,9 @@ pub struct FormsFormsWatchesRenewArgs {
     pub formId: String,
     /// Path parameter: watchId
     pub watchId: String,
-    /// Request body.
-    pub body: RenewWatchRequest,
 }
 
-/// GET v1/forms/{formId}/watches/{watchId}:renew
+/// POST v1/forms/{formId}/watches/{watchId}:renew
 /// Renew an existing watch for seven days. The state of the watch after renewal is `ACTIVE`, and the expire_time is seven days from the renewal. Renewing a watch in an error state (e.g. SUSPENDED) succeeds if the error is no longer present, but fail otherwise. After a watch has expired, RenewWatch returns NOT_FOUND.
 ///
 /// Simplest API - builds and executes the request in one call.
@@ -1514,7 +1647,239 @@ pub fn forms_forms_watches_renew(
     impl StreamIterator<D = Result<ApiResponse<Watch>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder =
-        forms_forms_watches_renew_builder(client, &args.formId, &args.watchId, &args.body)?;
+    let builder = forms_forms_watches_renew_builder(client, &args.formId, &args.watchId)?;
     forms_forms_watches_renew_execute(builder)
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for BatchUpdateFormResponse
+// =============================================================================
+
+/// ResourceIdentifier implementation for BatchUpdateFormResponse with FormsFormsBatchUpdateArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<FormsFormsBatchUpdateArgs> for BatchUpdateFormResponse {
+    fn generate_resource_id(&self, input: &FormsFormsBatchUpdateArgs) -> String {
+        format!("gcp::forms::BatchUpdateFormResponse/{}", input.formId)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::forms::BatchUpdateFormResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for Form
+// =============================================================================
+
+/// ResourceIdentifier implementation for Form with FormsFormsCreateArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<FormsFormsCreateArgs> for Form {
+    fn generate_resource_id(&self, input: &FormsFormsCreateArgs) -> String {
+        "gcp::forms::Form".to_string()
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::forms::Form"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for Form
+// =============================================================================
+
+/// ResourceIdentifier implementation for Form with FormsFormsGetArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<FormsFormsGetArgs> for Form {
+    fn generate_resource_id(&self, input: &FormsFormsGetArgs) -> String {
+        format!("gcp::forms::Form/{}", input.formId)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::forms::Form"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for SetPublishSettingsResponse
+// =============================================================================
+
+/// ResourceIdentifier implementation for SetPublishSettingsResponse with FormsFormsSetPublishSettingsArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<FormsFormsSetPublishSettingsArgs> for SetPublishSettingsResponse {
+    fn generate_resource_id(&self, input: &FormsFormsSetPublishSettingsArgs) -> String {
+        format!("gcp::forms::SetPublishSettingsResponse/{}", input.formId)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::forms::SetPublishSettingsResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for FormResponse
+// =============================================================================
+
+/// ResourceIdentifier implementation for FormResponse with FormsFormsResponsesGetArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<FormsFormsResponsesGetArgs> for FormResponse {
+    fn generate_resource_id(&self, input: &FormsFormsResponsesGetArgs) -> String {
+        format!(
+            "gcp::forms::FormResponse/{}/{}",
+            input.formId, input.responseId
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::forms::FormResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for ListFormResponsesResponse
+// =============================================================================
+
+/// ResourceIdentifier implementation for ListFormResponsesResponse with FormsFormsResponsesListArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<FormsFormsResponsesListArgs> for ListFormResponsesResponse {
+    fn generate_resource_id(&self, input: &FormsFormsResponsesListArgs) -> String {
+        format!("gcp::forms::ListFormResponsesResponse/{}", input.formId)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::forms::ListFormResponsesResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for Watch
+// =============================================================================
+
+/// ResourceIdentifier implementation for Watch with FormsFormsWatchesCreateArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<FormsFormsWatchesCreateArgs> for Watch {
+    fn generate_resource_id(&self, input: &FormsFormsWatchesCreateArgs) -> String {
+        format!("gcp::forms::Watch/{}", input.formId)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::forms::Watch"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for Empty
+// =============================================================================
+
+/// ResourceIdentifier implementation for Empty with FormsFormsWatchesDeleteArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<FormsFormsWatchesDeleteArgs> for Empty {
+    fn generate_resource_id(&self, input: &FormsFormsWatchesDeleteArgs) -> String {
+        format!("gcp::forms::Empty/{}/{}", input.formId, input.watchId)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::forms::Empty"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for ListWatchesResponse
+// =============================================================================
+
+/// ResourceIdentifier implementation for ListWatchesResponse with FormsFormsWatchesListArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<FormsFormsWatchesListArgs> for ListWatchesResponse {
+    fn generate_resource_id(&self, input: &FormsFormsWatchesListArgs) -> String {
+        format!("gcp::forms::ListWatchesResponse/{}", input.formId)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::forms::ListWatchesResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for Watch
+// =============================================================================
+
+/// ResourceIdentifier implementation for Watch with FormsFormsWatchesRenewArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<FormsFormsWatchesRenewArgs> for Watch {
+    fn generate_resource_id(&self, input: &FormsFormsWatchesRenewArgs) -> String {
+        format!("gcp::forms::Watch/{}/{}", input.formId, input.watchId)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::forms::Watch"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
 }

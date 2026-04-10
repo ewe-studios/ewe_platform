@@ -12,11 +12,18 @@
 #![cfg(feature = "gcp")]
 
 use crate::providers::gcp::clients::notebooks::{
+    notebooks_projects_locations_get_builder, notebooks_projects_locations_get_task,
+    notebooks_projects_locations_list_builder, notebooks_projects_locations_list_task,
     notebooks_projects_locations_instances_check_authorization_builder, notebooks_projects_locations_instances_check_authorization_task,
+    notebooks_projects_locations_instances_check_upgradability_builder, notebooks_projects_locations_instances_check_upgradability_task,
     notebooks_projects_locations_instances_create_builder, notebooks_projects_locations_instances_create_task,
     notebooks_projects_locations_instances_delete_builder, notebooks_projects_locations_instances_delete_task,
     notebooks_projects_locations_instances_diagnose_builder, notebooks_projects_locations_instances_diagnose_task,
     notebooks_projects_locations_instances_generate_access_token_builder, notebooks_projects_locations_instances_generate_access_token_task,
+    notebooks_projects_locations_instances_get_builder, notebooks_projects_locations_instances_get_task,
+    notebooks_projects_locations_instances_get_config_builder, notebooks_projects_locations_instances_get_config_task,
+    notebooks_projects_locations_instances_get_iam_policy_builder, notebooks_projects_locations_instances_get_iam_policy_task,
+    notebooks_projects_locations_instances_list_builder, notebooks_projects_locations_instances_list_task,
     notebooks_projects_locations_instances_patch_builder, notebooks_projects_locations_instances_patch_task,
     notebooks_projects_locations_instances_report_info_system_builder, notebooks_projects_locations_instances_report_info_system_task,
     notebooks_projects_locations_instances_reset_builder, notebooks_projects_locations_instances_reset_task,
@@ -31,19 +38,34 @@ use crate::providers::gcp::clients::notebooks::{
     notebooks_projects_locations_instances_upgrade_system_builder, notebooks_projects_locations_instances_upgrade_system_task,
     notebooks_projects_locations_operations_cancel_builder, notebooks_projects_locations_operations_cancel_task,
     notebooks_projects_locations_operations_delete_builder, notebooks_projects_locations_operations_delete_task,
+    notebooks_projects_locations_operations_get_builder, notebooks_projects_locations_operations_get_task,
+    notebooks_projects_locations_operations_list_builder, notebooks_projects_locations_operations_list_task,
 };
 use crate::providers::gcp::clients::types::{ApiError, ApiPending};
 use crate::providers::gcp::clients::notebooks::CheckAuthorizationResponse;
+use crate::providers::gcp::clients::notebooks::CheckInstanceUpgradabilityResponse;
+use crate::providers::gcp::clients::notebooks::Config;
 use crate::providers::gcp::clients::notebooks::Empty;
 use crate::providers::gcp::clients::notebooks::GenerateAccessTokenResponse;
+use crate::providers::gcp::clients::notebooks::Instance;
+use crate::providers::gcp::clients::notebooks::ListInstancesResponse;
+use crate::providers::gcp::clients::notebooks::ListLocationsResponse;
+use crate::providers::gcp::clients::notebooks::ListOperationsResponse;
+use crate::providers::gcp::clients::notebooks::Location;
 use crate::providers::gcp::clients::notebooks::Operation;
 use crate::providers::gcp::clients::notebooks::Policy;
 use crate::providers::gcp::clients::notebooks::TestIamPermissionsResponse;
+use crate::providers::gcp::clients::notebooks::NotebooksProjectsLocationsGetArgs;
 use crate::providers::gcp::clients::notebooks::NotebooksProjectsLocationsInstancesCheckAuthorizationArgs;
+use crate::providers::gcp::clients::notebooks::NotebooksProjectsLocationsInstancesCheckUpgradabilityArgs;
 use crate::providers::gcp::clients::notebooks::NotebooksProjectsLocationsInstancesCreateArgs;
 use crate::providers::gcp::clients::notebooks::NotebooksProjectsLocationsInstancesDeleteArgs;
 use crate::providers::gcp::clients::notebooks::NotebooksProjectsLocationsInstancesDiagnoseArgs;
 use crate::providers::gcp::clients::notebooks::NotebooksProjectsLocationsInstancesGenerateAccessTokenArgs;
+use crate::providers::gcp::clients::notebooks::NotebooksProjectsLocationsInstancesGetArgs;
+use crate::providers::gcp::clients::notebooks::NotebooksProjectsLocationsInstancesGetConfigArgs;
+use crate::providers::gcp::clients::notebooks::NotebooksProjectsLocationsInstancesGetIamPolicyArgs;
+use crate::providers::gcp::clients::notebooks::NotebooksProjectsLocationsInstancesListArgs;
 use crate::providers::gcp::clients::notebooks::NotebooksProjectsLocationsInstancesPatchArgs;
 use crate::providers::gcp::clients::notebooks::NotebooksProjectsLocationsInstancesReportInfoSystemArgs;
 use crate::providers::gcp::clients::notebooks::NotebooksProjectsLocationsInstancesResetArgs;
@@ -56,8 +78,11 @@ use crate::providers::gcp::clients::notebooks::NotebooksProjectsLocationsInstanc
 use crate::providers::gcp::clients::notebooks::NotebooksProjectsLocationsInstancesTestIamPermissionsArgs;
 use crate::providers::gcp::clients::notebooks::NotebooksProjectsLocationsInstancesUpgradeArgs;
 use crate::providers::gcp::clients::notebooks::NotebooksProjectsLocationsInstancesUpgradeSystemArgs;
+use crate::providers::gcp::clients::notebooks::NotebooksProjectsLocationsListArgs;
 use crate::providers::gcp::clients::notebooks::NotebooksProjectsLocationsOperationsCancelArgs;
 use crate::providers::gcp::clients::notebooks::NotebooksProjectsLocationsOperationsDeleteArgs;
+use crate::providers::gcp::clients::notebooks::NotebooksProjectsLocationsOperationsGetArgs;
+use crate::providers::gcp::clients::notebooks::NotebooksProjectsLocationsOperationsListArgs;
 use crate::provider_client::{ProviderClient, ProviderError};
 use foundation_core::valtron::{execute, StreamIterator};
 use foundation_core::wire::simple_http::client::SimpleHttpClient;
@@ -97,6 +122,86 @@ where
             client,
             http_client: Arc::new(http_client),
         }
+    }
+
+    /// Notebooks projects locations get.
+    ///
+    /// Read-only operation - no state tracking.
+    ///
+    /// # Arguments
+    ///
+    /// * `args` - Request arguments
+    ///
+    /// # Returns
+    ///
+    /// StreamIterator yielding the Location result.
+    ///
+    /// # Errors
+    ///
+    /// Returns ProviderError if the API request fails.
+    pub fn notebooks_projects_locations_get(
+        &self,
+        args: &NotebooksProjectsLocationsGetArgs,
+    ) -> Result<
+        impl StreamIterator<
+            D = Result<Location, ProviderError<ApiError>>,
+            P = crate::providers::gcp::clients::types::ApiPending,
+        > + Send
+        + 'static,
+        ProviderError<ApiError>,
+    > {
+        let builder = notebooks_projects_locations_get_builder(
+            &self.http_client,
+            &args.name,
+        )
+        .map_err(ProviderError::Api)?;
+
+        let task = notebooks_projects_locations_get_task(builder)
+            .map_err(ProviderError::Api)?;
+
+        execute(task, None).map_err(|e: String| ProviderError::ExecuteFailed(e.to_string()))
+    }
+
+    /// Notebooks projects locations list.
+    ///
+    /// Read-only operation - no state tracking.
+    ///
+    /// # Arguments
+    ///
+    /// * `args` - Request arguments
+    ///
+    /// # Returns
+    ///
+    /// StreamIterator yielding the ListLocationsResponse result.
+    ///
+    /// # Errors
+    ///
+    /// Returns ProviderError if the API request fails.
+    pub fn notebooks_projects_locations_list(
+        &self,
+        args: &NotebooksProjectsLocationsListArgs,
+    ) -> Result<
+        impl StreamIterator<
+            D = Result<ListLocationsResponse, ProviderError<ApiError>>,
+            P = crate::providers::gcp::clients::types::ApiPending,
+        > + Send
+        + 'static,
+        ProviderError<ApiError>,
+    > {
+        let builder = notebooks_projects_locations_list_builder(
+            &self.http_client,
+            &args.name,
+            &args.extraLocationTypes,
+            &args.filter,
+            &args.pageSize,
+            &args.pageToken,
+        )
+        .map_err(ProviderError::Api)?;
+
+        let task = notebooks_projects_locations_list_task(builder)
+            .map_err(ProviderError::Api)?;
+
+        execute(task, None).map_err(|e: String| ProviderError::ExecuteFailed(e.to_string()))
     }
 
     /// Notebooks projects locations instances check authorization.
@@ -140,6 +245,44 @@ where
         let store_task = StoreStateIdentifierTask::new(task, state_store, args, stage);
 
         execute(store_task, None).map_err(|e: String| ProviderError::ExecuteFailed(e.to_string()))
+    }
+
+    /// Notebooks projects locations instances check upgradability.
+    ///
+    /// Read-only operation - no state tracking.
+    ///
+    /// # Arguments
+    ///
+    /// * `args` - Request arguments
+    ///
+    /// # Returns
+    ///
+    /// StreamIterator yielding the CheckInstanceUpgradabilityResponse result.
+    ///
+    /// # Errors
+    ///
+    /// Returns ProviderError if the API request fails.
+    pub fn notebooks_projects_locations_instances_check_upgradability(
+        &self,
+        args: &NotebooksProjectsLocationsInstancesCheckUpgradabilityArgs,
+    ) -> Result<
+        impl StreamIterator<
+            D = Result<CheckInstanceUpgradabilityResponse, ProviderError<ApiError>>,
+            P = crate::providers::gcp::clients::types::ApiPending,
+        > + Send
+        + 'static,
+        ProviderError<ApiError>,
+    > {
+        let builder = notebooks_projects_locations_instances_check_upgradability_builder(
+            &self.http_client,
+            &args.notebookInstance,
+        )
+        .map_err(ProviderError::Api)?;
+
+        let task = notebooks_projects_locations_instances_check_upgradability_task(builder)
+            .map_err(ProviderError::Api)?;
+
+        execute(task, None).map_err(|e: String| ProviderError::ExecuteFailed(e.to_string()))
     }
 
     /// Notebooks projects locations instances create.
@@ -315,6 +458,163 @@ where
         let store_task = StoreStateIdentifierTask::new(task, state_store, args, stage);
 
         execute(store_task, None).map_err(|e: String| ProviderError::ExecuteFailed(e.to_string()))
+    }
+
+    /// Notebooks projects locations instances get.
+    ///
+    /// Read-only operation - no state tracking.
+    ///
+    /// # Arguments
+    ///
+    /// * `args` - Request arguments
+    ///
+    /// # Returns
+    ///
+    /// StreamIterator yielding the Instance result.
+    ///
+    /// # Errors
+    ///
+    /// Returns ProviderError if the API request fails.
+    pub fn notebooks_projects_locations_instances_get(
+        &self,
+        args: &NotebooksProjectsLocationsInstancesGetArgs,
+    ) -> Result<
+        impl StreamIterator<
+            D = Result<Instance, ProviderError<ApiError>>,
+            P = crate::providers::gcp::clients::types::ApiPending,
+        > + Send
+        + 'static,
+        ProviderError<ApiError>,
+    > {
+        let builder = notebooks_projects_locations_instances_get_builder(
+            &self.http_client,
+            &args.name,
+        )
+        .map_err(ProviderError::Api)?;
+
+        let task = notebooks_projects_locations_instances_get_task(builder)
+            .map_err(ProviderError::Api)?;
+
+        execute(task, None).map_err(|e: String| ProviderError::ExecuteFailed(e.to_string()))
+    }
+
+    /// Notebooks projects locations instances get config.
+    ///
+    /// Read-only operation - no state tracking.
+    ///
+    /// # Arguments
+    ///
+    /// * `args` - Request arguments
+    ///
+    /// # Returns
+    ///
+    /// StreamIterator yielding the Config result.
+    ///
+    /// # Errors
+    ///
+    /// Returns ProviderError if the API request fails.
+    pub fn notebooks_projects_locations_instances_get_config(
+        &self,
+        args: &NotebooksProjectsLocationsInstancesGetConfigArgs,
+    ) -> Result<
+        impl StreamIterator<
+            D = Result<Config, ProviderError<ApiError>>,
+            P = crate::providers::gcp::clients::types::ApiPending,
+        > + Send
+        + 'static,
+        ProviderError<ApiError>,
+    > {
+        let builder = notebooks_projects_locations_instances_get_config_builder(
+            &self.http_client,
+            &args.name,
+        )
+        .map_err(ProviderError::Api)?;
+
+        let task = notebooks_projects_locations_instances_get_config_task(builder)
+            .map_err(ProviderError::Api)?;
+
+        execute(task, None).map_err(|e: String| ProviderError::ExecuteFailed(e.to_string()))
+    }
+
+    /// Notebooks projects locations instances get iam policy.
+    ///
+    /// Read-only operation - no state tracking.
+    ///
+    /// # Arguments
+    ///
+    /// * `args` - Request arguments
+    ///
+    /// # Returns
+    ///
+    /// StreamIterator yielding the Policy result.
+    ///
+    /// # Errors
+    ///
+    /// Returns ProviderError if the API request fails.
+    pub fn notebooks_projects_locations_instances_get_iam_policy(
+        &self,
+        args: &NotebooksProjectsLocationsInstancesGetIamPolicyArgs,
+    ) -> Result<
+        impl StreamIterator<
+            D = Result<Policy, ProviderError<ApiError>>,
+            P = crate::providers::gcp::clients::types::ApiPending,
+        > + Send
+        + 'static,
+        ProviderError<ApiError>,
+    > {
+        let builder = notebooks_projects_locations_instances_get_iam_policy_builder(
+            &self.http_client,
+            &args.resource,
+            &args.options.requestedPolicyVersion,
+        )
+        .map_err(ProviderError::Api)?;
+
+        let task = notebooks_projects_locations_instances_get_iam_policy_task(builder)
+            .map_err(ProviderError::Api)?;
+
+        execute(task, None).map_err(|e: String| ProviderError::ExecuteFailed(e.to_string()))
+    }
+
+    /// Notebooks projects locations instances list.
+    ///
+    /// Read-only operation - no state tracking.
+    ///
+    /// # Arguments
+    ///
+    /// * `args` - Request arguments
+    ///
+    /// # Returns
+    ///
+    /// StreamIterator yielding the ListInstancesResponse result.
+    ///
+    /// # Errors
+    ///
+    /// Returns ProviderError if the API request fails.
+    pub fn notebooks_projects_locations_instances_list(
+        &self,
+        args: &NotebooksProjectsLocationsInstancesListArgs,
+    ) -> Result<
+        impl StreamIterator<
+            D = Result<ListInstancesResponse, ProviderError<ApiError>>,
+            P = crate::providers::gcp::clients::types::ApiPending,
+        > + Send
+        + 'static,
+        ProviderError<ApiError>,
+    > {
+        let builder = notebooks_projects_locations_instances_list_builder(
+            &self.http_client,
+            &args.parent,
+            &args.filter,
+            &args.orderBy,
+            &args.pageSize,
+            &args.pageToken,
+        )
+        .map_err(ProviderError::Api)?;
+
+        let task = notebooks_projects_locations_instances_list_task(builder)
+            .map_err(ProviderError::Api)?;
+
+        execute(task, None).map_err(|e: String| ProviderError::ExecuteFailed(e.to_string()))
     }
 
     /// Notebooks projects locations instances patch.
@@ -708,7 +1008,7 @@ where
 
     /// Notebooks projects locations instances test iam permissions.
     ///
-    /// Automatically stores the result in the state store on success.
+    /// Read-only operation - no state tracking.
     ///
     /// # Arguments
     ///
@@ -720,7 +1020,7 @@ where
     ///
     /// # Errors
     ///
-    /// Returns ProviderError if the API request or state storage fails.
+    /// Returns ProviderError if the API request fails.
     pub fn notebooks_projects_locations_instances_test_iam_permissions(
         &self,
         args: &NotebooksProjectsLocationsInstancesTestIamPermissionsArgs,
@@ -741,12 +1041,7 @@ where
         let task = notebooks_projects_locations_instances_test_iam_permissions_task(builder)
             .map_err(ProviderError::Api)?;
 
-        let state_store = self.client.state_store.clone();
-        let stage = Some(self.client.stage.clone());
-
-        let store_task = StoreStateIdentifierTask::new(task, state_store, args, stage);
-
-        execute(store_task, None).map_err(|e: String| ProviderError::ExecuteFailed(e.to_string()))
+        execute(task, None).map_err(|e: String| ProviderError::ExecuteFailed(e.to_string()))
     }
 
     /// Notebooks projects locations instances upgrade.
@@ -919,6 +1214,86 @@ where
         let store_task = StoreStateIdentifierTask::new(task, state_store, args, stage);
 
         execute(store_task, None).map_err(|e: String| ProviderError::ExecuteFailed(e.to_string()))
+    }
+
+    /// Notebooks projects locations operations get.
+    ///
+    /// Read-only operation - no state tracking.
+    ///
+    /// # Arguments
+    ///
+    /// * `args` - Request arguments
+    ///
+    /// # Returns
+    ///
+    /// StreamIterator yielding the Operation result.
+    ///
+    /// # Errors
+    ///
+    /// Returns ProviderError if the API request fails.
+    pub fn notebooks_projects_locations_operations_get(
+        &self,
+        args: &NotebooksProjectsLocationsOperationsGetArgs,
+    ) -> Result<
+        impl StreamIterator<
+            D = Result<Operation, ProviderError<ApiError>>,
+            P = crate::providers::gcp::clients::types::ApiPending,
+        > + Send
+        + 'static,
+        ProviderError<ApiError>,
+    > {
+        let builder = notebooks_projects_locations_operations_get_builder(
+            &self.http_client,
+            &args.name,
+        )
+        .map_err(ProviderError::Api)?;
+
+        let task = notebooks_projects_locations_operations_get_task(builder)
+            .map_err(ProviderError::Api)?;
+
+        execute(task, None).map_err(|e: String| ProviderError::ExecuteFailed(e.to_string()))
+    }
+
+    /// Notebooks projects locations operations list.
+    ///
+    /// Read-only operation - no state tracking.
+    ///
+    /// # Arguments
+    ///
+    /// * `args` - Request arguments
+    ///
+    /// # Returns
+    ///
+    /// StreamIterator yielding the ListOperationsResponse result.
+    ///
+    /// # Errors
+    ///
+    /// Returns ProviderError if the API request fails.
+    pub fn notebooks_projects_locations_operations_list(
+        &self,
+        args: &NotebooksProjectsLocationsOperationsListArgs,
+    ) -> Result<
+        impl StreamIterator<
+            D = Result<ListOperationsResponse, ProviderError<ApiError>>,
+            P = crate::providers::gcp::clients::types::ApiPending,
+        > + Send
+        + 'static,
+        ProviderError<ApiError>,
+    > {
+        let builder = notebooks_projects_locations_operations_list_builder(
+            &self.http_client,
+            &args.name,
+            &args.filter,
+            &args.pageSize,
+            &args.pageToken,
+            &args.returnPartialSuccess,
+        )
+        .map_err(ProviderError::Api)?;
+
+        let task = notebooks_projects_locations_operations_list_task(builder)
+            .map_err(ProviderError::Api)?;
+
+        execute(task, None).map_err(|e: String| ProviderError::ExecuteFailed(e.to_string()))
     }
 
 }

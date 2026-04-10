@@ -12,10 +12,12 @@
 #![cfg(feature = "gcp")]
 
 use crate::providers::gcp::clients::mybusinessnotifications::{
+    mybusinessnotifications_accounts_get_notification_setting_builder, mybusinessnotifications_accounts_get_notification_setting_task,
     mybusinessnotifications_accounts_update_notification_setting_builder, mybusinessnotifications_accounts_update_notification_setting_task,
 };
 use crate::providers::gcp::clients::types::{ApiError, ApiPending};
 use crate::providers::gcp::clients::mybusinessnotifications::NotificationSetting;
+use crate::providers::gcp::clients::mybusinessnotifications::MybusinessnotificationsAccountsGetNotificationSettingArgs;
 use crate::providers::gcp::clients::mybusinessnotifications::MybusinessnotificationsAccountsUpdateNotificationSettingArgs;
 use crate::provider_client::{ProviderClient, ProviderError};
 use foundation_core::valtron::{execute, StreamIterator};
@@ -56,6 +58,44 @@ where
             client,
             http_client: Arc::new(http_client),
         }
+    }
+
+    /// Mybusinessnotifications accounts get notification setting.
+    ///
+    /// Read-only operation - no state tracking.
+    ///
+    /// # Arguments
+    ///
+    /// * `args` - Request arguments
+    ///
+    /// # Returns
+    ///
+    /// StreamIterator yielding the NotificationSetting result.
+    ///
+    /// # Errors
+    ///
+    /// Returns ProviderError if the API request fails.
+    pub fn mybusinessnotifications_accounts_get_notification_setting(
+        &self,
+        args: &MybusinessnotificationsAccountsGetNotificationSettingArgs,
+    ) -> Result<
+        impl StreamIterator<
+            D = Result<NotificationSetting, ProviderError<ApiError>>,
+            P = crate::providers::gcp::clients::types::ApiPending,
+        > + Send
+        + 'static,
+        ProviderError<ApiError>,
+    > {
+        let builder = mybusinessnotifications_accounts_get_notification_setting_builder(
+            &self.http_client,
+            &args.name,
+        )
+        .map_err(ProviderError::Api)?;
+
+        let task = mybusinessnotifications_accounts_get_notification_setting_task(builder)
+            .map_err(ProviderError::Api)?;
+
+        execute(task, None).map_err(|e: String| ProviderError::ExecuteFailed(e.to_string()))
     }
 
     /// Mybusinessnotifications accounts update notification setting.

@@ -7,7 +7,6 @@
 
 #![cfg(feature = "gcp")]
 
-
 use crate::providers::gcp::clients::types::*;
 use crate::providers::gcp::resources::*;
 use foundation_core::valtron::{
@@ -17,6 +16,7 @@ use foundation_core::valtron::{
 use foundation_core::wire::simple_http::client::{
     body_reader, ClientRequestBuilder, RequestIntro, SimpleHttpClient, SystemDnsResolver,
 };
+use foundation_db::state::resource_identifier::ResourceIdentifier;
 use foundation_macros::JsonHash;
 use serde::Serialize;
 
@@ -29,14 +29,15 @@ use serde::Serialize;
 pub fn chromemanagement_customers_apps_count_chrome_app_requests_builder(
     client: &SimpleHttpClient,
     customer: &String,
-    orderBy: &Option<String>,
-    orgUnitId: &Option<String>,
-    pageSize: &Option<i32>,
-    pageToken: &Option<String>,
+    orderBy: &Option<Option<String>>,
+    orgUnitId: &Option<Option<String>>,
+    pageSize: &Option<Option<String>>,
+    pageToken: &Option<Option<String>>,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
         "https://chromemanagement.googleapis.com/v1/customers/{}/apps:countChromeAppRequests",
+        customer,
     );
 
     // Build request
@@ -188,13 +189,13 @@ pub struct ChromemanagementCustomersAppsCountChromeAppRequestsArgs {
     /// Path parameter: customer
     pub customer: String,
     /// Query parameter: orderBy
-    pub orderBy: Option<String>,
+    pub orderBy: Option<Option<String>>,
     /// Query parameter: orgUnitId
-    pub orgUnitId: Option<String>,
+    pub orgUnitId: Option<Option<String>>,
     /// Query parameter: pageSize
-    pub pageSize: Option<i32>,
+    pub pageSize: Option<Option<String>>,
     /// Query parameter: pageToken
-    pub pageToken: Option<String>,
+    pub pageToken: Option<Option<String>>,
 }
 
 /// GET v1/customers/{customersId}/apps:countChromeAppRequests
@@ -242,14 +243,15 @@ pub fn chromemanagement_customers_apps_count_chrome_app_requests(
 pub fn chromemanagement_customers_apps_fetch_devices_requesting_extension_builder(
     client: &SimpleHttpClient,
     customer: &String,
-    extensionId: &Option<String>,
-    orgUnitId: &Option<String>,
-    pageSize: &Option<i32>,
-    pageToken: &Option<String>,
+    extensionId: &Option<Option<String>>,
+    orgUnitId: &Option<Option<String>>,
+    pageSize: &Option<Option<String>>,
+    pageToken: &Option<Option<String>>,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
         "https://chromemanagement.googleapis.com/v1/customers/{}/apps:fetchDevicesRequestingExtension",
+        customer,
     );
 
     // Build request
@@ -401,13 +403,13 @@ pub struct ChromemanagementCustomersAppsFetchDevicesRequestingExtensionArgs {
     /// Path parameter: customer
     pub customer: String,
     /// Query parameter: extensionId
-    pub extensionId: Option<String>,
+    pub extensionId: Option<Option<String>>,
     /// Query parameter: orgUnitId
-    pub orgUnitId: Option<String>,
+    pub orgUnitId: Option<Option<String>>,
     /// Query parameter: pageSize
-    pub pageSize: Option<i32>,
+    pub pageSize: Option<Option<String>>,
     /// Query parameter: pageToken
-    pub pageToken: Option<String>,
+    pub pageToken: Option<Option<String>>,
 }
 
 /// GET v1/customers/{customersId}/apps:fetchDevicesRequestingExtension
@@ -455,14 +457,15 @@ pub fn chromemanagement_customers_apps_fetch_devices_requesting_extension(
 pub fn chromemanagement_customers_apps_fetch_users_requesting_extension_builder(
     client: &SimpleHttpClient,
     customer: &String,
-    extensionId: &Option<String>,
-    orgUnitId: &Option<String>,
-    pageSize: &Option<i32>,
-    pageToken: &Option<String>,
+    extensionId: &Option<Option<String>>,
+    orgUnitId: &Option<Option<String>>,
+    pageSize: &Option<Option<String>>,
+    pageToken: &Option<Option<String>>,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
         "https://chromemanagement.googleapis.com/v1/customers/{}/apps:fetchUsersRequestingExtension",
+        customer,
     );
 
     // Build request
@@ -614,13 +617,13 @@ pub struct ChromemanagementCustomersAppsFetchUsersRequestingExtensionArgs {
     /// Path parameter: customer
     pub customer: String,
     /// Query parameter: extensionId
-    pub extensionId: Option<String>,
+    pub extensionId: Option<Option<String>>,
     /// Query parameter: orgUnitId
-    pub orgUnitId: Option<String>,
+    pub orgUnitId: Option<Option<String>>,
     /// Query parameter: pageSize
-    pub pageSize: Option<i32>,
+    pub pageSize: Option<Option<String>>,
     /// Query parameter: pageToken
-    pub pageToken: Option<String>,
+    pub pageToken: Option<Option<String>>,
 }
 
 /// GET v1/customers/{customersId}/apps:fetchUsersRequestingExtension
@@ -659,6 +662,1878 @@ pub fn chromemanagement_customers_apps_fetch_users_requesting_extension(
     chromemanagement_customers_apps_fetch_users_requesting_extension_execute(builder)
 }
 
+/// GET v1/customers/{customersId}/apps/android/{androidId}
+/// Get a specific app for a customer by its resource name.
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `chromemanagement_customers_apps_android_get_execute()` to send, or `chromemanagement_customers_apps_android_get` for simplest API.
+
+pub fn chromemanagement_customers_apps_android_get_builder(
+    client: &SimpleHttpClient,
+    name: &String,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!(
+        "https://chromemanagement.googleapis.com/v1/customers/{}/apps/android/{androidId}",
+        name,
+    );
+
+    // Build request
+    let builder = client
+        .get(&endpoint_url)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// GET v1/customers/{customersId}/apps/android/{androidId}
+/// Get a specific app for a customer by its resource name.
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `chromemanagement_customers_apps_android_get_execute()` or `chromemanagement_customers_apps_android_get`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `chromemanagement_customers_apps_android_get_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn chromemanagement_customers_apps_android_get_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<GoogleChromeManagementV1AppDetails>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: GoogleChromeManagementV1AppDetails = serde_json::from_str(&body)
+                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// GET v1/customers/{customersId}/apps/android/{androidId}
+/// Get a specific app for a customer by its resource name.
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `chromemanagement_customers_apps_android_get_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `chromemanagement_customers_apps_android_get_task()`.
+/// For the simplest API, use `chromemanagement_customers_apps_android_get()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `chromemanagement_customers_apps_android_get_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn chromemanagement_customers_apps_android_get_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<
+            D = Result<ApiResponse<GoogleChromeManagementV1AppDetails>, ApiError>,
+            P = ApiPending,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    let task = chromemanagement_customers_apps_android_get_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`chromemanagement_customers_apps_android_get`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct ChromemanagementCustomersAppsAndroidGetArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
+/// GET v1/customers/{customersId}/apps/android/{androidId}
+/// Get a specific app for a customer by its resource name.
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `chromemanagement_customers_apps_android_get_builder()` + `chromemanagement_customers_apps_android_get_execute()`.
+/// For task-level control, use `chromemanagement_customers_apps_android_get_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn chromemanagement_customers_apps_android_get(
+    client: &SimpleHttpClient,
+    args: &ChromemanagementCustomersAppsAndroidGetArgs,
+) -> Result<
+    impl StreamIterator<
+            D = Result<ApiResponse<GoogleChromeManagementV1AppDetails>, ApiError>,
+            P = ApiPending,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    let builder = chromemanagement_customers_apps_android_get_builder(client, &args.name)?;
+    chromemanagement_customers_apps_android_get_execute(builder)
+}
+
+/// GET v1/customers/{customersId}/apps/chrome/{chromeId}
+/// Get a specific app for a customer by its resource name.
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `chromemanagement_customers_apps_chrome_get_execute()` to send, or `chromemanagement_customers_apps_chrome_get` for simplest API.
+
+pub fn chromemanagement_customers_apps_chrome_get_builder(
+    client: &SimpleHttpClient,
+    name: &String,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!(
+        "https://chromemanagement.googleapis.com/v1/customers/{}/apps/chrome/{chromeId}",
+        name,
+    );
+
+    // Build request
+    let builder = client
+        .get(&endpoint_url)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// GET v1/customers/{customersId}/apps/chrome/{chromeId}
+/// Get a specific app for a customer by its resource name.
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `chromemanagement_customers_apps_chrome_get_execute()` or `chromemanagement_customers_apps_chrome_get`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `chromemanagement_customers_apps_chrome_get_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn chromemanagement_customers_apps_chrome_get_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<GoogleChromeManagementV1AppDetails>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: GoogleChromeManagementV1AppDetails = serde_json::from_str(&body)
+                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// GET v1/customers/{customersId}/apps/chrome/{chromeId}
+/// Get a specific app for a customer by its resource name.
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `chromemanagement_customers_apps_chrome_get_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `chromemanagement_customers_apps_chrome_get_task()`.
+/// For the simplest API, use `chromemanagement_customers_apps_chrome_get()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `chromemanagement_customers_apps_chrome_get_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn chromemanagement_customers_apps_chrome_get_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<
+            D = Result<ApiResponse<GoogleChromeManagementV1AppDetails>, ApiError>,
+            P = ApiPending,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    let task = chromemanagement_customers_apps_chrome_get_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`chromemanagement_customers_apps_chrome_get`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct ChromemanagementCustomersAppsChromeGetArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
+/// GET v1/customers/{customersId}/apps/chrome/{chromeId}
+/// Get a specific app for a customer by its resource name.
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `chromemanagement_customers_apps_chrome_get_builder()` + `chromemanagement_customers_apps_chrome_get_execute()`.
+/// For task-level control, use `chromemanagement_customers_apps_chrome_get_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn chromemanagement_customers_apps_chrome_get(
+    client: &SimpleHttpClient,
+    args: &ChromemanagementCustomersAppsChromeGetArgs,
+) -> Result<
+    impl StreamIterator<
+            D = Result<ApiResponse<GoogleChromeManagementV1AppDetails>, ApiError>,
+            P = ApiPending,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    let builder = chromemanagement_customers_apps_chrome_get_builder(client, &args.name)?;
+    chromemanagement_customers_apps_chrome_get_execute(builder)
+}
+
+/// GET v1/customers/{customersId}/apps/web/{webId}
+/// Get a specific app for a customer by its resource name.
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `chromemanagement_customers_apps_web_get_execute()` to send, or `chromemanagement_customers_apps_web_get` for simplest API.
+
+pub fn chromemanagement_customers_apps_web_get_builder(
+    client: &SimpleHttpClient,
+    name: &String,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!(
+        "https://chromemanagement.googleapis.com/v1/customers/{}/apps/web/{webId}",
+        name,
+    );
+
+    // Build request
+    let builder = client
+        .get(&endpoint_url)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// GET v1/customers/{customersId}/apps/web/{webId}
+/// Get a specific app for a customer by its resource name.
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `chromemanagement_customers_apps_web_get_execute()` or `chromemanagement_customers_apps_web_get`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `chromemanagement_customers_apps_web_get_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn chromemanagement_customers_apps_web_get_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<GoogleChromeManagementV1AppDetails>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: GoogleChromeManagementV1AppDetails = serde_json::from_str(&body)
+                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// GET v1/customers/{customersId}/apps/web/{webId}
+/// Get a specific app for a customer by its resource name.
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `chromemanagement_customers_apps_web_get_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `chromemanagement_customers_apps_web_get_task()`.
+/// For the simplest API, use `chromemanagement_customers_apps_web_get()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `chromemanagement_customers_apps_web_get_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn chromemanagement_customers_apps_web_get_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<
+            D = Result<ApiResponse<GoogleChromeManagementV1AppDetails>, ApiError>,
+            P = ApiPending,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    let task = chromemanagement_customers_apps_web_get_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`chromemanagement_customers_apps_web_get`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct ChromemanagementCustomersAppsWebGetArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
+/// GET v1/customers/{customersId}/apps/web/{webId}
+/// Get a specific app for a customer by its resource name.
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `chromemanagement_customers_apps_web_get_builder()` + `chromemanagement_customers_apps_web_get_execute()`.
+/// For task-level control, use `chromemanagement_customers_apps_web_get_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn chromemanagement_customers_apps_web_get(
+    client: &SimpleHttpClient,
+    args: &ChromemanagementCustomersAppsWebGetArgs,
+) -> Result<
+    impl StreamIterator<
+            D = Result<ApiResponse<GoogleChromeManagementV1AppDetails>, ApiError>,
+            P = ApiPending,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    let builder = chromemanagement_customers_apps_web_get_builder(client, &args.name)?;
+    chromemanagement_customers_apps_web_get_execute(builder)
+}
+
+/// POST v1/customers/{customersId}/certificateProvisioningProcesses/{certificateProvisioningProcessesId}:claim
+/// Claims a certificate provisioning process. For each certificate provisioning process, this operation can succeed only for one caller_instance_id.
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `chromemanagement_customers_certificate_provisioning_processes_claim_execute()` to send, or `chromemanagement_customers_certificate_provisioning_processes_claim` for simplest API.
+
+pub fn chromemanagement_customers_certificate_provisioning_processes_claim_builder(
+    client: &SimpleHttpClient,
+    name: &String,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!(
+        "https://chromemanagement.googleapis.com/v1/customers/{}/certificateProvisioningProcesses/{certificateProvisioningProcessesId}:claim",
+        name,
+    );
+
+    // Build request
+    let builder = client
+        .post(&endpoint_url)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// POST v1/customers/{customersId}/certificateProvisioningProcesses/{certificateProvisioningProcessesId}:claim
+/// Claims a certificate provisioning process. For each certificate provisioning process, this operation can succeed only for one caller_instance_id.
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `chromemanagement_customers_certificate_provisioning_processes_claim_execute()` or `chromemanagement_customers_certificate_provisioning_processes_claim`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `chromemanagement_customers_certificate_provisioning_processes_claim_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn chromemanagement_customers_certificate_provisioning_processes_claim_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<
+                ApiResponse<
+                    GoogleChromeManagementVersionsV1ClaimCertificateProvisioningProcessResponse,
+                >,
+                ApiError,
+            >,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success { stream, intro, headers, .. } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: GoogleChromeManagementVersionsV1ClaimCertificateProvisioningProcessResponse = serde_json::from_str(&body)
+                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// POST v1/customers/{customersId}/certificateProvisioningProcesses/{certificateProvisioningProcessesId}:claim
+/// Claims a certificate provisioning process. For each certificate provisioning process, this operation can succeed only for one caller_instance_id.
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `chromemanagement_customers_certificate_provisioning_processes_claim_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `chromemanagement_customers_certificate_provisioning_processes_claim_task()`.
+/// For the simplest API, use `chromemanagement_customers_certificate_provisioning_processes_claim()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `chromemanagement_customers_certificate_provisioning_processes_claim_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn chromemanagement_customers_certificate_provisioning_processes_claim_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<
+            D = Result<
+                ApiResponse<
+                    GoogleChromeManagementVersionsV1ClaimCertificateProvisioningProcessResponse,
+                >,
+                ApiError,
+            >,
+            P = ApiPending,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    let task = chromemanagement_customers_certificate_provisioning_processes_claim_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`chromemanagement_customers_certificate_provisioning_processes_claim`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct ChromemanagementCustomersCertificateProvisioningProcessesClaimArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
+/// POST v1/customers/{customersId}/certificateProvisioningProcesses/{certificateProvisioningProcessesId}:claim
+/// Claims a certificate provisioning process. For each certificate provisioning process, this operation can succeed only for one caller_instance_id.
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `chromemanagement_customers_certificate_provisioning_processes_claim_builder()` + `chromemanagement_customers_certificate_provisioning_processes_claim_execute()`.
+/// For task-level control, use `chromemanagement_customers_certificate_provisioning_processes_claim_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn chromemanagement_customers_certificate_provisioning_processes_claim(
+    client: &SimpleHttpClient,
+    args: &ChromemanagementCustomersCertificateProvisioningProcessesClaimArgs,
+) -> Result<
+    impl StreamIterator<
+            D = Result<
+                ApiResponse<
+                    GoogleChromeManagementVersionsV1ClaimCertificateProvisioningProcessResponse,
+                >,
+                ApiError,
+            >,
+            P = ApiPending,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    let builder = chromemanagement_customers_certificate_provisioning_processes_claim_builder(
+        client, &args.name,
+    )?;
+    chromemanagement_customers_certificate_provisioning_processes_claim_execute(builder)
+}
+
+/// GET v1/customers/{customersId}/certificateProvisioningProcesses/{certificateProvisioningProcessesId}
+/// Retrieves a certificate provisioning process.
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `chromemanagement_customers_certificate_provisioning_processes_get_execute()` to send, or `chromemanagement_customers_certificate_provisioning_processes_get` for simplest API.
+
+pub fn chromemanagement_customers_certificate_provisioning_processes_get_builder(
+    client: &SimpleHttpClient,
+    name: &String,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!(
+        "https://chromemanagement.googleapis.com/v1/customers/{}/certificateProvisioningProcesses/{certificateProvisioningProcessesId}",
+        name,
+    );
+
+    // Build request
+    let builder = client
+        .get(&endpoint_url)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// GET v1/customers/{customersId}/certificateProvisioningProcesses/{certificateProvisioningProcessesId}
+/// Retrieves a certificate provisioning process.
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `chromemanagement_customers_certificate_provisioning_processes_get_execute()` or `chromemanagement_customers_certificate_provisioning_processes_get`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `chromemanagement_customers_certificate_provisioning_processes_get_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn chromemanagement_customers_certificate_provisioning_processes_get_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<
+                ApiResponse<GoogleChromeManagementVersionsV1CertificateProvisioningProcess>,
+                ApiError,
+            >,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: GoogleChromeManagementVersionsV1CertificateProvisioningProcess =
+                    serde_json::from_str(&body)
+                        .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// GET v1/customers/{customersId}/certificateProvisioningProcesses/{certificateProvisioningProcessesId}
+/// Retrieves a certificate provisioning process.
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `chromemanagement_customers_certificate_provisioning_processes_get_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `chromemanagement_customers_certificate_provisioning_processes_get_task()`.
+/// For the simplest API, use `chromemanagement_customers_certificate_provisioning_processes_get()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `chromemanagement_customers_certificate_provisioning_processes_get_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn chromemanagement_customers_certificate_provisioning_processes_get_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<
+            D = Result<
+                ApiResponse<GoogleChromeManagementVersionsV1CertificateProvisioningProcess>,
+                ApiError,
+            >,
+            P = ApiPending,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    let task = chromemanagement_customers_certificate_provisioning_processes_get_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`chromemanagement_customers_certificate_provisioning_processes_get`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct ChromemanagementCustomersCertificateProvisioningProcessesGetArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
+/// GET v1/customers/{customersId}/certificateProvisioningProcesses/{certificateProvisioningProcessesId}
+/// Retrieves a certificate provisioning process.
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `chromemanagement_customers_certificate_provisioning_processes_get_builder()` + `chromemanagement_customers_certificate_provisioning_processes_get_execute()`.
+/// For task-level control, use `chromemanagement_customers_certificate_provisioning_processes_get_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn chromemanagement_customers_certificate_provisioning_processes_get(
+    client: &SimpleHttpClient,
+    args: &ChromemanagementCustomersCertificateProvisioningProcessesGetArgs,
+) -> Result<
+    impl StreamIterator<
+            D = Result<
+                ApiResponse<GoogleChromeManagementVersionsV1CertificateProvisioningProcess>,
+                ApiError,
+            >,
+            P = ApiPending,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    let builder = chromemanagement_customers_certificate_provisioning_processes_get_builder(
+        client, &args.name,
+    )?;
+    chromemanagement_customers_certificate_provisioning_processes_get_execute(builder)
+}
+
+/// POST v1/customers/{customersId}/certificateProvisioningProcesses/{certificateProvisioningProcessesId}:setFailure
+/// Marks a certificate provisioning process as failed.
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `chromemanagement_customers_certificate_provisioning_processes_set_failure_execute()` to send, or `chromemanagement_customers_certificate_provisioning_processes_set_failure` for simplest API.
+
+pub fn chromemanagement_customers_certificate_provisioning_processes_set_failure_builder(
+    client: &SimpleHttpClient,
+    name: &String,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!(
+        "https://chromemanagement.googleapis.com/v1/customers/{}/certificateProvisioningProcesses/{certificateProvisioningProcessesId}:setFailure",
+        name,
+    );
+
+    // Build request
+    let builder = client
+        .post(&endpoint_url)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// POST v1/customers/{customersId}/certificateProvisioningProcesses/{certificateProvisioningProcessesId}:setFailure
+/// Marks a certificate provisioning process as failed.
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `chromemanagement_customers_certificate_provisioning_processes_set_failure_execute()` or `chromemanagement_customers_certificate_provisioning_processes_set_failure`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `chromemanagement_customers_certificate_provisioning_processes_set_failure_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn chromemanagement_customers_certificate_provisioning_processes_set_failure_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<
+                ApiResponse<GoogleChromeManagementVersionsV1SetFailureResponse>,
+                ApiError,
+            >,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: GoogleChromeManagementVersionsV1SetFailureResponse =
+                    serde_json::from_str(&body)
+                        .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// POST v1/customers/{customersId}/certificateProvisioningProcesses/{certificateProvisioningProcessesId}:setFailure
+/// Marks a certificate provisioning process as failed.
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `chromemanagement_customers_certificate_provisioning_processes_set_failure_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `chromemanagement_customers_certificate_provisioning_processes_set_failure_task()`.
+/// For the simplest API, use `chromemanagement_customers_certificate_provisioning_processes_set_failure()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `chromemanagement_customers_certificate_provisioning_processes_set_failure_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn chromemanagement_customers_certificate_provisioning_processes_set_failure_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<
+            D = Result<ApiResponse<GoogleChromeManagementVersionsV1SetFailureResponse>, ApiError>,
+            P = ApiPending,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    let task =
+        chromemanagement_customers_certificate_provisioning_processes_set_failure_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`chromemanagement_customers_certificate_provisioning_processes_set_failure`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct ChromemanagementCustomersCertificateProvisioningProcessesSetFailureArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
+/// POST v1/customers/{customersId}/certificateProvisioningProcesses/{certificateProvisioningProcessesId}:setFailure
+/// Marks a certificate provisioning process as failed.
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `chromemanagement_customers_certificate_provisioning_processes_set_failure_builder()` + `chromemanagement_customers_certificate_provisioning_processes_set_failure_execute()`.
+/// For task-level control, use `chromemanagement_customers_certificate_provisioning_processes_set_failure_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn chromemanagement_customers_certificate_provisioning_processes_set_failure(
+    client: &SimpleHttpClient,
+    args: &ChromemanagementCustomersCertificateProvisioningProcessesSetFailureArgs,
+) -> Result<
+    impl StreamIterator<
+            D = Result<ApiResponse<GoogleChromeManagementVersionsV1SetFailureResponse>, ApiError>,
+            P = ApiPending,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    let builder =
+        chromemanagement_customers_certificate_provisioning_processes_set_failure_builder(
+            client, &args.name,
+        )?;
+    chromemanagement_customers_certificate_provisioning_processes_set_failure_execute(builder)
+}
+
+/// POST v1/customers/{customersId}/certificateProvisioningProcesses/{certificateProvisioningProcessesId}:signData
+/// Requests the client that initiated a certificate provisioning process to sign data. This should only be called after ClaimCertificateProvisioningProcess has been successfully executed.
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `chromemanagement_customers_certificate_provisioning_processes_sign_data_execute()` to send, or `chromemanagement_customers_certificate_provisioning_processes_sign_data` for simplest API.
+
+pub fn chromemanagement_customers_certificate_provisioning_processes_sign_data_builder(
+    client: &SimpleHttpClient,
+    name: &String,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!(
+        "https://chromemanagement.googleapis.com/v1/customers/{}/certificateProvisioningProcesses/{certificateProvisioningProcessesId}:signData",
+        name,
+    );
+
+    // Build request
+    let builder = client
+        .post(&endpoint_url)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// POST v1/customers/{customersId}/certificateProvisioningProcesses/{certificateProvisioningProcessesId}:signData
+/// Requests the client that initiated a certificate provisioning process to sign data. This should only be called after ClaimCertificateProvisioningProcess has been successfully executed.
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `chromemanagement_customers_certificate_provisioning_processes_sign_data_execute()` or `chromemanagement_customers_certificate_provisioning_processes_sign_data`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `chromemanagement_customers_certificate_provisioning_processes_sign_data_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn chromemanagement_customers_certificate_provisioning_processes_sign_data_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<GoogleLongrunningOperation>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: GoogleLongrunningOperation = serde_json::from_str(&body)
+                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// POST v1/customers/{customersId}/certificateProvisioningProcesses/{certificateProvisioningProcessesId}:signData
+/// Requests the client that initiated a certificate provisioning process to sign data. This should only be called after ClaimCertificateProvisioningProcess has been successfully executed.
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `chromemanagement_customers_certificate_provisioning_processes_sign_data_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `chromemanagement_customers_certificate_provisioning_processes_sign_data_task()`.
+/// For the simplest API, use `chromemanagement_customers_certificate_provisioning_processes_sign_data()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `chromemanagement_customers_certificate_provisioning_processes_sign_data_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn chromemanagement_customers_certificate_provisioning_processes_sign_data_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<
+            D = Result<ApiResponse<GoogleLongrunningOperation>, ApiError>,
+            P = ApiPending,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    let task =
+        chromemanagement_customers_certificate_provisioning_processes_sign_data_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`chromemanagement_customers_certificate_provisioning_processes_sign_data`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct ChromemanagementCustomersCertificateProvisioningProcessesSignDataArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
+/// POST v1/customers/{customersId}/certificateProvisioningProcesses/{certificateProvisioningProcessesId}:signData
+/// Requests the client that initiated a certificate provisioning process to sign data. This should only be called after ClaimCertificateProvisioningProcess has been successfully executed.
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `chromemanagement_customers_certificate_provisioning_processes_sign_data_builder()` + `chromemanagement_customers_certificate_provisioning_processes_sign_data_execute()`.
+/// For task-level control, use `chromemanagement_customers_certificate_provisioning_processes_sign_data_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn chromemanagement_customers_certificate_provisioning_processes_sign_data(
+    client: &SimpleHttpClient,
+    args: &ChromemanagementCustomersCertificateProvisioningProcessesSignDataArgs,
+) -> Result<
+    impl StreamIterator<
+            D = Result<ApiResponse<GoogleLongrunningOperation>, ApiError>,
+            P = ApiPending,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    let builder = chromemanagement_customers_certificate_provisioning_processes_sign_data_builder(
+        client, &args.name,
+    )?;
+    chromemanagement_customers_certificate_provisioning_processes_sign_data_execute(builder)
+}
+
+/// POST v1/customers/{customersId}/certificateProvisioningProcesses/{certificateProvisioningProcessesId}:uploadCertificate
+/// Uploads a successfully issued certificate for a certificate provisioning process.
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `chromemanagement_customers_certificate_provisioning_processes_upload_certificate_execute()` to send, or `chromemanagement_customers_certificate_provisioning_processes_upload_certificate` for simplest API.
+
+pub fn chromemanagement_customers_certificate_provisioning_processes_upload_certificate_builder(
+    client: &SimpleHttpClient,
+    name: &String,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!(
+        "https://chromemanagement.googleapis.com/v1/customers/{}/certificateProvisioningProcesses/{certificateProvisioningProcessesId}:uploadCertificate",
+        name,
+    );
+
+    // Build request
+    let builder = client
+        .post(&endpoint_url)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// POST v1/customers/{customersId}/certificateProvisioningProcesses/{certificateProvisioningProcessesId}:uploadCertificate
+/// Uploads a successfully issued certificate for a certificate provisioning process.
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `chromemanagement_customers_certificate_provisioning_processes_upload_certificate_execute()` or `chromemanagement_customers_certificate_provisioning_processes_upload_certificate`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `chromemanagement_customers_certificate_provisioning_processes_upload_certificate_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn chromemanagement_customers_certificate_provisioning_processes_upload_certificate_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<
+                ApiResponse<GoogleChromeManagementVersionsV1UploadCertificateResponse>,
+                ApiError,
+            >,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: GoogleChromeManagementVersionsV1UploadCertificateResponse =
+                    serde_json::from_str(&body)
+                        .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// POST v1/customers/{customersId}/certificateProvisioningProcesses/{certificateProvisioningProcessesId}:uploadCertificate
+/// Uploads a successfully issued certificate for a certificate provisioning process.
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `chromemanagement_customers_certificate_provisioning_processes_upload_certificate_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `chromemanagement_customers_certificate_provisioning_processes_upload_certificate_task()`.
+/// For the simplest API, use `chromemanagement_customers_certificate_provisioning_processes_upload_certificate()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `chromemanagement_customers_certificate_provisioning_processes_upload_certificate_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn chromemanagement_customers_certificate_provisioning_processes_upload_certificate_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<
+            D = Result<
+                ApiResponse<GoogleChromeManagementVersionsV1UploadCertificateResponse>,
+                ApiError,
+            >,
+            P = ApiPending,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    let task =
+        chromemanagement_customers_certificate_provisioning_processes_upload_certificate_task(
+            builder,
+        )?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`chromemanagement_customers_certificate_provisioning_processes_upload_certificate`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct ChromemanagementCustomersCertificateProvisioningProcessesUploadCertificateArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
+/// POST v1/customers/{customersId}/certificateProvisioningProcesses/{certificateProvisioningProcessesId}:uploadCertificate
+/// Uploads a successfully issued certificate for a certificate provisioning process.
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `chromemanagement_customers_certificate_provisioning_processes_upload_certificate_builder()` + `chromemanagement_customers_certificate_provisioning_processes_upload_certificate_execute()`.
+/// For task-level control, use `chromemanagement_customers_certificate_provisioning_processes_upload_certificate_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn chromemanagement_customers_certificate_provisioning_processes_upload_certificate(
+    client: &SimpleHttpClient,
+    args: &ChromemanagementCustomersCertificateProvisioningProcessesUploadCertificateArgs,
+) -> Result<
+    impl StreamIterator<
+            D = Result<
+                ApiResponse<GoogleChromeManagementVersionsV1UploadCertificateResponse>,
+                ApiError,
+            >,
+            P = ApiPending,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    let builder =
+        chromemanagement_customers_certificate_provisioning_processes_upload_certificate_builder(
+            client, &args.name,
+        )?;
+    chromemanagement_customers_certificate_provisioning_processes_upload_certificate_execute(
+        builder,
+    )
+}
+
+/// GET v1/customers/{customersId}/certificateProvisioningProcesses/{certificateProvisioningProcessesId}/operations/{operationsId}
+/// Gets the latest state of a long-running operation. Clients can use this method to poll the operation result at intervals as recommended by the API service.
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `chromemanagement_customers_certificate_provisioning_processes_operations_get_execute()` to send, or `chromemanagement_customers_certificate_provisioning_processes_operations_get` for simplest API.
+
+pub fn chromemanagement_customers_certificate_provisioning_processes_operations_get_builder(
+    client: &SimpleHttpClient,
+    name: &String,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!(
+        "https://chromemanagement.googleapis.com/v1/customers/{}/certificateProvisioningProcesses/{certificateProvisioningProcessesId}/operations/{operationsId}",
+        name,
+    );
+
+    // Build request
+    let builder = client
+        .get(&endpoint_url)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// GET v1/customers/{customersId}/certificateProvisioningProcesses/{certificateProvisioningProcessesId}/operations/{operationsId}
+/// Gets the latest state of a long-running operation. Clients can use this method to poll the operation result at intervals as recommended by the API service.
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `chromemanagement_customers_certificate_provisioning_processes_operations_get_execute()` or `chromemanagement_customers_certificate_provisioning_processes_operations_get`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `chromemanagement_customers_certificate_provisioning_processes_operations_get_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn chromemanagement_customers_certificate_provisioning_processes_operations_get_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<GoogleLongrunningOperation>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: GoogleLongrunningOperation = serde_json::from_str(&body)
+                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// GET v1/customers/{customersId}/certificateProvisioningProcesses/{certificateProvisioningProcessesId}/operations/{operationsId}
+/// Gets the latest state of a long-running operation. Clients can use this method to poll the operation result at intervals as recommended by the API service.
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `chromemanagement_customers_certificate_provisioning_processes_operations_get_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `chromemanagement_customers_certificate_provisioning_processes_operations_get_task()`.
+/// For the simplest API, use `chromemanagement_customers_certificate_provisioning_processes_operations_get()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `chromemanagement_customers_certificate_provisioning_processes_operations_get_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn chromemanagement_customers_certificate_provisioning_processes_operations_get_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<
+            D = Result<ApiResponse<GoogleLongrunningOperation>, ApiError>,
+            P = ApiPending,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    let task =
+        chromemanagement_customers_certificate_provisioning_processes_operations_get_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`chromemanagement_customers_certificate_provisioning_processes_operations_get`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct ChromemanagementCustomersCertificateProvisioningProcessesOperationsGetArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
+/// GET v1/customers/{customersId}/certificateProvisioningProcesses/{certificateProvisioningProcessesId}/operations/{operationsId}
+/// Gets the latest state of a long-running operation. Clients can use this method to poll the operation result at intervals as recommended by the API service.
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `chromemanagement_customers_certificate_provisioning_processes_operations_get_builder()` + `chromemanagement_customers_certificate_provisioning_processes_operations_get_execute()`.
+/// For task-level control, use `chromemanagement_customers_certificate_provisioning_processes_operations_get_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn chromemanagement_customers_certificate_provisioning_processes_operations_get(
+    client: &SimpleHttpClient,
+    args: &ChromemanagementCustomersCertificateProvisioningProcessesOperationsGetArgs,
+) -> Result<
+    impl StreamIterator<
+            D = Result<ApiResponse<GoogleLongrunningOperation>, ApiError>,
+            P = ApiPending,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    let builder =
+        chromemanagement_customers_certificate_provisioning_processes_operations_get_builder(
+            client, &args.name,
+        )?;
+    chromemanagement_customers_certificate_provisioning_processes_operations_get_execute(builder)
+}
+
+/// DELETE v1/customers/{customersId}/profiles/{profilesId}
+/// Deletes the data collected from a Chrome browser profile.
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `chromemanagement_customers_profiles_delete_execute()` to send, or `chromemanagement_customers_profiles_delete` for simplest API.
+
+pub fn chromemanagement_customers_profiles_delete_builder(
+    client: &SimpleHttpClient,
+    name: &String,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!(
+        "https://chromemanagement.googleapis.com/v1/customers/{}/profiles/{profilesId}",
+        name,
+    );
+
+    // Build request
+    let builder = client
+        .delete(&endpoint_url)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// DELETE v1/customers/{customersId}/profiles/{profilesId}
+/// Deletes the data collected from a Chrome browser profile.
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `chromemanagement_customers_profiles_delete_execute()` or `chromemanagement_customers_profiles_delete`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `chromemanagement_customers_profiles_delete_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn chromemanagement_customers_profiles_delete_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<GoogleProtobufEmpty>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: GoogleProtobufEmpty = serde_json::from_str(&body)
+                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// DELETE v1/customers/{customersId}/profiles/{profilesId}
+/// Deletes the data collected from a Chrome browser profile.
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `chromemanagement_customers_profiles_delete_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `chromemanagement_customers_profiles_delete_task()`.
+/// For the simplest API, use `chromemanagement_customers_profiles_delete()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `chromemanagement_customers_profiles_delete_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn chromemanagement_customers_profiles_delete_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<GoogleProtobufEmpty>, ApiError>, P = ApiPending>
+        + Send
+        + 'static,
+    ApiError,
+> {
+    let task = chromemanagement_customers_profiles_delete_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`chromemanagement_customers_profiles_delete`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct ChromemanagementCustomersProfilesDeleteArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
+/// DELETE v1/customers/{customersId}/profiles/{profilesId}
+/// Deletes the data collected from a Chrome browser profile.
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `chromemanagement_customers_profiles_delete_builder()` + `chromemanagement_customers_profiles_delete_execute()`.
+/// For task-level control, use `chromemanagement_customers_profiles_delete_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn chromemanagement_customers_profiles_delete(
+    client: &SimpleHttpClient,
+    args: &ChromemanagementCustomersProfilesDeleteArgs,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<GoogleProtobufEmpty>, ApiError>, P = ApiPending>
+        + Send
+        + 'static,
+    ApiError,
+> {
+    let builder = chromemanagement_customers_profiles_delete_builder(client, &args.name)?;
+    chromemanagement_customers_profiles_delete_execute(builder)
+}
+
+/// GET v1/customers/{customersId}/profiles/{profilesId}
+/// Gets a Chrome browser profile with customer ID and profile permanent ID.
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `chromemanagement_customers_profiles_get_execute()` to send, or `chromemanagement_customers_profiles_get` for simplest API.
+
+pub fn chromemanagement_customers_profiles_get_builder(
+    client: &SimpleHttpClient,
+    name: &String,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!(
+        "https://chromemanagement.googleapis.com/v1/customers/{}/profiles/{profilesId}",
+        name,
+    );
+
+    // Build request
+    let builder = client
+        .get(&endpoint_url)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// GET v1/customers/{customersId}/profiles/{profilesId}
+/// Gets a Chrome browser profile with customer ID and profile permanent ID.
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `chromemanagement_customers_profiles_get_execute()` or `chromemanagement_customers_profiles_get`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `chromemanagement_customers_profiles_get_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn chromemanagement_customers_profiles_get_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<
+                ApiResponse<GoogleChromeManagementVersionsV1ChromeBrowserProfile>,
+                ApiError,
+            >,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: GoogleChromeManagementVersionsV1ChromeBrowserProfile =
+                    serde_json::from_str(&body)
+                        .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// GET v1/customers/{customersId}/profiles/{profilesId}
+/// Gets a Chrome browser profile with customer ID and profile permanent ID.
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `chromemanagement_customers_profiles_get_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `chromemanagement_customers_profiles_get_task()`.
+/// For the simplest API, use `chromemanagement_customers_profiles_get()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `chromemanagement_customers_profiles_get_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn chromemanagement_customers_profiles_get_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<
+            D = Result<ApiResponse<GoogleChromeManagementVersionsV1ChromeBrowserProfile>, ApiError>,
+            P = ApiPending,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    let task = chromemanagement_customers_profiles_get_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`chromemanagement_customers_profiles_get`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct ChromemanagementCustomersProfilesGetArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
+/// GET v1/customers/{customersId}/profiles/{profilesId}
+/// Gets a Chrome browser profile with customer ID and profile permanent ID.
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `chromemanagement_customers_profiles_get_builder()` + `chromemanagement_customers_profiles_get_execute()`.
+/// For task-level control, use `chromemanagement_customers_profiles_get_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn chromemanagement_customers_profiles_get(
+    client: &SimpleHttpClient,
+    args: &ChromemanagementCustomersProfilesGetArgs,
+) -> Result<
+    impl StreamIterator<
+            D = Result<ApiResponse<GoogleChromeManagementVersionsV1ChromeBrowserProfile>, ApiError>,
+            P = ApiPending,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    let builder = chromemanagement_customers_profiles_get_builder(client, &args.name)?;
+    chromemanagement_customers_profiles_get_execute(builder)
+}
+
 /// GET v1/customers/{customersId}/profiles
 /// Lists Chrome browser profiles of a customer based on the given search and sorting criteria.
 ///
@@ -668,13 +2543,16 @@ pub fn chromemanagement_customers_apps_fetch_users_requesting_extension(
 pub fn chromemanagement_customers_profiles_list_builder(
     client: &SimpleHttpClient,
     parent: &String,
-    filter: &Option<String>,
-    orderBy: &Option<String>,
-    pageSize: &Option<i32>,
-    pageToken: &Option<String>,
+    filter: &Option<Option<String>>,
+    orderBy: &Option<Option<String>>,
+    pageSize: &Option<Option<String>>,
+    pageToken: &Option<Option<String>>,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
-    let endpoint_url = format!("https://chromemanagement.googleapis.com/v1/customers/{}/profiles",);
+    let endpoint_url = format!(
+        "https://chromemanagement.googleapis.com/v1/customers/{}/profiles",
+        parent,
+    );
 
     // Build request
     let mut query_parts = Vec::new();
@@ -825,13 +2703,13 @@ pub struct ChromemanagementCustomersProfilesListArgs {
     /// Path parameter: parent
     pub parent: String,
     /// Query parameter: filter
-    pub filter: Option<String>,
+    pub filter: Option<Option<String>>,
     /// Query parameter: orderBy
-    pub orderBy: Option<String>,
+    pub orderBy: Option<Option<String>>,
     /// Query parameter: pageSize
-    pub pageSize: Option<i32>,
+    pub pageSize: Option<Option<String>>,
     /// Query parameter: pageToken
-    pub pageToken: Option<String>,
+    pub pageToken: Option<Option<String>>,
 }
 
 /// GET v1/customers/{customersId}/profiles
@@ -870,6 +2748,557 @@ pub fn chromemanagement_customers_profiles_list(
     chromemanagement_customers_profiles_list_execute(builder)
 }
 
+/// POST v1/customers/{customersId}/profiles/{profilesId}/commands
+/// Creates a Chrome browser profile remote command.
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `chromemanagement_customers_profiles_commands_create_execute()` to send, or `chromemanagement_customers_profiles_commands_create` for simplest API.
+
+pub fn chromemanagement_customers_profiles_commands_create_builder(
+    client: &SimpleHttpClient,
+    parent: &String,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!(
+        "https://chromemanagement.googleapis.com/v1/customers/{}/profiles/{profilesId}/commands",
+        parent,
+    );
+
+    // Build request
+    let builder = client
+        .post(&endpoint_url)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// POST v1/customers/{customersId}/profiles/{profilesId}/commands
+/// Creates a Chrome browser profile remote command.
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `chromemanagement_customers_profiles_commands_create_execute()` or `chromemanagement_customers_profiles_commands_create`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `chromemanagement_customers_profiles_commands_create_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn chromemanagement_customers_profiles_commands_create_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<
+                ApiResponse<GoogleChromeManagementVersionsV1ChromeBrowserProfileCommand>,
+                ApiError,
+            >,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: GoogleChromeManagementVersionsV1ChromeBrowserProfileCommand =
+                    serde_json::from_str(&body)
+                        .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// POST v1/customers/{customersId}/profiles/{profilesId}/commands
+/// Creates a Chrome browser profile remote command.
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `chromemanagement_customers_profiles_commands_create_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `chromemanagement_customers_profiles_commands_create_task()`.
+/// For the simplest API, use `chromemanagement_customers_profiles_commands_create()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `chromemanagement_customers_profiles_commands_create_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn chromemanagement_customers_profiles_commands_create_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<
+            D = Result<
+                ApiResponse<GoogleChromeManagementVersionsV1ChromeBrowserProfileCommand>,
+                ApiError,
+            >,
+            P = ApiPending,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    let task = chromemanagement_customers_profiles_commands_create_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`chromemanagement_customers_profiles_commands_create`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct ChromemanagementCustomersProfilesCommandsCreateArgs {
+    /// Path parameter: parent
+    pub parent: String,
+}
+
+/// POST v1/customers/{customersId}/profiles/{profilesId}/commands
+/// Creates a Chrome browser profile remote command.
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `chromemanagement_customers_profiles_commands_create_builder()` + `chromemanagement_customers_profiles_commands_create_execute()`.
+/// For task-level control, use `chromemanagement_customers_profiles_commands_create_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn chromemanagement_customers_profiles_commands_create(
+    client: &SimpleHttpClient,
+    args: &ChromemanagementCustomersProfilesCommandsCreateArgs,
+) -> Result<
+    impl StreamIterator<
+            D = Result<
+                ApiResponse<GoogleChromeManagementVersionsV1ChromeBrowserProfileCommand>,
+                ApiError,
+            >,
+            P = ApiPending,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    let builder =
+        chromemanagement_customers_profiles_commands_create_builder(client, &args.parent)?;
+    chromemanagement_customers_profiles_commands_create_execute(builder)
+}
+
+/// GET v1/customers/{customersId}/profiles/{profilesId}/commands/{commandsId}
+/// Gets a Chrome browser profile remote command.
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `chromemanagement_customers_profiles_commands_get_execute()` to send, or `chromemanagement_customers_profiles_commands_get` for simplest API.
+
+pub fn chromemanagement_customers_profiles_commands_get_builder(
+    client: &SimpleHttpClient,
+    name: &String,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!(
+        "https://chromemanagement.googleapis.com/v1/customers/{}/profiles/{profilesId}/commands/{commandsId}",
+        name,
+    );
+
+    // Build request
+    let builder = client
+        .get(&endpoint_url)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// GET v1/customers/{customersId}/profiles/{profilesId}/commands/{commandsId}
+/// Gets a Chrome browser profile remote command.
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `chromemanagement_customers_profiles_commands_get_execute()` or `chromemanagement_customers_profiles_commands_get`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `chromemanagement_customers_profiles_commands_get_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn chromemanagement_customers_profiles_commands_get_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<
+                ApiResponse<GoogleChromeManagementVersionsV1ChromeBrowserProfileCommand>,
+                ApiError,
+            >,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: GoogleChromeManagementVersionsV1ChromeBrowserProfileCommand =
+                    serde_json::from_str(&body)
+                        .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// GET v1/customers/{customersId}/profiles/{profilesId}/commands/{commandsId}
+/// Gets a Chrome browser profile remote command.
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `chromemanagement_customers_profiles_commands_get_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `chromemanagement_customers_profiles_commands_get_task()`.
+/// For the simplest API, use `chromemanagement_customers_profiles_commands_get()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `chromemanagement_customers_profiles_commands_get_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn chromemanagement_customers_profiles_commands_get_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<
+            D = Result<
+                ApiResponse<GoogleChromeManagementVersionsV1ChromeBrowserProfileCommand>,
+                ApiError,
+            >,
+            P = ApiPending,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    let task = chromemanagement_customers_profiles_commands_get_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`chromemanagement_customers_profiles_commands_get`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct ChromemanagementCustomersProfilesCommandsGetArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
+/// GET v1/customers/{customersId}/profiles/{profilesId}/commands/{commandsId}
+/// Gets a Chrome browser profile remote command.
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `chromemanagement_customers_profiles_commands_get_builder()` + `chromemanagement_customers_profiles_commands_get_execute()`.
+/// For task-level control, use `chromemanagement_customers_profiles_commands_get_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn chromemanagement_customers_profiles_commands_get(
+    client: &SimpleHttpClient,
+    args: &ChromemanagementCustomersProfilesCommandsGetArgs,
+) -> Result<
+    impl StreamIterator<
+            D = Result<
+                ApiResponse<GoogleChromeManagementVersionsV1ChromeBrowserProfileCommand>,
+                ApiError,
+            >,
+            P = ApiPending,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    let builder = chromemanagement_customers_profiles_commands_get_builder(client, &args.name)?;
+    chromemanagement_customers_profiles_commands_get_execute(builder)
+}
+
+/// GET v1/customers/{customersId}/profiles/{profilesId}/commands
+/// Lists remote commands of a Chrome browser profile.
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `chromemanagement_customers_profiles_commands_list_execute()` to send, or `chromemanagement_customers_profiles_commands_list` for simplest API.
+
+pub fn chromemanagement_customers_profiles_commands_list_builder(
+    client: &SimpleHttpClient,
+    parent: &String,
+    pageSize: &Option<Option<String>>,
+    pageToken: &Option<Option<String>>,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!(
+        "https://chromemanagement.googleapis.com/v1/customers/{}/profiles/{profilesId}/commands",
+        parent,
+    );
+
+    // Build request
+    let mut query_parts = Vec::new();
+    if let Some(val) = pageSize.as_ref() {
+        query_parts.push(format!("pageSize={}", val));
+    }
+    if let Some(val) = pageToken.as_ref() {
+        query_parts.push(format!("pageToken={}", val));
+    }
+
+    let url_with_query = if query_parts.is_empty() {
+        endpoint_url
+    } else {
+        format!("{}?{}", endpoint_url, query_parts.join("&"))
+    };
+
+    let builder = client
+        .get(&url_with_query)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// GET v1/customers/{customersId}/profiles/{profilesId}/commands
+/// Lists remote commands of a Chrome browser profile.
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `chromemanagement_customers_profiles_commands_list_execute()` or `chromemanagement_customers_profiles_commands_list`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `chromemanagement_customers_profiles_commands_list_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn chromemanagement_customers_profiles_commands_list_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<
+                ApiResponse<
+                    GoogleChromeManagementVersionsV1ListChromeBrowserProfileCommandsResponse,
+                >,
+                ApiError,
+            >,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success { stream, intro, headers, .. } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: GoogleChromeManagementVersionsV1ListChromeBrowserProfileCommandsResponse = serde_json::from_str(&body)
+                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// GET v1/customers/{customersId}/profiles/{profilesId}/commands
+/// Lists remote commands of a Chrome browser profile.
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `chromemanagement_customers_profiles_commands_list_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `chromemanagement_customers_profiles_commands_list_task()`.
+/// For the simplest API, use `chromemanagement_customers_profiles_commands_list()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `chromemanagement_customers_profiles_commands_list_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn chromemanagement_customers_profiles_commands_list_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<
+            D = Result<
+                ApiResponse<
+                    GoogleChromeManagementVersionsV1ListChromeBrowserProfileCommandsResponse,
+                >,
+                ApiError,
+            >,
+            P = ApiPending,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    let task = chromemanagement_customers_profiles_commands_list_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`chromemanagement_customers_profiles_commands_list`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct ChromemanagementCustomersProfilesCommandsListArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Query parameter: pageSize
+    pub pageSize: Option<Option<String>>,
+    /// Query parameter: pageToken
+    pub pageToken: Option<Option<String>>,
+}
+
+/// GET v1/customers/{customersId}/profiles/{profilesId}/commands
+/// Lists remote commands of a Chrome browser profile.
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `chromemanagement_customers_profiles_commands_list_builder()` + `chromemanagement_customers_profiles_commands_list_execute()`.
+/// For task-level control, use `chromemanagement_customers_profiles_commands_list_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn chromemanagement_customers_profiles_commands_list(
+    client: &SimpleHttpClient,
+    args: &ChromemanagementCustomersProfilesCommandsListArgs,
+) -> Result<
+    impl StreamIterator<
+            D = Result<
+                ApiResponse<
+                    GoogleChromeManagementVersionsV1ListChromeBrowserProfileCommandsResponse,
+                >,
+                ApiError,
+            >,
+            P = ApiPending,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    let builder = chromemanagement_customers_profiles_commands_list_builder(
+        client,
+        &args.parent,
+        &args.pageSize,
+        &args.pageToken,
+    )?;
+    chromemanagement_customers_profiles_commands_list_execute(builder)
+}
+
 /// GET v1/customers/{customersId}/reports:countActiveDevices
 /// Get a count of active devices per set time frames.
 ///
@@ -879,13 +3308,14 @@ pub fn chromemanagement_customers_profiles_list(
 pub fn chromemanagement_customers_reports_count_active_devices_builder(
     client: &SimpleHttpClient,
     customer: &String,
-    date_day: &Option<i32>,
-    date_month: &Option<i32>,
-    date_year: &Option<i32>,
+    date_day: &Option<Option<String>>,
+    date_month: &Option<Option<String>>,
+    date_year: &Option<Option<String>>,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
         "https://chromemanagement.googleapis.com/v1/customers/{}/reports:countActiveDevices",
+        customer,
     );
 
     // Build request
@@ -1031,11 +3461,11 @@ pub struct ChromemanagementCustomersReportsCountActiveDevicesArgs {
     /// Path parameter: customer
     pub customer: String,
     /// Query parameter: date_day
-    pub date_day: Option<i32>,
+    pub date_day: Option<Option<String>>,
     /// Query parameter: date_month
-    pub date_month: Option<i32>,
+    pub date_month: Option<Option<String>>,
     /// Query parameter: date_year
-    pub date_year: Option<i32>,
+    pub date_year: Option<Option<String>>,
 }
 
 /// GET v1/customers/{customersId}/reports:countActiveDevices
@@ -1079,11 +3509,12 @@ pub fn chromemanagement_customers_reports_count_active_devices(
 pub fn chromemanagement_customers_reports_count_chrome_browsers_needing_attention_builder(
     client: &SimpleHttpClient,
     customer: &String,
-    orgUnitId: &Option<String>,
+    orgUnitId: &Option<Option<String>>,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
         "https://chromemanagement.googleapis.com/v1/customers/{}/reports:countChromeBrowsersNeedingAttention",
+        customer,
     );
 
     // Build request
@@ -1227,7 +3658,7 @@ pub struct ChromemanagementCustomersReportsCountChromeBrowsersNeedingAttentionAr
     /// Path parameter: customer
     pub customer: String,
     /// Query parameter: orgUnitId
-    pub orgUnitId: Option<String>,
+    pub orgUnitId: Option<Option<String>>,
 }
 
 /// GET v1/customers/{customersId}/reports:countChromeBrowsersNeedingAttention
@@ -1273,13 +3704,14 @@ pub fn chromemanagement_customers_reports_count_chrome_browsers_needing_attentio
 pub fn chromemanagement_customers_reports_count_chrome_crash_events_builder(
     client: &SimpleHttpClient,
     customer: &String,
-    filter: &Option<String>,
-    orderBy: &Option<String>,
-    orgUnitId: &Option<String>,
+    filter: &Option<Option<String>>,
+    orderBy: &Option<Option<String>>,
+    orgUnitId: &Option<Option<String>>,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
         "https://chromemanagement.googleapis.com/v1/customers/{}/reports:countChromeCrashEvents",
+        customer,
     );
 
     // Build request
@@ -1428,11 +3860,11 @@ pub struct ChromemanagementCustomersReportsCountChromeCrashEventsArgs {
     /// Path parameter: customer
     pub customer: String,
     /// Query parameter: filter
-    pub filter: Option<String>,
+    pub filter: Option<Option<String>>,
     /// Query parameter: orderBy
-    pub orderBy: Option<String>,
+    pub orderBy: Option<Option<String>>,
     /// Query parameter: orgUnitId
-    pub orgUnitId: Option<String>,
+    pub orgUnitId: Option<Option<String>>,
 }
 
 /// GET v1/customers/{customersId}/reports:countChromeCrashEvents
@@ -1479,13 +3911,14 @@ pub fn chromemanagement_customers_reports_count_chrome_crash_events(
 pub fn chromemanagement_customers_reports_count_chrome_devices_reaching_auto_expiration_date_builder(
     client: &SimpleHttpClient,
     customer: &String,
-    maxAueDate: &Option<String>,
-    minAueDate: &Option<String>,
-    orgUnitId: &Option<String>,
+    maxAueDate: &Option<Option<String>>,
+    minAueDate: &Option<Option<String>>,
+    orgUnitId: &Option<Option<String>>,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
         "https://chromemanagement.googleapis.com/v1/customers/{}/reports:countChromeDevicesReachingAutoExpirationDate",
+        customer,
     );
 
     // Build request
@@ -1635,11 +4068,11 @@ pub struct ChromemanagementCustomersReportsCountChromeDevicesReachingAutoExpirat
     /// Path parameter: customer
     pub customer: String,
     /// Query parameter: maxAueDate
-    pub maxAueDate: Option<String>,
+    pub maxAueDate: Option<Option<String>>,
     /// Query parameter: minAueDate
-    pub minAueDate: Option<String>,
+    pub minAueDate: Option<Option<String>>,
     /// Query parameter: orgUnitId
-    pub orgUnitId: Option<String>,
+    pub orgUnitId: Option<Option<String>>,
 }
 
 /// GET v1/customers/{customersId}/reports:countChromeDevicesReachingAutoExpirationDate
@@ -1684,12 +4117,13 @@ pub fn chromemanagement_customers_reports_count_chrome_devices_reaching_auto_exp
 pub fn chromemanagement_customers_reports_count_chrome_devices_that_need_attention_builder(
     client: &SimpleHttpClient,
     customer: &String,
-    orgUnitId: &Option<String>,
-    readMask: &Option<String>,
+    orgUnitId: &Option<Option<String>>,
+    readMask: &Option<Option<String>>,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
         "https://chromemanagement.googleapis.com/v1/customers/{}/reports:countChromeDevicesThatNeedAttention",
+        customer,
     );
 
     // Build request
@@ -1836,9 +4270,9 @@ pub struct ChromemanagementCustomersReportsCountChromeDevicesThatNeedAttentionAr
     /// Path parameter: customer
     pub customer: String,
     /// Query parameter: orgUnitId
-    pub orgUnitId: Option<String>,
+    pub orgUnitId: Option<Option<String>>,
     /// Query parameter: readMask
-    pub readMask: Option<String>,
+    pub readMask: Option<Option<String>>,
 }
 
 /// GET v1/customers/{customersId}/reports:countChromeDevicesThatNeedAttention
@@ -1885,12 +4319,13 @@ pub fn chromemanagement_customers_reports_count_chrome_devices_that_need_attenti
 pub fn chromemanagement_customers_reports_count_chrome_hardware_fleet_devices_builder(
     client: &SimpleHttpClient,
     customer: &String,
-    orgUnitId: &Option<String>,
-    readMask: &Option<String>,
+    orgUnitId: &Option<Option<String>>,
+    readMask: &Option<Option<String>>,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
         "https://chromemanagement.googleapis.com/v1/customers/{}/reports:countChromeHardwareFleetDevices",
+        customer,
     );
 
     // Build request
@@ -2037,9 +4472,9 @@ pub struct ChromemanagementCustomersReportsCountChromeHardwareFleetDevicesArgs {
     /// Path parameter: customer
     pub customer: String,
     /// Query parameter: orgUnitId
-    pub orgUnitId: Option<String>,
+    pub orgUnitId: Option<Option<String>>,
     /// Query parameter: readMask
-    pub readMask: Option<String>,
+    pub readMask: Option<Option<String>>,
 }
 
 /// GET v1/customers/{customersId}/reports:countChromeHardwareFleetDevices
@@ -2085,14 +4520,15 @@ pub fn chromemanagement_customers_reports_count_chrome_hardware_fleet_devices(
 pub fn chromemanagement_customers_reports_count_chrome_versions_builder(
     client: &SimpleHttpClient,
     customer: &String,
-    filter: &Option<String>,
-    orgUnitId: &Option<String>,
-    pageSize: &Option<i32>,
-    pageToken: &Option<String>,
+    filter: &Option<Option<String>>,
+    orgUnitId: &Option<Option<String>>,
+    pageSize: &Option<Option<String>>,
+    pageToken: &Option<Option<String>>,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
         "https://chromemanagement.googleapis.com/v1/customers/{}/reports:countChromeVersions",
+        customer,
     );
 
     // Build request
@@ -2241,13 +4677,13 @@ pub struct ChromemanagementCustomersReportsCountChromeVersionsArgs {
     /// Path parameter: customer
     pub customer: String,
     /// Query parameter: filter
-    pub filter: Option<String>,
+    pub filter: Option<Option<String>>,
     /// Query parameter: orgUnitId
-    pub orgUnitId: Option<String>,
+    pub orgUnitId: Option<Option<String>>,
     /// Query parameter: pageSize
-    pub pageSize: Option<i32>,
+    pub pageSize: Option<Option<String>>,
     /// Query parameter: pageToken
-    pub pageToken: Option<String>,
+    pub pageToken: Option<Option<String>>,
 }
 
 /// GET v1/customers/{customersId}/reports:countChromeVersions
@@ -2292,13 +4728,14 @@ pub fn chromemanagement_customers_reports_count_chrome_versions(
 pub fn chromemanagement_customers_reports_count_devices_per_boot_type_builder(
     client: &SimpleHttpClient,
     customer: &String,
-    date_day: &Option<i32>,
-    date_month: &Option<i32>,
-    date_year: &Option<i32>,
+    date_day: &Option<Option<String>>,
+    date_month: &Option<Option<String>>,
+    date_year: &Option<Option<String>>,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
         "https://chromemanagement.googleapis.com/v1/customers/{}/reports:countDevicesPerBootType",
+        customer,
     );
 
     // Build request
@@ -2447,11 +4884,11 @@ pub struct ChromemanagementCustomersReportsCountDevicesPerBootTypeArgs {
     /// Path parameter: customer
     pub customer: String,
     /// Query parameter: date_day
-    pub date_day: Option<i32>,
+    pub date_day: Option<Option<String>>,
     /// Query parameter: date_month
-    pub date_month: Option<i32>,
+    pub date_month: Option<Option<String>>,
     /// Query parameter: date_year
-    pub date_year: Option<i32>,
+    pub date_year: Option<Option<String>>,
 }
 
 /// GET v1/customers/{customersId}/reports:countDevicesPerBootType
@@ -2498,13 +4935,14 @@ pub fn chromemanagement_customers_reports_count_devices_per_boot_type(
 pub fn chromemanagement_customers_reports_count_devices_per_release_channel_builder(
     client: &SimpleHttpClient,
     customer: &String,
-    date_day: &Option<i32>,
-    date_month: &Option<i32>,
-    date_year: &Option<i32>,
+    date_day: &Option<Option<String>>,
+    date_month: &Option<Option<String>>,
+    date_year: &Option<Option<String>>,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
         "https://chromemanagement.googleapis.com/v1/customers/{}/reports:countDevicesPerReleaseChannel",
+        customer,
     );
 
     // Build request
@@ -2653,11 +5091,11 @@ pub struct ChromemanagementCustomersReportsCountDevicesPerReleaseChannelArgs {
     /// Path parameter: customer
     pub customer: String,
     /// Query parameter: date_day
-    pub date_day: Option<i32>,
+    pub date_day: Option<Option<String>>,
     /// Query parameter: date_month
-    pub date_month: Option<i32>,
+    pub date_month: Option<Option<String>>,
     /// Query parameter: date_year
-    pub date_year: Option<i32>,
+    pub date_year: Option<Option<String>>,
 }
 
 /// GET v1/customers/{customersId}/reports:countDevicesPerReleaseChannel
@@ -2704,15 +5142,16 @@ pub fn chromemanagement_customers_reports_count_devices_per_release_channel(
 pub fn chromemanagement_customers_reports_count_installed_apps_builder(
     client: &SimpleHttpClient,
     customer: &String,
-    filter: &Option<String>,
-    orderBy: &Option<String>,
-    orgUnitId: &Option<String>,
-    pageSize: &Option<i32>,
-    pageToken: &Option<String>,
+    filter: &Option<Option<String>>,
+    orderBy: &Option<Option<String>>,
+    orgUnitId: &Option<Option<String>>,
+    pageSize: &Option<Option<String>>,
+    pageToken: &Option<Option<String>>,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
         "https://chromemanagement.googleapis.com/v1/customers/{}/reports:countInstalledApps",
+        customer,
     );
 
     // Build request
@@ -2864,15 +5303,15 @@ pub struct ChromemanagementCustomersReportsCountInstalledAppsArgs {
     /// Path parameter: customer
     pub customer: String,
     /// Query parameter: filter
-    pub filter: Option<String>,
+    pub filter: Option<Option<String>>,
     /// Query parameter: orderBy
-    pub orderBy: Option<String>,
+    pub orderBy: Option<Option<String>>,
     /// Query parameter: orgUnitId
-    pub orgUnitId: Option<String>,
+    pub orgUnitId: Option<Option<String>>,
     /// Query parameter: pageSize
-    pub pageSize: Option<i32>,
+    pub pageSize: Option<Option<String>>,
     /// Query parameter: pageToken
-    pub pageToken: Option<String>,
+    pub pageToken: Option<Option<String>>,
 }
 
 /// GET v1/customers/{customersId}/reports:countInstalledApps
@@ -2918,15 +5357,16 @@ pub fn chromemanagement_customers_reports_count_installed_apps(
 pub fn chromemanagement_customers_reports_count_print_jobs_by_printer_builder(
     client: &SimpleHttpClient,
     customer: &String,
-    filter: &Option<String>,
-    orderBy: &Option<String>,
-    pageSize: &Option<i32>,
-    pageToken: &Option<String>,
-    printerOrgUnitId: &Option<String>,
+    filter: &Option<Option<String>>,
+    orderBy: &Option<Option<String>>,
+    pageSize: &Option<Option<String>>,
+    pageToken: &Option<Option<String>>,
+    printerOrgUnitId: &Option<Option<String>>,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
         "https://chromemanagement.googleapis.com/v1/customers/{}/reports:countPrintJobsByPrinter",
+        customer,
     );
 
     // Build request
@@ -3081,15 +5521,15 @@ pub struct ChromemanagementCustomersReportsCountPrintJobsByPrinterArgs {
     /// Path parameter: customer
     pub customer: String,
     /// Query parameter: filter
-    pub filter: Option<String>,
+    pub filter: Option<Option<String>>,
     /// Query parameter: orderBy
-    pub orderBy: Option<String>,
+    pub orderBy: Option<Option<String>>,
     /// Query parameter: pageSize
-    pub pageSize: Option<i32>,
+    pub pageSize: Option<Option<String>>,
     /// Query parameter: pageToken
-    pub pageToken: Option<String>,
+    pub pageToken: Option<Option<String>>,
     /// Query parameter: printerOrgUnitId
-    pub printerOrgUnitId: Option<String>,
+    pub printerOrgUnitId: Option<Option<String>>,
 }
 
 /// GET v1/customers/{customersId}/reports:countPrintJobsByPrinter
@@ -3138,15 +5578,16 @@ pub fn chromemanagement_customers_reports_count_print_jobs_by_printer(
 pub fn chromemanagement_customers_reports_count_print_jobs_by_user_builder(
     client: &SimpleHttpClient,
     customer: &String,
-    filter: &Option<String>,
-    orderBy: &Option<String>,
-    pageSize: &Option<i32>,
-    pageToken: &Option<String>,
-    printerOrgUnitId: &Option<String>,
+    filter: &Option<Option<String>>,
+    orderBy: &Option<Option<String>>,
+    pageSize: &Option<Option<String>>,
+    pageToken: &Option<Option<String>>,
+    printerOrgUnitId: &Option<Option<String>>,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
         "https://chromemanagement.googleapis.com/v1/customers/{}/reports:countPrintJobsByUser",
+        customer,
     );
 
     // Build request
@@ -3298,15 +5739,15 @@ pub struct ChromemanagementCustomersReportsCountPrintJobsByUserArgs {
     /// Path parameter: customer
     pub customer: String,
     /// Query parameter: filter
-    pub filter: Option<String>,
+    pub filter: Option<Option<String>>,
     /// Query parameter: orderBy
-    pub orderBy: Option<String>,
+    pub orderBy: Option<Option<String>>,
     /// Query parameter: pageSize
-    pub pageSize: Option<i32>,
+    pub pageSize: Option<Option<String>>,
     /// Query parameter: pageToken
-    pub pageToken: Option<String>,
+    pub pageToken: Option<Option<String>>,
     /// Query parameter: printerOrgUnitId
-    pub printerOrgUnitId: Option<String>,
+    pub printerOrgUnitId: Option<Option<String>>,
 }
 
 /// GET v1/customers/{customersId}/reports:countPrintJobsByUser
@@ -3352,15 +5793,16 @@ pub fn chromemanagement_customers_reports_count_print_jobs_by_user(
 pub fn chromemanagement_customers_reports_enumerate_print_jobs_builder(
     client: &SimpleHttpClient,
     customer: &String,
-    filter: &Option<String>,
-    orderBy: &Option<String>,
-    pageSize: &Option<i32>,
-    pageToken: &Option<String>,
-    printerOrgUnitId: &Option<String>,
+    filter: &Option<Option<String>>,
+    orderBy: &Option<Option<String>>,
+    pageSize: &Option<Option<String>>,
+    pageToken: &Option<Option<String>>,
+    printerOrgUnitId: &Option<Option<String>>,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
         "https://chromemanagement.googleapis.com/v1/customers/{}/reports:enumeratePrintJobs",
+        customer,
     );
 
     // Build request
@@ -3512,15 +5954,15 @@ pub struct ChromemanagementCustomersReportsEnumeratePrintJobsArgs {
     /// Path parameter: customer
     pub customer: String,
     /// Query parameter: filter
-    pub filter: Option<String>,
+    pub filter: Option<Option<String>>,
     /// Query parameter: orderBy
-    pub orderBy: Option<String>,
+    pub orderBy: Option<Option<String>>,
     /// Query parameter: pageSize
-    pub pageSize: Option<i32>,
+    pub pageSize: Option<Option<String>>,
     /// Query parameter: pageToken
-    pub pageToken: Option<String>,
+    pub pageToken: Option<Option<String>>,
     /// Query parameter: printerOrgUnitId
-    pub printerOrgUnitId: Option<String>,
+    pub printerOrgUnitId: Option<Option<String>>,
 }
 
 /// GET v1/customers/{customersId}/reports:enumeratePrintJobs
@@ -3566,17 +6008,18 @@ pub fn chromemanagement_customers_reports_enumerate_print_jobs(
 pub fn chromemanagement_customers_reports_find_installed_app_devices_builder(
     client: &SimpleHttpClient,
     customer: &String,
-    appId: &Option<String>,
-    appType: &Option<String>,
-    filter: &Option<String>,
-    orderBy: &Option<String>,
-    orgUnitId: &Option<String>,
-    pageSize: &Option<i32>,
-    pageToken: &Option<String>,
+    appId: &Option<Option<String>>,
+    appType: &Option<Option<String>>,
+    filter: &Option<Option<String>>,
+    orderBy: &Option<Option<String>>,
+    orgUnitId: &Option<Option<String>>,
+    pageSize: &Option<Option<String>>,
+    pageToken: &Option<Option<String>>,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
         "https://chromemanagement.googleapis.com/v1/customers/{}/reports:findInstalledAppDevices",
+        customer,
     );
 
     // Build request
@@ -3737,19 +6180,19 @@ pub struct ChromemanagementCustomersReportsFindInstalledAppDevicesArgs {
     /// Path parameter: customer
     pub customer: String,
     /// Query parameter: appId
-    pub appId: Option<String>,
+    pub appId: Option<Option<String>>,
     /// Query parameter: appType
-    pub appType: Option<String>,
+    pub appType: Option<Option<String>>,
     /// Query parameter: filter
-    pub filter: Option<String>,
+    pub filter: Option<Option<String>>,
     /// Query parameter: orderBy
-    pub orderBy: Option<String>,
+    pub orderBy: Option<Option<String>>,
     /// Query parameter: orgUnitId
-    pub orgUnitId: Option<String>,
+    pub orgUnitId: Option<Option<String>>,
     /// Query parameter: pageSize
-    pub pageSize: Option<i32>,
+    pub pageSize: Option<Option<String>>,
     /// Query parameter: pageToken
-    pub pageToken: Option<String>,
+    pub pageToken: Option<Option<String>>,
 }
 
 /// GET v1/customers/{customersId}/reports:findInstalledAppDevices
@@ -3791,6 +6234,190 @@ pub fn chromemanagement_customers_reports_find_installed_app_devices(
     chromemanagement_customers_reports_find_installed_app_devices_execute(builder)
 }
 
+/// GET v1/customers/{customersId}/telemetry/devices/{devicesId}
+/// Get telemetry device.
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `chromemanagement_customers_telemetry_devices_get_execute()` to send, or `chromemanagement_customers_telemetry_devices_get` for simplest API.
+
+pub fn chromemanagement_customers_telemetry_devices_get_builder(
+    client: &SimpleHttpClient,
+    name: &String,
+    readMask: &Option<Option<String>>,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!(
+        "https://chromemanagement.googleapis.com/v1/customers/{}/telemetry/devices/{devicesId}",
+        name,
+    );
+
+    // Build request
+    let mut query_parts = Vec::new();
+    if let Some(val) = readMask.as_ref() {
+        query_parts.push(format!("readMask={}", val));
+    }
+
+    let url_with_query = if query_parts.is_empty() {
+        endpoint_url
+    } else {
+        format!("{}?{}", endpoint_url, query_parts.join("&"))
+    };
+
+    let builder = client
+        .get(&url_with_query)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// GET v1/customers/{customersId}/telemetry/devices/{devicesId}
+/// Get telemetry device.
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `chromemanagement_customers_telemetry_devices_get_execute()` or `chromemanagement_customers_telemetry_devices_get`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `chromemanagement_customers_telemetry_devices_get_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn chromemanagement_customers_telemetry_devices_get_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<GoogleChromeManagementV1TelemetryDevice>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: GoogleChromeManagementV1TelemetryDevice =
+                    serde_json::from_str(&body)
+                        .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// GET v1/customers/{customersId}/telemetry/devices/{devicesId}
+/// Get telemetry device.
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `chromemanagement_customers_telemetry_devices_get_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `chromemanagement_customers_telemetry_devices_get_task()`.
+/// For the simplest API, use `chromemanagement_customers_telemetry_devices_get()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `chromemanagement_customers_telemetry_devices_get_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn chromemanagement_customers_telemetry_devices_get_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<
+            D = Result<ApiResponse<GoogleChromeManagementV1TelemetryDevice>, ApiError>,
+            P = ApiPending,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    let task = chromemanagement_customers_telemetry_devices_get_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`chromemanagement_customers_telemetry_devices_get`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct ChromemanagementCustomersTelemetryDevicesGetArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Query parameter: readMask
+    pub readMask: Option<Option<String>>,
+}
+
+/// GET v1/customers/{customersId}/telemetry/devices/{devicesId}
+/// Get telemetry device.
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `chromemanagement_customers_telemetry_devices_get_builder()` + `chromemanagement_customers_telemetry_devices_get_execute()`.
+/// For task-level control, use `chromemanagement_customers_telemetry_devices_get_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn chromemanagement_customers_telemetry_devices_get(
+    client: &SimpleHttpClient,
+    args: &ChromemanagementCustomersTelemetryDevicesGetArgs,
+) -> Result<
+    impl StreamIterator<
+            D = Result<ApiResponse<GoogleChromeManagementV1TelemetryDevice>, ApiError>,
+            P = ApiPending,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    let builder = chromemanagement_customers_telemetry_devices_get_builder(
+        client,
+        &args.name,
+        &args.readMask,
+    )?;
+    chromemanagement_customers_telemetry_devices_get_execute(builder)
+}
+
 /// GET v1/customers/{customersId}/telemetry/devices
 /// List all telemetry devices.
 ///
@@ -3800,14 +6427,16 @@ pub fn chromemanagement_customers_reports_find_installed_app_devices(
 pub fn chromemanagement_customers_telemetry_devices_list_builder(
     client: &SimpleHttpClient,
     parent: &String,
-    filter: &Option<String>,
-    pageSize: &Option<i32>,
-    pageToken: &Option<String>,
-    readMask: &Option<String>,
+    filter: &Option<Option<String>>,
+    pageSize: &Option<Option<String>>,
+    pageToken: &Option<Option<String>>,
+    readMask: &Option<Option<String>>,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
-    let endpoint_url =
-        format!("https://chromemanagement.googleapis.com/v1/customers/{}/telemetry/devices",);
+    let endpoint_url = format!(
+        "https://chromemanagement.googleapis.com/v1/customers/{}/telemetry/devices",
+        parent,
+    );
 
     // Build request
     let mut query_parts = Vec::new();
@@ -3955,13 +6584,13 @@ pub struct ChromemanagementCustomersTelemetryDevicesListArgs {
     /// Path parameter: parent
     pub parent: String,
     /// Query parameter: filter
-    pub filter: Option<String>,
+    pub filter: Option<Option<String>>,
     /// Query parameter: pageSize
-    pub pageSize: Option<i32>,
+    pub pageSize: Option<Option<String>>,
     /// Query parameter: pageToken
-    pub pageToken: Option<String>,
+    pub pageToken: Option<Option<String>>,
     /// Query parameter: readMask
-    pub readMask: Option<String>,
+    pub readMask: Option<Option<String>>,
 }
 
 /// GET v1/customers/{customersId}/telemetry/devices
@@ -4006,14 +6635,16 @@ pub fn chromemanagement_customers_telemetry_devices_list(
 pub fn chromemanagement_customers_telemetry_events_list_builder(
     client: &SimpleHttpClient,
     parent: &String,
-    filter: &Option<String>,
-    pageSize: &Option<i32>,
-    pageToken: &Option<String>,
-    readMask: &Option<String>,
+    filter: &Option<Option<String>>,
+    pageSize: &Option<Option<String>>,
+    pageToken: &Option<Option<String>>,
+    readMask: &Option<Option<String>>,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
-    let endpoint_url =
-        format!("https://chromemanagement.googleapis.com/v1/customers/{}/telemetry/events",);
+    let endpoint_url = format!(
+        "https://chromemanagement.googleapis.com/v1/customers/{}/telemetry/events",
+        parent,
+    );
 
     // Build request
     let mut query_parts = Vec::new();
@@ -4161,13 +6792,13 @@ pub struct ChromemanagementCustomersTelemetryEventsListArgs {
     /// Path parameter: parent
     pub parent: String,
     /// Query parameter: filter
-    pub filter: Option<String>,
+    pub filter: Option<Option<String>>,
     /// Query parameter: pageSize
-    pub pageSize: Option<i32>,
+    pub pageSize: Option<Option<String>>,
     /// Query parameter: pageToken
-    pub pageToken: Option<String>,
+    pub pageToken: Option<Option<String>>,
     /// Query parameter: readMask
-    pub readMask: Option<String>,
+    pub readMask: Option<Option<String>>,
 }
 
 /// GET v1/customers/{customersId}/telemetry/events
@@ -4203,7 +6834,7 @@ pub fn chromemanagement_customers_telemetry_events_list(
     chromemanagement_customers_telemetry_events_list_execute(builder)
 }
 
-/// GET v1/customers/{customersId}/telemetry/notificationConfigs
+/// POST v1/customers/{customersId}/telemetry/notificationConfigs
 /// Create a telemetry notification config.
 ///
 /// Returns `ClientRequestBuilder` for customization.
@@ -4212,24 +6843,22 @@ pub fn chromemanagement_customers_telemetry_events_list(
 pub fn chromemanagement_customers_telemetry_notification_configs_create_builder(
     client: &SimpleHttpClient,
     parent: &String,
-    body: &GoogleChromeManagementV1TelemetryNotificationConfig,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
         "https://chromemanagement.googleapis.com/v1/customers/{}/telemetry/notificationConfigs",
+        parent,
     );
 
     // Build request
     let builder = client
-        .get(&endpoint_url)
+        .post(&endpoint_url)
         .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
 
-    builder
-        .body_json(body)
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+    Ok(builder)
 }
 
-/// GET v1/customers/{customersId}/telemetry/notificationConfigs
+/// POST v1/customers/{customersId}/telemetry/notificationConfigs
 /// Create a telemetry notification config.
 ///
 /// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
@@ -4307,7 +6936,7 @@ pub fn chromemanagement_customers_telemetry_notification_configs_create_task(
         .map_pending(|_| ApiPending::Sending))
 }
 
-/// GET v1/customers/{customersId}/telemetry/notificationConfigs
+/// POST v1/customers/{customersId}/telemetry/notificationConfigs
 /// Create a telemetry notification config.
 ///
 /// Takes a `ClientRequestBuilder`, builds and executes the request,
@@ -4346,11 +6975,9 @@ pub fn chromemanagement_customers_telemetry_notification_configs_create_execute(
 pub struct ChromemanagementCustomersTelemetryNotificationConfigsCreateArgs {
     /// Path parameter: parent
     pub parent: String,
-    /// Request body.
-    pub body: GoogleChromeManagementV1TelemetryNotificationConfig,
 }
 
-/// GET v1/customers/{customersId}/telemetry/notificationConfigs
+/// POST v1/customers/{customersId}/telemetry/notificationConfigs
 /// Create a telemetry notification config.
 ///
 /// Simplest API - builds and executes the request in one call.
@@ -4375,9 +7002,551 @@ pub fn chromemanagement_customers_telemetry_notification_configs_create(
     let builder = chromemanagement_customers_telemetry_notification_configs_create_builder(
         client,
         &args.parent,
-        &args.body,
     )?;
     chromemanagement_customers_telemetry_notification_configs_create_execute(builder)
+}
+
+/// DELETE v1/customers/{customersId}/telemetry/notificationConfigs/{notificationConfigsId}
+/// Delete a telemetry notification config.
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `chromemanagement_customers_telemetry_notification_configs_delete_execute()` to send, or `chromemanagement_customers_telemetry_notification_configs_delete` for simplest API.
+
+pub fn chromemanagement_customers_telemetry_notification_configs_delete_builder(
+    client: &SimpleHttpClient,
+    name: &String,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!(
+        "https://chromemanagement.googleapis.com/v1/customers/{}/telemetry/notificationConfigs/{notificationConfigsId}",
+        name,
+    );
+
+    // Build request
+    let builder = client
+        .delete(&endpoint_url)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// DELETE v1/customers/{customersId}/telemetry/notificationConfigs/{notificationConfigsId}
+/// Delete a telemetry notification config.
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `chromemanagement_customers_telemetry_notification_configs_delete_execute()` or `chromemanagement_customers_telemetry_notification_configs_delete`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `chromemanagement_customers_telemetry_notification_configs_delete_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn chromemanagement_customers_telemetry_notification_configs_delete_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<GoogleProtobufEmpty>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: GoogleProtobufEmpty = serde_json::from_str(&body)
+                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// DELETE v1/customers/{customersId}/telemetry/notificationConfigs/{notificationConfigsId}
+/// Delete a telemetry notification config.
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `chromemanagement_customers_telemetry_notification_configs_delete_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `chromemanagement_customers_telemetry_notification_configs_delete_task()`.
+/// For the simplest API, use `chromemanagement_customers_telemetry_notification_configs_delete()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `chromemanagement_customers_telemetry_notification_configs_delete_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn chromemanagement_customers_telemetry_notification_configs_delete_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<GoogleProtobufEmpty>, ApiError>, P = ApiPending>
+        + Send
+        + 'static,
+    ApiError,
+> {
+    let task = chromemanagement_customers_telemetry_notification_configs_delete_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`chromemanagement_customers_telemetry_notification_configs_delete`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct ChromemanagementCustomersTelemetryNotificationConfigsDeleteArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
+/// DELETE v1/customers/{customersId}/telemetry/notificationConfigs/{notificationConfigsId}
+/// Delete a telemetry notification config.
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `chromemanagement_customers_telemetry_notification_configs_delete_builder()` + `chromemanagement_customers_telemetry_notification_configs_delete_execute()`.
+/// For task-level control, use `chromemanagement_customers_telemetry_notification_configs_delete_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn chromemanagement_customers_telemetry_notification_configs_delete(
+    client: &SimpleHttpClient,
+    args: &ChromemanagementCustomersTelemetryNotificationConfigsDeleteArgs,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<GoogleProtobufEmpty>, ApiError>, P = ApiPending>
+        + Send
+        + 'static,
+    ApiError,
+> {
+    let builder = chromemanagement_customers_telemetry_notification_configs_delete_builder(
+        client, &args.name,
+    )?;
+    chromemanagement_customers_telemetry_notification_configs_delete_execute(builder)
+}
+
+/// GET v1/customers/{customersId}/telemetry/notificationConfigs
+/// List all telemetry notification configs.
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `chromemanagement_customers_telemetry_notification_configs_list_execute()` to send, or `chromemanagement_customers_telemetry_notification_configs_list` for simplest API.
+
+pub fn chromemanagement_customers_telemetry_notification_configs_list_builder(
+    client: &SimpleHttpClient,
+    parent: &String,
+    pageSize: &Option<Option<String>>,
+    pageToken: &Option<Option<String>>,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!(
+        "https://chromemanagement.googleapis.com/v1/customers/{}/telemetry/notificationConfigs",
+        parent,
+    );
+
+    // Build request
+    let mut query_parts = Vec::new();
+    if let Some(val) = pageSize.as_ref() {
+        query_parts.push(format!("pageSize={}", val));
+    }
+    if let Some(val) = pageToken.as_ref() {
+        query_parts.push(format!("pageToken={}", val));
+    }
+
+    let url_with_query = if query_parts.is_empty() {
+        endpoint_url
+    } else {
+        format!("{}?{}", endpoint_url, query_parts.join("&"))
+    };
+
+    let builder = client
+        .get(&url_with_query)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// GET v1/customers/{customersId}/telemetry/notificationConfigs
+/// List all telemetry notification configs.
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `chromemanagement_customers_telemetry_notification_configs_list_execute()` or `chromemanagement_customers_telemetry_notification_configs_list`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `chromemanagement_customers_telemetry_notification_configs_list_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn chromemanagement_customers_telemetry_notification_configs_list_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<
+                ApiResponse<GoogleChromeManagementV1ListTelemetryNotificationConfigsResponse>,
+                ApiError,
+            >,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: GoogleChromeManagementV1ListTelemetryNotificationConfigsResponse =
+                    serde_json::from_str(&body)
+                        .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// GET v1/customers/{customersId}/telemetry/notificationConfigs
+/// List all telemetry notification configs.
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `chromemanagement_customers_telemetry_notification_configs_list_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `chromemanagement_customers_telemetry_notification_configs_list_task()`.
+/// For the simplest API, use `chromemanagement_customers_telemetry_notification_configs_list()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `chromemanagement_customers_telemetry_notification_configs_list_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn chromemanagement_customers_telemetry_notification_configs_list_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<
+            D = Result<
+                ApiResponse<GoogleChromeManagementV1ListTelemetryNotificationConfigsResponse>,
+                ApiError,
+            >,
+            P = ApiPending,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    let task = chromemanagement_customers_telemetry_notification_configs_list_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`chromemanagement_customers_telemetry_notification_configs_list`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct ChromemanagementCustomersTelemetryNotificationConfigsListArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Query parameter: pageSize
+    pub pageSize: Option<Option<String>>,
+    /// Query parameter: pageToken
+    pub pageToken: Option<Option<String>>,
+}
+
+/// GET v1/customers/{customersId}/telemetry/notificationConfigs
+/// List all telemetry notification configs.
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `chromemanagement_customers_telemetry_notification_configs_list_builder()` + `chromemanagement_customers_telemetry_notification_configs_list_execute()`.
+/// For task-level control, use `chromemanagement_customers_telemetry_notification_configs_list_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn chromemanagement_customers_telemetry_notification_configs_list(
+    client: &SimpleHttpClient,
+    args: &ChromemanagementCustomersTelemetryNotificationConfigsListArgs,
+) -> Result<
+    impl StreamIterator<
+            D = Result<
+                ApiResponse<GoogleChromeManagementV1ListTelemetryNotificationConfigsResponse>,
+                ApiError,
+            >,
+            P = ApiPending,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    let builder = chromemanagement_customers_telemetry_notification_configs_list_builder(
+        client,
+        &args.parent,
+        &args.pageSize,
+        &args.pageToken,
+    )?;
+    chromemanagement_customers_telemetry_notification_configs_list_execute(builder)
+}
+
+/// GET v1/customers/{customersId}/telemetry/users/{usersId}
+/// Get telemetry user.
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `chromemanagement_customers_telemetry_users_get_execute()` to send, or `chromemanagement_customers_telemetry_users_get` for simplest API.
+
+pub fn chromemanagement_customers_telemetry_users_get_builder(
+    client: &SimpleHttpClient,
+    name: &String,
+    readMask: &Option<Option<String>>,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!(
+        "https://chromemanagement.googleapis.com/v1/customers/{}/telemetry/users/{usersId}",
+        name,
+    );
+
+    // Build request
+    let mut query_parts = Vec::new();
+    if let Some(val) = readMask.as_ref() {
+        query_parts.push(format!("readMask={}", val));
+    }
+
+    let url_with_query = if query_parts.is_empty() {
+        endpoint_url
+    } else {
+        format!("{}?{}", endpoint_url, query_parts.join("&"))
+    };
+
+    let builder = client
+        .get(&url_with_query)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// GET v1/customers/{customersId}/telemetry/users/{usersId}
+/// Get telemetry user.
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `chromemanagement_customers_telemetry_users_get_execute()` or `chromemanagement_customers_telemetry_users_get`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `chromemanagement_customers_telemetry_users_get_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn chromemanagement_customers_telemetry_users_get_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<GoogleChromeManagementV1TelemetryUser>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: GoogleChromeManagementV1TelemetryUser = serde_json::from_str(&body)
+                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// GET v1/customers/{customersId}/telemetry/users/{usersId}
+/// Get telemetry user.
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `chromemanagement_customers_telemetry_users_get_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `chromemanagement_customers_telemetry_users_get_task()`.
+/// For the simplest API, use `chromemanagement_customers_telemetry_users_get()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `chromemanagement_customers_telemetry_users_get_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn chromemanagement_customers_telemetry_users_get_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<
+            D = Result<ApiResponse<GoogleChromeManagementV1TelemetryUser>, ApiError>,
+            P = ApiPending,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    let task = chromemanagement_customers_telemetry_users_get_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`chromemanagement_customers_telemetry_users_get`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct ChromemanagementCustomersTelemetryUsersGetArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Query parameter: readMask
+    pub readMask: Option<Option<String>>,
+}
+
+/// GET v1/customers/{customersId}/telemetry/users/{usersId}
+/// Get telemetry user.
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `chromemanagement_customers_telemetry_users_get_builder()` + `chromemanagement_customers_telemetry_users_get_execute()`.
+/// For task-level control, use `chromemanagement_customers_telemetry_users_get_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn chromemanagement_customers_telemetry_users_get(
+    client: &SimpleHttpClient,
+    args: &ChromemanagementCustomersTelemetryUsersGetArgs,
+) -> Result<
+    impl StreamIterator<
+            D = Result<ApiResponse<GoogleChromeManagementV1TelemetryUser>, ApiError>,
+            P = ApiPending,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    let builder =
+        chromemanagement_customers_telemetry_users_get_builder(client, &args.name, &args.readMask)?;
+    chromemanagement_customers_telemetry_users_get_execute(builder)
 }
 
 /// GET v1/customers/{customersId}/telemetry/users
@@ -4389,14 +7558,16 @@ pub fn chromemanagement_customers_telemetry_notification_configs_create(
 pub fn chromemanagement_customers_telemetry_users_list_builder(
     client: &SimpleHttpClient,
     parent: &String,
-    filter: &Option<String>,
-    pageSize: &Option<i32>,
-    pageToken: &Option<String>,
-    readMask: &Option<String>,
+    filter: &Option<Option<String>>,
+    pageSize: &Option<Option<String>>,
+    pageToken: &Option<Option<String>>,
+    readMask: &Option<Option<String>>,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
-    let endpoint_url =
-        format!("https://chromemanagement.googleapis.com/v1/customers/{}/telemetry/users",);
+    let endpoint_url = format!(
+        "https://chromemanagement.googleapis.com/v1/customers/{}/telemetry/users",
+        parent,
+    );
 
     // Build request
     let mut query_parts = Vec::new();
@@ -4544,13 +7715,13 @@ pub struct ChromemanagementCustomersTelemetryUsersListArgs {
     /// Path parameter: parent
     pub parent: String,
     /// Query parameter: filter
-    pub filter: Option<String>,
+    pub filter: Option<Option<String>>,
     /// Query parameter: pageSize
-    pub pageSize: Option<i32>,
+    pub pageSize: Option<Option<String>>,
     /// Query parameter: pageToken
-    pub pageToken: Option<String>,
+    pub pageToken: Option<Option<String>>,
     /// Query parameter: readMask
-    pub readMask: Option<String>,
+    pub readMask: Option<Option<String>>,
 }
 
 /// GET v1/customers/{customersId}/telemetry/users
@@ -4586,7 +7757,183 @@ pub fn chromemanagement_customers_telemetry_users_list(
     chromemanagement_customers_telemetry_users_list_execute(builder)
 }
 
-/// GET v1/operations/{operationsId}:cancel
+/// POST v1/customers/{customersId}/thirdPartyProfileUsers/{thirdPartyProfileUsersId}:move
+/// Moves a third party chrome profile user to a destination OU. All profiles associated to that user will be moved to the destination OU.
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `chromemanagement_customers_third_party_profile_users_move_execute()` to send, or `chromemanagement_customers_third_party_profile_users_move` for simplest API.
+
+pub fn chromemanagement_customers_third_party_profile_users_move_builder(
+    client: &SimpleHttpClient,
+    name: &String,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!(
+        "https://chromemanagement.googleapis.com/v1/customers/{}/thirdPartyProfileUsers/{thirdPartyProfileUsersId}:move",
+        name,
+    );
+
+    // Build request
+    let builder = client
+        .post(&endpoint_url)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// POST v1/customers/{customersId}/thirdPartyProfileUsers/{thirdPartyProfileUsersId}:move
+/// Moves a third party chrome profile user to a destination OU. All profiles associated to that user will be moved to the destination OU.
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `chromemanagement_customers_third_party_profile_users_move_execute()` or `chromemanagement_customers_third_party_profile_users_move`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `chromemanagement_customers_third_party_profile_users_move_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn chromemanagement_customers_third_party_profile_users_move_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<
+                ApiResponse<GoogleChromeManagementVersionsV1MoveThirdPartyProfileUserResponse>,
+                ApiError,
+            >,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: GoogleChromeManagementVersionsV1MoveThirdPartyProfileUserResponse =
+                    serde_json::from_str(&body)
+                        .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// POST v1/customers/{customersId}/thirdPartyProfileUsers/{thirdPartyProfileUsersId}:move
+/// Moves a third party chrome profile user to a destination OU. All profiles associated to that user will be moved to the destination OU.
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `chromemanagement_customers_third_party_profile_users_move_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `chromemanagement_customers_third_party_profile_users_move_task()`.
+/// For the simplest API, use `chromemanagement_customers_third_party_profile_users_move()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `chromemanagement_customers_third_party_profile_users_move_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn chromemanagement_customers_third_party_profile_users_move_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<
+            D = Result<
+                ApiResponse<GoogleChromeManagementVersionsV1MoveThirdPartyProfileUserResponse>,
+                ApiError,
+            >,
+            P = ApiPending,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    let task = chromemanagement_customers_third_party_profile_users_move_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`chromemanagement_customers_third_party_profile_users_move`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct ChromemanagementCustomersThirdPartyProfileUsersMoveArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
+/// POST v1/customers/{customersId}/thirdPartyProfileUsers/{thirdPartyProfileUsersId}:move
+/// Moves a third party chrome profile user to a destination OU. All profiles associated to that user will be moved to the destination OU.
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `chromemanagement_customers_third_party_profile_users_move_builder()` + `chromemanagement_customers_third_party_profile_users_move_execute()`.
+/// For task-level control, use `chromemanagement_customers_third_party_profile_users_move_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn chromemanagement_customers_third_party_profile_users_move(
+    client: &SimpleHttpClient,
+    args: &ChromemanagementCustomersThirdPartyProfileUsersMoveArgs,
+) -> Result<
+    impl StreamIterator<
+            D = Result<
+                ApiResponse<GoogleChromeManagementVersionsV1MoveThirdPartyProfileUserResponse>,
+                ApiError,
+            >,
+            P = ApiPending,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    let builder =
+        chromemanagement_customers_third_party_profile_users_move_builder(client, &args.name)?;
+    chromemanagement_customers_third_party_profile_users_move_execute(builder)
+}
+
+/// POST v1/operations/{operationsId}:cancel
 /// Starts asynchronous cancellation on a long-running operation. The server makes a best effort to cancel the operation, but success is not guaranteed. If the server doesn't support this method, it returns google.rpc.Code.UNIMPLEMENTED. Clients can use Operations.GetOperation or other methods to check whether the cancellation succeeded or whether the operation completed despite cancellation. On successful cancellation, the operation is not deleted; instead, it becomes an operation with an Operation.error value with a google.rpc.Status.code of 1, corresponding to Code.CANCELLED.
 ///
 /// Returns `ClientRequestBuilder` for customization.
@@ -4595,22 +7942,22 @@ pub fn chromemanagement_customers_telemetry_users_list(
 pub fn chromemanagement_operations_cancel_builder(
     client: &SimpleHttpClient,
     name: &String,
-    body: &GoogleLongrunningCancelOperationRequest,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
-    let endpoint_url = format!("https://chromemanagement.googleapis.com/v1/operations/{}:cancel",);
+    let endpoint_url = format!(
+        "https://chromemanagement.googleapis.com/v1/operations/{}:cancel",
+        name,
+    );
 
     // Build request
     let builder = client
-        .get(&endpoint_url)
+        .post(&endpoint_url)
         .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
 
-    builder
-        .body_json(body)
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+    Ok(builder)
 }
 
-/// GET v1/operations/{operationsId}:cancel
+/// POST v1/operations/{operationsId}:cancel
 /// Starts asynchronous cancellation on a long-running operation. The server makes a best effort to cancel the operation, but success is not guaranteed. If the server doesn't support this method, it returns google.rpc.Code.UNIMPLEMENTED. Clients can use Operations.GetOperation or other methods to check whether the cancellation succeeded or whether the operation completed despite cancellation. On successful cancellation, the operation is not deleted; instead, it becomes an operation with an Operation.error value with a google.rpc.Status.code of 1, corresponding to Code.CANCELLED.
 ///
 /// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
@@ -4684,7 +8031,7 @@ pub fn chromemanagement_operations_cancel_task(
         .map_pending(|_| ApiPending::Sending))
 }
 
-/// GET v1/operations/{operationsId}:cancel
+/// POST v1/operations/{operationsId}:cancel
 /// Starts asynchronous cancellation on a long-running operation. The server makes a best effort to cancel the operation, but success is not guaranteed. If the server doesn't support this method, it returns google.rpc.Code.UNIMPLEMENTED. Clients can use Operations.GetOperation or other methods to check whether the cancellation succeeded or whether the operation completed despite cancellation. On successful cancellation, the operation is not deleted; instead, it becomes an operation with an Operation.error value with a google.rpc.Status.code of 1, corresponding to Code.CANCELLED.
 ///
 /// Takes a `ClientRequestBuilder`, builds and executes the request,
@@ -4721,11 +8068,9 @@ pub fn chromemanagement_operations_cancel_execute(
 pub struct ChromemanagementOperationsCancelArgs {
     /// Path parameter: name
     pub name: String,
-    /// Request body.
-    pub body: GoogleLongrunningCancelOperationRequest,
 }
 
-/// GET v1/operations/{operationsId}:cancel
+/// POST v1/operations/{operationsId}:cancel
 /// Starts asynchronous cancellation on a long-running operation. The server makes a best effort to cancel the operation, but success is not guaranteed. If the server doesn't support this method, it returns google.rpc.Code.UNIMPLEMENTED. Clients can use Operations.GetOperation or other methods to check whether the cancellation succeeded or whether the operation completed despite cancellation. On successful cancellation, the operation is not deleted; instead, it becomes an operation with an Operation.error value with a google.rpc.Status.code of 1, corresponding to Code.CANCELLED.
 ///
 /// Simplest API - builds and executes the request in one call.
@@ -4745,11 +8090,11 @@ pub fn chromemanagement_operations_cancel(
         + 'static,
     ApiError,
 > {
-    let builder = chromemanagement_operations_cancel_builder(client, &args.name, &args.body)?;
+    let builder = chromemanagement_operations_cancel_builder(client, &args.name)?;
     chromemanagement_operations_cancel_execute(builder)
 }
 
-/// GET v1/operations/{operationsId}
+/// DELETE v1/operations/{operationsId}
 /// Deletes a long-running operation. This method indicates that the client is no longer interested in the operation result. It does not cancel the operation. If the server doesn't support this method, it returns google.rpc.Code.UNIMPLEMENTED.
 ///
 /// Returns `ClientRequestBuilder` for customization.
@@ -4760,17 +8105,20 @@ pub fn chromemanagement_operations_delete_builder(
     name: &String,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
-    let endpoint_url = format!("https://chromemanagement.googleapis.com/v1/operations/{}",);
+    let endpoint_url = format!(
+        "https://chromemanagement.googleapis.com/v1/operations/{}",
+        name,
+    );
 
     // Build request
     let builder = client
-        .get(&endpoint_url)
+        .delete(&endpoint_url)
         .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
 
     Ok(builder)
 }
 
-/// GET v1/operations/{operationsId}
+/// DELETE v1/operations/{operationsId}
 /// Deletes a long-running operation. This method indicates that the client is no longer interested in the operation result. It does not cancel the operation. If the server doesn't support this method, it returns google.rpc.Code.UNIMPLEMENTED.
 ///
 /// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
@@ -4844,7 +8192,7 @@ pub fn chromemanagement_operations_delete_task(
         .map_pending(|_| ApiPending::Sending))
 }
 
-/// GET v1/operations/{operationsId}
+/// DELETE v1/operations/{operationsId}
 /// Deletes a long-running operation. This method indicates that the client is no longer interested in the operation result. It does not cancel the operation. If the server doesn't support this method, it returns google.rpc.Code.UNIMPLEMENTED.
 ///
 /// Takes a `ClientRequestBuilder`, builds and executes the request,
@@ -4883,7 +8231,7 @@ pub struct ChromemanagementOperationsDeleteArgs {
     pub name: String,
 }
 
-/// GET v1/operations/{operationsId}
+/// DELETE v1/operations/{operationsId}
 /// Deletes a long-running operation. This method indicates that the client is no longer interested in the operation result. It does not cancel the operation. If the server doesn't support this method, it returns google.rpc.Code.UNIMPLEMENTED.
 ///
 /// Simplest API - builds and executes the request in one call.
@@ -4905,4 +8253,1483 @@ pub fn chromemanagement_operations_delete(
 > {
     let builder = chromemanagement_operations_delete_builder(client, &args.name)?;
     chromemanagement_operations_delete_execute(builder)
+}
+
+/// GET v1/operations
+/// Lists operations that match the specified filter in the request. If the server doesn't support this method, it returns UNIMPLEMENTED.
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `chromemanagement_operations_list_execute()` to send, or `chromemanagement_operations_list` for simplest API.
+
+pub fn chromemanagement_operations_list_builder(
+    client: &SimpleHttpClient,
+    filter: &Option<Option<String>>,
+    pageSize: &Option<Option<String>>,
+    pageToken: &Option<Option<String>>,
+    returnPartialSuccess: &Option<Option<String>>,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!("https://chromemanagement.googleapis.com/v1/operations",);
+
+    // Build request
+    let mut query_parts = Vec::new();
+    if let Some(val) = filter.as_ref() {
+        query_parts.push(format!("filter={}", val));
+    }
+    if let Some(val) = pageSize.as_ref() {
+        query_parts.push(format!("pageSize={}", val));
+    }
+    if let Some(val) = pageToken.as_ref() {
+        query_parts.push(format!("pageToken={}", val));
+    }
+    if let Some(val) = returnPartialSuccess.as_ref() {
+        query_parts.push(format!("returnPartialSuccess={}", val));
+    }
+
+    let url_with_query = if query_parts.is_empty() {
+        endpoint_url
+    } else {
+        format!("{}?{}", endpoint_url, query_parts.join("&"))
+    };
+
+    let builder = client
+        .get(&url_with_query)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// GET v1/operations
+/// Lists operations that match the specified filter in the request. If the server doesn't support this method, it returns UNIMPLEMENTED.
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `chromemanagement_operations_list_execute()` or `chromemanagement_operations_list`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `chromemanagement_operations_list_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn chromemanagement_operations_list_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<GoogleLongrunningListOperationsResponse>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: GoogleLongrunningListOperationsResponse =
+                    serde_json::from_str(&body)
+                        .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// GET v1/operations
+/// Lists operations that match the specified filter in the request. If the server doesn't support this method, it returns UNIMPLEMENTED.
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `chromemanagement_operations_list_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `chromemanagement_operations_list_task()`.
+/// For the simplest API, use `chromemanagement_operations_list()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `chromemanagement_operations_list_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn chromemanagement_operations_list_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<
+            D = Result<ApiResponse<GoogleLongrunningListOperationsResponse>, ApiError>,
+            P = ApiPending,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    let task = chromemanagement_operations_list_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`chromemanagement_operations_list`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct ChromemanagementOperationsListArgs {
+    /// Query parameter: filter
+    pub filter: Option<Option<String>>,
+    /// Query parameter: pageSize
+    pub pageSize: Option<Option<String>>,
+    /// Query parameter: pageToken
+    pub pageToken: Option<Option<String>>,
+    /// Query parameter: returnPartialSuccess
+    pub returnPartialSuccess: Option<Option<String>>,
+}
+
+/// GET v1/operations
+/// Lists operations that match the specified filter in the request. If the server doesn't support this method, it returns UNIMPLEMENTED.
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `chromemanagement_operations_list_builder()` + `chromemanagement_operations_list_execute()`.
+/// For task-level control, use `chromemanagement_operations_list_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn chromemanagement_operations_list(
+    client: &SimpleHttpClient,
+    args: &ChromemanagementOperationsListArgs,
+) -> Result<
+    impl StreamIterator<
+            D = Result<ApiResponse<GoogleLongrunningListOperationsResponse>, ApiError>,
+            P = ApiPending,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    let builder = chromemanagement_operations_list_builder(
+        client,
+        &args.filter,
+        &args.pageSize,
+        &args.pageToken,
+        &args.returnPartialSuccess,
+    )?;
+    chromemanagement_operations_list_execute(builder)
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for GoogleChromeManagementV1CountChromeAppRequestsResponse
+// =============================================================================
+
+/// ResourceIdentifier implementation for GoogleChromeManagementV1CountChromeAppRequestsResponse with ChromemanagementCustomersAppsCountChromeAppRequestsArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<ChromemanagementCustomersAppsCountChromeAppRequestsArgs>
+    for GoogleChromeManagementV1CountChromeAppRequestsResponse
+{
+    fn generate_resource_id(
+        &self,
+        input: &ChromemanagementCustomersAppsCountChromeAppRequestsArgs,
+    ) -> String {
+        format!(
+            "gcp::chromemanagement::GoogleChromeManagementV1CountChromeAppRequestsResponse/{}",
+            input.customer
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::chromemanagement::GoogleChromeManagementV1CountChromeAppRequestsResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for GoogleChromeManagementV1FetchDevicesRequestingExtensionResponse
+// =============================================================================
+
+/// ResourceIdentifier implementation for GoogleChromeManagementV1FetchDevicesRequestingExtensionResponse with ChromemanagementCustomersAppsFetchDevicesRequestingExtensionArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<ChromemanagementCustomersAppsFetchDevicesRequestingExtensionArgs>
+    for GoogleChromeManagementV1FetchDevicesRequestingExtensionResponse
+{
+    fn generate_resource_id(
+        &self,
+        input: &ChromemanagementCustomersAppsFetchDevicesRequestingExtensionArgs,
+    ) -> String {
+        format!("gcp::chromemanagement::GoogleChromeManagementV1FetchDevicesRequestingExtensionResponse/{}", input.customer)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::chromemanagement::GoogleChromeManagementV1FetchDevicesRequestingExtensionResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for GoogleChromeManagementV1FetchUsersRequestingExtensionResponse
+// =============================================================================
+
+/// ResourceIdentifier implementation for GoogleChromeManagementV1FetchUsersRequestingExtensionResponse with ChromemanagementCustomersAppsFetchUsersRequestingExtensionArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<ChromemanagementCustomersAppsFetchUsersRequestingExtensionArgs>
+    for GoogleChromeManagementV1FetchUsersRequestingExtensionResponse
+{
+    fn generate_resource_id(
+        &self,
+        input: &ChromemanagementCustomersAppsFetchUsersRequestingExtensionArgs,
+    ) -> String {
+        format!("gcp::chromemanagement::GoogleChromeManagementV1FetchUsersRequestingExtensionResponse/{}", input.customer)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::chromemanagement::GoogleChromeManagementV1FetchUsersRequestingExtensionResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for GoogleChromeManagementV1AppDetails
+// =============================================================================
+
+/// ResourceIdentifier implementation for GoogleChromeManagementV1AppDetails with ChromemanagementCustomersAppsAndroidGetArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<ChromemanagementCustomersAppsAndroidGetArgs>
+    for GoogleChromeManagementV1AppDetails
+{
+    fn generate_resource_id(&self, input: &ChromemanagementCustomersAppsAndroidGetArgs) -> String {
+        format!(
+            "gcp::chromemanagement::GoogleChromeManagementV1AppDetails/{}",
+            input.name
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::chromemanagement::GoogleChromeManagementV1AppDetails"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for GoogleChromeManagementV1AppDetails
+// =============================================================================
+
+/// ResourceIdentifier implementation for GoogleChromeManagementV1AppDetails with ChromemanagementCustomersAppsChromeGetArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<ChromemanagementCustomersAppsChromeGetArgs>
+    for GoogleChromeManagementV1AppDetails
+{
+    fn generate_resource_id(&self, input: &ChromemanagementCustomersAppsChromeGetArgs) -> String {
+        format!(
+            "gcp::chromemanagement::GoogleChromeManagementV1AppDetails/{}",
+            input.name
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::chromemanagement::GoogleChromeManagementV1AppDetails"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for GoogleChromeManagementV1AppDetails
+// =============================================================================
+
+/// ResourceIdentifier implementation for GoogleChromeManagementV1AppDetails with ChromemanagementCustomersAppsWebGetArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<ChromemanagementCustomersAppsWebGetArgs>
+    for GoogleChromeManagementV1AppDetails
+{
+    fn generate_resource_id(&self, input: &ChromemanagementCustomersAppsWebGetArgs) -> String {
+        format!(
+            "gcp::chromemanagement::GoogleChromeManagementV1AppDetails/{}",
+            input.name
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::chromemanagement::GoogleChromeManagementV1AppDetails"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for GoogleChromeManagementVersionsV1ClaimCertificateProvisioningProcessResponse
+// =============================================================================
+
+/// ResourceIdentifier implementation for GoogleChromeManagementVersionsV1ClaimCertificateProvisioningProcessResponse with ChromemanagementCustomersCertificateProvisioningProcessesClaimArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<ChromemanagementCustomersCertificateProvisioningProcessesClaimArgs>
+    for GoogleChromeManagementVersionsV1ClaimCertificateProvisioningProcessResponse
+{
+    fn generate_resource_id(
+        &self,
+        input: &ChromemanagementCustomersCertificateProvisioningProcessesClaimArgs,
+    ) -> String {
+        format!("gcp::chromemanagement::GoogleChromeManagementVersionsV1ClaimCertificateProvisioningProcessResponse/{}", input.name)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::chromemanagement::GoogleChromeManagementVersionsV1ClaimCertificateProvisioningProcessResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for GoogleChromeManagementVersionsV1CertificateProvisioningProcess
+// =============================================================================
+
+/// ResourceIdentifier implementation for GoogleChromeManagementVersionsV1CertificateProvisioningProcess with ChromemanagementCustomersCertificateProvisioningProcessesGetArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<ChromemanagementCustomersCertificateProvisioningProcessesGetArgs>
+    for GoogleChromeManagementVersionsV1CertificateProvisioningProcess
+{
+    fn generate_resource_id(
+        &self,
+        input: &ChromemanagementCustomersCertificateProvisioningProcessesGetArgs,
+    ) -> String {
+        format!("gcp::chromemanagement::GoogleChromeManagementVersionsV1CertificateProvisioningProcess/{}", input.name)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::chromemanagement::GoogleChromeManagementVersionsV1CertificateProvisioningProcess"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for GoogleChromeManagementVersionsV1SetFailureResponse
+// =============================================================================
+
+/// ResourceIdentifier implementation for GoogleChromeManagementVersionsV1SetFailureResponse with ChromemanagementCustomersCertificateProvisioningProcessesSetFailureArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<ChromemanagementCustomersCertificateProvisioningProcessesSetFailureArgs>
+    for GoogleChromeManagementVersionsV1SetFailureResponse
+{
+    fn generate_resource_id(
+        &self,
+        input: &ChromemanagementCustomersCertificateProvisioningProcessesSetFailureArgs,
+    ) -> String {
+        format!(
+            "gcp::chromemanagement::GoogleChromeManagementVersionsV1SetFailureResponse/{}",
+            input.name
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::chromemanagement::GoogleChromeManagementVersionsV1SetFailureResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for GoogleLongrunningOperation
+// =============================================================================
+
+/// ResourceIdentifier implementation for GoogleLongrunningOperation with ChromemanagementCustomersCertificateProvisioningProcessesSignDataArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<ChromemanagementCustomersCertificateProvisioningProcessesSignDataArgs>
+    for GoogleLongrunningOperation
+{
+    fn generate_resource_id(
+        &self,
+        input: &ChromemanagementCustomersCertificateProvisioningProcessesSignDataArgs,
+    ) -> String {
+        format!(
+            "gcp::chromemanagement::GoogleLongrunningOperation/{}",
+            input.name
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::chromemanagement::GoogleLongrunningOperation"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for GoogleChromeManagementVersionsV1UploadCertificateResponse
+// =============================================================================
+
+/// ResourceIdentifier implementation for GoogleChromeManagementVersionsV1UploadCertificateResponse with ChromemanagementCustomersCertificateProvisioningProcessesUploadCertificateArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl
+    ResourceIdentifier<
+        ChromemanagementCustomersCertificateProvisioningProcessesUploadCertificateArgs,
+    > for GoogleChromeManagementVersionsV1UploadCertificateResponse
+{
+    fn generate_resource_id(
+        &self,
+        input: &ChromemanagementCustomersCertificateProvisioningProcessesUploadCertificateArgs,
+    ) -> String {
+        format!(
+            "gcp::chromemanagement::GoogleChromeManagementVersionsV1UploadCertificateResponse/{}",
+            input.name
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::chromemanagement::GoogleChromeManagementVersionsV1UploadCertificateResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for GoogleLongrunningOperation
+// =============================================================================
+
+/// ResourceIdentifier implementation for GoogleLongrunningOperation with ChromemanagementCustomersCertificateProvisioningProcessesOperationsGetArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<ChromemanagementCustomersCertificateProvisioningProcessesOperationsGetArgs>
+    for GoogleLongrunningOperation
+{
+    fn generate_resource_id(
+        &self,
+        input: &ChromemanagementCustomersCertificateProvisioningProcessesOperationsGetArgs,
+    ) -> String {
+        format!(
+            "gcp::chromemanagement::GoogleLongrunningOperation/{}",
+            input.name
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::chromemanagement::GoogleLongrunningOperation"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for GoogleProtobufEmpty
+// =============================================================================
+
+/// ResourceIdentifier implementation for GoogleProtobufEmpty with ChromemanagementCustomersProfilesDeleteArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<ChromemanagementCustomersProfilesDeleteArgs> for GoogleProtobufEmpty {
+    fn generate_resource_id(&self, input: &ChromemanagementCustomersProfilesDeleteArgs) -> String {
+        format!("gcp::chromemanagement::GoogleProtobufEmpty/{}", input.name)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::chromemanagement::GoogleProtobufEmpty"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for GoogleChromeManagementVersionsV1ChromeBrowserProfile
+// =============================================================================
+
+/// ResourceIdentifier implementation for GoogleChromeManagementVersionsV1ChromeBrowserProfile with ChromemanagementCustomersProfilesGetArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<ChromemanagementCustomersProfilesGetArgs>
+    for GoogleChromeManagementVersionsV1ChromeBrowserProfile
+{
+    fn generate_resource_id(&self, input: &ChromemanagementCustomersProfilesGetArgs) -> String {
+        format!(
+            "gcp::chromemanagement::GoogleChromeManagementVersionsV1ChromeBrowserProfile/{}",
+            input.name
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::chromemanagement::GoogleChromeManagementVersionsV1ChromeBrowserProfile"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for GoogleChromeManagementVersionsV1ListChromeBrowserProfilesResponse
+// =============================================================================
+
+/// ResourceIdentifier implementation for GoogleChromeManagementVersionsV1ListChromeBrowserProfilesResponse with ChromemanagementCustomersProfilesListArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<ChromemanagementCustomersProfilesListArgs>
+    for GoogleChromeManagementVersionsV1ListChromeBrowserProfilesResponse
+{
+    fn generate_resource_id(&self, input: &ChromemanagementCustomersProfilesListArgs) -> String {
+        format!("gcp::chromemanagement::GoogleChromeManagementVersionsV1ListChromeBrowserProfilesResponse/{}", input.parent)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::chromemanagement::GoogleChromeManagementVersionsV1ListChromeBrowserProfilesResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for GoogleChromeManagementVersionsV1ChromeBrowserProfileCommand
+// =============================================================================
+
+/// ResourceIdentifier implementation for GoogleChromeManagementVersionsV1ChromeBrowserProfileCommand with ChromemanagementCustomersProfilesCommandsCreateArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<ChromemanagementCustomersProfilesCommandsCreateArgs>
+    for GoogleChromeManagementVersionsV1ChromeBrowserProfileCommand
+{
+    fn generate_resource_id(
+        &self,
+        input: &ChromemanagementCustomersProfilesCommandsCreateArgs,
+    ) -> String {
+        format!(
+            "gcp::chromemanagement::GoogleChromeManagementVersionsV1ChromeBrowserProfileCommand/{}",
+            input.parent
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::chromemanagement::GoogleChromeManagementVersionsV1ChromeBrowserProfileCommand"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for GoogleChromeManagementVersionsV1ChromeBrowserProfileCommand
+// =============================================================================
+
+/// ResourceIdentifier implementation for GoogleChromeManagementVersionsV1ChromeBrowserProfileCommand with ChromemanagementCustomersProfilesCommandsGetArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<ChromemanagementCustomersProfilesCommandsGetArgs>
+    for GoogleChromeManagementVersionsV1ChromeBrowserProfileCommand
+{
+    fn generate_resource_id(
+        &self,
+        input: &ChromemanagementCustomersProfilesCommandsGetArgs,
+    ) -> String {
+        format!(
+            "gcp::chromemanagement::GoogleChromeManagementVersionsV1ChromeBrowserProfileCommand/{}",
+            input.name
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::chromemanagement::GoogleChromeManagementVersionsV1ChromeBrowserProfileCommand"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for GoogleChromeManagementVersionsV1ListChromeBrowserProfileCommandsResponse
+// =============================================================================
+
+/// ResourceIdentifier implementation for GoogleChromeManagementVersionsV1ListChromeBrowserProfileCommandsResponse with ChromemanagementCustomersProfilesCommandsListArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<ChromemanagementCustomersProfilesCommandsListArgs>
+    for GoogleChromeManagementVersionsV1ListChromeBrowserProfileCommandsResponse
+{
+    fn generate_resource_id(
+        &self,
+        input: &ChromemanagementCustomersProfilesCommandsListArgs,
+    ) -> String {
+        format!("gcp::chromemanagement::GoogleChromeManagementVersionsV1ListChromeBrowserProfileCommandsResponse/{}", input.parent)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::chromemanagement::GoogleChromeManagementVersionsV1ListChromeBrowserProfileCommandsResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for GoogleChromeManagementV1CountActiveDevicesResponse
+// =============================================================================
+
+/// ResourceIdentifier implementation for GoogleChromeManagementV1CountActiveDevicesResponse with ChromemanagementCustomersReportsCountActiveDevicesArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<ChromemanagementCustomersReportsCountActiveDevicesArgs>
+    for GoogleChromeManagementV1CountActiveDevicesResponse
+{
+    fn generate_resource_id(
+        &self,
+        input: &ChromemanagementCustomersReportsCountActiveDevicesArgs,
+    ) -> String {
+        format!(
+            "gcp::chromemanagement::GoogleChromeManagementV1CountActiveDevicesResponse/{}",
+            input.customer
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::chromemanagement::GoogleChromeManagementV1CountActiveDevicesResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for GoogleChromeManagementV1CountChromeBrowsersNeedingAttentionResponse
+// =============================================================================
+
+/// ResourceIdentifier implementation for GoogleChromeManagementV1CountChromeBrowsersNeedingAttentionResponse with ChromemanagementCustomersReportsCountChromeBrowsersNeedingAttentionArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<ChromemanagementCustomersReportsCountChromeBrowsersNeedingAttentionArgs>
+    for GoogleChromeManagementV1CountChromeBrowsersNeedingAttentionResponse
+{
+    fn generate_resource_id(
+        &self,
+        input: &ChromemanagementCustomersReportsCountChromeBrowsersNeedingAttentionArgs,
+    ) -> String {
+        format!("gcp::chromemanagement::GoogleChromeManagementV1CountChromeBrowsersNeedingAttentionResponse/{}", input.customer)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::chromemanagement::GoogleChromeManagementV1CountChromeBrowsersNeedingAttentionResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for GoogleChromeManagementV1CountChromeCrashEventsResponse
+// =============================================================================
+
+/// ResourceIdentifier implementation for GoogleChromeManagementV1CountChromeCrashEventsResponse with ChromemanagementCustomersReportsCountChromeCrashEventsArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<ChromemanagementCustomersReportsCountChromeCrashEventsArgs>
+    for GoogleChromeManagementV1CountChromeCrashEventsResponse
+{
+    fn generate_resource_id(
+        &self,
+        input: &ChromemanagementCustomersReportsCountChromeCrashEventsArgs,
+    ) -> String {
+        format!(
+            "gcp::chromemanagement::GoogleChromeManagementV1CountChromeCrashEventsResponse/{}",
+            input.customer
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::chromemanagement::GoogleChromeManagementV1CountChromeCrashEventsResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for GoogleChromeManagementV1CountChromeDevicesReachingAutoExpirationDateResponse
+// =============================================================================
+
+/// ResourceIdentifier implementation for GoogleChromeManagementV1CountChromeDevicesReachingAutoExpirationDateResponse with ChromemanagementCustomersReportsCountChromeDevicesReachingAutoExpirationDateArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl
+    ResourceIdentifier<
+        ChromemanagementCustomersReportsCountChromeDevicesReachingAutoExpirationDateArgs,
+    > for GoogleChromeManagementV1CountChromeDevicesReachingAutoExpirationDateResponse
+{
+    fn generate_resource_id(
+        &self,
+        input: &ChromemanagementCustomersReportsCountChromeDevicesReachingAutoExpirationDateArgs,
+    ) -> String {
+        format!("gcp::chromemanagement::GoogleChromeManagementV1CountChromeDevicesReachingAutoExpirationDateResponse/{}", input.customer)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::chromemanagement::GoogleChromeManagementV1CountChromeDevicesReachingAutoExpirationDateResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for GoogleChromeManagementV1CountChromeDevicesThatNeedAttentionResponse
+// =============================================================================
+
+/// ResourceIdentifier implementation for GoogleChromeManagementV1CountChromeDevicesThatNeedAttentionResponse with ChromemanagementCustomersReportsCountChromeDevicesThatNeedAttentionArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<ChromemanagementCustomersReportsCountChromeDevicesThatNeedAttentionArgs>
+    for GoogleChromeManagementV1CountChromeDevicesThatNeedAttentionResponse
+{
+    fn generate_resource_id(
+        &self,
+        input: &ChromemanagementCustomersReportsCountChromeDevicesThatNeedAttentionArgs,
+    ) -> String {
+        format!("gcp::chromemanagement::GoogleChromeManagementV1CountChromeDevicesThatNeedAttentionResponse/{}", input.customer)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::chromemanagement::GoogleChromeManagementV1CountChromeDevicesThatNeedAttentionResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for GoogleChromeManagementV1CountChromeHardwareFleetDevicesResponse
+// =============================================================================
+
+/// ResourceIdentifier implementation for GoogleChromeManagementV1CountChromeHardwareFleetDevicesResponse with ChromemanagementCustomersReportsCountChromeHardwareFleetDevicesArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<ChromemanagementCustomersReportsCountChromeHardwareFleetDevicesArgs>
+    for GoogleChromeManagementV1CountChromeHardwareFleetDevicesResponse
+{
+    fn generate_resource_id(
+        &self,
+        input: &ChromemanagementCustomersReportsCountChromeHardwareFleetDevicesArgs,
+    ) -> String {
+        format!("gcp::chromemanagement::GoogleChromeManagementV1CountChromeHardwareFleetDevicesResponse/{}", input.customer)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::chromemanagement::GoogleChromeManagementV1CountChromeHardwareFleetDevicesResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for GoogleChromeManagementV1CountChromeVersionsResponse
+// =============================================================================
+
+/// ResourceIdentifier implementation for GoogleChromeManagementV1CountChromeVersionsResponse with ChromemanagementCustomersReportsCountChromeVersionsArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<ChromemanagementCustomersReportsCountChromeVersionsArgs>
+    for GoogleChromeManagementV1CountChromeVersionsResponse
+{
+    fn generate_resource_id(
+        &self,
+        input: &ChromemanagementCustomersReportsCountChromeVersionsArgs,
+    ) -> String {
+        format!(
+            "gcp::chromemanagement::GoogleChromeManagementV1CountChromeVersionsResponse/{}",
+            input.customer
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::chromemanagement::GoogleChromeManagementV1CountChromeVersionsResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for GoogleChromeManagementV1CountDevicesPerBootTypeResponse
+// =============================================================================
+
+/// ResourceIdentifier implementation for GoogleChromeManagementV1CountDevicesPerBootTypeResponse with ChromemanagementCustomersReportsCountDevicesPerBootTypeArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<ChromemanagementCustomersReportsCountDevicesPerBootTypeArgs>
+    for GoogleChromeManagementV1CountDevicesPerBootTypeResponse
+{
+    fn generate_resource_id(
+        &self,
+        input: &ChromemanagementCustomersReportsCountDevicesPerBootTypeArgs,
+    ) -> String {
+        format!(
+            "gcp::chromemanagement::GoogleChromeManagementV1CountDevicesPerBootTypeResponse/{}",
+            input.customer
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::chromemanagement::GoogleChromeManagementV1CountDevicesPerBootTypeResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for GoogleChromeManagementV1CountDevicesPerReleaseChannelResponse
+// =============================================================================
+
+/// ResourceIdentifier implementation for GoogleChromeManagementV1CountDevicesPerReleaseChannelResponse with ChromemanagementCustomersReportsCountDevicesPerReleaseChannelArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<ChromemanagementCustomersReportsCountDevicesPerReleaseChannelArgs>
+    for GoogleChromeManagementV1CountDevicesPerReleaseChannelResponse
+{
+    fn generate_resource_id(
+        &self,
+        input: &ChromemanagementCustomersReportsCountDevicesPerReleaseChannelArgs,
+    ) -> String {
+        format!("gcp::chromemanagement::GoogleChromeManagementV1CountDevicesPerReleaseChannelResponse/{}", input.customer)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::chromemanagement::GoogleChromeManagementV1CountDevicesPerReleaseChannelResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for GoogleChromeManagementV1CountInstalledAppsResponse
+// =============================================================================
+
+/// ResourceIdentifier implementation for GoogleChromeManagementV1CountInstalledAppsResponse with ChromemanagementCustomersReportsCountInstalledAppsArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<ChromemanagementCustomersReportsCountInstalledAppsArgs>
+    for GoogleChromeManagementV1CountInstalledAppsResponse
+{
+    fn generate_resource_id(
+        &self,
+        input: &ChromemanagementCustomersReportsCountInstalledAppsArgs,
+    ) -> String {
+        format!(
+            "gcp::chromemanagement::GoogleChromeManagementV1CountInstalledAppsResponse/{}",
+            input.customer
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::chromemanagement::GoogleChromeManagementV1CountInstalledAppsResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for GoogleChromeManagementV1CountPrintJobsByPrinterResponse
+// =============================================================================
+
+/// ResourceIdentifier implementation for GoogleChromeManagementV1CountPrintJobsByPrinterResponse with ChromemanagementCustomersReportsCountPrintJobsByPrinterArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<ChromemanagementCustomersReportsCountPrintJobsByPrinterArgs>
+    for GoogleChromeManagementV1CountPrintJobsByPrinterResponse
+{
+    fn generate_resource_id(
+        &self,
+        input: &ChromemanagementCustomersReportsCountPrintJobsByPrinterArgs,
+    ) -> String {
+        format!(
+            "gcp::chromemanagement::GoogleChromeManagementV1CountPrintJobsByPrinterResponse/{}",
+            input.customer
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::chromemanagement::GoogleChromeManagementV1CountPrintJobsByPrinterResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for GoogleChromeManagementV1CountPrintJobsByUserResponse
+// =============================================================================
+
+/// ResourceIdentifier implementation for GoogleChromeManagementV1CountPrintJobsByUserResponse with ChromemanagementCustomersReportsCountPrintJobsByUserArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<ChromemanagementCustomersReportsCountPrintJobsByUserArgs>
+    for GoogleChromeManagementV1CountPrintJobsByUserResponse
+{
+    fn generate_resource_id(
+        &self,
+        input: &ChromemanagementCustomersReportsCountPrintJobsByUserArgs,
+    ) -> String {
+        format!(
+            "gcp::chromemanagement::GoogleChromeManagementV1CountPrintJobsByUserResponse/{}",
+            input.customer
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::chromemanagement::GoogleChromeManagementV1CountPrintJobsByUserResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for GoogleChromeManagementV1EnumeratePrintJobsResponse
+// =============================================================================
+
+/// ResourceIdentifier implementation for GoogleChromeManagementV1EnumeratePrintJobsResponse with ChromemanagementCustomersReportsEnumeratePrintJobsArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<ChromemanagementCustomersReportsEnumeratePrintJobsArgs>
+    for GoogleChromeManagementV1EnumeratePrintJobsResponse
+{
+    fn generate_resource_id(
+        &self,
+        input: &ChromemanagementCustomersReportsEnumeratePrintJobsArgs,
+    ) -> String {
+        format!(
+            "gcp::chromemanagement::GoogleChromeManagementV1EnumeratePrintJobsResponse/{}",
+            input.customer
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::chromemanagement::GoogleChromeManagementV1EnumeratePrintJobsResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for GoogleChromeManagementV1FindInstalledAppDevicesResponse
+// =============================================================================
+
+/// ResourceIdentifier implementation for GoogleChromeManagementV1FindInstalledAppDevicesResponse with ChromemanagementCustomersReportsFindInstalledAppDevicesArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<ChromemanagementCustomersReportsFindInstalledAppDevicesArgs>
+    for GoogleChromeManagementV1FindInstalledAppDevicesResponse
+{
+    fn generate_resource_id(
+        &self,
+        input: &ChromemanagementCustomersReportsFindInstalledAppDevicesArgs,
+    ) -> String {
+        format!(
+            "gcp::chromemanagement::GoogleChromeManagementV1FindInstalledAppDevicesResponse/{}",
+            input.customer
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::chromemanagement::GoogleChromeManagementV1FindInstalledAppDevicesResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for GoogleChromeManagementV1TelemetryDevice
+// =============================================================================
+
+/// ResourceIdentifier implementation for GoogleChromeManagementV1TelemetryDevice with ChromemanagementCustomersTelemetryDevicesGetArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<ChromemanagementCustomersTelemetryDevicesGetArgs>
+    for GoogleChromeManagementV1TelemetryDevice
+{
+    fn generate_resource_id(
+        &self,
+        input: &ChromemanagementCustomersTelemetryDevicesGetArgs,
+    ) -> String {
+        format!(
+            "gcp::chromemanagement::GoogleChromeManagementV1TelemetryDevice/{}",
+            input.name
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::chromemanagement::GoogleChromeManagementV1TelemetryDevice"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for GoogleChromeManagementV1ListTelemetryDevicesResponse
+// =============================================================================
+
+/// ResourceIdentifier implementation for GoogleChromeManagementV1ListTelemetryDevicesResponse with ChromemanagementCustomersTelemetryDevicesListArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<ChromemanagementCustomersTelemetryDevicesListArgs>
+    for GoogleChromeManagementV1ListTelemetryDevicesResponse
+{
+    fn generate_resource_id(
+        &self,
+        input: &ChromemanagementCustomersTelemetryDevicesListArgs,
+    ) -> String {
+        format!(
+            "gcp::chromemanagement::GoogleChromeManagementV1ListTelemetryDevicesResponse/{}",
+            input.parent
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::chromemanagement::GoogleChromeManagementV1ListTelemetryDevicesResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for GoogleChromeManagementV1ListTelemetryEventsResponse
+// =============================================================================
+
+/// ResourceIdentifier implementation for GoogleChromeManagementV1ListTelemetryEventsResponse with ChromemanagementCustomersTelemetryEventsListArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<ChromemanagementCustomersTelemetryEventsListArgs>
+    for GoogleChromeManagementV1ListTelemetryEventsResponse
+{
+    fn generate_resource_id(
+        &self,
+        input: &ChromemanagementCustomersTelemetryEventsListArgs,
+    ) -> String {
+        format!(
+            "gcp::chromemanagement::GoogleChromeManagementV1ListTelemetryEventsResponse/{}",
+            input.parent
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::chromemanagement::GoogleChromeManagementV1ListTelemetryEventsResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for GoogleChromeManagementV1TelemetryNotificationConfig
+// =============================================================================
+
+/// ResourceIdentifier implementation for GoogleChromeManagementV1TelemetryNotificationConfig with ChromemanagementCustomersTelemetryNotificationConfigsCreateArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<ChromemanagementCustomersTelemetryNotificationConfigsCreateArgs>
+    for GoogleChromeManagementV1TelemetryNotificationConfig
+{
+    fn generate_resource_id(
+        &self,
+        input: &ChromemanagementCustomersTelemetryNotificationConfigsCreateArgs,
+    ) -> String {
+        format!(
+            "gcp::chromemanagement::GoogleChromeManagementV1TelemetryNotificationConfig/{}",
+            input.parent
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::chromemanagement::GoogleChromeManagementV1TelemetryNotificationConfig"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for GoogleProtobufEmpty
+// =============================================================================
+
+/// ResourceIdentifier implementation for GoogleProtobufEmpty with ChromemanagementCustomersTelemetryNotificationConfigsDeleteArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<ChromemanagementCustomersTelemetryNotificationConfigsDeleteArgs>
+    for GoogleProtobufEmpty
+{
+    fn generate_resource_id(
+        &self,
+        input: &ChromemanagementCustomersTelemetryNotificationConfigsDeleteArgs,
+    ) -> String {
+        format!("gcp::chromemanagement::GoogleProtobufEmpty/{}", input.name)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::chromemanagement::GoogleProtobufEmpty"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for GoogleChromeManagementV1ListTelemetryNotificationConfigsResponse
+// =============================================================================
+
+/// ResourceIdentifier implementation for GoogleChromeManagementV1ListTelemetryNotificationConfigsResponse with ChromemanagementCustomersTelemetryNotificationConfigsListArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<ChromemanagementCustomersTelemetryNotificationConfigsListArgs>
+    for GoogleChromeManagementV1ListTelemetryNotificationConfigsResponse
+{
+    fn generate_resource_id(
+        &self,
+        input: &ChromemanagementCustomersTelemetryNotificationConfigsListArgs,
+    ) -> String {
+        format!("gcp::chromemanagement::GoogleChromeManagementV1ListTelemetryNotificationConfigsResponse/{}", input.parent)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::chromemanagement::GoogleChromeManagementV1ListTelemetryNotificationConfigsResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for GoogleChromeManagementV1TelemetryUser
+// =============================================================================
+
+/// ResourceIdentifier implementation for GoogleChromeManagementV1TelemetryUser with ChromemanagementCustomersTelemetryUsersGetArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<ChromemanagementCustomersTelemetryUsersGetArgs>
+    for GoogleChromeManagementV1TelemetryUser
+{
+    fn generate_resource_id(
+        &self,
+        input: &ChromemanagementCustomersTelemetryUsersGetArgs,
+    ) -> String {
+        format!(
+            "gcp::chromemanagement::GoogleChromeManagementV1TelemetryUser/{}",
+            input.name
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::chromemanagement::GoogleChromeManagementV1TelemetryUser"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for GoogleChromeManagementV1ListTelemetryUsersResponse
+// =============================================================================
+
+/// ResourceIdentifier implementation for GoogleChromeManagementV1ListTelemetryUsersResponse with ChromemanagementCustomersTelemetryUsersListArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<ChromemanagementCustomersTelemetryUsersListArgs>
+    for GoogleChromeManagementV1ListTelemetryUsersResponse
+{
+    fn generate_resource_id(
+        &self,
+        input: &ChromemanagementCustomersTelemetryUsersListArgs,
+    ) -> String {
+        format!(
+            "gcp::chromemanagement::GoogleChromeManagementV1ListTelemetryUsersResponse/{}",
+            input.parent
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::chromemanagement::GoogleChromeManagementV1ListTelemetryUsersResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for GoogleChromeManagementVersionsV1MoveThirdPartyProfileUserResponse
+// =============================================================================
+
+/// ResourceIdentifier implementation for GoogleChromeManagementVersionsV1MoveThirdPartyProfileUserResponse with ChromemanagementCustomersThirdPartyProfileUsersMoveArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<ChromemanagementCustomersThirdPartyProfileUsersMoveArgs>
+    for GoogleChromeManagementVersionsV1MoveThirdPartyProfileUserResponse
+{
+    fn generate_resource_id(
+        &self,
+        input: &ChromemanagementCustomersThirdPartyProfileUsersMoveArgs,
+    ) -> String {
+        format!("gcp::chromemanagement::GoogleChromeManagementVersionsV1MoveThirdPartyProfileUserResponse/{}", input.name)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::chromemanagement::GoogleChromeManagementVersionsV1MoveThirdPartyProfileUserResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for GoogleProtobufEmpty
+// =============================================================================
+
+/// ResourceIdentifier implementation for GoogleProtobufEmpty with ChromemanagementOperationsCancelArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<ChromemanagementOperationsCancelArgs> for GoogleProtobufEmpty {
+    fn generate_resource_id(&self, input: &ChromemanagementOperationsCancelArgs) -> String {
+        format!("gcp::chromemanagement::GoogleProtobufEmpty/{}", input.name)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::chromemanagement::GoogleProtobufEmpty"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for GoogleProtobufEmpty
+// =============================================================================
+
+/// ResourceIdentifier implementation for GoogleProtobufEmpty with ChromemanagementOperationsDeleteArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<ChromemanagementOperationsDeleteArgs> for GoogleProtobufEmpty {
+    fn generate_resource_id(&self, input: &ChromemanagementOperationsDeleteArgs) -> String {
+        format!("gcp::chromemanagement::GoogleProtobufEmpty/{}", input.name)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::chromemanagement::GoogleProtobufEmpty"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for GoogleLongrunningListOperationsResponse
+// =============================================================================
+
+/// ResourceIdentifier implementation for GoogleLongrunningListOperationsResponse with ChromemanagementOperationsListArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<ChromemanagementOperationsListArgs>
+    for GoogleLongrunningListOperationsResponse
+{
+    fn generate_resource_id(&self, input: &ChromemanagementOperationsListArgs) -> String {
+        "gcp::chromemanagement::GoogleLongrunningListOperationsResponse".to_string()
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::chromemanagement::GoogleLongrunningListOperationsResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
 }

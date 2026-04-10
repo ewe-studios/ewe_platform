@@ -7,7 +7,6 @@
 
 #![cfg(feature = "gcp")]
 
-
 use crate::providers::gcp::clients::types::*;
 use crate::providers::gcp::resources::*;
 use foundation_core::valtron::{
@@ -17,10 +16,11 @@ use foundation_core::valtron::{
 use foundation_core::wire::simple_http::client::{
     body_reader, ClientRequestBuilder, RequestIntro, SimpleHttpClient, SystemDnsResolver,
 };
+use foundation_db::state::resource_identifier::ResourceIdentifier;
 use foundation_macros::JsonHash;
 use serde::Serialize;
 
-/// GET androidenterprise/v1/enterprises/{enterpriseId}/users/{userId}/devices/{deviceId}/forceReportUpload
+/// POST androidenterprise/v1/enterprises/{enterpriseId}/users/{userId}/devices/{deviceId}/forceReportUpload
 /// Uploads a report containing any changes in app states on the device since the last report was generated. You can call this method up to 3 times every 24 hours for a given device. If you exceed the quota, then the Google Play EMM API returns HTTP 429 Too Many Requests.
 ///
 /// Returns `ClientRequestBuilder` for customization.
@@ -42,13 +42,13 @@ pub fn androidenterprise_devices_force_report_upload_builder(
 
     // Build request
     let builder = client
-        .get(&endpoint_url)
+        .post(&endpoint_url)
         .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
 
     Ok(builder)
 }
 
-/// GET androidenterprise/v1/enterprises/{enterpriseId}/users/{userId}/devices/{deviceId}/forceReportUpload
+/// POST androidenterprise/v1/enterprises/{enterpriseId}/users/{userId}/devices/{deviceId}/forceReportUpload
 /// Uploads a report containing any changes in app states on the device since the last report was generated. You can call this method up to 3 times every 24 hours for a given device. If you exceed the quota, then the Google Play EMM API returns HTTP 429 Too Many Requests.
 ///
 /// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
@@ -119,7 +119,7 @@ pub fn androidenterprise_devices_force_report_upload_task(
         .map_pending(|_| ApiPending::Sending))
 }
 
-/// GET androidenterprise/v1/enterprises/{enterpriseId}/users/{userId}/devices/{deviceId}/forceReportUpload
+/// POST androidenterprise/v1/enterprises/{enterpriseId}/users/{userId}/devices/{deviceId}/forceReportUpload
 /// Uploads a report containing any changes in app states on the device since the last report was generated. You can call this method up to 3 times every 24 hours for a given device. If you exceed the quota, then the Google Play EMM API returns HTTP 429 Too Many Requests.
 ///
 /// Takes a `ClientRequestBuilder`, builds and executes the request,
@@ -160,7 +160,7 @@ pub struct AndroidenterpriseDevicesForceReportUploadArgs {
     pub deviceId: String,
 }
 
-/// GET androidenterprise/v1/enterprises/{enterpriseId}/users/{userId}/devices/{deviceId}/forceReportUpload
+/// POST androidenterprise/v1/enterprises/{enterpriseId}/users/{userId}/devices/{deviceId}/forceReportUpload
 /// Uploads a report containing any changes in app states on the device since the last report was generated. You can call this method up to 3 times every 24 hours for a given device. If you exceed the quota, then the Google Play EMM API returns HTTP 429 Too Many Requests.
 ///
 /// Simplest API - builds and executes the request in one call.
@@ -692,7 +692,362 @@ pub fn androidenterprise_devices_list(
     androidenterprise_devices_list_execute(builder)
 }
 
-/// GET androidenterprise/v1/enterprises/{enterpriseId}/enrollmentTokens
+/// PUT androidenterprise/v1/enterprises/{enterpriseId}/users/{userId}/devices/{deviceId}/state
+/// Sets whether a device's access to Google services (including Google Play) is enabled or disabled for the specified user. Setting the state to "enabled" allows the Google Account to access Google services, while "disabled" blocks access by preventing OAuth token issuance. Preconditions for Enforcement: 1. This setting is only effective for Google-managed users. 2. The enterprise must be linked to a Google Managed Domain. 3. Enforcement requires third-party Android mobile management to be enabled within the Google Admin Console for the user's Organizational Unit. If these preconditions are not met, changes to this state may be ignored.
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `androidenterprise_devices_set_state_execute()` to send, or `androidenterprise_devices_set_state` for simplest API.
+
+pub fn androidenterprise_devices_set_state_builder(
+    client: &SimpleHttpClient,
+    enterpriseId: &String,
+    userId: &String,
+    deviceId: &String,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!(
+        "https://androidenterprise.googleapis.com/androidenterprise/v1/enterprises/{}/users/{}/devices/{}/state",
+        enterpriseId,
+        userId,
+        deviceId,
+    );
+
+    // Build request
+    let builder = client
+        .put(&endpoint_url)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// PUT androidenterprise/v1/enterprises/{enterpriseId}/users/{userId}/devices/{deviceId}/state
+/// Sets whether a device's access to Google services (including Google Play) is enabled or disabled for the specified user. Setting the state to "enabled" allows the Google Account to access Google services, while "disabled" blocks access by preventing OAuth token issuance. Preconditions for Enforcement: 1. This setting is only effective for Google-managed users. 2. The enterprise must be linked to a Google Managed Domain. 3. Enforcement requires third-party Android mobile management to be enabled within the Google Admin Console for the user's Organizational Unit. If these preconditions are not met, changes to this state may be ignored.
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `androidenterprise_devices_set_state_execute()` or `androidenterprise_devices_set_state`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `androidenterprise_devices_set_state_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn androidenterprise_devices_set_state_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<DeviceState>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: DeviceState = serde_json::from_str(&body)
+                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// PUT androidenterprise/v1/enterprises/{enterpriseId}/users/{userId}/devices/{deviceId}/state
+/// Sets whether a device's access to Google services (including Google Play) is enabled or disabled for the specified user. Setting the state to "enabled" allows the Google Account to access Google services, while "disabled" blocks access by preventing OAuth token issuance. Preconditions for Enforcement: 1. This setting is only effective for Google-managed users. 2. The enterprise must be linked to a Google Managed Domain. 3. Enforcement requires third-party Android mobile management to be enabled within the Google Admin Console for the user's Organizational Unit. If these preconditions are not met, changes to this state may be ignored.
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `androidenterprise_devices_set_state_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `androidenterprise_devices_set_state_task()`.
+/// For the simplest API, use `androidenterprise_devices_set_state()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `androidenterprise_devices_set_state_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn androidenterprise_devices_set_state_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<DeviceState>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let task = androidenterprise_devices_set_state_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`androidenterprise_devices_set_state`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct AndroidenterpriseDevicesSetStateArgs {
+    /// Path parameter: enterpriseId
+    pub enterpriseId: String,
+    /// Path parameter: userId
+    pub userId: String,
+    /// Path parameter: deviceId
+    pub deviceId: String,
+}
+
+/// PUT androidenterprise/v1/enterprises/{enterpriseId}/users/{userId}/devices/{deviceId}/state
+/// Sets whether a device's access to Google services (including Google Play) is enabled or disabled for the specified user. Setting the state to "enabled" allows the Google Account to access Google services, while "disabled" blocks access by preventing OAuth token issuance. Preconditions for Enforcement: 1. This setting is only effective for Google-managed users. 2. The enterprise must be linked to a Google Managed Domain. 3. Enforcement requires third-party Android mobile management to be enabled within the Google Admin Console for the user's Organizational Unit. If these preconditions are not met, changes to this state may be ignored.
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `androidenterprise_devices_set_state_builder()` + `androidenterprise_devices_set_state_execute()`.
+/// For task-level control, use `androidenterprise_devices_set_state_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn androidenterprise_devices_set_state(
+    client: &SimpleHttpClient,
+    args: &AndroidenterpriseDevicesSetStateArgs,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<DeviceState>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let builder = androidenterprise_devices_set_state_builder(
+        client,
+        &args.enterpriseId,
+        &args.userId,
+        &args.deviceId,
+    )?;
+    androidenterprise_devices_set_state_execute(builder)
+}
+
+/// PUT androidenterprise/v1/enterprises/{enterpriseId}/users/{userId}/devices/{deviceId}
+/// Updates the device policy. To ensure the policy is properly enforced, you need to prevent unmanaged accounts from accessing Google Play by setting the allowed_accounts in the managed configuration for the Google Play package. See restrict accounts in Google Play. When provisioning a new device, you should set the device policy using this method before adding the managed Google Play Account to the device, otherwise the policy will not be applied for a short period of time after adding the account to the device.
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `androidenterprise_devices_update_execute()` to send, or `androidenterprise_devices_update` for simplest API.
+
+pub fn androidenterprise_devices_update_builder(
+    client: &SimpleHttpClient,
+    enterpriseId: &String,
+    userId: &String,
+    deviceId: &String,
+    updateMask: &Option<Option<String>>,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!(
+        "https://androidenterprise.googleapis.com/androidenterprise/v1/enterprises/{}/users/{}/devices/{}",
+        enterpriseId,
+        userId,
+        deviceId,
+    );
+
+    // Build request
+    let mut query_parts = Vec::new();
+    if let Some(val) = updateMask.as_ref() {
+        query_parts.push(format!("updateMask={}", val));
+    }
+
+    let url_with_query = if query_parts.is_empty() {
+        endpoint_url
+    } else {
+        format!("{}?{}", endpoint_url, query_parts.join("&"))
+    };
+
+    let builder = client
+        .put(&url_with_query)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// PUT androidenterprise/v1/enterprises/{enterpriseId}/users/{userId}/devices/{deviceId}
+/// Updates the device policy. To ensure the policy is properly enforced, you need to prevent unmanaged accounts from accessing Google Play by setting the allowed_accounts in the managed configuration for the Google Play package. See restrict accounts in Google Play. When provisioning a new device, you should set the device policy using this method before adding the managed Google Play Account to the device, otherwise the policy will not be applied for a short period of time after adding the account to the device.
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `androidenterprise_devices_update_execute()` or `androidenterprise_devices_update`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `androidenterprise_devices_update_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn androidenterprise_devices_update_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<Device>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: Device = serde_json::from_str(&body)
+                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// PUT androidenterprise/v1/enterprises/{enterpriseId}/users/{userId}/devices/{deviceId}
+/// Updates the device policy. To ensure the policy is properly enforced, you need to prevent unmanaged accounts from accessing Google Play by setting the allowed_accounts in the managed configuration for the Google Play package. See restrict accounts in Google Play. When provisioning a new device, you should set the device policy using this method before adding the managed Google Play Account to the device, otherwise the policy will not be applied for a short period of time after adding the account to the device.
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `androidenterprise_devices_update_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `androidenterprise_devices_update_task()`.
+/// For the simplest API, use `androidenterprise_devices_update()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `androidenterprise_devices_update_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn androidenterprise_devices_update_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<Device>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let task = androidenterprise_devices_update_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`androidenterprise_devices_update`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct AndroidenterpriseDevicesUpdateArgs {
+    /// Path parameter: enterpriseId
+    pub enterpriseId: String,
+    /// Path parameter: userId
+    pub userId: String,
+    /// Path parameter: deviceId
+    pub deviceId: String,
+    /// Query parameter: updateMask
+    pub updateMask: Option<Option<String>>,
+}
+
+/// PUT androidenterprise/v1/enterprises/{enterpriseId}/users/{userId}/devices/{deviceId}
+/// Updates the device policy. To ensure the policy is properly enforced, you need to prevent unmanaged accounts from accessing Google Play by setting the allowed_accounts in the managed configuration for the Google Play package. See restrict accounts in Google Play. When provisioning a new device, you should set the device policy using this method before adding the managed Google Play Account to the device, otherwise the policy will not be applied for a short period of time after adding the account to the device.
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `androidenterprise_devices_update_builder()` + `androidenterprise_devices_update_execute()`.
+/// For task-level control, use `androidenterprise_devices_update_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn androidenterprise_devices_update(
+    client: &SimpleHttpClient,
+    args: &AndroidenterpriseDevicesUpdateArgs,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<Device>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let builder = androidenterprise_devices_update_builder(
+        client,
+        &args.enterpriseId,
+        &args.userId,
+        &args.deviceId,
+        &args.updateMask,
+    )?;
+    androidenterprise_devices_update_execute(builder)
+}
+
+/// POST androidenterprise/v1/enterprises/{enterpriseId}/enrollmentTokens
 /// Returns a token for device enrollment. The DPC can encode this token within the QR/NFC/zero-touch enrollment payload or fetch it before calling the on-device API to authenticate the user. The token can be generated for each device or reused across multiple devices.
 ///
 /// Returns `ClientRequestBuilder` for customization.
@@ -701,7 +1056,6 @@ pub fn androidenterprise_devices_list(
 pub fn androidenterprise_enrollment_tokens_create_builder(
     client: &SimpleHttpClient,
     enterpriseId: &String,
-    body: &EnrollmentToken,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
@@ -711,15 +1065,13 @@ pub fn androidenterprise_enrollment_tokens_create_builder(
 
     // Build request
     let builder = client
-        .get(&endpoint_url)
+        .post(&endpoint_url)
         .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
 
-    builder
-        .body_json(body)
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+    Ok(builder)
 }
 
-/// GET androidenterprise/v1/enterprises/{enterpriseId}/enrollmentTokens
+/// POST androidenterprise/v1/enterprises/{enterpriseId}/enrollmentTokens
 /// Returns a token for device enrollment. The DPC can encode this token within the QR/NFC/zero-touch enrollment payload or fetch it before calling the on-device API to authenticate the user. The token can be generated for each device or reused across multiple devices.
 ///
 /// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
@@ -793,7 +1145,7 @@ pub fn androidenterprise_enrollment_tokens_create_task(
         .map_pending(|_| ApiPending::Sending))
 }
 
-/// GET androidenterprise/v1/enterprises/{enterpriseId}/enrollmentTokens
+/// POST androidenterprise/v1/enterprises/{enterpriseId}/enrollmentTokens
 /// Returns a token for device enrollment. The DPC can encode this token within the QR/NFC/zero-touch enrollment payload or fetch it before calling the on-device API to authenticate the user. The token can be generated for each device or reused across multiple devices.
 ///
 /// Takes a `ClientRequestBuilder`, builds and executes the request,
@@ -830,11 +1182,9 @@ pub fn androidenterprise_enrollment_tokens_create_execute(
 pub struct AndroidenterpriseEnrollmentTokensCreateArgs {
     /// Path parameter: enterpriseId
     pub enterpriseId: String,
-    /// Request body.
-    pub body: EnrollmentToken,
 }
 
-/// GET androidenterprise/v1/enterprises/{enterpriseId}/enrollmentTokens
+/// POST androidenterprise/v1/enterprises/{enterpriseId}/enrollmentTokens
 /// Returns a token for device enrollment. The DPC can encode this token within the QR/NFC/zero-touch enrollment payload or fetch it before calling the on-device API to authenticate the user. The token can be generated for each device or reused across multiple devices.
 ///
 /// Simplest API - builds and executes the request in one call.
@@ -854,12 +1204,11 @@ pub fn androidenterprise_enrollment_tokens_create(
         + 'static,
     ApiError,
 > {
-    let builder =
-        androidenterprise_enrollment_tokens_create_builder(client, &args.enterpriseId, &args.body)?;
+    let builder = androidenterprise_enrollment_tokens_create_builder(client, &args.enterpriseId)?;
     androidenterprise_enrollment_tokens_create_execute(builder)
 }
 
-/// GET androidenterprise/v1/enterprises/acknowledgeNotificationSet
+/// POST androidenterprise/v1/enterprises/acknowledgeNotificationSet
 /// Acknowledges notifications that were received from Enterprises.PullNotificationSet to prevent subsequent calls from returning the same notifications.
 ///
 /// Returns `ClientRequestBuilder` for customization.
@@ -867,7 +1216,7 @@ pub fn androidenterprise_enrollment_tokens_create(
 
 pub fn androidenterprise_enterprises_acknowledge_notification_set_builder(
     client: &SimpleHttpClient,
-    notificationSetId: &Option<String>,
+    notificationSetId: &Option<Option<String>>,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
@@ -887,13 +1236,13 @@ pub fn androidenterprise_enterprises_acknowledge_notification_set_builder(
     };
 
     let builder = client
-        .get(&url_with_query)
+        .post(&url_with_query)
         .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
 
     Ok(builder)
 }
 
-/// GET androidenterprise/v1/enterprises/acknowledgeNotificationSet
+/// POST androidenterprise/v1/enterprises/acknowledgeNotificationSet
 /// Acknowledges notifications that were received from Enterprises.PullNotificationSet to prevent subsequent calls from returning the same notifications.
 ///
 /// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
@@ -964,7 +1313,7 @@ pub fn androidenterprise_enterprises_acknowledge_notification_set_task(
         .map_pending(|_| ApiPending::Sending))
 }
 
-/// GET androidenterprise/v1/enterprises/acknowledgeNotificationSet
+/// POST androidenterprise/v1/enterprises/acknowledgeNotificationSet
 /// Acknowledges notifications that were received from Enterprises.PullNotificationSet to prevent subsequent calls from returning the same notifications.
 ///
 /// Takes a `ClientRequestBuilder`, builds and executes the request,
@@ -998,10 +1347,10 @@ pub fn androidenterprise_enterprises_acknowledge_notification_set_execute(
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct AndroidenterpriseEnterprisesAcknowledgeNotificationSetArgs {
     /// Query parameter: notificationSetId
-    pub notificationSetId: Option<String>,
+    pub notificationSetId: Option<Option<String>>,
 }
 
-/// GET androidenterprise/v1/enterprises/acknowledgeNotificationSet
+/// POST androidenterprise/v1/enterprises/acknowledgeNotificationSet
 /// Acknowledges notifications that were received from Enterprises.PullNotificationSet to prevent subsequent calls from returning the same notifications.
 ///
 /// Simplest API - builds and executes the request in one call.
@@ -1026,7 +1375,7 @@ pub fn androidenterprise_enterprises_acknowledge_notification_set(
     androidenterprise_enterprises_acknowledge_notification_set_execute(builder)
 }
 
-/// GET androidenterprise/v1/enterprises/completeSignup
+/// POST androidenterprise/v1/enterprises/completeSignup
 /// Completes the signup flow, by specifying the Completion token and Enterprise token. This request must not be called multiple times for a given Enterprise Token.
 ///
 /// Returns `ClientRequestBuilder` for customization.
@@ -1034,8 +1383,8 @@ pub fn androidenterprise_enterprises_acknowledge_notification_set(
 
 pub fn androidenterprise_enterprises_complete_signup_builder(
     client: &SimpleHttpClient,
-    completionToken: &Option<String>,
-    enterpriseToken: &Option<String>,
+    completionToken: &Option<Option<String>>,
+    enterpriseToken: &Option<Option<String>>,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
@@ -1058,13 +1407,13 @@ pub fn androidenterprise_enterprises_complete_signup_builder(
     };
 
     let builder = client
-        .get(&url_with_query)
+        .post(&url_with_query)
         .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
 
     Ok(builder)
 }
 
-/// GET androidenterprise/v1/enterprises/completeSignup
+/// POST androidenterprise/v1/enterprises/completeSignup
 /// Completes the signup flow, by specifying the Completion token and Enterprise token. This request must not be called multiple times for a given Enterprise Token.
 ///
 /// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
@@ -1138,7 +1487,7 @@ pub fn androidenterprise_enterprises_complete_signup_task(
         .map_pending(|_| ApiPending::Sending))
 }
 
-/// GET androidenterprise/v1/enterprises/completeSignup
+/// POST androidenterprise/v1/enterprises/completeSignup
 /// Completes the signup flow, by specifying the Completion token and Enterprise token. This request must not be called multiple times for a given Enterprise Token.
 ///
 /// Takes a `ClientRequestBuilder`, builds and executes the request,
@@ -1172,12 +1521,12 @@ pub fn androidenterprise_enterprises_complete_signup_execute(
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct AndroidenterpriseEnterprisesCompleteSignupArgs {
     /// Query parameter: completionToken
-    pub completionToken: Option<String>,
+    pub completionToken: Option<Option<String>>,
     /// Query parameter: enterpriseToken
-    pub enterpriseToken: Option<String>,
+    pub enterpriseToken: Option<Option<String>>,
 }
 
-/// GET androidenterprise/v1/enterprises/completeSignup
+/// POST androidenterprise/v1/enterprises/completeSignup
 /// Completes the signup flow, by specifying the Completion token and Enterprise token. This request must not be called multiple times for a given Enterprise Token.
 ///
 /// Simplest API - builds and executes the request in one call.
@@ -1203,7 +1552,7 @@ pub fn androidenterprise_enterprises_complete_signup(
     androidenterprise_enterprises_complete_signup_execute(builder)
 }
 
-/// GET androidenterprise/v1/enterprises/{enterpriseId}/createWebToken
+/// POST androidenterprise/v1/enterprises/{enterpriseId}/createWebToken
 /// Returns a unique token to access an embeddable UI. To generate a web UI, pass the generated token into the managed Google Play javascript API. Each token may only be used to start one UI session. See the JavaScript API documentation for further information.
 ///
 /// Returns `ClientRequestBuilder` for customization.
@@ -1212,7 +1561,6 @@ pub fn androidenterprise_enterprises_complete_signup(
 pub fn androidenterprise_enterprises_create_web_token_builder(
     client: &SimpleHttpClient,
     enterpriseId: &String,
-    body: &AdministratorWebTokenSpec,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
@@ -1222,15 +1570,13 @@ pub fn androidenterprise_enterprises_create_web_token_builder(
 
     // Build request
     let builder = client
-        .get(&endpoint_url)
+        .post(&endpoint_url)
         .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
 
-    builder
-        .body_json(body)
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+    Ok(builder)
 }
 
-/// GET androidenterprise/v1/enterprises/{enterpriseId}/createWebToken
+/// POST androidenterprise/v1/enterprises/{enterpriseId}/createWebToken
 /// Returns a unique token to access an embeddable UI. To generate a web UI, pass the generated token into the managed Google Play javascript API. Each token may only be used to start one UI session. See the JavaScript API documentation for further information.
 ///
 /// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
@@ -1304,7 +1650,7 @@ pub fn androidenterprise_enterprises_create_web_token_task(
         .map_pending(|_| ApiPending::Sending))
 }
 
-/// GET androidenterprise/v1/enterprises/{enterpriseId}/createWebToken
+/// POST androidenterprise/v1/enterprises/{enterpriseId}/createWebToken
 /// Returns a unique token to access an embeddable UI. To generate a web UI, pass the generated token into the managed Google Play javascript API. Each token may only be used to start one UI session. See the JavaScript API documentation for further information.
 ///
 /// Takes a `ClientRequestBuilder`, builds and executes the request,
@@ -1341,11 +1687,9 @@ pub fn androidenterprise_enterprises_create_web_token_execute(
 pub struct AndroidenterpriseEnterprisesCreateWebTokenArgs {
     /// Path parameter: enterpriseId
     pub enterpriseId: String,
-    /// Request body.
-    pub body: AdministratorWebTokenSpec,
 }
 
-/// GET androidenterprise/v1/enterprises/{enterpriseId}/createWebToken
+/// POST androidenterprise/v1/enterprises/{enterpriseId}/createWebToken
 /// Returns a unique token to access an embeddable UI. To generate a web UI, pass the generated token into the managed Google Play javascript API. Each token may only be used to start one UI session. See the JavaScript API documentation for further information.
 ///
 /// Simplest API - builds and executes the request in one call.
@@ -1365,15 +1709,179 @@ pub fn androidenterprise_enterprises_create_web_token(
         + 'static,
     ApiError,
 > {
-    let builder = androidenterprise_enterprises_create_web_token_builder(
-        client,
-        &args.enterpriseId,
-        &args.body,
-    )?;
+    let builder =
+        androidenterprise_enterprises_create_web_token_builder(client, &args.enterpriseId)?;
     androidenterprise_enterprises_create_web_token_execute(builder)
 }
 
-/// GET androidenterprise/v1/enterprises/{enterpriseId}/generateEnterpriseUpgradeUrl
+/// POST androidenterprise/v1/enterprises/enroll
+/// Enrolls an enterprise with the calling EMM.
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `androidenterprise_enterprises_enroll_execute()` to send, or `androidenterprise_enterprises_enroll` for simplest API.
+
+pub fn androidenterprise_enterprises_enroll_builder(
+    client: &SimpleHttpClient,
+    token: &Option<Option<String>>,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!(
+        "https://androidenterprise.googleapis.com/androidenterprise/v1/enterprises/enroll",
+    );
+
+    // Build request
+    let mut query_parts = Vec::new();
+    if let Some(val) = token.as_ref() {
+        query_parts.push(format!("token={}", val));
+    }
+
+    let url_with_query = if query_parts.is_empty() {
+        endpoint_url
+    } else {
+        format!("{}?{}", endpoint_url, query_parts.join("&"))
+    };
+
+    let builder = client
+        .post(&url_with_query)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// POST androidenterprise/v1/enterprises/enroll
+/// Enrolls an enterprise with the calling EMM.
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `androidenterprise_enterprises_enroll_execute()` or `androidenterprise_enterprises_enroll`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `androidenterprise_enterprises_enroll_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn androidenterprise_enterprises_enroll_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<Enterprise>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: Enterprise = serde_json::from_str(&body)
+                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// POST androidenterprise/v1/enterprises/enroll
+/// Enrolls an enterprise with the calling EMM.
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `androidenterprise_enterprises_enroll_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `androidenterprise_enterprises_enroll_task()`.
+/// For the simplest API, use `androidenterprise_enterprises_enroll()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `androidenterprise_enterprises_enroll_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn androidenterprise_enterprises_enroll_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<Enterprise>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let task = androidenterprise_enterprises_enroll_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`androidenterprise_enterprises_enroll`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct AndroidenterpriseEnterprisesEnrollArgs {
+    /// Query parameter: token
+    pub token: Option<Option<String>>,
+}
+
+/// POST androidenterprise/v1/enterprises/enroll
+/// Enrolls an enterprise with the calling EMM.
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `androidenterprise_enterprises_enroll_builder()` + `androidenterprise_enterprises_enroll_execute()`.
+/// For task-level control, use `androidenterprise_enterprises_enroll_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn androidenterprise_enterprises_enroll(
+    client: &SimpleHttpClient,
+    args: &AndroidenterpriseEnterprisesEnrollArgs,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<Enterprise>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let builder = androidenterprise_enterprises_enroll_builder(client, &args.token)?;
+    androidenterprise_enterprises_enroll_execute(builder)
+}
+
+/// POST androidenterprise/v1/enterprises/{enterpriseId}/generateEnterpriseUpgradeUrl
 /// Generates an enterprise upgrade URL to upgrade an existing managed Google Play Accounts enterprise to a managed Google domain. See the guide to upgrading an enterprise for more details.
 ///
 /// Returns `ClientRequestBuilder` for customization.
@@ -1382,8 +1890,8 @@ pub fn androidenterprise_enterprises_create_web_token(
 pub fn androidenterprise_enterprises_generate_enterprise_upgrade_url_builder(
     client: &SimpleHttpClient,
     enterpriseId: &String,
-    adminEmail: &Option<String>,
-    allowedDomains: &Option<String>,
+    adminEmail: &Option<Option<String>>,
+    allowedDomains: &Option<Option<String>>,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
@@ -1407,13 +1915,13 @@ pub fn androidenterprise_enterprises_generate_enterprise_upgrade_url_builder(
     };
 
     let builder = client
-        .get(&url_with_query)
+        .post(&url_with_query)
         .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
 
     Ok(builder)
 }
 
-/// GET androidenterprise/v1/enterprises/{enterpriseId}/generateEnterpriseUpgradeUrl
+/// POST androidenterprise/v1/enterprises/{enterpriseId}/generateEnterpriseUpgradeUrl
 /// Generates an enterprise upgrade URL to upgrade an existing managed Google Play Accounts enterprise to a managed Google domain. See the guide to upgrading an enterprise for more details.
 ///
 /// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
@@ -1487,7 +1995,7 @@ pub fn androidenterprise_enterprises_generate_enterprise_upgrade_url_task(
         .map_pending(|_| ApiPending::Sending))
 }
 
-/// GET androidenterprise/v1/enterprises/{enterpriseId}/generateEnterpriseUpgradeUrl
+/// POST androidenterprise/v1/enterprises/{enterpriseId}/generateEnterpriseUpgradeUrl
 /// Generates an enterprise upgrade URL to upgrade an existing managed Google Play Accounts enterprise to a managed Google domain. See the guide to upgrading an enterprise for more details.
 ///
 /// Takes a `ClientRequestBuilder`, builds and executes the request,
@@ -1527,12 +2035,12 @@ pub struct AndroidenterpriseEnterprisesGenerateEnterpriseUpgradeUrlArgs {
     /// Path parameter: enterpriseId
     pub enterpriseId: String,
     /// Query parameter: adminEmail
-    pub adminEmail: Option<String>,
+    pub adminEmail: Option<Option<String>>,
     /// Query parameter: allowedDomains
-    pub allowedDomains: Option<String>,
+    pub allowedDomains: Option<Option<String>>,
 }
 
-/// GET androidenterprise/v1/enterprises/{enterpriseId}/generateEnterpriseUpgradeUrl
+/// POST androidenterprise/v1/enterprises/{enterpriseId}/generateEnterpriseUpgradeUrl
 /// Generates an enterprise upgrade URL to upgrade an existing managed Google Play Accounts enterprise to a managed Google domain. See the guide to upgrading an enterprise for more details.
 ///
 /// Simplest API - builds and executes the request in one call.
@@ -1563,7 +2071,7 @@ pub fn androidenterprise_enterprises_generate_enterprise_upgrade_url(
     androidenterprise_enterprises_generate_enterprise_upgrade_url_execute(builder)
 }
 
-/// GET androidenterprise/v1/enterprises/signupUrl
+/// POST androidenterprise/v1/enterprises/signupUrl
 /// Generates a sign-up URL.
 ///
 /// Returns `ClientRequestBuilder` for customization.
@@ -1571,9 +2079,9 @@ pub fn androidenterprise_enterprises_generate_enterprise_upgrade_url(
 
 pub fn androidenterprise_enterprises_generate_signup_url_builder(
     client: &SimpleHttpClient,
-    adminEmail: &Option<String>,
-    allowedDomains: &Option<String>,
-    callbackUrl: &Option<String>,
+    adminEmail: &Option<Option<String>>,
+    allowedDomains: &Option<Option<String>>,
+    callbackUrl: &Option<Option<String>>,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
@@ -1599,13 +2107,13 @@ pub fn androidenterprise_enterprises_generate_signup_url_builder(
     };
 
     let builder = client
-        .get(&url_with_query)
+        .post(&url_with_query)
         .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
 
     Ok(builder)
 }
 
-/// GET androidenterprise/v1/enterprises/signupUrl
+/// POST androidenterprise/v1/enterprises/signupUrl
 /// Generates a sign-up URL.
 ///
 /// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
@@ -1679,7 +2187,7 @@ pub fn androidenterprise_enterprises_generate_signup_url_task(
         .map_pending(|_| ApiPending::Sending))
 }
 
-/// GET androidenterprise/v1/enterprises/signupUrl
+/// POST androidenterprise/v1/enterprises/signupUrl
 /// Generates a sign-up URL.
 ///
 /// Takes a `ClientRequestBuilder`, builds and executes the request,
@@ -1713,14 +2221,14 @@ pub fn androidenterprise_enterprises_generate_signup_url_execute(
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct AndroidenterpriseEnterprisesGenerateSignupUrlArgs {
     /// Query parameter: adminEmail
-    pub adminEmail: Option<String>,
+    pub adminEmail: Option<Option<String>>,
     /// Query parameter: allowedDomains
-    pub allowedDomains: Option<String>,
+    pub allowedDomains: Option<Option<String>>,
     /// Query parameter: callbackUrl
-    pub callbackUrl: Option<String>,
+    pub callbackUrl: Option<Option<String>>,
 }
 
-/// GET androidenterprise/v1/enterprises/signupUrl
+/// POST androidenterprise/v1/enterprises/signupUrl
 /// Generates a sign-up URL.
 ///
 /// Simplest API - builds and executes the request in one call.
@@ -1913,7 +2421,7 @@ pub fn androidenterprise_enterprises_get(
 pub fn androidenterprise_enterprises_get_service_account_builder(
     client: &SimpleHttpClient,
     enterpriseId: &String,
-    keyType: &Option<String>,
+    keyType: &Option<Option<String>>,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
@@ -2052,7 +2560,7 @@ pub struct AndroidenterpriseEnterprisesGetServiceAccountArgs {
     /// Path parameter: enterpriseId
     pub enterpriseId: String,
     /// Query parameter: keyType
-    pub keyType: Option<String>,
+    pub keyType: Option<Option<String>>,
 }
 
 /// GET androidenterprise/v1/enterprises/{enterpriseId}/serviceAccount
@@ -2241,7 +2749,177 @@ pub fn androidenterprise_enterprises_get_store_layout(
     androidenterprise_enterprises_get_store_layout_execute(builder)
 }
 
-/// GET androidenterprise/v1/enterprises/pullNotificationSet
+/// GET androidenterprise/v1/enterprises
+/// Looks up an enterprise by domain name. This is only supported for enterprises created via the Google-initiated creation flow. Lookup of the id is not needed for enterprises created via the EMM-initiated flow since the EMM learns the enterprise ID in the callback specified in the Enterprises.`generateSignupUrl` call.
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `androidenterprise_enterprises_list_execute()` to send, or `androidenterprise_enterprises_list` for simplest API.
+
+pub fn androidenterprise_enterprises_list_builder(
+    client: &SimpleHttpClient,
+    domain: &Option<Option<String>>,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url =
+        format!("https://androidenterprise.googleapis.com/androidenterprise/v1/enterprises",);
+
+    // Build request
+    let mut query_parts = Vec::new();
+    if let Some(val) = domain.as_ref() {
+        query_parts.push(format!("domain={}", val));
+    }
+
+    let url_with_query = if query_parts.is_empty() {
+        endpoint_url
+    } else {
+        format!("{}?{}", endpoint_url, query_parts.join("&"))
+    };
+
+    let builder = client
+        .get(&url_with_query)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// GET androidenterprise/v1/enterprises
+/// Looks up an enterprise by domain name. This is only supported for enterprises created via the Google-initiated creation flow. Lookup of the id is not needed for enterprises created via the EMM-initiated flow since the EMM learns the enterprise ID in the callback specified in the Enterprises.`generateSignupUrl` call.
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `androidenterprise_enterprises_list_execute()` or `androidenterprise_enterprises_list`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `androidenterprise_enterprises_list_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn androidenterprise_enterprises_list_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<EnterprisesListResponse>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: EnterprisesListResponse = serde_json::from_str(&body)
+                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// GET androidenterprise/v1/enterprises
+/// Looks up an enterprise by domain name. This is only supported for enterprises created via the Google-initiated creation flow. Lookup of the id is not needed for enterprises created via the EMM-initiated flow since the EMM learns the enterprise ID in the callback specified in the Enterprises.`generateSignupUrl` call.
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `androidenterprise_enterprises_list_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `androidenterprise_enterprises_list_task()`.
+/// For the simplest API, use `androidenterprise_enterprises_list()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `androidenterprise_enterprises_list_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn androidenterprise_enterprises_list_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<EnterprisesListResponse>, ApiError>, P = ApiPending>
+        + Send
+        + 'static,
+    ApiError,
+> {
+    let task = androidenterprise_enterprises_list_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`androidenterprise_enterprises_list`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct AndroidenterpriseEnterprisesListArgs {
+    /// Query parameter: domain
+    pub domain: Option<Option<String>>,
+}
+
+/// GET androidenterprise/v1/enterprises
+/// Looks up an enterprise by domain name. This is only supported for enterprises created via the Google-initiated creation flow. Lookup of the id is not needed for enterprises created via the EMM-initiated flow since the EMM learns the enterprise ID in the callback specified in the Enterprises.`generateSignupUrl` call.
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `androidenterprise_enterprises_list_builder()` + `androidenterprise_enterprises_list_execute()`.
+/// For task-level control, use `androidenterprise_enterprises_list_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn androidenterprise_enterprises_list(
+    client: &SimpleHttpClient,
+    args: &AndroidenterpriseEnterprisesListArgs,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<EnterprisesListResponse>, ApiError>, P = ApiPending>
+        + Send
+        + 'static,
+    ApiError,
+> {
+    let builder = androidenterprise_enterprises_list_builder(client, &args.domain)?;
+    androidenterprise_enterprises_list_execute(builder)
+}
+
+/// POST androidenterprise/v1/enterprises/pullNotificationSet
 /// Pulls and returns a notification set for the enterprises associated with the service account authenticated for the request. The notification set may be empty if no notification are pending. A notification set returned needs to be acknowledged within 20 seconds by calling Enterprises.AcknowledgeNotificationSet, unless the notification set is empty. Notifications that are not acknowledged within the 20 seconds will eventually be included again in the response to another PullNotificationSet request, and those that are never acknowledged will ultimately be deleted according to the Google Cloud Platform P`ub/Sub` system policy. Multiple requests might be performed concurrently to retrieve notifications, in which case the pending notifications (if any) will be split among each caller, if any are pending. If no notifications are present, an empty notification list is returned. Subsequent requests may return more notifications once they become available.
 ///
 /// Returns `ClientRequestBuilder` for customization.
@@ -2249,7 +2927,7 @@ pub fn androidenterprise_enterprises_get_store_layout(
 
 pub fn androidenterprise_enterprises_pull_notification_set_builder(
     client: &SimpleHttpClient,
-    requestMode: &Option<String>,
+    requestMode: &Option<Option<String>>,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
@@ -2269,13 +2947,13 @@ pub fn androidenterprise_enterprises_pull_notification_set_builder(
     };
 
     let builder = client
-        .get(&url_with_query)
+        .post(&url_with_query)
         .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
 
     Ok(builder)
 }
 
-/// GET androidenterprise/v1/enterprises/pullNotificationSet
+/// POST androidenterprise/v1/enterprises/pullNotificationSet
 /// Pulls and returns a notification set for the enterprises associated with the service account authenticated for the request. The notification set may be empty if no notification are pending. A notification set returned needs to be acknowledged within 20 seconds by calling Enterprises.AcknowledgeNotificationSet, unless the notification set is empty. Notifications that are not acknowledged within the 20 seconds will eventually be included again in the response to another PullNotificationSet request, and those that are never acknowledged will ultimately be deleted according to the Google Cloud Platform P`ub/Sub` system policy. Multiple requests might be performed concurrently to retrieve notifications, in which case the pending notifications (if any) will be split among each caller, if any are pending. If no notifications are present, an empty notification list is returned. Subsequent requests may return more notifications once they become available.
 ///
 /// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
@@ -2349,7 +3027,7 @@ pub fn androidenterprise_enterprises_pull_notification_set_task(
         .map_pending(|_| ApiPending::Sending))
 }
 
-/// GET androidenterprise/v1/enterprises/pullNotificationSet
+/// POST androidenterprise/v1/enterprises/pullNotificationSet
 /// Pulls and returns a notification set for the enterprises associated with the service account authenticated for the request. The notification set may be empty if no notification are pending. A notification set returned needs to be acknowledged within 20 seconds by calling Enterprises.AcknowledgeNotificationSet, unless the notification set is empty. Notifications that are not acknowledged within the 20 seconds will eventually be included again in the response to another PullNotificationSet request, and those that are never acknowledged will ultimately be deleted according to the Google Cloud Platform P`ub/Sub` system policy. Multiple requests might be performed concurrently to retrieve notifications, in which case the pending notifications (if any) will be split among each caller, if any are pending. If no notifications are present, an empty notification list is returned. Subsequent requests may return more notifications once they become available.
 ///
 /// Takes a `ClientRequestBuilder`, builds and executes the request,
@@ -2385,10 +3063,10 @@ pub fn androidenterprise_enterprises_pull_notification_set_execute(
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct AndroidenterpriseEnterprisesPullNotificationSetArgs {
     /// Query parameter: requestMode
-    pub requestMode: Option<String>,
+    pub requestMode: Option<Option<String>>,
 }
 
-/// GET androidenterprise/v1/enterprises/pullNotificationSet
+/// POST androidenterprise/v1/enterprises/pullNotificationSet
 /// Pulls and returns a notification set for the enterprises associated with the service account authenticated for the request. The notification set may be empty if no notification are pending. A notification set returned needs to be acknowledged within 20 seconds by calling Enterprises.AcknowledgeNotificationSet, unless the notification set is empty. Notifications that are not acknowledged within the 20 seconds will eventually be included again in the response to another PullNotificationSet request, and those that are never acknowledged will ultimately be deleted according to the Google Cloud Platform P`ub/Sub` system policy. Multiple requests might be performed concurrently to retrieve notifications, in which case the pending notifications (if any) will be split among each caller, if any are pending. If no notifications are present, an empty notification list is returned. Subsequent requests may return more notifications once they become available.
 ///
 /// Simplest API - builds and executes the request in one call.
@@ -2413,7 +3091,7 @@ pub fn androidenterprise_enterprises_pull_notification_set(
     androidenterprise_enterprises_pull_notification_set_execute(builder)
 }
 
-/// GET androidenterprise/v1/enterprises/{enterpriseId}/sendTestPushNotification
+/// POST androidenterprise/v1/enterprises/{enterpriseId}/sendTestPushNotification
 /// Sends a test notification to validate the EMM integration with the Google Cloud P`ub/Sub` service for this enterprise.
 ///
 /// Returns `ClientRequestBuilder` for customization.
@@ -2431,13 +3109,13 @@ pub fn androidenterprise_enterprises_send_test_push_notification_builder(
 
     // Build request
     let builder = client
-        .get(&endpoint_url)
+        .post(&endpoint_url)
         .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
 
     Ok(builder)
 }
 
-/// GET androidenterprise/v1/enterprises/{enterpriseId}/sendTestPushNotification
+/// POST androidenterprise/v1/enterprises/{enterpriseId}/sendTestPushNotification
 /// Sends a test notification to validate the EMM integration with the Google Cloud P`ub/Sub` service for this enterprise.
 ///
 /// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
@@ -2512,7 +3190,7 @@ pub fn androidenterprise_enterprises_send_test_push_notification_task(
         .map_pending(|_| ApiPending::Sending))
 }
 
-/// GET androidenterprise/v1/enterprises/{enterpriseId}/sendTestPushNotification
+/// POST androidenterprise/v1/enterprises/{enterpriseId}/sendTestPushNotification
 /// Sends a test notification to validate the EMM integration with the Google Cloud P`ub/Sub` service for this enterprise.
 ///
 /// Takes a `ClientRequestBuilder`, builds and executes the request,
@@ -2553,7 +3231,7 @@ pub struct AndroidenterpriseEnterprisesSendTestPushNotificationArgs {
     pub enterpriseId: String,
 }
 
-/// GET androidenterprise/v1/enterprises/{enterpriseId}/sendTestPushNotification
+/// POST androidenterprise/v1/enterprises/{enterpriseId}/sendTestPushNotification
 /// Sends a test notification to validate the EMM integration with the Google Cloud P`ub/Sub` service for this enterprise.
 ///
 /// Simplest API - builds and executes the request in one call.
@@ -2582,7 +3260,7 @@ pub fn androidenterprise_enterprises_send_test_push_notification(
     androidenterprise_enterprises_send_test_push_notification_execute(builder)
 }
 
-/// GET androidenterprise/v1/enterprises/{enterpriseId}/account
+/// PUT androidenterprise/v1/enterprises/{enterpriseId}/account
 /// Sets the account that will be used to authenticate to the API as the enterprise.
 ///
 /// Returns `ClientRequestBuilder` for customization.
@@ -2591,7 +3269,6 @@ pub fn androidenterprise_enterprises_send_test_push_notification(
 pub fn androidenterprise_enterprises_set_account_builder(
     client: &SimpleHttpClient,
     enterpriseId: &String,
-    body: &EnterpriseAccount,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
@@ -2601,15 +3278,13 @@ pub fn androidenterprise_enterprises_set_account_builder(
 
     // Build request
     let builder = client
-        .get(&endpoint_url)
+        .put(&endpoint_url)
         .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
 
-    builder
-        .body_json(body)
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+    Ok(builder)
 }
 
-/// GET androidenterprise/v1/enterprises/{enterpriseId}/account
+/// PUT androidenterprise/v1/enterprises/{enterpriseId}/account
 /// Sets the account that will be used to authenticate to the API as the enterprise.
 ///
 /// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
@@ -2683,7 +3358,7 @@ pub fn androidenterprise_enterprises_set_account_task(
         .map_pending(|_| ApiPending::Sending))
 }
 
-/// GET androidenterprise/v1/enterprises/{enterpriseId}/account
+/// PUT androidenterprise/v1/enterprises/{enterpriseId}/account
 /// Sets the account that will be used to authenticate to the API as the enterprise.
 ///
 /// Takes a `ClientRequestBuilder`, builds and executes the request,
@@ -2720,11 +3395,9 @@ pub fn androidenterprise_enterprises_set_account_execute(
 pub struct AndroidenterpriseEnterprisesSetAccountArgs {
     /// Path parameter: enterpriseId
     pub enterpriseId: String,
-    /// Request body.
-    pub body: EnterpriseAccount,
 }
 
-/// GET androidenterprise/v1/enterprises/{enterpriseId}/account
+/// PUT androidenterprise/v1/enterprises/{enterpriseId}/account
 /// Sets the account that will be used to authenticate to the API as the enterprise.
 ///
 /// Simplest API - builds and executes the request in one call.
@@ -2744,12 +3417,169 @@ pub fn androidenterprise_enterprises_set_account(
         + 'static,
     ApiError,
 > {
-    let builder =
-        androidenterprise_enterprises_set_account_builder(client, &args.enterpriseId, &args.body)?;
+    let builder = androidenterprise_enterprises_set_account_builder(client, &args.enterpriseId)?;
     androidenterprise_enterprises_set_account_execute(builder)
 }
 
-/// GET androidenterprise/v1/enterprises/{enterpriseId}/unenroll
+/// PUT androidenterprise/v1/enterprises/{enterpriseId}/storeLayout
+/// Sets the store layout for the enterprise. By default, `storeLayoutType` is set to "basic" and the basic store layout is enabled. The basic layout only contains apps approved by the admin, and that have been added to the available product set for a user (using the `setAvailableProductSet` call). Apps on the page are sorted in order of their product ID value. If you create a custom store layout (by setting `storeLayoutType` = "custom" and setting a homepage), the basic store layout is disabled.
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `androidenterprise_enterprises_set_store_layout_execute()` to send, or `androidenterprise_enterprises_set_store_layout` for simplest API.
+
+pub fn androidenterprise_enterprises_set_store_layout_builder(
+    client: &SimpleHttpClient,
+    enterpriseId: &String,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!(
+        "https://androidenterprise.googleapis.com/androidenterprise/v1/enterprises/{}/storeLayout",
+        enterpriseId,
+    );
+
+    // Build request
+    let builder = client
+        .put(&endpoint_url)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// PUT androidenterprise/v1/enterprises/{enterpriseId}/storeLayout
+/// Sets the store layout for the enterprise. By default, `storeLayoutType` is set to "basic" and the basic store layout is enabled. The basic layout only contains apps approved by the admin, and that have been added to the available product set for a user (using the `setAvailableProductSet` call). Apps on the page are sorted in order of their product ID value. If you create a custom store layout (by setting `storeLayoutType` = "custom" and setting a homepage), the basic store layout is disabled.
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `androidenterprise_enterprises_set_store_layout_execute()` or `androidenterprise_enterprises_set_store_layout`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `androidenterprise_enterprises_set_store_layout_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn androidenterprise_enterprises_set_store_layout_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<StoreLayout>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: StoreLayout = serde_json::from_str(&body)
+                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// PUT androidenterprise/v1/enterprises/{enterpriseId}/storeLayout
+/// Sets the store layout for the enterprise. By default, `storeLayoutType` is set to "basic" and the basic store layout is enabled. The basic layout only contains apps approved by the admin, and that have been added to the available product set for a user (using the `setAvailableProductSet` call). Apps on the page are sorted in order of their product ID value. If you create a custom store layout (by setting `storeLayoutType` = "custom" and setting a homepage), the basic store layout is disabled.
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `androidenterprise_enterprises_set_store_layout_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `androidenterprise_enterprises_set_store_layout_task()`.
+/// For the simplest API, use `androidenterprise_enterprises_set_store_layout()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `androidenterprise_enterprises_set_store_layout_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn androidenterprise_enterprises_set_store_layout_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<StoreLayout>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let task = androidenterprise_enterprises_set_store_layout_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`androidenterprise_enterprises_set_store_layout`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct AndroidenterpriseEnterprisesSetStoreLayoutArgs {
+    /// Path parameter: enterpriseId
+    pub enterpriseId: String,
+}
+
+/// PUT androidenterprise/v1/enterprises/{enterpriseId}/storeLayout
+/// Sets the store layout for the enterprise. By default, `storeLayoutType` is set to "basic" and the basic store layout is enabled. The basic layout only contains apps approved by the admin, and that have been added to the available product set for a user (using the `setAvailableProductSet` call). Apps on the page are sorted in order of their product ID value. If you create a custom store layout (by setting `storeLayoutType` = "custom" and setting a homepage), the basic store layout is disabled.
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `androidenterprise_enterprises_set_store_layout_builder()` + `androidenterprise_enterprises_set_store_layout_execute()`.
+/// For task-level control, use `androidenterprise_enterprises_set_store_layout_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn androidenterprise_enterprises_set_store_layout(
+    client: &SimpleHttpClient,
+    args: &AndroidenterpriseEnterprisesSetStoreLayoutArgs,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<StoreLayout>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let builder =
+        androidenterprise_enterprises_set_store_layout_builder(client, &args.enterpriseId)?;
+    androidenterprise_enterprises_set_store_layout_execute(builder)
+}
+
+/// POST androidenterprise/v1/enterprises/{enterpriseId}/unenroll
 /// Unenrolls an enterprise from the calling EMM.
 ///
 /// Returns `ClientRequestBuilder` for customization.
@@ -2767,13 +3597,13 @@ pub fn androidenterprise_enterprises_unenroll_builder(
 
     // Build request
     let builder = client
-        .get(&endpoint_url)
+        .post(&endpoint_url)
         .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
 
     Ok(builder)
 }
 
-/// GET androidenterprise/v1/enterprises/{enterpriseId}/unenroll
+/// POST androidenterprise/v1/enterprises/{enterpriseId}/unenroll
 /// Unenrolls an enterprise from the calling EMM.
 ///
 /// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
@@ -2844,7 +3674,7 @@ pub fn androidenterprise_enterprises_unenroll_task(
         .map_pending(|_| ApiPending::Sending))
 }
 
-/// GET androidenterprise/v1/enterprises/{enterpriseId}/unenroll
+/// POST androidenterprise/v1/enterprises/{enterpriseId}/unenroll
 /// Unenrolls an enterprise from the calling EMM.
 ///
 /// Takes a `ClientRequestBuilder`, builds and executes the request,
@@ -2881,7 +3711,7 @@ pub struct AndroidenterpriseEnterprisesUnenrollArgs {
     pub enterpriseId: String,
 }
 
-/// GET androidenterprise/v1/enterprises/{enterpriseId}/unenroll
+/// POST androidenterprise/v1/enterprises/{enterpriseId}/unenroll
 /// Unenrolls an enterprise from the calling EMM.
 ///
 /// Simplest API - builds and executes the request in one call.
@@ -2903,7 +3733,7 @@ pub fn androidenterprise_enterprises_unenroll(
     androidenterprise_enterprises_unenroll_execute(builder)
 }
 
-/// GET androidenterprise/v1/enterprises/{enterpriseId}/users/{userId}/entitlements/{entitlementId}
+/// DELETE androidenterprise/v1/enterprises/{enterpriseId}/users/{userId}/entitlements/{entitlementId}
 /// Removes an entitlement to an app for a user. **Note:** This item has been deprecated. New integrations cannot use this method and can refer to our new recommendations.
 ///
 /// Returns `ClientRequestBuilder` for customization.
@@ -2925,13 +3755,13 @@ pub fn androidenterprise_entitlements_delete_builder(
 
     // Build request
     let builder = client
-        .get(&endpoint_url)
+        .delete(&endpoint_url)
         .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
 
     Ok(builder)
 }
 
-/// GET androidenterprise/v1/enterprises/{enterpriseId}/users/{userId}/entitlements/{entitlementId}
+/// DELETE androidenterprise/v1/enterprises/{enterpriseId}/users/{userId}/entitlements/{entitlementId}
 /// Removes an entitlement to an app for a user. **Note:** This item has been deprecated. New integrations cannot use this method and can refer to our new recommendations.
 ///
 /// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
@@ -3002,7 +3832,7 @@ pub fn androidenterprise_entitlements_delete_task(
         .map_pending(|_| ApiPending::Sending))
 }
 
-/// GET androidenterprise/v1/enterprises/{enterpriseId}/users/{userId}/entitlements/{entitlementId}
+/// DELETE androidenterprise/v1/enterprises/{enterpriseId}/users/{userId}/entitlements/{entitlementId}
 /// Removes an entitlement to an app for a user. **Note:** This item has been deprecated. New integrations cannot use this method and can refer to our new recommendations.
 ///
 /// Takes a `ClientRequestBuilder`, builds and executes the request,
@@ -3043,7 +3873,7 @@ pub struct AndroidenterpriseEntitlementsDeleteArgs {
     pub entitlementId: String,
 }
 
-/// GET androidenterprise/v1/enterprises/{enterpriseId}/users/{userId}/entitlements/{entitlementId}
+/// DELETE androidenterprise/v1/enterprises/{enterpriseId}/users/{userId}/entitlements/{entitlementId}
 /// Removes an entitlement to an app for a user. **Note:** This item has been deprecated. New integrations cannot use this method and can refer to our new recommendations.
 ///
 /// Simplest API - builds and executes the request in one call.
@@ -3068,6 +3898,176 @@ pub fn androidenterprise_entitlements_delete(
         &args.entitlementId,
     )?;
     androidenterprise_entitlements_delete_execute(builder)
+}
+
+/// GET androidenterprise/v1/enterprises/{enterpriseId}/users/{userId}/entitlements/{entitlementId}
+/// Retrieves details of an entitlement. **Note:** This item has been deprecated. New integrations cannot use this method and can refer to our new recommendations.
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `androidenterprise_entitlements_get_execute()` to send, or `androidenterprise_entitlements_get` for simplest API.
+
+pub fn androidenterprise_entitlements_get_builder(
+    client: &SimpleHttpClient,
+    enterpriseId: &String,
+    userId: &String,
+    entitlementId: &String,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!(
+        "https://androidenterprise.googleapis.com/androidenterprise/v1/enterprises/{}/users/{}/entitlements/{}",
+        enterpriseId,
+        userId,
+        entitlementId,
+    );
+
+    // Build request
+    let builder = client
+        .get(&endpoint_url)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// GET androidenterprise/v1/enterprises/{enterpriseId}/users/{userId}/entitlements/{entitlementId}
+/// Retrieves details of an entitlement. **Note:** This item has been deprecated. New integrations cannot use this method and can refer to our new recommendations.
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `androidenterprise_entitlements_get_execute()` or `androidenterprise_entitlements_get`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `androidenterprise_entitlements_get_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn androidenterprise_entitlements_get_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<Entitlement>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: Entitlement = serde_json::from_str(&body)
+                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// GET androidenterprise/v1/enterprises/{enterpriseId}/users/{userId}/entitlements/{entitlementId}
+/// Retrieves details of an entitlement. **Note:** This item has been deprecated. New integrations cannot use this method and can refer to our new recommendations.
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `androidenterprise_entitlements_get_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `androidenterprise_entitlements_get_task()`.
+/// For the simplest API, use `androidenterprise_entitlements_get()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `androidenterprise_entitlements_get_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn androidenterprise_entitlements_get_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<Entitlement>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let task = androidenterprise_entitlements_get_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`androidenterprise_entitlements_get`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct AndroidenterpriseEntitlementsGetArgs {
+    /// Path parameter: enterpriseId
+    pub enterpriseId: String,
+    /// Path parameter: userId
+    pub userId: String,
+    /// Path parameter: entitlementId
+    pub entitlementId: String,
+}
+
+/// GET androidenterprise/v1/enterprises/{enterpriseId}/users/{userId}/entitlements/{entitlementId}
+/// Retrieves details of an entitlement. **Note:** This item has been deprecated. New integrations cannot use this method and can refer to our new recommendations.
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `androidenterprise_entitlements_get_builder()` + `androidenterprise_entitlements_get_execute()`.
+/// For task-level control, use `androidenterprise_entitlements_get_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn androidenterprise_entitlements_get(
+    client: &SimpleHttpClient,
+    args: &AndroidenterpriseEntitlementsGetArgs,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<Entitlement>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let builder = androidenterprise_entitlements_get_builder(
+        client,
+        &args.enterpriseId,
+        &args.userId,
+        &args.entitlementId,
+    )?;
+    androidenterprise_entitlements_get_execute(builder)
 }
 
 /// GET androidenterprise/v1/enterprises/{enterpriseId}/users/{userId}/entitlements
@@ -3234,6 +4234,191 @@ pub fn androidenterprise_entitlements_list(
     let builder =
         androidenterprise_entitlements_list_builder(client, &args.enterpriseId, &args.userId)?;
     androidenterprise_entitlements_list_execute(builder)
+}
+
+/// PUT androidenterprise/v1/enterprises/{enterpriseId}/users/{userId}/entitlements/{entitlementId}
+/// Adds or updates an entitlement to an app for a user. **Note:** This item has been deprecated. New integrations cannot use this method and can refer to our new recommendations.
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `androidenterprise_entitlements_update_execute()` to send, or `androidenterprise_entitlements_update` for simplest API.
+
+pub fn androidenterprise_entitlements_update_builder(
+    client: &SimpleHttpClient,
+    enterpriseId: &String,
+    userId: &String,
+    entitlementId: &String,
+    install: &Option<Option<String>>,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!(
+        "https://androidenterprise.googleapis.com/androidenterprise/v1/enterprises/{}/users/{}/entitlements/{}",
+        enterpriseId,
+        userId,
+        entitlementId,
+    );
+
+    // Build request
+    let mut query_parts = Vec::new();
+    if let Some(val) = install.as_ref() {
+        query_parts.push(format!("install={}", val));
+    }
+
+    let url_with_query = if query_parts.is_empty() {
+        endpoint_url
+    } else {
+        format!("{}?{}", endpoint_url, query_parts.join("&"))
+    };
+
+    let builder = client
+        .put(&url_with_query)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// PUT androidenterprise/v1/enterprises/{enterpriseId}/users/{userId}/entitlements/{entitlementId}
+/// Adds or updates an entitlement to an app for a user. **Note:** This item has been deprecated. New integrations cannot use this method and can refer to our new recommendations.
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `androidenterprise_entitlements_update_execute()` or `androidenterprise_entitlements_update`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `androidenterprise_entitlements_update_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn androidenterprise_entitlements_update_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<Entitlement>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: Entitlement = serde_json::from_str(&body)
+                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// PUT androidenterprise/v1/enterprises/{enterpriseId}/users/{userId}/entitlements/{entitlementId}
+/// Adds or updates an entitlement to an app for a user. **Note:** This item has been deprecated. New integrations cannot use this method and can refer to our new recommendations.
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `androidenterprise_entitlements_update_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `androidenterprise_entitlements_update_task()`.
+/// For the simplest API, use `androidenterprise_entitlements_update()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `androidenterprise_entitlements_update_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn androidenterprise_entitlements_update_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<Entitlement>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let task = androidenterprise_entitlements_update_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`androidenterprise_entitlements_update`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct AndroidenterpriseEntitlementsUpdateArgs {
+    /// Path parameter: enterpriseId
+    pub enterpriseId: String,
+    /// Path parameter: userId
+    pub userId: String,
+    /// Path parameter: entitlementId
+    pub entitlementId: String,
+    /// Query parameter: install
+    pub install: Option<Option<String>>,
+}
+
+/// PUT androidenterprise/v1/enterprises/{enterpriseId}/users/{userId}/entitlements/{entitlementId}
+/// Adds or updates an entitlement to an app for a user. **Note:** This item has been deprecated. New integrations cannot use this method and can refer to our new recommendations.
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `androidenterprise_entitlements_update_builder()` + `androidenterprise_entitlements_update_execute()`.
+/// For task-level control, use `androidenterprise_entitlements_update_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn androidenterprise_entitlements_update(
+    client: &SimpleHttpClient,
+    args: &AndroidenterpriseEntitlementsUpdateArgs,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<Entitlement>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let builder = androidenterprise_entitlements_update_builder(
+        client,
+        &args.enterpriseId,
+        &args.userId,
+        &args.entitlementId,
+        &args.install,
+    )?;
+    androidenterprise_entitlements_update_execute(builder)
 }
 
 /// GET androidenterprise/v1/enterprises/{enterpriseId}/groupLicenses/{groupLicenseId}
@@ -3739,7 +4924,7 @@ pub fn androidenterprise_grouplicenseusers_list(
     androidenterprise_grouplicenseusers_list_execute(builder)
 }
 
-/// GET androidenterprise/v1/enterprises/{enterpriseId}/users/{userId}/devices/{deviceId}/installs/{installId}
+/// DELETE androidenterprise/v1/enterprises/{enterpriseId}/users/{userId}/devices/{deviceId}/installs/{installId}
 /// Requests to remove an app from a device. A call to get or list will still show the app as installed on the device until it is actually removed. A successful response indicates that a removal request has been sent to the device. The call will be considered successful even if the app is not present on the device (e.g. it was never installed, or was removed by the user).
 ///
 /// Returns `ClientRequestBuilder` for customization.
@@ -3763,13 +4948,13 @@ pub fn androidenterprise_installs_delete_builder(
 
     // Build request
     let builder = client
-        .get(&endpoint_url)
+        .delete(&endpoint_url)
         .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
 
     Ok(builder)
 }
 
-/// GET androidenterprise/v1/enterprises/{enterpriseId}/users/{userId}/devices/{deviceId}/installs/{installId}
+/// DELETE androidenterprise/v1/enterprises/{enterpriseId}/users/{userId}/devices/{deviceId}/installs/{installId}
 /// Requests to remove an app from a device. A call to get or list will still show the app as installed on the device until it is actually removed. A successful response indicates that a removal request has been sent to the device. The call will be considered successful even if the app is not present on the device (e.g. it was never installed, or was removed by the user).
 ///
 /// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
@@ -3840,7 +5025,7 @@ pub fn androidenterprise_installs_delete_task(
         .map_pending(|_| ApiPending::Sending))
 }
 
-/// GET androidenterprise/v1/enterprises/{enterpriseId}/users/{userId}/devices/{deviceId}/installs/{installId}
+/// DELETE androidenterprise/v1/enterprises/{enterpriseId}/users/{userId}/devices/{deviceId}/installs/{installId}
 /// Requests to remove an app from a device. A call to get or list will still show the app as installed on the device until it is actually removed. A successful response indicates that a removal request has been sent to the device. The call will be considered successful even if the app is not present on the device (e.g. it was never installed, or was removed by the user).
 ///
 /// Takes a `ClientRequestBuilder`, builds and executes the request,
@@ -3883,7 +5068,7 @@ pub struct AndroidenterpriseInstallsDeleteArgs {
     pub installId: String,
 }
 
-/// GET androidenterprise/v1/enterprises/{enterpriseId}/users/{userId}/devices/{deviceId}/installs/{installId}
+/// DELETE androidenterprise/v1/enterprises/{enterpriseId}/users/{userId}/devices/{deviceId}/installs/{installId}
 /// Requests to remove an app from a device. A call to get or list will still show the app as installed on the device until it is actually removed. A successful response indicates that a removal request has been sent to the device. The call will be considered successful even if the app is not present on the device (e.g. it was never installed, or was removed by the user).
 ///
 /// Simplest API - builds and executes the request in one call.
@@ -3909,6 +5094,181 @@ pub fn androidenterprise_installs_delete(
         &args.installId,
     )?;
     androidenterprise_installs_delete_execute(builder)
+}
+
+/// GET androidenterprise/v1/enterprises/{enterpriseId}/users/{userId}/devices/{deviceId}/installs/{installId}
+/// Retrieves details of an installation of an app on a device.
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `androidenterprise_installs_get_execute()` to send, or `androidenterprise_installs_get` for simplest API.
+
+pub fn androidenterprise_installs_get_builder(
+    client: &SimpleHttpClient,
+    enterpriseId: &String,
+    userId: &String,
+    deviceId: &String,
+    installId: &String,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!(
+        "https://androidenterprise.googleapis.com/androidenterprise/v1/enterprises/{}/users/{}/devices/{}/installs/{}",
+        enterpriseId,
+        userId,
+        deviceId,
+        installId,
+    );
+
+    // Build request
+    let builder = client
+        .get(&endpoint_url)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// GET androidenterprise/v1/enterprises/{enterpriseId}/users/{userId}/devices/{deviceId}/installs/{installId}
+/// Retrieves details of an installation of an app on a device.
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `androidenterprise_installs_get_execute()` or `androidenterprise_installs_get`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `androidenterprise_installs_get_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn androidenterprise_installs_get_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<Install>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: Install = serde_json::from_str(&body)
+                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// GET androidenterprise/v1/enterprises/{enterpriseId}/users/{userId}/devices/{deviceId}/installs/{installId}
+/// Retrieves details of an installation of an app on a device.
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `androidenterprise_installs_get_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `androidenterprise_installs_get_task()`.
+/// For the simplest API, use `androidenterprise_installs_get()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `androidenterprise_installs_get_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn androidenterprise_installs_get_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<Install>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let task = androidenterprise_installs_get_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`androidenterprise_installs_get`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct AndroidenterpriseInstallsGetArgs {
+    /// Path parameter: enterpriseId
+    pub enterpriseId: String,
+    /// Path parameter: userId
+    pub userId: String,
+    /// Path parameter: deviceId
+    pub deviceId: String,
+    /// Path parameter: installId
+    pub installId: String,
+}
+
+/// GET androidenterprise/v1/enterprises/{enterpriseId}/users/{userId}/devices/{deviceId}/installs/{installId}
+/// Retrieves details of an installation of an app on a device.
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `androidenterprise_installs_get_builder()` + `androidenterprise_installs_get_execute()`.
+/// For task-level control, use `androidenterprise_installs_get_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn androidenterprise_installs_get(
+    client: &SimpleHttpClient,
+    args: &AndroidenterpriseInstallsGetArgs,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<Install>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let builder = androidenterprise_installs_get_builder(
+        client,
+        &args.enterpriseId,
+        &args.userId,
+        &args.deviceId,
+        &args.installId,
+    )?;
+    androidenterprise_installs_get_execute(builder)
 }
 
 /// GET androidenterprise/v1/enterprises/{enterpriseId}/users/{userId}/devices/{deviceId}/installs
@@ -4085,7 +5445,182 @@ pub fn androidenterprise_installs_list(
     androidenterprise_installs_list_execute(builder)
 }
 
-/// GET androidenterprise/v1/enterprises/{enterpriseId}/users/{userId}/devices/{deviceId}/managedConfigurationsForDevice/{managedConfigurationForDeviceId}
+/// PUT androidenterprise/v1/enterprises/{enterpriseId}/users/{userId}/devices/{deviceId}/installs/{installId}
+/// Requests to install the latest version of an app to a device. If the app is already installed, then it is updated to the latest version if necessary.
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `androidenterprise_installs_update_execute()` to send, or `androidenterprise_installs_update` for simplest API.
+
+pub fn androidenterprise_installs_update_builder(
+    client: &SimpleHttpClient,
+    enterpriseId: &String,
+    userId: &String,
+    deviceId: &String,
+    installId: &String,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!(
+        "https://androidenterprise.googleapis.com/androidenterprise/v1/enterprises/{}/users/{}/devices/{}/installs/{}",
+        enterpriseId,
+        userId,
+        deviceId,
+        installId,
+    );
+
+    // Build request
+    let builder = client
+        .put(&endpoint_url)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// PUT androidenterprise/v1/enterprises/{enterpriseId}/users/{userId}/devices/{deviceId}/installs/{installId}
+/// Requests to install the latest version of an app to a device. If the app is already installed, then it is updated to the latest version if necessary.
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `androidenterprise_installs_update_execute()` or `androidenterprise_installs_update`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `androidenterprise_installs_update_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn androidenterprise_installs_update_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<Install>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: Install = serde_json::from_str(&body)
+                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// PUT androidenterprise/v1/enterprises/{enterpriseId}/users/{userId}/devices/{deviceId}/installs/{installId}
+/// Requests to install the latest version of an app to a device. If the app is already installed, then it is updated to the latest version if necessary.
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `androidenterprise_installs_update_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `androidenterprise_installs_update_task()`.
+/// For the simplest API, use `androidenterprise_installs_update()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `androidenterprise_installs_update_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn androidenterprise_installs_update_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<Install>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let task = androidenterprise_installs_update_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`androidenterprise_installs_update`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct AndroidenterpriseInstallsUpdateArgs {
+    /// Path parameter: enterpriseId
+    pub enterpriseId: String,
+    /// Path parameter: userId
+    pub userId: String,
+    /// Path parameter: deviceId
+    pub deviceId: String,
+    /// Path parameter: installId
+    pub installId: String,
+}
+
+/// PUT androidenterprise/v1/enterprises/{enterpriseId}/users/{userId}/devices/{deviceId}/installs/{installId}
+/// Requests to install the latest version of an app to a device. If the app is already installed, then it is updated to the latest version if necessary.
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `androidenterprise_installs_update_builder()` + `androidenterprise_installs_update_execute()`.
+/// For task-level control, use `androidenterprise_installs_update_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn androidenterprise_installs_update(
+    client: &SimpleHttpClient,
+    args: &AndroidenterpriseInstallsUpdateArgs,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<Install>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let builder = androidenterprise_installs_update_builder(
+        client,
+        &args.enterpriseId,
+        &args.userId,
+        &args.deviceId,
+        &args.installId,
+    )?;
+    androidenterprise_installs_update_execute(builder)
+}
+
+/// DELETE androidenterprise/v1/enterprises/{enterpriseId}/users/{userId}/devices/{deviceId}/managedConfigurationsForDevice/{managedConfigurationForDeviceId}
 /// Removes a per-device managed configuration for an app for the specified device.
 ///
 /// Returns `ClientRequestBuilder` for customization.
@@ -4109,13 +5644,13 @@ pub fn androidenterprise_managedconfigurationsfordevice_delete_builder(
 
     // Build request
     let builder = client
-        .get(&endpoint_url)
+        .delete(&endpoint_url)
         .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
 
     Ok(builder)
 }
 
-/// GET androidenterprise/v1/enterprises/{enterpriseId}/users/{userId}/devices/{deviceId}/managedConfigurationsForDevice/{managedConfigurationForDeviceId}
+/// DELETE androidenterprise/v1/enterprises/{enterpriseId}/users/{userId}/devices/{deviceId}/managedConfigurationsForDevice/{managedConfigurationForDeviceId}
 /// Removes a per-device managed configuration for an app for the specified device.
 ///
 /// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
@@ -4186,7 +5721,7 @@ pub fn androidenterprise_managedconfigurationsfordevice_delete_task(
         .map_pending(|_| ApiPending::Sending))
 }
 
-/// GET androidenterprise/v1/enterprises/{enterpriseId}/users/{userId}/devices/{deviceId}/managedConfigurationsForDevice/{managedConfigurationForDeviceId}
+/// DELETE androidenterprise/v1/enterprises/{enterpriseId}/users/{userId}/devices/{deviceId}/managedConfigurationsForDevice/{managedConfigurationForDeviceId}
 /// Removes a per-device managed configuration for an app for the specified device.
 ///
 /// Takes a `ClientRequestBuilder`, builds and executes the request,
@@ -4229,7 +5764,7 @@ pub struct AndroidenterpriseManagedconfigurationsfordeviceDeleteArgs {
     pub managedConfigurationForDeviceId: String,
 }
 
-/// GET androidenterprise/v1/enterprises/{enterpriseId}/users/{userId}/devices/{deviceId}/managedConfigurationsForDevice/{managedConfigurationForDeviceId}
+/// DELETE androidenterprise/v1/enterprises/{enterpriseId}/users/{userId}/devices/{deviceId}/managedConfigurationsForDevice/{managedConfigurationForDeviceId}
 /// Removes a per-device managed configuration for an app for the specified device.
 ///
 /// Simplest API - builds and executes the request in one call.
@@ -4255,6 +5790,185 @@ pub fn androidenterprise_managedconfigurationsfordevice_delete(
         &args.managedConfigurationForDeviceId,
     )?;
     androidenterprise_managedconfigurationsfordevice_delete_execute(builder)
+}
+
+/// GET androidenterprise/v1/enterprises/{enterpriseId}/users/{userId}/devices/{deviceId}/managedConfigurationsForDevice/{managedConfigurationForDeviceId}
+/// Retrieves details of a per-device managed configuration.
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `androidenterprise_managedconfigurationsfordevice_get_execute()` to send, or `androidenterprise_managedconfigurationsfordevice_get` for simplest API.
+
+pub fn androidenterprise_managedconfigurationsfordevice_get_builder(
+    client: &SimpleHttpClient,
+    enterpriseId: &String,
+    userId: &String,
+    deviceId: &String,
+    managedConfigurationForDeviceId: &String,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!(
+        "https://androidenterprise.googleapis.com/androidenterprise/v1/enterprises/{}/users/{}/devices/{}/managedConfigurationsForDevice/{}",
+        enterpriseId,
+        userId,
+        deviceId,
+        managedConfigurationForDeviceId,
+    );
+
+    // Build request
+    let builder = client
+        .get(&endpoint_url)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// GET androidenterprise/v1/enterprises/{enterpriseId}/users/{userId}/devices/{deviceId}/managedConfigurationsForDevice/{managedConfigurationForDeviceId}
+/// Retrieves details of a per-device managed configuration.
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `androidenterprise_managedconfigurationsfordevice_get_execute()` or `androidenterprise_managedconfigurationsfordevice_get`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `androidenterprise_managedconfigurationsfordevice_get_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn androidenterprise_managedconfigurationsfordevice_get_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<ManagedConfiguration>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: ManagedConfiguration = serde_json::from_str(&body)
+                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// GET androidenterprise/v1/enterprises/{enterpriseId}/users/{userId}/devices/{deviceId}/managedConfigurationsForDevice/{managedConfigurationForDeviceId}
+/// Retrieves details of a per-device managed configuration.
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `androidenterprise_managedconfigurationsfordevice_get_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `androidenterprise_managedconfigurationsfordevice_get_task()`.
+/// For the simplest API, use `androidenterprise_managedconfigurationsfordevice_get()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `androidenterprise_managedconfigurationsfordevice_get_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn androidenterprise_managedconfigurationsfordevice_get_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<ManagedConfiguration>, ApiError>, P = ApiPending>
+        + Send
+        + 'static,
+    ApiError,
+> {
+    let task = androidenterprise_managedconfigurationsfordevice_get_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`androidenterprise_managedconfigurationsfordevice_get`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct AndroidenterpriseManagedconfigurationsfordeviceGetArgs {
+    /// Path parameter: enterpriseId
+    pub enterpriseId: String,
+    /// Path parameter: userId
+    pub userId: String,
+    /// Path parameter: deviceId
+    pub deviceId: String,
+    /// Path parameter: managedConfigurationForDeviceId
+    pub managedConfigurationForDeviceId: String,
+}
+
+/// GET androidenterprise/v1/enterprises/{enterpriseId}/users/{userId}/devices/{deviceId}/managedConfigurationsForDevice/{managedConfigurationForDeviceId}
+/// Retrieves details of a per-device managed configuration.
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `androidenterprise_managedconfigurationsfordevice_get_builder()` + `androidenterprise_managedconfigurationsfordevice_get_execute()`.
+/// For task-level control, use `androidenterprise_managedconfigurationsfordevice_get_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn androidenterprise_managedconfigurationsfordevice_get(
+    client: &SimpleHttpClient,
+    args: &AndroidenterpriseManagedconfigurationsfordeviceGetArgs,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<ManagedConfiguration>, ApiError>, P = ApiPending>
+        + Send
+        + 'static,
+    ApiError,
+> {
+    let builder = androidenterprise_managedconfigurationsfordevice_get_builder(
+        client,
+        &args.enterpriseId,
+        &args.userId,
+        &args.deviceId,
+        &args.managedConfigurationForDeviceId,
+    )?;
+    androidenterprise_managedconfigurationsfordevice_get_execute(builder)
 }
 
 /// GET androidenterprise/v1/enterprises/{enterpriseId}/users/{userId}/devices/{deviceId}/managedConfigurationsForDevice
@@ -4436,7 +6150,186 @@ pub fn androidenterprise_managedconfigurationsfordevice_list(
     androidenterprise_managedconfigurationsfordevice_list_execute(builder)
 }
 
-/// GET androidenterprise/v1/enterprises/{enterpriseId}/users/{userId}/managedConfigurationsForUser/{managedConfigurationForUserId}
+/// PUT androidenterprise/v1/enterprises/{enterpriseId}/users/{userId}/devices/{deviceId}/managedConfigurationsForDevice/{managedConfigurationForDeviceId}
+/// Adds or updates a per-device managed configuration for an app for the specified device.
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `androidenterprise_managedconfigurationsfordevice_update_execute()` to send, or `androidenterprise_managedconfigurationsfordevice_update` for simplest API.
+
+pub fn androidenterprise_managedconfigurationsfordevice_update_builder(
+    client: &SimpleHttpClient,
+    enterpriseId: &String,
+    userId: &String,
+    deviceId: &String,
+    managedConfigurationForDeviceId: &String,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!(
+        "https://androidenterprise.googleapis.com/androidenterprise/v1/enterprises/{}/users/{}/devices/{}/managedConfigurationsForDevice/{}",
+        enterpriseId,
+        userId,
+        deviceId,
+        managedConfigurationForDeviceId,
+    );
+
+    // Build request
+    let builder = client
+        .put(&endpoint_url)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// PUT androidenterprise/v1/enterprises/{enterpriseId}/users/{userId}/devices/{deviceId}/managedConfigurationsForDevice/{managedConfigurationForDeviceId}
+/// Adds or updates a per-device managed configuration for an app for the specified device.
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `androidenterprise_managedconfigurationsfordevice_update_execute()` or `androidenterprise_managedconfigurationsfordevice_update`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `androidenterprise_managedconfigurationsfordevice_update_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn androidenterprise_managedconfigurationsfordevice_update_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<ManagedConfiguration>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: ManagedConfiguration = serde_json::from_str(&body)
+                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// PUT androidenterprise/v1/enterprises/{enterpriseId}/users/{userId}/devices/{deviceId}/managedConfigurationsForDevice/{managedConfigurationForDeviceId}
+/// Adds or updates a per-device managed configuration for an app for the specified device.
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `androidenterprise_managedconfigurationsfordevice_update_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `androidenterprise_managedconfigurationsfordevice_update_task()`.
+/// For the simplest API, use `androidenterprise_managedconfigurationsfordevice_update()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `androidenterprise_managedconfigurationsfordevice_update_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn androidenterprise_managedconfigurationsfordevice_update_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<ManagedConfiguration>, ApiError>, P = ApiPending>
+        + Send
+        + 'static,
+    ApiError,
+> {
+    let task = androidenterprise_managedconfigurationsfordevice_update_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`androidenterprise_managedconfigurationsfordevice_update`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct AndroidenterpriseManagedconfigurationsfordeviceUpdateArgs {
+    /// Path parameter: enterpriseId
+    pub enterpriseId: String,
+    /// Path parameter: userId
+    pub userId: String,
+    /// Path parameter: deviceId
+    pub deviceId: String,
+    /// Path parameter: managedConfigurationForDeviceId
+    pub managedConfigurationForDeviceId: String,
+}
+
+/// PUT androidenterprise/v1/enterprises/{enterpriseId}/users/{userId}/devices/{deviceId}/managedConfigurationsForDevice/{managedConfigurationForDeviceId}
+/// Adds or updates a per-device managed configuration for an app for the specified device.
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `androidenterprise_managedconfigurationsfordevice_update_builder()` + `androidenterprise_managedconfigurationsfordevice_update_execute()`.
+/// For task-level control, use `androidenterprise_managedconfigurationsfordevice_update_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn androidenterprise_managedconfigurationsfordevice_update(
+    client: &SimpleHttpClient,
+    args: &AndroidenterpriseManagedconfigurationsfordeviceUpdateArgs,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<ManagedConfiguration>, ApiError>, P = ApiPending>
+        + Send
+        + 'static,
+    ApiError,
+> {
+    let builder = androidenterprise_managedconfigurationsfordevice_update_builder(
+        client,
+        &args.enterpriseId,
+        &args.userId,
+        &args.deviceId,
+        &args.managedConfigurationForDeviceId,
+    )?;
+    androidenterprise_managedconfigurationsfordevice_update_execute(builder)
+}
+
+/// DELETE androidenterprise/v1/enterprises/{enterpriseId}/users/{userId}/managedConfigurationsForUser/{managedConfigurationForUserId}
 /// Removes a per-user managed configuration for an app for the specified user.
 ///
 /// Returns `ClientRequestBuilder` for customization.
@@ -4458,13 +6351,13 @@ pub fn androidenterprise_managedconfigurationsforuser_delete_builder(
 
     // Build request
     let builder = client
-        .get(&endpoint_url)
+        .delete(&endpoint_url)
         .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
 
     Ok(builder)
 }
 
-/// GET androidenterprise/v1/enterprises/{enterpriseId}/users/{userId}/managedConfigurationsForUser/{managedConfigurationForUserId}
+/// DELETE androidenterprise/v1/enterprises/{enterpriseId}/users/{userId}/managedConfigurationsForUser/{managedConfigurationForUserId}
 /// Removes a per-user managed configuration for an app for the specified user.
 ///
 /// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
@@ -4535,7 +6428,7 @@ pub fn androidenterprise_managedconfigurationsforuser_delete_task(
         .map_pending(|_| ApiPending::Sending))
 }
 
-/// GET androidenterprise/v1/enterprises/{enterpriseId}/users/{userId}/managedConfigurationsForUser/{managedConfigurationForUserId}
+/// DELETE androidenterprise/v1/enterprises/{enterpriseId}/users/{userId}/managedConfigurationsForUser/{managedConfigurationForUserId}
 /// Removes a per-user managed configuration for an app for the specified user.
 ///
 /// Takes a `ClientRequestBuilder`, builds and executes the request,
@@ -4576,7 +6469,7 @@ pub struct AndroidenterpriseManagedconfigurationsforuserDeleteArgs {
     pub managedConfigurationForUserId: String,
 }
 
-/// GET androidenterprise/v1/enterprises/{enterpriseId}/users/{userId}/managedConfigurationsForUser/{managedConfigurationForUserId}
+/// DELETE androidenterprise/v1/enterprises/{enterpriseId}/users/{userId}/managedConfigurationsForUser/{managedConfigurationForUserId}
 /// Removes a per-user managed configuration for an app for the specified user.
 ///
 /// Simplest API - builds and executes the request in one call.
@@ -4601,6 +6494,180 @@ pub fn androidenterprise_managedconfigurationsforuser_delete(
         &args.managedConfigurationForUserId,
     )?;
     androidenterprise_managedconfigurationsforuser_delete_execute(builder)
+}
+
+/// GET androidenterprise/v1/enterprises/{enterpriseId}/users/{userId}/managedConfigurationsForUser/{managedConfigurationForUserId}
+/// Retrieves details of a per-user managed configuration for an app for the specified user.
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `androidenterprise_managedconfigurationsforuser_get_execute()` to send, or `androidenterprise_managedconfigurationsforuser_get` for simplest API.
+
+pub fn androidenterprise_managedconfigurationsforuser_get_builder(
+    client: &SimpleHttpClient,
+    enterpriseId: &String,
+    userId: &String,
+    managedConfigurationForUserId: &String,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!(
+        "https://androidenterprise.googleapis.com/androidenterprise/v1/enterprises/{}/users/{}/managedConfigurationsForUser/{}",
+        enterpriseId,
+        userId,
+        managedConfigurationForUserId,
+    );
+
+    // Build request
+    let builder = client
+        .get(&endpoint_url)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// GET androidenterprise/v1/enterprises/{enterpriseId}/users/{userId}/managedConfigurationsForUser/{managedConfigurationForUserId}
+/// Retrieves details of a per-user managed configuration for an app for the specified user.
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `androidenterprise_managedconfigurationsforuser_get_execute()` or `androidenterprise_managedconfigurationsforuser_get`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `androidenterprise_managedconfigurationsforuser_get_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn androidenterprise_managedconfigurationsforuser_get_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<ManagedConfiguration>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: ManagedConfiguration = serde_json::from_str(&body)
+                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// GET androidenterprise/v1/enterprises/{enterpriseId}/users/{userId}/managedConfigurationsForUser/{managedConfigurationForUserId}
+/// Retrieves details of a per-user managed configuration for an app for the specified user.
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `androidenterprise_managedconfigurationsforuser_get_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `androidenterprise_managedconfigurationsforuser_get_task()`.
+/// For the simplest API, use `androidenterprise_managedconfigurationsforuser_get()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `androidenterprise_managedconfigurationsforuser_get_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn androidenterprise_managedconfigurationsforuser_get_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<ManagedConfiguration>, ApiError>, P = ApiPending>
+        + Send
+        + 'static,
+    ApiError,
+> {
+    let task = androidenterprise_managedconfigurationsforuser_get_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`androidenterprise_managedconfigurationsforuser_get`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct AndroidenterpriseManagedconfigurationsforuserGetArgs {
+    /// Path parameter: enterpriseId
+    pub enterpriseId: String,
+    /// Path parameter: userId
+    pub userId: String,
+    /// Path parameter: managedConfigurationForUserId
+    pub managedConfigurationForUserId: String,
+}
+
+/// GET androidenterprise/v1/enterprises/{enterpriseId}/users/{userId}/managedConfigurationsForUser/{managedConfigurationForUserId}
+/// Retrieves details of a per-user managed configuration for an app for the specified user.
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `androidenterprise_managedconfigurationsforuser_get_builder()` + `androidenterprise_managedconfigurationsforuser_get_execute()`.
+/// For task-level control, use `androidenterprise_managedconfigurationsforuser_get_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn androidenterprise_managedconfigurationsforuser_get(
+    client: &SimpleHttpClient,
+    args: &AndroidenterpriseManagedconfigurationsforuserGetArgs,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<ManagedConfiguration>, ApiError>, P = ApiPending>
+        + Send
+        + 'static,
+    ApiError,
+> {
+    let builder = androidenterprise_managedconfigurationsforuser_get_builder(
+        client,
+        &args.enterpriseId,
+        &args.userId,
+        &args.managedConfigurationForUserId,
+    )?;
+    androidenterprise_managedconfigurationsforuser_get_execute(builder)
 }
 
 /// GET androidenterprise/v1/enterprises/{enterpriseId}/users/{userId}/managedConfigurationsForUser
@@ -4774,6 +6841,180 @@ pub fn androidenterprise_managedconfigurationsforuser_list(
         &args.userId,
     )?;
     androidenterprise_managedconfigurationsforuser_list_execute(builder)
+}
+
+/// PUT androidenterprise/v1/enterprises/{enterpriseId}/users/{userId}/managedConfigurationsForUser/{managedConfigurationForUserId}
+/// Adds or updates the managed configuration settings for an app for the specified user. If you support the Managed configurations iframe, you can apply managed configurations to a user by specifying an `mcmId` and its associated configuration variables (if any) in the request. Alternatively, all EMMs can apply managed configurations by passing a list of managed properties.
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `androidenterprise_managedconfigurationsforuser_update_execute()` to send, or `androidenterprise_managedconfigurationsforuser_update` for simplest API.
+
+pub fn androidenterprise_managedconfigurationsforuser_update_builder(
+    client: &SimpleHttpClient,
+    enterpriseId: &String,
+    userId: &String,
+    managedConfigurationForUserId: &String,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!(
+        "https://androidenterprise.googleapis.com/androidenterprise/v1/enterprises/{}/users/{}/managedConfigurationsForUser/{}",
+        enterpriseId,
+        userId,
+        managedConfigurationForUserId,
+    );
+
+    // Build request
+    let builder = client
+        .put(&endpoint_url)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// PUT androidenterprise/v1/enterprises/{enterpriseId}/users/{userId}/managedConfigurationsForUser/{managedConfigurationForUserId}
+/// Adds or updates the managed configuration settings for an app for the specified user. If you support the Managed configurations iframe, you can apply managed configurations to a user by specifying an `mcmId` and its associated configuration variables (if any) in the request. Alternatively, all EMMs can apply managed configurations by passing a list of managed properties.
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `androidenterprise_managedconfigurationsforuser_update_execute()` or `androidenterprise_managedconfigurationsforuser_update`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `androidenterprise_managedconfigurationsforuser_update_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn androidenterprise_managedconfigurationsforuser_update_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<ManagedConfiguration>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: ManagedConfiguration = serde_json::from_str(&body)
+                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// PUT androidenterprise/v1/enterprises/{enterpriseId}/users/{userId}/managedConfigurationsForUser/{managedConfigurationForUserId}
+/// Adds or updates the managed configuration settings for an app for the specified user. If you support the Managed configurations iframe, you can apply managed configurations to a user by specifying an `mcmId` and its associated configuration variables (if any) in the request. Alternatively, all EMMs can apply managed configurations by passing a list of managed properties.
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `androidenterprise_managedconfigurationsforuser_update_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `androidenterprise_managedconfigurationsforuser_update_task()`.
+/// For the simplest API, use `androidenterprise_managedconfigurationsforuser_update()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `androidenterprise_managedconfigurationsforuser_update_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn androidenterprise_managedconfigurationsforuser_update_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<ManagedConfiguration>, ApiError>, P = ApiPending>
+        + Send
+        + 'static,
+    ApiError,
+> {
+    let task = androidenterprise_managedconfigurationsforuser_update_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`androidenterprise_managedconfigurationsforuser_update`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct AndroidenterpriseManagedconfigurationsforuserUpdateArgs {
+    /// Path parameter: enterpriseId
+    pub enterpriseId: String,
+    /// Path parameter: userId
+    pub userId: String,
+    /// Path parameter: managedConfigurationForUserId
+    pub managedConfigurationForUserId: String,
+}
+
+/// PUT androidenterprise/v1/enterprises/{enterpriseId}/users/{userId}/managedConfigurationsForUser/{managedConfigurationForUserId}
+/// Adds or updates the managed configuration settings for an app for the specified user. If you support the Managed configurations iframe, you can apply managed configurations to a user by specifying an `mcmId` and its associated configuration variables (if any) in the request. Alternatively, all EMMs can apply managed configurations by passing a list of managed properties.
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `androidenterprise_managedconfigurationsforuser_update_builder()` + `androidenterprise_managedconfigurationsforuser_update_execute()`.
+/// For task-level control, use `androidenterprise_managedconfigurationsforuser_update_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn androidenterprise_managedconfigurationsforuser_update(
+    client: &SimpleHttpClient,
+    args: &AndroidenterpriseManagedconfigurationsforuserUpdateArgs,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<ManagedConfiguration>, ApiError>, P = ApiPending>
+        + Send
+        + 'static,
+    ApiError,
+> {
+    let builder = androidenterprise_managedconfigurationsforuser_update_builder(
+        client,
+        &args.enterpriseId,
+        &args.userId,
+        &args.managedConfigurationForUserId,
+    )?;
+    androidenterprise_managedconfigurationsforuser_update_execute(builder)
 }
 
 /// GET androidenterprise/v1/enterprises/{enterpriseId}/products/{productId}/managedConfigurationsSettings
@@ -4958,7 +7199,7 @@ pub fn androidenterprise_managedconfigurationssettings_list(
 pub fn androidenterprise_permissions_get_builder(
     client: &SimpleHttpClient,
     permissionId: &String,
-    language: &Option<String>,
+    language: &Option<Option<String>>,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
@@ -5095,7 +7336,7 @@ pub struct AndroidenterprisePermissionsGetArgs {
     /// Path parameter: permissionId
     pub permissionId: String,
     /// Query parameter: language
-    pub language: Option<String>,
+    pub language: Option<Option<String>>,
 }
 
 /// GET androidenterprise/v1/permissions/{permissionId}
@@ -5121,7 +7362,7 @@ pub fn androidenterprise_permissions_get(
     androidenterprise_permissions_get_execute(builder)
 }
 
-/// GET androidenterprise/v1/enterprises/{enterpriseId}/products/{productId}/approve
+/// POST androidenterprise/v1/enterprises/{enterpriseId}/products/{productId}/approve
 /// Approves the specified product and the relevant app permissions, if any. The maximum number of products that you can approve per enterprise customer is 1,000. To learn how to use managed Google Play to design and create a store layout to display approved products to your users, see Store Layout Design. **Note:** This item has been deprecated. New integrations cannot use this method and can refer to our new recommendations.
 ///
 /// Returns `ClientRequestBuilder` for customization.
@@ -5131,7 +7372,6 @@ pub fn androidenterprise_products_approve_builder(
     client: &SimpleHttpClient,
     enterpriseId: &String,
     productId: &String,
-    body: &ProductsApproveRequest,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
@@ -5142,15 +7382,13 @@ pub fn androidenterprise_products_approve_builder(
 
     // Build request
     let builder = client
-        .get(&endpoint_url)
+        .post(&endpoint_url)
         .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
 
-    builder
-        .body_json(body)
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+    Ok(builder)
 }
 
-/// GET androidenterprise/v1/enterprises/{enterpriseId}/products/{productId}/approve
+/// POST androidenterprise/v1/enterprises/{enterpriseId}/products/{productId}/approve
 /// Approves the specified product and the relevant app permissions, if any. The maximum number of products that you can approve per enterprise customer is 1,000. To learn how to use managed Google Play to design and create a store layout to display approved products to your users, see Store Layout Design. **Note:** This item has been deprecated. New integrations cannot use this method and can refer to our new recommendations.
 ///
 /// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
@@ -5221,7 +7459,7 @@ pub fn androidenterprise_products_approve_task(
         .map_pending(|_| ApiPending::Sending))
 }
 
-/// GET androidenterprise/v1/enterprises/{enterpriseId}/products/{productId}/approve
+/// POST androidenterprise/v1/enterprises/{enterpriseId}/products/{productId}/approve
 /// Approves the specified product and the relevant app permissions, if any. The maximum number of products that you can approve per enterprise customer is 1,000. To learn how to use managed Google Play to design and create a store layout to display approved products to your users, see Store Layout Design. **Note:** This item has been deprecated. New integrations cannot use this method and can refer to our new recommendations.
 ///
 /// Takes a `ClientRequestBuilder`, builds and executes the request,
@@ -5258,11 +7496,9 @@ pub struct AndroidenterpriseProductsApproveArgs {
     pub enterpriseId: String,
     /// Path parameter: productId
     pub productId: String,
-    /// Request body.
-    pub body: ProductsApproveRequest,
 }
 
-/// GET androidenterprise/v1/enterprises/{enterpriseId}/products/{productId}/approve
+/// POST androidenterprise/v1/enterprises/{enterpriseId}/products/{productId}/approve
 /// Approves the specified product and the relevant app permissions, if any. The maximum number of products that you can approve per enterprise customer is 1,000. To learn how to use managed Google Play to design and create a store layout to display approved products to your users, see Store Layout Design. **Note:** This item has been deprecated. New integrations cannot use this method and can refer to our new recommendations.
 ///
 /// Simplest API - builds and executes the request in one call.
@@ -5280,16 +7516,12 @@ pub fn androidenterprise_products_approve(
     impl StreamIterator<D = Result<ApiResponse<()>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = androidenterprise_products_approve_builder(
-        client,
-        &args.enterpriseId,
-        &args.productId,
-        &args.body,
-    )?;
+    let builder =
+        androidenterprise_products_approve_builder(client, &args.enterpriseId, &args.productId)?;
     androidenterprise_products_approve_execute(builder)
 }
 
-/// GET androidenterprise/v1/enterprises/{enterpriseId}/products/{productId}/generateApprovalUrl
+/// POST androidenterprise/v1/enterprises/{enterpriseId}/products/{productId}/generateApprovalUrl
 /// Generates a URL that can be rendered in an iframe to display the permissions (if any) of a product. An enterprise admin must view these permissions and accept them on behalf of their organization in order to approve that product. Admins should accept the displayed permissions by interacting with a separate UI element in the EMM console, which in turn should trigger the use of this URL as the `approvalUrlInfo`.`approvalUrl` property in a Products.approve call to approve the product. This URL can only be used to display permissions for up to 1 day. **Note:** This item has been deprecated. New integrations cannot use this method and can refer to our new recommendations.
 ///
 /// Returns `ClientRequestBuilder` for customization.
@@ -5299,7 +7531,7 @@ pub fn androidenterprise_products_generate_approval_url_builder(
     client: &SimpleHttpClient,
     enterpriseId: &String,
     productId: &String,
-    languageCode: &Option<String>,
+    languageCode: &Option<Option<String>>,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
@@ -5321,13 +7553,13 @@ pub fn androidenterprise_products_generate_approval_url_builder(
     };
 
     let builder = client
-        .get(&url_with_query)
+        .post(&url_with_query)
         .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
 
     Ok(builder)
 }
 
-/// GET androidenterprise/v1/enterprises/{enterpriseId}/products/{productId}/generateApprovalUrl
+/// POST androidenterprise/v1/enterprises/{enterpriseId}/products/{productId}/generateApprovalUrl
 /// Generates a URL that can be rendered in an iframe to display the permissions (if any) of a product. An enterprise admin must view these permissions and accept them on behalf of their organization in order to approve that product. Admins should accept the displayed permissions by interacting with a separate UI element in the EMM console, which in turn should trigger the use of this URL as the `approvalUrlInfo`.`approvalUrl` property in a Products.approve call to approve the product. This URL can only be used to display permissions for up to 1 day. **Note:** This item has been deprecated. New integrations cannot use this method and can refer to our new recommendations.
 ///
 /// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
@@ -5401,7 +7633,7 @@ pub fn androidenterprise_products_generate_approval_url_task(
         .map_pending(|_| ApiPending::Sending))
 }
 
-/// GET androidenterprise/v1/enterprises/{enterpriseId}/products/{productId}/generateApprovalUrl
+/// POST androidenterprise/v1/enterprises/{enterpriseId}/products/{productId}/generateApprovalUrl
 /// Generates a URL that can be rendered in an iframe to display the permissions (if any) of a product. An enterprise admin must view these permissions and accept them on behalf of their organization in order to approve that product. Admins should accept the displayed permissions by interacting with a separate UI element in the EMM console, which in turn should trigger the use of this URL as the `approvalUrlInfo`.`approvalUrl` property in a Products.approve call to approve the product. This URL can only be used to display permissions for up to 1 day. **Note:** This item has been deprecated. New integrations cannot use this method and can refer to our new recommendations.
 ///
 /// Takes a `ClientRequestBuilder`, builds and executes the request,
@@ -5443,10 +7675,10 @@ pub struct AndroidenterpriseProductsGenerateApprovalUrlArgs {
     /// Path parameter: productId
     pub productId: String,
     /// Query parameter: languageCode
-    pub languageCode: Option<String>,
+    pub languageCode: Option<Option<String>>,
 }
 
-/// GET androidenterprise/v1/enterprises/{enterpriseId}/products/{productId}/generateApprovalUrl
+/// POST androidenterprise/v1/enterprises/{enterpriseId}/products/{productId}/generateApprovalUrl
 /// Generates a URL that can be rendered in an iframe to display the permissions (if any) of a product. An enterprise admin must view these permissions and accept them on behalf of their organization in order to approve that product. Admins should accept the displayed permissions by interacting with a separate UI element in the EMM console, which in turn should trigger the use of this URL as the `approvalUrlInfo`.`approvalUrl` property in a Products.approve call to approve the product. This URL can only be used to display permissions for up to 1 day. **Note:** This item has been deprecated. New integrations cannot use this method and can refer to our new recommendations.
 ///
 /// Simplest API - builds and executes the request in one call.
@@ -5487,7 +7719,7 @@ pub fn androidenterprise_products_get_builder(
     client: &SimpleHttpClient,
     enterpriseId: &String,
     productId: &String,
-    language: &Option<String>,
+    language: &Option<Option<String>>,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
@@ -5626,7 +7858,7 @@ pub struct AndroidenterpriseProductsGetArgs {
     /// Path parameter: productId
     pub productId: String,
     /// Query parameter: language
-    pub language: Option<String>,
+    pub language: Option<Option<String>>,
 }
 
 /// GET androidenterprise/v1/enterprises/{enterpriseId}/products/{productId}
@@ -5666,7 +7898,7 @@ pub fn androidenterprise_products_get_app_restrictions_schema_builder(
     client: &SimpleHttpClient,
     enterpriseId: &String,
     productId: &String,
-    language: &Option<String>,
+    language: &Option<Option<String>>,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
@@ -5808,7 +8040,7 @@ pub struct AndroidenterpriseProductsGetAppRestrictionsSchemaArgs {
     /// Path parameter: productId
     pub productId: String,
     /// Query parameter: language
-    pub language: Option<String>,
+    pub language: Option<Option<String>>,
 }
 
 /// GET androidenterprise/v1/enterprises/{enterpriseId}/products/{productId}/appRestrictionsSchema
@@ -6018,11 +8250,11 @@ pub fn androidenterprise_products_get_permissions(
 pub fn androidenterprise_products_list_builder(
     client: &SimpleHttpClient,
     enterpriseId: &String,
-    approved: &Option<bool>,
-    language: &Option<String>,
-    maxResults: &Option<i32>,
-    query: &Option<String>,
-    token: &Option<String>,
+    approved: &Option<Option<String>>,
+    language: &Option<Option<String>>,
+    maxResults: &Option<Option<String>>,
+    query: &Option<Option<String>>,
+    token: &Option<Option<String>>,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
@@ -6173,15 +8405,15 @@ pub struct AndroidenterpriseProductsListArgs {
     /// Path parameter: enterpriseId
     pub enterpriseId: String,
     /// Query parameter: approved
-    pub approved: Option<bool>,
+    pub approved: Option<Option<String>>,
     /// Query parameter: language
-    pub language: Option<String>,
+    pub language: Option<Option<String>>,
     /// Query parameter: maxResults
-    pub maxResults: Option<i32>,
+    pub maxResults: Option<Option<String>>,
     /// Query parameter: query
-    pub query: Option<String>,
+    pub query: Option<Option<String>>,
     /// Query parameter: token
-    pub token: Option<String>,
+    pub token: Option<Option<String>>,
 }
 
 /// GET androidenterprise/v1/enterprises/{enterpriseId}/products
@@ -6216,7 +8448,7 @@ pub fn androidenterprise_products_list(
     androidenterprise_products_list_execute(builder)
 }
 
-/// GET androidenterprise/v1/enterprises/{enterpriseId}/products/{productId}/unapprove
+/// POST androidenterprise/v1/enterprises/{enterpriseId}/products/{productId}/unapprove
 /// Unapproves the specified product (and the relevant app permissions, if any) **Note:** This item has been deprecated. New integrations cannot use this method and can refer to our new recommendations.
 ///
 /// Returns `ClientRequestBuilder` for customization.
@@ -6236,13 +8468,13 @@ pub fn androidenterprise_products_unapprove_builder(
 
     // Build request
     let builder = client
-        .get(&endpoint_url)
+        .post(&endpoint_url)
         .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
 
     Ok(builder)
 }
 
-/// GET androidenterprise/v1/enterprises/{enterpriseId}/products/{productId}/unapprove
+/// POST androidenterprise/v1/enterprises/{enterpriseId}/products/{productId}/unapprove
 /// Unapproves the specified product (and the relevant app permissions, if any) **Note:** This item has been deprecated. New integrations cannot use this method and can refer to our new recommendations.
 ///
 /// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
@@ -6313,7 +8545,7 @@ pub fn androidenterprise_products_unapprove_task(
         .map_pending(|_| ApiPending::Sending))
 }
 
-/// GET androidenterprise/v1/enterprises/{enterpriseId}/products/{productId}/unapprove
+/// POST androidenterprise/v1/enterprises/{enterpriseId}/products/{productId}/unapprove
 /// Unapproves the specified product (and the relevant app permissions, if any) **Note:** This item has been deprecated. New integrations cannot use this method and can refer to our new recommendations.
 ///
 /// Takes a `ClientRequestBuilder`, builds and executes the request,
@@ -6352,7 +8584,7 @@ pub struct AndroidenterpriseProductsUnapproveArgs {
     pub productId: String,
 }
 
-/// GET androidenterprise/v1/enterprises/{enterpriseId}/products/{productId}/unapprove
+/// POST androidenterprise/v1/enterprises/{enterpriseId}/products/{productId}/unapprove
 /// Unapproves the specified product (and the relevant app permissions, if any) **Note:** This item has been deprecated. New integrations cannot use this method and can refer to our new recommendations.
 ///
 /// Simplest API - builds and executes the request in one call.
@@ -6375,7 +8607,7 @@ pub fn androidenterprise_products_unapprove(
     androidenterprise_products_unapprove_execute(builder)
 }
 
-/// GET androidenterprise/v1/enterprises/{enterpriseId}/serviceAccountKeys/{keyId}
+/// DELETE androidenterprise/v1/enterprises/{enterpriseId}/serviceAccountKeys/{keyId}
 /// Removes and invalidates the specified credentials for the service account associated with this enterprise. The calling service account must have been retrieved by calling Enterprises.GetServiceAccount and must have been set as the enterprise service account by calling Enterprises.SetAccount.
 ///
 /// Returns `ClientRequestBuilder` for customization.
@@ -6395,13 +8627,13 @@ pub fn androidenterprise_serviceaccountkeys_delete_builder(
 
     // Build request
     let builder = client
-        .get(&endpoint_url)
+        .delete(&endpoint_url)
         .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
 
     Ok(builder)
 }
 
-/// GET androidenterprise/v1/enterprises/{enterpriseId}/serviceAccountKeys/{keyId}
+/// DELETE androidenterprise/v1/enterprises/{enterpriseId}/serviceAccountKeys/{keyId}
 /// Removes and invalidates the specified credentials for the service account associated with this enterprise. The calling service account must have been retrieved by calling Enterprises.GetServiceAccount and must have been set as the enterprise service account by calling Enterprises.SetAccount.
 ///
 /// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
@@ -6472,7 +8704,7 @@ pub fn androidenterprise_serviceaccountkeys_delete_task(
         .map_pending(|_| ApiPending::Sending))
 }
 
-/// GET androidenterprise/v1/enterprises/{enterpriseId}/serviceAccountKeys/{keyId}
+/// DELETE androidenterprise/v1/enterprises/{enterpriseId}/serviceAccountKeys/{keyId}
 /// Removes and invalidates the specified credentials for the service account associated with this enterprise. The calling service account must have been retrieved by calling Enterprises.GetServiceAccount and must have been set as the enterprise service account by calling Enterprises.SetAccount.
 ///
 /// Takes a `ClientRequestBuilder`, builds and executes the request,
@@ -6511,7 +8743,7 @@ pub struct AndroidenterpriseServiceaccountkeysDeleteArgs {
     pub keyId: String,
 }
 
-/// GET androidenterprise/v1/enterprises/{enterpriseId}/serviceAccountKeys/{keyId}
+/// DELETE androidenterprise/v1/enterprises/{enterpriseId}/serviceAccountKeys/{keyId}
 /// Removes and invalidates the specified credentials for the service account associated with this enterprise. The calling service account must have been retrieved by calling Enterprises.GetServiceAccount and must have been set as the enterprise service account by calling Enterprises.SetAccount.
 ///
 /// Simplest API - builds and executes the request in one call.
@@ -6537,7 +8769,7 @@ pub fn androidenterprise_serviceaccountkeys_delete(
     androidenterprise_serviceaccountkeys_delete_execute(builder)
 }
 
-/// GET androidenterprise/v1/enterprises/{enterpriseId}/serviceAccountKeys
+/// POST androidenterprise/v1/enterprises/{enterpriseId}/serviceAccountKeys
 /// Generates new credentials for the service account associated with this enterprise. The calling service account must have been retrieved by calling Enterprises.GetServiceAccount and must have been set as the enterprise service account by calling Enterprises.SetAccount. Only the type of the key should be populated in the resource to be inserted.
 ///
 /// Returns `ClientRequestBuilder` for customization.
@@ -6546,7 +8778,6 @@ pub fn androidenterprise_serviceaccountkeys_delete(
 pub fn androidenterprise_serviceaccountkeys_insert_builder(
     client: &SimpleHttpClient,
     enterpriseId: &String,
-    body: &ServiceAccountKey,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
@@ -6556,15 +8787,13 @@ pub fn androidenterprise_serviceaccountkeys_insert_builder(
 
     // Build request
     let builder = client
-        .get(&endpoint_url)
+        .post(&endpoint_url)
         .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
 
-    builder
-        .body_json(body)
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+    Ok(builder)
 }
 
-/// GET androidenterprise/v1/enterprises/{enterpriseId}/serviceAccountKeys
+/// POST androidenterprise/v1/enterprises/{enterpriseId}/serviceAccountKeys
 /// Generates new credentials for the service account associated with this enterprise. The calling service account must have been retrieved by calling Enterprises.GetServiceAccount and must have been set as the enterprise service account by calling Enterprises.SetAccount. Only the type of the key should be populated in the resource to be inserted.
 ///
 /// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
@@ -6638,7 +8867,7 @@ pub fn androidenterprise_serviceaccountkeys_insert_task(
         .map_pending(|_| ApiPending::Sending))
 }
 
-/// GET androidenterprise/v1/enterprises/{enterpriseId}/serviceAccountKeys
+/// POST androidenterprise/v1/enterprises/{enterpriseId}/serviceAccountKeys
 /// Generates new credentials for the service account associated with this enterprise. The calling service account must have been retrieved by calling Enterprises.GetServiceAccount and must have been set as the enterprise service account by calling Enterprises.SetAccount. Only the type of the key should be populated in the resource to be inserted.
 ///
 /// Takes a `ClientRequestBuilder`, builds and executes the request,
@@ -6675,11 +8904,9 @@ pub fn androidenterprise_serviceaccountkeys_insert_execute(
 pub struct AndroidenterpriseServiceaccountkeysInsertArgs {
     /// Path parameter: enterpriseId
     pub enterpriseId: String,
-    /// Request body.
-    pub body: ServiceAccountKey,
 }
 
-/// GET androidenterprise/v1/enterprises/{enterpriseId}/serviceAccountKeys
+/// POST androidenterprise/v1/enterprises/{enterpriseId}/serviceAccountKeys
 /// Generates new credentials for the service account associated with this enterprise. The calling service account must have been retrieved by calling Enterprises.GetServiceAccount and must have been set as the enterprise service account by calling Enterprises.SetAccount. Only the type of the key should be populated in the resource to be inserted.
 ///
 /// Simplest API - builds and executes the request in one call.
@@ -6699,15 +8926,176 @@ pub fn androidenterprise_serviceaccountkeys_insert(
         + 'static,
     ApiError,
 > {
-    let builder = androidenterprise_serviceaccountkeys_insert_builder(
-        client,
-        &args.enterpriseId,
-        &args.body,
-    )?;
+    let builder = androidenterprise_serviceaccountkeys_insert_builder(client, &args.enterpriseId)?;
     androidenterprise_serviceaccountkeys_insert_execute(builder)
 }
 
-/// GET androidenterprise/v1/enterprises/{enterpriseId}/storeLayout/pages/{pageId}/clusters/{clusterId}
+/// GET androidenterprise/v1/enterprises/{enterpriseId}/serviceAccountKeys
+/// Lists all active credentials for the service account associated with this enterprise. Only the ID and key type are returned. The calling service account must have been retrieved by calling Enterprises.GetServiceAccount and must have been set as the enterprise service account by calling Enterprises.SetAccount.
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `androidenterprise_serviceaccountkeys_list_execute()` to send, or `androidenterprise_serviceaccountkeys_list` for simplest API.
+
+pub fn androidenterprise_serviceaccountkeys_list_builder(
+    client: &SimpleHttpClient,
+    enterpriseId: &String,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!(
+        "https://androidenterprise.googleapis.com/androidenterprise/v1/enterprises/{}/serviceAccountKeys",
+        enterpriseId,
+    );
+
+    // Build request
+    let builder = client
+        .get(&endpoint_url)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// GET androidenterprise/v1/enterprises/{enterpriseId}/serviceAccountKeys
+/// Lists all active credentials for the service account associated with this enterprise. Only the ID and key type are returned. The calling service account must have been retrieved by calling Enterprises.GetServiceAccount and must have been set as the enterprise service account by calling Enterprises.SetAccount.
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `androidenterprise_serviceaccountkeys_list_execute()` or `androidenterprise_serviceaccountkeys_list`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `androidenterprise_serviceaccountkeys_list_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn androidenterprise_serviceaccountkeys_list_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<ServiceAccountKeysListResponse>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: ServiceAccountKeysListResponse = serde_json::from_str(&body)
+                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// GET androidenterprise/v1/enterprises/{enterpriseId}/serviceAccountKeys
+/// Lists all active credentials for the service account associated with this enterprise. Only the ID and key type are returned. The calling service account must have been retrieved by calling Enterprises.GetServiceAccount and must have been set as the enterprise service account by calling Enterprises.SetAccount.
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `androidenterprise_serviceaccountkeys_list_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `androidenterprise_serviceaccountkeys_list_task()`.
+/// For the simplest API, use `androidenterprise_serviceaccountkeys_list()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `androidenterprise_serviceaccountkeys_list_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn androidenterprise_serviceaccountkeys_list_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<
+            D = Result<ApiResponse<ServiceAccountKeysListResponse>, ApiError>,
+            P = ApiPending,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    let task = androidenterprise_serviceaccountkeys_list_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`androidenterprise_serviceaccountkeys_list`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct AndroidenterpriseServiceaccountkeysListArgs {
+    /// Path parameter: enterpriseId
+    pub enterpriseId: String,
+}
+
+/// GET androidenterprise/v1/enterprises/{enterpriseId}/serviceAccountKeys
+/// Lists all active credentials for the service account associated with this enterprise. Only the ID and key type are returned. The calling service account must have been retrieved by calling Enterprises.GetServiceAccount and must have been set as the enterprise service account by calling Enterprises.SetAccount.
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `androidenterprise_serviceaccountkeys_list_builder()` + `androidenterprise_serviceaccountkeys_list_execute()`.
+/// For task-level control, use `androidenterprise_serviceaccountkeys_list_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn androidenterprise_serviceaccountkeys_list(
+    client: &SimpleHttpClient,
+    args: &AndroidenterpriseServiceaccountkeysListArgs,
+) -> Result<
+    impl StreamIterator<
+            D = Result<ApiResponse<ServiceAccountKeysListResponse>, ApiError>,
+            P = ApiPending,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    let builder = androidenterprise_serviceaccountkeys_list_builder(client, &args.enterpriseId)?;
+    androidenterprise_serviceaccountkeys_list_execute(builder)
+}
+
+/// DELETE androidenterprise/v1/enterprises/{enterpriseId}/storeLayout/pages/{pageId}/clusters/{clusterId}
 /// Deletes a cluster.
 ///
 /// Returns `ClientRequestBuilder` for customization.
@@ -6729,13 +9117,13 @@ pub fn androidenterprise_storelayoutclusters_delete_builder(
 
     // Build request
     let builder = client
-        .get(&endpoint_url)
+        .delete(&endpoint_url)
         .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
 
     Ok(builder)
 }
 
-/// GET androidenterprise/v1/enterprises/{enterpriseId}/storeLayout/pages/{pageId}/clusters/{clusterId}
+/// DELETE androidenterprise/v1/enterprises/{enterpriseId}/storeLayout/pages/{pageId}/clusters/{clusterId}
 /// Deletes a cluster.
 ///
 /// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
@@ -6806,7 +9194,7 @@ pub fn androidenterprise_storelayoutclusters_delete_task(
         .map_pending(|_| ApiPending::Sending))
 }
 
-/// GET androidenterprise/v1/enterprises/{enterpriseId}/storeLayout/pages/{pageId}/clusters/{clusterId}
+/// DELETE androidenterprise/v1/enterprises/{enterpriseId}/storeLayout/pages/{pageId}/clusters/{clusterId}
 /// Deletes a cluster.
 ///
 /// Takes a `ClientRequestBuilder`, builds and executes the request,
@@ -6847,7 +9235,7 @@ pub struct AndroidenterpriseStorelayoutclustersDeleteArgs {
     pub clusterId: String,
 }
 
-/// GET androidenterprise/v1/enterprises/{enterpriseId}/storeLayout/pages/{pageId}/clusters/{clusterId}
+/// DELETE androidenterprise/v1/enterprises/{enterpriseId}/storeLayout/pages/{pageId}/clusters/{clusterId}
 /// Deletes a cluster.
 ///
 /// Simplest API - builds and executes the request in one call.
@@ -6874,7 +9262,181 @@ pub fn androidenterprise_storelayoutclusters_delete(
     androidenterprise_storelayoutclusters_delete_execute(builder)
 }
 
-/// GET androidenterprise/v1/enterprises/{enterpriseId}/storeLayout/pages/{pageId}/clusters
+/// GET androidenterprise/v1/enterprises/{enterpriseId}/storeLayout/pages/{pageId}/clusters/{clusterId}
+/// Retrieves details of a cluster.
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `androidenterprise_storelayoutclusters_get_execute()` to send, or `androidenterprise_storelayoutclusters_get` for simplest API.
+
+pub fn androidenterprise_storelayoutclusters_get_builder(
+    client: &SimpleHttpClient,
+    enterpriseId: &String,
+    pageId: &String,
+    clusterId: &String,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!(
+        "https://androidenterprise.googleapis.com/androidenterprise/v1/enterprises/{}/storeLayout/pages/{}/clusters/{}",
+        enterpriseId,
+        pageId,
+        clusterId,
+    );
+
+    // Build request
+    let builder = client
+        .get(&endpoint_url)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// GET androidenterprise/v1/enterprises/{enterpriseId}/storeLayout/pages/{pageId}/clusters/{clusterId}
+/// Retrieves details of a cluster.
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `androidenterprise_storelayoutclusters_get_execute()` or `androidenterprise_storelayoutclusters_get`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `androidenterprise_storelayoutclusters_get_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn androidenterprise_storelayoutclusters_get_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<StoreCluster>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: StoreCluster = serde_json::from_str(&body)
+                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// GET androidenterprise/v1/enterprises/{enterpriseId}/storeLayout/pages/{pageId}/clusters/{clusterId}
+/// Retrieves details of a cluster.
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `androidenterprise_storelayoutclusters_get_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `androidenterprise_storelayoutclusters_get_task()`.
+/// For the simplest API, use `androidenterprise_storelayoutclusters_get()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `androidenterprise_storelayoutclusters_get_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn androidenterprise_storelayoutclusters_get_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<StoreCluster>, ApiError>, P = ApiPending>
+        + Send
+        + 'static,
+    ApiError,
+> {
+    let task = androidenterprise_storelayoutclusters_get_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`androidenterprise_storelayoutclusters_get`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct AndroidenterpriseStorelayoutclustersGetArgs {
+    /// Path parameter: enterpriseId
+    pub enterpriseId: String,
+    /// Path parameter: pageId
+    pub pageId: String,
+    /// Path parameter: clusterId
+    pub clusterId: String,
+}
+
+/// GET androidenterprise/v1/enterprises/{enterpriseId}/storeLayout/pages/{pageId}/clusters/{clusterId}
+/// Retrieves details of a cluster.
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `androidenterprise_storelayoutclusters_get_builder()` + `androidenterprise_storelayoutclusters_get_execute()`.
+/// For task-level control, use `androidenterprise_storelayoutclusters_get_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn androidenterprise_storelayoutclusters_get(
+    client: &SimpleHttpClient,
+    args: &AndroidenterpriseStorelayoutclustersGetArgs,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<StoreCluster>, ApiError>, P = ApiPending>
+        + Send
+        + 'static,
+    ApiError,
+> {
+    let builder = androidenterprise_storelayoutclusters_get_builder(
+        client,
+        &args.enterpriseId,
+        &args.pageId,
+        &args.clusterId,
+    )?;
+    androidenterprise_storelayoutclusters_get_execute(builder)
+}
+
+/// POST androidenterprise/v1/enterprises/{enterpriseId}/storeLayout/pages/{pageId}/clusters
 /// Inserts a new cluster in a page.
 ///
 /// Returns `ClientRequestBuilder` for customization.
@@ -6884,7 +9446,6 @@ pub fn androidenterprise_storelayoutclusters_insert_builder(
     client: &SimpleHttpClient,
     enterpriseId: &String,
     pageId: &String,
-    body: &StoreCluster,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
@@ -6895,15 +9456,13 @@ pub fn androidenterprise_storelayoutclusters_insert_builder(
 
     // Build request
     let builder = client
-        .get(&endpoint_url)
+        .post(&endpoint_url)
         .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
 
-    builder
-        .body_json(body)
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+    Ok(builder)
 }
 
-/// GET androidenterprise/v1/enterprises/{enterpriseId}/storeLayout/pages/{pageId}/clusters
+/// POST androidenterprise/v1/enterprises/{enterpriseId}/storeLayout/pages/{pageId}/clusters
 /// Inserts a new cluster in a page.
 ///
 /// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
@@ -6977,7 +9536,7 @@ pub fn androidenterprise_storelayoutclusters_insert_task(
         .map_pending(|_| ApiPending::Sending))
 }
 
-/// GET androidenterprise/v1/enterprises/{enterpriseId}/storeLayout/pages/{pageId}/clusters
+/// POST androidenterprise/v1/enterprises/{enterpriseId}/storeLayout/pages/{pageId}/clusters
 /// Inserts a new cluster in a page.
 ///
 /// Takes a `ClientRequestBuilder`, builds and executes the request,
@@ -7016,11 +9575,9 @@ pub struct AndroidenterpriseStorelayoutclustersInsertArgs {
     pub enterpriseId: String,
     /// Path parameter: pageId
     pub pageId: String,
-    /// Request body.
-    pub body: StoreCluster,
 }
 
-/// GET androidenterprise/v1/enterprises/{enterpriseId}/storeLayout/pages/{pageId}/clusters
+/// POST androidenterprise/v1/enterprises/{enterpriseId}/storeLayout/pages/{pageId}/clusters
 /// Inserts a new cluster in a page.
 ///
 /// Simplest API - builds and executes the request in one call.
@@ -7044,12 +9601,358 @@ pub fn androidenterprise_storelayoutclusters_insert(
         client,
         &args.enterpriseId,
         &args.pageId,
-        &args.body,
     )?;
     androidenterprise_storelayoutclusters_insert_execute(builder)
 }
 
-/// GET androidenterprise/v1/enterprises/{enterpriseId}/storeLayout/pages/{pageId}
+/// GET androidenterprise/v1/enterprises/{enterpriseId}/storeLayout/pages/{pageId}/clusters
+/// Retrieves the details of all clusters on the specified page.
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `androidenterprise_storelayoutclusters_list_execute()` to send, or `androidenterprise_storelayoutclusters_list` for simplest API.
+
+pub fn androidenterprise_storelayoutclusters_list_builder(
+    client: &SimpleHttpClient,
+    enterpriseId: &String,
+    pageId: &String,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!(
+        "https://androidenterprise.googleapis.com/androidenterprise/v1/enterprises/{}/storeLayout/pages/{}/clusters",
+        enterpriseId,
+        pageId,
+    );
+
+    // Build request
+    let builder = client
+        .get(&endpoint_url)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// GET androidenterprise/v1/enterprises/{enterpriseId}/storeLayout/pages/{pageId}/clusters
+/// Retrieves the details of all clusters on the specified page.
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `androidenterprise_storelayoutclusters_list_execute()` or `androidenterprise_storelayoutclusters_list`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `androidenterprise_storelayoutclusters_list_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn androidenterprise_storelayoutclusters_list_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<StoreLayoutClustersListResponse>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: StoreLayoutClustersListResponse = serde_json::from_str(&body)
+                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// GET androidenterprise/v1/enterprises/{enterpriseId}/storeLayout/pages/{pageId}/clusters
+/// Retrieves the details of all clusters on the specified page.
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `androidenterprise_storelayoutclusters_list_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `androidenterprise_storelayoutclusters_list_task()`.
+/// For the simplest API, use `androidenterprise_storelayoutclusters_list()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `androidenterprise_storelayoutclusters_list_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn androidenterprise_storelayoutclusters_list_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<
+            D = Result<ApiResponse<StoreLayoutClustersListResponse>, ApiError>,
+            P = ApiPending,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    let task = androidenterprise_storelayoutclusters_list_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`androidenterprise_storelayoutclusters_list`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct AndroidenterpriseStorelayoutclustersListArgs {
+    /// Path parameter: enterpriseId
+    pub enterpriseId: String,
+    /// Path parameter: pageId
+    pub pageId: String,
+}
+
+/// GET androidenterprise/v1/enterprises/{enterpriseId}/storeLayout/pages/{pageId}/clusters
+/// Retrieves the details of all clusters on the specified page.
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `androidenterprise_storelayoutclusters_list_builder()` + `androidenterprise_storelayoutclusters_list_execute()`.
+/// For task-level control, use `androidenterprise_storelayoutclusters_list_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn androidenterprise_storelayoutclusters_list(
+    client: &SimpleHttpClient,
+    args: &AndroidenterpriseStorelayoutclustersListArgs,
+) -> Result<
+    impl StreamIterator<
+            D = Result<ApiResponse<StoreLayoutClustersListResponse>, ApiError>,
+            P = ApiPending,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    let builder = androidenterprise_storelayoutclusters_list_builder(
+        client,
+        &args.enterpriseId,
+        &args.pageId,
+    )?;
+    androidenterprise_storelayoutclusters_list_execute(builder)
+}
+
+/// PUT androidenterprise/v1/enterprises/{enterpriseId}/storeLayout/pages/{pageId}/clusters/{clusterId}
+/// Updates a cluster.
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `androidenterprise_storelayoutclusters_update_execute()` to send, or `androidenterprise_storelayoutclusters_update` for simplest API.
+
+pub fn androidenterprise_storelayoutclusters_update_builder(
+    client: &SimpleHttpClient,
+    enterpriseId: &String,
+    pageId: &String,
+    clusterId: &String,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!(
+        "https://androidenterprise.googleapis.com/androidenterprise/v1/enterprises/{}/storeLayout/pages/{}/clusters/{}",
+        enterpriseId,
+        pageId,
+        clusterId,
+    );
+
+    // Build request
+    let builder = client
+        .put(&endpoint_url)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// PUT androidenterprise/v1/enterprises/{enterpriseId}/storeLayout/pages/{pageId}/clusters/{clusterId}
+/// Updates a cluster.
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `androidenterprise_storelayoutclusters_update_execute()` or `androidenterprise_storelayoutclusters_update`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `androidenterprise_storelayoutclusters_update_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn androidenterprise_storelayoutclusters_update_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<StoreCluster>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: StoreCluster = serde_json::from_str(&body)
+                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// PUT androidenterprise/v1/enterprises/{enterpriseId}/storeLayout/pages/{pageId}/clusters/{clusterId}
+/// Updates a cluster.
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `androidenterprise_storelayoutclusters_update_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `androidenterprise_storelayoutclusters_update_task()`.
+/// For the simplest API, use `androidenterprise_storelayoutclusters_update()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `androidenterprise_storelayoutclusters_update_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn androidenterprise_storelayoutclusters_update_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<StoreCluster>, ApiError>, P = ApiPending>
+        + Send
+        + 'static,
+    ApiError,
+> {
+    let task = androidenterprise_storelayoutclusters_update_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`androidenterprise_storelayoutclusters_update`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct AndroidenterpriseStorelayoutclustersUpdateArgs {
+    /// Path parameter: enterpriseId
+    pub enterpriseId: String,
+    /// Path parameter: pageId
+    pub pageId: String,
+    /// Path parameter: clusterId
+    pub clusterId: String,
+}
+
+/// PUT androidenterprise/v1/enterprises/{enterpriseId}/storeLayout/pages/{pageId}/clusters/{clusterId}
+/// Updates a cluster.
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `androidenterprise_storelayoutclusters_update_builder()` + `androidenterprise_storelayoutclusters_update_execute()`.
+/// For task-level control, use `androidenterprise_storelayoutclusters_update_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn androidenterprise_storelayoutclusters_update(
+    client: &SimpleHttpClient,
+    args: &AndroidenterpriseStorelayoutclustersUpdateArgs,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<StoreCluster>, ApiError>, P = ApiPending>
+        + Send
+        + 'static,
+    ApiError,
+> {
+    let builder = androidenterprise_storelayoutclusters_update_builder(
+        client,
+        &args.enterpriseId,
+        &args.pageId,
+        &args.clusterId,
+    )?;
+    androidenterprise_storelayoutclusters_update_execute(builder)
+}
+
+/// DELETE androidenterprise/v1/enterprises/{enterpriseId}/storeLayout/pages/{pageId}
 /// Deletes a store page.
 ///
 /// Returns `ClientRequestBuilder` for customization.
@@ -7069,13 +9972,13 @@ pub fn androidenterprise_storelayoutpages_delete_builder(
 
     // Build request
     let builder = client
-        .get(&endpoint_url)
+        .delete(&endpoint_url)
         .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
 
     Ok(builder)
 }
 
-/// GET androidenterprise/v1/enterprises/{enterpriseId}/storeLayout/pages/{pageId}
+/// DELETE androidenterprise/v1/enterprises/{enterpriseId}/storeLayout/pages/{pageId}
 /// Deletes a store page.
 ///
 /// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
@@ -7146,7 +10049,7 @@ pub fn androidenterprise_storelayoutpages_delete_task(
         .map_pending(|_| ApiPending::Sending))
 }
 
-/// GET androidenterprise/v1/enterprises/{enterpriseId}/storeLayout/pages/{pageId}
+/// DELETE androidenterprise/v1/enterprises/{enterpriseId}/storeLayout/pages/{pageId}
 /// Deletes a store page.
 ///
 /// Takes a `ClientRequestBuilder`, builds and executes the request,
@@ -7185,7 +10088,7 @@ pub struct AndroidenterpriseStorelayoutpagesDeleteArgs {
     pub pageId: String,
 }
 
-/// GET androidenterprise/v1/enterprises/{enterpriseId}/storeLayout/pages/{pageId}
+/// DELETE androidenterprise/v1/enterprises/{enterpriseId}/storeLayout/pages/{pageId}
 /// Deletes a store page.
 ///
 /// Simplest API - builds and executes the request in one call.
@@ -7211,7 +10114,169 @@ pub fn androidenterprise_storelayoutpages_delete(
     androidenterprise_storelayoutpages_delete_execute(builder)
 }
 
-/// GET androidenterprise/v1/enterprises/{enterpriseId}/storeLayout/pages
+/// GET androidenterprise/v1/enterprises/{enterpriseId}/storeLayout/pages/{pageId}
+/// Retrieves details of a store page.
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `androidenterprise_storelayoutpages_get_execute()` to send, or `androidenterprise_storelayoutpages_get` for simplest API.
+
+pub fn androidenterprise_storelayoutpages_get_builder(
+    client: &SimpleHttpClient,
+    enterpriseId: &String,
+    pageId: &String,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!(
+        "https://androidenterprise.googleapis.com/androidenterprise/v1/enterprises/{}/storeLayout/pages/{}",
+        enterpriseId,
+        pageId,
+    );
+
+    // Build request
+    let builder = client
+        .get(&endpoint_url)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// GET androidenterprise/v1/enterprises/{enterpriseId}/storeLayout/pages/{pageId}
+/// Retrieves details of a store page.
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `androidenterprise_storelayoutpages_get_execute()` or `androidenterprise_storelayoutpages_get`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `androidenterprise_storelayoutpages_get_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn androidenterprise_storelayoutpages_get_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<StorePage>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: StorePage = serde_json::from_str(&body)
+                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// GET androidenterprise/v1/enterprises/{enterpriseId}/storeLayout/pages/{pageId}
+/// Retrieves details of a store page.
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `androidenterprise_storelayoutpages_get_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `androidenterprise_storelayoutpages_get_task()`.
+/// For the simplest API, use `androidenterprise_storelayoutpages_get()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `androidenterprise_storelayoutpages_get_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn androidenterprise_storelayoutpages_get_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<StorePage>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let task = androidenterprise_storelayoutpages_get_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`androidenterprise_storelayoutpages_get`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct AndroidenterpriseStorelayoutpagesGetArgs {
+    /// Path parameter: enterpriseId
+    pub enterpriseId: String,
+    /// Path parameter: pageId
+    pub pageId: String,
+}
+
+/// GET androidenterprise/v1/enterprises/{enterpriseId}/storeLayout/pages/{pageId}
+/// Retrieves details of a store page.
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `androidenterprise_storelayoutpages_get_builder()` + `androidenterprise_storelayoutpages_get_execute()`.
+/// For task-level control, use `androidenterprise_storelayoutpages_get_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn androidenterprise_storelayoutpages_get(
+    client: &SimpleHttpClient,
+    args: &AndroidenterpriseStorelayoutpagesGetArgs,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<StorePage>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let builder =
+        androidenterprise_storelayoutpages_get_builder(client, &args.enterpriseId, &args.pageId)?;
+    androidenterprise_storelayoutpages_get_execute(builder)
+}
+
+/// POST androidenterprise/v1/enterprises/{enterpriseId}/storeLayout/pages
 /// Inserts a new store page.
 ///
 /// Returns `ClientRequestBuilder` for customization.
@@ -7220,7 +10285,6 @@ pub fn androidenterprise_storelayoutpages_delete(
 pub fn androidenterprise_storelayoutpages_insert_builder(
     client: &SimpleHttpClient,
     enterpriseId: &String,
-    body: &StorePage,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
@@ -7230,15 +10294,13 @@ pub fn androidenterprise_storelayoutpages_insert_builder(
 
     // Build request
     let builder = client
-        .get(&endpoint_url)
+        .post(&endpoint_url)
         .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
 
-    builder
-        .body_json(body)
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+    Ok(builder)
 }
 
-/// GET androidenterprise/v1/enterprises/{enterpriseId}/storeLayout/pages
+/// POST androidenterprise/v1/enterprises/{enterpriseId}/storeLayout/pages
 /// Inserts a new store page.
 ///
 /// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
@@ -7312,7 +10374,7 @@ pub fn androidenterprise_storelayoutpages_insert_task(
         .map_pending(|_| ApiPending::Sending))
 }
 
-/// GET androidenterprise/v1/enterprises/{enterpriseId}/storeLayout/pages
+/// POST androidenterprise/v1/enterprises/{enterpriseId}/storeLayout/pages
 /// Inserts a new store page.
 ///
 /// Takes a `ClientRequestBuilder`, builds and executes the request,
@@ -7347,11 +10409,9 @@ pub fn androidenterprise_storelayoutpages_insert_execute(
 pub struct AndroidenterpriseStorelayoutpagesInsertArgs {
     /// Path parameter: enterpriseId
     pub enterpriseId: String,
-    /// Request body.
-    pub body: StorePage,
 }
 
-/// GET androidenterprise/v1/enterprises/{enterpriseId}/storeLayout/pages
+/// POST androidenterprise/v1/enterprises/{enterpriseId}/storeLayout/pages
 /// Inserts a new store page.
 ///
 /// Simplest API - builds and executes the request in one call.
@@ -7369,12 +10429,341 @@ pub fn androidenterprise_storelayoutpages_insert(
     impl StreamIterator<D = Result<ApiResponse<StorePage>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder =
-        androidenterprise_storelayoutpages_insert_builder(client, &args.enterpriseId, &args.body)?;
+    let builder = androidenterprise_storelayoutpages_insert_builder(client, &args.enterpriseId)?;
     androidenterprise_storelayoutpages_insert_execute(builder)
 }
 
-/// GET androidenterprise/v1/enterprises/{enterpriseId}/users/{userId}
+/// GET androidenterprise/v1/enterprises/{enterpriseId}/storeLayout/pages
+/// Retrieves the details of all pages in the store.
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `androidenterprise_storelayoutpages_list_execute()` to send, or `androidenterprise_storelayoutpages_list` for simplest API.
+
+pub fn androidenterprise_storelayoutpages_list_builder(
+    client: &SimpleHttpClient,
+    enterpriseId: &String,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!(
+        "https://androidenterprise.googleapis.com/androidenterprise/v1/enterprises/{}/storeLayout/pages",
+        enterpriseId,
+    );
+
+    // Build request
+    let builder = client
+        .get(&endpoint_url)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// GET androidenterprise/v1/enterprises/{enterpriseId}/storeLayout/pages
+/// Retrieves the details of all pages in the store.
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `androidenterprise_storelayoutpages_list_execute()` or `androidenterprise_storelayoutpages_list`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `androidenterprise_storelayoutpages_list_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn androidenterprise_storelayoutpages_list_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<StoreLayoutPagesListResponse>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: StoreLayoutPagesListResponse = serde_json::from_str(&body)
+                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// GET androidenterprise/v1/enterprises/{enterpriseId}/storeLayout/pages
+/// Retrieves the details of all pages in the store.
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `androidenterprise_storelayoutpages_list_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `androidenterprise_storelayoutpages_list_task()`.
+/// For the simplest API, use `androidenterprise_storelayoutpages_list()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `androidenterprise_storelayoutpages_list_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn androidenterprise_storelayoutpages_list_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<
+            D = Result<ApiResponse<StoreLayoutPagesListResponse>, ApiError>,
+            P = ApiPending,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    let task = androidenterprise_storelayoutpages_list_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`androidenterprise_storelayoutpages_list`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct AndroidenterpriseStorelayoutpagesListArgs {
+    /// Path parameter: enterpriseId
+    pub enterpriseId: String,
+}
+
+/// GET androidenterprise/v1/enterprises/{enterpriseId}/storeLayout/pages
+/// Retrieves the details of all pages in the store.
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `androidenterprise_storelayoutpages_list_builder()` + `androidenterprise_storelayoutpages_list_execute()`.
+/// For task-level control, use `androidenterprise_storelayoutpages_list_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn androidenterprise_storelayoutpages_list(
+    client: &SimpleHttpClient,
+    args: &AndroidenterpriseStorelayoutpagesListArgs,
+) -> Result<
+    impl StreamIterator<
+            D = Result<ApiResponse<StoreLayoutPagesListResponse>, ApiError>,
+            P = ApiPending,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    let builder = androidenterprise_storelayoutpages_list_builder(client, &args.enterpriseId)?;
+    androidenterprise_storelayoutpages_list_execute(builder)
+}
+
+/// PUT androidenterprise/v1/enterprises/{enterpriseId}/storeLayout/pages/{pageId}
+/// Updates the content of a store page.
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `androidenterprise_storelayoutpages_update_execute()` to send, or `androidenterprise_storelayoutpages_update` for simplest API.
+
+pub fn androidenterprise_storelayoutpages_update_builder(
+    client: &SimpleHttpClient,
+    enterpriseId: &String,
+    pageId: &String,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!(
+        "https://androidenterprise.googleapis.com/androidenterprise/v1/enterprises/{}/storeLayout/pages/{}",
+        enterpriseId,
+        pageId,
+    );
+
+    // Build request
+    let builder = client
+        .put(&endpoint_url)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// PUT androidenterprise/v1/enterprises/{enterpriseId}/storeLayout/pages/{pageId}
+/// Updates the content of a store page.
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `androidenterprise_storelayoutpages_update_execute()` or `androidenterprise_storelayoutpages_update`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `androidenterprise_storelayoutpages_update_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn androidenterprise_storelayoutpages_update_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<StorePage>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: StorePage = serde_json::from_str(&body)
+                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// PUT androidenterprise/v1/enterprises/{enterpriseId}/storeLayout/pages/{pageId}
+/// Updates the content of a store page.
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `androidenterprise_storelayoutpages_update_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `androidenterprise_storelayoutpages_update_task()`.
+/// For the simplest API, use `androidenterprise_storelayoutpages_update()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `androidenterprise_storelayoutpages_update_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn androidenterprise_storelayoutpages_update_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<StorePage>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let task = androidenterprise_storelayoutpages_update_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`androidenterprise_storelayoutpages_update`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct AndroidenterpriseStorelayoutpagesUpdateArgs {
+    /// Path parameter: enterpriseId
+    pub enterpriseId: String,
+    /// Path parameter: pageId
+    pub pageId: String,
+}
+
+/// PUT androidenterprise/v1/enterprises/{enterpriseId}/storeLayout/pages/{pageId}
+/// Updates the content of a store page.
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `androidenterprise_storelayoutpages_update_builder()` + `androidenterprise_storelayoutpages_update_execute()`.
+/// For task-level control, use `androidenterprise_storelayoutpages_update_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn androidenterprise_storelayoutpages_update(
+    client: &SimpleHttpClient,
+    args: &AndroidenterpriseStorelayoutpagesUpdateArgs,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<StorePage>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let builder = androidenterprise_storelayoutpages_update_builder(
+        client,
+        &args.enterpriseId,
+        &args.pageId,
+    )?;
+    androidenterprise_storelayoutpages_update_execute(builder)
+}
+
+/// DELETE androidenterprise/v1/enterprises/{enterpriseId}/users/{userId}
 /// Deleted an EMM-managed user.
 ///
 /// Returns `ClientRequestBuilder` for customization.
@@ -7393,13 +10782,13 @@ pub fn androidenterprise_users_delete_builder(
 
     // Build request
     let builder = client
-        .get(&endpoint_url)
+        .delete(&endpoint_url)
         .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
 
     Ok(builder)
 }
 
-/// GET androidenterprise/v1/enterprises/{enterpriseId}/users/{userId}
+/// DELETE androidenterprise/v1/enterprises/{enterpriseId}/users/{userId}
 /// Deleted an EMM-managed user.
 ///
 /// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
@@ -7470,7 +10859,7 @@ pub fn androidenterprise_users_delete_task(
         .map_pending(|_| ApiPending::Sending))
 }
 
-/// GET androidenterprise/v1/enterprises/{enterpriseId}/users/{userId}
+/// DELETE androidenterprise/v1/enterprises/{enterpriseId}/users/{userId}
 /// Deleted an EMM-managed user.
 ///
 /// Takes a `ClientRequestBuilder`, builds and executes the request,
@@ -7509,7 +10898,7 @@ pub struct AndroidenterpriseUsersDeleteArgs {
     pub userId: String,
 }
 
-/// GET androidenterprise/v1/enterprises/{enterpriseId}/users/{userId}
+/// DELETE androidenterprise/v1/enterprises/{enterpriseId}/users/{userId}
 /// Deleted an EMM-managed user.
 ///
 /// Simplest API - builds and executes the request in one call.
@@ -7531,7 +10920,7 @@ pub fn androidenterprise_users_delete(
     androidenterprise_users_delete_execute(builder)
 }
 
-/// GET androidenterprise/v1/enterprises/{enterpriseId}/users/{userId}/authenticationToken
+/// POST androidenterprise/v1/enterprises/{enterpriseId}/users/{userId}/authenticationToken
 /// Generates an authentication token which the device policy client can use to provision the given EMM-managed user account on a device. The generated token is single-use and expires after a few minutes. You can provision a maximum of 10 devices per user. This call only works with EMM-managed accounts.
 ///
 /// Returns `ClientRequestBuilder` for customization.
@@ -7551,13 +10940,13 @@ pub fn androidenterprise_users_generate_authentication_token_builder(
 
     // Build request
     let builder = client
-        .get(&endpoint_url)
+        .post(&endpoint_url)
         .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
 
     Ok(builder)
 }
 
-/// GET androidenterprise/v1/enterprises/{enterpriseId}/users/{userId}/authenticationToken
+/// POST androidenterprise/v1/enterprises/{enterpriseId}/users/{userId}/authenticationToken
 /// Generates an authentication token which the device policy client can use to provision the given EMM-managed user account on a device. The generated token is single-use and expires after a few minutes. You can provision a maximum of 10 devices per user. This call only works with EMM-managed accounts.
 ///
 /// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
@@ -7631,7 +11020,7 @@ pub fn androidenterprise_users_generate_authentication_token_task(
         .map_pending(|_| ApiPending::Sending))
 }
 
-/// GET androidenterprise/v1/enterprises/{enterpriseId}/users/{userId}/authenticationToken
+/// POST androidenterprise/v1/enterprises/{enterpriseId}/users/{userId}/authenticationToken
 /// Generates an authentication token which the device policy client can use to provision the given EMM-managed user account on a device. The generated token is single-use and expires after a few minutes. You can provision a maximum of 10 devices per user. This call only works with EMM-managed accounts.
 ///
 /// Takes a `ClientRequestBuilder`, builds and executes the request,
@@ -7672,7 +11061,7 @@ pub struct AndroidenterpriseUsersGenerateAuthenticationTokenArgs {
     pub userId: String,
 }
 
-/// GET androidenterprise/v1/enterprises/{enterpriseId}/users/{userId}/authenticationToken
+/// POST androidenterprise/v1/enterprises/{enterpriseId}/users/{userId}/authenticationToken
 /// Generates an authentication token which the device policy client can use to provision the given EMM-managed user account on a device. The generated token is single-use and expires after a few minutes. You can provision a maximum of 10 devices per user. This call only works with EMM-managed accounts.
 ///
 /// Simplest API - builds and executes the request in one call.
@@ -7698,6 +11087,166 @@ pub fn androidenterprise_users_generate_authentication_token(
         &args.userId,
     )?;
     androidenterprise_users_generate_authentication_token_execute(builder)
+}
+
+/// GET androidenterprise/v1/enterprises/{enterpriseId}/users/{userId}
+/// Retrieves a user's details.
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `androidenterprise_users_get_execute()` to send, or `androidenterprise_users_get` for simplest API.
+
+pub fn androidenterprise_users_get_builder(
+    client: &SimpleHttpClient,
+    enterpriseId: &String,
+    userId: &String,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!(
+        "https://androidenterprise.googleapis.com/androidenterprise/v1/enterprises/{}/users/{}",
+        enterpriseId, userId,
+    );
+
+    // Build request
+    let builder = client
+        .get(&endpoint_url)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// GET androidenterprise/v1/enterprises/{enterpriseId}/users/{userId}
+/// Retrieves a user's details.
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `androidenterprise_users_get_execute()` or `androidenterprise_users_get`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `androidenterprise_users_get_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn androidenterprise_users_get_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<User>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: User = serde_json::from_str(&body)
+                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// GET androidenterprise/v1/enterprises/{enterpriseId}/users/{userId}
+/// Retrieves a user's details.
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `androidenterprise_users_get_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `androidenterprise_users_get_task()`.
+/// For the simplest API, use `androidenterprise_users_get()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `androidenterprise_users_get_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn androidenterprise_users_get_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<User>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let task = androidenterprise_users_get_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`androidenterprise_users_get`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct AndroidenterpriseUsersGetArgs {
+    /// Path parameter: enterpriseId
+    pub enterpriseId: String,
+    /// Path parameter: userId
+    pub userId: String,
+}
+
+/// GET androidenterprise/v1/enterprises/{enterpriseId}/users/{userId}
+/// Retrieves a user's details.
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `androidenterprise_users_get_builder()` + `androidenterprise_users_get_execute()`.
+/// For task-level control, use `androidenterprise_users_get_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn androidenterprise_users_get(
+    client: &SimpleHttpClient,
+    args: &AndroidenterpriseUsersGetArgs,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<User>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let builder = androidenterprise_users_get_builder(client, &args.enterpriseId, &args.userId)?;
+    androidenterprise_users_get_execute(builder)
 }
 
 /// GET androidenterprise/v1/enterprises/{enterpriseId}/users/{userId}/availableProductSet
@@ -7865,7 +11414,7 @@ pub fn androidenterprise_users_get_available_product_set(
     androidenterprise_users_get_available_product_set_execute(builder)
 }
 
-/// GET androidenterprise/v1/enterprises/{enterpriseId}/users
+/// POST androidenterprise/v1/enterprises/{enterpriseId}/users
 /// Creates a new EMM-managed user. The Users resource passed in the body of the request should include an `accountIdentifier` and an `accountType`. If a corresponding user already exists with the same account identifier, the user will be updated with the resource. In this case only the `displayName` field can be changed.
 ///
 /// Returns `ClientRequestBuilder` for customization.
@@ -7874,7 +11423,6 @@ pub fn androidenterprise_users_get_available_product_set(
 pub fn androidenterprise_users_insert_builder(
     client: &SimpleHttpClient,
     enterpriseId: &String,
-    body: &User,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
@@ -7884,15 +11432,13 @@ pub fn androidenterprise_users_insert_builder(
 
     // Build request
     let builder = client
-        .get(&endpoint_url)
+        .post(&endpoint_url)
         .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
 
-    builder
-        .body_json(body)
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+    Ok(builder)
 }
 
-/// GET androidenterprise/v1/enterprises/{enterpriseId}/users
+/// POST androidenterprise/v1/enterprises/{enterpriseId}/users
 /// Creates a new EMM-managed user. The Users resource passed in the body of the request should include an `accountIdentifier` and an `accountType`. If a corresponding user already exists with the same account identifier, the user will be updated with the resource. In this case only the `displayName` field can be changed.
 ///
 /// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
@@ -7966,7 +11512,7 @@ pub fn androidenterprise_users_insert_task(
         .map_pending(|_| ApiPending::Sending))
 }
 
-/// GET androidenterprise/v1/enterprises/{enterpriseId}/users
+/// POST androidenterprise/v1/enterprises/{enterpriseId}/users
 /// Creates a new EMM-managed user. The Users resource passed in the body of the request should include an `accountIdentifier` and an `accountType`. If a corresponding user already exists with the same account identifier, the user will be updated with the resource. In this case only the `displayName` field can be changed.
 ///
 /// Takes a `ClientRequestBuilder`, builds and executes the request,
@@ -8001,11 +11547,9 @@ pub fn androidenterprise_users_insert_execute(
 pub struct AndroidenterpriseUsersInsertArgs {
     /// Path parameter: enterpriseId
     pub enterpriseId: String,
-    /// Request body.
-    pub body: User,
 }
 
-/// GET androidenterprise/v1/enterprises/{enterpriseId}/users
+/// POST androidenterprise/v1/enterprises/{enterpriseId}/users
 /// Creates a new EMM-managed user. The Users resource passed in the body of the request should include an `accountIdentifier` and an `accountType`. If a corresponding user already exists with the same account identifier, the user will be updated with the resource. In this case only the `displayName` field can be changed.
 ///
 /// Simplest API - builds and executes the request in one call.
@@ -8023,11 +11567,186 @@ pub fn androidenterprise_users_insert(
     impl StreamIterator<D = Result<ApiResponse<User>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = androidenterprise_users_insert_builder(client, &args.enterpriseId, &args.body)?;
+    let builder = androidenterprise_users_insert_builder(client, &args.enterpriseId)?;
     androidenterprise_users_insert_execute(builder)
 }
 
-/// GET androidenterprise/v1/enterprises/{enterpriseId}/users/{userId}/deviceAccess
+/// GET androidenterprise/v1/enterprises/{enterpriseId}/users
+/// Looks up a user by primary email address. This is only supported for Google-managed users. Lookup of the id is not needed for EMM-managed users because the id is already returned in the result of the Users.insert call.
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `androidenterprise_users_list_execute()` to send, or `androidenterprise_users_list` for simplest API.
+
+pub fn androidenterprise_users_list_builder(
+    client: &SimpleHttpClient,
+    enterpriseId: &String,
+    email: &Option<Option<String>>,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!(
+        "https://androidenterprise.googleapis.com/androidenterprise/v1/enterprises/{}/users",
+        enterpriseId,
+    );
+
+    // Build request
+    let mut query_parts = Vec::new();
+    if let Some(val) = email.as_ref() {
+        query_parts.push(format!("email={}", val));
+    }
+
+    let url_with_query = if query_parts.is_empty() {
+        endpoint_url
+    } else {
+        format!("{}?{}", endpoint_url, query_parts.join("&"))
+    };
+
+    let builder = client
+        .get(&url_with_query)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// GET androidenterprise/v1/enterprises/{enterpriseId}/users
+/// Looks up a user by primary email address. This is only supported for Google-managed users. Lookup of the id is not needed for EMM-managed users because the id is already returned in the result of the Users.insert call.
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `androidenterprise_users_list_execute()` or `androidenterprise_users_list`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `androidenterprise_users_list_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn androidenterprise_users_list_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<UsersListResponse>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: UsersListResponse = serde_json::from_str(&body)
+                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// GET androidenterprise/v1/enterprises/{enterpriseId}/users
+/// Looks up a user by primary email address. This is only supported for Google-managed users. Lookup of the id is not needed for EMM-managed users because the id is already returned in the result of the Users.insert call.
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `androidenterprise_users_list_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `androidenterprise_users_list_task()`.
+/// For the simplest API, use `androidenterprise_users_list()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `androidenterprise_users_list_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn androidenterprise_users_list_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<UsersListResponse>, ApiError>, P = ApiPending>
+        + Send
+        + 'static,
+    ApiError,
+> {
+    let task = androidenterprise_users_list_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`androidenterprise_users_list`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct AndroidenterpriseUsersListArgs {
+    /// Path parameter: enterpriseId
+    pub enterpriseId: String,
+    /// Query parameter: email
+    pub email: Option<Option<String>>,
+}
+
+/// GET androidenterprise/v1/enterprises/{enterpriseId}/users
+/// Looks up a user by primary email address. This is only supported for Google-managed users. Lookup of the id is not needed for EMM-managed users because the id is already returned in the result of the Users.insert call.
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `androidenterprise_users_list_builder()` + `androidenterprise_users_list_execute()`.
+/// For task-level control, use `androidenterprise_users_list_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn androidenterprise_users_list(
+    client: &SimpleHttpClient,
+    args: &AndroidenterpriseUsersListArgs,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<UsersListResponse>, ApiError>, P = ApiPending>
+        + Send
+        + 'static,
+    ApiError,
+> {
+    let builder = androidenterprise_users_list_builder(client, &args.enterpriseId, &args.email)?;
+    androidenterprise_users_list_execute(builder)
+}
+
+/// DELETE androidenterprise/v1/enterprises/{enterpriseId}/users/{userId}/deviceAccess
 /// Revokes access to all devices currently provisioned to the user. The user will no longer be able to use the managed Play store on any of their managed devices. This call only works with EMM-managed accounts.
 ///
 /// Returns `ClientRequestBuilder` for customization.
@@ -8047,13 +11766,13 @@ pub fn androidenterprise_users_revoke_device_access_builder(
 
     // Build request
     let builder = client
-        .get(&endpoint_url)
+        .delete(&endpoint_url)
         .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
 
     Ok(builder)
 }
 
-/// GET androidenterprise/v1/enterprises/{enterpriseId}/users/{userId}/deviceAccess
+/// DELETE androidenterprise/v1/enterprises/{enterpriseId}/users/{userId}/deviceAccess
 /// Revokes access to all devices currently provisioned to the user. The user will no longer be able to use the managed Play store on any of their managed devices. This call only works with EMM-managed accounts.
 ///
 /// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
@@ -8124,7 +11843,7 @@ pub fn androidenterprise_users_revoke_device_access_task(
         .map_pending(|_| ApiPending::Sending))
 }
 
-/// GET androidenterprise/v1/enterprises/{enterpriseId}/users/{userId}/deviceAccess
+/// DELETE androidenterprise/v1/enterprises/{enterpriseId}/users/{userId}/deviceAccess
 /// Revokes access to all devices currently provisioned to the user. The user will no longer be able to use the managed Play store on any of their managed devices. This call only works with EMM-managed accounts.
 ///
 /// Takes a `ClientRequestBuilder`, builds and executes the request,
@@ -8163,7 +11882,7 @@ pub struct AndroidenterpriseUsersRevokeDeviceAccessArgs {
     pub userId: String,
 }
 
-/// GET androidenterprise/v1/enterprises/{enterpriseId}/users/{userId}/deviceAccess
+/// DELETE androidenterprise/v1/enterprises/{enterpriseId}/users/{userId}/deviceAccess
 /// Revokes access to all devices currently provisioned to the user. The user will no longer be able to use the managed Play store on any of their managed devices. This call only works with EMM-managed accounts.
 ///
 /// Simplest API - builds and executes the request in one call.
@@ -8189,7 +11908,332 @@ pub fn androidenterprise_users_revoke_device_access(
     androidenterprise_users_revoke_device_access_execute(builder)
 }
 
-/// GET androidenterprise/v1/enterprises/{enterpriseId}/webApps/{webAppId}
+/// PUT androidenterprise/v1/enterprises/{enterpriseId}/users/{userId}/availableProductSet
+/// Modifies the set of products that a user is entitled to access (referred to as *whitelisted* products). Only products that are approved or products that were previously approved (products with revoked approval) can be whitelisted. **Note:** This item has been deprecated. New integrations cannot use this method and can refer to our new recommendations.
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `androidenterprise_users_set_available_product_set_execute()` to send, or `androidenterprise_users_set_available_product_set` for simplest API.
+
+pub fn androidenterprise_users_set_available_product_set_builder(
+    client: &SimpleHttpClient,
+    enterpriseId: &String,
+    userId: &String,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!(
+        "https://androidenterprise.googleapis.com/androidenterprise/v1/enterprises/{}/users/{}/availableProductSet",
+        enterpriseId,
+        userId,
+    );
+
+    // Build request
+    let builder = client
+        .put(&endpoint_url)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// PUT androidenterprise/v1/enterprises/{enterpriseId}/users/{userId}/availableProductSet
+/// Modifies the set of products that a user is entitled to access (referred to as *whitelisted* products). Only products that are approved or products that were previously approved (products with revoked approval) can be whitelisted. **Note:** This item has been deprecated. New integrations cannot use this method and can refer to our new recommendations.
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `androidenterprise_users_set_available_product_set_execute()` or `androidenterprise_users_set_available_product_set`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `androidenterprise_users_set_available_product_set_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn androidenterprise_users_set_available_product_set_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<ProductSet>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: ProductSet = serde_json::from_str(&body)
+                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// PUT androidenterprise/v1/enterprises/{enterpriseId}/users/{userId}/availableProductSet
+/// Modifies the set of products that a user is entitled to access (referred to as *whitelisted* products). Only products that are approved or products that were previously approved (products with revoked approval) can be whitelisted. **Note:** This item has been deprecated. New integrations cannot use this method and can refer to our new recommendations.
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `androidenterprise_users_set_available_product_set_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `androidenterprise_users_set_available_product_set_task()`.
+/// For the simplest API, use `androidenterprise_users_set_available_product_set()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `androidenterprise_users_set_available_product_set_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn androidenterprise_users_set_available_product_set_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<ProductSet>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let task = androidenterprise_users_set_available_product_set_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`androidenterprise_users_set_available_product_set`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct AndroidenterpriseUsersSetAvailableProductSetArgs {
+    /// Path parameter: enterpriseId
+    pub enterpriseId: String,
+    /// Path parameter: userId
+    pub userId: String,
+}
+
+/// PUT androidenterprise/v1/enterprises/{enterpriseId}/users/{userId}/availableProductSet
+/// Modifies the set of products that a user is entitled to access (referred to as *whitelisted* products). Only products that are approved or products that were previously approved (products with revoked approval) can be whitelisted. **Note:** This item has been deprecated. New integrations cannot use this method and can refer to our new recommendations.
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `androidenterprise_users_set_available_product_set_builder()` + `androidenterprise_users_set_available_product_set_execute()`.
+/// For task-level control, use `androidenterprise_users_set_available_product_set_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn androidenterprise_users_set_available_product_set(
+    client: &SimpleHttpClient,
+    args: &AndroidenterpriseUsersSetAvailableProductSetArgs,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<ProductSet>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let builder = androidenterprise_users_set_available_product_set_builder(
+        client,
+        &args.enterpriseId,
+        &args.userId,
+    )?;
+    androidenterprise_users_set_available_product_set_execute(builder)
+}
+
+/// PUT androidenterprise/v1/enterprises/{enterpriseId}/users/{userId}
+/// Updates the details of an EMM-managed user. Can be used with EMM-managed users only (not Google managed users). Pass the new details in the Users resource in the request body. Only the `displayName` field can be changed. Other fields must either be unset or have the currently active value.
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `androidenterprise_users_update_execute()` to send, or `androidenterprise_users_update` for simplest API.
+
+pub fn androidenterprise_users_update_builder(
+    client: &SimpleHttpClient,
+    enterpriseId: &String,
+    userId: &String,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!(
+        "https://androidenterprise.googleapis.com/androidenterprise/v1/enterprises/{}/users/{}",
+        enterpriseId, userId,
+    );
+
+    // Build request
+    let builder = client
+        .put(&endpoint_url)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// PUT androidenterprise/v1/enterprises/{enterpriseId}/users/{userId}
+/// Updates the details of an EMM-managed user. Can be used with EMM-managed users only (not Google managed users). Pass the new details in the Users resource in the request body. Only the `displayName` field can be changed. Other fields must either be unset or have the currently active value.
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `androidenterprise_users_update_execute()` or `androidenterprise_users_update`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `androidenterprise_users_update_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn androidenterprise_users_update_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<User>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: User = serde_json::from_str(&body)
+                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// PUT androidenterprise/v1/enterprises/{enterpriseId}/users/{userId}
+/// Updates the details of an EMM-managed user. Can be used with EMM-managed users only (not Google managed users). Pass the new details in the Users resource in the request body. Only the `displayName` field can be changed. Other fields must either be unset or have the currently active value.
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `androidenterprise_users_update_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `androidenterprise_users_update_task()`.
+/// For the simplest API, use `androidenterprise_users_update()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `androidenterprise_users_update_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn androidenterprise_users_update_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<User>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let task = androidenterprise_users_update_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`androidenterprise_users_update`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct AndroidenterpriseUsersUpdateArgs {
+    /// Path parameter: enterpriseId
+    pub enterpriseId: String,
+    /// Path parameter: userId
+    pub userId: String,
+}
+
+/// PUT androidenterprise/v1/enterprises/{enterpriseId}/users/{userId}
+/// Updates the details of an EMM-managed user. Can be used with EMM-managed users only (not Google managed users). Pass the new details in the Users resource in the request body. Only the `displayName` field can be changed. Other fields must either be unset or have the currently active value.
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `androidenterprise_users_update_builder()` + `androidenterprise_users_update_execute()`.
+/// For task-level control, use `androidenterprise_users_update_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn androidenterprise_users_update(
+    client: &SimpleHttpClient,
+    args: &AndroidenterpriseUsersUpdateArgs,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<User>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let builder = androidenterprise_users_update_builder(client, &args.enterpriseId, &args.userId)?;
+    androidenterprise_users_update_execute(builder)
+}
+
+/// DELETE androidenterprise/v1/enterprises/{enterpriseId}/webApps/{webAppId}
 /// Deletes an existing web app.
 ///
 /// Returns `ClientRequestBuilder` for customization.
@@ -8208,13 +12252,13 @@ pub fn androidenterprise_webapps_delete_builder(
 
     // Build request
     let builder = client
-        .get(&endpoint_url)
+        .delete(&endpoint_url)
         .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
 
     Ok(builder)
 }
 
-/// GET androidenterprise/v1/enterprises/{enterpriseId}/webApps/{webAppId}
+/// DELETE androidenterprise/v1/enterprises/{enterpriseId}/webApps/{webAppId}
 /// Deletes an existing web app.
 ///
 /// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
@@ -8285,7 +12329,7 @@ pub fn androidenterprise_webapps_delete_task(
         .map_pending(|_| ApiPending::Sending))
 }
 
-/// GET androidenterprise/v1/enterprises/{enterpriseId}/webApps/{webAppId}
+/// DELETE androidenterprise/v1/enterprises/{enterpriseId}/webApps/{webAppId}
 /// Deletes an existing web app.
 ///
 /// Takes a `ClientRequestBuilder`, builds and executes the request,
@@ -8324,7 +12368,7 @@ pub struct AndroidenterpriseWebappsDeleteArgs {
     pub webAppId: String,
 }
 
-/// GET androidenterprise/v1/enterprises/{enterpriseId}/webApps/{webAppId}
+/// DELETE androidenterprise/v1/enterprises/{enterpriseId}/webApps/{webAppId}
 /// Deletes an existing web app.
 ///
 /// Simplest API - builds and executes the request in one call.
@@ -8347,7 +12391,168 @@ pub fn androidenterprise_webapps_delete(
     androidenterprise_webapps_delete_execute(builder)
 }
 
-/// GET androidenterprise/v1/enterprises/{enterpriseId}/webApps
+/// GET androidenterprise/v1/enterprises/{enterpriseId}/webApps/{webAppId}
+/// Gets an existing web app.
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `androidenterprise_webapps_get_execute()` to send, or `androidenterprise_webapps_get` for simplest API.
+
+pub fn androidenterprise_webapps_get_builder(
+    client: &SimpleHttpClient,
+    enterpriseId: &String,
+    webAppId: &String,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!(
+        "https://androidenterprise.googleapis.com/androidenterprise/v1/enterprises/{}/webApps/{}",
+        enterpriseId, webAppId,
+    );
+
+    // Build request
+    let builder = client
+        .get(&endpoint_url)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// GET androidenterprise/v1/enterprises/{enterpriseId}/webApps/{webAppId}
+/// Gets an existing web app.
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `androidenterprise_webapps_get_execute()` or `androidenterprise_webapps_get`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `androidenterprise_webapps_get_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn androidenterprise_webapps_get_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<WebApp>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: WebApp = serde_json::from_str(&body)
+                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// GET androidenterprise/v1/enterprises/{enterpriseId}/webApps/{webAppId}
+/// Gets an existing web app.
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `androidenterprise_webapps_get_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `androidenterprise_webapps_get_task()`.
+/// For the simplest API, use `androidenterprise_webapps_get()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `androidenterprise_webapps_get_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn androidenterprise_webapps_get_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<WebApp>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let task = androidenterprise_webapps_get_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`androidenterprise_webapps_get`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct AndroidenterpriseWebappsGetArgs {
+    /// Path parameter: enterpriseId
+    pub enterpriseId: String,
+    /// Path parameter: webAppId
+    pub webAppId: String,
+}
+
+/// GET androidenterprise/v1/enterprises/{enterpriseId}/webApps/{webAppId}
+/// Gets an existing web app.
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `androidenterprise_webapps_get_builder()` + `androidenterprise_webapps_get_execute()`.
+/// For task-level control, use `androidenterprise_webapps_get_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn androidenterprise_webapps_get(
+    client: &SimpleHttpClient,
+    args: &AndroidenterpriseWebappsGetArgs,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<WebApp>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let builder =
+        androidenterprise_webapps_get_builder(client, &args.enterpriseId, &args.webAppId)?;
+    androidenterprise_webapps_get_execute(builder)
+}
+
+/// POST androidenterprise/v1/enterprises/{enterpriseId}/webApps
 /// Creates a new web app for the enterprise.
 ///
 /// Returns `ClientRequestBuilder` for customization.
@@ -8356,7 +12561,6 @@ pub fn androidenterprise_webapps_delete(
 pub fn androidenterprise_webapps_insert_builder(
     client: &SimpleHttpClient,
     enterpriseId: &String,
-    body: &WebApp,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
@@ -8366,15 +12570,13 @@ pub fn androidenterprise_webapps_insert_builder(
 
     // Build request
     let builder = client
-        .get(&endpoint_url)
+        .post(&endpoint_url)
         .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
 
-    builder
-        .body_json(body)
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+    Ok(builder)
 }
 
-/// GET androidenterprise/v1/enterprises/{enterpriseId}/webApps
+/// POST androidenterprise/v1/enterprises/{enterpriseId}/webApps
 /// Creates a new web app for the enterprise.
 ///
 /// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
@@ -8448,7 +12650,7 @@ pub fn androidenterprise_webapps_insert_task(
         .map_pending(|_| ApiPending::Sending))
 }
 
-/// GET androidenterprise/v1/enterprises/{enterpriseId}/webApps
+/// POST androidenterprise/v1/enterprises/{enterpriseId}/webApps
 /// Creates a new web app for the enterprise.
 ///
 /// Takes a `ClientRequestBuilder`, builds and executes the request,
@@ -8483,11 +12685,9 @@ pub fn androidenterprise_webapps_insert_execute(
 pub struct AndroidenterpriseWebappsInsertArgs {
     /// Path parameter: enterpriseId
     pub enterpriseId: String,
-    /// Request body.
-    pub body: WebApp,
 }
 
-/// GET androidenterprise/v1/enterprises/{enterpriseId}/webApps
+/// POST androidenterprise/v1/enterprises/{enterpriseId}/webApps
 /// Creates a new web app for the enterprise.
 ///
 /// Simplest API - builds and executes the request in one call.
@@ -8505,6 +12705,2008 @@ pub fn androidenterprise_webapps_insert(
     impl StreamIterator<D = Result<ApiResponse<WebApp>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = androidenterprise_webapps_insert_builder(client, &args.enterpriseId, &args.body)?;
+    let builder = androidenterprise_webapps_insert_builder(client, &args.enterpriseId)?;
     androidenterprise_webapps_insert_execute(builder)
+}
+
+/// GET androidenterprise/v1/enterprises/{enterpriseId}/webApps
+/// Retrieves the details of all web apps for a given enterprise.
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `androidenterprise_webapps_list_execute()` to send, or `androidenterprise_webapps_list` for simplest API.
+
+pub fn androidenterprise_webapps_list_builder(
+    client: &SimpleHttpClient,
+    enterpriseId: &String,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!(
+        "https://androidenterprise.googleapis.com/androidenterprise/v1/enterprises/{}/webApps",
+        enterpriseId,
+    );
+
+    // Build request
+    let builder = client
+        .get(&endpoint_url)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// GET androidenterprise/v1/enterprises/{enterpriseId}/webApps
+/// Retrieves the details of all web apps for a given enterprise.
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `androidenterprise_webapps_list_execute()` or `androidenterprise_webapps_list`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `androidenterprise_webapps_list_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn androidenterprise_webapps_list_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<WebAppsListResponse>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: WebAppsListResponse = serde_json::from_str(&body)
+                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// GET androidenterprise/v1/enterprises/{enterpriseId}/webApps
+/// Retrieves the details of all web apps for a given enterprise.
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `androidenterprise_webapps_list_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `androidenterprise_webapps_list_task()`.
+/// For the simplest API, use `androidenterprise_webapps_list()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `androidenterprise_webapps_list_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn androidenterprise_webapps_list_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<WebAppsListResponse>, ApiError>, P = ApiPending>
+        + Send
+        + 'static,
+    ApiError,
+> {
+    let task = androidenterprise_webapps_list_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`androidenterprise_webapps_list`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct AndroidenterpriseWebappsListArgs {
+    /// Path parameter: enterpriseId
+    pub enterpriseId: String,
+}
+
+/// GET androidenterprise/v1/enterprises/{enterpriseId}/webApps
+/// Retrieves the details of all web apps for a given enterprise.
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `androidenterprise_webapps_list_builder()` + `androidenterprise_webapps_list_execute()`.
+/// For task-level control, use `androidenterprise_webapps_list_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn androidenterprise_webapps_list(
+    client: &SimpleHttpClient,
+    args: &AndroidenterpriseWebappsListArgs,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<WebAppsListResponse>, ApiError>, P = ApiPending>
+        + Send
+        + 'static,
+    ApiError,
+> {
+    let builder = androidenterprise_webapps_list_builder(client, &args.enterpriseId)?;
+    androidenterprise_webapps_list_execute(builder)
+}
+
+/// PUT androidenterprise/v1/enterprises/{enterpriseId}/webApps/{webAppId}
+/// Updates an existing web app.
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `androidenterprise_webapps_update_execute()` to send, or `androidenterprise_webapps_update` for simplest API.
+
+pub fn androidenterprise_webapps_update_builder(
+    client: &SimpleHttpClient,
+    enterpriseId: &String,
+    webAppId: &String,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!(
+        "https://androidenterprise.googleapis.com/androidenterprise/v1/enterprises/{}/webApps/{}",
+        enterpriseId, webAppId,
+    );
+
+    // Build request
+    let builder = client
+        .put(&endpoint_url)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// PUT androidenterprise/v1/enterprises/{enterpriseId}/webApps/{webAppId}
+/// Updates an existing web app.
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `androidenterprise_webapps_update_execute()` or `androidenterprise_webapps_update`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `androidenterprise_webapps_update_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn androidenterprise_webapps_update_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<WebApp>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: WebApp = serde_json::from_str(&body)
+                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// PUT androidenterprise/v1/enterprises/{enterpriseId}/webApps/{webAppId}
+/// Updates an existing web app.
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `androidenterprise_webapps_update_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `androidenterprise_webapps_update_task()`.
+/// For the simplest API, use `androidenterprise_webapps_update()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `androidenterprise_webapps_update_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn androidenterprise_webapps_update_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<WebApp>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let task = androidenterprise_webapps_update_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`androidenterprise_webapps_update`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct AndroidenterpriseWebappsUpdateArgs {
+    /// Path parameter: enterpriseId
+    pub enterpriseId: String,
+    /// Path parameter: webAppId
+    pub webAppId: String,
+}
+
+/// PUT androidenterprise/v1/enterprises/{enterpriseId}/webApps/{webAppId}
+/// Updates an existing web app.
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `androidenterprise_webapps_update_builder()` + `androidenterprise_webapps_update_execute()`.
+/// For task-level control, use `androidenterprise_webapps_update_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn androidenterprise_webapps_update(
+    client: &SimpleHttpClient,
+    args: &AndroidenterpriseWebappsUpdateArgs,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<WebApp>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let builder =
+        androidenterprise_webapps_update_builder(client, &args.enterpriseId, &args.webAppId)?;
+    androidenterprise_webapps_update_execute(builder)
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for Device
+// =============================================================================
+
+/// ResourceIdentifier implementation for Device with AndroidenterpriseDevicesGetArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<AndroidenterpriseDevicesGetArgs> for Device {
+    fn generate_resource_id(&self, input: &AndroidenterpriseDevicesGetArgs) -> String {
+        format!(
+            "gcp::androidenterprise::Device/{}/{}/{}",
+            input.enterpriseId, input.userId, input.deviceId
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::androidenterprise::Device"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for DeviceState
+// =============================================================================
+
+/// ResourceIdentifier implementation for DeviceState with AndroidenterpriseDevicesGetStateArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<AndroidenterpriseDevicesGetStateArgs> for DeviceState {
+    fn generate_resource_id(&self, input: &AndroidenterpriseDevicesGetStateArgs) -> String {
+        format!(
+            "gcp::androidenterprise::DeviceState/{}/{}/{}",
+            input.enterpriseId, input.userId, input.deviceId
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::androidenterprise::DeviceState"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for DevicesListResponse
+// =============================================================================
+
+/// ResourceIdentifier implementation for DevicesListResponse with AndroidenterpriseDevicesListArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<AndroidenterpriseDevicesListArgs> for DevicesListResponse {
+    fn generate_resource_id(&self, input: &AndroidenterpriseDevicesListArgs) -> String {
+        format!(
+            "gcp::androidenterprise::DevicesListResponse/{}/{}",
+            input.enterpriseId, input.userId
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::androidenterprise::DevicesListResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for DeviceState
+// =============================================================================
+
+/// ResourceIdentifier implementation for DeviceState with AndroidenterpriseDevicesSetStateArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<AndroidenterpriseDevicesSetStateArgs> for DeviceState {
+    fn generate_resource_id(&self, input: &AndroidenterpriseDevicesSetStateArgs) -> String {
+        format!(
+            "gcp::androidenterprise::DeviceState/{}/{}/{}",
+            input.enterpriseId, input.userId, input.deviceId
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::androidenterprise::DeviceState"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for Device
+// =============================================================================
+
+/// ResourceIdentifier implementation for Device with AndroidenterpriseDevicesUpdateArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<AndroidenterpriseDevicesUpdateArgs> for Device {
+    fn generate_resource_id(&self, input: &AndroidenterpriseDevicesUpdateArgs) -> String {
+        format!(
+            "gcp::androidenterprise::Device/{}/{}/{}",
+            input.enterpriseId, input.userId, input.deviceId
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::androidenterprise::Device"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for EnrollmentToken
+// =============================================================================
+
+/// ResourceIdentifier implementation for EnrollmentToken with AndroidenterpriseEnrollmentTokensCreateArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<AndroidenterpriseEnrollmentTokensCreateArgs> for EnrollmentToken {
+    fn generate_resource_id(&self, input: &AndroidenterpriseEnrollmentTokensCreateArgs) -> String {
+        format!(
+            "gcp::androidenterprise::EnrollmentToken/{}",
+            input.enterpriseId
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::androidenterprise::EnrollmentToken"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for Enterprise
+// =============================================================================
+
+/// ResourceIdentifier implementation for Enterprise with AndroidenterpriseEnterprisesCompleteSignupArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<AndroidenterpriseEnterprisesCompleteSignupArgs> for Enterprise {
+    fn generate_resource_id(
+        &self,
+        input: &AndroidenterpriseEnterprisesCompleteSignupArgs,
+    ) -> String {
+        "gcp::androidenterprise::Enterprise".to_string()
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::androidenterprise::Enterprise"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for AdministratorWebToken
+// =============================================================================
+
+/// ResourceIdentifier implementation for AdministratorWebToken with AndroidenterpriseEnterprisesCreateWebTokenArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<AndroidenterpriseEnterprisesCreateWebTokenArgs> for AdministratorWebToken {
+    fn generate_resource_id(
+        &self,
+        input: &AndroidenterpriseEnterprisesCreateWebTokenArgs,
+    ) -> String {
+        format!(
+            "gcp::androidenterprise::AdministratorWebToken/{}",
+            input.enterpriseId
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::androidenterprise::AdministratorWebToken"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for Enterprise
+// =============================================================================
+
+/// ResourceIdentifier implementation for Enterprise with AndroidenterpriseEnterprisesEnrollArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<AndroidenterpriseEnterprisesEnrollArgs> for Enterprise {
+    fn generate_resource_id(&self, input: &AndroidenterpriseEnterprisesEnrollArgs) -> String {
+        "gcp::androidenterprise::Enterprise".to_string()
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::androidenterprise::Enterprise"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for GenerateEnterpriseUpgradeUrlResponse
+// =============================================================================
+
+/// ResourceIdentifier implementation for GenerateEnterpriseUpgradeUrlResponse with AndroidenterpriseEnterprisesGenerateEnterpriseUpgradeUrlArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<AndroidenterpriseEnterprisesGenerateEnterpriseUpgradeUrlArgs>
+    for GenerateEnterpriseUpgradeUrlResponse
+{
+    fn generate_resource_id(
+        &self,
+        input: &AndroidenterpriseEnterprisesGenerateEnterpriseUpgradeUrlArgs,
+    ) -> String {
+        format!(
+            "gcp::androidenterprise::GenerateEnterpriseUpgradeUrlResponse/{}",
+            input.enterpriseId
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::androidenterprise::GenerateEnterpriseUpgradeUrlResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for SignupInfo
+// =============================================================================
+
+/// ResourceIdentifier implementation for SignupInfo with AndroidenterpriseEnterprisesGenerateSignupUrlArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<AndroidenterpriseEnterprisesGenerateSignupUrlArgs> for SignupInfo {
+    fn generate_resource_id(
+        &self,
+        input: &AndroidenterpriseEnterprisesGenerateSignupUrlArgs,
+    ) -> String {
+        "gcp::androidenterprise::SignupInfo".to_string()
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::androidenterprise::SignupInfo"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for Enterprise
+// =============================================================================
+
+/// ResourceIdentifier implementation for Enterprise with AndroidenterpriseEnterprisesGetArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<AndroidenterpriseEnterprisesGetArgs> for Enterprise {
+    fn generate_resource_id(&self, input: &AndroidenterpriseEnterprisesGetArgs) -> String {
+        format!("gcp::androidenterprise::Enterprise/{}", input.enterpriseId)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::androidenterprise::Enterprise"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for ServiceAccount
+// =============================================================================
+
+/// ResourceIdentifier implementation for ServiceAccount with AndroidenterpriseEnterprisesGetServiceAccountArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<AndroidenterpriseEnterprisesGetServiceAccountArgs> for ServiceAccount {
+    fn generate_resource_id(
+        &self,
+        input: &AndroidenterpriseEnterprisesGetServiceAccountArgs,
+    ) -> String {
+        format!(
+            "gcp::androidenterprise::ServiceAccount/{}",
+            input.enterpriseId
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::androidenterprise::ServiceAccount"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for StoreLayout
+// =============================================================================
+
+/// ResourceIdentifier implementation for StoreLayout with AndroidenterpriseEnterprisesGetStoreLayoutArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<AndroidenterpriseEnterprisesGetStoreLayoutArgs> for StoreLayout {
+    fn generate_resource_id(
+        &self,
+        input: &AndroidenterpriseEnterprisesGetStoreLayoutArgs,
+    ) -> String {
+        format!("gcp::androidenterprise::StoreLayout/{}", input.enterpriseId)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::androidenterprise::StoreLayout"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for EnterprisesListResponse
+// =============================================================================
+
+/// ResourceIdentifier implementation for EnterprisesListResponse with AndroidenterpriseEnterprisesListArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<AndroidenterpriseEnterprisesListArgs> for EnterprisesListResponse {
+    fn generate_resource_id(&self, input: &AndroidenterpriseEnterprisesListArgs) -> String {
+        "gcp::androidenterprise::EnterprisesListResponse".to_string()
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::androidenterprise::EnterprisesListResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for NotificationSet
+// =============================================================================
+
+/// ResourceIdentifier implementation for NotificationSet with AndroidenterpriseEnterprisesPullNotificationSetArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<AndroidenterpriseEnterprisesPullNotificationSetArgs> for NotificationSet {
+    fn generate_resource_id(
+        &self,
+        input: &AndroidenterpriseEnterprisesPullNotificationSetArgs,
+    ) -> String {
+        "gcp::androidenterprise::NotificationSet".to_string()
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::androidenterprise::NotificationSet"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for EnterprisesSendTestPushNotificationResponse
+// =============================================================================
+
+/// ResourceIdentifier implementation for EnterprisesSendTestPushNotificationResponse with AndroidenterpriseEnterprisesSendTestPushNotificationArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<AndroidenterpriseEnterprisesSendTestPushNotificationArgs>
+    for EnterprisesSendTestPushNotificationResponse
+{
+    fn generate_resource_id(
+        &self,
+        input: &AndroidenterpriseEnterprisesSendTestPushNotificationArgs,
+    ) -> String {
+        format!(
+            "gcp::androidenterprise::EnterprisesSendTestPushNotificationResponse/{}",
+            input.enterpriseId
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::androidenterprise::EnterprisesSendTestPushNotificationResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for EnterpriseAccount
+// =============================================================================
+
+/// ResourceIdentifier implementation for EnterpriseAccount with AndroidenterpriseEnterprisesSetAccountArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<AndroidenterpriseEnterprisesSetAccountArgs> for EnterpriseAccount {
+    fn generate_resource_id(&self, input: &AndroidenterpriseEnterprisesSetAccountArgs) -> String {
+        format!(
+            "gcp::androidenterprise::EnterpriseAccount/{}",
+            input.enterpriseId
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::androidenterprise::EnterpriseAccount"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for StoreLayout
+// =============================================================================
+
+/// ResourceIdentifier implementation for StoreLayout with AndroidenterpriseEnterprisesSetStoreLayoutArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<AndroidenterpriseEnterprisesSetStoreLayoutArgs> for StoreLayout {
+    fn generate_resource_id(
+        &self,
+        input: &AndroidenterpriseEnterprisesSetStoreLayoutArgs,
+    ) -> String {
+        format!("gcp::androidenterprise::StoreLayout/{}", input.enterpriseId)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::androidenterprise::StoreLayout"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for Entitlement
+// =============================================================================
+
+/// ResourceIdentifier implementation for Entitlement with AndroidenterpriseEntitlementsGetArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<AndroidenterpriseEntitlementsGetArgs> for Entitlement {
+    fn generate_resource_id(&self, input: &AndroidenterpriseEntitlementsGetArgs) -> String {
+        format!(
+            "gcp::androidenterprise::Entitlement/{}/{}/{}",
+            input.enterpriseId, input.userId, input.entitlementId
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::androidenterprise::Entitlement"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for EntitlementsListResponse
+// =============================================================================
+
+/// ResourceIdentifier implementation for EntitlementsListResponse with AndroidenterpriseEntitlementsListArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<AndroidenterpriseEntitlementsListArgs> for EntitlementsListResponse {
+    fn generate_resource_id(&self, input: &AndroidenterpriseEntitlementsListArgs) -> String {
+        format!(
+            "gcp::androidenterprise::EntitlementsListResponse/{}/{}",
+            input.enterpriseId, input.userId
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::androidenterprise::EntitlementsListResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for Entitlement
+// =============================================================================
+
+/// ResourceIdentifier implementation for Entitlement with AndroidenterpriseEntitlementsUpdateArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<AndroidenterpriseEntitlementsUpdateArgs> for Entitlement {
+    fn generate_resource_id(&self, input: &AndroidenterpriseEntitlementsUpdateArgs) -> String {
+        format!(
+            "gcp::androidenterprise::Entitlement/{}/{}/{}",
+            input.enterpriseId, input.userId, input.entitlementId
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::androidenterprise::Entitlement"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for GroupLicense
+// =============================================================================
+
+/// ResourceIdentifier implementation for GroupLicense with AndroidenterpriseGrouplicensesGetArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<AndroidenterpriseGrouplicensesGetArgs> for GroupLicense {
+    fn generate_resource_id(&self, input: &AndroidenterpriseGrouplicensesGetArgs) -> String {
+        format!(
+            "gcp::androidenterprise::GroupLicense/{}/{}",
+            input.enterpriseId, input.groupLicenseId
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::androidenterprise::GroupLicense"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for GroupLicensesListResponse
+// =============================================================================
+
+/// ResourceIdentifier implementation for GroupLicensesListResponse with AndroidenterpriseGrouplicensesListArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<AndroidenterpriseGrouplicensesListArgs> for GroupLicensesListResponse {
+    fn generate_resource_id(&self, input: &AndroidenterpriseGrouplicensesListArgs) -> String {
+        format!(
+            "gcp::androidenterprise::GroupLicensesListResponse/{}",
+            input.enterpriseId
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::androidenterprise::GroupLicensesListResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for GroupLicenseUsersListResponse
+// =============================================================================
+
+/// ResourceIdentifier implementation for GroupLicenseUsersListResponse with AndroidenterpriseGrouplicenseusersListArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<AndroidenterpriseGrouplicenseusersListArgs>
+    for GroupLicenseUsersListResponse
+{
+    fn generate_resource_id(&self, input: &AndroidenterpriseGrouplicenseusersListArgs) -> String {
+        format!(
+            "gcp::androidenterprise::GroupLicenseUsersListResponse/{}/{}",
+            input.enterpriseId, input.groupLicenseId
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::androidenterprise::GroupLicenseUsersListResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for Install
+// =============================================================================
+
+/// ResourceIdentifier implementation for Install with AndroidenterpriseInstallsGetArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<AndroidenterpriseInstallsGetArgs> for Install {
+    fn generate_resource_id(&self, input: &AndroidenterpriseInstallsGetArgs) -> String {
+        format!(
+            "gcp::androidenterprise::Install/{}/{}/{}/{}",
+            input.enterpriseId, input.userId, input.deviceId, input.installId
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::androidenterprise::Install"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for InstallsListResponse
+// =============================================================================
+
+/// ResourceIdentifier implementation for InstallsListResponse with AndroidenterpriseInstallsListArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<AndroidenterpriseInstallsListArgs> for InstallsListResponse {
+    fn generate_resource_id(&self, input: &AndroidenterpriseInstallsListArgs) -> String {
+        format!(
+            "gcp::androidenterprise::InstallsListResponse/{}/{}/{}",
+            input.enterpriseId, input.userId, input.deviceId
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::androidenterprise::InstallsListResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for Install
+// =============================================================================
+
+/// ResourceIdentifier implementation for Install with AndroidenterpriseInstallsUpdateArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<AndroidenterpriseInstallsUpdateArgs> for Install {
+    fn generate_resource_id(&self, input: &AndroidenterpriseInstallsUpdateArgs) -> String {
+        format!(
+            "gcp::androidenterprise::Install/{}/{}/{}/{}",
+            input.enterpriseId, input.userId, input.deviceId, input.installId
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::androidenterprise::Install"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for ManagedConfiguration
+// =============================================================================
+
+/// ResourceIdentifier implementation for ManagedConfiguration with AndroidenterpriseManagedconfigurationsfordeviceGetArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<AndroidenterpriseManagedconfigurationsfordeviceGetArgs>
+    for ManagedConfiguration
+{
+    fn generate_resource_id(
+        &self,
+        input: &AndroidenterpriseManagedconfigurationsfordeviceGetArgs,
+    ) -> String {
+        format!(
+            "gcp::androidenterprise::ManagedConfiguration/{}/{}/{}/{}",
+            input.enterpriseId, input.userId, input.deviceId, input.managedConfigurationForDeviceId
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::androidenterprise::ManagedConfiguration"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for ManagedConfigurationsForDeviceListResponse
+// =============================================================================
+
+/// ResourceIdentifier implementation for ManagedConfigurationsForDeviceListResponse with AndroidenterpriseManagedconfigurationsfordeviceListArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<AndroidenterpriseManagedconfigurationsfordeviceListArgs>
+    for ManagedConfigurationsForDeviceListResponse
+{
+    fn generate_resource_id(
+        &self,
+        input: &AndroidenterpriseManagedconfigurationsfordeviceListArgs,
+    ) -> String {
+        format!(
+            "gcp::androidenterprise::ManagedConfigurationsForDeviceListResponse/{}/{}/{}",
+            input.enterpriseId, input.userId, input.deviceId
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::androidenterprise::ManagedConfigurationsForDeviceListResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for ManagedConfiguration
+// =============================================================================
+
+/// ResourceIdentifier implementation for ManagedConfiguration with AndroidenterpriseManagedconfigurationsfordeviceUpdateArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<AndroidenterpriseManagedconfigurationsfordeviceUpdateArgs>
+    for ManagedConfiguration
+{
+    fn generate_resource_id(
+        &self,
+        input: &AndroidenterpriseManagedconfigurationsfordeviceUpdateArgs,
+    ) -> String {
+        format!(
+            "gcp::androidenterprise::ManagedConfiguration/{}/{}/{}/{}",
+            input.enterpriseId, input.userId, input.deviceId, input.managedConfigurationForDeviceId
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::androidenterprise::ManagedConfiguration"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for ManagedConfiguration
+// =============================================================================
+
+/// ResourceIdentifier implementation for ManagedConfiguration with AndroidenterpriseManagedconfigurationsforuserGetArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<AndroidenterpriseManagedconfigurationsforuserGetArgs>
+    for ManagedConfiguration
+{
+    fn generate_resource_id(
+        &self,
+        input: &AndroidenterpriseManagedconfigurationsforuserGetArgs,
+    ) -> String {
+        format!(
+            "gcp::androidenterprise::ManagedConfiguration/{}/{}/{}",
+            input.enterpriseId, input.userId, input.managedConfigurationForUserId
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::androidenterprise::ManagedConfiguration"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for ManagedConfigurationsForUserListResponse
+// =============================================================================
+
+/// ResourceIdentifier implementation for ManagedConfigurationsForUserListResponse with AndroidenterpriseManagedconfigurationsforuserListArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<AndroidenterpriseManagedconfigurationsforuserListArgs>
+    for ManagedConfigurationsForUserListResponse
+{
+    fn generate_resource_id(
+        &self,
+        input: &AndroidenterpriseManagedconfigurationsforuserListArgs,
+    ) -> String {
+        format!(
+            "gcp::androidenterprise::ManagedConfigurationsForUserListResponse/{}/{}",
+            input.enterpriseId, input.userId
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::androidenterprise::ManagedConfigurationsForUserListResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for ManagedConfiguration
+// =============================================================================
+
+/// ResourceIdentifier implementation for ManagedConfiguration with AndroidenterpriseManagedconfigurationsforuserUpdateArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<AndroidenterpriseManagedconfigurationsforuserUpdateArgs>
+    for ManagedConfiguration
+{
+    fn generate_resource_id(
+        &self,
+        input: &AndroidenterpriseManagedconfigurationsforuserUpdateArgs,
+    ) -> String {
+        format!(
+            "gcp::androidenterprise::ManagedConfiguration/{}/{}/{}",
+            input.enterpriseId, input.userId, input.managedConfigurationForUserId
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::androidenterprise::ManagedConfiguration"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for ManagedConfigurationsSettingsListResponse
+// =============================================================================
+
+/// ResourceIdentifier implementation for ManagedConfigurationsSettingsListResponse with AndroidenterpriseManagedconfigurationssettingsListArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<AndroidenterpriseManagedconfigurationssettingsListArgs>
+    for ManagedConfigurationsSettingsListResponse
+{
+    fn generate_resource_id(
+        &self,
+        input: &AndroidenterpriseManagedconfigurationssettingsListArgs,
+    ) -> String {
+        format!(
+            "gcp::androidenterprise::ManagedConfigurationsSettingsListResponse/{}/{}",
+            input.enterpriseId, input.productId
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::androidenterprise::ManagedConfigurationsSettingsListResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for Permission
+// =============================================================================
+
+/// ResourceIdentifier implementation for Permission with AndroidenterprisePermissionsGetArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<AndroidenterprisePermissionsGetArgs> for Permission {
+    fn generate_resource_id(&self, input: &AndroidenterprisePermissionsGetArgs) -> String {
+        format!("gcp::androidenterprise::Permission/{}", input.permissionId)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::androidenterprise::Permission"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for ProductsGenerateApprovalUrlResponse
+// =============================================================================
+
+/// ResourceIdentifier implementation for ProductsGenerateApprovalUrlResponse with AndroidenterpriseProductsGenerateApprovalUrlArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<AndroidenterpriseProductsGenerateApprovalUrlArgs>
+    for ProductsGenerateApprovalUrlResponse
+{
+    fn generate_resource_id(
+        &self,
+        input: &AndroidenterpriseProductsGenerateApprovalUrlArgs,
+    ) -> String {
+        format!(
+            "gcp::androidenterprise::ProductsGenerateApprovalUrlResponse/{}/{}",
+            input.enterpriseId, input.productId
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::androidenterprise::ProductsGenerateApprovalUrlResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for Product
+// =============================================================================
+
+/// ResourceIdentifier implementation for Product with AndroidenterpriseProductsGetArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<AndroidenterpriseProductsGetArgs> for Product {
+    fn generate_resource_id(&self, input: &AndroidenterpriseProductsGetArgs) -> String {
+        format!(
+            "gcp::androidenterprise::Product/{}/{}",
+            input.enterpriseId, input.productId
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::androidenterprise::Product"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for AppRestrictionsSchema
+// =============================================================================
+
+/// ResourceIdentifier implementation for AppRestrictionsSchema with AndroidenterpriseProductsGetAppRestrictionsSchemaArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<AndroidenterpriseProductsGetAppRestrictionsSchemaArgs>
+    for AppRestrictionsSchema
+{
+    fn generate_resource_id(
+        &self,
+        input: &AndroidenterpriseProductsGetAppRestrictionsSchemaArgs,
+    ) -> String {
+        format!(
+            "gcp::androidenterprise::AppRestrictionsSchema/{}/{}",
+            input.enterpriseId, input.productId
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::androidenterprise::AppRestrictionsSchema"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for ProductPermissions
+// =============================================================================
+
+/// ResourceIdentifier implementation for ProductPermissions with AndroidenterpriseProductsGetPermissionsArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<AndroidenterpriseProductsGetPermissionsArgs> for ProductPermissions {
+    fn generate_resource_id(&self, input: &AndroidenterpriseProductsGetPermissionsArgs) -> String {
+        format!(
+            "gcp::androidenterprise::ProductPermissions/{}/{}",
+            input.enterpriseId, input.productId
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::androidenterprise::ProductPermissions"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for ProductsListResponse
+// =============================================================================
+
+/// ResourceIdentifier implementation for ProductsListResponse with AndroidenterpriseProductsListArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<AndroidenterpriseProductsListArgs> for ProductsListResponse {
+    fn generate_resource_id(&self, input: &AndroidenterpriseProductsListArgs) -> String {
+        format!(
+            "gcp::androidenterprise::ProductsListResponse/{}",
+            input.enterpriseId
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::androidenterprise::ProductsListResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for ServiceAccountKey
+// =============================================================================
+
+/// ResourceIdentifier implementation for ServiceAccountKey with AndroidenterpriseServiceaccountkeysInsertArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<AndroidenterpriseServiceaccountkeysInsertArgs> for ServiceAccountKey {
+    fn generate_resource_id(
+        &self,
+        input: &AndroidenterpriseServiceaccountkeysInsertArgs,
+    ) -> String {
+        format!(
+            "gcp::androidenterprise::ServiceAccountKey/{}",
+            input.enterpriseId
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::androidenterprise::ServiceAccountKey"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for ServiceAccountKeysListResponse
+// =============================================================================
+
+/// ResourceIdentifier implementation for ServiceAccountKeysListResponse with AndroidenterpriseServiceaccountkeysListArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<AndroidenterpriseServiceaccountkeysListArgs>
+    for ServiceAccountKeysListResponse
+{
+    fn generate_resource_id(&self, input: &AndroidenterpriseServiceaccountkeysListArgs) -> String {
+        format!(
+            "gcp::androidenterprise::ServiceAccountKeysListResponse/{}",
+            input.enterpriseId
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::androidenterprise::ServiceAccountKeysListResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for StoreCluster
+// =============================================================================
+
+/// ResourceIdentifier implementation for StoreCluster with AndroidenterpriseStorelayoutclustersGetArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<AndroidenterpriseStorelayoutclustersGetArgs> for StoreCluster {
+    fn generate_resource_id(&self, input: &AndroidenterpriseStorelayoutclustersGetArgs) -> String {
+        format!(
+            "gcp::androidenterprise::StoreCluster/{}/{}/{}",
+            input.enterpriseId, input.pageId, input.clusterId
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::androidenterprise::StoreCluster"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for StoreCluster
+// =============================================================================
+
+/// ResourceIdentifier implementation for StoreCluster with AndroidenterpriseStorelayoutclustersInsertArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<AndroidenterpriseStorelayoutclustersInsertArgs> for StoreCluster {
+    fn generate_resource_id(
+        &self,
+        input: &AndroidenterpriseStorelayoutclustersInsertArgs,
+    ) -> String {
+        format!(
+            "gcp::androidenterprise::StoreCluster/{}/{}",
+            input.enterpriseId, input.pageId
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::androidenterprise::StoreCluster"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for StoreLayoutClustersListResponse
+// =============================================================================
+
+/// ResourceIdentifier implementation for StoreLayoutClustersListResponse with AndroidenterpriseStorelayoutclustersListArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<AndroidenterpriseStorelayoutclustersListArgs>
+    for StoreLayoutClustersListResponse
+{
+    fn generate_resource_id(&self, input: &AndroidenterpriseStorelayoutclustersListArgs) -> String {
+        format!(
+            "gcp::androidenterprise::StoreLayoutClustersListResponse/{}/{}",
+            input.enterpriseId, input.pageId
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::androidenterprise::StoreLayoutClustersListResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for StoreCluster
+// =============================================================================
+
+/// ResourceIdentifier implementation for StoreCluster with AndroidenterpriseStorelayoutclustersUpdateArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<AndroidenterpriseStorelayoutclustersUpdateArgs> for StoreCluster {
+    fn generate_resource_id(
+        &self,
+        input: &AndroidenterpriseStorelayoutclustersUpdateArgs,
+    ) -> String {
+        format!(
+            "gcp::androidenterprise::StoreCluster/{}/{}/{}",
+            input.enterpriseId, input.pageId, input.clusterId
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::androidenterprise::StoreCluster"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for StorePage
+// =============================================================================
+
+/// ResourceIdentifier implementation for StorePage with AndroidenterpriseStorelayoutpagesGetArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<AndroidenterpriseStorelayoutpagesGetArgs> for StorePage {
+    fn generate_resource_id(&self, input: &AndroidenterpriseStorelayoutpagesGetArgs) -> String {
+        format!(
+            "gcp::androidenterprise::StorePage/{}/{}",
+            input.enterpriseId, input.pageId
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::androidenterprise::StorePage"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for StorePage
+// =============================================================================
+
+/// ResourceIdentifier implementation for StorePage with AndroidenterpriseStorelayoutpagesInsertArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<AndroidenterpriseStorelayoutpagesInsertArgs> for StorePage {
+    fn generate_resource_id(&self, input: &AndroidenterpriseStorelayoutpagesInsertArgs) -> String {
+        format!("gcp::androidenterprise::StorePage/{}", input.enterpriseId)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::androidenterprise::StorePage"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for StoreLayoutPagesListResponse
+// =============================================================================
+
+/// ResourceIdentifier implementation for StoreLayoutPagesListResponse with AndroidenterpriseStorelayoutpagesListArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<AndroidenterpriseStorelayoutpagesListArgs>
+    for StoreLayoutPagesListResponse
+{
+    fn generate_resource_id(&self, input: &AndroidenterpriseStorelayoutpagesListArgs) -> String {
+        format!(
+            "gcp::androidenterprise::StoreLayoutPagesListResponse/{}",
+            input.enterpriseId
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::androidenterprise::StoreLayoutPagesListResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for StorePage
+// =============================================================================
+
+/// ResourceIdentifier implementation for StorePage with AndroidenterpriseStorelayoutpagesUpdateArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<AndroidenterpriseStorelayoutpagesUpdateArgs> for StorePage {
+    fn generate_resource_id(&self, input: &AndroidenterpriseStorelayoutpagesUpdateArgs) -> String {
+        format!(
+            "gcp::androidenterprise::StorePage/{}/{}",
+            input.enterpriseId, input.pageId
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::androidenterprise::StorePage"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for AuthenticationToken
+// =============================================================================
+
+/// ResourceIdentifier implementation for AuthenticationToken with AndroidenterpriseUsersGenerateAuthenticationTokenArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<AndroidenterpriseUsersGenerateAuthenticationTokenArgs>
+    for AuthenticationToken
+{
+    fn generate_resource_id(
+        &self,
+        input: &AndroidenterpriseUsersGenerateAuthenticationTokenArgs,
+    ) -> String {
+        format!(
+            "gcp::androidenterprise::AuthenticationToken/{}/{}",
+            input.enterpriseId, input.userId
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::androidenterprise::AuthenticationToken"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for User
+// =============================================================================
+
+/// ResourceIdentifier implementation for User with AndroidenterpriseUsersGetArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<AndroidenterpriseUsersGetArgs> for User {
+    fn generate_resource_id(&self, input: &AndroidenterpriseUsersGetArgs) -> String {
+        format!(
+            "gcp::androidenterprise::User/{}/{}",
+            input.enterpriseId, input.userId
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::androidenterprise::User"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for ProductSet
+// =============================================================================
+
+/// ResourceIdentifier implementation for ProductSet with AndroidenterpriseUsersGetAvailableProductSetArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<AndroidenterpriseUsersGetAvailableProductSetArgs> for ProductSet {
+    fn generate_resource_id(
+        &self,
+        input: &AndroidenterpriseUsersGetAvailableProductSetArgs,
+    ) -> String {
+        format!(
+            "gcp::androidenterprise::ProductSet/{}/{}",
+            input.enterpriseId, input.userId
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::androidenterprise::ProductSet"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for User
+// =============================================================================
+
+/// ResourceIdentifier implementation for User with AndroidenterpriseUsersInsertArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<AndroidenterpriseUsersInsertArgs> for User {
+    fn generate_resource_id(&self, input: &AndroidenterpriseUsersInsertArgs) -> String {
+        format!("gcp::androidenterprise::User/{}", input.enterpriseId)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::androidenterprise::User"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for UsersListResponse
+// =============================================================================
+
+/// ResourceIdentifier implementation for UsersListResponse with AndroidenterpriseUsersListArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<AndroidenterpriseUsersListArgs> for UsersListResponse {
+    fn generate_resource_id(&self, input: &AndroidenterpriseUsersListArgs) -> String {
+        format!(
+            "gcp::androidenterprise::UsersListResponse/{}",
+            input.enterpriseId
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::androidenterprise::UsersListResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for ProductSet
+// =============================================================================
+
+/// ResourceIdentifier implementation for ProductSet with AndroidenterpriseUsersSetAvailableProductSetArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<AndroidenterpriseUsersSetAvailableProductSetArgs> for ProductSet {
+    fn generate_resource_id(
+        &self,
+        input: &AndroidenterpriseUsersSetAvailableProductSetArgs,
+    ) -> String {
+        format!(
+            "gcp::androidenterprise::ProductSet/{}/{}",
+            input.enterpriseId, input.userId
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::androidenterprise::ProductSet"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for User
+// =============================================================================
+
+/// ResourceIdentifier implementation for User with AndroidenterpriseUsersUpdateArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<AndroidenterpriseUsersUpdateArgs> for User {
+    fn generate_resource_id(&self, input: &AndroidenterpriseUsersUpdateArgs) -> String {
+        format!(
+            "gcp::androidenterprise::User/{}/{}",
+            input.enterpriseId, input.userId
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::androidenterprise::User"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for WebApp
+// =============================================================================
+
+/// ResourceIdentifier implementation for WebApp with AndroidenterpriseWebappsGetArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<AndroidenterpriseWebappsGetArgs> for WebApp {
+    fn generate_resource_id(&self, input: &AndroidenterpriseWebappsGetArgs) -> String {
+        format!(
+            "gcp::androidenterprise::WebApp/{}/{}",
+            input.enterpriseId, input.webAppId
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::androidenterprise::WebApp"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for WebApp
+// =============================================================================
+
+/// ResourceIdentifier implementation for WebApp with AndroidenterpriseWebappsInsertArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<AndroidenterpriseWebappsInsertArgs> for WebApp {
+    fn generate_resource_id(&self, input: &AndroidenterpriseWebappsInsertArgs) -> String {
+        format!("gcp::androidenterprise::WebApp/{}", input.enterpriseId)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::androidenterprise::WebApp"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for WebAppsListResponse
+// =============================================================================
+
+/// ResourceIdentifier implementation for WebAppsListResponse with AndroidenterpriseWebappsListArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<AndroidenterpriseWebappsListArgs> for WebAppsListResponse {
+    fn generate_resource_id(&self, input: &AndroidenterpriseWebappsListArgs) -> String {
+        format!(
+            "gcp::androidenterprise::WebAppsListResponse/{}",
+            input.enterpriseId
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::androidenterprise::WebAppsListResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for WebApp
+// =============================================================================
+
+/// ResourceIdentifier implementation for WebApp with AndroidenterpriseWebappsUpdateArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<AndroidenterpriseWebappsUpdateArgs> for WebApp {
+    fn generate_resource_id(&self, input: &AndroidenterpriseWebappsUpdateArgs) -> String {
+        format!(
+            "gcp::androidenterprise::WebApp/{}/{}",
+            input.enterpriseId, input.webAppId
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::androidenterprise::WebApp"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
 }

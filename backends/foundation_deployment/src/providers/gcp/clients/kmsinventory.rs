@@ -7,7 +7,6 @@
 
 #![cfg(feature = "gcp")]
 
-
 use crate::providers::gcp::clients::types::*;
 use crate::providers::gcp::resources::*;
 use foundation_core::valtron::{
@@ -17,6 +16,7 @@ use foundation_core::valtron::{
 use foundation_core::wire::simple_http::client::{
     body_reader, ClientRequestBuilder, RequestIntro, SimpleHttpClient, SystemDnsResolver,
 };
+use foundation_db::state::resource_identifier::ResourceIdentifier;
 use foundation_macros::JsonHash;
 use serde::Serialize;
 
@@ -29,14 +29,15 @@ use serde::Serialize;
 pub fn kmsinventory_organizations_protected_resources_search_builder(
     client: &SimpleHttpClient,
     scope: &String,
-    cryptoKey: &Option<String>,
-    pageSize: &Option<i32>,
-    pageToken: &Option<String>,
-    resourceTypes: &Option<String>,
+    cryptoKey: &Option<Option<String>>,
+    pageSize: &Option<Option<String>>,
+    pageToken: &Option<Option<String>>,
+    resourceTypes: &Option<Option<String>>,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
         "https://kmsinventory.googleapis.com/v1/organizations/{}/protectedResources:search",
+        scope,
     );
 
     // Build request
@@ -188,13 +189,13 @@ pub struct KmsinventoryOrganizationsProtectedResourcesSearchArgs {
     /// Path parameter: scope
     pub scope: String,
     /// Query parameter: cryptoKey
-    pub cryptoKey: Option<String>,
+    pub cryptoKey: Option<Option<String>>,
     /// Query parameter: pageSize
-    pub pageSize: Option<i32>,
+    pub pageSize: Option<Option<String>>,
     /// Query parameter: pageToken
-    pub pageToken: Option<String>,
+    pub pageToken: Option<Option<String>>,
     /// Query parameter: resourceTypes
-    pub resourceTypes: Option<String>,
+    pub resourceTypes: Option<Option<String>>,
 }
 
 /// GET v1/organizations/{organizationsId}/protectedResources:search
@@ -242,11 +243,14 @@ pub fn kmsinventory_organizations_protected_resources_search(
 pub fn kmsinventory_projects_crypto_keys_list_builder(
     client: &SimpleHttpClient,
     parent: &String,
-    pageSize: &Option<i32>,
-    pageToken: &Option<String>,
+    pageSize: &Option<Option<String>>,
+    pageToken: &Option<Option<String>>,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
-    let endpoint_url = format!("https://kmsinventory.googleapis.com/v1/projects/{}/cryptoKeys",);
+    let endpoint_url = format!(
+        "https://kmsinventory.googleapis.com/v1/projects/{}/cryptoKeys",
+        parent,
+    );
 
     // Build request
     let mut query_parts = Vec::new();
@@ -385,9 +389,9 @@ pub struct KmsinventoryProjectsCryptoKeysListArgs {
     /// Path parameter: parent
     pub parent: String,
     /// Query parameter: pageSize
-    pub pageSize: Option<i32>,
+    pub pageSize: Option<Option<String>>,
     /// Query parameter: pageToken
-    pub pageToken: Option<String>,
+    pub pageToken: Option<Option<String>>,
 }
 
 /// GET v1/projects/{projectsId}/cryptoKeys
@@ -421,6 +425,194 @@ pub fn kmsinventory_projects_crypto_keys_list(
     kmsinventory_projects_crypto_keys_list_execute(builder)
 }
 
+/// GET v1/projects/{projectsId}/locations/{locationsId}/keyRings/{keyRingsId}/cryptoKeys/{cryptoKeysId}/protectedResourcesSummary
+/// Returns aggregate information about the resources protected by the given Cloud KMS CryptoKey. By default, summary of resources within the same Cloud organization as the key will be returned, which requires the KMS organization service account to be configured(refer <https://docs.cloud.google.`com/kms/docs/view-key-usage`#required-roles>). If the KMS organization service account is not configured or key's project is not part of an organization, set fallback_scope to FALLBACK_SCOPE_PROJECT to retrieve a summary of protected resources within the key's project.
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `kmsinventory_projects_locations_key_rings_crypto_keys_get_protected_resources_summary_execute()` to send, or `kmsinventory_projects_locations_key_rings_crypto_keys_get_protected_resources_summary` for simplest API.
+
+pub fn kmsinventory_projects_locations_key_rings_crypto_keys_get_protected_resources_summary_builder(
+    client: &SimpleHttpClient,
+    name: &String,
+    fallbackScope: &Option<Option<String>>,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!(
+        "https://kmsinventory.googleapis.com/v1/projects/{}/locations/{locationsId}/keyRings/{keyRingsId}/cryptoKeys/{cryptoKeysId}/protectedResourcesSummary",
+        name,
+    );
+
+    // Build request
+    let mut query_parts = Vec::new();
+    if let Some(val) = fallbackScope.as_ref() {
+        query_parts.push(format!("fallbackScope={}", val));
+    }
+
+    let url_with_query = if query_parts.is_empty() {
+        endpoint_url
+    } else {
+        format!("{}?{}", endpoint_url, query_parts.join("&"))
+    };
+
+    let builder = client
+        .get(&url_with_query)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// GET v1/projects/{projectsId}/locations/{locationsId}/keyRings/{keyRingsId}/cryptoKeys/{cryptoKeysId}/protectedResourcesSummary
+/// Returns aggregate information about the resources protected by the given Cloud KMS CryptoKey. By default, summary of resources within the same Cloud organization as the key will be returned, which requires the KMS organization service account to be configured(refer <https://docs.cloud.google.`com/kms/docs/view-key-usage`#required-roles>). If the KMS organization service account is not configured or key's project is not part of an organization, set fallback_scope to FALLBACK_SCOPE_PROJECT to retrieve a summary of protected resources within the key's project.
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `kmsinventory_projects_locations_key_rings_crypto_keys_get_protected_resources_summary_execute()` or `kmsinventory_projects_locations_key_rings_crypto_keys_get_protected_resources_summary`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `kmsinventory_projects_locations_key_rings_crypto_keys_get_protected_resources_summary_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn kmsinventory_projects_locations_key_rings_crypto_keys_get_protected_resources_summary_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<
+                ApiResponse<GoogleCloudKmsInventoryV1ProtectedResourcesSummary>,
+                ApiError,
+            >,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: GoogleCloudKmsInventoryV1ProtectedResourcesSummary =
+                    serde_json::from_str(&body)
+                        .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// GET v1/projects/{projectsId}/locations/{locationsId}/keyRings/{keyRingsId}/cryptoKeys/{cryptoKeysId}/protectedResourcesSummary
+/// Returns aggregate information about the resources protected by the given Cloud KMS CryptoKey. By default, summary of resources within the same Cloud organization as the key will be returned, which requires the KMS organization service account to be configured(refer <https://docs.cloud.google.`com/kms/docs/view-key-usage`#required-roles>). If the KMS organization service account is not configured or key's project is not part of an organization, set fallback_scope to FALLBACK_SCOPE_PROJECT to retrieve a summary of protected resources within the key's project.
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `kmsinventory_projects_locations_key_rings_crypto_keys_get_protected_resources_summary_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `kmsinventory_projects_locations_key_rings_crypto_keys_get_protected_resources_summary_task()`.
+/// For the simplest API, use `kmsinventory_projects_locations_key_rings_crypto_keys_get_protected_resources_summary()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `kmsinventory_projects_locations_key_rings_crypto_keys_get_protected_resources_summary_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn kmsinventory_projects_locations_key_rings_crypto_keys_get_protected_resources_summary_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<
+            D = Result<ApiResponse<GoogleCloudKmsInventoryV1ProtectedResourcesSummary>, ApiError>,
+            P = ApiPending,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    let task =
+        kmsinventory_projects_locations_key_rings_crypto_keys_get_protected_resources_summary_task(
+            builder,
+        )?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`kmsinventory_projects_locations_key_rings_crypto_keys_get_protected_resources_summary`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct KmsinventoryProjectsLocationsKeyRingsCryptoKeysGetProtectedResourcesSummaryArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Query parameter: fallbackScope
+    pub fallbackScope: Option<Option<String>>,
+}
+
+/// GET v1/projects/{projectsId}/locations/{locationsId}/keyRings/{keyRingsId}/cryptoKeys/{cryptoKeysId}/protectedResourcesSummary
+/// Returns aggregate information about the resources protected by the given Cloud KMS CryptoKey. By default, summary of resources within the same Cloud organization as the key will be returned, which requires the KMS organization service account to be configured(refer <https://docs.cloud.google.`com/kms/docs/view-key-usage`#required-roles>). If the KMS organization service account is not configured or key's project is not part of an organization, set fallback_scope to FALLBACK_SCOPE_PROJECT to retrieve a summary of protected resources within the key's project.
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `kmsinventory_projects_locations_key_rings_crypto_keys_get_protected_resources_summary_builder()` + `kmsinventory_projects_locations_key_rings_crypto_keys_get_protected_resources_summary_execute()`.
+/// For task-level control, use `kmsinventory_projects_locations_key_rings_crypto_keys_get_protected_resources_summary_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn kmsinventory_projects_locations_key_rings_crypto_keys_get_protected_resources_summary(
+    client: &SimpleHttpClient,
+    args: &KmsinventoryProjectsLocationsKeyRingsCryptoKeysGetProtectedResourcesSummaryArgs,
+) -> Result<
+    impl StreamIterator<
+            D = Result<ApiResponse<GoogleCloudKmsInventoryV1ProtectedResourcesSummary>, ApiError>,
+            P = ApiPending,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    let builder = kmsinventory_projects_locations_key_rings_crypto_keys_get_protected_resources_summary_builder(client, &args.name, &args.fallbackScope)?;
+    kmsinventory_projects_locations_key_rings_crypto_keys_get_protected_resources_summary_execute(
+        builder,
+    )
+}
+
 /// GET v1/projects/{projectsId}/protectedResources:search
 /// Returns metadata about the resources protected by the given Cloud KMS CryptoKey in the given Cloud `organization/project`.
 ///
@@ -430,14 +622,16 @@ pub fn kmsinventory_projects_crypto_keys_list(
 pub fn kmsinventory_projects_protected_resources_search_builder(
     client: &SimpleHttpClient,
     scope: &String,
-    cryptoKey: &Option<String>,
-    pageSize: &Option<i32>,
-    pageToken: &Option<String>,
-    resourceTypes: &Option<String>,
+    cryptoKey: &Option<Option<String>>,
+    pageSize: &Option<Option<String>>,
+    pageToken: &Option<Option<String>>,
+    resourceTypes: &Option<Option<String>>,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
-    let endpoint_url =
-        format!("https://kmsinventory.googleapis.com/v1/projects/{}/protectedResources:search",);
+    let endpoint_url = format!(
+        "https://kmsinventory.googleapis.com/v1/projects/{}/protectedResources:search",
+        scope,
+    );
 
     // Build request
     let mut query_parts = Vec::new();
@@ -588,13 +782,13 @@ pub struct KmsinventoryProjectsProtectedResourcesSearchArgs {
     /// Path parameter: scope
     pub scope: String,
     /// Query parameter: cryptoKey
-    pub cryptoKey: Option<String>,
+    pub cryptoKey: Option<Option<String>>,
     /// Query parameter: pageSize
-    pub pageSize: Option<i32>,
+    pub pageSize: Option<Option<String>>,
     /// Query parameter: pageToken
-    pub pageToken: Option<String>,
+    pub pageToken: Option<Option<String>>,
     /// Query parameter: resourceTypes
-    pub resourceTypes: Option<String>,
+    pub resourceTypes: Option<Option<String>>,
 }
 
 /// GET v1/projects/{projectsId}/protectedResources:search
@@ -631,4 +825,127 @@ pub fn kmsinventory_projects_protected_resources_search(
         &args.resourceTypes,
     )?;
     kmsinventory_projects_protected_resources_search_execute(builder)
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for GoogleCloudKmsInventoryV1SearchProtectedResourcesResponse
+// =============================================================================
+
+/// ResourceIdentifier implementation for GoogleCloudKmsInventoryV1SearchProtectedResourcesResponse with KmsinventoryOrganizationsProtectedResourcesSearchArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<KmsinventoryOrganizationsProtectedResourcesSearchArgs>
+    for GoogleCloudKmsInventoryV1SearchProtectedResourcesResponse
+{
+    fn generate_resource_id(
+        &self,
+        input: &KmsinventoryOrganizationsProtectedResourcesSearchArgs,
+    ) -> String {
+        format!(
+            "gcp::kmsinventory::GoogleCloudKmsInventoryV1SearchProtectedResourcesResponse/{}",
+            input.scope
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::kmsinventory::GoogleCloudKmsInventoryV1SearchProtectedResourcesResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for GoogleCloudKmsInventoryV1ListCryptoKeysResponse
+// =============================================================================
+
+/// ResourceIdentifier implementation for GoogleCloudKmsInventoryV1ListCryptoKeysResponse with KmsinventoryProjectsCryptoKeysListArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<KmsinventoryProjectsCryptoKeysListArgs>
+    for GoogleCloudKmsInventoryV1ListCryptoKeysResponse
+{
+    fn generate_resource_id(&self, input: &KmsinventoryProjectsCryptoKeysListArgs) -> String {
+        format!(
+            "gcp::kmsinventory::GoogleCloudKmsInventoryV1ListCryptoKeysResponse/{}",
+            input.parent
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::kmsinventory::GoogleCloudKmsInventoryV1ListCryptoKeysResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for GoogleCloudKmsInventoryV1ProtectedResourcesSummary
+// =============================================================================
+
+/// ResourceIdentifier implementation for GoogleCloudKmsInventoryV1ProtectedResourcesSummary with KmsinventoryProjectsLocationsKeyRingsCryptoKeysGetProtectedResourcesSummaryArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl
+    ResourceIdentifier<
+        KmsinventoryProjectsLocationsKeyRingsCryptoKeysGetProtectedResourcesSummaryArgs,
+    > for GoogleCloudKmsInventoryV1ProtectedResourcesSummary
+{
+    fn generate_resource_id(
+        &self,
+        input: &KmsinventoryProjectsLocationsKeyRingsCryptoKeysGetProtectedResourcesSummaryArgs,
+    ) -> String {
+        format!(
+            "gcp::kmsinventory::GoogleCloudKmsInventoryV1ProtectedResourcesSummary/{}",
+            input.name
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::kmsinventory::GoogleCloudKmsInventoryV1ProtectedResourcesSummary"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for GoogleCloudKmsInventoryV1SearchProtectedResourcesResponse
+// =============================================================================
+
+/// ResourceIdentifier implementation for GoogleCloudKmsInventoryV1SearchProtectedResourcesResponse with KmsinventoryProjectsProtectedResourcesSearchArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<KmsinventoryProjectsProtectedResourcesSearchArgs>
+    for GoogleCloudKmsInventoryV1SearchProtectedResourcesResponse
+{
+    fn generate_resource_id(
+        &self,
+        input: &KmsinventoryProjectsProtectedResourcesSearchArgs,
+    ) -> String {
+        format!(
+            "gcp::kmsinventory::GoogleCloudKmsInventoryV1SearchProtectedResourcesResponse/{}",
+            input.scope
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::kmsinventory::GoogleCloudKmsInventoryV1SearchProtectedResourcesResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
 }

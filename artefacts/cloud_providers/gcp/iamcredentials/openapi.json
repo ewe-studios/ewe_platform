@@ -340,7 +340,7 @@
       }
     }
   },
-  "revision": "20260326",
+  "revision": "20260402",
   "rootUrl": "https://iamcredentials.googleapis.com/",
   "schemas": {
     "GenerateAccessTokenRequest": {

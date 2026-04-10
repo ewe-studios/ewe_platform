@@ -7,7 +7,6 @@
 
 #![cfg(feature = "gcp")]
 
-
 use crate::providers::gcp::clients::types::*;
 use crate::providers::gcp::resources::*;
 use foundation_core::valtron::{
@@ -17,6 +16,7 @@ use foundation_core::valtron::{
 use foundation_core::wire::simple_http::client::{
     body_reader, ClientRequestBuilder, RequestIntro, SimpleHttpClient, SystemDnsResolver,
 };
+use foundation_db::state::resource_identifier::ResourceIdentifier;
 use foundation_macros::JsonHash;
 use serde::Serialize;
 
@@ -177,7 +177,7 @@ pub fn reseller_customers_get(
     reseller_customers_get_execute(builder)
 }
 
-/// GET apps/reseller/v1/customers
+/// POST apps/reseller/v1/customers
 /// Orders a new customer's account. Before ordering a new customer account, establish whether the customer account already exists using the [customers.get](<https://developers.google.`com/workspace/admin/reseller/v1/reference/customers/get`>) If the customer account exists as a direct Google account or as a resold customer account from another reseller, use the `customerAuthToken`\ as described in [order a resold account for an existing customer](<https://developers.google.`com/workspace/admin/reseller/v1/how-tos/manage_customers`#create_existing_customer>). For more information about ordering a new customer account, see [order a new customer account](<https://developers.google.`com/workspace/admin/reseller/v1/how-tos/manage_customers`#create_customer>). After creating a new customer account, you must provision a user as an administrator. The customer's administrator is required to sign in to the Admin console and sign the G Suite via Reseller agreement to activate the account. Resellers are prohibited from signing the G Suite via Reseller agreement on the customer's behalf. For more information, see [order a new customer account](<https://developers.google.`com/workspace/admin/reseller/v1/how-tos/manage_customers`#tos>).
 ///
 /// Returns `ClientRequestBuilder` for customization.
@@ -185,8 +185,7 @@ pub fn reseller_customers_get(
 
 pub fn reseller_customers_insert_builder(
     client: &SimpleHttpClient,
-    customerAuthToken: &Option<String>,
-    body: &Customer,
+    customerAuthToken: &Option<Option<String>>,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!("https://reseller.googleapis.com/apps/reseller/v1/customers",);
@@ -204,15 +203,13 @@ pub fn reseller_customers_insert_builder(
     };
 
     let builder = client
-        .get(&url_with_query)
+        .post(&url_with_query)
         .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
 
-    builder
-        .body_json(body)
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+    Ok(builder)
 }
 
-/// GET apps/reseller/v1/customers
+/// POST apps/reseller/v1/customers
 /// Orders a new customer's account. Before ordering a new customer account, establish whether the customer account already exists using the [customers.get](<https://developers.google.`com/workspace/admin/reseller/v1/reference/customers/get`>) If the customer account exists as a direct Google account or as a resold customer account from another reseller, use the `customerAuthToken`\ as described in [order a resold account for an existing customer](<https://developers.google.`com/workspace/admin/reseller/v1/how-tos/manage_customers`#create_existing_customer>). For more information about ordering a new customer account, see [order a new customer account](<https://developers.google.`com/workspace/admin/reseller/v1/how-tos/manage_customers`#create_customer>). After creating a new customer account, you must provision a user as an administrator. The customer's administrator is required to sign in to the Admin console and sign the G Suite via Reseller agreement to activate the account. Resellers are prohibited from signing the G Suite via Reseller agreement on the customer's behalf. For more information, see [order a new customer account](<https://developers.google.`com/workspace/admin/reseller/v1/how-tos/manage_customers`#tos>).
 ///
 /// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
@@ -286,7 +283,7 @@ pub fn reseller_customers_insert_task(
         .map_pending(|_| ApiPending::Sending))
 }
 
-/// GET apps/reseller/v1/customers
+/// POST apps/reseller/v1/customers
 /// Orders a new customer's account. Before ordering a new customer account, establish whether the customer account already exists using the [customers.get](<https://developers.google.`com/workspace/admin/reseller/v1/reference/customers/get`>) If the customer account exists as a direct Google account or as a resold customer account from another reseller, use the `customerAuthToken`\ as described in [order a resold account for an existing customer](<https://developers.google.`com/workspace/admin/reseller/v1/how-tos/manage_customers`#create_existing_customer>). For more information about ordering a new customer account, see [order a new customer account](<https://developers.google.`com/workspace/admin/reseller/v1/how-tos/manage_customers`#create_customer>). After creating a new customer account, you must provision a user as an administrator. The customer's administrator is required to sign in to the Admin console and sign the G Suite via Reseller agreement to activate the account. Resellers are prohibited from signing the G Suite via Reseller agreement on the customer's behalf. For more information, see [order a new customer account](<https://developers.google.`com/workspace/admin/reseller/v1/how-tos/manage_customers`#tos>).
 ///
 /// Takes a `ClientRequestBuilder`, builds and executes the request,
@@ -320,12 +317,10 @@ pub fn reseller_customers_insert_execute(
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct ResellerCustomersInsertArgs {
     /// Query parameter: customerAuthToken
-    pub customerAuthToken: Option<String>,
-    /// Request body.
-    pub body: Customer,
+    pub customerAuthToken: Option<Option<String>>,
 }
 
-/// GET apps/reseller/v1/customers
+/// POST apps/reseller/v1/customers
 /// Orders a new customer's account. Before ordering a new customer account, establish whether the customer account already exists using the [customers.get](<https://developers.google.`com/workspace/admin/reseller/v1/reference/customers/get`>) If the customer account exists as a direct Google account or as a resold customer account from another reseller, use the `customerAuthToken`\ as described in [order a resold account for an existing customer](<https://developers.google.`com/workspace/admin/reseller/v1/how-tos/manage_customers`#create_existing_customer>). For more information about ordering a new customer account, see [order a new customer account](<https://developers.google.`com/workspace/admin/reseller/v1/how-tos/manage_customers`#create_customer>). After creating a new customer account, you must provision a user as an administrator. The customer's administrator is required to sign in to the Admin console and sign the G Suite via Reseller agreement to activate the account. Resellers are prohibited from signing the G Suite via Reseller agreement on the customer's behalf. For more information, see [order a new customer account](<https://developers.google.`com/workspace/admin/reseller/v1/how-tos/manage_customers`#tos>).
 ///
 /// Simplest API - builds and executes the request in one call.
@@ -343,8 +338,322 @@ pub fn reseller_customers_insert(
     impl StreamIterator<D = Result<ApiResponse<Customer>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = reseller_customers_insert_builder(client, &args.customerAuthToken, &args.body)?;
+    let builder = reseller_customers_insert_builder(client, &args.customerAuthToken)?;
     reseller_customers_insert_execute(builder)
+}
+
+/// PATCH apps/reseller/v1/customers/{customerId}
+/// Updates a customer account's settings. This method supports patch semantics. You cannot update `customerType` via the Reseller API, but a "team" customer can verify their domain and become `customerType` = "domain". For more information, see [Verify your domain to unlock Essentials features](<https://support.google.`com/a/answer/9122284`>).
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `reseller_customers_patch_execute()` to send, or `reseller_customers_patch` for simplest API.
+
+pub fn reseller_customers_patch_builder(
+    client: &SimpleHttpClient,
+    customerId: &String,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!(
+        "https://reseller.googleapis.com/apps/reseller/v1/customers/{}",
+        customerId,
+    );
+
+    // Build request
+    let builder = client
+        .patch(&endpoint_url)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// PATCH apps/reseller/v1/customers/{customerId}
+/// Updates a customer account's settings. This method supports patch semantics. You cannot update `customerType` via the Reseller API, but a "team" customer can verify their domain and become `customerType` = "domain". For more information, see [Verify your domain to unlock Essentials features](<https://support.google.`com/a/answer/9122284`>).
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `reseller_customers_patch_execute()` or `reseller_customers_patch`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `reseller_customers_patch_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn reseller_customers_patch_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<Customer>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: Customer = serde_json::from_str(&body)
+                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// PATCH apps/reseller/v1/customers/{customerId}
+/// Updates a customer account's settings. This method supports patch semantics. You cannot update `customerType` via the Reseller API, but a "team" customer can verify their domain and become `customerType` = "domain". For more information, see [Verify your domain to unlock Essentials features](<https://support.google.`com/a/answer/9122284`>).
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `reseller_customers_patch_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `reseller_customers_patch_task()`.
+/// For the simplest API, use `reseller_customers_patch()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `reseller_customers_patch_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn reseller_customers_patch_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<Customer>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let task = reseller_customers_patch_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`reseller_customers_patch`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct ResellerCustomersPatchArgs {
+    /// Path parameter: customerId
+    pub customerId: String,
+}
+
+/// PATCH apps/reseller/v1/customers/{customerId}
+/// Updates a customer account's settings. This method supports patch semantics. You cannot update `customerType` via the Reseller API, but a "team" customer can verify their domain and become `customerType` = "domain". For more information, see [Verify your domain to unlock Essentials features](<https://support.google.`com/a/answer/9122284`>).
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `reseller_customers_patch_builder()` + `reseller_customers_patch_execute()`.
+/// For task-level control, use `reseller_customers_patch_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn reseller_customers_patch(
+    client: &SimpleHttpClient,
+    args: &ResellerCustomersPatchArgs,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<Customer>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let builder = reseller_customers_patch_builder(client, &args.customerId)?;
+    reseller_customers_patch_execute(builder)
+}
+
+/// PUT apps/reseller/v1/customers/{customerId}
+/// Updates a customer account's settings. You cannot update `customerType` via the Reseller API, but a "team" customer can verify their domain and become `customerType` = "domain". For more information, see [update a customer's settings](<https://developers.google.`com/workspace/admin/reseller/v1/how-tos/manage_customers`#update_customer>).
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `reseller_customers_update_execute()` to send, or `reseller_customers_update` for simplest API.
+
+pub fn reseller_customers_update_builder(
+    client: &SimpleHttpClient,
+    customerId: &String,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!(
+        "https://reseller.googleapis.com/apps/reseller/v1/customers/{}",
+        customerId,
+    );
+
+    // Build request
+    let builder = client
+        .put(&endpoint_url)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// PUT apps/reseller/v1/customers/{customerId}
+/// Updates a customer account's settings. You cannot update `customerType` via the Reseller API, but a "team" customer can verify their domain and become `customerType` = "domain". For more information, see [update a customer's settings](<https://developers.google.`com/workspace/admin/reseller/v1/how-tos/manage_customers`#update_customer>).
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `reseller_customers_update_execute()` or `reseller_customers_update`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `reseller_customers_update_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn reseller_customers_update_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<Customer>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: Customer = serde_json::from_str(&body)
+                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// PUT apps/reseller/v1/customers/{customerId}
+/// Updates a customer account's settings. You cannot update `customerType` via the Reseller API, but a "team" customer can verify their domain and become `customerType` = "domain". For more information, see [update a customer's settings](<https://developers.google.`com/workspace/admin/reseller/v1/how-tos/manage_customers`#update_customer>).
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `reseller_customers_update_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `reseller_customers_update_task()`.
+/// For the simplest API, use `reseller_customers_update()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `reseller_customers_update_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn reseller_customers_update_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<Customer>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let task = reseller_customers_update_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`reseller_customers_update`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct ResellerCustomersUpdateArgs {
+    /// Path parameter: customerId
+    pub customerId: String,
+}
+
+/// PUT apps/reseller/v1/customers/{customerId}
+/// Updates a customer account's settings. You cannot update `customerType` via the Reseller API, but a "team" customer can verify their domain and become `customerType` = "domain". For more information, see [update a customer's settings](<https://developers.google.`com/workspace/admin/reseller/v1/how-tos/manage_customers`#update_customer>).
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `reseller_customers_update_builder()` + `reseller_customers_update_execute()`.
+/// For task-level control, use `reseller_customers_update_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn reseller_customers_update(
+    client: &SimpleHttpClient,
+    args: &ResellerCustomersUpdateArgs,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<Customer>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let builder = reseller_customers_update_builder(client, &args.customerId)?;
+    reseller_customers_update_execute(builder)
 }
 
 /// GET apps/reseller/v1/resellernotify/getwatchdetails
@@ -501,7 +810,7 @@ pub fn reseller_resellernotify_getwatchdetails(
     reseller_resellernotify_getwatchdetails_execute(builder)
 }
 
-/// GET apps/reseller/v1/resellernotify/register
+/// POST apps/reseller/v1/resellernotify/register
 /// Registers a Reseller for receiving notifications.
 ///
 /// Returns `ClientRequestBuilder` for customization.
@@ -509,7 +818,7 @@ pub fn reseller_resellernotify_getwatchdetails(
 
 pub fn reseller_resellernotify_register_builder(
     client: &SimpleHttpClient,
-    serviceAccountEmailAddress: &Option<String>,
+    serviceAccountEmailAddress: &Option<Option<String>>,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url =
@@ -528,13 +837,13 @@ pub fn reseller_resellernotify_register_builder(
     };
 
     let builder = client
-        .get(&url_with_query)
+        .post(&url_with_query)
         .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
 
     Ok(builder)
 }
 
-/// GET apps/reseller/v1/resellernotify/register
+/// POST apps/reseller/v1/resellernotify/register
 /// Registers a Reseller for receiving notifications.
 ///
 /// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
@@ -608,7 +917,7 @@ pub fn reseller_resellernotify_register_task(
         .map_pending(|_| ApiPending::Sending))
 }
 
-/// GET apps/reseller/v1/resellernotify/register
+/// POST apps/reseller/v1/resellernotify/register
 /// Registers a Reseller for receiving notifications.
 ///
 /// Takes a `ClientRequestBuilder`, builds and executes the request,
@@ -644,10 +953,10 @@ pub fn reseller_resellernotify_register_execute(
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct ResellerResellernotifyRegisterArgs {
     /// Query parameter: serviceAccountEmailAddress
-    pub serviceAccountEmailAddress: Option<String>,
+    pub serviceAccountEmailAddress: Option<Option<String>>,
 }
 
-/// GET apps/reseller/v1/resellernotify/register
+/// POST apps/reseller/v1/resellernotify/register
 /// Registers a Reseller for receiving notifications.
 ///
 /// Simplest API - builds and executes the request in one call.
@@ -672,7 +981,7 @@ pub fn reseller_resellernotify_register(
     reseller_resellernotify_register_execute(builder)
 }
 
-/// GET apps/reseller/v1/resellernotify/unregister
+/// POST apps/reseller/v1/resellernotify/unregister
 /// Unregisters a Reseller for receiving notifications.
 ///
 /// Returns `ClientRequestBuilder` for customization.
@@ -680,7 +989,7 @@ pub fn reseller_resellernotify_register(
 
 pub fn reseller_resellernotify_unregister_builder(
     client: &SimpleHttpClient,
-    serviceAccountEmailAddress: &Option<String>,
+    serviceAccountEmailAddress: &Option<Option<String>>,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url =
@@ -699,13 +1008,13 @@ pub fn reseller_resellernotify_unregister_builder(
     };
 
     let builder = client
-        .get(&url_with_query)
+        .post(&url_with_query)
         .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
 
     Ok(builder)
 }
 
-/// GET apps/reseller/v1/resellernotify/unregister
+/// POST apps/reseller/v1/resellernotify/unregister
 /// Unregisters a Reseller for receiving notifications.
 ///
 /// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
@@ -779,7 +1088,7 @@ pub fn reseller_resellernotify_unregister_task(
         .map_pending(|_| ApiPending::Sending))
 }
 
-/// GET apps/reseller/v1/resellernotify/unregister
+/// POST apps/reseller/v1/resellernotify/unregister
 /// Unregisters a Reseller for receiving notifications.
 ///
 /// Takes a `ClientRequestBuilder`, builds and executes the request,
@@ -815,10 +1124,10 @@ pub fn reseller_resellernotify_unregister_execute(
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct ResellerResellernotifyUnregisterArgs {
     /// Query parameter: serviceAccountEmailAddress
-    pub serviceAccountEmailAddress: Option<String>,
+    pub serviceAccountEmailAddress: Option<Option<String>>,
 }
 
-/// GET apps/reseller/v1/resellernotify/unregister
+/// POST apps/reseller/v1/resellernotify/unregister
 /// Unregisters a Reseller for receiving notifications.
 ///
 /// Simplest API - builds and executes the request in one call.
@@ -843,7 +1152,7 @@ pub fn reseller_resellernotify_unregister(
     reseller_resellernotify_unregister_execute(builder)
 }
 
-/// GET apps/reseller/v1/customers/{customerId}/subscriptions/{subscriptionId}/activate
+/// POST apps/reseller/v1/customers/{customerId}/subscriptions/{subscriptionId}/activate
 /// Activates a subscription previously suspended by the reseller. If you did not suspend the customer subscription and it is suspended for any other reason, such as for abuse or a pending ToS acceptance, this call will not reactivate the customer subscription.
 ///
 /// Returns `ClientRequestBuilder` for customization.
@@ -862,13 +1171,13 @@ pub fn reseller_subscriptions_activate_builder(
 
     // Build request
     let builder = client
-        .get(&endpoint_url)
+        .post(&endpoint_url)
         .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
 
     Ok(builder)
 }
 
-/// GET apps/reseller/v1/customers/{customerId}/subscriptions/{subscriptionId}/activate
+/// POST apps/reseller/v1/customers/{customerId}/subscriptions/{subscriptionId}/activate
 /// Activates a subscription previously suspended by the reseller. If you did not suspend the customer subscription and it is suspended for any other reason, such as for abuse or a pending ToS acceptance, this call will not reactivate the customer subscription.
 ///
 /// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
@@ -942,7 +1251,7 @@ pub fn reseller_subscriptions_activate_task(
         .map_pending(|_| ApiPending::Sending))
 }
 
-/// GET apps/reseller/v1/customers/{customerId}/subscriptions/{subscriptionId}/activate
+/// POST apps/reseller/v1/customers/{customerId}/subscriptions/{subscriptionId}/activate
 /// Activates a subscription previously suspended by the reseller. If you did not suspend the customer subscription and it is suspended for any other reason, such as for abuse or a pending ToS acceptance, this call will not reactivate the customer subscription.
 ///
 /// Takes a `ClientRequestBuilder`, builds and executes the request,
@@ -983,7 +1292,7 @@ pub struct ResellerSubscriptionsActivateArgs {
     pub subscriptionId: String,
 }
 
-/// GET apps/reseller/v1/customers/{customerId}/subscriptions/{subscriptionId}/activate
+/// POST apps/reseller/v1/customers/{customerId}/subscriptions/{subscriptionId}/activate
 /// Activates a subscription previously suspended by the reseller. If you did not suspend the customer subscription and it is suspended for any other reason, such as for abuse or a pending ToS acceptance, this call will not reactivate the customer subscription.
 ///
 /// Simplest API - builds and executes the request in one call.
@@ -1008,7 +1317,7 @@ pub fn reseller_subscriptions_activate(
     reseller_subscriptions_activate_execute(builder)
 }
 
-/// GET apps/reseller/v1/customers/{customerId}/subscriptions/{subscriptionId}/changePlan
+/// POST apps/reseller/v1/customers/{customerId}/subscriptions/{subscriptionId}/changePlan
 /// Updates a subscription plan. Use this method to update a plan for a 30-day trial or a flexible plan subscription to an annual commitment plan with monthly or yearly payments. How a plan is updated differs depending on the plan and the products. For more information, see the description in [manage subscriptions](<https://developers.google.`com/workspace/admin/reseller/v1/how-tos/manage_subscriptions`#update_subscription_plan>).
 ///
 /// Returns `ClientRequestBuilder` for customization.
@@ -1018,7 +1327,6 @@ pub fn reseller_subscriptions_change_plan_builder(
     client: &SimpleHttpClient,
     customerId: &String,
     subscriptionId: &String,
-    body: &ChangePlanRequest,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
@@ -1028,15 +1336,13 @@ pub fn reseller_subscriptions_change_plan_builder(
 
     // Build request
     let builder = client
-        .get(&endpoint_url)
+        .post(&endpoint_url)
         .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
 
-    builder
-        .body_json(body)
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+    Ok(builder)
 }
 
-/// GET apps/reseller/v1/customers/{customerId}/subscriptions/{subscriptionId}/changePlan
+/// POST apps/reseller/v1/customers/{customerId}/subscriptions/{subscriptionId}/changePlan
 /// Updates a subscription plan. Use this method to update a plan for a 30-day trial or a flexible plan subscription to an annual commitment plan with monthly or yearly payments. How a plan is updated differs depending on the plan and the products. For more information, see the description in [manage subscriptions](<https://developers.google.`com/workspace/admin/reseller/v1/how-tos/manage_subscriptions`#update_subscription_plan>).
 ///
 /// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
@@ -1110,7 +1416,7 @@ pub fn reseller_subscriptions_change_plan_task(
         .map_pending(|_| ApiPending::Sending))
 }
 
-/// GET apps/reseller/v1/customers/{customerId}/subscriptions/{subscriptionId}/changePlan
+/// POST apps/reseller/v1/customers/{customerId}/subscriptions/{subscriptionId}/changePlan
 /// Updates a subscription plan. Use this method to update a plan for a 30-day trial or a flexible plan subscription to an annual commitment plan with monthly or yearly payments. How a plan is updated differs depending on the plan and the products. For more information, see the description in [manage subscriptions](<https://developers.google.`com/workspace/admin/reseller/v1/how-tos/manage_subscriptions`#update_subscription_plan>).
 ///
 /// Takes a `ClientRequestBuilder`, builds and executes the request,
@@ -1149,11 +1455,9 @@ pub struct ResellerSubscriptionsChangePlanArgs {
     pub customerId: String,
     /// Path parameter: subscriptionId
     pub subscriptionId: String,
-    /// Request body.
-    pub body: ChangePlanRequest,
 }
 
-/// GET apps/reseller/v1/customers/{customerId}/subscriptions/{subscriptionId}/changePlan
+/// POST apps/reseller/v1/customers/{customerId}/subscriptions/{subscriptionId}/changePlan
 /// Updates a subscription plan. Use this method to update a plan for a 30-day trial or a flexible plan subscription to an annual commitment plan with monthly or yearly payments. How a plan is updated differs depending on the plan and the products. For more information, see the description in [manage subscriptions](<https://developers.google.`com/workspace/admin/reseller/v1/how-tos/manage_subscriptions`#update_subscription_plan>).
 ///
 /// Simplest API - builds and executes the request in one call.
@@ -1173,16 +1477,12 @@ pub fn reseller_subscriptions_change_plan(
         + 'static,
     ApiError,
 > {
-    let builder = reseller_subscriptions_change_plan_builder(
-        client,
-        &args.customerId,
-        &args.subscriptionId,
-        &args.body,
-    )?;
+    let builder =
+        reseller_subscriptions_change_plan_builder(client, &args.customerId, &args.subscriptionId)?;
     reseller_subscriptions_change_plan_execute(builder)
 }
 
-/// GET apps/reseller/v1/customers/{customerId}/subscriptions/{subscriptionId}/changeRenewalSettings
+/// POST apps/reseller/v1/customers/{customerId}/subscriptions/{subscriptionId}/changeRenewalSettings
 /// Updates a user license's renewal settings. This is applicable for accounts with annual commitment plans only. For more information, see the description in [manage subscriptions](<https://developers.google.`com/workspace/admin/reseller/v1/how-tos/manage_subscriptions`#update_renewal>).
 ///
 /// Returns `ClientRequestBuilder` for customization.
@@ -1192,7 +1492,6 @@ pub fn reseller_subscriptions_change_renewal_settings_builder(
     client: &SimpleHttpClient,
     customerId: &String,
     subscriptionId: &String,
-    body: &RenewalSettings,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
@@ -1203,15 +1502,13 @@ pub fn reseller_subscriptions_change_renewal_settings_builder(
 
     // Build request
     let builder = client
-        .get(&endpoint_url)
+        .post(&endpoint_url)
         .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
 
-    builder
-        .body_json(body)
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+    Ok(builder)
 }
 
-/// GET apps/reseller/v1/customers/{customerId}/subscriptions/{subscriptionId}/changeRenewalSettings
+/// POST apps/reseller/v1/customers/{customerId}/subscriptions/{subscriptionId}/changeRenewalSettings
 /// Updates a user license's renewal settings. This is applicable for accounts with annual commitment plans only. For more information, see the description in [manage subscriptions](<https://developers.google.`com/workspace/admin/reseller/v1/how-tos/manage_subscriptions`#update_renewal>).
 ///
 /// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
@@ -1285,7 +1582,7 @@ pub fn reseller_subscriptions_change_renewal_settings_task(
         .map_pending(|_| ApiPending::Sending))
 }
 
-/// GET apps/reseller/v1/customers/{customerId}/subscriptions/{subscriptionId}/changeRenewalSettings
+/// POST apps/reseller/v1/customers/{customerId}/subscriptions/{subscriptionId}/changeRenewalSettings
 /// Updates a user license's renewal settings. This is applicable for accounts with annual commitment plans only. For more information, see the description in [manage subscriptions](<https://developers.google.`com/workspace/admin/reseller/v1/how-tos/manage_subscriptions`#update_renewal>).
 ///
 /// Takes a `ClientRequestBuilder`, builds and executes the request,
@@ -1324,11 +1621,9 @@ pub struct ResellerSubscriptionsChangeRenewalSettingsArgs {
     pub customerId: String,
     /// Path parameter: subscriptionId
     pub subscriptionId: String,
-    /// Request body.
-    pub body: RenewalSettings,
 }
 
-/// GET apps/reseller/v1/customers/{customerId}/subscriptions/{subscriptionId}/changeRenewalSettings
+/// POST apps/reseller/v1/customers/{customerId}/subscriptions/{subscriptionId}/changeRenewalSettings
 /// Updates a user license's renewal settings. This is applicable for accounts with annual commitment plans only. For more information, see the description in [manage subscriptions](<https://developers.google.`com/workspace/admin/reseller/v1/how-tos/manage_subscriptions`#update_renewal>).
 ///
 /// Simplest API - builds and executes the request in one call.
@@ -1352,12 +1647,11 @@ pub fn reseller_subscriptions_change_renewal_settings(
         client,
         &args.customerId,
         &args.subscriptionId,
-        &args.body,
     )?;
     reseller_subscriptions_change_renewal_settings_execute(builder)
 }
 
-/// GET apps/reseller/v1/customers/{customerId}/subscriptions/{subscriptionId}/changeSeats
+/// POST apps/reseller/v1/customers/{customerId}/subscriptions/{subscriptionId}/changeSeats
 /// Updates a subscription's user license settings. For more information about updating an annual commitment plan or a flexible plan subscription’s licenses, see [Manage Subscriptions](<https://developers.google.`com/workspace/admin/reseller/v1/how-tos/manage_subscriptions`#update_subscription_seat>).
 ///
 /// Returns `ClientRequestBuilder` for customization.
@@ -1367,7 +1661,6 @@ pub fn reseller_subscriptions_change_seats_builder(
     client: &SimpleHttpClient,
     customerId: &String,
     subscriptionId: &String,
-    body: &Seats,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
@@ -1378,15 +1671,13 @@ pub fn reseller_subscriptions_change_seats_builder(
 
     // Build request
     let builder = client
-        .get(&endpoint_url)
+        .post(&endpoint_url)
         .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
 
-    builder
-        .body_json(body)
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+    Ok(builder)
 }
 
-/// GET apps/reseller/v1/customers/{customerId}/subscriptions/{subscriptionId}/changeSeats
+/// POST apps/reseller/v1/customers/{customerId}/subscriptions/{subscriptionId}/changeSeats
 /// Updates a subscription's user license settings. For more information about updating an annual commitment plan or a flexible plan subscription’s licenses, see [Manage Subscriptions](<https://developers.google.`com/workspace/admin/reseller/v1/how-tos/manage_subscriptions`#update_subscription_seat>).
 ///
 /// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
@@ -1460,7 +1751,7 @@ pub fn reseller_subscriptions_change_seats_task(
         .map_pending(|_| ApiPending::Sending))
 }
 
-/// GET apps/reseller/v1/customers/{customerId}/subscriptions/{subscriptionId}/changeSeats
+/// POST apps/reseller/v1/customers/{customerId}/subscriptions/{subscriptionId}/changeSeats
 /// Updates a subscription's user license settings. For more information about updating an annual commitment plan or a flexible plan subscription’s licenses, see [Manage Subscriptions](<https://developers.google.`com/workspace/admin/reseller/v1/how-tos/manage_subscriptions`#update_subscription_seat>).
 ///
 /// Takes a `ClientRequestBuilder`, builds and executes the request,
@@ -1499,11 +1790,9 @@ pub struct ResellerSubscriptionsChangeSeatsArgs {
     pub customerId: String,
     /// Path parameter: subscriptionId
     pub subscriptionId: String,
-    /// Request body.
-    pub body: Seats,
 }
 
-/// GET apps/reseller/v1/customers/{customerId}/subscriptions/{subscriptionId}/changeSeats
+/// POST apps/reseller/v1/customers/{customerId}/subscriptions/{subscriptionId}/changeSeats
 /// Updates a subscription's user license settings. For more information about updating an annual commitment plan or a flexible plan subscription’s licenses, see [Manage Subscriptions](<https://developers.google.`com/workspace/admin/reseller/v1/how-tos/manage_subscriptions`#update_subscription_seat>).
 ///
 /// Simplest API - builds and executes the request in one call.
@@ -1527,9 +1816,184 @@ pub fn reseller_subscriptions_change_seats(
         client,
         &args.customerId,
         &args.subscriptionId,
-        &args.body,
     )?;
     reseller_subscriptions_change_seats_execute(builder)
+}
+
+/// DELETE apps/reseller/v1/customers/{customerId}/subscriptions/{subscriptionId}
+/// Cancels, suspends, or transfers a subscription to direct.
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `reseller_subscriptions_delete_execute()` to send, or `reseller_subscriptions_delete` for simplest API.
+
+pub fn reseller_subscriptions_delete_builder(
+    client: &SimpleHttpClient,
+    customerId: &String,
+    subscriptionId: &String,
+    deletionType: &Option<Option<String>>,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!(
+        "https://reseller.googleapis.com/apps/reseller/v1/customers/{}/subscriptions/{}",
+        customerId, subscriptionId,
+    );
+
+    // Build request
+    let mut query_parts = Vec::new();
+    if let Some(val) = deletionType.as_ref() {
+        query_parts.push(format!("deletionType={}", val));
+    }
+
+    let url_with_query = if query_parts.is_empty() {
+        endpoint_url
+    } else {
+        format!("{}?{}", endpoint_url, query_parts.join("&"))
+    };
+
+    let builder = client
+        .delete(&url_with_query)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// DELETE apps/reseller/v1/customers/{customerId}/subscriptions/{subscriptionId}
+/// Cancels, suspends, or transfers a subscription to direct.
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `reseller_subscriptions_delete_execute()` or `reseller_subscriptions_delete`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `reseller_subscriptions_delete_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn reseller_subscriptions_delete_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<()>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: (),
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// DELETE apps/reseller/v1/customers/{customerId}/subscriptions/{subscriptionId}
+/// Cancels, suspends, or transfers a subscription to direct.
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `reseller_subscriptions_delete_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `reseller_subscriptions_delete_task()`.
+/// For the simplest API, use `reseller_subscriptions_delete()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `reseller_subscriptions_delete_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn reseller_subscriptions_delete_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<()>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let task = reseller_subscriptions_delete_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`reseller_subscriptions_delete`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct ResellerSubscriptionsDeleteArgs {
+    /// Path parameter: customerId
+    pub customerId: String,
+    /// Path parameter: subscriptionId
+    pub subscriptionId: String,
+    /// Query parameter: deletionType
+    pub deletionType: Option<Option<String>>,
+}
+
+/// DELETE apps/reseller/v1/customers/{customerId}/subscriptions/{subscriptionId}
+/// Cancels, suspends, or transfers a subscription to direct.
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `reseller_subscriptions_delete_builder()` + `reseller_subscriptions_delete_execute()`.
+/// For task-level control, use `reseller_subscriptions_delete_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn reseller_subscriptions_delete(
+    client: &SimpleHttpClient,
+    args: &ResellerSubscriptionsDeleteArgs,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<()>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let builder = reseller_subscriptions_delete_builder(
+        client,
+        &args.customerId,
+        &args.subscriptionId,
+        &args.deletionType,
+    )?;
+    reseller_subscriptions_delete_execute(builder)
 }
 
 /// GET apps/reseller/v1/customers/{customerId}/subscriptions/{subscriptionId}
@@ -1697,7 +2161,7 @@ pub fn reseller_subscriptions_get(
     reseller_subscriptions_get_execute(builder)
 }
 
-/// GET apps/reseller/v1/customers/{customerId}/subscriptions
+/// POST apps/reseller/v1/customers/{customerId}/subscriptions
 /// Creates or transfer a subscription. Create a subscription for a customer's account that you ordered using the [Order a new customer account](<https://developers.google.`com/workspace/admin/reseller/v1/reference/customers/insert`.html>) method. For more information about creating a subscription for different payment plans, see [manage subscriptions](<https://developers.google.`com/workspace/admin/reseller/v1/how-tos/manage_subscriptions`#create_subscription>).\ If you did not order the customer's account using the customer insert method, use the customer's `customerAuthToken` when creating a subscription for that customer. If transferring a G Suite subscription with an associated Google Drive or Google Vault subscription, use the [batch operation](<https://developers.google.`com/workspace/admin/reseller/v1/how-tos/batch`.html>) to transfer all of these subscriptions. For more information, see how to [transfer subscriptions](<https://developers.google.`com/workspace/admin/reseller/v1/how-tos/manage_subscriptions`#transfer_a_subscription>).
 ///
 /// Returns `ClientRequestBuilder` for customization.
@@ -1706,10 +2170,9 @@ pub fn reseller_subscriptions_get(
 pub fn reseller_subscriptions_insert_builder(
     client: &SimpleHttpClient,
     customerId: &String,
-    action: &Option<String>,
-    customerAuthToken: &Option<String>,
-    sourceSkuId: &Option<String>,
-    body: &Subscription,
+    action: &Option<Option<String>>,
+    customerAuthToken: &Option<Option<String>>,
+    sourceSkuId: &Option<Option<String>>,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
@@ -1736,15 +2199,13 @@ pub fn reseller_subscriptions_insert_builder(
     };
 
     let builder = client
-        .get(&url_with_query)
+        .post(&url_with_query)
         .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
 
-    builder
-        .body_json(body)
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+    Ok(builder)
 }
 
-/// GET apps/reseller/v1/customers/{customerId}/subscriptions
+/// POST apps/reseller/v1/customers/{customerId}/subscriptions
 /// Creates or transfer a subscription. Create a subscription for a customer's account that you ordered using the [Order a new customer account](<https://developers.google.`com/workspace/admin/reseller/v1/reference/customers/insert`.html>) method. For more information about creating a subscription for different payment plans, see [manage subscriptions](<https://developers.google.`com/workspace/admin/reseller/v1/how-tos/manage_subscriptions`#create_subscription>).\ If you did not order the customer's account using the customer insert method, use the customer's `customerAuthToken` when creating a subscription for that customer. If transferring a G Suite subscription with an associated Google Drive or Google Vault subscription, use the [batch operation](<https://developers.google.`com/workspace/admin/reseller/v1/how-tos/batch`.html>) to transfer all of these subscriptions. For more information, see how to [transfer subscriptions](<https://developers.google.`com/workspace/admin/reseller/v1/how-tos/manage_subscriptions`#transfer_a_subscription>).
 ///
 /// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
@@ -1818,7 +2279,7 @@ pub fn reseller_subscriptions_insert_task(
         .map_pending(|_| ApiPending::Sending))
 }
 
-/// GET apps/reseller/v1/customers/{customerId}/subscriptions
+/// POST apps/reseller/v1/customers/{customerId}/subscriptions
 /// Creates or transfer a subscription. Create a subscription for a customer's account that you ordered using the [Order a new customer account](<https://developers.google.`com/workspace/admin/reseller/v1/reference/customers/insert`.html>) method. For more information about creating a subscription for different payment plans, see [manage subscriptions](<https://developers.google.`com/workspace/admin/reseller/v1/how-tos/manage_subscriptions`#create_subscription>).\ If you did not order the customer's account using the customer insert method, use the customer's `customerAuthToken` when creating a subscription for that customer. If transferring a G Suite subscription with an associated Google Drive or Google Vault subscription, use the [batch operation](<https://developers.google.`com/workspace/admin/reseller/v1/how-tos/batch`.html>) to transfer all of these subscriptions. For more information, see how to [transfer subscriptions](<https://developers.google.`com/workspace/admin/reseller/v1/how-tos/manage_subscriptions`#transfer_a_subscription>).
 ///
 /// Takes a `ClientRequestBuilder`, builds and executes the request,
@@ -1856,16 +2317,14 @@ pub struct ResellerSubscriptionsInsertArgs {
     /// Path parameter: customerId
     pub customerId: String,
     /// Query parameter: action
-    pub action: Option<String>,
+    pub action: Option<Option<String>>,
     /// Query parameter: customerAuthToken
-    pub customerAuthToken: Option<String>,
+    pub customerAuthToken: Option<Option<String>>,
     /// Query parameter: sourceSkuId
-    pub sourceSkuId: Option<String>,
-    /// Request body.
-    pub body: Subscription,
+    pub sourceSkuId: Option<Option<String>>,
 }
 
-/// GET apps/reseller/v1/customers/{customerId}/subscriptions
+/// POST apps/reseller/v1/customers/{customerId}/subscriptions
 /// Creates or transfer a subscription. Create a subscription for a customer's account that you ordered using the [Order a new customer account](<https://developers.google.`com/workspace/admin/reseller/v1/reference/customers/insert`.html>) method. For more information about creating a subscription for different payment plans, see [manage subscriptions](<https://developers.google.`com/workspace/admin/reseller/v1/how-tos/manage_subscriptions`#create_subscription>).\ If you did not order the customer's account using the customer insert method, use the customer's `customerAuthToken` when creating a subscription for that customer. If transferring a G Suite subscription with an associated Google Drive or Google Vault subscription, use the [batch operation](<https://developers.google.`com/workspace/admin/reseller/v1/how-tos/batch`.html>) to transfer all of these subscriptions. For more information, see how to [transfer subscriptions](<https://developers.google.`com/workspace/admin/reseller/v1/how-tos/manage_subscriptions`#transfer_a_subscription>).
 ///
 /// Simplest API - builds and executes the request in one call.
@@ -1891,7 +2350,6 @@ pub fn reseller_subscriptions_insert(
         &args.action,
         &args.customerAuthToken,
         &args.sourceSkuId,
-        &args.body,
     )?;
     reseller_subscriptions_insert_execute(builder)
 }
@@ -1904,11 +2362,11 @@ pub fn reseller_subscriptions_insert(
 
 pub fn reseller_subscriptions_list_builder(
     client: &SimpleHttpClient,
-    customerAuthToken: &Option<String>,
-    customerId: &Option<String>,
-    customerNamePrefix: &Option<String>,
-    maxResults: &Option<i32>,
-    pageToken: &Option<String>,
+    customerAuthToken: &Option<Option<String>>,
+    customerId: &Option<Option<String>>,
+    customerNamePrefix: &Option<Option<String>>,
+    maxResults: &Option<Option<String>>,
+    pageToken: &Option<Option<String>>,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!("https://reseller.googleapis.com/apps/reseller/v1/subscriptions",);
@@ -2054,15 +2512,15 @@ pub fn reseller_subscriptions_list_execute(
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct ResellerSubscriptionsListArgs {
     /// Query parameter: customerAuthToken
-    pub customerAuthToken: Option<String>,
+    pub customerAuthToken: Option<Option<String>>,
     /// Query parameter: customerId
-    pub customerId: Option<String>,
+    pub customerId: Option<Option<String>>,
     /// Query parameter: customerNamePrefix
-    pub customerNamePrefix: Option<String>,
+    pub customerNamePrefix: Option<Option<String>>,
     /// Query parameter: maxResults
-    pub maxResults: Option<i32>,
+    pub maxResults: Option<Option<String>>,
     /// Query parameter: pageToken
-    pub pageToken: Option<String>,
+    pub pageToken: Option<Option<String>>,
 }
 
 /// GET apps/reseller/v1/subscriptions
@@ -2096,7 +2554,7 @@ pub fn reseller_subscriptions_list(
     reseller_subscriptions_list_execute(builder)
 }
 
-/// GET apps/reseller/v1/customers/{customerId}/subscriptions/{subscriptionId}/startPaidService
+/// POST apps/reseller/v1/customers/{customerId}/subscriptions/{subscriptionId}/startPaidService
 /// Immediately move a 30-day free trial subscription to a paid service subscription. This method is only applicable if a payment plan has already been set up for the 30-day trial subscription. For more information, see [manage subscriptions](<https://developers.google.`com/workspace/admin/reseller/v1/how-tos/manage_subscriptions`#paid_service>).
 ///
 /// Returns `ClientRequestBuilder` for customization.
@@ -2116,13 +2574,13 @@ pub fn reseller_subscriptions_start_paid_service_builder(
 
     // Build request
     let builder = client
-        .get(&endpoint_url)
+        .post(&endpoint_url)
         .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
 
     Ok(builder)
 }
 
-/// GET apps/reseller/v1/customers/{customerId}/subscriptions/{subscriptionId}/startPaidService
+/// POST apps/reseller/v1/customers/{customerId}/subscriptions/{subscriptionId}/startPaidService
 /// Immediately move a 30-day free trial subscription to a paid service subscription. This method is only applicable if a payment plan has already been set up for the 30-day trial subscription. For more information, see [manage subscriptions](<https://developers.google.`com/workspace/admin/reseller/v1/how-tos/manage_subscriptions`#paid_service>).
 ///
 /// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
@@ -2196,7 +2654,7 @@ pub fn reseller_subscriptions_start_paid_service_task(
         .map_pending(|_| ApiPending::Sending))
 }
 
-/// GET apps/reseller/v1/customers/{customerId}/subscriptions/{subscriptionId}/startPaidService
+/// POST apps/reseller/v1/customers/{customerId}/subscriptions/{subscriptionId}/startPaidService
 /// Immediately move a 30-day free trial subscription to a paid service subscription. This method is only applicable if a payment plan has already been set up for the 30-day trial subscription. For more information, see [manage subscriptions](<https://developers.google.`com/workspace/admin/reseller/v1/how-tos/manage_subscriptions`#paid_service>).
 ///
 /// Takes a `ClientRequestBuilder`, builds and executes the request,
@@ -2237,7 +2695,7 @@ pub struct ResellerSubscriptionsStartPaidServiceArgs {
     pub subscriptionId: String,
 }
 
-/// GET apps/reseller/v1/customers/{customerId}/subscriptions/{subscriptionId}/startPaidService
+/// POST apps/reseller/v1/customers/{customerId}/subscriptions/{subscriptionId}/startPaidService
 /// Immediately move a 30-day free trial subscription to a paid service subscription. This method is only applicable if a payment plan has already been set up for the 30-day trial subscription. For more information, see [manage subscriptions](<https://developers.google.`com/workspace/admin/reseller/v1/how-tos/manage_subscriptions`#paid_service>).
 ///
 /// Simplest API - builds and executes the request in one call.
@@ -2265,7 +2723,7 @@ pub fn reseller_subscriptions_start_paid_service(
     reseller_subscriptions_start_paid_service_execute(builder)
 }
 
-/// GET apps/reseller/v1/customers/{customerId}/subscriptions/{subscriptionId}/suspend
+/// POST apps/reseller/v1/customers/{customerId}/subscriptions/{subscriptionId}/suspend
 /// Suspends an active subscription. You can use this method to suspend a paid subscription that is currently in the `ACTIVE` state. * For FLEXIBLE subscriptions, billing is paused. * For ANNUAL_MONTHLY_PAY or ANNUAL_YEARLY_PAY subscriptions: * Suspending the subscription does not change the renewal date that was originally committed to. * A suspended subscription does not renew. If you activate the subscription after the original renewal date, a new annual subscription will be created, starting on the day of activation. We strongly encourage you to suspend subscriptions only for short periods of time as suspensions over 60 days may result in the subscription being cancelled.
 ///
 /// Returns `ClientRequestBuilder` for customization.
@@ -2284,13 +2742,13 @@ pub fn reseller_subscriptions_suspend_builder(
 
     // Build request
     let builder = client
-        .get(&endpoint_url)
+        .post(&endpoint_url)
         .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
 
     Ok(builder)
 }
 
-/// GET apps/reseller/v1/customers/{customerId}/subscriptions/{subscriptionId}/suspend
+/// POST apps/reseller/v1/customers/{customerId}/subscriptions/{subscriptionId}/suspend
 /// Suspends an active subscription. You can use this method to suspend a paid subscription that is currently in the `ACTIVE` state. * For FLEXIBLE subscriptions, billing is paused. * For ANNUAL_MONTHLY_PAY or ANNUAL_YEARLY_PAY subscriptions: * Suspending the subscription does not change the renewal date that was originally committed to. * A suspended subscription does not renew. If you activate the subscription after the original renewal date, a new annual subscription will be created, starting on the day of activation. We strongly encourage you to suspend subscriptions only for short periods of time as suspensions over 60 days may result in the subscription being cancelled.
 ///
 /// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
@@ -2364,7 +2822,7 @@ pub fn reseller_subscriptions_suspend_task(
         .map_pending(|_| ApiPending::Sending))
 }
 
-/// GET apps/reseller/v1/customers/{customerId}/subscriptions/{subscriptionId}/suspend
+/// POST apps/reseller/v1/customers/{customerId}/subscriptions/{subscriptionId}/suspend
 /// Suspends an active subscription. You can use this method to suspend a paid subscription that is currently in the `ACTIVE` state. * For FLEXIBLE subscriptions, billing is paused. * For ANNUAL_MONTHLY_PAY or ANNUAL_YEARLY_PAY subscriptions: * Suspending the subscription does not change the renewal date that was originally committed to. * A suspended subscription does not renew. If you activate the subscription after the original renewal date, a new annual subscription will be created, starting on the day of activation. We strongly encourage you to suspend subscriptions only for short periods of time as suspensions over 60 days may result in the subscription being cancelled.
 ///
 /// Takes a `ClientRequestBuilder`, builds and executes the request,
@@ -2405,7 +2863,7 @@ pub struct ResellerSubscriptionsSuspendArgs {
     pub subscriptionId: String,
 }
 
-/// GET apps/reseller/v1/customers/{customerId}/subscriptions/{subscriptionId}/suspend
+/// POST apps/reseller/v1/customers/{customerId}/subscriptions/{subscriptionId}/suspend
 /// Suspends an active subscription. You can use this method to suspend a paid subscription that is currently in the `ACTIVE` state. * For FLEXIBLE subscriptions, billing is paused. * For ANNUAL_MONTHLY_PAY or ANNUAL_YEARLY_PAY subscriptions: * Suspending the subscription does not change the renewal date that was originally committed to. * A suspended subscription does not renew. If you activate the subscription after the original renewal date, a new annual subscription will be created, starting on the day of activation. We strongly encourage you to suspend subscriptions only for short periods of time as suspensions over 60 days may result in the subscription being cancelled.
 ///
 /// Simplest API - builds and executes the request in one call.
@@ -2428,4 +2886,398 @@ pub fn reseller_subscriptions_suspend(
     let builder =
         reseller_subscriptions_suspend_builder(client, &args.customerId, &args.subscriptionId)?;
     reseller_subscriptions_suspend_execute(builder)
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for Customer
+// =============================================================================
+
+/// ResourceIdentifier implementation for Customer with ResellerCustomersGetArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<ResellerCustomersGetArgs> for Customer {
+    fn generate_resource_id(&self, input: &ResellerCustomersGetArgs) -> String {
+        format!("gcp::reseller::Customer/{}", input.customerId)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::reseller::Customer"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for Customer
+// =============================================================================
+
+/// ResourceIdentifier implementation for Customer with ResellerCustomersInsertArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<ResellerCustomersInsertArgs> for Customer {
+    fn generate_resource_id(&self, input: &ResellerCustomersInsertArgs) -> String {
+        "gcp::reseller::Customer".to_string()
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::reseller::Customer"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for Customer
+// =============================================================================
+
+/// ResourceIdentifier implementation for Customer with ResellerCustomersPatchArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<ResellerCustomersPatchArgs> for Customer {
+    fn generate_resource_id(&self, input: &ResellerCustomersPatchArgs) -> String {
+        format!("gcp::reseller::Customer/{}", input.customerId)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::reseller::Customer"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for Customer
+// =============================================================================
+
+/// ResourceIdentifier implementation for Customer with ResellerCustomersUpdateArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<ResellerCustomersUpdateArgs> for Customer {
+    fn generate_resource_id(&self, input: &ResellerCustomersUpdateArgs) -> String {
+        format!("gcp::reseller::Customer/{}", input.customerId)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::reseller::Customer"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for ResellernotifyGetwatchdetailsResponse
+// =============================================================================
+
+/// ResourceIdentifier implementation for ResellernotifyGetwatchdetailsResponse with ResellerResellernotifyGetwatchdetailsArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<ResellerResellernotifyGetwatchdetailsArgs>
+    for ResellernotifyGetwatchdetailsResponse
+{
+    fn generate_resource_id(&self, input: &ResellerResellernotifyGetwatchdetailsArgs) -> String {
+        "gcp::reseller::ResellernotifyGetwatchdetailsResponse".to_string()
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::reseller::ResellernotifyGetwatchdetailsResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for ResellernotifyResource
+// =============================================================================
+
+/// ResourceIdentifier implementation for ResellernotifyResource with ResellerResellernotifyRegisterArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<ResellerResellernotifyRegisterArgs> for ResellernotifyResource {
+    fn generate_resource_id(&self, input: &ResellerResellernotifyRegisterArgs) -> String {
+        "gcp::reseller::ResellernotifyResource".to_string()
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::reseller::ResellernotifyResource"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for ResellernotifyResource
+// =============================================================================
+
+/// ResourceIdentifier implementation for ResellernotifyResource with ResellerResellernotifyUnregisterArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<ResellerResellernotifyUnregisterArgs> for ResellernotifyResource {
+    fn generate_resource_id(&self, input: &ResellerResellernotifyUnregisterArgs) -> String {
+        "gcp::reseller::ResellernotifyResource".to_string()
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::reseller::ResellernotifyResource"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for Subscription
+// =============================================================================
+
+/// ResourceIdentifier implementation for Subscription with ResellerSubscriptionsActivateArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<ResellerSubscriptionsActivateArgs> for Subscription {
+    fn generate_resource_id(&self, input: &ResellerSubscriptionsActivateArgs) -> String {
+        format!(
+            "gcp::reseller::Subscription/{}/{}",
+            input.customerId, input.subscriptionId
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::reseller::Subscription"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for Subscription
+// =============================================================================
+
+/// ResourceIdentifier implementation for Subscription with ResellerSubscriptionsChangePlanArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<ResellerSubscriptionsChangePlanArgs> for Subscription {
+    fn generate_resource_id(&self, input: &ResellerSubscriptionsChangePlanArgs) -> String {
+        format!(
+            "gcp::reseller::Subscription/{}/{}",
+            input.customerId, input.subscriptionId
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::reseller::Subscription"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for Subscription
+// =============================================================================
+
+/// ResourceIdentifier implementation for Subscription with ResellerSubscriptionsChangeRenewalSettingsArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<ResellerSubscriptionsChangeRenewalSettingsArgs> for Subscription {
+    fn generate_resource_id(
+        &self,
+        input: &ResellerSubscriptionsChangeRenewalSettingsArgs,
+    ) -> String {
+        format!(
+            "gcp::reseller::Subscription/{}/{}",
+            input.customerId, input.subscriptionId
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::reseller::Subscription"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for Subscription
+// =============================================================================
+
+/// ResourceIdentifier implementation for Subscription with ResellerSubscriptionsChangeSeatsArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<ResellerSubscriptionsChangeSeatsArgs> for Subscription {
+    fn generate_resource_id(&self, input: &ResellerSubscriptionsChangeSeatsArgs) -> String {
+        format!(
+            "gcp::reseller::Subscription/{}/{}",
+            input.customerId, input.subscriptionId
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::reseller::Subscription"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for Subscription
+// =============================================================================
+
+/// ResourceIdentifier implementation for Subscription with ResellerSubscriptionsGetArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<ResellerSubscriptionsGetArgs> for Subscription {
+    fn generate_resource_id(&self, input: &ResellerSubscriptionsGetArgs) -> String {
+        format!(
+            "gcp::reseller::Subscription/{}/{}",
+            input.customerId, input.subscriptionId
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::reseller::Subscription"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for Subscription
+// =============================================================================
+
+/// ResourceIdentifier implementation for Subscription with ResellerSubscriptionsInsertArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<ResellerSubscriptionsInsertArgs> for Subscription {
+    fn generate_resource_id(&self, input: &ResellerSubscriptionsInsertArgs) -> String {
+        format!("gcp::reseller::Subscription/{}", input.customerId)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::reseller::Subscription"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for Subscriptions
+// =============================================================================
+
+/// ResourceIdentifier implementation for Subscriptions with ResellerSubscriptionsListArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<ResellerSubscriptionsListArgs> for Subscriptions {
+    fn generate_resource_id(&self, input: &ResellerSubscriptionsListArgs) -> String {
+        "gcp::reseller::Subscriptions".to_string()
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::reseller::Subscriptions"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for Subscription
+// =============================================================================
+
+/// ResourceIdentifier implementation for Subscription with ResellerSubscriptionsStartPaidServiceArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<ResellerSubscriptionsStartPaidServiceArgs> for Subscription {
+    fn generate_resource_id(&self, input: &ResellerSubscriptionsStartPaidServiceArgs) -> String {
+        format!(
+            "gcp::reseller::Subscription/{}/{}",
+            input.customerId, input.subscriptionId
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::reseller::Subscription"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for Subscription
+// =============================================================================
+
+/// ResourceIdentifier implementation for Subscription with ResellerSubscriptionsSuspendArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<ResellerSubscriptionsSuspendArgs> for Subscription {
+    fn generate_resource_id(&self, input: &ResellerSubscriptionsSuspendArgs) -> String {
+        format!(
+            "gcp::reseller::Subscription/{}/{}",
+            input.customerId, input.subscriptionId
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::reseller::Subscription"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
 }

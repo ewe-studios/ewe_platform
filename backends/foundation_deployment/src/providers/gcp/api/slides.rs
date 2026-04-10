@@ -14,12 +14,20 @@
 use crate::providers::gcp::clients::slides::{
     slides_presentations_batch_update_builder, slides_presentations_batch_update_task,
     slides_presentations_create_builder, slides_presentations_create_task,
+    slides_presentations_get_builder, slides_presentations_get_task,
+    slides_presentations_pages_get_builder, slides_presentations_pages_get_task,
+    slides_presentations_pages_get_thumbnail_builder, slides_presentations_pages_get_thumbnail_task,
 };
 use crate::providers::gcp::clients::types::{ApiError, ApiPending};
 use crate::providers::gcp::clients::slides::BatchUpdatePresentationResponse;
+use crate::providers::gcp::clients::slides::Page;
 use crate::providers::gcp::clients::slides::Presentation;
+use crate::providers::gcp::clients::slides::Thumbnail;
 use crate::providers::gcp::clients::slides::SlidesPresentationsBatchUpdateArgs;
 use crate::providers::gcp::clients::slides::SlidesPresentationsCreateArgs;
+use crate::providers::gcp::clients::slides::SlidesPresentationsGetArgs;
+use crate::providers::gcp::clients::slides::SlidesPresentationsPagesGetArgs;
+use crate::providers::gcp::clients::slides::SlidesPresentationsPagesGetThumbnailArgs;
 use crate::provider_client::{ProviderClient, ProviderError};
 use foundation_core::valtron::{execute, StreamIterator};
 use foundation_core::wire::simple_http::client::SimpleHttpClient;
@@ -144,6 +152,124 @@ where
         let store_task = StoreStateIdentifierTask::new(task, state_store, args, stage);
 
         execute(store_task, None).map_err(|e: String| ProviderError::ExecuteFailed(e.to_string()))
+    }
+
+    /// Slides presentations get.
+    ///
+    /// Read-only operation - no state tracking.
+    ///
+    /// # Arguments
+    ///
+    /// * `args` - Request arguments
+    ///
+    /// # Returns
+    ///
+    /// StreamIterator yielding the Presentation result.
+    ///
+    /// # Errors
+    ///
+    /// Returns ProviderError if the API request fails.
+    pub fn slides_presentations_get(
+        &self,
+        args: &SlidesPresentationsGetArgs,
+    ) -> Result<
+        impl StreamIterator<
+            D = Result<Presentation, ProviderError<ApiError>>,
+            P = crate::providers::gcp::clients::types::ApiPending,
+        > + Send
+        + 'static,
+        ProviderError<ApiError>,
+    > {
+        let builder = slides_presentations_get_builder(
+            &self.http_client,
+            &args.presentationId,
+        )
+        .map_err(ProviderError::Api)?;
+
+        let task = slides_presentations_get_task(builder)
+            .map_err(ProviderError::Api)?;
+
+        execute(task, None).map_err(|e: String| ProviderError::ExecuteFailed(e.to_string()))
+    }
+
+    /// Slides presentations pages get.
+    ///
+    /// Read-only operation - no state tracking.
+    ///
+    /// # Arguments
+    ///
+    /// * `args` - Request arguments
+    ///
+    /// # Returns
+    ///
+    /// StreamIterator yielding the Page result.
+    ///
+    /// # Errors
+    ///
+    /// Returns ProviderError if the API request fails.
+    pub fn slides_presentations_pages_get(
+        &self,
+        args: &SlidesPresentationsPagesGetArgs,
+    ) -> Result<
+        impl StreamIterator<
+            D = Result<Page, ProviderError<ApiError>>,
+            P = crate::providers::gcp::clients::types::ApiPending,
+        > + Send
+        + 'static,
+        ProviderError<ApiError>,
+    > {
+        let builder = slides_presentations_pages_get_builder(
+            &self.http_client,
+            &args.presentationId,
+            &args.pageObjectId,
+        )
+        .map_err(ProviderError::Api)?;
+
+        let task = slides_presentations_pages_get_task(builder)
+            .map_err(ProviderError::Api)?;
+
+        execute(task, None).map_err(|e: String| ProviderError::ExecuteFailed(e.to_string()))
+    }
+
+    /// Slides presentations pages get thumbnail.
+    ///
+    /// Read-only operation - no state tracking.
+    ///
+    /// # Arguments
+    ///
+    /// * `args` - Request arguments
+    ///
+    /// # Returns
+    ///
+    /// StreamIterator yielding the Thumbnail result.
+    ///
+    /// # Errors
+    ///
+    /// Returns ProviderError if the API request fails.
+    pub fn slides_presentations_pages_get_thumbnail(
+        &self,
+        args: &SlidesPresentationsPagesGetThumbnailArgs,
+    ) -> Result<
+        impl StreamIterator<
+            D = Result<Thumbnail, ProviderError<ApiError>>,
+            P = crate::providers::gcp::clients::types::ApiPending,
+        > + Send
+        + 'static,
+        ProviderError<ApiError>,
+    > {
+        let builder = slides_presentations_pages_get_thumbnail_builder(
+            &self.http_client,
+            &args.presentationId,
+            &args.pageObjectId,
+            &args.thumbnailProperties.mimeType,
+            &args.thumbnailProperties.thumbnailSize,
+        )
+        .map_err(ProviderError::Api)?;
+
+        let task = slides_presentations_pages_get_thumbnail_task(builder)
+            .map_err(ProviderError::Api)?;
+
+        execute(task, None).map_err(|e: String| ProviderError::ExecuteFailed(e.to_string()))
     }
 
 }

@@ -1094,7 +1094,7 @@
       }
     }
   },
-  "revision": "20260325",
+  "revision": "20260330",
   "rootUrl": "https://apigateway.googleapis.com/",
   "schemas": {
     "ApigatewayApi": {

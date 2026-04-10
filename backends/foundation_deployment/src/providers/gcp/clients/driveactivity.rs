@@ -7,7 +7,6 @@
 
 #![cfg(feature = "gcp")]
 
-
 use crate::providers::gcp::clients::types::*;
 use crate::providers::gcp::resources::*;
 use foundation_core::valtron::{
@@ -17,10 +16,11 @@ use foundation_core::valtron::{
 use foundation_core::wire::simple_http::client::{
     body_reader, ClientRequestBuilder, RequestIntro, SimpleHttpClient, SystemDnsResolver,
 };
+use foundation_db::state::resource_identifier::ResourceIdentifier;
 use foundation_macros::JsonHash;
 use serde::Serialize;
 
-/// GET v2/activity:query
+/// POST v2/activity:query
 /// Query past activity in Google Drive.
 ///
 /// Returns `ClientRequestBuilder` for customization.
@@ -28,22 +28,19 @@ use serde::Serialize;
 
 pub fn driveactivity_activity_query_builder(
     client: &SimpleHttpClient,
-    body: &QueryDriveActivityRequest,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!("https://driveactivity.googleapis.com/v2/activity:query",);
 
     // Build request
     let builder = client
-        .get(&endpoint_url)
+        .post(&endpoint_url)
         .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
 
-    builder
-        .body_json(body)
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+    Ok(builder)
 }
 
-/// GET v2/activity:query
+/// POST v2/activity:query
 /// Query past activity in Google Drive.
 ///
 /// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
@@ -117,7 +114,7 @@ pub fn driveactivity_activity_query_task(
         .map_pending(|_| ApiPending::Sending))
 }
 
-/// GET v2/activity:query
+/// POST v2/activity:query
 /// Query past activity in Google Drive.
 ///
 /// Takes a `ClientRequestBuilder`, builds and executes the request,
@@ -151,14 +148,7 @@ pub fn driveactivity_activity_query_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
-/// Arguments for [`driveactivity_activity_query`].
-#[derive(Debug, Clone, Serialize, JsonHash)]
-pub struct DriveactivityActivityQueryArgs {
-    /// Request body.
-    pub body: QueryDriveActivityRequest,
-}
-
-/// GET v2/activity:query
+/// POST v2/activity:query
 /// Query past activity in Google Drive.
 ///
 /// Simplest API - builds and executes the request in one call.
@@ -171,7 +161,6 @@ pub struct DriveactivityActivityQueryArgs {
 
 pub fn driveactivity_activity_query(
     client: &SimpleHttpClient,
-    args: &DriveactivityActivityQueryArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<QueryDriveActivityResponse>, ApiError>,
@@ -180,6 +169,29 @@ pub fn driveactivity_activity_query(
         + 'static,
     ApiError,
 > {
-    let builder = driveactivity_activity_query_builder(client, &args.body)?;
+    let builder = driveactivity_activity_query_builder(client)?;
     driveactivity_activity_query_execute(builder)
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for QueryDriveActivityResponse
+// =============================================================================
+
+/// ResourceIdentifier implementation for QueryDriveActivityResponse with DriveactivityActivityQueryArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<DriveactivityActivityQueryArgs> for QueryDriveActivityResponse {
+    fn generate_resource_id(&self, input: &DriveactivityActivityQueryArgs) -> String {
+        "gcp::driveactivity::QueryDriveActivityResponse".to_string()
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::driveactivity::QueryDriveActivityResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
 }

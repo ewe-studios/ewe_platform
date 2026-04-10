@@ -7,7 +7,6 @@
 
 #![cfg(feature = "gcp")]
 
-
 use crate::providers::gcp::clients::types::*;
 use crate::providers::gcp::resources::*;
 use foundation_core::valtron::{
@@ -17,10 +16,11 @@ use foundation_core::valtron::{
 use foundation_core::wire::simple_http::client::{
     body_reader, ClientRequestBuilder, RequestIntro, SimpleHttpClient, SystemDnsResolver,
 };
+use foundation_db::state::resource_identifier::ResourceIdentifier;
 use foundation_macros::JsonHash;
 use serde::Serialize;
 
-/// GET v3/projects/{projectsId}:detectLanguage
+/// POST v3/projects/{projectsId}:detectLanguage
 /// Detects the language of text within a request.
 ///
 /// Returns `ClientRequestBuilder` for customization.
@@ -29,22 +29,22 @@ use serde::Serialize;
 pub fn translate_projects_detect_language_builder(
     client: &SimpleHttpClient,
     parent: &String,
-    body: &DetectLanguageRequest,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
-    let endpoint_url = format!("https://translation.googleapis.com/v3/projects/{}:detectLanguage",);
+    let endpoint_url = format!(
+        "https://translation.googleapis.com/v3/projects/{}:detectLanguage",
+        parent,
+    );
 
     // Build request
     let builder = client
-        .get(&endpoint_url)
+        .post(&endpoint_url)
         .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
 
-    builder
-        .body_json(body)
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+    Ok(builder)
 }
 
-/// GET v3/projects/{projectsId}:detectLanguage
+/// POST v3/projects/{projectsId}:detectLanguage
 /// Detects the language of text within a request.
 ///
 /// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
@@ -118,7 +118,7 @@ pub fn translate_projects_detect_language_task(
         .map_pending(|_| ApiPending::Sending))
 }
 
-/// GET v3/projects/{projectsId}:detectLanguage
+/// POST v3/projects/{projectsId}:detectLanguage
 /// Detects the language of text within a request.
 ///
 /// Takes a `ClientRequestBuilder`, builds and executes the request,
@@ -155,11 +155,9 @@ pub fn translate_projects_detect_language_execute(
 pub struct TranslateProjectsDetectLanguageArgs {
     /// Path parameter: parent
     pub parent: String,
-    /// Request body.
-    pub body: DetectLanguageRequest,
 }
 
-/// GET v3/projects/{projectsId}:detectLanguage
+/// POST v3/projects/{projectsId}:detectLanguage
 /// Detects the language of text within a request.
 ///
 /// Simplest API - builds and executes the request in one call.
@@ -179,7 +177,7 @@ pub fn translate_projects_detect_language(
         + 'static,
     ApiError,
 > {
-    let builder = translate_projects_detect_language_builder(client, &args.parent, &args.body)?;
+    let builder = translate_projects_detect_language_builder(client, &args.parent)?;
     translate_projects_detect_language_execute(builder)
 }
 
@@ -192,12 +190,14 @@ pub fn translate_projects_detect_language(
 pub fn translate_projects_get_supported_languages_builder(
     client: &SimpleHttpClient,
     parent: &String,
-    displayLanguageCode: &Option<String>,
-    model: &Option<String>,
+    displayLanguageCode: &Option<Option<String>>,
+    model: &Option<Option<String>>,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
-    let endpoint_url =
-        format!("https://translation.googleapis.com/v3/projects/{}/supportedLanguages",);
+    let endpoint_url = format!(
+        "https://translation.googleapis.com/v3/projects/{}/supportedLanguages",
+        parent,
+    );
 
     // Build request
     let mut query_parts = Vec::new();
@@ -333,9 +333,9 @@ pub struct TranslateProjectsGetSupportedLanguagesArgs {
     /// Path parameter: parent
     pub parent: String,
     /// Query parameter: displayLanguageCode
-    pub displayLanguageCode: Option<String>,
+    pub displayLanguageCode: Option<Option<String>>,
     /// Query parameter: model
-    pub model: Option<String>,
+    pub model: Option<Option<String>>,
 }
 
 /// GET v3/projects/{projectsId}/supportedLanguages
@@ -367,7 +367,7 @@ pub fn translate_projects_get_supported_languages(
     translate_projects_get_supported_languages_execute(builder)
 }
 
-/// GET v3/projects/{projectsId}:romanizeText
+/// POST v3/projects/{projectsId}:romanizeText
 /// Romanize input text written in non-Latin scripts to Latin text.
 ///
 /// Returns `ClientRequestBuilder` for customization.
@@ -376,22 +376,22 @@ pub fn translate_projects_get_supported_languages(
 pub fn translate_projects_romanize_text_builder(
     client: &SimpleHttpClient,
     parent: &String,
-    body: &RomanizeTextRequest,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
-    let endpoint_url = format!("https://translation.googleapis.com/v3/projects/{}:romanizeText",);
+    let endpoint_url = format!(
+        "https://translation.googleapis.com/v3/projects/{}:romanizeText",
+        parent,
+    );
 
     // Build request
     let builder = client
-        .get(&endpoint_url)
+        .post(&endpoint_url)
         .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
 
-    builder
-        .body_json(body)
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+    Ok(builder)
 }
 
-/// GET v3/projects/{projectsId}:romanizeText
+/// POST v3/projects/{projectsId}:romanizeText
 /// Romanize input text written in non-Latin scripts to Latin text.
 ///
 /// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
@@ -465,7 +465,7 @@ pub fn translate_projects_romanize_text_task(
         .map_pending(|_| ApiPending::Sending))
 }
 
-/// GET v3/projects/{projectsId}:romanizeText
+/// POST v3/projects/{projectsId}:romanizeText
 /// Romanize input text written in non-Latin scripts to Latin text.
 ///
 /// Takes a `ClientRequestBuilder`, builds and executes the request,
@@ -502,11 +502,9 @@ pub fn translate_projects_romanize_text_execute(
 pub struct TranslateProjectsRomanizeTextArgs {
     /// Path parameter: parent
     pub parent: String,
-    /// Request body.
-    pub body: RomanizeTextRequest,
 }
 
-/// GET v3/projects/{projectsId}:romanizeText
+/// POST v3/projects/{projectsId}:romanizeText
 /// Romanize input text written in non-Latin scripts to Latin text.
 ///
 /// Simplest API - builds and executes the request in one call.
@@ -526,11 +524,11 @@ pub fn translate_projects_romanize_text(
         + 'static,
     ApiError,
 > {
-    let builder = translate_projects_romanize_text_builder(client, &args.parent, &args.body)?;
+    let builder = translate_projects_romanize_text_builder(client, &args.parent)?;
     translate_projects_romanize_text_execute(builder)
 }
 
-/// GET v3/projects/{projectsId}:translateText
+/// POST v3/projects/{projectsId}:translateText
 /// Translates input text and returns translated text.
 ///
 /// Returns `ClientRequestBuilder` for customization.
@@ -539,22 +537,22 @@ pub fn translate_projects_romanize_text(
 pub fn translate_projects_translate_text_builder(
     client: &SimpleHttpClient,
     parent: &String,
-    body: &TranslateTextRequest,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
-    let endpoint_url = format!("https://translation.googleapis.com/v3/projects/{}:translateText",);
+    let endpoint_url = format!(
+        "https://translation.googleapis.com/v3/projects/{}:translateText",
+        parent,
+    );
 
     // Build request
     let builder = client
-        .get(&endpoint_url)
+        .post(&endpoint_url)
         .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
 
-    builder
-        .body_json(body)
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+    Ok(builder)
 }
 
-/// GET v3/projects/{projectsId}:translateText
+/// POST v3/projects/{projectsId}:translateText
 /// Translates input text and returns translated text.
 ///
 /// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
@@ -628,7 +626,7 @@ pub fn translate_projects_translate_text_task(
         .map_pending(|_| ApiPending::Sending))
 }
 
-/// GET v3/projects/{projectsId}:translateText
+/// POST v3/projects/{projectsId}:translateText
 /// Translates input text and returns translated text.
 ///
 /// Takes a `ClientRequestBuilder`, builds and executes the request,
@@ -665,11 +663,9 @@ pub fn translate_projects_translate_text_execute(
 pub struct TranslateProjectsTranslateTextArgs {
     /// Path parameter: parent
     pub parent: String,
-    /// Request body.
-    pub body: TranslateTextRequest,
 }
 
-/// GET v3/projects/{projectsId}:translateText
+/// POST v3/projects/{projectsId}:translateText
 /// Translates input text and returns translated text.
 ///
 /// Simplest API - builds and executes the request in one call.
@@ -689,8 +685,992 @@ pub fn translate_projects_translate_text(
         + 'static,
     ApiError,
 > {
-    let builder = translate_projects_translate_text_builder(client, &args.parent, &args.body)?;
+    let builder = translate_projects_translate_text_builder(client, &args.parent)?;
     translate_projects_translate_text_execute(builder)
+}
+
+/// POST v3/projects/{projectsId}/locations/{locationsId}:adaptiveMtTranslate
+/// Translate text using Adaptive MT.
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `translate_projects_locations_adaptive_mt_translate_execute()` to send, or `translate_projects_locations_adaptive_mt_translate` for simplest API.
+
+pub fn translate_projects_locations_adaptive_mt_translate_builder(
+    client: &SimpleHttpClient,
+    parent: &String,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!(
+        "https://translation.googleapis.com/v3/projects/{}/locations/{locationsId}:adaptiveMtTranslate",
+        parent,
+    );
+
+    // Build request
+    let builder = client
+        .post(&endpoint_url)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// POST v3/projects/{projectsId}/locations/{locationsId}:adaptiveMtTranslate
+/// Translate text using Adaptive MT.
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `translate_projects_locations_adaptive_mt_translate_execute()` or `translate_projects_locations_adaptive_mt_translate`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `translate_projects_locations_adaptive_mt_translate_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn translate_projects_locations_adaptive_mt_translate_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<AdaptiveMtTranslateResponse>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: AdaptiveMtTranslateResponse = serde_json::from_str(&body)
+                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// POST v3/projects/{projectsId}/locations/{locationsId}:adaptiveMtTranslate
+/// Translate text using Adaptive MT.
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `translate_projects_locations_adaptive_mt_translate_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `translate_projects_locations_adaptive_mt_translate_task()`.
+/// For the simplest API, use `translate_projects_locations_adaptive_mt_translate()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `translate_projects_locations_adaptive_mt_translate_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn translate_projects_locations_adaptive_mt_translate_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<
+            D = Result<ApiResponse<AdaptiveMtTranslateResponse>, ApiError>,
+            P = ApiPending,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    let task = translate_projects_locations_adaptive_mt_translate_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`translate_projects_locations_adaptive_mt_translate`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct TranslateProjectsLocationsAdaptiveMtTranslateArgs {
+    /// Path parameter: parent
+    pub parent: String,
+}
+
+/// POST v3/projects/{projectsId}/locations/{locationsId}:adaptiveMtTranslate
+/// Translate text using Adaptive MT.
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `translate_projects_locations_adaptive_mt_translate_builder()` + `translate_projects_locations_adaptive_mt_translate_execute()`.
+/// For task-level control, use `translate_projects_locations_adaptive_mt_translate_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn translate_projects_locations_adaptive_mt_translate(
+    client: &SimpleHttpClient,
+    args: &TranslateProjectsLocationsAdaptiveMtTranslateArgs,
+) -> Result<
+    impl StreamIterator<
+            D = Result<ApiResponse<AdaptiveMtTranslateResponse>, ApiError>,
+            P = ApiPending,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    let builder = translate_projects_locations_adaptive_mt_translate_builder(client, &args.parent)?;
+    translate_projects_locations_adaptive_mt_translate_execute(builder)
+}
+
+/// POST v3/projects/{projectsId}/locations/{locationsId}:batchTranslateDocument
+/// Translates a large volume of document in asynchronous batch mode. This function provides real-time output as the inputs are being processed. If caller cancels a request, the partial results (for an input file, it's all or nothing) may still be available on the specified output location. This call returns immediately and you can use google.longrunning.Operation.name to poll the status of the call.
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `translate_projects_locations_batch_translate_document_execute()` to send, or `translate_projects_locations_batch_translate_document` for simplest API.
+
+pub fn translate_projects_locations_batch_translate_document_builder(
+    client: &SimpleHttpClient,
+    parent: &String,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!(
+        "https://translation.googleapis.com/v3/projects/{}/locations/{locationsId}:batchTranslateDocument",
+        parent,
+    );
+
+    // Build request
+    let builder = client
+        .post(&endpoint_url)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// POST v3/projects/{projectsId}/locations/{locationsId}:batchTranslateDocument
+/// Translates a large volume of document in asynchronous batch mode. This function provides real-time output as the inputs are being processed. If caller cancels a request, the partial results (for an input file, it's all or nothing) may still be available on the specified output location. This call returns immediately and you can use google.longrunning.Operation.name to poll the status of the call.
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `translate_projects_locations_batch_translate_document_execute()` or `translate_projects_locations_batch_translate_document`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `translate_projects_locations_batch_translate_document_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn translate_projects_locations_batch_translate_document_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<Operation>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: Operation = serde_json::from_str(&body)
+                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// POST v3/projects/{projectsId}/locations/{locationsId}:batchTranslateDocument
+/// Translates a large volume of document in asynchronous batch mode. This function provides real-time output as the inputs are being processed. If caller cancels a request, the partial results (for an input file, it's all or nothing) may still be available on the specified output location. This call returns immediately and you can use google.longrunning.Operation.name to poll the status of the call.
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `translate_projects_locations_batch_translate_document_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `translate_projects_locations_batch_translate_document_task()`.
+/// For the simplest API, use `translate_projects_locations_batch_translate_document()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `translate_projects_locations_batch_translate_document_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn translate_projects_locations_batch_translate_document_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<Operation>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let task = translate_projects_locations_batch_translate_document_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`translate_projects_locations_batch_translate_document`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct TranslateProjectsLocationsBatchTranslateDocumentArgs {
+    /// Path parameter: parent
+    pub parent: String,
+}
+
+/// POST v3/projects/{projectsId}/locations/{locationsId}:batchTranslateDocument
+/// Translates a large volume of document in asynchronous batch mode. This function provides real-time output as the inputs are being processed. If caller cancels a request, the partial results (for an input file, it's all or nothing) may still be available on the specified output location. This call returns immediately and you can use google.longrunning.Operation.name to poll the status of the call.
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `translate_projects_locations_batch_translate_document_builder()` + `translate_projects_locations_batch_translate_document_execute()`.
+/// For task-level control, use `translate_projects_locations_batch_translate_document_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn translate_projects_locations_batch_translate_document(
+    client: &SimpleHttpClient,
+    args: &TranslateProjectsLocationsBatchTranslateDocumentArgs,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<Operation>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let builder =
+        translate_projects_locations_batch_translate_document_builder(client, &args.parent)?;
+    translate_projects_locations_batch_translate_document_execute(builder)
+}
+
+/// POST v3/projects/{projectsId}/locations/{locationsId}:batchTranslateText
+/// Translates a large volume of text in asynchronous batch mode. This function provides real-time output as the inputs are being processed. If caller cancels a request, the partial results (for an input file, it's all or nothing) may still be available on the specified output location. This call returns immediately and you can use google.longrunning.Operation.name to poll the status of the call.
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `translate_projects_locations_batch_translate_text_execute()` to send, or `translate_projects_locations_batch_translate_text` for simplest API.
+
+pub fn translate_projects_locations_batch_translate_text_builder(
+    client: &SimpleHttpClient,
+    parent: &String,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!(
+        "https://translation.googleapis.com/v3/projects/{}/locations/{locationsId}:batchTranslateText",
+        parent,
+    );
+
+    // Build request
+    let builder = client
+        .post(&endpoint_url)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// POST v3/projects/{projectsId}/locations/{locationsId}:batchTranslateText
+/// Translates a large volume of text in asynchronous batch mode. This function provides real-time output as the inputs are being processed. If caller cancels a request, the partial results (for an input file, it's all or nothing) may still be available on the specified output location. This call returns immediately and you can use google.longrunning.Operation.name to poll the status of the call.
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `translate_projects_locations_batch_translate_text_execute()` or `translate_projects_locations_batch_translate_text`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `translate_projects_locations_batch_translate_text_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn translate_projects_locations_batch_translate_text_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<Operation>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: Operation = serde_json::from_str(&body)
+                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// POST v3/projects/{projectsId}/locations/{locationsId}:batchTranslateText
+/// Translates a large volume of text in asynchronous batch mode. This function provides real-time output as the inputs are being processed. If caller cancels a request, the partial results (for an input file, it's all or nothing) may still be available on the specified output location. This call returns immediately and you can use google.longrunning.Operation.name to poll the status of the call.
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `translate_projects_locations_batch_translate_text_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `translate_projects_locations_batch_translate_text_task()`.
+/// For the simplest API, use `translate_projects_locations_batch_translate_text()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `translate_projects_locations_batch_translate_text_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn translate_projects_locations_batch_translate_text_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<Operation>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let task = translate_projects_locations_batch_translate_text_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`translate_projects_locations_batch_translate_text`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct TranslateProjectsLocationsBatchTranslateTextArgs {
+    /// Path parameter: parent
+    pub parent: String,
+}
+
+/// POST v3/projects/{projectsId}/locations/{locationsId}:batchTranslateText
+/// Translates a large volume of text in asynchronous batch mode. This function provides real-time output as the inputs are being processed. If caller cancels a request, the partial results (for an input file, it's all or nothing) may still be available on the specified output location. This call returns immediately and you can use google.longrunning.Operation.name to poll the status of the call.
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `translate_projects_locations_batch_translate_text_builder()` + `translate_projects_locations_batch_translate_text_execute()`.
+/// For task-level control, use `translate_projects_locations_batch_translate_text_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn translate_projects_locations_batch_translate_text(
+    client: &SimpleHttpClient,
+    args: &TranslateProjectsLocationsBatchTranslateTextArgs,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<Operation>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let builder = translate_projects_locations_batch_translate_text_builder(client, &args.parent)?;
+    translate_projects_locations_batch_translate_text_execute(builder)
+}
+
+/// POST v3/projects/{projectsId}/locations/{locationsId}:detectLanguage
+/// Detects the language of text within a request.
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `translate_projects_locations_detect_language_execute()` to send, or `translate_projects_locations_detect_language` for simplest API.
+
+pub fn translate_projects_locations_detect_language_builder(
+    client: &SimpleHttpClient,
+    parent: &String,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!(
+        "https://translation.googleapis.com/v3/projects/{}/locations/{locationsId}:detectLanguage",
+        parent,
+    );
+
+    // Build request
+    let builder = client
+        .post(&endpoint_url)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// POST v3/projects/{projectsId}/locations/{locationsId}:detectLanguage
+/// Detects the language of text within a request.
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `translate_projects_locations_detect_language_execute()` or `translate_projects_locations_detect_language`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `translate_projects_locations_detect_language_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn translate_projects_locations_detect_language_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<DetectLanguageResponse>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: DetectLanguageResponse = serde_json::from_str(&body)
+                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// POST v3/projects/{projectsId}/locations/{locationsId}:detectLanguage
+/// Detects the language of text within a request.
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `translate_projects_locations_detect_language_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `translate_projects_locations_detect_language_task()`.
+/// For the simplest API, use `translate_projects_locations_detect_language()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `translate_projects_locations_detect_language_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn translate_projects_locations_detect_language_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<DetectLanguageResponse>, ApiError>, P = ApiPending>
+        + Send
+        + 'static,
+    ApiError,
+> {
+    let task = translate_projects_locations_detect_language_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`translate_projects_locations_detect_language`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct TranslateProjectsLocationsDetectLanguageArgs {
+    /// Path parameter: parent
+    pub parent: String,
+}
+
+/// POST v3/projects/{projectsId}/locations/{locationsId}:detectLanguage
+/// Detects the language of text within a request.
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `translate_projects_locations_detect_language_builder()` + `translate_projects_locations_detect_language_execute()`.
+/// For task-level control, use `translate_projects_locations_detect_language_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn translate_projects_locations_detect_language(
+    client: &SimpleHttpClient,
+    args: &TranslateProjectsLocationsDetectLanguageArgs,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<DetectLanguageResponse>, ApiError>, P = ApiPending>
+        + Send
+        + 'static,
+    ApiError,
+> {
+    let builder = translate_projects_locations_detect_language_builder(client, &args.parent)?;
+    translate_projects_locations_detect_language_execute(builder)
+}
+
+/// GET v3/projects/{projectsId}/locations/{locationsId}
+/// Gets information about a location.
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `translate_projects_locations_get_execute()` to send, or `translate_projects_locations_get` for simplest API.
+
+pub fn translate_projects_locations_get_builder(
+    client: &SimpleHttpClient,
+    name: &String,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!(
+        "https://translation.googleapis.com/v3/projects/{}/locations/{locationsId}",
+        name,
+    );
+
+    // Build request
+    let builder = client
+        .get(&endpoint_url)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// GET v3/projects/{projectsId}/locations/{locationsId}
+/// Gets information about a location.
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `translate_projects_locations_get_execute()` or `translate_projects_locations_get`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `translate_projects_locations_get_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn translate_projects_locations_get_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<Location>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: Location = serde_json::from_str(&body)
+                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// GET v3/projects/{projectsId}/locations/{locationsId}
+/// Gets information about a location.
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `translate_projects_locations_get_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `translate_projects_locations_get_task()`.
+/// For the simplest API, use `translate_projects_locations_get()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `translate_projects_locations_get_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn translate_projects_locations_get_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<Location>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let task = translate_projects_locations_get_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`translate_projects_locations_get`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct TranslateProjectsLocationsGetArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
+/// GET v3/projects/{projectsId}/locations/{locationsId}
+/// Gets information about a location.
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `translate_projects_locations_get_builder()` + `translate_projects_locations_get_execute()`.
+/// For task-level control, use `translate_projects_locations_get_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn translate_projects_locations_get(
+    client: &SimpleHttpClient,
+    args: &TranslateProjectsLocationsGetArgs,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<Location>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let builder = translate_projects_locations_get_builder(client, &args.name)?;
+    translate_projects_locations_get_execute(builder)
+}
+
+/// GET v3/projects/{projectsId}/locations/{locationsId}/supportedLanguages
+/// Returns a list of supported languages for translation.
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `translate_projects_locations_get_supported_languages_execute()` to send, or `translate_projects_locations_get_supported_languages` for simplest API.
+
+pub fn translate_projects_locations_get_supported_languages_builder(
+    client: &SimpleHttpClient,
+    parent: &String,
+    displayLanguageCode: &Option<Option<String>>,
+    model: &Option<Option<String>>,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!(
+        "https://translation.googleapis.com/v3/projects/{}/locations/{locationsId}/supportedLanguages",
+        parent,
+    );
+
+    // Build request
+    let mut query_parts = Vec::new();
+    if let Some(val) = displayLanguageCode.as_ref() {
+        query_parts.push(format!("displayLanguageCode={}", val));
+    }
+    if let Some(val) = model.as_ref() {
+        query_parts.push(format!("model={}", val));
+    }
+
+    let url_with_query = if query_parts.is_empty() {
+        endpoint_url
+    } else {
+        format!("{}?{}", endpoint_url, query_parts.join("&"))
+    };
+
+    let builder = client
+        .get(&url_with_query)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// GET v3/projects/{projectsId}/locations/{locationsId}/supportedLanguages
+/// Returns a list of supported languages for translation.
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `translate_projects_locations_get_supported_languages_execute()` or `translate_projects_locations_get_supported_languages`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `translate_projects_locations_get_supported_languages_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn translate_projects_locations_get_supported_languages_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<SupportedLanguages>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: SupportedLanguages = serde_json::from_str(&body)
+                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// GET v3/projects/{projectsId}/locations/{locationsId}/supportedLanguages
+/// Returns a list of supported languages for translation.
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `translate_projects_locations_get_supported_languages_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `translate_projects_locations_get_supported_languages_task()`.
+/// For the simplest API, use `translate_projects_locations_get_supported_languages()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `translate_projects_locations_get_supported_languages_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn translate_projects_locations_get_supported_languages_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<SupportedLanguages>, ApiError>, P = ApiPending>
+        + Send
+        + 'static,
+    ApiError,
+> {
+    let task = translate_projects_locations_get_supported_languages_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`translate_projects_locations_get_supported_languages`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct TranslateProjectsLocationsGetSupportedLanguagesArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Query parameter: displayLanguageCode
+    pub displayLanguageCode: Option<Option<String>>,
+    /// Query parameter: model
+    pub model: Option<Option<String>>,
+}
+
+/// GET v3/projects/{projectsId}/locations/{locationsId}/supportedLanguages
+/// Returns a list of supported languages for translation.
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `translate_projects_locations_get_supported_languages_builder()` + `translate_projects_locations_get_supported_languages_execute()`.
+/// For task-level control, use `translate_projects_locations_get_supported_languages_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn translate_projects_locations_get_supported_languages(
+    client: &SimpleHttpClient,
+    args: &TranslateProjectsLocationsGetSupportedLanguagesArgs,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<SupportedLanguages>, ApiError>, P = ApiPending>
+        + Send
+        + 'static,
+    ApiError,
+> {
+    let builder = translate_projects_locations_get_supported_languages_builder(
+        client,
+        &args.parent,
+        &args.displayLanguageCode,
+        &args.model,
+    )?;
+    translate_projects_locations_get_supported_languages_execute(builder)
 }
 
 /// GET v3/projects/{projectsId}/locations
@@ -702,13 +1682,16 @@ pub fn translate_projects_translate_text(
 pub fn translate_projects_locations_list_builder(
     client: &SimpleHttpClient,
     name: &String,
-    extraLocationTypes: &Option<String>,
-    filter: &Option<String>,
-    pageSize: &Option<i32>,
-    pageToken: &Option<String>,
+    extraLocationTypes: &Option<Option<String>>,
+    filter: &Option<Option<String>>,
+    pageSize: &Option<Option<String>>,
+    pageToken: &Option<Option<String>>,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
-    let endpoint_url = format!("https://translation.googleapis.com/v3/projects/{}/locations",);
+    let endpoint_url = format!(
+        "https://translation.googleapis.com/v3/projects/{}/locations",
+        name,
+    );
 
     // Build request
     let mut query_parts = Vec::new();
@@ -850,13 +1833,13 @@ pub struct TranslateProjectsLocationsListArgs {
     /// Path parameter: name
     pub name: String,
     /// Query parameter: extraLocationTypes
-    pub extraLocationTypes: Option<String>,
+    pub extraLocationTypes: Option<Option<String>>,
     /// Query parameter: filter
-    pub filter: Option<String>,
+    pub filter: Option<Option<String>>,
     /// Query parameter: pageSize
-    pub pageSize: Option<i32>,
+    pub pageSize: Option<Option<String>>,
     /// Query parameter: pageToken
-    pub pageToken: Option<String>,
+    pub pageToken: Option<Option<String>>,
 }
 
 /// GET v3/projects/{projectsId}/locations
@@ -888,4 +1871,8034 @@ pub fn translate_projects_locations_list(
         &args.pageToken,
     )?;
     translate_projects_locations_list_execute(builder)
+}
+
+/// POST v3/projects/{projectsId}/locations/{locationsId}:refineText
+/// Refines the input translated text to improve the quality.
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `translate_projects_locations_refine_text_execute()` to send, or `translate_projects_locations_refine_text` for simplest API.
+
+pub fn translate_projects_locations_refine_text_builder(
+    client: &SimpleHttpClient,
+    parent: &String,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!(
+        "https://translation.googleapis.com/v3/projects/{}/locations/{locationsId}:refineText",
+        parent,
+    );
+
+    // Build request
+    let builder = client
+        .post(&endpoint_url)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// POST v3/projects/{projectsId}/locations/{locationsId}:refineText
+/// Refines the input translated text to improve the quality.
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `translate_projects_locations_refine_text_execute()` or `translate_projects_locations_refine_text`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `translate_projects_locations_refine_text_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn translate_projects_locations_refine_text_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<RefineTextResponse>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: RefineTextResponse = serde_json::from_str(&body)
+                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// POST v3/projects/{projectsId}/locations/{locationsId}:refineText
+/// Refines the input translated text to improve the quality.
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `translate_projects_locations_refine_text_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `translate_projects_locations_refine_text_task()`.
+/// For the simplest API, use `translate_projects_locations_refine_text()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `translate_projects_locations_refine_text_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn translate_projects_locations_refine_text_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<RefineTextResponse>, ApiError>, P = ApiPending>
+        + Send
+        + 'static,
+    ApiError,
+> {
+    let task = translate_projects_locations_refine_text_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`translate_projects_locations_refine_text`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct TranslateProjectsLocationsRefineTextArgs {
+    /// Path parameter: parent
+    pub parent: String,
+}
+
+/// POST v3/projects/{projectsId}/locations/{locationsId}:refineText
+/// Refines the input translated text to improve the quality.
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `translate_projects_locations_refine_text_builder()` + `translate_projects_locations_refine_text_execute()`.
+/// For task-level control, use `translate_projects_locations_refine_text_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn translate_projects_locations_refine_text(
+    client: &SimpleHttpClient,
+    args: &TranslateProjectsLocationsRefineTextArgs,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<RefineTextResponse>, ApiError>, P = ApiPending>
+        + Send
+        + 'static,
+    ApiError,
+> {
+    let builder = translate_projects_locations_refine_text_builder(client, &args.parent)?;
+    translate_projects_locations_refine_text_execute(builder)
+}
+
+/// POST v3/projects/{projectsId}/locations/{locationsId}:romanizeText
+/// Romanize input text written in non-Latin scripts to Latin text.
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `translate_projects_locations_romanize_text_execute()` to send, or `translate_projects_locations_romanize_text` for simplest API.
+
+pub fn translate_projects_locations_romanize_text_builder(
+    client: &SimpleHttpClient,
+    parent: &String,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!(
+        "https://translation.googleapis.com/v3/projects/{}/locations/{locationsId}:romanizeText",
+        parent,
+    );
+
+    // Build request
+    let builder = client
+        .post(&endpoint_url)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// POST v3/projects/{projectsId}/locations/{locationsId}:romanizeText
+/// Romanize input text written in non-Latin scripts to Latin text.
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `translate_projects_locations_romanize_text_execute()` or `translate_projects_locations_romanize_text`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `translate_projects_locations_romanize_text_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn translate_projects_locations_romanize_text_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<RomanizeTextResponse>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: RomanizeTextResponse = serde_json::from_str(&body)
+                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// POST v3/projects/{projectsId}/locations/{locationsId}:romanizeText
+/// Romanize input text written in non-Latin scripts to Latin text.
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `translate_projects_locations_romanize_text_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `translate_projects_locations_romanize_text_task()`.
+/// For the simplest API, use `translate_projects_locations_romanize_text()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `translate_projects_locations_romanize_text_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn translate_projects_locations_romanize_text_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<RomanizeTextResponse>, ApiError>, P = ApiPending>
+        + Send
+        + 'static,
+    ApiError,
+> {
+    let task = translate_projects_locations_romanize_text_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`translate_projects_locations_romanize_text`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct TranslateProjectsLocationsRomanizeTextArgs {
+    /// Path parameter: parent
+    pub parent: String,
+}
+
+/// POST v3/projects/{projectsId}/locations/{locationsId}:romanizeText
+/// Romanize input text written in non-Latin scripts to Latin text.
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `translate_projects_locations_romanize_text_builder()` + `translate_projects_locations_romanize_text_execute()`.
+/// For task-level control, use `translate_projects_locations_romanize_text_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn translate_projects_locations_romanize_text(
+    client: &SimpleHttpClient,
+    args: &TranslateProjectsLocationsRomanizeTextArgs,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<RomanizeTextResponse>, ApiError>, P = ApiPending>
+        + Send
+        + 'static,
+    ApiError,
+> {
+    let builder = translate_projects_locations_romanize_text_builder(client, &args.parent)?;
+    translate_projects_locations_romanize_text_execute(builder)
+}
+
+/// POST v3/projects/{projectsId}/locations/{locationsId}:translateDocument
+/// Translates documents in synchronous mode.
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `translate_projects_locations_translate_document_execute()` to send, or `translate_projects_locations_translate_document` for simplest API.
+
+pub fn translate_projects_locations_translate_document_builder(
+    client: &SimpleHttpClient,
+    parent: &String,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!(
+        "https://translation.googleapis.com/v3/projects/{}/locations/{locationsId}:translateDocument",
+        parent,
+    );
+
+    // Build request
+    let builder = client
+        .post(&endpoint_url)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// POST v3/projects/{projectsId}/locations/{locationsId}:translateDocument
+/// Translates documents in synchronous mode.
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `translate_projects_locations_translate_document_execute()` or `translate_projects_locations_translate_document`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `translate_projects_locations_translate_document_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn translate_projects_locations_translate_document_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<TranslateDocumentResponse>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: TranslateDocumentResponse = serde_json::from_str(&body)
+                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// POST v3/projects/{projectsId}/locations/{locationsId}:translateDocument
+/// Translates documents in synchronous mode.
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `translate_projects_locations_translate_document_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `translate_projects_locations_translate_document_task()`.
+/// For the simplest API, use `translate_projects_locations_translate_document()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `translate_projects_locations_translate_document_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn translate_projects_locations_translate_document_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<TranslateDocumentResponse>, ApiError>, P = ApiPending>
+        + Send
+        + 'static,
+    ApiError,
+> {
+    let task = translate_projects_locations_translate_document_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`translate_projects_locations_translate_document`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct TranslateProjectsLocationsTranslateDocumentArgs {
+    /// Path parameter: parent
+    pub parent: String,
+}
+
+/// POST v3/projects/{projectsId}/locations/{locationsId}:translateDocument
+/// Translates documents in synchronous mode.
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `translate_projects_locations_translate_document_builder()` + `translate_projects_locations_translate_document_execute()`.
+/// For task-level control, use `translate_projects_locations_translate_document_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn translate_projects_locations_translate_document(
+    client: &SimpleHttpClient,
+    args: &TranslateProjectsLocationsTranslateDocumentArgs,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<TranslateDocumentResponse>, ApiError>, P = ApiPending>
+        + Send
+        + 'static,
+    ApiError,
+> {
+    let builder = translate_projects_locations_translate_document_builder(client, &args.parent)?;
+    translate_projects_locations_translate_document_execute(builder)
+}
+
+/// POST v3/projects/{projectsId}/locations/{locationsId}:translateText
+/// Translates input text and returns translated text.
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `translate_projects_locations_translate_text_execute()` to send, or `translate_projects_locations_translate_text` for simplest API.
+
+pub fn translate_projects_locations_translate_text_builder(
+    client: &SimpleHttpClient,
+    parent: &String,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!(
+        "https://translation.googleapis.com/v3/projects/{}/locations/{locationsId}:translateText",
+        parent,
+    );
+
+    // Build request
+    let builder = client
+        .post(&endpoint_url)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// POST v3/projects/{projectsId}/locations/{locationsId}:translateText
+/// Translates input text and returns translated text.
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `translate_projects_locations_translate_text_execute()` or `translate_projects_locations_translate_text`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `translate_projects_locations_translate_text_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn translate_projects_locations_translate_text_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<TranslateTextResponse>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: TranslateTextResponse = serde_json::from_str(&body)
+                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// POST v3/projects/{projectsId}/locations/{locationsId}:translateText
+/// Translates input text and returns translated text.
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `translate_projects_locations_translate_text_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `translate_projects_locations_translate_text_task()`.
+/// For the simplest API, use `translate_projects_locations_translate_text()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `translate_projects_locations_translate_text_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn translate_projects_locations_translate_text_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<TranslateTextResponse>, ApiError>, P = ApiPending>
+        + Send
+        + 'static,
+    ApiError,
+> {
+    let task = translate_projects_locations_translate_text_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`translate_projects_locations_translate_text`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct TranslateProjectsLocationsTranslateTextArgs {
+    /// Path parameter: parent
+    pub parent: String,
+}
+
+/// POST v3/projects/{projectsId}/locations/{locationsId}:translateText
+/// Translates input text and returns translated text.
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `translate_projects_locations_translate_text_builder()` + `translate_projects_locations_translate_text_execute()`.
+/// For task-level control, use `translate_projects_locations_translate_text_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn translate_projects_locations_translate_text(
+    client: &SimpleHttpClient,
+    args: &TranslateProjectsLocationsTranslateTextArgs,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<TranslateTextResponse>, ApiError>, P = ApiPending>
+        + Send
+        + 'static,
+    ApiError,
+> {
+    let builder = translate_projects_locations_translate_text_builder(client, &args.parent)?;
+    translate_projects_locations_translate_text_execute(builder)
+}
+
+/// POST v3/projects/{projectsId}/locations/{locationsId}/adaptiveMtDatasets
+/// Creates an Adaptive MT dataset.
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `translate_projects_locations_adaptive_mt_datasets_create_execute()` to send, or `translate_projects_locations_adaptive_mt_datasets_create` for simplest API.
+
+pub fn translate_projects_locations_adaptive_mt_datasets_create_builder(
+    client: &SimpleHttpClient,
+    parent: &String,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!(
+        "https://translation.googleapis.com/v3/projects/{}/locations/{locationsId}/adaptiveMtDatasets",
+        parent,
+    );
+
+    // Build request
+    let builder = client
+        .post(&endpoint_url)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// POST v3/projects/{projectsId}/locations/{locationsId}/adaptiveMtDatasets
+/// Creates an Adaptive MT dataset.
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `translate_projects_locations_adaptive_mt_datasets_create_execute()` or `translate_projects_locations_adaptive_mt_datasets_create`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `translate_projects_locations_adaptive_mt_datasets_create_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn translate_projects_locations_adaptive_mt_datasets_create_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<AdaptiveMtDataset>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: AdaptiveMtDataset = serde_json::from_str(&body)
+                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// POST v3/projects/{projectsId}/locations/{locationsId}/adaptiveMtDatasets
+/// Creates an Adaptive MT dataset.
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `translate_projects_locations_adaptive_mt_datasets_create_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `translate_projects_locations_adaptive_mt_datasets_create_task()`.
+/// For the simplest API, use `translate_projects_locations_adaptive_mt_datasets_create()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `translate_projects_locations_adaptive_mt_datasets_create_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn translate_projects_locations_adaptive_mt_datasets_create_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<AdaptiveMtDataset>, ApiError>, P = ApiPending>
+        + Send
+        + 'static,
+    ApiError,
+> {
+    let task = translate_projects_locations_adaptive_mt_datasets_create_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`translate_projects_locations_adaptive_mt_datasets_create`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct TranslateProjectsLocationsAdaptiveMtDatasetsCreateArgs {
+    /// Path parameter: parent
+    pub parent: String,
+}
+
+/// POST v3/projects/{projectsId}/locations/{locationsId}/adaptiveMtDatasets
+/// Creates an Adaptive MT dataset.
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `translate_projects_locations_adaptive_mt_datasets_create_builder()` + `translate_projects_locations_adaptive_mt_datasets_create_execute()`.
+/// For task-level control, use `translate_projects_locations_adaptive_mt_datasets_create_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn translate_projects_locations_adaptive_mt_datasets_create(
+    client: &SimpleHttpClient,
+    args: &TranslateProjectsLocationsAdaptiveMtDatasetsCreateArgs,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<AdaptiveMtDataset>, ApiError>, P = ApiPending>
+        + Send
+        + 'static,
+    ApiError,
+> {
+    let builder =
+        translate_projects_locations_adaptive_mt_datasets_create_builder(client, &args.parent)?;
+    translate_projects_locations_adaptive_mt_datasets_create_execute(builder)
+}
+
+/// DELETE v3/projects/{projectsId}/locations/{locationsId}/adaptiveMtDatasets/{adaptiveMtDatasetsId}
+/// Deletes an Adaptive MT dataset, including all its entries and associated metadata.
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `translate_projects_locations_adaptive_mt_datasets_delete_execute()` to send, or `translate_projects_locations_adaptive_mt_datasets_delete` for simplest API.
+
+pub fn translate_projects_locations_adaptive_mt_datasets_delete_builder(
+    client: &SimpleHttpClient,
+    name: &String,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!(
+        "https://translation.googleapis.com/v3/projects/{}/locations/{locationsId}/adaptiveMtDatasets/{adaptiveMtDatasetsId}",
+        name,
+    );
+
+    // Build request
+    let builder = client
+        .delete(&endpoint_url)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// DELETE v3/projects/{projectsId}/locations/{locationsId}/adaptiveMtDatasets/{adaptiveMtDatasetsId}
+/// Deletes an Adaptive MT dataset, including all its entries and associated metadata.
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `translate_projects_locations_adaptive_mt_datasets_delete_execute()` or `translate_projects_locations_adaptive_mt_datasets_delete`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `translate_projects_locations_adaptive_mt_datasets_delete_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn translate_projects_locations_adaptive_mt_datasets_delete_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<Empty>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: Empty = serde_json::from_str(&body)
+                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// DELETE v3/projects/{projectsId}/locations/{locationsId}/adaptiveMtDatasets/{adaptiveMtDatasetsId}
+/// Deletes an Adaptive MT dataset, including all its entries and associated metadata.
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `translate_projects_locations_adaptive_mt_datasets_delete_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `translate_projects_locations_adaptive_mt_datasets_delete_task()`.
+/// For the simplest API, use `translate_projects_locations_adaptive_mt_datasets_delete()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `translate_projects_locations_adaptive_mt_datasets_delete_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn translate_projects_locations_adaptive_mt_datasets_delete_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<Empty>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let task = translate_projects_locations_adaptive_mt_datasets_delete_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`translate_projects_locations_adaptive_mt_datasets_delete`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct TranslateProjectsLocationsAdaptiveMtDatasetsDeleteArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
+/// DELETE v3/projects/{projectsId}/locations/{locationsId}/adaptiveMtDatasets/{adaptiveMtDatasetsId}
+/// Deletes an Adaptive MT dataset, including all its entries and associated metadata.
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `translate_projects_locations_adaptive_mt_datasets_delete_builder()` + `translate_projects_locations_adaptive_mt_datasets_delete_execute()`.
+/// For task-level control, use `translate_projects_locations_adaptive_mt_datasets_delete_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn translate_projects_locations_adaptive_mt_datasets_delete(
+    client: &SimpleHttpClient,
+    args: &TranslateProjectsLocationsAdaptiveMtDatasetsDeleteArgs,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<Empty>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let builder =
+        translate_projects_locations_adaptive_mt_datasets_delete_builder(client, &args.name)?;
+    translate_projects_locations_adaptive_mt_datasets_delete_execute(builder)
+}
+
+/// GET v3/projects/{projectsId}/locations/{locationsId}/adaptiveMtDatasets/{adaptiveMtDatasetsId}
+/// Gets the Adaptive MT dataset.
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `translate_projects_locations_adaptive_mt_datasets_get_execute()` to send, or `translate_projects_locations_adaptive_mt_datasets_get` for simplest API.
+
+pub fn translate_projects_locations_adaptive_mt_datasets_get_builder(
+    client: &SimpleHttpClient,
+    name: &String,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!(
+        "https://translation.googleapis.com/v3/projects/{}/locations/{locationsId}/adaptiveMtDatasets/{adaptiveMtDatasetsId}",
+        name,
+    );
+
+    // Build request
+    let builder = client
+        .get(&endpoint_url)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// GET v3/projects/{projectsId}/locations/{locationsId}/adaptiveMtDatasets/{adaptiveMtDatasetsId}
+/// Gets the Adaptive MT dataset.
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `translate_projects_locations_adaptive_mt_datasets_get_execute()` or `translate_projects_locations_adaptive_mt_datasets_get`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `translate_projects_locations_adaptive_mt_datasets_get_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn translate_projects_locations_adaptive_mt_datasets_get_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<AdaptiveMtDataset>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: AdaptiveMtDataset = serde_json::from_str(&body)
+                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// GET v3/projects/{projectsId}/locations/{locationsId}/adaptiveMtDatasets/{adaptiveMtDatasetsId}
+/// Gets the Adaptive MT dataset.
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `translate_projects_locations_adaptive_mt_datasets_get_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `translate_projects_locations_adaptive_mt_datasets_get_task()`.
+/// For the simplest API, use `translate_projects_locations_adaptive_mt_datasets_get()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `translate_projects_locations_adaptive_mt_datasets_get_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn translate_projects_locations_adaptive_mt_datasets_get_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<AdaptiveMtDataset>, ApiError>, P = ApiPending>
+        + Send
+        + 'static,
+    ApiError,
+> {
+    let task = translate_projects_locations_adaptive_mt_datasets_get_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`translate_projects_locations_adaptive_mt_datasets_get`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct TranslateProjectsLocationsAdaptiveMtDatasetsGetArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
+/// GET v3/projects/{projectsId}/locations/{locationsId}/adaptiveMtDatasets/{adaptiveMtDatasetsId}
+/// Gets the Adaptive MT dataset.
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `translate_projects_locations_adaptive_mt_datasets_get_builder()` + `translate_projects_locations_adaptive_mt_datasets_get_execute()`.
+/// For task-level control, use `translate_projects_locations_adaptive_mt_datasets_get_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn translate_projects_locations_adaptive_mt_datasets_get(
+    client: &SimpleHttpClient,
+    args: &TranslateProjectsLocationsAdaptiveMtDatasetsGetArgs,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<AdaptiveMtDataset>, ApiError>, P = ApiPending>
+        + Send
+        + 'static,
+    ApiError,
+> {
+    let builder =
+        translate_projects_locations_adaptive_mt_datasets_get_builder(client, &args.name)?;
+    translate_projects_locations_adaptive_mt_datasets_get_execute(builder)
+}
+
+/// POST v3/projects/{projectsId}/locations/{locationsId}/adaptiveMtDatasets/{adaptiveMtDatasetsId}:importAdaptiveMtFile
+/// Imports an AdaptiveMtFile and adds all of its sentences into the AdaptiveMtDataset.
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `translate_projects_locations_adaptive_mt_datasets_import_adaptive_mt_file_execute()` to send, or `translate_projects_locations_adaptive_mt_datasets_import_adaptive_mt_file` for simplest API.
+
+pub fn translate_projects_locations_adaptive_mt_datasets_import_adaptive_mt_file_builder(
+    client: &SimpleHttpClient,
+    parent: &String,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!(
+        "https://translation.googleapis.com/v3/projects/{}/locations/{locationsId}/adaptiveMtDatasets/{adaptiveMtDatasetsId}:importAdaptiveMtFile",
+        parent,
+    );
+
+    // Build request
+    let builder = client
+        .post(&endpoint_url)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// POST v3/projects/{projectsId}/locations/{locationsId}/adaptiveMtDatasets/{adaptiveMtDatasetsId}:importAdaptiveMtFile
+/// Imports an AdaptiveMtFile and adds all of its sentences into the AdaptiveMtDataset.
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `translate_projects_locations_adaptive_mt_datasets_import_adaptive_mt_file_execute()` or `translate_projects_locations_adaptive_mt_datasets_import_adaptive_mt_file`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `translate_projects_locations_adaptive_mt_datasets_import_adaptive_mt_file_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn translate_projects_locations_adaptive_mt_datasets_import_adaptive_mt_file_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<ImportAdaptiveMtFileResponse>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: ImportAdaptiveMtFileResponse = serde_json::from_str(&body)
+                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// POST v3/projects/{projectsId}/locations/{locationsId}/adaptiveMtDatasets/{adaptiveMtDatasetsId}:importAdaptiveMtFile
+/// Imports an AdaptiveMtFile and adds all of its sentences into the AdaptiveMtDataset.
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `translate_projects_locations_adaptive_mt_datasets_import_adaptive_mt_file_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `translate_projects_locations_adaptive_mt_datasets_import_adaptive_mt_file_task()`.
+/// For the simplest API, use `translate_projects_locations_adaptive_mt_datasets_import_adaptive_mt_file()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `translate_projects_locations_adaptive_mt_datasets_import_adaptive_mt_file_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn translate_projects_locations_adaptive_mt_datasets_import_adaptive_mt_file_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<
+            D = Result<ApiResponse<ImportAdaptiveMtFileResponse>, ApiError>,
+            P = ApiPending,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    let task =
+        translate_projects_locations_adaptive_mt_datasets_import_adaptive_mt_file_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`translate_projects_locations_adaptive_mt_datasets_import_adaptive_mt_file`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct TranslateProjectsLocationsAdaptiveMtDatasetsImportAdaptiveMtFileArgs {
+    /// Path parameter: parent
+    pub parent: String,
+}
+
+/// POST v3/projects/{projectsId}/locations/{locationsId}/adaptiveMtDatasets/{adaptiveMtDatasetsId}:importAdaptiveMtFile
+/// Imports an AdaptiveMtFile and adds all of its sentences into the AdaptiveMtDataset.
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `translate_projects_locations_adaptive_mt_datasets_import_adaptive_mt_file_builder()` + `translate_projects_locations_adaptive_mt_datasets_import_adaptive_mt_file_execute()`.
+/// For task-level control, use `translate_projects_locations_adaptive_mt_datasets_import_adaptive_mt_file_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn translate_projects_locations_adaptive_mt_datasets_import_adaptive_mt_file(
+    client: &SimpleHttpClient,
+    args: &TranslateProjectsLocationsAdaptiveMtDatasetsImportAdaptiveMtFileArgs,
+) -> Result<
+    impl StreamIterator<
+            D = Result<ApiResponse<ImportAdaptiveMtFileResponse>, ApiError>,
+            P = ApiPending,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    let builder =
+        translate_projects_locations_adaptive_mt_datasets_import_adaptive_mt_file_builder(
+            client,
+            &args.parent,
+        )?;
+    translate_projects_locations_adaptive_mt_datasets_import_adaptive_mt_file_execute(builder)
+}
+
+/// GET v3/projects/{projectsId}/locations/{locationsId}/adaptiveMtDatasets
+/// Lists all Adaptive MT datasets for which the caller has read permission.
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `translate_projects_locations_adaptive_mt_datasets_list_execute()` to send, or `translate_projects_locations_adaptive_mt_datasets_list` for simplest API.
+
+pub fn translate_projects_locations_adaptive_mt_datasets_list_builder(
+    client: &SimpleHttpClient,
+    parent: &String,
+    filter: &Option<Option<String>>,
+    pageSize: &Option<Option<String>>,
+    pageToken: &Option<Option<String>>,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!(
+        "https://translation.googleapis.com/v3/projects/{}/locations/{locationsId}/adaptiveMtDatasets",
+        parent,
+    );
+
+    // Build request
+    let mut query_parts = Vec::new();
+    if let Some(val) = filter.as_ref() {
+        query_parts.push(format!("filter={}", val));
+    }
+    if let Some(val) = pageSize.as_ref() {
+        query_parts.push(format!("pageSize={}", val));
+    }
+    if let Some(val) = pageToken.as_ref() {
+        query_parts.push(format!("pageToken={}", val));
+    }
+
+    let url_with_query = if query_parts.is_empty() {
+        endpoint_url
+    } else {
+        format!("{}?{}", endpoint_url, query_parts.join("&"))
+    };
+
+    let builder = client
+        .get(&url_with_query)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// GET v3/projects/{projectsId}/locations/{locationsId}/adaptiveMtDatasets
+/// Lists all Adaptive MT datasets for which the caller has read permission.
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `translate_projects_locations_adaptive_mt_datasets_list_execute()` or `translate_projects_locations_adaptive_mt_datasets_list`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `translate_projects_locations_adaptive_mt_datasets_list_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn translate_projects_locations_adaptive_mt_datasets_list_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<ListAdaptiveMtDatasetsResponse>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: ListAdaptiveMtDatasetsResponse = serde_json::from_str(&body)
+                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// GET v3/projects/{projectsId}/locations/{locationsId}/adaptiveMtDatasets
+/// Lists all Adaptive MT datasets for which the caller has read permission.
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `translate_projects_locations_adaptive_mt_datasets_list_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `translate_projects_locations_adaptive_mt_datasets_list_task()`.
+/// For the simplest API, use `translate_projects_locations_adaptive_mt_datasets_list()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `translate_projects_locations_adaptive_mt_datasets_list_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn translate_projects_locations_adaptive_mt_datasets_list_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<
+            D = Result<ApiResponse<ListAdaptiveMtDatasetsResponse>, ApiError>,
+            P = ApiPending,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    let task = translate_projects_locations_adaptive_mt_datasets_list_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`translate_projects_locations_adaptive_mt_datasets_list`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct TranslateProjectsLocationsAdaptiveMtDatasetsListArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Query parameter: filter
+    pub filter: Option<Option<String>>,
+    /// Query parameter: pageSize
+    pub pageSize: Option<Option<String>>,
+    /// Query parameter: pageToken
+    pub pageToken: Option<Option<String>>,
+}
+
+/// GET v3/projects/{projectsId}/locations/{locationsId}/adaptiveMtDatasets
+/// Lists all Adaptive MT datasets for which the caller has read permission.
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `translate_projects_locations_adaptive_mt_datasets_list_builder()` + `translate_projects_locations_adaptive_mt_datasets_list_execute()`.
+/// For task-level control, use `translate_projects_locations_adaptive_mt_datasets_list_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn translate_projects_locations_adaptive_mt_datasets_list(
+    client: &SimpleHttpClient,
+    args: &TranslateProjectsLocationsAdaptiveMtDatasetsListArgs,
+) -> Result<
+    impl StreamIterator<
+            D = Result<ApiResponse<ListAdaptiveMtDatasetsResponse>, ApiError>,
+            P = ApiPending,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    let builder = translate_projects_locations_adaptive_mt_datasets_list_builder(
+        client,
+        &args.parent,
+        &args.filter,
+        &args.pageSize,
+        &args.pageToken,
+    )?;
+    translate_projects_locations_adaptive_mt_datasets_list_execute(builder)
+}
+
+/// DELETE v3/projects/{projectsId}/locations/{locationsId}/adaptiveMtDatasets/{adaptiveMtDatasetsId}/adaptiveMtFiles/{adaptiveMtFilesId}
+/// Deletes an AdaptiveMtFile along with its sentences.
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `translate_projects_locations_adaptive_mt_datasets_adaptive_mt_files_delete_execute()` to send, or `translate_projects_locations_adaptive_mt_datasets_adaptive_mt_files_delete` for simplest API.
+
+pub fn translate_projects_locations_adaptive_mt_datasets_adaptive_mt_files_delete_builder(
+    client: &SimpleHttpClient,
+    name: &String,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!(
+        "https://translation.googleapis.com/v3/projects/{}/locations/{locationsId}/adaptiveMtDatasets/{adaptiveMtDatasetsId}/adaptiveMtFiles/{adaptiveMtFilesId}",
+        name,
+    );
+
+    // Build request
+    let builder = client
+        .delete(&endpoint_url)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// DELETE v3/projects/{projectsId}/locations/{locationsId}/adaptiveMtDatasets/{adaptiveMtDatasetsId}/adaptiveMtFiles/{adaptiveMtFilesId}
+/// Deletes an AdaptiveMtFile along with its sentences.
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `translate_projects_locations_adaptive_mt_datasets_adaptive_mt_files_delete_execute()` or `translate_projects_locations_adaptive_mt_datasets_adaptive_mt_files_delete`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `translate_projects_locations_adaptive_mt_datasets_adaptive_mt_files_delete_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn translate_projects_locations_adaptive_mt_datasets_adaptive_mt_files_delete_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<Empty>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: Empty = serde_json::from_str(&body)
+                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// DELETE v3/projects/{projectsId}/locations/{locationsId}/adaptiveMtDatasets/{adaptiveMtDatasetsId}/adaptiveMtFiles/{adaptiveMtFilesId}
+/// Deletes an AdaptiveMtFile along with its sentences.
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `translate_projects_locations_adaptive_mt_datasets_adaptive_mt_files_delete_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `translate_projects_locations_adaptive_mt_datasets_adaptive_mt_files_delete_task()`.
+/// For the simplest API, use `translate_projects_locations_adaptive_mt_datasets_adaptive_mt_files_delete()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `translate_projects_locations_adaptive_mt_datasets_adaptive_mt_files_delete_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn translate_projects_locations_adaptive_mt_datasets_adaptive_mt_files_delete_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<Empty>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let task =
+        translate_projects_locations_adaptive_mt_datasets_adaptive_mt_files_delete_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`translate_projects_locations_adaptive_mt_datasets_adaptive_mt_files_delete`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct TranslateProjectsLocationsAdaptiveMtDatasetsAdaptiveMtFilesDeleteArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
+/// DELETE v3/projects/{projectsId}/locations/{locationsId}/adaptiveMtDatasets/{adaptiveMtDatasetsId}/adaptiveMtFiles/{adaptiveMtFilesId}
+/// Deletes an AdaptiveMtFile along with its sentences.
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `translate_projects_locations_adaptive_mt_datasets_adaptive_mt_files_delete_builder()` + `translate_projects_locations_adaptive_mt_datasets_adaptive_mt_files_delete_execute()`.
+/// For task-level control, use `translate_projects_locations_adaptive_mt_datasets_adaptive_mt_files_delete_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn translate_projects_locations_adaptive_mt_datasets_adaptive_mt_files_delete(
+    client: &SimpleHttpClient,
+    args: &TranslateProjectsLocationsAdaptiveMtDatasetsAdaptiveMtFilesDeleteArgs,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<Empty>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let builder =
+        translate_projects_locations_adaptive_mt_datasets_adaptive_mt_files_delete_builder(
+            client, &args.name,
+        )?;
+    translate_projects_locations_adaptive_mt_datasets_adaptive_mt_files_delete_execute(builder)
+}
+
+/// GET v3/projects/{projectsId}/locations/{locationsId}/adaptiveMtDatasets/{adaptiveMtDatasetsId}/adaptiveMtFiles/{adaptiveMtFilesId}
+/// Gets and AdaptiveMtFile
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `translate_projects_locations_adaptive_mt_datasets_adaptive_mt_files_get_execute()` to send, or `translate_projects_locations_adaptive_mt_datasets_adaptive_mt_files_get` for simplest API.
+
+pub fn translate_projects_locations_adaptive_mt_datasets_adaptive_mt_files_get_builder(
+    client: &SimpleHttpClient,
+    name: &String,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!(
+        "https://translation.googleapis.com/v3/projects/{}/locations/{locationsId}/adaptiveMtDatasets/{adaptiveMtDatasetsId}/adaptiveMtFiles/{adaptiveMtFilesId}",
+        name,
+    );
+
+    // Build request
+    let builder = client
+        .get(&endpoint_url)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// GET v3/projects/{projectsId}/locations/{locationsId}/adaptiveMtDatasets/{adaptiveMtDatasetsId}/adaptiveMtFiles/{adaptiveMtFilesId}
+/// Gets and AdaptiveMtFile
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `translate_projects_locations_adaptive_mt_datasets_adaptive_mt_files_get_execute()` or `translate_projects_locations_adaptive_mt_datasets_adaptive_mt_files_get`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `translate_projects_locations_adaptive_mt_datasets_adaptive_mt_files_get_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn translate_projects_locations_adaptive_mt_datasets_adaptive_mt_files_get_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<AdaptiveMtFile>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: AdaptiveMtFile = serde_json::from_str(&body)
+                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// GET v3/projects/{projectsId}/locations/{locationsId}/adaptiveMtDatasets/{adaptiveMtDatasetsId}/adaptiveMtFiles/{adaptiveMtFilesId}
+/// Gets and AdaptiveMtFile
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `translate_projects_locations_adaptive_mt_datasets_adaptive_mt_files_get_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `translate_projects_locations_adaptive_mt_datasets_adaptive_mt_files_get_task()`.
+/// For the simplest API, use `translate_projects_locations_adaptive_mt_datasets_adaptive_mt_files_get()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `translate_projects_locations_adaptive_mt_datasets_adaptive_mt_files_get_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn translate_projects_locations_adaptive_mt_datasets_adaptive_mt_files_get_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<AdaptiveMtFile>, ApiError>, P = ApiPending>
+        + Send
+        + 'static,
+    ApiError,
+> {
+    let task =
+        translate_projects_locations_adaptive_mt_datasets_adaptive_mt_files_get_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`translate_projects_locations_adaptive_mt_datasets_adaptive_mt_files_get`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct TranslateProjectsLocationsAdaptiveMtDatasetsAdaptiveMtFilesGetArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
+/// GET v3/projects/{projectsId}/locations/{locationsId}/adaptiveMtDatasets/{adaptiveMtDatasetsId}/adaptiveMtFiles/{adaptiveMtFilesId}
+/// Gets and AdaptiveMtFile
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `translate_projects_locations_adaptive_mt_datasets_adaptive_mt_files_get_builder()` + `translate_projects_locations_adaptive_mt_datasets_adaptive_mt_files_get_execute()`.
+/// For task-level control, use `translate_projects_locations_adaptive_mt_datasets_adaptive_mt_files_get_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn translate_projects_locations_adaptive_mt_datasets_adaptive_mt_files_get(
+    client: &SimpleHttpClient,
+    args: &TranslateProjectsLocationsAdaptiveMtDatasetsAdaptiveMtFilesGetArgs,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<AdaptiveMtFile>, ApiError>, P = ApiPending>
+        + Send
+        + 'static,
+    ApiError,
+> {
+    let builder = translate_projects_locations_adaptive_mt_datasets_adaptive_mt_files_get_builder(
+        client, &args.name,
+    )?;
+    translate_projects_locations_adaptive_mt_datasets_adaptive_mt_files_get_execute(builder)
+}
+
+/// GET v3/projects/{projectsId}/locations/{locationsId}/adaptiveMtDatasets/{adaptiveMtDatasetsId}/adaptiveMtFiles
+/// Lists all AdaptiveMtFiles associated to an AdaptiveMtDataset.
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `translate_projects_locations_adaptive_mt_datasets_adaptive_mt_files_list_execute()` to send, or `translate_projects_locations_adaptive_mt_datasets_adaptive_mt_files_list` for simplest API.
+
+pub fn translate_projects_locations_adaptive_mt_datasets_adaptive_mt_files_list_builder(
+    client: &SimpleHttpClient,
+    parent: &String,
+    pageSize: &Option<Option<String>>,
+    pageToken: &Option<Option<String>>,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!(
+        "https://translation.googleapis.com/v3/projects/{}/locations/{locationsId}/adaptiveMtDatasets/{adaptiveMtDatasetsId}/adaptiveMtFiles",
+        parent,
+    );
+
+    // Build request
+    let mut query_parts = Vec::new();
+    if let Some(val) = pageSize.as_ref() {
+        query_parts.push(format!("pageSize={}", val));
+    }
+    if let Some(val) = pageToken.as_ref() {
+        query_parts.push(format!("pageToken={}", val));
+    }
+
+    let url_with_query = if query_parts.is_empty() {
+        endpoint_url
+    } else {
+        format!("{}?{}", endpoint_url, query_parts.join("&"))
+    };
+
+    let builder = client
+        .get(&url_with_query)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// GET v3/projects/{projectsId}/locations/{locationsId}/adaptiveMtDatasets/{adaptiveMtDatasetsId}/adaptiveMtFiles
+/// Lists all AdaptiveMtFiles associated to an AdaptiveMtDataset.
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `translate_projects_locations_adaptive_mt_datasets_adaptive_mt_files_list_execute()` or `translate_projects_locations_adaptive_mt_datasets_adaptive_mt_files_list`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `translate_projects_locations_adaptive_mt_datasets_adaptive_mt_files_list_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn translate_projects_locations_adaptive_mt_datasets_adaptive_mt_files_list_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<ListAdaptiveMtFilesResponse>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: ListAdaptiveMtFilesResponse = serde_json::from_str(&body)
+                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// GET v3/projects/{projectsId}/locations/{locationsId}/adaptiveMtDatasets/{adaptiveMtDatasetsId}/adaptiveMtFiles
+/// Lists all AdaptiveMtFiles associated to an AdaptiveMtDataset.
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `translate_projects_locations_adaptive_mt_datasets_adaptive_mt_files_list_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `translate_projects_locations_adaptive_mt_datasets_adaptive_mt_files_list_task()`.
+/// For the simplest API, use `translate_projects_locations_adaptive_mt_datasets_adaptive_mt_files_list()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `translate_projects_locations_adaptive_mt_datasets_adaptive_mt_files_list_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn translate_projects_locations_adaptive_mt_datasets_adaptive_mt_files_list_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<
+            D = Result<ApiResponse<ListAdaptiveMtFilesResponse>, ApiError>,
+            P = ApiPending,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    let task =
+        translate_projects_locations_adaptive_mt_datasets_adaptive_mt_files_list_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`translate_projects_locations_adaptive_mt_datasets_adaptive_mt_files_list`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct TranslateProjectsLocationsAdaptiveMtDatasetsAdaptiveMtFilesListArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Query parameter: pageSize
+    pub pageSize: Option<Option<String>>,
+    /// Query parameter: pageToken
+    pub pageToken: Option<Option<String>>,
+}
+
+/// GET v3/projects/{projectsId}/locations/{locationsId}/adaptiveMtDatasets/{adaptiveMtDatasetsId}/adaptiveMtFiles
+/// Lists all AdaptiveMtFiles associated to an AdaptiveMtDataset.
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `translate_projects_locations_adaptive_mt_datasets_adaptive_mt_files_list_builder()` + `translate_projects_locations_adaptive_mt_datasets_adaptive_mt_files_list_execute()`.
+/// For task-level control, use `translate_projects_locations_adaptive_mt_datasets_adaptive_mt_files_list_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn translate_projects_locations_adaptive_mt_datasets_adaptive_mt_files_list(
+    client: &SimpleHttpClient,
+    args: &TranslateProjectsLocationsAdaptiveMtDatasetsAdaptiveMtFilesListArgs,
+) -> Result<
+    impl StreamIterator<
+            D = Result<ApiResponse<ListAdaptiveMtFilesResponse>, ApiError>,
+            P = ApiPending,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    let builder = translate_projects_locations_adaptive_mt_datasets_adaptive_mt_files_list_builder(
+        client,
+        &args.parent,
+        &args.pageSize,
+        &args.pageToken,
+    )?;
+    translate_projects_locations_adaptive_mt_datasets_adaptive_mt_files_list_execute(builder)
+}
+
+/// GET v3/projects/{projectsId}/locations/{locationsId}/adaptiveMtDatasets/{adaptiveMtDatasetsId}/adaptiveMtFiles/{adaptiveMtFilesId}/adaptiveMtSentences
+/// Lists all AdaptiveMtSentences under a given `file/dataset`.
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `translate_projects_locations_adaptive_mt_datasets_adaptive_mt_files_adaptive_mt_sentences_list_execute()` to send, or `translate_projects_locations_adaptive_mt_datasets_adaptive_mt_files_adaptive_mt_sentences_list` for simplest API.
+
+pub fn translate_projects_locations_adaptive_mt_datasets_adaptive_mt_files_adaptive_mt_sentences_list_builder(
+    client: &SimpleHttpClient,
+    parent: &String,
+    pageSize: &Option<Option<String>>,
+    pageToken: &Option<Option<String>>,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!(
+        "https://translation.googleapis.com/v3/projects/{}/locations/{locationsId}/adaptiveMtDatasets/{adaptiveMtDatasetsId}/adaptiveMtFiles/{adaptiveMtFilesId}/adaptiveMtSentences",
+        parent,
+    );
+
+    // Build request
+    let mut query_parts = Vec::new();
+    if let Some(val) = pageSize.as_ref() {
+        query_parts.push(format!("pageSize={}", val));
+    }
+    if let Some(val) = pageToken.as_ref() {
+        query_parts.push(format!("pageToken={}", val));
+    }
+
+    let url_with_query = if query_parts.is_empty() {
+        endpoint_url
+    } else {
+        format!("{}?{}", endpoint_url, query_parts.join("&"))
+    };
+
+    let builder = client
+        .get(&url_with_query)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// GET v3/projects/{projectsId}/locations/{locationsId}/adaptiveMtDatasets/{adaptiveMtDatasetsId}/adaptiveMtFiles/{adaptiveMtFilesId}/adaptiveMtSentences
+/// Lists all AdaptiveMtSentences under a given `file/dataset`.
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `translate_projects_locations_adaptive_mt_datasets_adaptive_mt_files_adaptive_mt_sentences_list_execute()` or `translate_projects_locations_adaptive_mt_datasets_adaptive_mt_files_adaptive_mt_sentences_list`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `translate_projects_locations_adaptive_mt_datasets_adaptive_mt_files_adaptive_mt_sentences_list_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn translate_projects_locations_adaptive_mt_datasets_adaptive_mt_files_adaptive_mt_sentences_list_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<ListAdaptiveMtSentencesResponse>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: ListAdaptiveMtSentencesResponse = serde_json::from_str(&body)
+                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// GET v3/projects/{projectsId}/locations/{locationsId}/adaptiveMtDatasets/{adaptiveMtDatasetsId}/adaptiveMtFiles/{adaptiveMtFilesId}/adaptiveMtSentences
+/// Lists all AdaptiveMtSentences under a given `file/dataset`.
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `translate_projects_locations_adaptive_mt_datasets_adaptive_mt_files_adaptive_mt_sentences_list_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `translate_projects_locations_adaptive_mt_datasets_adaptive_mt_files_adaptive_mt_sentences_list_task()`.
+/// For the simplest API, use `translate_projects_locations_adaptive_mt_datasets_adaptive_mt_files_adaptive_mt_sentences_list()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `translate_projects_locations_adaptive_mt_datasets_adaptive_mt_files_adaptive_mt_sentences_list_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn translate_projects_locations_adaptive_mt_datasets_adaptive_mt_files_adaptive_mt_sentences_list_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<
+            D = Result<ApiResponse<ListAdaptiveMtSentencesResponse>, ApiError>,
+            P = ApiPending,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    let task = translate_projects_locations_adaptive_mt_datasets_adaptive_mt_files_adaptive_mt_sentences_list_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`translate_projects_locations_adaptive_mt_datasets_adaptive_mt_files_adaptive_mt_sentences_list`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct TranslateProjectsLocationsAdaptiveMtDatasetsAdaptiveMtFilesAdaptiveMtSentencesListArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Query parameter: pageSize
+    pub pageSize: Option<Option<String>>,
+    /// Query parameter: pageToken
+    pub pageToken: Option<Option<String>>,
+}
+
+/// GET v3/projects/{projectsId}/locations/{locationsId}/adaptiveMtDatasets/{adaptiveMtDatasetsId}/adaptiveMtFiles/{adaptiveMtFilesId}/adaptiveMtSentences
+/// Lists all AdaptiveMtSentences under a given `file/dataset`.
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `translate_projects_locations_adaptive_mt_datasets_adaptive_mt_files_adaptive_mt_sentences_list_builder()` + `translate_projects_locations_adaptive_mt_datasets_adaptive_mt_files_adaptive_mt_sentences_list_execute()`.
+/// For task-level control, use `translate_projects_locations_adaptive_mt_datasets_adaptive_mt_files_adaptive_mt_sentences_list_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn translate_projects_locations_adaptive_mt_datasets_adaptive_mt_files_adaptive_mt_sentences_list(
+    client: &SimpleHttpClient,
+    args: &TranslateProjectsLocationsAdaptiveMtDatasetsAdaptiveMtFilesAdaptiveMtSentencesListArgs,
+) -> Result<
+    impl StreamIterator<
+            D = Result<ApiResponse<ListAdaptiveMtSentencesResponse>, ApiError>,
+            P = ApiPending,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    let builder = translate_projects_locations_adaptive_mt_datasets_adaptive_mt_files_adaptive_mt_sentences_list_builder(client, &args.parent, &args.pageSize, &args.pageToken)?;
+    translate_projects_locations_adaptive_mt_datasets_adaptive_mt_files_adaptive_mt_sentences_list_execute(builder)
+}
+
+/// GET v3/projects/{projectsId}/locations/{locationsId}/adaptiveMtDatasets/{adaptiveMtDatasetsId}/adaptiveMtSentences
+/// Lists all AdaptiveMtSentences under a given `file/dataset`.
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `translate_projects_locations_adaptive_mt_datasets_adaptive_mt_sentences_list_execute()` to send, or `translate_projects_locations_adaptive_mt_datasets_adaptive_mt_sentences_list` for simplest API.
+
+pub fn translate_projects_locations_adaptive_mt_datasets_adaptive_mt_sentences_list_builder(
+    client: &SimpleHttpClient,
+    parent: &String,
+    pageSize: &Option<Option<String>>,
+    pageToken: &Option<Option<String>>,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!(
+        "https://translation.googleapis.com/v3/projects/{}/locations/{locationsId}/adaptiveMtDatasets/{adaptiveMtDatasetsId}/adaptiveMtSentences",
+        parent,
+    );
+
+    // Build request
+    let mut query_parts = Vec::new();
+    if let Some(val) = pageSize.as_ref() {
+        query_parts.push(format!("pageSize={}", val));
+    }
+    if let Some(val) = pageToken.as_ref() {
+        query_parts.push(format!("pageToken={}", val));
+    }
+
+    let url_with_query = if query_parts.is_empty() {
+        endpoint_url
+    } else {
+        format!("{}?{}", endpoint_url, query_parts.join("&"))
+    };
+
+    let builder = client
+        .get(&url_with_query)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// GET v3/projects/{projectsId}/locations/{locationsId}/adaptiveMtDatasets/{adaptiveMtDatasetsId}/adaptiveMtSentences
+/// Lists all AdaptiveMtSentences under a given `file/dataset`.
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `translate_projects_locations_adaptive_mt_datasets_adaptive_mt_sentences_list_execute()` or `translate_projects_locations_adaptive_mt_datasets_adaptive_mt_sentences_list`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `translate_projects_locations_adaptive_mt_datasets_adaptive_mt_sentences_list_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn translate_projects_locations_adaptive_mt_datasets_adaptive_mt_sentences_list_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<ListAdaptiveMtSentencesResponse>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: ListAdaptiveMtSentencesResponse = serde_json::from_str(&body)
+                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// GET v3/projects/{projectsId}/locations/{locationsId}/adaptiveMtDatasets/{adaptiveMtDatasetsId}/adaptiveMtSentences
+/// Lists all AdaptiveMtSentences under a given `file/dataset`.
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `translate_projects_locations_adaptive_mt_datasets_adaptive_mt_sentences_list_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `translate_projects_locations_adaptive_mt_datasets_adaptive_mt_sentences_list_task()`.
+/// For the simplest API, use `translate_projects_locations_adaptive_mt_datasets_adaptive_mt_sentences_list()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `translate_projects_locations_adaptive_mt_datasets_adaptive_mt_sentences_list_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn translate_projects_locations_adaptive_mt_datasets_adaptive_mt_sentences_list_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<
+            D = Result<ApiResponse<ListAdaptiveMtSentencesResponse>, ApiError>,
+            P = ApiPending,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    let task =
+        translate_projects_locations_adaptive_mt_datasets_adaptive_mt_sentences_list_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`translate_projects_locations_adaptive_mt_datasets_adaptive_mt_sentences_list`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct TranslateProjectsLocationsAdaptiveMtDatasetsAdaptiveMtSentencesListArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Query parameter: pageSize
+    pub pageSize: Option<Option<String>>,
+    /// Query parameter: pageToken
+    pub pageToken: Option<Option<String>>,
+}
+
+/// GET v3/projects/{projectsId}/locations/{locationsId}/adaptiveMtDatasets/{adaptiveMtDatasetsId}/adaptiveMtSentences
+/// Lists all AdaptiveMtSentences under a given `file/dataset`.
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `translate_projects_locations_adaptive_mt_datasets_adaptive_mt_sentences_list_builder()` + `translate_projects_locations_adaptive_mt_datasets_adaptive_mt_sentences_list_execute()`.
+/// For task-level control, use `translate_projects_locations_adaptive_mt_datasets_adaptive_mt_sentences_list_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn translate_projects_locations_adaptive_mt_datasets_adaptive_mt_sentences_list(
+    client: &SimpleHttpClient,
+    args: &TranslateProjectsLocationsAdaptiveMtDatasetsAdaptiveMtSentencesListArgs,
+) -> Result<
+    impl StreamIterator<
+            D = Result<ApiResponse<ListAdaptiveMtSentencesResponse>, ApiError>,
+            P = ApiPending,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    let builder =
+        translate_projects_locations_adaptive_mt_datasets_adaptive_mt_sentences_list_builder(
+            client,
+            &args.parent,
+            &args.pageSize,
+            &args.pageToken,
+        )?;
+    translate_projects_locations_adaptive_mt_datasets_adaptive_mt_sentences_list_execute(builder)
+}
+
+/// POST v3/projects/{projectsId}/locations/{locationsId}/datasets
+/// Creates a Dataset.
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `translate_projects_locations_datasets_create_execute()` to send, or `translate_projects_locations_datasets_create` for simplest API.
+
+pub fn translate_projects_locations_datasets_create_builder(
+    client: &SimpleHttpClient,
+    parent: &String,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!(
+        "https://translation.googleapis.com/v3/projects/{}/locations/{locationsId}/datasets",
+        parent,
+    );
+
+    // Build request
+    let builder = client
+        .post(&endpoint_url)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// POST v3/projects/{projectsId}/locations/{locationsId}/datasets
+/// Creates a Dataset.
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `translate_projects_locations_datasets_create_execute()` or `translate_projects_locations_datasets_create`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `translate_projects_locations_datasets_create_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn translate_projects_locations_datasets_create_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<Operation>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: Operation = serde_json::from_str(&body)
+                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// POST v3/projects/{projectsId}/locations/{locationsId}/datasets
+/// Creates a Dataset.
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `translate_projects_locations_datasets_create_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `translate_projects_locations_datasets_create_task()`.
+/// For the simplest API, use `translate_projects_locations_datasets_create()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `translate_projects_locations_datasets_create_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn translate_projects_locations_datasets_create_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<Operation>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let task = translate_projects_locations_datasets_create_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`translate_projects_locations_datasets_create`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct TranslateProjectsLocationsDatasetsCreateArgs {
+    /// Path parameter: parent
+    pub parent: String,
+}
+
+/// POST v3/projects/{projectsId}/locations/{locationsId}/datasets
+/// Creates a Dataset.
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `translate_projects_locations_datasets_create_builder()` + `translate_projects_locations_datasets_create_execute()`.
+/// For task-level control, use `translate_projects_locations_datasets_create_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn translate_projects_locations_datasets_create(
+    client: &SimpleHttpClient,
+    args: &TranslateProjectsLocationsDatasetsCreateArgs,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<Operation>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let builder = translate_projects_locations_datasets_create_builder(client, &args.parent)?;
+    translate_projects_locations_datasets_create_execute(builder)
+}
+
+/// DELETE v3/projects/{projectsId}/locations/{locationsId}/datasets/{datasetsId}
+/// Deletes a dataset and all of its contents.
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `translate_projects_locations_datasets_delete_execute()` to send, or `translate_projects_locations_datasets_delete` for simplest API.
+
+pub fn translate_projects_locations_datasets_delete_builder(
+    client: &SimpleHttpClient,
+    name: &String,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!(
+        "https://translation.googleapis.com/v3/projects/{}/locations/{locationsId}/datasets/{datasetsId}",
+        name,
+    );
+
+    // Build request
+    let builder = client
+        .delete(&endpoint_url)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// DELETE v3/projects/{projectsId}/locations/{locationsId}/datasets/{datasetsId}
+/// Deletes a dataset and all of its contents.
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `translate_projects_locations_datasets_delete_execute()` or `translate_projects_locations_datasets_delete`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `translate_projects_locations_datasets_delete_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn translate_projects_locations_datasets_delete_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<Operation>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: Operation = serde_json::from_str(&body)
+                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// DELETE v3/projects/{projectsId}/locations/{locationsId}/datasets/{datasetsId}
+/// Deletes a dataset and all of its contents.
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `translate_projects_locations_datasets_delete_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `translate_projects_locations_datasets_delete_task()`.
+/// For the simplest API, use `translate_projects_locations_datasets_delete()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `translate_projects_locations_datasets_delete_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn translate_projects_locations_datasets_delete_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<Operation>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let task = translate_projects_locations_datasets_delete_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`translate_projects_locations_datasets_delete`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct TranslateProjectsLocationsDatasetsDeleteArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
+/// DELETE v3/projects/{projectsId}/locations/{locationsId}/datasets/{datasetsId}
+/// Deletes a dataset and all of its contents.
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `translate_projects_locations_datasets_delete_builder()` + `translate_projects_locations_datasets_delete_execute()`.
+/// For task-level control, use `translate_projects_locations_datasets_delete_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn translate_projects_locations_datasets_delete(
+    client: &SimpleHttpClient,
+    args: &TranslateProjectsLocationsDatasetsDeleteArgs,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<Operation>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let builder = translate_projects_locations_datasets_delete_builder(client, &args.name)?;
+    translate_projects_locations_datasets_delete_execute(builder)
+}
+
+/// POST v3/projects/{projectsId}/locations/{locationsId}/datasets/{datasetsId}:exportData
+/// Exports dataset's data to the provided output location.
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `translate_projects_locations_datasets_export_data_execute()` to send, or `translate_projects_locations_datasets_export_data` for simplest API.
+
+pub fn translate_projects_locations_datasets_export_data_builder(
+    client: &SimpleHttpClient,
+    dataset: &String,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!(
+        "https://translation.googleapis.com/v3/projects/{}/locations/{locationsId}/datasets/{datasetsId}:exportData",
+        dataset,
+    );
+
+    // Build request
+    let builder = client
+        .post(&endpoint_url)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// POST v3/projects/{projectsId}/locations/{locationsId}/datasets/{datasetsId}:exportData
+/// Exports dataset's data to the provided output location.
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `translate_projects_locations_datasets_export_data_execute()` or `translate_projects_locations_datasets_export_data`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `translate_projects_locations_datasets_export_data_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn translate_projects_locations_datasets_export_data_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<Operation>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: Operation = serde_json::from_str(&body)
+                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// POST v3/projects/{projectsId}/locations/{locationsId}/datasets/{datasetsId}:exportData
+/// Exports dataset's data to the provided output location.
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `translate_projects_locations_datasets_export_data_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `translate_projects_locations_datasets_export_data_task()`.
+/// For the simplest API, use `translate_projects_locations_datasets_export_data()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `translate_projects_locations_datasets_export_data_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn translate_projects_locations_datasets_export_data_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<Operation>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let task = translate_projects_locations_datasets_export_data_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`translate_projects_locations_datasets_export_data`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct TranslateProjectsLocationsDatasetsExportDataArgs {
+    /// Path parameter: dataset
+    pub dataset: String,
+}
+
+/// POST v3/projects/{projectsId}/locations/{locationsId}/datasets/{datasetsId}:exportData
+/// Exports dataset's data to the provided output location.
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `translate_projects_locations_datasets_export_data_builder()` + `translate_projects_locations_datasets_export_data_execute()`.
+/// For task-level control, use `translate_projects_locations_datasets_export_data_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn translate_projects_locations_datasets_export_data(
+    client: &SimpleHttpClient,
+    args: &TranslateProjectsLocationsDatasetsExportDataArgs,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<Operation>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let builder = translate_projects_locations_datasets_export_data_builder(client, &args.dataset)?;
+    translate_projects_locations_datasets_export_data_execute(builder)
+}
+
+/// GET v3/projects/{projectsId}/locations/{locationsId}/datasets/{datasetsId}
+/// Gets a Dataset.
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `translate_projects_locations_datasets_get_execute()` to send, or `translate_projects_locations_datasets_get` for simplest API.
+
+pub fn translate_projects_locations_datasets_get_builder(
+    client: &SimpleHttpClient,
+    name: &String,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!(
+        "https://translation.googleapis.com/v3/projects/{}/locations/{locationsId}/datasets/{datasetsId}",
+        name,
+    );
+
+    // Build request
+    let builder = client
+        .get(&endpoint_url)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// GET v3/projects/{projectsId}/locations/{locationsId}/datasets/{datasetsId}
+/// Gets a Dataset.
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `translate_projects_locations_datasets_get_execute()` or `translate_projects_locations_datasets_get`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `translate_projects_locations_datasets_get_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn translate_projects_locations_datasets_get_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<Dataset>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: Dataset = serde_json::from_str(&body)
+                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// GET v3/projects/{projectsId}/locations/{locationsId}/datasets/{datasetsId}
+/// Gets a Dataset.
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `translate_projects_locations_datasets_get_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `translate_projects_locations_datasets_get_task()`.
+/// For the simplest API, use `translate_projects_locations_datasets_get()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `translate_projects_locations_datasets_get_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn translate_projects_locations_datasets_get_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<Dataset>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let task = translate_projects_locations_datasets_get_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`translate_projects_locations_datasets_get`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct TranslateProjectsLocationsDatasetsGetArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
+/// GET v3/projects/{projectsId}/locations/{locationsId}/datasets/{datasetsId}
+/// Gets a Dataset.
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `translate_projects_locations_datasets_get_builder()` + `translate_projects_locations_datasets_get_execute()`.
+/// For task-level control, use `translate_projects_locations_datasets_get_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn translate_projects_locations_datasets_get(
+    client: &SimpleHttpClient,
+    args: &TranslateProjectsLocationsDatasetsGetArgs,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<Dataset>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let builder = translate_projects_locations_datasets_get_builder(client, &args.name)?;
+    translate_projects_locations_datasets_get_execute(builder)
+}
+
+/// POST v3/projects/{projectsId}/locations/{locationsId}/datasets/{datasetsId}:importData
+/// Import sentence pairs into translation Dataset.
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `translate_projects_locations_datasets_import_data_execute()` to send, or `translate_projects_locations_datasets_import_data` for simplest API.
+
+pub fn translate_projects_locations_datasets_import_data_builder(
+    client: &SimpleHttpClient,
+    dataset: &String,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!(
+        "https://translation.googleapis.com/v3/projects/{}/locations/{locationsId}/datasets/{datasetsId}:importData",
+        dataset,
+    );
+
+    // Build request
+    let builder = client
+        .post(&endpoint_url)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// POST v3/projects/{projectsId}/locations/{locationsId}/datasets/{datasetsId}:importData
+/// Import sentence pairs into translation Dataset.
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `translate_projects_locations_datasets_import_data_execute()` or `translate_projects_locations_datasets_import_data`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `translate_projects_locations_datasets_import_data_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn translate_projects_locations_datasets_import_data_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<Operation>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: Operation = serde_json::from_str(&body)
+                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// POST v3/projects/{projectsId}/locations/{locationsId}/datasets/{datasetsId}:importData
+/// Import sentence pairs into translation Dataset.
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `translate_projects_locations_datasets_import_data_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `translate_projects_locations_datasets_import_data_task()`.
+/// For the simplest API, use `translate_projects_locations_datasets_import_data()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `translate_projects_locations_datasets_import_data_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn translate_projects_locations_datasets_import_data_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<Operation>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let task = translate_projects_locations_datasets_import_data_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`translate_projects_locations_datasets_import_data`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct TranslateProjectsLocationsDatasetsImportDataArgs {
+    /// Path parameter: dataset
+    pub dataset: String,
+}
+
+/// POST v3/projects/{projectsId}/locations/{locationsId}/datasets/{datasetsId}:importData
+/// Import sentence pairs into translation Dataset.
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `translate_projects_locations_datasets_import_data_builder()` + `translate_projects_locations_datasets_import_data_execute()`.
+/// For task-level control, use `translate_projects_locations_datasets_import_data_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn translate_projects_locations_datasets_import_data(
+    client: &SimpleHttpClient,
+    args: &TranslateProjectsLocationsDatasetsImportDataArgs,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<Operation>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let builder = translate_projects_locations_datasets_import_data_builder(client, &args.dataset)?;
+    translate_projects_locations_datasets_import_data_execute(builder)
+}
+
+/// GET v3/projects/{projectsId}/locations/{locationsId}/datasets
+/// Lists datasets.
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `translate_projects_locations_datasets_list_execute()` to send, or `translate_projects_locations_datasets_list` for simplest API.
+
+pub fn translate_projects_locations_datasets_list_builder(
+    client: &SimpleHttpClient,
+    parent: &String,
+    pageSize: &Option<Option<String>>,
+    pageToken: &Option<Option<String>>,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!(
+        "https://translation.googleapis.com/v3/projects/{}/locations/{locationsId}/datasets",
+        parent,
+    );
+
+    // Build request
+    let mut query_parts = Vec::new();
+    if let Some(val) = pageSize.as_ref() {
+        query_parts.push(format!("pageSize={}", val));
+    }
+    if let Some(val) = pageToken.as_ref() {
+        query_parts.push(format!("pageToken={}", val));
+    }
+
+    let url_with_query = if query_parts.is_empty() {
+        endpoint_url
+    } else {
+        format!("{}?{}", endpoint_url, query_parts.join("&"))
+    };
+
+    let builder = client
+        .get(&url_with_query)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// GET v3/projects/{projectsId}/locations/{locationsId}/datasets
+/// Lists datasets.
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `translate_projects_locations_datasets_list_execute()` or `translate_projects_locations_datasets_list`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `translate_projects_locations_datasets_list_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn translate_projects_locations_datasets_list_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<ListDatasetsResponse>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: ListDatasetsResponse = serde_json::from_str(&body)
+                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// GET v3/projects/{projectsId}/locations/{locationsId}/datasets
+/// Lists datasets.
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `translate_projects_locations_datasets_list_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `translate_projects_locations_datasets_list_task()`.
+/// For the simplest API, use `translate_projects_locations_datasets_list()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `translate_projects_locations_datasets_list_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn translate_projects_locations_datasets_list_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<ListDatasetsResponse>, ApiError>, P = ApiPending>
+        + Send
+        + 'static,
+    ApiError,
+> {
+    let task = translate_projects_locations_datasets_list_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`translate_projects_locations_datasets_list`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct TranslateProjectsLocationsDatasetsListArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Query parameter: pageSize
+    pub pageSize: Option<Option<String>>,
+    /// Query parameter: pageToken
+    pub pageToken: Option<Option<String>>,
+}
+
+/// GET v3/projects/{projectsId}/locations/{locationsId}/datasets
+/// Lists datasets.
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `translate_projects_locations_datasets_list_builder()` + `translate_projects_locations_datasets_list_execute()`.
+/// For task-level control, use `translate_projects_locations_datasets_list_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn translate_projects_locations_datasets_list(
+    client: &SimpleHttpClient,
+    args: &TranslateProjectsLocationsDatasetsListArgs,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<ListDatasetsResponse>, ApiError>, P = ApiPending>
+        + Send
+        + 'static,
+    ApiError,
+> {
+    let builder = translate_projects_locations_datasets_list_builder(
+        client,
+        &args.parent,
+        &args.pageSize,
+        &args.pageToken,
+    )?;
+    translate_projects_locations_datasets_list_execute(builder)
+}
+
+/// GET v3/projects/{projectsId}/locations/{locationsId}/datasets/{datasetsId}/examples
+/// Lists sentence pairs in the dataset.
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `translate_projects_locations_datasets_examples_list_execute()` to send, or `translate_projects_locations_datasets_examples_list` for simplest API.
+
+pub fn translate_projects_locations_datasets_examples_list_builder(
+    client: &SimpleHttpClient,
+    parent: &String,
+    filter: &Option<Option<String>>,
+    pageSize: &Option<Option<String>>,
+    pageToken: &Option<Option<String>>,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!(
+        "https://translation.googleapis.com/v3/projects/{}/locations/{locationsId}/datasets/{datasetsId}/examples",
+        parent,
+    );
+
+    // Build request
+    let mut query_parts = Vec::new();
+    if let Some(val) = filter.as_ref() {
+        query_parts.push(format!("filter={}", val));
+    }
+    if let Some(val) = pageSize.as_ref() {
+        query_parts.push(format!("pageSize={}", val));
+    }
+    if let Some(val) = pageToken.as_ref() {
+        query_parts.push(format!("pageToken={}", val));
+    }
+
+    let url_with_query = if query_parts.is_empty() {
+        endpoint_url
+    } else {
+        format!("{}?{}", endpoint_url, query_parts.join("&"))
+    };
+
+    let builder = client
+        .get(&url_with_query)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// GET v3/projects/{projectsId}/locations/{locationsId}/datasets/{datasetsId}/examples
+/// Lists sentence pairs in the dataset.
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `translate_projects_locations_datasets_examples_list_execute()` or `translate_projects_locations_datasets_examples_list`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `translate_projects_locations_datasets_examples_list_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn translate_projects_locations_datasets_examples_list_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<ListExamplesResponse>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: ListExamplesResponse = serde_json::from_str(&body)
+                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// GET v3/projects/{projectsId}/locations/{locationsId}/datasets/{datasetsId}/examples
+/// Lists sentence pairs in the dataset.
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `translate_projects_locations_datasets_examples_list_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `translate_projects_locations_datasets_examples_list_task()`.
+/// For the simplest API, use `translate_projects_locations_datasets_examples_list()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `translate_projects_locations_datasets_examples_list_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn translate_projects_locations_datasets_examples_list_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<ListExamplesResponse>, ApiError>, P = ApiPending>
+        + Send
+        + 'static,
+    ApiError,
+> {
+    let task = translate_projects_locations_datasets_examples_list_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`translate_projects_locations_datasets_examples_list`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct TranslateProjectsLocationsDatasetsExamplesListArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Query parameter: filter
+    pub filter: Option<Option<String>>,
+    /// Query parameter: pageSize
+    pub pageSize: Option<Option<String>>,
+    /// Query parameter: pageToken
+    pub pageToken: Option<Option<String>>,
+}
+
+/// GET v3/projects/{projectsId}/locations/{locationsId}/datasets/{datasetsId}/examples
+/// Lists sentence pairs in the dataset.
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `translate_projects_locations_datasets_examples_list_builder()` + `translate_projects_locations_datasets_examples_list_execute()`.
+/// For task-level control, use `translate_projects_locations_datasets_examples_list_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn translate_projects_locations_datasets_examples_list(
+    client: &SimpleHttpClient,
+    args: &TranslateProjectsLocationsDatasetsExamplesListArgs,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<ListExamplesResponse>, ApiError>, P = ApiPending>
+        + Send
+        + 'static,
+    ApiError,
+> {
+    let builder = translate_projects_locations_datasets_examples_list_builder(
+        client,
+        &args.parent,
+        &args.filter,
+        &args.pageSize,
+        &args.pageToken,
+    )?;
+    translate_projects_locations_datasets_examples_list_execute(builder)
+}
+
+/// POST v3/projects/{projectsId}/locations/{locationsId}/glossaries
+/// Creates a glossary and returns the long-running operation. Returns NOT_FOUND, if the project doesn't exist.
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `translate_projects_locations_glossaries_create_execute()` to send, or `translate_projects_locations_glossaries_create` for simplest API.
+
+pub fn translate_projects_locations_glossaries_create_builder(
+    client: &SimpleHttpClient,
+    parent: &String,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!(
+        "https://translation.googleapis.com/v3/projects/{}/locations/{locationsId}/glossaries",
+        parent,
+    );
+
+    // Build request
+    let builder = client
+        .post(&endpoint_url)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// POST v3/projects/{projectsId}/locations/{locationsId}/glossaries
+/// Creates a glossary and returns the long-running operation. Returns NOT_FOUND, if the project doesn't exist.
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `translate_projects_locations_glossaries_create_execute()` or `translate_projects_locations_glossaries_create`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `translate_projects_locations_glossaries_create_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn translate_projects_locations_glossaries_create_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<Operation>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: Operation = serde_json::from_str(&body)
+                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// POST v3/projects/{projectsId}/locations/{locationsId}/glossaries
+/// Creates a glossary and returns the long-running operation. Returns NOT_FOUND, if the project doesn't exist.
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `translate_projects_locations_glossaries_create_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `translate_projects_locations_glossaries_create_task()`.
+/// For the simplest API, use `translate_projects_locations_glossaries_create()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `translate_projects_locations_glossaries_create_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn translate_projects_locations_glossaries_create_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<Operation>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let task = translate_projects_locations_glossaries_create_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`translate_projects_locations_glossaries_create`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct TranslateProjectsLocationsGlossariesCreateArgs {
+    /// Path parameter: parent
+    pub parent: String,
+}
+
+/// POST v3/projects/{projectsId}/locations/{locationsId}/glossaries
+/// Creates a glossary and returns the long-running operation. Returns NOT_FOUND, if the project doesn't exist.
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `translate_projects_locations_glossaries_create_builder()` + `translate_projects_locations_glossaries_create_execute()`.
+/// For task-level control, use `translate_projects_locations_glossaries_create_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn translate_projects_locations_glossaries_create(
+    client: &SimpleHttpClient,
+    args: &TranslateProjectsLocationsGlossariesCreateArgs,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<Operation>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let builder = translate_projects_locations_glossaries_create_builder(client, &args.parent)?;
+    translate_projects_locations_glossaries_create_execute(builder)
+}
+
+/// DELETE v3/projects/{projectsId}/locations/{locationsId}/glossaries/{glossariesId}
+/// Deletes a glossary, or cancels glossary construction if the glossary isn't created yet. Returns NOT_FOUND, if the glossary doesn't exist.
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `translate_projects_locations_glossaries_delete_execute()` to send, or `translate_projects_locations_glossaries_delete` for simplest API.
+
+pub fn translate_projects_locations_glossaries_delete_builder(
+    client: &SimpleHttpClient,
+    name: &String,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!(
+        "https://translation.googleapis.com/v3/projects/{}/locations/{locationsId}/glossaries/{glossariesId}",
+        name,
+    );
+
+    // Build request
+    let builder = client
+        .delete(&endpoint_url)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// DELETE v3/projects/{projectsId}/locations/{locationsId}/glossaries/{glossariesId}
+/// Deletes a glossary, or cancels glossary construction if the glossary isn't created yet. Returns NOT_FOUND, if the glossary doesn't exist.
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `translate_projects_locations_glossaries_delete_execute()` or `translate_projects_locations_glossaries_delete`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `translate_projects_locations_glossaries_delete_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn translate_projects_locations_glossaries_delete_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<Operation>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: Operation = serde_json::from_str(&body)
+                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// DELETE v3/projects/{projectsId}/locations/{locationsId}/glossaries/{glossariesId}
+/// Deletes a glossary, or cancels glossary construction if the glossary isn't created yet. Returns NOT_FOUND, if the glossary doesn't exist.
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `translate_projects_locations_glossaries_delete_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `translate_projects_locations_glossaries_delete_task()`.
+/// For the simplest API, use `translate_projects_locations_glossaries_delete()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `translate_projects_locations_glossaries_delete_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn translate_projects_locations_glossaries_delete_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<Operation>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let task = translate_projects_locations_glossaries_delete_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`translate_projects_locations_glossaries_delete`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct TranslateProjectsLocationsGlossariesDeleteArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
+/// DELETE v3/projects/{projectsId}/locations/{locationsId}/glossaries/{glossariesId}
+/// Deletes a glossary, or cancels glossary construction if the glossary isn't created yet. Returns NOT_FOUND, if the glossary doesn't exist.
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `translate_projects_locations_glossaries_delete_builder()` + `translate_projects_locations_glossaries_delete_execute()`.
+/// For task-level control, use `translate_projects_locations_glossaries_delete_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn translate_projects_locations_glossaries_delete(
+    client: &SimpleHttpClient,
+    args: &TranslateProjectsLocationsGlossariesDeleteArgs,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<Operation>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let builder = translate_projects_locations_glossaries_delete_builder(client, &args.name)?;
+    translate_projects_locations_glossaries_delete_execute(builder)
+}
+
+/// GET v3/projects/{projectsId}/locations/{locationsId}/glossaries/{glossariesId}
+/// Gets a glossary. Returns NOT_FOUND, if the glossary doesn't exist.
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `translate_projects_locations_glossaries_get_execute()` to send, or `translate_projects_locations_glossaries_get` for simplest API.
+
+pub fn translate_projects_locations_glossaries_get_builder(
+    client: &SimpleHttpClient,
+    name: &String,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!(
+        "https://translation.googleapis.com/v3/projects/{}/locations/{locationsId}/glossaries/{glossariesId}",
+        name,
+    );
+
+    // Build request
+    let builder = client
+        .get(&endpoint_url)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// GET v3/projects/{projectsId}/locations/{locationsId}/glossaries/{glossariesId}
+/// Gets a glossary. Returns NOT_FOUND, if the glossary doesn't exist.
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `translate_projects_locations_glossaries_get_execute()` or `translate_projects_locations_glossaries_get`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `translate_projects_locations_glossaries_get_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn translate_projects_locations_glossaries_get_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<Glossary>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: Glossary = serde_json::from_str(&body)
+                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// GET v3/projects/{projectsId}/locations/{locationsId}/glossaries/{glossariesId}
+/// Gets a glossary. Returns NOT_FOUND, if the glossary doesn't exist.
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `translate_projects_locations_glossaries_get_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `translate_projects_locations_glossaries_get_task()`.
+/// For the simplest API, use `translate_projects_locations_glossaries_get()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `translate_projects_locations_glossaries_get_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn translate_projects_locations_glossaries_get_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<Glossary>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let task = translate_projects_locations_glossaries_get_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`translate_projects_locations_glossaries_get`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct TranslateProjectsLocationsGlossariesGetArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
+/// GET v3/projects/{projectsId}/locations/{locationsId}/glossaries/{glossariesId}
+/// Gets a glossary. Returns NOT_FOUND, if the glossary doesn't exist.
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `translate_projects_locations_glossaries_get_builder()` + `translate_projects_locations_glossaries_get_execute()`.
+/// For task-level control, use `translate_projects_locations_glossaries_get_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn translate_projects_locations_glossaries_get(
+    client: &SimpleHttpClient,
+    args: &TranslateProjectsLocationsGlossariesGetArgs,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<Glossary>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let builder = translate_projects_locations_glossaries_get_builder(client, &args.name)?;
+    translate_projects_locations_glossaries_get_execute(builder)
+}
+
+/// GET v3/projects/{projectsId}/locations/{locationsId}/glossaries
+/// Lists glossaries in a project. Returns NOT_FOUND, if the project doesn't exist.
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `translate_projects_locations_glossaries_list_execute()` to send, or `translate_projects_locations_glossaries_list` for simplest API.
+
+pub fn translate_projects_locations_glossaries_list_builder(
+    client: &SimpleHttpClient,
+    parent: &String,
+    filter: &Option<Option<String>>,
+    pageSize: &Option<Option<String>>,
+    pageToken: &Option<Option<String>>,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!(
+        "https://translation.googleapis.com/v3/projects/{}/locations/{locationsId}/glossaries",
+        parent,
+    );
+
+    // Build request
+    let mut query_parts = Vec::new();
+    if let Some(val) = filter.as_ref() {
+        query_parts.push(format!("filter={}", val));
+    }
+    if let Some(val) = pageSize.as_ref() {
+        query_parts.push(format!("pageSize={}", val));
+    }
+    if let Some(val) = pageToken.as_ref() {
+        query_parts.push(format!("pageToken={}", val));
+    }
+
+    let url_with_query = if query_parts.is_empty() {
+        endpoint_url
+    } else {
+        format!("{}?{}", endpoint_url, query_parts.join("&"))
+    };
+
+    let builder = client
+        .get(&url_with_query)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// GET v3/projects/{projectsId}/locations/{locationsId}/glossaries
+/// Lists glossaries in a project. Returns NOT_FOUND, if the project doesn't exist.
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `translate_projects_locations_glossaries_list_execute()` or `translate_projects_locations_glossaries_list`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `translate_projects_locations_glossaries_list_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn translate_projects_locations_glossaries_list_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<ListGlossariesResponse>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: ListGlossariesResponse = serde_json::from_str(&body)
+                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// GET v3/projects/{projectsId}/locations/{locationsId}/glossaries
+/// Lists glossaries in a project. Returns NOT_FOUND, if the project doesn't exist.
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `translate_projects_locations_glossaries_list_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `translate_projects_locations_glossaries_list_task()`.
+/// For the simplest API, use `translate_projects_locations_glossaries_list()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `translate_projects_locations_glossaries_list_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn translate_projects_locations_glossaries_list_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<ListGlossariesResponse>, ApiError>, P = ApiPending>
+        + Send
+        + 'static,
+    ApiError,
+> {
+    let task = translate_projects_locations_glossaries_list_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`translate_projects_locations_glossaries_list`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct TranslateProjectsLocationsGlossariesListArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Query parameter: filter
+    pub filter: Option<Option<String>>,
+    /// Query parameter: pageSize
+    pub pageSize: Option<Option<String>>,
+    /// Query parameter: pageToken
+    pub pageToken: Option<Option<String>>,
+}
+
+/// GET v3/projects/{projectsId}/locations/{locationsId}/glossaries
+/// Lists glossaries in a project. Returns NOT_FOUND, if the project doesn't exist.
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `translate_projects_locations_glossaries_list_builder()` + `translate_projects_locations_glossaries_list_execute()`.
+/// For task-level control, use `translate_projects_locations_glossaries_list_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn translate_projects_locations_glossaries_list(
+    client: &SimpleHttpClient,
+    args: &TranslateProjectsLocationsGlossariesListArgs,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<ListGlossariesResponse>, ApiError>, P = ApiPending>
+        + Send
+        + 'static,
+    ApiError,
+> {
+    let builder = translate_projects_locations_glossaries_list_builder(
+        client,
+        &args.parent,
+        &args.filter,
+        &args.pageSize,
+        &args.pageToken,
+    )?;
+    translate_projects_locations_glossaries_list_execute(builder)
+}
+
+/// PATCH v3/projects/{projectsId}/locations/{locationsId}/glossaries/{glossariesId}
+/// Updates a glossary. A LRO is used since the update can be async if the glossary's entry file is updated.
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `translate_projects_locations_glossaries_patch_execute()` to send, or `translate_projects_locations_glossaries_patch` for simplest API.
+
+pub fn translate_projects_locations_glossaries_patch_builder(
+    client: &SimpleHttpClient,
+    name: &String,
+    updateMask: &Option<Option<String>>,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!(
+        "https://translation.googleapis.com/v3/projects/{}/locations/{locationsId}/glossaries/{glossariesId}",
+        name,
+    );
+
+    // Build request
+    let mut query_parts = Vec::new();
+    if let Some(val) = updateMask.as_ref() {
+        query_parts.push(format!("updateMask={}", val));
+    }
+
+    let url_with_query = if query_parts.is_empty() {
+        endpoint_url
+    } else {
+        format!("{}?{}", endpoint_url, query_parts.join("&"))
+    };
+
+    let builder = client
+        .patch(&url_with_query)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// PATCH v3/projects/{projectsId}/locations/{locationsId}/glossaries/{glossariesId}
+/// Updates a glossary. A LRO is used since the update can be async if the glossary's entry file is updated.
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `translate_projects_locations_glossaries_patch_execute()` or `translate_projects_locations_glossaries_patch`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `translate_projects_locations_glossaries_patch_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn translate_projects_locations_glossaries_patch_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<Operation>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: Operation = serde_json::from_str(&body)
+                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// PATCH v3/projects/{projectsId}/locations/{locationsId}/glossaries/{glossariesId}
+/// Updates a glossary. A LRO is used since the update can be async if the glossary's entry file is updated.
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `translate_projects_locations_glossaries_patch_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `translate_projects_locations_glossaries_patch_task()`.
+/// For the simplest API, use `translate_projects_locations_glossaries_patch()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `translate_projects_locations_glossaries_patch_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn translate_projects_locations_glossaries_patch_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<Operation>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let task = translate_projects_locations_glossaries_patch_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`translate_projects_locations_glossaries_patch`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct TranslateProjectsLocationsGlossariesPatchArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Query parameter: updateMask
+    pub updateMask: Option<Option<String>>,
+}
+
+/// PATCH v3/projects/{projectsId}/locations/{locationsId}/glossaries/{glossariesId}
+/// Updates a glossary. A LRO is used since the update can be async if the glossary's entry file is updated.
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `translate_projects_locations_glossaries_patch_builder()` + `translate_projects_locations_glossaries_patch_execute()`.
+/// For task-level control, use `translate_projects_locations_glossaries_patch_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn translate_projects_locations_glossaries_patch(
+    client: &SimpleHttpClient,
+    args: &TranslateProjectsLocationsGlossariesPatchArgs,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<Operation>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let builder = translate_projects_locations_glossaries_patch_builder(
+        client,
+        &args.name,
+        &args.updateMask,
+    )?;
+    translate_projects_locations_glossaries_patch_execute(builder)
+}
+
+/// POST v3/projects/{projectsId}/locations/{locationsId}/glossaries/{glossariesId}/glossaryEntries
+/// Creates a glossary entry.
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `translate_projects_locations_glossaries_glossary_entries_create_execute()` to send, or `translate_projects_locations_glossaries_glossary_entries_create` for simplest API.
+
+pub fn translate_projects_locations_glossaries_glossary_entries_create_builder(
+    client: &SimpleHttpClient,
+    parent: &String,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!(
+        "https://translation.googleapis.com/v3/projects/{}/locations/{locationsId}/glossaries/{glossariesId}/glossaryEntries",
+        parent,
+    );
+
+    // Build request
+    let builder = client
+        .post(&endpoint_url)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// POST v3/projects/{projectsId}/locations/{locationsId}/glossaries/{glossariesId}/glossaryEntries
+/// Creates a glossary entry.
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `translate_projects_locations_glossaries_glossary_entries_create_execute()` or `translate_projects_locations_glossaries_glossary_entries_create`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `translate_projects_locations_glossaries_glossary_entries_create_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn translate_projects_locations_glossaries_glossary_entries_create_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<GlossaryEntry>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: GlossaryEntry = serde_json::from_str(&body)
+                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// POST v3/projects/{projectsId}/locations/{locationsId}/glossaries/{glossariesId}/glossaryEntries
+/// Creates a glossary entry.
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `translate_projects_locations_glossaries_glossary_entries_create_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `translate_projects_locations_glossaries_glossary_entries_create_task()`.
+/// For the simplest API, use `translate_projects_locations_glossaries_glossary_entries_create()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `translate_projects_locations_glossaries_glossary_entries_create_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn translate_projects_locations_glossaries_glossary_entries_create_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<GlossaryEntry>, ApiError>, P = ApiPending>
+        + Send
+        + 'static,
+    ApiError,
+> {
+    let task = translate_projects_locations_glossaries_glossary_entries_create_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`translate_projects_locations_glossaries_glossary_entries_create`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct TranslateProjectsLocationsGlossariesGlossaryEntriesCreateArgs {
+    /// Path parameter: parent
+    pub parent: String,
+}
+
+/// POST v3/projects/{projectsId}/locations/{locationsId}/glossaries/{glossariesId}/glossaryEntries
+/// Creates a glossary entry.
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `translate_projects_locations_glossaries_glossary_entries_create_builder()` + `translate_projects_locations_glossaries_glossary_entries_create_execute()`.
+/// For task-level control, use `translate_projects_locations_glossaries_glossary_entries_create_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn translate_projects_locations_glossaries_glossary_entries_create(
+    client: &SimpleHttpClient,
+    args: &TranslateProjectsLocationsGlossariesGlossaryEntriesCreateArgs,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<GlossaryEntry>, ApiError>, P = ApiPending>
+        + Send
+        + 'static,
+    ApiError,
+> {
+    let builder = translate_projects_locations_glossaries_glossary_entries_create_builder(
+        client,
+        &args.parent,
+    )?;
+    translate_projects_locations_glossaries_glossary_entries_create_execute(builder)
+}
+
+/// DELETE v3/projects/{projectsId}/locations/{locationsId}/glossaries/{glossariesId}/glossaryEntries/{glossaryEntriesId}
+/// Deletes a single entry from the glossary
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `translate_projects_locations_glossaries_glossary_entries_delete_execute()` to send, or `translate_projects_locations_glossaries_glossary_entries_delete` for simplest API.
+
+pub fn translate_projects_locations_glossaries_glossary_entries_delete_builder(
+    client: &SimpleHttpClient,
+    name: &String,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!(
+        "https://translation.googleapis.com/v3/projects/{}/locations/{locationsId}/glossaries/{glossariesId}/glossaryEntries/{glossaryEntriesId}",
+        name,
+    );
+
+    // Build request
+    let builder = client
+        .delete(&endpoint_url)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// DELETE v3/projects/{projectsId}/locations/{locationsId}/glossaries/{glossariesId}/glossaryEntries/{glossaryEntriesId}
+/// Deletes a single entry from the glossary
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `translate_projects_locations_glossaries_glossary_entries_delete_execute()` or `translate_projects_locations_glossaries_glossary_entries_delete`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `translate_projects_locations_glossaries_glossary_entries_delete_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn translate_projects_locations_glossaries_glossary_entries_delete_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<Empty>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: Empty = serde_json::from_str(&body)
+                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// DELETE v3/projects/{projectsId}/locations/{locationsId}/glossaries/{glossariesId}/glossaryEntries/{glossaryEntriesId}
+/// Deletes a single entry from the glossary
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `translate_projects_locations_glossaries_glossary_entries_delete_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `translate_projects_locations_glossaries_glossary_entries_delete_task()`.
+/// For the simplest API, use `translate_projects_locations_glossaries_glossary_entries_delete()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `translate_projects_locations_glossaries_glossary_entries_delete_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn translate_projects_locations_glossaries_glossary_entries_delete_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<Empty>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let task = translate_projects_locations_glossaries_glossary_entries_delete_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`translate_projects_locations_glossaries_glossary_entries_delete`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct TranslateProjectsLocationsGlossariesGlossaryEntriesDeleteArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
+/// DELETE v3/projects/{projectsId}/locations/{locationsId}/glossaries/{glossariesId}/glossaryEntries/{glossaryEntriesId}
+/// Deletes a single entry from the glossary
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `translate_projects_locations_glossaries_glossary_entries_delete_builder()` + `translate_projects_locations_glossaries_glossary_entries_delete_execute()`.
+/// For task-level control, use `translate_projects_locations_glossaries_glossary_entries_delete_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn translate_projects_locations_glossaries_glossary_entries_delete(
+    client: &SimpleHttpClient,
+    args: &TranslateProjectsLocationsGlossariesGlossaryEntriesDeleteArgs,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<Empty>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let builder = translate_projects_locations_glossaries_glossary_entries_delete_builder(
+        client, &args.name,
+    )?;
+    translate_projects_locations_glossaries_glossary_entries_delete_execute(builder)
+}
+
+/// GET v3/projects/{projectsId}/locations/{locationsId}/glossaries/{glossariesId}/glossaryEntries/{glossaryEntriesId}
+/// Gets a single glossary entry by the given id.
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `translate_projects_locations_glossaries_glossary_entries_get_execute()` to send, or `translate_projects_locations_glossaries_glossary_entries_get` for simplest API.
+
+pub fn translate_projects_locations_glossaries_glossary_entries_get_builder(
+    client: &SimpleHttpClient,
+    name: &String,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!(
+        "https://translation.googleapis.com/v3/projects/{}/locations/{locationsId}/glossaries/{glossariesId}/glossaryEntries/{glossaryEntriesId}",
+        name,
+    );
+
+    // Build request
+    let builder = client
+        .get(&endpoint_url)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// GET v3/projects/{projectsId}/locations/{locationsId}/glossaries/{glossariesId}/glossaryEntries/{glossaryEntriesId}
+/// Gets a single glossary entry by the given id.
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `translate_projects_locations_glossaries_glossary_entries_get_execute()` or `translate_projects_locations_glossaries_glossary_entries_get`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `translate_projects_locations_glossaries_glossary_entries_get_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn translate_projects_locations_glossaries_glossary_entries_get_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<GlossaryEntry>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: GlossaryEntry = serde_json::from_str(&body)
+                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// GET v3/projects/{projectsId}/locations/{locationsId}/glossaries/{glossariesId}/glossaryEntries/{glossaryEntriesId}
+/// Gets a single glossary entry by the given id.
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `translate_projects_locations_glossaries_glossary_entries_get_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `translate_projects_locations_glossaries_glossary_entries_get_task()`.
+/// For the simplest API, use `translate_projects_locations_glossaries_glossary_entries_get()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `translate_projects_locations_glossaries_glossary_entries_get_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn translate_projects_locations_glossaries_glossary_entries_get_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<GlossaryEntry>, ApiError>, P = ApiPending>
+        + Send
+        + 'static,
+    ApiError,
+> {
+    let task = translate_projects_locations_glossaries_glossary_entries_get_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`translate_projects_locations_glossaries_glossary_entries_get`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct TranslateProjectsLocationsGlossariesGlossaryEntriesGetArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
+/// GET v3/projects/{projectsId}/locations/{locationsId}/glossaries/{glossariesId}/glossaryEntries/{glossaryEntriesId}
+/// Gets a single glossary entry by the given id.
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `translate_projects_locations_glossaries_glossary_entries_get_builder()` + `translate_projects_locations_glossaries_glossary_entries_get_execute()`.
+/// For task-level control, use `translate_projects_locations_glossaries_glossary_entries_get_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn translate_projects_locations_glossaries_glossary_entries_get(
+    client: &SimpleHttpClient,
+    args: &TranslateProjectsLocationsGlossariesGlossaryEntriesGetArgs,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<GlossaryEntry>, ApiError>, P = ApiPending>
+        + Send
+        + 'static,
+    ApiError,
+> {
+    let builder =
+        translate_projects_locations_glossaries_glossary_entries_get_builder(client, &args.name)?;
+    translate_projects_locations_glossaries_glossary_entries_get_execute(builder)
+}
+
+/// GET v3/projects/{projectsId}/locations/{locationsId}/glossaries/{glossariesId}/glossaryEntries
+/// List the entries for the glossary.
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `translate_projects_locations_glossaries_glossary_entries_list_execute()` to send, or `translate_projects_locations_glossaries_glossary_entries_list` for simplest API.
+
+pub fn translate_projects_locations_glossaries_glossary_entries_list_builder(
+    client: &SimpleHttpClient,
+    parent: &String,
+    pageSize: &Option<Option<String>>,
+    pageToken: &Option<Option<String>>,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!(
+        "https://translation.googleapis.com/v3/projects/{}/locations/{locationsId}/glossaries/{glossariesId}/glossaryEntries",
+        parent,
+    );
+
+    // Build request
+    let mut query_parts = Vec::new();
+    if let Some(val) = pageSize.as_ref() {
+        query_parts.push(format!("pageSize={}", val));
+    }
+    if let Some(val) = pageToken.as_ref() {
+        query_parts.push(format!("pageToken={}", val));
+    }
+
+    let url_with_query = if query_parts.is_empty() {
+        endpoint_url
+    } else {
+        format!("{}?{}", endpoint_url, query_parts.join("&"))
+    };
+
+    let builder = client
+        .get(&url_with_query)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// GET v3/projects/{projectsId}/locations/{locationsId}/glossaries/{glossariesId}/glossaryEntries
+/// List the entries for the glossary.
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `translate_projects_locations_glossaries_glossary_entries_list_execute()` or `translate_projects_locations_glossaries_glossary_entries_list`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `translate_projects_locations_glossaries_glossary_entries_list_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn translate_projects_locations_glossaries_glossary_entries_list_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<ListGlossaryEntriesResponse>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: ListGlossaryEntriesResponse = serde_json::from_str(&body)
+                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// GET v3/projects/{projectsId}/locations/{locationsId}/glossaries/{glossariesId}/glossaryEntries
+/// List the entries for the glossary.
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `translate_projects_locations_glossaries_glossary_entries_list_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `translate_projects_locations_glossaries_glossary_entries_list_task()`.
+/// For the simplest API, use `translate_projects_locations_glossaries_glossary_entries_list()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `translate_projects_locations_glossaries_glossary_entries_list_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn translate_projects_locations_glossaries_glossary_entries_list_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<
+            D = Result<ApiResponse<ListGlossaryEntriesResponse>, ApiError>,
+            P = ApiPending,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    let task = translate_projects_locations_glossaries_glossary_entries_list_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`translate_projects_locations_glossaries_glossary_entries_list`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct TranslateProjectsLocationsGlossariesGlossaryEntriesListArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Query parameter: pageSize
+    pub pageSize: Option<Option<String>>,
+    /// Query parameter: pageToken
+    pub pageToken: Option<Option<String>>,
+}
+
+/// GET v3/projects/{projectsId}/locations/{locationsId}/glossaries/{glossariesId}/glossaryEntries
+/// List the entries for the glossary.
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `translate_projects_locations_glossaries_glossary_entries_list_builder()` + `translate_projects_locations_glossaries_glossary_entries_list_execute()`.
+/// For task-level control, use `translate_projects_locations_glossaries_glossary_entries_list_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn translate_projects_locations_glossaries_glossary_entries_list(
+    client: &SimpleHttpClient,
+    args: &TranslateProjectsLocationsGlossariesGlossaryEntriesListArgs,
+) -> Result<
+    impl StreamIterator<
+            D = Result<ApiResponse<ListGlossaryEntriesResponse>, ApiError>,
+            P = ApiPending,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    let builder = translate_projects_locations_glossaries_glossary_entries_list_builder(
+        client,
+        &args.parent,
+        &args.pageSize,
+        &args.pageToken,
+    )?;
+    translate_projects_locations_glossaries_glossary_entries_list_execute(builder)
+}
+
+/// PATCH v3/projects/{projectsId}/locations/{locationsId}/glossaries/{glossariesId}/glossaryEntries/{glossaryEntriesId}
+/// Updates a glossary entry.
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `translate_projects_locations_glossaries_glossary_entries_patch_execute()` to send, or `translate_projects_locations_glossaries_glossary_entries_patch` for simplest API.
+
+pub fn translate_projects_locations_glossaries_glossary_entries_patch_builder(
+    client: &SimpleHttpClient,
+    name: &String,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!(
+        "https://translation.googleapis.com/v3/projects/{}/locations/{locationsId}/glossaries/{glossariesId}/glossaryEntries/{glossaryEntriesId}",
+        name,
+    );
+
+    // Build request
+    let builder = client
+        .patch(&endpoint_url)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// PATCH v3/projects/{projectsId}/locations/{locationsId}/glossaries/{glossariesId}/glossaryEntries/{glossaryEntriesId}
+/// Updates a glossary entry.
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `translate_projects_locations_glossaries_glossary_entries_patch_execute()` or `translate_projects_locations_glossaries_glossary_entries_patch`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `translate_projects_locations_glossaries_glossary_entries_patch_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn translate_projects_locations_glossaries_glossary_entries_patch_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<GlossaryEntry>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: GlossaryEntry = serde_json::from_str(&body)
+                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// PATCH v3/projects/{projectsId}/locations/{locationsId}/glossaries/{glossariesId}/glossaryEntries/{glossaryEntriesId}
+/// Updates a glossary entry.
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `translate_projects_locations_glossaries_glossary_entries_patch_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `translate_projects_locations_glossaries_glossary_entries_patch_task()`.
+/// For the simplest API, use `translate_projects_locations_glossaries_glossary_entries_patch()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `translate_projects_locations_glossaries_glossary_entries_patch_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn translate_projects_locations_glossaries_glossary_entries_patch_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<GlossaryEntry>, ApiError>, P = ApiPending>
+        + Send
+        + 'static,
+    ApiError,
+> {
+    let task = translate_projects_locations_glossaries_glossary_entries_patch_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`translate_projects_locations_glossaries_glossary_entries_patch`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct TranslateProjectsLocationsGlossariesGlossaryEntriesPatchArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
+/// PATCH v3/projects/{projectsId}/locations/{locationsId}/glossaries/{glossariesId}/glossaryEntries/{glossaryEntriesId}
+/// Updates a glossary entry.
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `translate_projects_locations_glossaries_glossary_entries_patch_builder()` + `translate_projects_locations_glossaries_glossary_entries_patch_execute()`.
+/// For task-level control, use `translate_projects_locations_glossaries_glossary_entries_patch_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn translate_projects_locations_glossaries_glossary_entries_patch(
+    client: &SimpleHttpClient,
+    args: &TranslateProjectsLocationsGlossariesGlossaryEntriesPatchArgs,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<GlossaryEntry>, ApiError>, P = ApiPending>
+        + Send
+        + 'static,
+    ApiError,
+> {
+    let builder =
+        translate_projects_locations_glossaries_glossary_entries_patch_builder(client, &args.name)?;
+    translate_projects_locations_glossaries_glossary_entries_patch_execute(builder)
+}
+
+/// POST v3/projects/{projectsId}/locations/{locationsId}/models
+/// Creates a Model.
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `translate_projects_locations_models_create_execute()` to send, or `translate_projects_locations_models_create` for simplest API.
+
+pub fn translate_projects_locations_models_create_builder(
+    client: &SimpleHttpClient,
+    parent: &String,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!(
+        "https://translation.googleapis.com/v3/projects/{}/locations/{locationsId}/models",
+        parent,
+    );
+
+    // Build request
+    let builder = client
+        .post(&endpoint_url)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// POST v3/projects/{projectsId}/locations/{locationsId}/models
+/// Creates a Model.
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `translate_projects_locations_models_create_execute()` or `translate_projects_locations_models_create`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `translate_projects_locations_models_create_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn translate_projects_locations_models_create_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<Operation>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: Operation = serde_json::from_str(&body)
+                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// POST v3/projects/{projectsId}/locations/{locationsId}/models
+/// Creates a Model.
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `translate_projects_locations_models_create_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `translate_projects_locations_models_create_task()`.
+/// For the simplest API, use `translate_projects_locations_models_create()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `translate_projects_locations_models_create_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn translate_projects_locations_models_create_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<Operation>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let task = translate_projects_locations_models_create_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`translate_projects_locations_models_create`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct TranslateProjectsLocationsModelsCreateArgs {
+    /// Path parameter: parent
+    pub parent: String,
+}
+
+/// POST v3/projects/{projectsId}/locations/{locationsId}/models
+/// Creates a Model.
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `translate_projects_locations_models_create_builder()` + `translate_projects_locations_models_create_execute()`.
+/// For task-level control, use `translate_projects_locations_models_create_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn translate_projects_locations_models_create(
+    client: &SimpleHttpClient,
+    args: &TranslateProjectsLocationsModelsCreateArgs,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<Operation>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let builder = translate_projects_locations_models_create_builder(client, &args.parent)?;
+    translate_projects_locations_models_create_execute(builder)
+}
+
+/// DELETE v3/projects/{projectsId}/locations/{locationsId}/models/{modelsId}
+/// Deletes a model.
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `translate_projects_locations_models_delete_execute()` to send, or `translate_projects_locations_models_delete` for simplest API.
+
+pub fn translate_projects_locations_models_delete_builder(
+    client: &SimpleHttpClient,
+    name: &String,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!(
+        "https://translation.googleapis.com/v3/projects/{}/locations/{locationsId}/models/{modelsId}",
+        name,
+    );
+
+    // Build request
+    let builder = client
+        .delete(&endpoint_url)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// DELETE v3/projects/{projectsId}/locations/{locationsId}/models/{modelsId}
+/// Deletes a model.
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `translate_projects_locations_models_delete_execute()` or `translate_projects_locations_models_delete`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `translate_projects_locations_models_delete_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn translate_projects_locations_models_delete_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<Operation>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: Operation = serde_json::from_str(&body)
+                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// DELETE v3/projects/{projectsId}/locations/{locationsId}/models/{modelsId}
+/// Deletes a model.
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `translate_projects_locations_models_delete_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `translate_projects_locations_models_delete_task()`.
+/// For the simplest API, use `translate_projects_locations_models_delete()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `translate_projects_locations_models_delete_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn translate_projects_locations_models_delete_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<Operation>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let task = translate_projects_locations_models_delete_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`translate_projects_locations_models_delete`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct TranslateProjectsLocationsModelsDeleteArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
+/// DELETE v3/projects/{projectsId}/locations/{locationsId}/models/{modelsId}
+/// Deletes a model.
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `translate_projects_locations_models_delete_builder()` + `translate_projects_locations_models_delete_execute()`.
+/// For task-level control, use `translate_projects_locations_models_delete_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn translate_projects_locations_models_delete(
+    client: &SimpleHttpClient,
+    args: &TranslateProjectsLocationsModelsDeleteArgs,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<Operation>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let builder = translate_projects_locations_models_delete_builder(client, &args.name)?;
+    translate_projects_locations_models_delete_execute(builder)
+}
+
+/// GET v3/projects/{projectsId}/locations/{locationsId}/models/{modelsId}
+/// Gets a model.
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `translate_projects_locations_models_get_execute()` to send, or `translate_projects_locations_models_get` for simplest API.
+
+pub fn translate_projects_locations_models_get_builder(
+    client: &SimpleHttpClient,
+    name: &String,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!(
+        "https://translation.googleapis.com/v3/projects/{}/locations/{locationsId}/models/{modelsId}",
+        name,
+    );
+
+    // Build request
+    let builder = client
+        .get(&endpoint_url)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// GET v3/projects/{projectsId}/locations/{locationsId}/models/{modelsId}
+/// Gets a model.
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `translate_projects_locations_models_get_execute()` or `translate_projects_locations_models_get`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `translate_projects_locations_models_get_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn translate_projects_locations_models_get_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<Model>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: Model = serde_json::from_str(&body)
+                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// GET v3/projects/{projectsId}/locations/{locationsId}/models/{modelsId}
+/// Gets a model.
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `translate_projects_locations_models_get_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `translate_projects_locations_models_get_task()`.
+/// For the simplest API, use `translate_projects_locations_models_get()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `translate_projects_locations_models_get_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn translate_projects_locations_models_get_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<Model>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let task = translate_projects_locations_models_get_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`translate_projects_locations_models_get`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct TranslateProjectsLocationsModelsGetArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
+/// GET v3/projects/{projectsId}/locations/{locationsId}/models/{modelsId}
+/// Gets a model.
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `translate_projects_locations_models_get_builder()` + `translate_projects_locations_models_get_execute()`.
+/// For task-level control, use `translate_projects_locations_models_get_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn translate_projects_locations_models_get(
+    client: &SimpleHttpClient,
+    args: &TranslateProjectsLocationsModelsGetArgs,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<Model>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let builder = translate_projects_locations_models_get_builder(client, &args.name)?;
+    translate_projects_locations_models_get_execute(builder)
+}
+
+/// GET v3/projects/{projectsId}/locations/{locationsId}/models
+/// Lists models.
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `translate_projects_locations_models_list_execute()` to send, or `translate_projects_locations_models_list` for simplest API.
+
+pub fn translate_projects_locations_models_list_builder(
+    client: &SimpleHttpClient,
+    parent: &String,
+    filter: &Option<Option<String>>,
+    pageSize: &Option<Option<String>>,
+    pageToken: &Option<Option<String>>,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!(
+        "https://translation.googleapis.com/v3/projects/{}/locations/{locationsId}/models",
+        parent,
+    );
+
+    // Build request
+    let mut query_parts = Vec::new();
+    if let Some(val) = filter.as_ref() {
+        query_parts.push(format!("filter={}", val));
+    }
+    if let Some(val) = pageSize.as_ref() {
+        query_parts.push(format!("pageSize={}", val));
+    }
+    if let Some(val) = pageToken.as_ref() {
+        query_parts.push(format!("pageToken={}", val));
+    }
+
+    let url_with_query = if query_parts.is_empty() {
+        endpoint_url
+    } else {
+        format!("{}?{}", endpoint_url, query_parts.join("&"))
+    };
+
+    let builder = client
+        .get(&url_with_query)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// GET v3/projects/{projectsId}/locations/{locationsId}/models
+/// Lists models.
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `translate_projects_locations_models_list_execute()` or `translate_projects_locations_models_list`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `translate_projects_locations_models_list_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn translate_projects_locations_models_list_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<ListModelsResponse>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: ListModelsResponse = serde_json::from_str(&body)
+                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// GET v3/projects/{projectsId}/locations/{locationsId}/models
+/// Lists models.
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `translate_projects_locations_models_list_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `translate_projects_locations_models_list_task()`.
+/// For the simplest API, use `translate_projects_locations_models_list()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `translate_projects_locations_models_list_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn translate_projects_locations_models_list_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<ListModelsResponse>, ApiError>, P = ApiPending>
+        + Send
+        + 'static,
+    ApiError,
+> {
+    let task = translate_projects_locations_models_list_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`translate_projects_locations_models_list`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct TranslateProjectsLocationsModelsListArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Query parameter: filter
+    pub filter: Option<Option<String>>,
+    /// Query parameter: pageSize
+    pub pageSize: Option<Option<String>>,
+    /// Query parameter: pageToken
+    pub pageToken: Option<Option<String>>,
+}
+
+/// GET v3/projects/{projectsId}/locations/{locationsId}/models
+/// Lists models.
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `translate_projects_locations_models_list_builder()` + `translate_projects_locations_models_list_execute()`.
+/// For task-level control, use `translate_projects_locations_models_list_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn translate_projects_locations_models_list(
+    client: &SimpleHttpClient,
+    args: &TranslateProjectsLocationsModelsListArgs,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<ListModelsResponse>, ApiError>, P = ApiPending>
+        + Send
+        + 'static,
+    ApiError,
+> {
+    let builder = translate_projects_locations_models_list_builder(
+        client,
+        &args.parent,
+        &args.filter,
+        &args.pageSize,
+        &args.pageToken,
+    )?;
+    translate_projects_locations_models_list_execute(builder)
+}
+
+/// POST v3/projects/{projectsId}/locations/{locationsId}/operations/{operationsId}:cancel
+/// Starts asynchronous cancellation on a long-running operation. The server makes a best effort to cancel the operation, but success is not guaranteed. If the server doesn't support this method, it returns google.rpc.Code.UNIMPLEMENTED. Clients can use Operations.GetOperation or other methods to check whether the cancellation succeeded or whether the operation completed despite cancellation. On successful cancellation, the operation is not deleted; instead, it becomes an operation with an Operation.error value with a google.rpc.Status.code of 1, corresponding to Code.CANCELLED.
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `translate_projects_locations_operations_cancel_execute()` to send, or `translate_projects_locations_operations_cancel` for simplest API.
+
+pub fn translate_projects_locations_operations_cancel_builder(
+    client: &SimpleHttpClient,
+    name: &String,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!(
+        "https://translation.googleapis.com/v3/projects/{}/locations/{locationsId}/operations/{operationsId}:cancel",
+        name,
+    );
+
+    // Build request
+    let builder = client
+        .post(&endpoint_url)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// POST v3/projects/{projectsId}/locations/{locationsId}/operations/{operationsId}:cancel
+/// Starts asynchronous cancellation on a long-running operation. The server makes a best effort to cancel the operation, but success is not guaranteed. If the server doesn't support this method, it returns google.rpc.Code.UNIMPLEMENTED. Clients can use Operations.GetOperation or other methods to check whether the cancellation succeeded or whether the operation completed despite cancellation. On successful cancellation, the operation is not deleted; instead, it becomes an operation with an Operation.error value with a google.rpc.Status.code of 1, corresponding to Code.CANCELLED.
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `translate_projects_locations_operations_cancel_execute()` or `translate_projects_locations_operations_cancel`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `translate_projects_locations_operations_cancel_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn translate_projects_locations_operations_cancel_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<Empty>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: Empty = serde_json::from_str(&body)
+                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// POST v3/projects/{projectsId}/locations/{locationsId}/operations/{operationsId}:cancel
+/// Starts asynchronous cancellation on a long-running operation. The server makes a best effort to cancel the operation, but success is not guaranteed. If the server doesn't support this method, it returns google.rpc.Code.UNIMPLEMENTED. Clients can use Operations.GetOperation or other methods to check whether the cancellation succeeded or whether the operation completed despite cancellation. On successful cancellation, the operation is not deleted; instead, it becomes an operation with an Operation.error value with a google.rpc.Status.code of 1, corresponding to Code.CANCELLED.
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `translate_projects_locations_operations_cancel_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `translate_projects_locations_operations_cancel_task()`.
+/// For the simplest API, use `translate_projects_locations_operations_cancel()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `translate_projects_locations_operations_cancel_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn translate_projects_locations_operations_cancel_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<Empty>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let task = translate_projects_locations_operations_cancel_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`translate_projects_locations_operations_cancel`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct TranslateProjectsLocationsOperationsCancelArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
+/// POST v3/projects/{projectsId}/locations/{locationsId}/operations/{operationsId}:cancel
+/// Starts asynchronous cancellation on a long-running operation. The server makes a best effort to cancel the operation, but success is not guaranteed. If the server doesn't support this method, it returns google.rpc.Code.UNIMPLEMENTED. Clients can use Operations.GetOperation or other methods to check whether the cancellation succeeded or whether the operation completed despite cancellation. On successful cancellation, the operation is not deleted; instead, it becomes an operation with an Operation.error value with a google.rpc.Status.code of 1, corresponding to Code.CANCELLED.
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `translate_projects_locations_operations_cancel_builder()` + `translate_projects_locations_operations_cancel_execute()`.
+/// For task-level control, use `translate_projects_locations_operations_cancel_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn translate_projects_locations_operations_cancel(
+    client: &SimpleHttpClient,
+    args: &TranslateProjectsLocationsOperationsCancelArgs,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<Empty>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let builder = translate_projects_locations_operations_cancel_builder(client, &args.name)?;
+    translate_projects_locations_operations_cancel_execute(builder)
+}
+
+/// DELETE v3/projects/{projectsId}/locations/{locationsId}/operations/{operationsId}
+/// Deletes a long-running operation. This method indicates that the client is no longer interested in the operation result. It does not cancel the operation. If the server doesn't support this method, it returns google.rpc.Code.UNIMPLEMENTED.
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `translate_projects_locations_operations_delete_execute()` to send, or `translate_projects_locations_operations_delete` for simplest API.
+
+pub fn translate_projects_locations_operations_delete_builder(
+    client: &SimpleHttpClient,
+    name: &String,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!(
+        "https://translation.googleapis.com/v3/projects/{}/locations/{locationsId}/operations/{operationsId}",
+        name,
+    );
+
+    // Build request
+    let builder = client
+        .delete(&endpoint_url)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// DELETE v3/projects/{projectsId}/locations/{locationsId}/operations/{operationsId}
+/// Deletes a long-running operation. This method indicates that the client is no longer interested in the operation result. It does not cancel the operation. If the server doesn't support this method, it returns google.rpc.Code.UNIMPLEMENTED.
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `translate_projects_locations_operations_delete_execute()` or `translate_projects_locations_operations_delete`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `translate_projects_locations_operations_delete_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn translate_projects_locations_operations_delete_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<Empty>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: Empty = serde_json::from_str(&body)
+                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// DELETE v3/projects/{projectsId}/locations/{locationsId}/operations/{operationsId}
+/// Deletes a long-running operation. This method indicates that the client is no longer interested in the operation result. It does not cancel the operation. If the server doesn't support this method, it returns google.rpc.Code.UNIMPLEMENTED.
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `translate_projects_locations_operations_delete_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `translate_projects_locations_operations_delete_task()`.
+/// For the simplest API, use `translate_projects_locations_operations_delete()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `translate_projects_locations_operations_delete_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn translate_projects_locations_operations_delete_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<Empty>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let task = translate_projects_locations_operations_delete_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`translate_projects_locations_operations_delete`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct TranslateProjectsLocationsOperationsDeleteArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
+/// DELETE v3/projects/{projectsId}/locations/{locationsId}/operations/{operationsId}
+/// Deletes a long-running operation. This method indicates that the client is no longer interested in the operation result. It does not cancel the operation. If the server doesn't support this method, it returns google.rpc.Code.UNIMPLEMENTED.
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `translate_projects_locations_operations_delete_builder()` + `translate_projects_locations_operations_delete_execute()`.
+/// For task-level control, use `translate_projects_locations_operations_delete_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn translate_projects_locations_operations_delete(
+    client: &SimpleHttpClient,
+    args: &TranslateProjectsLocationsOperationsDeleteArgs,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<Empty>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let builder = translate_projects_locations_operations_delete_builder(client, &args.name)?;
+    translate_projects_locations_operations_delete_execute(builder)
+}
+
+/// GET v3/projects/{projectsId}/locations/{locationsId}/operations/{operationsId}
+/// Gets the latest state of a long-running operation. Clients can use this method to poll the operation result at intervals as recommended by the API service.
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `translate_projects_locations_operations_get_execute()` to send, or `translate_projects_locations_operations_get` for simplest API.
+
+pub fn translate_projects_locations_operations_get_builder(
+    client: &SimpleHttpClient,
+    name: &String,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!(
+        "https://translation.googleapis.com/v3/projects/{}/locations/{locationsId}/operations/{operationsId}",
+        name,
+    );
+
+    // Build request
+    let builder = client
+        .get(&endpoint_url)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// GET v3/projects/{projectsId}/locations/{locationsId}/operations/{operationsId}
+/// Gets the latest state of a long-running operation. Clients can use this method to poll the operation result at intervals as recommended by the API service.
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `translate_projects_locations_operations_get_execute()` or `translate_projects_locations_operations_get`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `translate_projects_locations_operations_get_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn translate_projects_locations_operations_get_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<Operation>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: Operation = serde_json::from_str(&body)
+                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// GET v3/projects/{projectsId}/locations/{locationsId}/operations/{operationsId}
+/// Gets the latest state of a long-running operation. Clients can use this method to poll the operation result at intervals as recommended by the API service.
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `translate_projects_locations_operations_get_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `translate_projects_locations_operations_get_task()`.
+/// For the simplest API, use `translate_projects_locations_operations_get()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `translate_projects_locations_operations_get_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn translate_projects_locations_operations_get_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<Operation>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let task = translate_projects_locations_operations_get_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`translate_projects_locations_operations_get`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct TranslateProjectsLocationsOperationsGetArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
+/// GET v3/projects/{projectsId}/locations/{locationsId}/operations/{operationsId}
+/// Gets the latest state of a long-running operation. Clients can use this method to poll the operation result at intervals as recommended by the API service.
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `translate_projects_locations_operations_get_builder()` + `translate_projects_locations_operations_get_execute()`.
+/// For task-level control, use `translate_projects_locations_operations_get_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn translate_projects_locations_operations_get(
+    client: &SimpleHttpClient,
+    args: &TranslateProjectsLocationsOperationsGetArgs,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<Operation>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let builder = translate_projects_locations_operations_get_builder(client, &args.name)?;
+    translate_projects_locations_operations_get_execute(builder)
+}
+
+/// GET v3/projects/{projectsId}/locations/{locationsId}/operations
+/// Lists operations that match the specified filter in the request. If the server doesn't support this method, it returns UNIMPLEMENTED.
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `translate_projects_locations_operations_list_execute()` to send, or `translate_projects_locations_operations_list` for simplest API.
+
+pub fn translate_projects_locations_operations_list_builder(
+    client: &SimpleHttpClient,
+    name: &String,
+    filter: &Option<Option<String>>,
+    pageSize: &Option<Option<String>>,
+    pageToken: &Option<Option<String>>,
+    returnPartialSuccess: &Option<Option<String>>,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!(
+        "https://translation.googleapis.com/v3/projects/{}/locations/{locationsId}/operations",
+        name,
+    );
+
+    // Build request
+    let mut query_parts = Vec::new();
+    if let Some(val) = filter.as_ref() {
+        query_parts.push(format!("filter={}", val));
+    }
+    if let Some(val) = pageSize.as_ref() {
+        query_parts.push(format!("pageSize={}", val));
+    }
+    if let Some(val) = pageToken.as_ref() {
+        query_parts.push(format!("pageToken={}", val));
+    }
+    if let Some(val) = returnPartialSuccess.as_ref() {
+        query_parts.push(format!("returnPartialSuccess={}", val));
+    }
+
+    let url_with_query = if query_parts.is_empty() {
+        endpoint_url
+    } else {
+        format!("{}?{}", endpoint_url, query_parts.join("&"))
+    };
+
+    let builder = client
+        .get(&url_with_query)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// GET v3/projects/{projectsId}/locations/{locationsId}/operations
+/// Lists operations that match the specified filter in the request. If the server doesn't support this method, it returns UNIMPLEMENTED.
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `translate_projects_locations_operations_list_execute()` or `translate_projects_locations_operations_list`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `translate_projects_locations_operations_list_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn translate_projects_locations_operations_list_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<ListOperationsResponse>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: ListOperationsResponse = serde_json::from_str(&body)
+                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// GET v3/projects/{projectsId}/locations/{locationsId}/operations
+/// Lists operations that match the specified filter in the request. If the server doesn't support this method, it returns UNIMPLEMENTED.
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `translate_projects_locations_operations_list_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `translate_projects_locations_operations_list_task()`.
+/// For the simplest API, use `translate_projects_locations_operations_list()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `translate_projects_locations_operations_list_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn translate_projects_locations_operations_list_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<ListOperationsResponse>, ApiError>, P = ApiPending>
+        + Send
+        + 'static,
+    ApiError,
+> {
+    let task = translate_projects_locations_operations_list_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`translate_projects_locations_operations_list`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct TranslateProjectsLocationsOperationsListArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Query parameter: filter
+    pub filter: Option<Option<String>>,
+    /// Query parameter: pageSize
+    pub pageSize: Option<Option<String>>,
+    /// Query parameter: pageToken
+    pub pageToken: Option<Option<String>>,
+    /// Query parameter: returnPartialSuccess
+    pub returnPartialSuccess: Option<Option<String>>,
+}
+
+/// GET v3/projects/{projectsId}/locations/{locationsId}/operations
+/// Lists operations that match the specified filter in the request. If the server doesn't support this method, it returns UNIMPLEMENTED.
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `translate_projects_locations_operations_list_builder()` + `translate_projects_locations_operations_list_execute()`.
+/// For task-level control, use `translate_projects_locations_operations_list_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn translate_projects_locations_operations_list(
+    client: &SimpleHttpClient,
+    args: &TranslateProjectsLocationsOperationsListArgs,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<ListOperationsResponse>, ApiError>, P = ApiPending>
+        + Send
+        + 'static,
+    ApiError,
+> {
+    let builder = translate_projects_locations_operations_list_builder(
+        client,
+        &args.name,
+        &args.filter,
+        &args.pageSize,
+        &args.pageToken,
+        &args.returnPartialSuccess,
+    )?;
+    translate_projects_locations_operations_list_execute(builder)
+}
+
+/// POST v3/projects/{projectsId}/locations/{locationsId}/operations/{operationsId}:wait
+/// Waits until the specified long-running operation is done or reaches at most a specified timeout, returning the latest state. If the operation is already done, the latest state is immediately returned. If the timeout specified is greater than the default HTTP/RPC timeout, the HTTP/RPC timeout is used. If the server does not support this method, it returns google.rpc.Code.UNIMPLEMENTED. Note that this method is on a best-effort basis. It may return the latest state before the specified timeout (including immediately), meaning even an immediate response is no guarantee that the operation is done.
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `translate_projects_locations_operations_wait_execute()` to send, or `translate_projects_locations_operations_wait` for simplest API.
+
+pub fn translate_projects_locations_operations_wait_builder(
+    client: &SimpleHttpClient,
+    name: &String,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!(
+        "https://translation.googleapis.com/v3/projects/{}/locations/{locationsId}/operations/{operationsId}:wait",
+        name,
+    );
+
+    // Build request
+    let builder = client
+        .post(&endpoint_url)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// POST v3/projects/{projectsId}/locations/{locationsId}/operations/{operationsId}:wait
+/// Waits until the specified long-running operation is done or reaches at most a specified timeout, returning the latest state. If the operation is already done, the latest state is immediately returned. If the timeout specified is greater than the default HTTP/RPC timeout, the HTTP/RPC timeout is used. If the server does not support this method, it returns google.rpc.Code.UNIMPLEMENTED. Note that this method is on a best-effort basis. It may return the latest state before the specified timeout (including immediately), meaning even an immediate response is no guarantee that the operation is done.
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `translate_projects_locations_operations_wait_execute()` or `translate_projects_locations_operations_wait`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `translate_projects_locations_operations_wait_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn translate_projects_locations_operations_wait_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<Operation>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: Operation = serde_json::from_str(&body)
+                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// POST v3/projects/{projectsId}/locations/{locationsId}/operations/{operationsId}:wait
+/// Waits until the specified long-running operation is done or reaches at most a specified timeout, returning the latest state. If the operation is already done, the latest state is immediately returned. If the timeout specified is greater than the default HTTP/RPC timeout, the HTTP/RPC timeout is used. If the server does not support this method, it returns google.rpc.Code.UNIMPLEMENTED. Note that this method is on a best-effort basis. It may return the latest state before the specified timeout (including immediately), meaning even an immediate response is no guarantee that the operation is done.
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `translate_projects_locations_operations_wait_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `translate_projects_locations_operations_wait_task()`.
+/// For the simplest API, use `translate_projects_locations_operations_wait()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `translate_projects_locations_operations_wait_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn translate_projects_locations_operations_wait_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<Operation>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let task = translate_projects_locations_operations_wait_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`translate_projects_locations_operations_wait`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct TranslateProjectsLocationsOperationsWaitArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
+/// POST v3/projects/{projectsId}/locations/{locationsId}/operations/{operationsId}:wait
+/// Waits until the specified long-running operation is done or reaches at most a specified timeout, returning the latest state. If the operation is already done, the latest state is immediately returned. If the timeout specified is greater than the default HTTP/RPC timeout, the HTTP/RPC timeout is used. If the server does not support this method, it returns google.rpc.Code.UNIMPLEMENTED. Note that this method is on a best-effort basis. It may return the latest state before the specified timeout (including immediately), meaning even an immediate response is no guarantee that the operation is done.
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `translate_projects_locations_operations_wait_builder()` + `translate_projects_locations_operations_wait_execute()`.
+/// For task-level control, use `translate_projects_locations_operations_wait_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn translate_projects_locations_operations_wait(
+    client: &SimpleHttpClient,
+    args: &TranslateProjectsLocationsOperationsWaitArgs,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<Operation>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let builder = translate_projects_locations_operations_wait_builder(client, &args.name)?;
+    translate_projects_locations_operations_wait_execute(builder)
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for DetectLanguageResponse
+// =============================================================================
+
+/// ResourceIdentifier implementation for DetectLanguageResponse with TranslateProjectsDetectLanguageArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<TranslateProjectsDetectLanguageArgs> for DetectLanguageResponse {
+    fn generate_resource_id(&self, input: &TranslateProjectsDetectLanguageArgs) -> String {
+        format!("gcp::translate::DetectLanguageResponse/{}", input.parent)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::translate::DetectLanguageResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for SupportedLanguages
+// =============================================================================
+
+/// ResourceIdentifier implementation for SupportedLanguages with TranslateProjectsGetSupportedLanguagesArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<TranslateProjectsGetSupportedLanguagesArgs> for SupportedLanguages {
+    fn generate_resource_id(&self, input: &TranslateProjectsGetSupportedLanguagesArgs) -> String {
+        format!("gcp::translate::SupportedLanguages/{}", input.parent)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::translate::SupportedLanguages"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for RomanizeTextResponse
+// =============================================================================
+
+/// ResourceIdentifier implementation for RomanizeTextResponse with TranslateProjectsRomanizeTextArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<TranslateProjectsRomanizeTextArgs> for RomanizeTextResponse {
+    fn generate_resource_id(&self, input: &TranslateProjectsRomanizeTextArgs) -> String {
+        format!("gcp::translate::RomanizeTextResponse/{}", input.parent)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::translate::RomanizeTextResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for TranslateTextResponse
+// =============================================================================
+
+/// ResourceIdentifier implementation for TranslateTextResponse with TranslateProjectsTranslateTextArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<TranslateProjectsTranslateTextArgs> for TranslateTextResponse {
+    fn generate_resource_id(&self, input: &TranslateProjectsTranslateTextArgs) -> String {
+        format!("gcp::translate::TranslateTextResponse/{}", input.parent)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::translate::TranslateTextResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for AdaptiveMtTranslateResponse
+// =============================================================================
+
+/// ResourceIdentifier implementation for AdaptiveMtTranslateResponse with TranslateProjectsLocationsAdaptiveMtTranslateArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<TranslateProjectsLocationsAdaptiveMtTranslateArgs>
+    for AdaptiveMtTranslateResponse
+{
+    fn generate_resource_id(
+        &self,
+        input: &TranslateProjectsLocationsAdaptiveMtTranslateArgs,
+    ) -> String {
+        format!(
+            "gcp::translate::AdaptiveMtTranslateResponse/{}",
+            input.parent
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::translate::AdaptiveMtTranslateResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for Operation
+// =============================================================================
+
+/// ResourceIdentifier implementation for Operation with TranslateProjectsLocationsBatchTranslateDocumentArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<TranslateProjectsLocationsBatchTranslateDocumentArgs> for Operation {
+    fn generate_resource_id(
+        &self,
+        input: &TranslateProjectsLocationsBatchTranslateDocumentArgs,
+    ) -> String {
+        format!("gcp::translate::Operation/{}", input.parent)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::translate::Operation"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for Operation
+// =============================================================================
+
+/// ResourceIdentifier implementation for Operation with TranslateProjectsLocationsBatchTranslateTextArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<TranslateProjectsLocationsBatchTranslateTextArgs> for Operation {
+    fn generate_resource_id(
+        &self,
+        input: &TranslateProjectsLocationsBatchTranslateTextArgs,
+    ) -> String {
+        format!("gcp::translate::Operation/{}", input.parent)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::translate::Operation"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for DetectLanguageResponse
+// =============================================================================
+
+/// ResourceIdentifier implementation for DetectLanguageResponse with TranslateProjectsLocationsDetectLanguageArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<TranslateProjectsLocationsDetectLanguageArgs> for DetectLanguageResponse {
+    fn generate_resource_id(&self, input: &TranslateProjectsLocationsDetectLanguageArgs) -> String {
+        format!("gcp::translate::DetectLanguageResponse/{}", input.parent)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::translate::DetectLanguageResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for Location
+// =============================================================================
+
+/// ResourceIdentifier implementation for Location with TranslateProjectsLocationsGetArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<TranslateProjectsLocationsGetArgs> for Location {
+    fn generate_resource_id(&self, input: &TranslateProjectsLocationsGetArgs) -> String {
+        format!("gcp::translate::Location/{}", input.name)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::translate::Location"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for SupportedLanguages
+// =============================================================================
+
+/// ResourceIdentifier implementation for SupportedLanguages with TranslateProjectsLocationsGetSupportedLanguagesArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<TranslateProjectsLocationsGetSupportedLanguagesArgs>
+    for SupportedLanguages
+{
+    fn generate_resource_id(
+        &self,
+        input: &TranslateProjectsLocationsGetSupportedLanguagesArgs,
+    ) -> String {
+        format!("gcp::translate::SupportedLanguages/{}", input.parent)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::translate::SupportedLanguages"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for ListLocationsResponse
+// =============================================================================
+
+/// ResourceIdentifier implementation for ListLocationsResponse with TranslateProjectsLocationsListArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<TranslateProjectsLocationsListArgs> for ListLocationsResponse {
+    fn generate_resource_id(&self, input: &TranslateProjectsLocationsListArgs) -> String {
+        format!("gcp::translate::ListLocationsResponse/{}", input.name)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::translate::ListLocationsResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for RefineTextResponse
+// =============================================================================
+
+/// ResourceIdentifier implementation for RefineTextResponse with TranslateProjectsLocationsRefineTextArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<TranslateProjectsLocationsRefineTextArgs> for RefineTextResponse {
+    fn generate_resource_id(&self, input: &TranslateProjectsLocationsRefineTextArgs) -> String {
+        format!("gcp::translate::RefineTextResponse/{}", input.parent)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::translate::RefineTextResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for RomanizeTextResponse
+// =============================================================================
+
+/// ResourceIdentifier implementation for RomanizeTextResponse with TranslateProjectsLocationsRomanizeTextArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<TranslateProjectsLocationsRomanizeTextArgs> for RomanizeTextResponse {
+    fn generate_resource_id(&self, input: &TranslateProjectsLocationsRomanizeTextArgs) -> String {
+        format!("gcp::translate::RomanizeTextResponse/{}", input.parent)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::translate::RomanizeTextResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for TranslateDocumentResponse
+// =============================================================================
+
+/// ResourceIdentifier implementation for TranslateDocumentResponse with TranslateProjectsLocationsTranslateDocumentArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<TranslateProjectsLocationsTranslateDocumentArgs>
+    for TranslateDocumentResponse
+{
+    fn generate_resource_id(
+        &self,
+        input: &TranslateProjectsLocationsTranslateDocumentArgs,
+    ) -> String {
+        format!("gcp::translate::TranslateDocumentResponse/{}", input.parent)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::translate::TranslateDocumentResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for TranslateTextResponse
+// =============================================================================
+
+/// ResourceIdentifier implementation for TranslateTextResponse with TranslateProjectsLocationsTranslateTextArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<TranslateProjectsLocationsTranslateTextArgs> for TranslateTextResponse {
+    fn generate_resource_id(&self, input: &TranslateProjectsLocationsTranslateTextArgs) -> String {
+        format!("gcp::translate::TranslateTextResponse/{}", input.parent)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::translate::TranslateTextResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for AdaptiveMtDataset
+// =============================================================================
+
+/// ResourceIdentifier implementation for AdaptiveMtDataset with TranslateProjectsLocationsAdaptiveMtDatasetsCreateArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<TranslateProjectsLocationsAdaptiveMtDatasetsCreateArgs>
+    for AdaptiveMtDataset
+{
+    fn generate_resource_id(
+        &self,
+        input: &TranslateProjectsLocationsAdaptiveMtDatasetsCreateArgs,
+    ) -> String {
+        format!("gcp::translate::AdaptiveMtDataset/{}", input.parent)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::translate::AdaptiveMtDataset"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for Empty
+// =============================================================================
+
+/// ResourceIdentifier implementation for Empty with TranslateProjectsLocationsAdaptiveMtDatasetsDeleteArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<TranslateProjectsLocationsAdaptiveMtDatasetsDeleteArgs> for Empty {
+    fn generate_resource_id(
+        &self,
+        input: &TranslateProjectsLocationsAdaptiveMtDatasetsDeleteArgs,
+    ) -> String {
+        format!("gcp::translate::Empty/{}", input.name)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::translate::Empty"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for AdaptiveMtDataset
+// =============================================================================
+
+/// ResourceIdentifier implementation for AdaptiveMtDataset with TranslateProjectsLocationsAdaptiveMtDatasetsGetArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<TranslateProjectsLocationsAdaptiveMtDatasetsGetArgs> for AdaptiveMtDataset {
+    fn generate_resource_id(
+        &self,
+        input: &TranslateProjectsLocationsAdaptiveMtDatasetsGetArgs,
+    ) -> String {
+        format!("gcp::translate::AdaptiveMtDataset/{}", input.name)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::translate::AdaptiveMtDataset"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for ImportAdaptiveMtFileResponse
+// =============================================================================
+
+/// ResourceIdentifier implementation for ImportAdaptiveMtFileResponse with TranslateProjectsLocationsAdaptiveMtDatasetsImportAdaptiveMtFileArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<TranslateProjectsLocationsAdaptiveMtDatasetsImportAdaptiveMtFileArgs>
+    for ImportAdaptiveMtFileResponse
+{
+    fn generate_resource_id(
+        &self,
+        input: &TranslateProjectsLocationsAdaptiveMtDatasetsImportAdaptiveMtFileArgs,
+    ) -> String {
+        format!(
+            "gcp::translate::ImportAdaptiveMtFileResponse/{}",
+            input.parent
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::translate::ImportAdaptiveMtFileResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for ListAdaptiveMtDatasetsResponse
+// =============================================================================
+
+/// ResourceIdentifier implementation for ListAdaptiveMtDatasetsResponse with TranslateProjectsLocationsAdaptiveMtDatasetsListArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<TranslateProjectsLocationsAdaptiveMtDatasetsListArgs>
+    for ListAdaptiveMtDatasetsResponse
+{
+    fn generate_resource_id(
+        &self,
+        input: &TranslateProjectsLocationsAdaptiveMtDatasetsListArgs,
+    ) -> String {
+        format!(
+            "gcp::translate::ListAdaptiveMtDatasetsResponse/{}",
+            input.parent
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::translate::ListAdaptiveMtDatasetsResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for Empty
+// =============================================================================
+
+/// ResourceIdentifier implementation for Empty with TranslateProjectsLocationsAdaptiveMtDatasetsAdaptiveMtFilesDeleteArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<TranslateProjectsLocationsAdaptiveMtDatasetsAdaptiveMtFilesDeleteArgs>
+    for Empty
+{
+    fn generate_resource_id(
+        &self,
+        input: &TranslateProjectsLocationsAdaptiveMtDatasetsAdaptiveMtFilesDeleteArgs,
+    ) -> String {
+        format!("gcp::translate::Empty/{}", input.name)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::translate::Empty"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for AdaptiveMtFile
+// =============================================================================
+
+/// ResourceIdentifier implementation for AdaptiveMtFile with TranslateProjectsLocationsAdaptiveMtDatasetsAdaptiveMtFilesGetArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<TranslateProjectsLocationsAdaptiveMtDatasetsAdaptiveMtFilesGetArgs>
+    for AdaptiveMtFile
+{
+    fn generate_resource_id(
+        &self,
+        input: &TranslateProjectsLocationsAdaptiveMtDatasetsAdaptiveMtFilesGetArgs,
+    ) -> String {
+        format!("gcp::translate::AdaptiveMtFile/{}", input.name)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::translate::AdaptiveMtFile"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for ListAdaptiveMtFilesResponse
+// =============================================================================
+
+/// ResourceIdentifier implementation for ListAdaptiveMtFilesResponse with TranslateProjectsLocationsAdaptiveMtDatasetsAdaptiveMtFilesListArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<TranslateProjectsLocationsAdaptiveMtDatasetsAdaptiveMtFilesListArgs>
+    for ListAdaptiveMtFilesResponse
+{
+    fn generate_resource_id(
+        &self,
+        input: &TranslateProjectsLocationsAdaptiveMtDatasetsAdaptiveMtFilesListArgs,
+    ) -> String {
+        format!(
+            "gcp::translate::ListAdaptiveMtFilesResponse/{}",
+            input.parent
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::translate::ListAdaptiveMtFilesResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for ListAdaptiveMtSentencesResponse
+// =============================================================================
+
+/// ResourceIdentifier implementation for ListAdaptiveMtSentencesResponse with TranslateProjectsLocationsAdaptiveMtDatasetsAdaptiveMtFilesAdaptiveMtSentencesListArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl
+    ResourceIdentifier<
+        TranslateProjectsLocationsAdaptiveMtDatasetsAdaptiveMtFilesAdaptiveMtSentencesListArgs,
+    > for ListAdaptiveMtSentencesResponse
+{
+    fn generate_resource_id(
+        &self,
+        input: &TranslateProjectsLocationsAdaptiveMtDatasetsAdaptiveMtFilesAdaptiveMtSentencesListArgs,
+    ) -> String {
+        format!(
+            "gcp::translate::ListAdaptiveMtSentencesResponse/{}",
+            input.parent
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::translate::ListAdaptiveMtSentencesResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for ListAdaptiveMtSentencesResponse
+// =============================================================================
+
+/// ResourceIdentifier implementation for ListAdaptiveMtSentencesResponse with TranslateProjectsLocationsAdaptiveMtDatasetsAdaptiveMtSentencesListArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<TranslateProjectsLocationsAdaptiveMtDatasetsAdaptiveMtSentencesListArgs>
+    for ListAdaptiveMtSentencesResponse
+{
+    fn generate_resource_id(
+        &self,
+        input: &TranslateProjectsLocationsAdaptiveMtDatasetsAdaptiveMtSentencesListArgs,
+    ) -> String {
+        format!(
+            "gcp::translate::ListAdaptiveMtSentencesResponse/{}",
+            input.parent
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::translate::ListAdaptiveMtSentencesResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for Operation
+// =============================================================================
+
+/// ResourceIdentifier implementation for Operation with TranslateProjectsLocationsDatasetsCreateArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<TranslateProjectsLocationsDatasetsCreateArgs> for Operation {
+    fn generate_resource_id(&self, input: &TranslateProjectsLocationsDatasetsCreateArgs) -> String {
+        format!("gcp::translate::Operation/{}", input.parent)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::translate::Operation"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for Operation
+// =============================================================================
+
+/// ResourceIdentifier implementation for Operation with TranslateProjectsLocationsDatasetsDeleteArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<TranslateProjectsLocationsDatasetsDeleteArgs> for Operation {
+    fn generate_resource_id(&self, input: &TranslateProjectsLocationsDatasetsDeleteArgs) -> String {
+        format!("gcp::translate::Operation/{}", input.name)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::translate::Operation"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for Operation
+// =============================================================================
+
+/// ResourceIdentifier implementation for Operation with TranslateProjectsLocationsDatasetsExportDataArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<TranslateProjectsLocationsDatasetsExportDataArgs> for Operation {
+    fn generate_resource_id(
+        &self,
+        input: &TranslateProjectsLocationsDatasetsExportDataArgs,
+    ) -> String {
+        format!("gcp::translate::Operation/{}", input.dataset)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::translate::Operation"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for Dataset
+// =============================================================================
+
+/// ResourceIdentifier implementation for Dataset with TranslateProjectsLocationsDatasetsGetArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<TranslateProjectsLocationsDatasetsGetArgs> for Dataset {
+    fn generate_resource_id(&self, input: &TranslateProjectsLocationsDatasetsGetArgs) -> String {
+        format!("gcp::translate::Dataset/{}", input.name)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::translate::Dataset"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for Operation
+// =============================================================================
+
+/// ResourceIdentifier implementation for Operation with TranslateProjectsLocationsDatasetsImportDataArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<TranslateProjectsLocationsDatasetsImportDataArgs> for Operation {
+    fn generate_resource_id(
+        &self,
+        input: &TranslateProjectsLocationsDatasetsImportDataArgs,
+    ) -> String {
+        format!("gcp::translate::Operation/{}", input.dataset)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::translate::Operation"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for ListDatasetsResponse
+// =============================================================================
+
+/// ResourceIdentifier implementation for ListDatasetsResponse with TranslateProjectsLocationsDatasetsListArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<TranslateProjectsLocationsDatasetsListArgs> for ListDatasetsResponse {
+    fn generate_resource_id(&self, input: &TranslateProjectsLocationsDatasetsListArgs) -> String {
+        format!("gcp::translate::ListDatasetsResponse/{}", input.parent)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::translate::ListDatasetsResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for ListExamplesResponse
+// =============================================================================
+
+/// ResourceIdentifier implementation for ListExamplesResponse with TranslateProjectsLocationsDatasetsExamplesListArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<TranslateProjectsLocationsDatasetsExamplesListArgs>
+    for ListExamplesResponse
+{
+    fn generate_resource_id(
+        &self,
+        input: &TranslateProjectsLocationsDatasetsExamplesListArgs,
+    ) -> String {
+        format!("gcp::translate::ListExamplesResponse/{}", input.parent)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::translate::ListExamplesResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for Operation
+// =============================================================================
+
+/// ResourceIdentifier implementation for Operation with TranslateProjectsLocationsGlossariesCreateArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<TranslateProjectsLocationsGlossariesCreateArgs> for Operation {
+    fn generate_resource_id(
+        &self,
+        input: &TranslateProjectsLocationsGlossariesCreateArgs,
+    ) -> String {
+        format!("gcp::translate::Operation/{}", input.parent)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::translate::Operation"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for Operation
+// =============================================================================
+
+/// ResourceIdentifier implementation for Operation with TranslateProjectsLocationsGlossariesDeleteArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<TranslateProjectsLocationsGlossariesDeleteArgs> for Operation {
+    fn generate_resource_id(
+        &self,
+        input: &TranslateProjectsLocationsGlossariesDeleteArgs,
+    ) -> String {
+        format!("gcp::translate::Operation/{}", input.name)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::translate::Operation"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for Glossary
+// =============================================================================
+
+/// ResourceIdentifier implementation for Glossary with TranslateProjectsLocationsGlossariesGetArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<TranslateProjectsLocationsGlossariesGetArgs> for Glossary {
+    fn generate_resource_id(&self, input: &TranslateProjectsLocationsGlossariesGetArgs) -> String {
+        format!("gcp::translate::Glossary/{}", input.name)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::translate::Glossary"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for ListGlossariesResponse
+// =============================================================================
+
+/// ResourceIdentifier implementation for ListGlossariesResponse with TranslateProjectsLocationsGlossariesListArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<TranslateProjectsLocationsGlossariesListArgs> for ListGlossariesResponse {
+    fn generate_resource_id(&self, input: &TranslateProjectsLocationsGlossariesListArgs) -> String {
+        format!("gcp::translate::ListGlossariesResponse/{}", input.parent)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::translate::ListGlossariesResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for Operation
+// =============================================================================
+
+/// ResourceIdentifier implementation for Operation with TranslateProjectsLocationsGlossariesPatchArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<TranslateProjectsLocationsGlossariesPatchArgs> for Operation {
+    fn generate_resource_id(
+        &self,
+        input: &TranslateProjectsLocationsGlossariesPatchArgs,
+    ) -> String {
+        format!("gcp::translate::Operation/{}", input.name)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::translate::Operation"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for GlossaryEntry
+// =============================================================================
+
+/// ResourceIdentifier implementation for GlossaryEntry with TranslateProjectsLocationsGlossariesGlossaryEntriesCreateArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<TranslateProjectsLocationsGlossariesGlossaryEntriesCreateArgs>
+    for GlossaryEntry
+{
+    fn generate_resource_id(
+        &self,
+        input: &TranslateProjectsLocationsGlossariesGlossaryEntriesCreateArgs,
+    ) -> String {
+        format!("gcp::translate::GlossaryEntry/{}", input.parent)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::translate::GlossaryEntry"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for Empty
+// =============================================================================
+
+/// ResourceIdentifier implementation for Empty with TranslateProjectsLocationsGlossariesGlossaryEntriesDeleteArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<TranslateProjectsLocationsGlossariesGlossaryEntriesDeleteArgs> for Empty {
+    fn generate_resource_id(
+        &self,
+        input: &TranslateProjectsLocationsGlossariesGlossaryEntriesDeleteArgs,
+    ) -> String {
+        format!("gcp::translate::Empty/{}", input.name)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::translate::Empty"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for GlossaryEntry
+// =============================================================================
+
+/// ResourceIdentifier implementation for GlossaryEntry with TranslateProjectsLocationsGlossariesGlossaryEntriesGetArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<TranslateProjectsLocationsGlossariesGlossaryEntriesGetArgs>
+    for GlossaryEntry
+{
+    fn generate_resource_id(
+        &self,
+        input: &TranslateProjectsLocationsGlossariesGlossaryEntriesGetArgs,
+    ) -> String {
+        format!("gcp::translate::GlossaryEntry/{}", input.name)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::translate::GlossaryEntry"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for ListGlossaryEntriesResponse
+// =============================================================================
+
+/// ResourceIdentifier implementation for ListGlossaryEntriesResponse with TranslateProjectsLocationsGlossariesGlossaryEntriesListArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<TranslateProjectsLocationsGlossariesGlossaryEntriesListArgs>
+    for ListGlossaryEntriesResponse
+{
+    fn generate_resource_id(
+        &self,
+        input: &TranslateProjectsLocationsGlossariesGlossaryEntriesListArgs,
+    ) -> String {
+        format!(
+            "gcp::translate::ListGlossaryEntriesResponse/{}",
+            input.parent
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::translate::ListGlossaryEntriesResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for GlossaryEntry
+// =============================================================================
+
+/// ResourceIdentifier implementation for GlossaryEntry with TranslateProjectsLocationsGlossariesGlossaryEntriesPatchArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<TranslateProjectsLocationsGlossariesGlossaryEntriesPatchArgs>
+    for GlossaryEntry
+{
+    fn generate_resource_id(
+        &self,
+        input: &TranslateProjectsLocationsGlossariesGlossaryEntriesPatchArgs,
+    ) -> String {
+        format!("gcp::translate::GlossaryEntry/{}", input.name)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::translate::GlossaryEntry"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for Operation
+// =============================================================================
+
+/// ResourceIdentifier implementation for Operation with TranslateProjectsLocationsModelsCreateArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<TranslateProjectsLocationsModelsCreateArgs> for Operation {
+    fn generate_resource_id(&self, input: &TranslateProjectsLocationsModelsCreateArgs) -> String {
+        format!("gcp::translate::Operation/{}", input.parent)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::translate::Operation"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for Operation
+// =============================================================================
+
+/// ResourceIdentifier implementation for Operation with TranslateProjectsLocationsModelsDeleteArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<TranslateProjectsLocationsModelsDeleteArgs> for Operation {
+    fn generate_resource_id(&self, input: &TranslateProjectsLocationsModelsDeleteArgs) -> String {
+        format!("gcp::translate::Operation/{}", input.name)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::translate::Operation"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for Model
+// =============================================================================
+
+/// ResourceIdentifier implementation for Model with TranslateProjectsLocationsModelsGetArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<TranslateProjectsLocationsModelsGetArgs> for Model {
+    fn generate_resource_id(&self, input: &TranslateProjectsLocationsModelsGetArgs) -> String {
+        format!("gcp::translate::Model/{}", input.name)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::translate::Model"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for ListModelsResponse
+// =============================================================================
+
+/// ResourceIdentifier implementation for ListModelsResponse with TranslateProjectsLocationsModelsListArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<TranslateProjectsLocationsModelsListArgs> for ListModelsResponse {
+    fn generate_resource_id(&self, input: &TranslateProjectsLocationsModelsListArgs) -> String {
+        format!("gcp::translate::ListModelsResponse/{}", input.parent)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::translate::ListModelsResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for Empty
+// =============================================================================
+
+/// ResourceIdentifier implementation for Empty with TranslateProjectsLocationsOperationsCancelArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<TranslateProjectsLocationsOperationsCancelArgs> for Empty {
+    fn generate_resource_id(
+        &self,
+        input: &TranslateProjectsLocationsOperationsCancelArgs,
+    ) -> String {
+        format!("gcp::translate::Empty/{}", input.name)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::translate::Empty"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for Empty
+// =============================================================================
+
+/// ResourceIdentifier implementation for Empty with TranslateProjectsLocationsOperationsDeleteArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<TranslateProjectsLocationsOperationsDeleteArgs> for Empty {
+    fn generate_resource_id(
+        &self,
+        input: &TranslateProjectsLocationsOperationsDeleteArgs,
+    ) -> String {
+        format!("gcp::translate::Empty/{}", input.name)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::translate::Empty"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for Operation
+// =============================================================================
+
+/// ResourceIdentifier implementation for Operation with TranslateProjectsLocationsOperationsGetArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<TranslateProjectsLocationsOperationsGetArgs> for Operation {
+    fn generate_resource_id(&self, input: &TranslateProjectsLocationsOperationsGetArgs) -> String {
+        format!("gcp::translate::Operation/{}", input.name)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::translate::Operation"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for ListOperationsResponse
+// =============================================================================
+
+/// ResourceIdentifier implementation for ListOperationsResponse with TranslateProjectsLocationsOperationsListArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<TranslateProjectsLocationsOperationsListArgs> for ListOperationsResponse {
+    fn generate_resource_id(&self, input: &TranslateProjectsLocationsOperationsListArgs) -> String {
+        format!("gcp::translate::ListOperationsResponse/{}", input.name)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::translate::ListOperationsResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for Operation
+// =============================================================================
+
+/// ResourceIdentifier implementation for Operation with TranslateProjectsLocationsOperationsWaitArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<TranslateProjectsLocationsOperationsWaitArgs> for Operation {
+    fn generate_resource_id(&self, input: &TranslateProjectsLocationsOperationsWaitArgs) -> String {
+        format!("gcp::translate::Operation/{}", input.name)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::translate::Operation"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
 }

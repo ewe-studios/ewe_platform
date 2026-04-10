@@ -12,28 +12,47 @@
 #![cfg(feature = "gcp")]
 
 use crate::providers::gcp::clients::cloudscheduler::{
+    cloudscheduler_projects_locations_get_builder, cloudscheduler_projects_locations_get_task,
+    cloudscheduler_projects_locations_get_cmek_config_builder, cloudscheduler_projects_locations_get_cmek_config_task,
+    cloudscheduler_projects_locations_list_builder, cloudscheduler_projects_locations_list_task,
     cloudscheduler_projects_locations_update_cmek_config_builder, cloudscheduler_projects_locations_update_cmek_config_task,
     cloudscheduler_projects_locations_jobs_create_builder, cloudscheduler_projects_locations_jobs_create_task,
     cloudscheduler_projects_locations_jobs_delete_builder, cloudscheduler_projects_locations_jobs_delete_task,
+    cloudscheduler_projects_locations_jobs_get_builder, cloudscheduler_projects_locations_jobs_get_task,
+    cloudscheduler_projects_locations_jobs_list_builder, cloudscheduler_projects_locations_jobs_list_task,
     cloudscheduler_projects_locations_jobs_patch_builder, cloudscheduler_projects_locations_jobs_patch_task,
     cloudscheduler_projects_locations_jobs_pause_builder, cloudscheduler_projects_locations_jobs_pause_task,
     cloudscheduler_projects_locations_jobs_resume_builder, cloudscheduler_projects_locations_jobs_resume_task,
     cloudscheduler_projects_locations_jobs_run_builder, cloudscheduler_projects_locations_jobs_run_task,
     cloudscheduler_projects_locations_operations_cancel_builder, cloudscheduler_projects_locations_operations_cancel_task,
     cloudscheduler_projects_locations_operations_delete_builder, cloudscheduler_projects_locations_operations_delete_task,
+    cloudscheduler_projects_locations_operations_get_builder, cloudscheduler_projects_locations_operations_get_task,
+    cloudscheduler_projects_locations_operations_list_builder, cloudscheduler_projects_locations_operations_list_task,
 };
 use crate::providers::gcp::clients::types::{ApiError, ApiPending};
+use crate::providers::gcp::clients::cloudscheduler::CmekConfig;
 use crate::providers::gcp::clients::cloudscheduler::Empty;
 use crate::providers::gcp::clients::cloudscheduler::Job;
+use crate::providers::gcp::clients::cloudscheduler::ListJobsResponse;
+use crate::providers::gcp::clients::cloudscheduler::ListLocationsResponse;
+use crate::providers::gcp::clients::cloudscheduler::ListOperationsResponse;
+use crate::providers::gcp::clients::cloudscheduler::Location;
 use crate::providers::gcp::clients::cloudscheduler::Operation;
+use crate::providers::gcp::clients::cloudscheduler::CloudschedulerProjectsLocationsGetArgs;
+use crate::providers::gcp::clients::cloudscheduler::CloudschedulerProjectsLocationsGetCmekConfigArgs;
 use crate::providers::gcp::clients::cloudscheduler::CloudschedulerProjectsLocationsJobsCreateArgs;
 use crate::providers::gcp::clients::cloudscheduler::CloudschedulerProjectsLocationsJobsDeleteArgs;
+use crate::providers::gcp::clients::cloudscheduler::CloudschedulerProjectsLocationsJobsGetArgs;
+use crate::providers::gcp::clients::cloudscheduler::CloudschedulerProjectsLocationsJobsListArgs;
 use crate::providers::gcp::clients::cloudscheduler::CloudschedulerProjectsLocationsJobsPatchArgs;
 use crate::providers::gcp::clients::cloudscheduler::CloudschedulerProjectsLocationsJobsPauseArgs;
 use crate::providers::gcp::clients::cloudscheduler::CloudschedulerProjectsLocationsJobsResumeArgs;
 use crate::providers::gcp::clients::cloudscheduler::CloudschedulerProjectsLocationsJobsRunArgs;
+use crate::providers::gcp::clients::cloudscheduler::CloudschedulerProjectsLocationsListArgs;
 use crate::providers::gcp::clients::cloudscheduler::CloudschedulerProjectsLocationsOperationsCancelArgs;
 use crate::providers::gcp::clients::cloudscheduler::CloudschedulerProjectsLocationsOperationsDeleteArgs;
+use crate::providers::gcp::clients::cloudscheduler::CloudschedulerProjectsLocationsOperationsGetArgs;
+use crate::providers::gcp::clients::cloudscheduler::CloudschedulerProjectsLocationsOperationsListArgs;
 use crate::providers::gcp::clients::cloudscheduler::CloudschedulerProjectsLocationsUpdateCmekConfigArgs;
 use crate::provider_client::{ProviderClient, ProviderError};
 use foundation_core::valtron::{execute, StreamIterator};
@@ -74,6 +93,124 @@ where
             client,
             http_client: Arc::new(http_client),
         }
+    }
+
+    /// Cloudscheduler projects locations get.
+    ///
+    /// Read-only operation - no state tracking.
+    ///
+    /// # Arguments
+    ///
+    /// * `args` - Request arguments
+    ///
+    /// # Returns
+    ///
+    /// StreamIterator yielding the Location result.
+    ///
+    /// # Errors
+    ///
+    /// Returns ProviderError if the API request fails.
+    pub fn cloudscheduler_projects_locations_get(
+        &self,
+        args: &CloudschedulerProjectsLocationsGetArgs,
+    ) -> Result<
+        impl StreamIterator<
+            D = Result<Location, ProviderError<ApiError>>,
+            P = crate::providers::gcp::clients::types::ApiPending,
+        > + Send
+        + 'static,
+        ProviderError<ApiError>,
+    > {
+        let builder = cloudscheduler_projects_locations_get_builder(
+            &self.http_client,
+            &args.name,
+        )
+        .map_err(ProviderError::Api)?;
+
+        let task = cloudscheduler_projects_locations_get_task(builder)
+            .map_err(ProviderError::Api)?;
+
+        execute(task, None).map_err(|e: String| ProviderError::ExecuteFailed(e.to_string()))
+    }
+
+    /// Cloudscheduler projects locations get cmek config.
+    ///
+    /// Read-only operation - no state tracking.
+    ///
+    /// # Arguments
+    ///
+    /// * `args` - Request arguments
+    ///
+    /// # Returns
+    ///
+    /// StreamIterator yielding the CmekConfig result.
+    ///
+    /// # Errors
+    ///
+    /// Returns ProviderError if the API request fails.
+    pub fn cloudscheduler_projects_locations_get_cmek_config(
+        &self,
+        args: &CloudschedulerProjectsLocationsGetCmekConfigArgs,
+    ) -> Result<
+        impl StreamIterator<
+            D = Result<CmekConfig, ProviderError<ApiError>>,
+            P = crate::providers::gcp::clients::types::ApiPending,
+        > + Send
+        + 'static,
+        ProviderError<ApiError>,
+    > {
+        let builder = cloudscheduler_projects_locations_get_cmek_config_builder(
+            &self.http_client,
+            &args.name,
+        )
+        .map_err(ProviderError::Api)?;
+
+        let task = cloudscheduler_projects_locations_get_cmek_config_task(builder)
+            .map_err(ProviderError::Api)?;
+
+        execute(task, None).map_err(|e: String| ProviderError::ExecuteFailed(e.to_string()))
+    }
+
+    /// Cloudscheduler projects locations list.
+    ///
+    /// Read-only operation - no state tracking.
+    ///
+    /// # Arguments
+    ///
+    /// * `args` - Request arguments
+    ///
+    /// # Returns
+    ///
+    /// StreamIterator yielding the ListLocationsResponse result.
+    ///
+    /// # Errors
+    ///
+    /// Returns ProviderError if the API request fails.
+    pub fn cloudscheduler_projects_locations_list(
+        &self,
+        args: &CloudschedulerProjectsLocationsListArgs,
+    ) -> Result<
+        impl StreamIterator<
+            D = Result<ListLocationsResponse, ProviderError<ApiError>>,
+            P = crate::providers::gcp::clients::types::ApiPending,
+        > + Send
+        + 'static,
+        ProviderError<ApiError>,
+    > {
+        let builder = cloudscheduler_projects_locations_list_builder(
+            &self.http_client,
+            &args.name,
+            &args.extraLocationTypes,
+            &args.filter,
+            &args.pageSize,
+            &args.pageToken,
+        )
+        .map_err(ProviderError::Api)?;
+
+        let task = cloudscheduler_projects_locations_list_task(builder)
+            .map_err(ProviderError::Api)?;
+
+        execute(task, None).map_err(|e: String| ProviderError::ExecuteFailed(e.to_string()))
     }
 
     /// Cloudscheduler projects locations update cmek config.
@@ -204,6 +341,84 @@ where
         let store_task = StoreStateIdentifierTask::new(task, state_store, args, stage);
 
         execute(store_task, None).map_err(|e: String| ProviderError::ExecuteFailed(e.to_string()))
+    }
+
+    /// Cloudscheduler projects locations jobs get.
+    ///
+    /// Read-only operation - no state tracking.
+    ///
+    /// # Arguments
+    ///
+    /// * `args` - Request arguments
+    ///
+    /// # Returns
+    ///
+    /// StreamIterator yielding the Job result.
+    ///
+    /// # Errors
+    ///
+    /// Returns ProviderError if the API request fails.
+    pub fn cloudscheduler_projects_locations_jobs_get(
+        &self,
+        args: &CloudschedulerProjectsLocationsJobsGetArgs,
+    ) -> Result<
+        impl StreamIterator<
+            D = Result<Job, ProviderError<ApiError>>,
+            P = crate::providers::gcp::clients::types::ApiPending,
+        > + Send
+        + 'static,
+        ProviderError<ApiError>,
+    > {
+        let builder = cloudscheduler_projects_locations_jobs_get_builder(
+            &self.http_client,
+            &args.name,
+        )
+        .map_err(ProviderError::Api)?;
+
+        let task = cloudscheduler_projects_locations_jobs_get_task(builder)
+            .map_err(ProviderError::Api)?;
+
+        execute(task, None).map_err(|e: String| ProviderError::ExecuteFailed(e.to_string()))
+    }
+
+    /// Cloudscheduler projects locations jobs list.
+    ///
+    /// Read-only operation - no state tracking.
+    ///
+    /// # Arguments
+    ///
+    /// * `args` - Request arguments
+    ///
+    /// # Returns
+    ///
+    /// StreamIterator yielding the ListJobsResponse result.
+    ///
+    /// # Errors
+    ///
+    /// Returns ProviderError if the API request fails.
+    pub fn cloudscheduler_projects_locations_jobs_list(
+        &self,
+        args: &CloudschedulerProjectsLocationsJobsListArgs,
+    ) -> Result<
+        impl StreamIterator<
+            D = Result<ListJobsResponse, ProviderError<ApiError>>,
+            P = crate::providers::gcp::clients::types::ApiPending,
+        > + Send
+        + 'static,
+        ProviderError<ApiError>,
+    > {
+        let builder = cloudscheduler_projects_locations_jobs_list_builder(
+            &self.http_client,
+            &args.parent,
+            &args.pageSize,
+            &args.pageToken,
+        )
+        .map_err(ProviderError::Api)?;
+
+        let task = cloudscheduler_projects_locations_jobs_list_task(builder)
+            .map_err(ProviderError::Api)?;
+
+        execute(task, None).map_err(|e: String| ProviderError::ExecuteFailed(e.to_string()))
     }
 
     /// Cloudscheduler projects locations jobs patch.
@@ -463,6 +678,86 @@ where
         let store_task = StoreStateIdentifierTask::new(task, state_store, args, stage);
 
         execute(store_task, None).map_err(|e: String| ProviderError::ExecuteFailed(e.to_string()))
+    }
+
+    /// Cloudscheduler projects locations operations get.
+    ///
+    /// Read-only operation - no state tracking.
+    ///
+    /// # Arguments
+    ///
+    /// * `args` - Request arguments
+    ///
+    /// # Returns
+    ///
+    /// StreamIterator yielding the Operation result.
+    ///
+    /// # Errors
+    ///
+    /// Returns ProviderError if the API request fails.
+    pub fn cloudscheduler_projects_locations_operations_get(
+        &self,
+        args: &CloudschedulerProjectsLocationsOperationsGetArgs,
+    ) -> Result<
+        impl StreamIterator<
+            D = Result<Operation, ProviderError<ApiError>>,
+            P = crate::providers::gcp::clients::types::ApiPending,
+        > + Send
+        + 'static,
+        ProviderError<ApiError>,
+    > {
+        let builder = cloudscheduler_projects_locations_operations_get_builder(
+            &self.http_client,
+            &args.name,
+        )
+        .map_err(ProviderError::Api)?;
+
+        let task = cloudscheduler_projects_locations_operations_get_task(builder)
+            .map_err(ProviderError::Api)?;
+
+        execute(task, None).map_err(|e: String| ProviderError::ExecuteFailed(e.to_string()))
+    }
+
+    /// Cloudscheduler projects locations operations list.
+    ///
+    /// Read-only operation - no state tracking.
+    ///
+    /// # Arguments
+    ///
+    /// * `args` - Request arguments
+    ///
+    /// # Returns
+    ///
+    /// StreamIterator yielding the ListOperationsResponse result.
+    ///
+    /// # Errors
+    ///
+    /// Returns ProviderError if the API request fails.
+    pub fn cloudscheduler_projects_locations_operations_list(
+        &self,
+        args: &CloudschedulerProjectsLocationsOperationsListArgs,
+    ) -> Result<
+        impl StreamIterator<
+            D = Result<ListOperationsResponse, ProviderError<ApiError>>,
+            P = crate::providers::gcp::clients::types::ApiPending,
+        > + Send
+        + 'static,
+        ProviderError<ApiError>,
+    > {
+        let builder = cloudscheduler_projects_locations_operations_list_builder(
+            &self.http_client,
+            &args.name,
+            &args.filter,
+            &args.pageSize,
+            &args.pageToken,
+            &args.returnPartialSuccess,
+        )
+        .map_err(ProviderError::Api)?;
+
+        let task = cloudscheduler_projects_locations_operations_list_task(builder)
+            .map_err(ProviderError::Api)?;
+
+        execute(task, None).map_err(|e: String| ProviderError::ExecuteFailed(e.to_string()))
     }
 
 }

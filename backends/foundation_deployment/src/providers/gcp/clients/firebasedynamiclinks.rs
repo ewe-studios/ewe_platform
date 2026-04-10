@@ -7,7 +7,6 @@
 
 #![cfg(feature = "gcp")]
 
-
 use crate::providers::gcp::clients::types::*;
 use crate::providers::gcp::resources::*;
 use foundation_core::valtron::{
@@ -17,10 +16,11 @@ use foundation_core::valtron::{
 use foundation_core::wire::simple_http::client::{
     body_reader, ClientRequestBuilder, RequestIntro, SimpleHttpClient, SystemDnsResolver,
 };
+use foundation_db::state::resource_identifier::ResourceIdentifier;
 use foundation_macros::JsonHash;
 use serde::Serialize;
 
-/// GET v1/managedShortLinks:create
+/// POST v1/managedShortLinks:create
 /// Creates a managed short Dynamic Link given either a valid long Dynamic Link or details such as Dynamic Link domain, Android and iOS app information. The created short Dynamic Link will not expire. This differs from CreateShortDynamicLink in the following ways: - The request will also contain a name for the link (non unique name for the front end). - The response must be authenticated with an auth token (generated with the admin service account). - The link will appear in the FDL list of links in the console front end. The Dynamic Link domain in the request must be owned by requester's Firebase project.
 ///
 /// Returns `ClientRequestBuilder` for customization.
@@ -28,7 +28,6 @@ use serde::Serialize;
 
 pub fn firebasedynamiclinks_managed_short_links_create_builder(
     client: &SimpleHttpClient,
-    body: &CreateManagedShortLinkRequest,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url =
@@ -36,15 +35,13 @@ pub fn firebasedynamiclinks_managed_short_links_create_builder(
 
     // Build request
     let builder = client
-        .get(&endpoint_url)
+        .post(&endpoint_url)
         .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
 
-    builder
-        .body_json(body)
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+    Ok(builder)
 }
 
-/// GET v1/managedShortLinks:create
+/// POST v1/managedShortLinks:create
 /// Creates a managed short Dynamic Link given either a valid long Dynamic Link or details such as Dynamic Link domain, Android and iOS app information. The created short Dynamic Link will not expire. This differs from CreateShortDynamicLink in the following ways: - The request will also contain a name for the link (non unique name for the front end). - The response must be authenticated with an auth token (generated with the admin service account). - The link will appear in the FDL list of links in the console front end. The Dynamic Link domain in the request must be owned by requester's Firebase project.
 ///
 /// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
@@ -118,7 +115,7 @@ pub fn firebasedynamiclinks_managed_short_links_create_task(
         .map_pending(|_| ApiPending::Sending))
 }
 
-/// GET v1/managedShortLinks:create
+/// POST v1/managedShortLinks:create
 /// Creates a managed short Dynamic Link given either a valid long Dynamic Link or details such as Dynamic Link domain, Android and iOS app information. The created short Dynamic Link will not expire. This differs from CreateShortDynamicLink in the following ways: - The request will also contain a name for the link (non unique name for the front end). - The response must be authenticated with an auth token (generated with the admin service account). - The link will appear in the FDL list of links in the console front end. The Dynamic Link domain in the request must be owned by requester's Firebase project.
 ///
 /// Takes a `ClientRequestBuilder`, builds and executes the request,
@@ -152,14 +149,7 @@ pub fn firebasedynamiclinks_managed_short_links_create_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
-/// Arguments for [`firebasedynamiclinks_managed_short_links_create`].
-#[derive(Debug, Clone, Serialize, JsonHash)]
-pub struct FirebasedynamiclinksManagedShortLinksCreateArgs {
-    /// Request body.
-    pub body: CreateManagedShortLinkRequest,
-}
-
-/// GET v1/managedShortLinks:create
+/// POST v1/managedShortLinks:create
 /// Creates a managed short Dynamic Link given either a valid long Dynamic Link or details such as Dynamic Link domain, Android and iOS app information. The created short Dynamic Link will not expire. This differs from CreateShortDynamicLink in the following ways: - The request will also contain a name for the link (non unique name for the front end). - The response must be authenticated with an auth token (generated with the admin service account). - The link will appear in the FDL list of links in the console front end. The Dynamic Link domain in the request must be owned by requester's Firebase project.
 ///
 /// Simplest API - builds and executes the request in one call.
@@ -172,7 +162,6 @@ pub struct FirebasedynamiclinksManagedShortLinksCreateArgs {
 
 pub fn firebasedynamiclinks_managed_short_links_create(
     client: &SimpleHttpClient,
-    args: &FirebasedynamiclinksManagedShortLinksCreateArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<CreateManagedShortLinkResponse>, ApiError>,
@@ -181,11 +170,11 @@ pub fn firebasedynamiclinks_managed_short_links_create(
         + 'static,
     ApiError,
 > {
-    let builder = firebasedynamiclinks_managed_short_links_create_builder(client, &args.body)?;
+    let builder = firebasedynamiclinks_managed_short_links_create_builder(client)?;
     firebasedynamiclinks_managed_short_links_create_execute(builder)
 }
 
-/// GET v1/shortLinks
+/// POST v1/shortLinks
 /// Creates a short Dynamic Link given either a valid long Dynamic Link or details such as Dynamic Link domain, Android and iOS app information. The created short Dynamic Link will not expire. Repeated calls with the same long Dynamic Link or Dynamic Link information will produce the same short Dynamic Link. The Dynamic Link domain in the request must be owned by requester's Firebase project.
 ///
 /// Returns `ClientRequestBuilder` for customization.
@@ -193,22 +182,19 @@ pub fn firebasedynamiclinks_managed_short_links_create(
 
 pub fn firebasedynamiclinks_short_links_create_builder(
     client: &SimpleHttpClient,
-    body: &CreateShortDynamicLinkRequest,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!("https://firebasedynamiclinks.googleapis.com/v1/shortLinks",);
 
     // Build request
     let builder = client
-        .get(&endpoint_url)
+        .post(&endpoint_url)
         .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
 
-    builder
-        .body_json(body)
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+    Ok(builder)
 }
 
-/// GET v1/shortLinks
+/// POST v1/shortLinks
 /// Creates a short Dynamic Link given either a valid long Dynamic Link or details such as Dynamic Link domain, Android and iOS app information. The created short Dynamic Link will not expire. Repeated calls with the same long Dynamic Link or Dynamic Link information will produce the same short Dynamic Link. The Dynamic Link domain in the request must be owned by requester's Firebase project.
 ///
 /// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
@@ -282,7 +268,7 @@ pub fn firebasedynamiclinks_short_links_create_task(
         .map_pending(|_| ApiPending::Sending))
 }
 
-/// GET v1/shortLinks
+/// POST v1/shortLinks
 /// Creates a short Dynamic Link given either a valid long Dynamic Link or details such as Dynamic Link domain, Android and iOS app information. The created short Dynamic Link will not expire. Repeated calls with the same long Dynamic Link or Dynamic Link information will produce the same short Dynamic Link. The Dynamic Link domain in the request must be owned by requester's Firebase project.
 ///
 /// Takes a `ClientRequestBuilder`, builds and executes the request,
@@ -316,14 +302,7 @@ pub fn firebasedynamiclinks_short_links_create_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
-/// Arguments for [`firebasedynamiclinks_short_links_create`].
-#[derive(Debug, Clone, Serialize, JsonHash)]
-pub struct FirebasedynamiclinksShortLinksCreateArgs {
-    /// Request body.
-    pub body: CreateShortDynamicLinkRequest,
-}
-
-/// GET v1/shortLinks
+/// POST v1/shortLinks
 /// Creates a short Dynamic Link given either a valid long Dynamic Link or details such as Dynamic Link domain, Android and iOS app information. The created short Dynamic Link will not expire. Repeated calls with the same long Dynamic Link or Dynamic Link information will produce the same short Dynamic Link. The Dynamic Link domain in the request must be owned by requester's Firebase project.
 ///
 /// Simplest API - builds and executes the request in one call.
@@ -336,7 +315,6 @@ pub struct FirebasedynamiclinksShortLinksCreateArgs {
 
 pub fn firebasedynamiclinks_short_links_create(
     client: &SimpleHttpClient,
-    args: &FirebasedynamiclinksShortLinksCreateArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<CreateShortDynamicLinkResponse>, ApiError>,
@@ -345,7 +323,7 @@ pub fn firebasedynamiclinks_short_links_create(
         + 'static,
     ApiError,
 > {
-    let builder = firebasedynamiclinks_short_links_create_builder(client, &args.body)?;
+    let builder = firebasedynamiclinks_short_links_create_builder(client)?;
     firebasedynamiclinks_short_links_create_execute(builder)
 }
 
@@ -358,8 +336,8 @@ pub fn firebasedynamiclinks_short_links_create(
 pub fn firebasedynamiclinks_get_link_stats_builder(
     client: &SimpleHttpClient,
     dynamicLink: &String,
-    durationDays: &Option<String>,
-    sdkVersion: &Option<String>,
+    durationDays: &Option<Option<String>>,
+    sdkVersion: &Option<Option<String>>,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
@@ -501,9 +479,9 @@ pub struct FirebasedynamiclinksGetLinkStatsArgs {
     /// Path parameter: dynamicLink
     pub dynamicLink: String,
     /// Query parameter: durationDays
-    pub durationDays: Option<String>,
+    pub durationDays: Option<Option<String>>,
     /// Query parameter: sdkVersion
-    pub sdkVersion: Option<String>,
+    pub sdkVersion: Option<Option<String>>,
 }
 
 /// GET v1/{dynamicLink}/linkStats
@@ -535,7 +513,7 @@ pub fn firebasedynamiclinks_get_link_stats(
     firebasedynamiclinks_get_link_stats_execute(builder)
 }
 
-/// GET v1/installAttribution
+/// POST v1/installAttribution
 /// Get iOS `strong/weak-match` info for post-install attribution.
 ///
 /// Returns `ClientRequestBuilder` for customization.
@@ -543,7 +521,6 @@ pub fn firebasedynamiclinks_get_link_stats(
 
 pub fn firebasedynamiclinks_install_attribution_builder(
     client: &SimpleHttpClient,
-    body: &GetIosPostInstallAttributionRequest,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url =
@@ -551,15 +528,13 @@ pub fn firebasedynamiclinks_install_attribution_builder(
 
     // Build request
     let builder = client
-        .get(&endpoint_url)
+        .post(&endpoint_url)
         .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
 
-    builder
-        .body_json(body)
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+    Ok(builder)
 }
 
-/// GET v1/installAttribution
+/// POST v1/installAttribution
 /// Get iOS `strong/weak-match` info for post-install attribution.
 ///
 /// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
@@ -633,7 +608,7 @@ pub fn firebasedynamiclinks_install_attribution_task(
         .map_pending(|_| ApiPending::Sending))
 }
 
-/// GET v1/installAttribution
+/// POST v1/installAttribution
 /// Get iOS `strong/weak-match` info for post-install attribution.
 ///
 /// Takes a `ClientRequestBuilder`, builds and executes the request,
@@ -667,14 +642,7 @@ pub fn firebasedynamiclinks_install_attribution_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
-/// Arguments for [`firebasedynamiclinks_install_attribution`].
-#[derive(Debug, Clone, Serialize, JsonHash)]
-pub struct FirebasedynamiclinksInstallAttributionArgs {
-    /// Request body.
-    pub body: GetIosPostInstallAttributionRequest,
-}
-
-/// GET v1/installAttribution
+/// POST v1/installAttribution
 /// Get iOS `strong/weak-match` info for post-install attribution.
 ///
 /// Simplest API - builds and executes the request in one call.
@@ -687,7 +655,6 @@ pub struct FirebasedynamiclinksInstallAttributionArgs {
 
 pub fn firebasedynamiclinks_install_attribution(
     client: &SimpleHttpClient,
-    args: &FirebasedynamiclinksInstallAttributionArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<GetIosPostInstallAttributionResponse>, ApiError>,
@@ -696,11 +663,11 @@ pub fn firebasedynamiclinks_install_attribution(
         + 'static,
     ApiError,
 > {
-    let builder = firebasedynamiclinks_install_attribution_builder(client, &args.body)?;
+    let builder = firebasedynamiclinks_install_attribution_builder(client)?;
     firebasedynamiclinks_install_attribution_execute(builder)
 }
 
-/// GET v1/reopenAttribution
+/// POST v1/reopenAttribution
 /// Get iOS reopen attribution for app universal link open deeplinking.
 ///
 /// Returns `ClientRequestBuilder` for customization.
@@ -708,22 +675,19 @@ pub fn firebasedynamiclinks_install_attribution(
 
 pub fn firebasedynamiclinks_reopen_attribution_builder(
     client: &SimpleHttpClient,
-    body: &GetIosReopenAttributionRequest,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!("https://firebasedynamiclinks.googleapis.com/v1/reopenAttribution",);
 
     // Build request
     let builder = client
-        .get(&endpoint_url)
+        .post(&endpoint_url)
         .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
 
-    builder
-        .body_json(body)
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+    Ok(builder)
 }
 
-/// GET v1/reopenAttribution
+/// POST v1/reopenAttribution
 /// Get iOS reopen attribution for app universal link open deeplinking.
 ///
 /// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
@@ -797,7 +761,7 @@ pub fn firebasedynamiclinks_reopen_attribution_task(
         .map_pending(|_| ApiPending::Sending))
 }
 
-/// GET v1/reopenAttribution
+/// POST v1/reopenAttribution
 /// Get iOS reopen attribution for app universal link open deeplinking.
 ///
 /// Takes a `ClientRequestBuilder`, builds and executes the request,
@@ -831,14 +795,7 @@ pub fn firebasedynamiclinks_reopen_attribution_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
-/// Arguments for [`firebasedynamiclinks_reopen_attribution`].
-#[derive(Debug, Clone, Serialize, JsonHash)]
-pub struct FirebasedynamiclinksReopenAttributionArgs {
-    /// Request body.
-    pub body: GetIosReopenAttributionRequest,
-}
-
-/// GET v1/reopenAttribution
+/// POST v1/reopenAttribution
 /// Get iOS reopen attribution for app universal link open deeplinking.
 ///
 /// Simplest API - builds and executes the request in one call.
@@ -851,7 +808,6 @@ pub struct FirebasedynamiclinksReopenAttributionArgs {
 
 pub fn firebasedynamiclinks_reopen_attribution(
     client: &SimpleHttpClient,
-    args: &FirebasedynamiclinksReopenAttributionArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<GetIosReopenAttributionResponse>, ApiError>,
@@ -860,6 +816,135 @@ pub fn firebasedynamiclinks_reopen_attribution(
         + 'static,
     ApiError,
 > {
-    let builder = firebasedynamiclinks_reopen_attribution_builder(client, &args.body)?;
+    let builder = firebasedynamiclinks_reopen_attribution_builder(client)?;
     firebasedynamiclinks_reopen_attribution_execute(builder)
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for CreateManagedShortLinkResponse
+// =============================================================================
+
+/// ResourceIdentifier implementation for CreateManagedShortLinkResponse with FirebasedynamiclinksManagedShortLinksCreateArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<FirebasedynamiclinksManagedShortLinksCreateArgs>
+    for CreateManagedShortLinkResponse
+{
+    fn generate_resource_id(
+        &self,
+        input: &FirebasedynamiclinksManagedShortLinksCreateArgs,
+    ) -> String {
+        "gcp::firebasedynamiclinks::CreateManagedShortLinkResponse".to_string()
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::firebasedynamiclinks::CreateManagedShortLinkResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for CreateShortDynamicLinkResponse
+// =============================================================================
+
+/// ResourceIdentifier implementation for CreateShortDynamicLinkResponse with FirebasedynamiclinksShortLinksCreateArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<FirebasedynamiclinksShortLinksCreateArgs>
+    for CreateShortDynamicLinkResponse
+{
+    fn generate_resource_id(&self, input: &FirebasedynamiclinksShortLinksCreateArgs) -> String {
+        "gcp::firebasedynamiclinks::CreateShortDynamicLinkResponse".to_string()
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::firebasedynamiclinks::CreateShortDynamicLinkResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for DynamicLinkStats
+// =============================================================================
+
+/// ResourceIdentifier implementation for DynamicLinkStats with FirebasedynamiclinksGetLinkStatsArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<FirebasedynamiclinksGetLinkStatsArgs> for DynamicLinkStats {
+    fn generate_resource_id(&self, input: &FirebasedynamiclinksGetLinkStatsArgs) -> String {
+        format!(
+            "gcp::firebasedynamiclinks::DynamicLinkStats/{}",
+            input.dynamicLink
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::firebasedynamiclinks::DynamicLinkStats"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for GetIosPostInstallAttributionResponse
+// =============================================================================
+
+/// ResourceIdentifier implementation for GetIosPostInstallAttributionResponse with FirebasedynamiclinksInstallAttributionArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<FirebasedynamiclinksInstallAttributionArgs>
+    for GetIosPostInstallAttributionResponse
+{
+    fn generate_resource_id(&self, input: &FirebasedynamiclinksInstallAttributionArgs) -> String {
+        "gcp::firebasedynamiclinks::GetIosPostInstallAttributionResponse".to_string()
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::firebasedynamiclinks::GetIosPostInstallAttributionResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for GetIosReopenAttributionResponse
+// =============================================================================
+
+/// ResourceIdentifier implementation for GetIosReopenAttributionResponse with FirebasedynamiclinksReopenAttributionArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<FirebasedynamiclinksReopenAttributionArgs>
+    for GetIosReopenAttributionResponse
+{
+    fn generate_resource_id(&self, input: &FirebasedynamiclinksReopenAttributionArgs) -> String {
+        "gcp::firebasedynamiclinks::GetIosReopenAttributionResponse".to_string()
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::firebasedynamiclinks::GetIosReopenAttributionResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
 }

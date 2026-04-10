@@ -7,7 +7,6 @@
 
 #![cfg(feature = "gcp")]
 
-
 use crate::providers::gcp::clients::types::*;
 use crate::providers::gcp::resources::*;
 use foundation_core::valtron::{
@@ -17,6 +16,7 @@ use foundation_core::valtron::{
 use foundation_core::wire::simple_http::client::{
     body_reader, ClientRequestBuilder, RequestIntro, SimpleHttpClient, SystemDnsResolver,
 };
+use foundation_db::state::resource_identifier::ResourceIdentifier;
 use foundation_macros::JsonHash;
 use serde::Serialize;
 
@@ -31,7 +31,10 @@ pub fn bigtableadmin_operations_get_builder(
     name: &String,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
-    let endpoint_url = format!("https://bigtableadmin.googleapis.com/v2/operations/{}",);
+    let endpoint_url = format!(
+        "https://bigtableadmin.googleapis.com/v2/operations/{}",
+        name,
+    );
 
     // Build request
     let builder = client
@@ -183,14 +186,16 @@ pub fn bigtableadmin_operations_get(
 pub fn bigtableadmin_operations_projects_operations_list_builder(
     client: &SimpleHttpClient,
     name: &String,
-    filter: &Option<String>,
-    pageSize: &Option<i32>,
-    pageToken: &Option<String>,
-    returnPartialSuccess: &Option<bool>,
+    filter: &Option<Option<String>>,
+    pageSize: &Option<Option<String>>,
+    pageToken: &Option<Option<String>>,
+    returnPartialSuccess: &Option<Option<String>>,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
-    let endpoint_url =
-        format!("https://bigtableadmin.googleapis.com/v2/operations/projects/{}/operations",);
+    let endpoint_url = format!(
+        "https://bigtableadmin.googleapis.com/v2/operations/projects/{}/operations",
+        name,
+    );
 
     // Build request
     let mut query_parts = Vec::new();
@@ -332,13 +337,13 @@ pub struct BigtableadminOperationsProjectsOperationsListArgs {
     /// Path parameter: name
     pub name: String,
     /// Query parameter: filter
-    pub filter: Option<String>,
+    pub filter: Option<Option<String>>,
     /// Query parameter: pageSize
-    pub pageSize: Option<i32>,
+    pub pageSize: Option<Option<String>>,
     /// Query parameter: pageToken
-    pub pageToken: Option<String>,
+    pub pageToken: Option<Option<String>>,
     /// Query parameter: returnPartialSuccess
-    pub returnPartialSuccess: Option<bool>,
+    pub returnPartialSuccess: Option<Option<String>>,
 }
 
 /// GET v2/operations/projects/{projectsId}/operations
@@ -372,7 +377,7 @@ pub fn bigtableadmin_operations_projects_operations_list(
     bigtableadmin_operations_projects_operations_list_execute(builder)
 }
 
-/// GET v2/projects/{projectsId}/instances
+/// POST v2/projects/{projectsId}/instances
 /// Create an instance within a project. Note that exactly one of Cluster.serve_nodes and Cluster.cluster_config.cluster_autoscaling_config can be set. If serve_nodes is set to non-zero, then the cluster is manually scaled. If cluster_config.cluster_autoscaling_config is non-empty, then autoscaling is enabled.
 ///
 /// Returns `ClientRequestBuilder` for customization.
@@ -381,22 +386,22 @@ pub fn bigtableadmin_operations_projects_operations_list(
 pub fn bigtableadmin_projects_instances_create_builder(
     client: &SimpleHttpClient,
     parent: &String,
-    body: &CreateInstanceRequest,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
-    let endpoint_url = format!("https://bigtableadmin.googleapis.com/v2/projects/{}/instances",);
+    let endpoint_url = format!(
+        "https://bigtableadmin.googleapis.com/v2/projects/{}/instances",
+        parent,
+    );
 
     // Build request
     let builder = client
-        .get(&endpoint_url)
+        .post(&endpoint_url)
         .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
 
-    builder
-        .body_json(body)
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+    Ok(builder)
 }
 
-/// GET v2/projects/{projectsId}/instances
+/// POST v2/projects/{projectsId}/instances
 /// Create an instance within a project. Note that exactly one of Cluster.serve_nodes and Cluster.cluster_config.cluster_autoscaling_config can be set. If serve_nodes is set to non-zero, then the cluster is manually scaled. If cluster_config.cluster_autoscaling_config is non-empty, then autoscaling is enabled.
 ///
 /// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
@@ -470,7 +475,7 @@ pub fn bigtableadmin_projects_instances_create_task(
         .map_pending(|_| ApiPending::Sending))
 }
 
-/// GET v2/projects/{projectsId}/instances
+/// POST v2/projects/{projectsId}/instances
 /// Create an instance within a project. Note that exactly one of Cluster.serve_nodes and Cluster.cluster_config.cluster_autoscaling_config can be set. If serve_nodes is set to non-zero, then the cluster is manually scaled. If cluster_config.cluster_autoscaling_config is non-empty, then autoscaling is enabled.
 ///
 /// Takes a `ClientRequestBuilder`, builds and executes the request,
@@ -505,11 +510,9 @@ pub fn bigtableadmin_projects_instances_create_execute(
 pub struct BigtableadminProjectsInstancesCreateArgs {
     /// Path parameter: parent
     pub parent: String,
-    /// Request body.
-    pub body: CreateInstanceRequest,
 }
 
-/// GET v2/projects/{projectsId}/instances
+/// POST v2/projects/{projectsId}/instances
 /// Create an instance within a project. Note that exactly one of Cluster.serve_nodes and Cluster.cluster_config.cluster_autoscaling_config can be set. If serve_nodes is set to non-zero, then the cluster is manually scaled. If cluster_config.cluster_autoscaling_config is non-empty, then autoscaling is enabled.
 ///
 /// Simplest API - builds and executes the request in one call.
@@ -527,13 +530,13244 @@ pub fn bigtableadmin_projects_instances_create(
     impl StreamIterator<D = Result<ApiResponse<Operation>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder =
-        bigtableadmin_projects_instances_create_builder(client, &args.parent, &args.body)?;
+    let builder = bigtableadmin_projects_instances_create_builder(client, &args.parent)?;
     bigtableadmin_projects_instances_create_execute(builder)
 }
 
+/// DELETE v2/projects/{projectsId}/instances/{instancesId}
+/// Delete an instance from a project.
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `bigtableadmin_projects_instances_delete_execute()` to send, or `bigtableadmin_projects_instances_delete` for simplest API.
+
+pub fn bigtableadmin_projects_instances_delete_builder(
+    client: &SimpleHttpClient,
+    name: &String,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!(
+        "https://bigtableadmin.googleapis.com/v2/projects/{}/instances/{instancesId}",
+        name,
+    );
+
+    // Build request
+    let builder = client
+        .delete(&endpoint_url)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// DELETE v2/projects/{projectsId}/instances/{instancesId}
+/// Delete an instance from a project.
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `bigtableadmin_projects_instances_delete_execute()` or `bigtableadmin_projects_instances_delete`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `bigtableadmin_projects_instances_delete_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn bigtableadmin_projects_instances_delete_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<Empty>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: Empty = serde_json::from_str(&body)
+                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// DELETE v2/projects/{projectsId}/instances/{instancesId}
+/// Delete an instance from a project.
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `bigtableadmin_projects_instances_delete_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `bigtableadmin_projects_instances_delete_task()`.
+/// For the simplest API, use `bigtableadmin_projects_instances_delete()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `bigtableadmin_projects_instances_delete_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn bigtableadmin_projects_instances_delete_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<Empty>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let task = bigtableadmin_projects_instances_delete_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`bigtableadmin_projects_instances_delete`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct BigtableadminProjectsInstancesDeleteArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
+/// DELETE v2/projects/{projectsId}/instances/{instancesId}
+/// Delete an instance from a project.
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `bigtableadmin_projects_instances_delete_builder()` + `bigtableadmin_projects_instances_delete_execute()`.
+/// For task-level control, use `bigtableadmin_projects_instances_delete_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn bigtableadmin_projects_instances_delete(
+    client: &SimpleHttpClient,
+    args: &BigtableadminProjectsInstancesDeleteArgs,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<Empty>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let builder = bigtableadmin_projects_instances_delete_builder(client, &args.name)?;
+    bigtableadmin_projects_instances_delete_execute(builder)
+}
+
+/// GET v2/projects/{projectsId}/instances/{instancesId}
+/// Gets information about an instance.
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `bigtableadmin_projects_instances_get_execute()` to send, or `bigtableadmin_projects_instances_get` for simplest API.
+
+pub fn bigtableadmin_projects_instances_get_builder(
+    client: &SimpleHttpClient,
+    name: &String,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!(
+        "https://bigtableadmin.googleapis.com/v2/projects/{}/instances/{instancesId}",
+        name,
+    );
+
+    // Build request
+    let builder = client
+        .get(&endpoint_url)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// GET v2/projects/{projectsId}/instances/{instancesId}
+/// Gets information about an instance.
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `bigtableadmin_projects_instances_get_execute()` or `bigtableadmin_projects_instances_get`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `bigtableadmin_projects_instances_get_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn bigtableadmin_projects_instances_get_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<Instance>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: Instance = serde_json::from_str(&body)
+                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// GET v2/projects/{projectsId}/instances/{instancesId}
+/// Gets information about an instance.
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `bigtableadmin_projects_instances_get_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `bigtableadmin_projects_instances_get_task()`.
+/// For the simplest API, use `bigtableadmin_projects_instances_get()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `bigtableadmin_projects_instances_get_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn bigtableadmin_projects_instances_get_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<Instance>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let task = bigtableadmin_projects_instances_get_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`bigtableadmin_projects_instances_get`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct BigtableadminProjectsInstancesGetArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
+/// GET v2/projects/{projectsId}/instances/{instancesId}
+/// Gets information about an instance.
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `bigtableadmin_projects_instances_get_builder()` + `bigtableadmin_projects_instances_get_execute()`.
+/// For task-level control, use `bigtableadmin_projects_instances_get_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn bigtableadmin_projects_instances_get(
+    client: &SimpleHttpClient,
+    args: &BigtableadminProjectsInstancesGetArgs,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<Instance>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let builder = bigtableadmin_projects_instances_get_builder(client, &args.name)?;
+    bigtableadmin_projects_instances_get_execute(builder)
+}
+
+/// POST v2/projects/{projectsId}/instances/{instancesId}:getIamPolicy
+/// Gets the access control policy for an instance resource. Returns an empty policy if an instance exists but does not have a policy set.
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `bigtableadmin_projects_instances_get_iam_policy_execute()` to send, or `bigtableadmin_projects_instances_get_iam_policy` for simplest API.
+
+pub fn bigtableadmin_projects_instances_get_iam_policy_builder(
+    client: &SimpleHttpClient,
+    resource: &String,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!(
+        "https://bigtableadmin.googleapis.com/v2/projects/{}/instances/{instancesId}:getIamPolicy",
+        resource,
+    );
+
+    // Build request
+    let builder = client
+        .post(&endpoint_url)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// POST v2/projects/{projectsId}/instances/{instancesId}:getIamPolicy
+/// Gets the access control policy for an instance resource. Returns an empty policy if an instance exists but does not have a policy set.
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `bigtableadmin_projects_instances_get_iam_policy_execute()` or `bigtableadmin_projects_instances_get_iam_policy`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `bigtableadmin_projects_instances_get_iam_policy_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn bigtableadmin_projects_instances_get_iam_policy_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<Policy>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: Policy = serde_json::from_str(&body)
+                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// POST v2/projects/{projectsId}/instances/{instancesId}:getIamPolicy
+/// Gets the access control policy for an instance resource. Returns an empty policy if an instance exists but does not have a policy set.
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `bigtableadmin_projects_instances_get_iam_policy_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `bigtableadmin_projects_instances_get_iam_policy_task()`.
+/// For the simplest API, use `bigtableadmin_projects_instances_get_iam_policy()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `bigtableadmin_projects_instances_get_iam_policy_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn bigtableadmin_projects_instances_get_iam_policy_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<Policy>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let task = bigtableadmin_projects_instances_get_iam_policy_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`bigtableadmin_projects_instances_get_iam_policy`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct BigtableadminProjectsInstancesGetIamPolicyArgs {
+    /// Path parameter: resource
+    pub resource: String,
+}
+
+/// POST v2/projects/{projectsId}/instances/{instancesId}:getIamPolicy
+/// Gets the access control policy for an instance resource. Returns an empty policy if an instance exists but does not have a policy set.
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `bigtableadmin_projects_instances_get_iam_policy_builder()` + `bigtableadmin_projects_instances_get_iam_policy_execute()`.
+/// For task-level control, use `bigtableadmin_projects_instances_get_iam_policy_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn bigtableadmin_projects_instances_get_iam_policy(
+    client: &SimpleHttpClient,
+    args: &BigtableadminProjectsInstancesGetIamPolicyArgs,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<Policy>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let builder = bigtableadmin_projects_instances_get_iam_policy_builder(client, &args.resource)?;
+    bigtableadmin_projects_instances_get_iam_policy_execute(builder)
+}
+
+/// GET v2/projects/{projectsId}/instances
+/// Lists information about instances in a project.
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `bigtableadmin_projects_instances_list_execute()` to send, or `bigtableadmin_projects_instances_list` for simplest API.
+
+pub fn bigtableadmin_projects_instances_list_builder(
+    client: &SimpleHttpClient,
+    parent: &String,
+    pageToken: &Option<Option<String>>,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!(
+        "https://bigtableadmin.googleapis.com/v2/projects/{}/instances",
+        parent,
+    );
+
+    // Build request
+    let mut query_parts = Vec::new();
+    if let Some(val) = pageToken.as_ref() {
+        query_parts.push(format!("pageToken={}", val));
+    }
+
+    let url_with_query = if query_parts.is_empty() {
+        endpoint_url
+    } else {
+        format!("{}?{}", endpoint_url, query_parts.join("&"))
+    };
+
+    let builder = client
+        .get(&url_with_query)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// GET v2/projects/{projectsId}/instances
+/// Lists information about instances in a project.
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `bigtableadmin_projects_instances_list_execute()` or `bigtableadmin_projects_instances_list`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `bigtableadmin_projects_instances_list_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn bigtableadmin_projects_instances_list_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<ListInstancesResponse>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: ListInstancesResponse = serde_json::from_str(&body)
+                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// GET v2/projects/{projectsId}/instances
+/// Lists information about instances in a project.
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `bigtableadmin_projects_instances_list_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `bigtableadmin_projects_instances_list_task()`.
+/// For the simplest API, use `bigtableadmin_projects_instances_list()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `bigtableadmin_projects_instances_list_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn bigtableadmin_projects_instances_list_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<ListInstancesResponse>, ApiError>, P = ApiPending>
+        + Send
+        + 'static,
+    ApiError,
+> {
+    let task = bigtableadmin_projects_instances_list_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`bigtableadmin_projects_instances_list`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct BigtableadminProjectsInstancesListArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Query parameter: pageToken
+    pub pageToken: Option<Option<String>>,
+}
+
+/// GET v2/projects/{projectsId}/instances
+/// Lists information about instances in a project.
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `bigtableadmin_projects_instances_list_builder()` + `bigtableadmin_projects_instances_list_execute()`.
+/// For task-level control, use `bigtableadmin_projects_instances_list_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn bigtableadmin_projects_instances_list(
+    client: &SimpleHttpClient,
+    args: &BigtableadminProjectsInstancesListArgs,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<ListInstancesResponse>, ApiError>, P = ApiPending>
+        + Send
+        + 'static,
+    ApiError,
+> {
+    let builder =
+        bigtableadmin_projects_instances_list_builder(client, &args.parent, &args.pageToken)?;
+    bigtableadmin_projects_instances_list_execute(builder)
+}
+
+/// PATCH v2/projects/{projectsId}/instances/{instancesId}
+/// Partially updates an instance within a project. This method can modify all fields of an Instance and is the preferred way to update an Instance.
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `bigtableadmin_projects_instances_partial_update_instance_execute()` to send, or `bigtableadmin_projects_instances_partial_update_instance` for simplest API.
+
+pub fn bigtableadmin_projects_instances_partial_update_instance_builder(
+    client: &SimpleHttpClient,
+    name: &String,
+    updateMask: &Option<Option<String>>,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!(
+        "https://bigtableadmin.googleapis.com/v2/projects/{}/instances/{instancesId}",
+        name,
+    );
+
+    // Build request
+    let mut query_parts = Vec::new();
+    if let Some(val) = updateMask.as_ref() {
+        query_parts.push(format!("updateMask={}", val));
+    }
+
+    let url_with_query = if query_parts.is_empty() {
+        endpoint_url
+    } else {
+        format!("{}?{}", endpoint_url, query_parts.join("&"))
+    };
+
+    let builder = client
+        .patch(&url_with_query)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// PATCH v2/projects/{projectsId}/instances/{instancesId}
+/// Partially updates an instance within a project. This method can modify all fields of an Instance and is the preferred way to update an Instance.
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `bigtableadmin_projects_instances_partial_update_instance_execute()` or `bigtableadmin_projects_instances_partial_update_instance`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `bigtableadmin_projects_instances_partial_update_instance_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn bigtableadmin_projects_instances_partial_update_instance_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<Operation>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: Operation = serde_json::from_str(&body)
+                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// PATCH v2/projects/{projectsId}/instances/{instancesId}
+/// Partially updates an instance within a project. This method can modify all fields of an Instance and is the preferred way to update an Instance.
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `bigtableadmin_projects_instances_partial_update_instance_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `bigtableadmin_projects_instances_partial_update_instance_task()`.
+/// For the simplest API, use `bigtableadmin_projects_instances_partial_update_instance()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `bigtableadmin_projects_instances_partial_update_instance_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn bigtableadmin_projects_instances_partial_update_instance_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<Operation>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let task = bigtableadmin_projects_instances_partial_update_instance_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`bigtableadmin_projects_instances_partial_update_instance`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct BigtableadminProjectsInstancesPartialUpdateInstanceArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Query parameter: updateMask
+    pub updateMask: Option<Option<String>>,
+}
+
+/// PATCH v2/projects/{projectsId}/instances/{instancesId}
+/// Partially updates an instance within a project. This method can modify all fields of an Instance and is the preferred way to update an Instance.
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `bigtableadmin_projects_instances_partial_update_instance_builder()` + `bigtableadmin_projects_instances_partial_update_instance_execute()`.
+/// For task-level control, use `bigtableadmin_projects_instances_partial_update_instance_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn bigtableadmin_projects_instances_partial_update_instance(
+    client: &SimpleHttpClient,
+    args: &BigtableadminProjectsInstancesPartialUpdateInstanceArgs,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<Operation>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let builder = bigtableadmin_projects_instances_partial_update_instance_builder(
+        client,
+        &args.name,
+        &args.updateMask,
+    )?;
+    bigtableadmin_projects_instances_partial_update_instance_execute(builder)
+}
+
+/// POST v2/projects/{projectsId}/instances/{instancesId}:setIamPolicy
+/// Sets the access control policy on an instance resource. Replaces any existing policy.
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `bigtableadmin_projects_instances_set_iam_policy_execute()` to send, or `bigtableadmin_projects_instances_set_iam_policy` for simplest API.
+
+pub fn bigtableadmin_projects_instances_set_iam_policy_builder(
+    client: &SimpleHttpClient,
+    resource: &String,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!(
+        "https://bigtableadmin.googleapis.com/v2/projects/{}/instances/{instancesId}:setIamPolicy",
+        resource,
+    );
+
+    // Build request
+    let builder = client
+        .post(&endpoint_url)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// POST v2/projects/{projectsId}/instances/{instancesId}:setIamPolicy
+/// Sets the access control policy on an instance resource. Replaces any existing policy.
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `bigtableadmin_projects_instances_set_iam_policy_execute()` or `bigtableadmin_projects_instances_set_iam_policy`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `bigtableadmin_projects_instances_set_iam_policy_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn bigtableadmin_projects_instances_set_iam_policy_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<Policy>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: Policy = serde_json::from_str(&body)
+                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// POST v2/projects/{projectsId}/instances/{instancesId}:setIamPolicy
+/// Sets the access control policy on an instance resource. Replaces any existing policy.
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `bigtableadmin_projects_instances_set_iam_policy_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `bigtableadmin_projects_instances_set_iam_policy_task()`.
+/// For the simplest API, use `bigtableadmin_projects_instances_set_iam_policy()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `bigtableadmin_projects_instances_set_iam_policy_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn bigtableadmin_projects_instances_set_iam_policy_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<Policy>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let task = bigtableadmin_projects_instances_set_iam_policy_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`bigtableadmin_projects_instances_set_iam_policy`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct BigtableadminProjectsInstancesSetIamPolicyArgs {
+    /// Path parameter: resource
+    pub resource: String,
+}
+
+/// POST v2/projects/{projectsId}/instances/{instancesId}:setIamPolicy
+/// Sets the access control policy on an instance resource. Replaces any existing policy.
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `bigtableadmin_projects_instances_set_iam_policy_builder()` + `bigtableadmin_projects_instances_set_iam_policy_execute()`.
+/// For task-level control, use `bigtableadmin_projects_instances_set_iam_policy_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn bigtableadmin_projects_instances_set_iam_policy(
+    client: &SimpleHttpClient,
+    args: &BigtableadminProjectsInstancesSetIamPolicyArgs,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<Policy>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let builder = bigtableadmin_projects_instances_set_iam_policy_builder(client, &args.resource)?;
+    bigtableadmin_projects_instances_set_iam_policy_execute(builder)
+}
+
+/// POST v2/projects/{projectsId}/instances/{instancesId}:testIamPermissions
+/// Returns permissions that the caller has on the specified instance resource.
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `bigtableadmin_projects_instances_test_iam_permissions_execute()` to send, or `bigtableadmin_projects_instances_test_iam_permissions` for simplest API.
+
+pub fn bigtableadmin_projects_instances_test_iam_permissions_builder(
+    client: &SimpleHttpClient,
+    resource: &String,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!(
+        "https://bigtableadmin.googleapis.com/v2/projects/{}/instances/{instancesId}:testIamPermissions",
+        resource,
+    );
+
+    // Build request
+    let builder = client
+        .post(&endpoint_url)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// POST v2/projects/{projectsId}/instances/{instancesId}:testIamPermissions
+/// Returns permissions that the caller has on the specified instance resource.
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `bigtableadmin_projects_instances_test_iam_permissions_execute()` or `bigtableadmin_projects_instances_test_iam_permissions`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `bigtableadmin_projects_instances_test_iam_permissions_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn bigtableadmin_projects_instances_test_iam_permissions_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<TestIamPermissionsResponse>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: TestIamPermissionsResponse = serde_json::from_str(&body)
+                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// POST v2/projects/{projectsId}/instances/{instancesId}:testIamPermissions
+/// Returns permissions that the caller has on the specified instance resource.
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `bigtableadmin_projects_instances_test_iam_permissions_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `bigtableadmin_projects_instances_test_iam_permissions_task()`.
+/// For the simplest API, use `bigtableadmin_projects_instances_test_iam_permissions()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `bigtableadmin_projects_instances_test_iam_permissions_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn bigtableadmin_projects_instances_test_iam_permissions_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<
+            D = Result<ApiResponse<TestIamPermissionsResponse>, ApiError>,
+            P = ApiPending,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    let task = bigtableadmin_projects_instances_test_iam_permissions_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`bigtableadmin_projects_instances_test_iam_permissions`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct BigtableadminProjectsInstancesTestIamPermissionsArgs {
+    /// Path parameter: resource
+    pub resource: String,
+}
+
+/// POST v2/projects/{projectsId}/instances/{instancesId}:testIamPermissions
+/// Returns permissions that the caller has on the specified instance resource.
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `bigtableadmin_projects_instances_test_iam_permissions_builder()` + `bigtableadmin_projects_instances_test_iam_permissions_execute()`.
+/// For task-level control, use `bigtableadmin_projects_instances_test_iam_permissions_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn bigtableadmin_projects_instances_test_iam_permissions(
+    client: &SimpleHttpClient,
+    args: &BigtableadminProjectsInstancesTestIamPermissionsArgs,
+) -> Result<
+    impl StreamIterator<
+            D = Result<ApiResponse<TestIamPermissionsResponse>, ApiError>,
+            P = ApiPending,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    let builder =
+        bigtableadmin_projects_instances_test_iam_permissions_builder(client, &args.resource)?;
+    bigtableadmin_projects_instances_test_iam_permissions_execute(builder)
+}
+
+/// PUT v2/projects/{projectsId}/instances/{instancesId}
+/// Updates an instance within a project. This method updates only the display name and type for an Instance. To update other Instance properties, such as labels, use PartialUpdateInstance.
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `bigtableadmin_projects_instances_update_execute()` to send, or `bigtableadmin_projects_instances_update` for simplest API.
+
+pub fn bigtableadmin_projects_instances_update_builder(
+    client: &SimpleHttpClient,
+    name: &String,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!(
+        "https://bigtableadmin.googleapis.com/v2/projects/{}/instances/{instancesId}",
+        name,
+    );
+
+    // Build request
+    let builder = client
+        .put(&endpoint_url)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// PUT v2/projects/{projectsId}/instances/{instancesId}
+/// Updates an instance within a project. This method updates only the display name and type for an Instance. To update other Instance properties, such as labels, use PartialUpdateInstance.
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `bigtableadmin_projects_instances_update_execute()` or `bigtableadmin_projects_instances_update`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `bigtableadmin_projects_instances_update_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn bigtableadmin_projects_instances_update_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<Instance>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: Instance = serde_json::from_str(&body)
+                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// PUT v2/projects/{projectsId}/instances/{instancesId}
+/// Updates an instance within a project. This method updates only the display name and type for an Instance. To update other Instance properties, such as labels, use PartialUpdateInstance.
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `bigtableadmin_projects_instances_update_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `bigtableadmin_projects_instances_update_task()`.
+/// For the simplest API, use `bigtableadmin_projects_instances_update()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `bigtableadmin_projects_instances_update_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn bigtableadmin_projects_instances_update_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<Instance>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let task = bigtableadmin_projects_instances_update_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`bigtableadmin_projects_instances_update`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct BigtableadminProjectsInstancesUpdateArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
+/// PUT v2/projects/{projectsId}/instances/{instancesId}
+/// Updates an instance within a project. This method updates only the display name and type for an Instance. To update other Instance properties, such as labels, use PartialUpdateInstance.
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `bigtableadmin_projects_instances_update_builder()` + `bigtableadmin_projects_instances_update_execute()`.
+/// For task-level control, use `bigtableadmin_projects_instances_update_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn bigtableadmin_projects_instances_update(
+    client: &SimpleHttpClient,
+    args: &BigtableadminProjectsInstancesUpdateArgs,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<Instance>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let builder = bigtableadmin_projects_instances_update_builder(client, &args.name)?;
+    bigtableadmin_projects_instances_update_execute(builder)
+}
+
+/// POST v2/projects/{projectsId}/instances/{instancesId}/appProfiles
+/// Creates an app profile within an instance.
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `bigtableadmin_projects_instances_app_profiles_create_execute()` to send, or `bigtableadmin_projects_instances_app_profiles_create` for simplest API.
+
+pub fn bigtableadmin_projects_instances_app_profiles_create_builder(
+    client: &SimpleHttpClient,
+    parent: &String,
+    appProfileId: &Option<Option<String>>,
+    ignoreWarnings: &Option<Option<String>>,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!(
+        "https://bigtableadmin.googleapis.com/v2/projects/{}/instances/{instancesId}/appProfiles",
+        parent,
+    );
+
+    // Build request
+    let mut query_parts = Vec::new();
+    if let Some(val) = appProfileId.as_ref() {
+        query_parts.push(format!("appProfileId={}", val));
+    }
+    if let Some(val) = ignoreWarnings.as_ref() {
+        query_parts.push(format!("ignoreWarnings={}", val));
+    }
+
+    let url_with_query = if query_parts.is_empty() {
+        endpoint_url
+    } else {
+        format!("{}?{}", endpoint_url, query_parts.join("&"))
+    };
+
+    let builder = client
+        .post(&url_with_query)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// POST v2/projects/{projectsId}/instances/{instancesId}/appProfiles
+/// Creates an app profile within an instance.
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `bigtableadmin_projects_instances_app_profiles_create_execute()` or `bigtableadmin_projects_instances_app_profiles_create`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `bigtableadmin_projects_instances_app_profiles_create_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn bigtableadmin_projects_instances_app_profiles_create_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<AppProfile>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: AppProfile = serde_json::from_str(&body)
+                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// POST v2/projects/{projectsId}/instances/{instancesId}/appProfiles
+/// Creates an app profile within an instance.
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `bigtableadmin_projects_instances_app_profiles_create_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `bigtableadmin_projects_instances_app_profiles_create_task()`.
+/// For the simplest API, use `bigtableadmin_projects_instances_app_profiles_create()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `bigtableadmin_projects_instances_app_profiles_create_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn bigtableadmin_projects_instances_app_profiles_create_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<AppProfile>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let task = bigtableadmin_projects_instances_app_profiles_create_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`bigtableadmin_projects_instances_app_profiles_create`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct BigtableadminProjectsInstancesAppProfilesCreateArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Query parameter: appProfileId
+    pub appProfileId: Option<Option<String>>,
+    /// Query parameter: ignoreWarnings
+    pub ignoreWarnings: Option<Option<String>>,
+}
+
+/// POST v2/projects/{projectsId}/instances/{instancesId}/appProfiles
+/// Creates an app profile within an instance.
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `bigtableadmin_projects_instances_app_profiles_create_builder()` + `bigtableadmin_projects_instances_app_profiles_create_execute()`.
+/// For task-level control, use `bigtableadmin_projects_instances_app_profiles_create_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn bigtableadmin_projects_instances_app_profiles_create(
+    client: &SimpleHttpClient,
+    args: &BigtableadminProjectsInstancesAppProfilesCreateArgs,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<AppProfile>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let builder = bigtableadmin_projects_instances_app_profiles_create_builder(
+        client,
+        &args.parent,
+        &args.appProfileId,
+        &args.ignoreWarnings,
+    )?;
+    bigtableadmin_projects_instances_app_profiles_create_execute(builder)
+}
+
+/// DELETE v2/projects/{projectsId}/instances/{instancesId}/appProfiles/{appProfilesId}
+/// Deletes an app profile from an instance.
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `bigtableadmin_projects_instances_app_profiles_delete_execute()` to send, or `bigtableadmin_projects_instances_app_profiles_delete` for simplest API.
+
+pub fn bigtableadmin_projects_instances_app_profiles_delete_builder(
+    client: &SimpleHttpClient,
+    name: &String,
+    ignoreWarnings: &Option<Option<String>>,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!(
+        "https://bigtableadmin.googleapis.com/v2/projects/{}/instances/{instancesId}/appProfiles/{appProfilesId}",
+        name,
+    );
+
+    // Build request
+    let mut query_parts = Vec::new();
+    if let Some(val) = ignoreWarnings.as_ref() {
+        query_parts.push(format!("ignoreWarnings={}", val));
+    }
+
+    let url_with_query = if query_parts.is_empty() {
+        endpoint_url
+    } else {
+        format!("{}?{}", endpoint_url, query_parts.join("&"))
+    };
+
+    let builder = client
+        .delete(&url_with_query)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// DELETE v2/projects/{projectsId}/instances/{instancesId}/appProfiles/{appProfilesId}
+/// Deletes an app profile from an instance.
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `bigtableadmin_projects_instances_app_profiles_delete_execute()` or `bigtableadmin_projects_instances_app_profiles_delete`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `bigtableadmin_projects_instances_app_profiles_delete_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn bigtableadmin_projects_instances_app_profiles_delete_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<Empty>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: Empty = serde_json::from_str(&body)
+                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// DELETE v2/projects/{projectsId}/instances/{instancesId}/appProfiles/{appProfilesId}
+/// Deletes an app profile from an instance.
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `bigtableadmin_projects_instances_app_profiles_delete_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `bigtableadmin_projects_instances_app_profiles_delete_task()`.
+/// For the simplest API, use `bigtableadmin_projects_instances_app_profiles_delete()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `bigtableadmin_projects_instances_app_profiles_delete_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn bigtableadmin_projects_instances_app_profiles_delete_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<Empty>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let task = bigtableadmin_projects_instances_app_profiles_delete_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`bigtableadmin_projects_instances_app_profiles_delete`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct BigtableadminProjectsInstancesAppProfilesDeleteArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Query parameter: ignoreWarnings
+    pub ignoreWarnings: Option<Option<String>>,
+}
+
+/// DELETE v2/projects/{projectsId}/instances/{instancesId}/appProfiles/{appProfilesId}
+/// Deletes an app profile from an instance.
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `bigtableadmin_projects_instances_app_profiles_delete_builder()` + `bigtableadmin_projects_instances_app_profiles_delete_execute()`.
+/// For task-level control, use `bigtableadmin_projects_instances_app_profiles_delete_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn bigtableadmin_projects_instances_app_profiles_delete(
+    client: &SimpleHttpClient,
+    args: &BigtableadminProjectsInstancesAppProfilesDeleteArgs,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<Empty>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let builder = bigtableadmin_projects_instances_app_profiles_delete_builder(
+        client,
+        &args.name,
+        &args.ignoreWarnings,
+    )?;
+    bigtableadmin_projects_instances_app_profiles_delete_execute(builder)
+}
+
+/// GET v2/projects/{projectsId}/instances/{instancesId}/appProfiles/{appProfilesId}
+/// Gets information about an app profile.
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `bigtableadmin_projects_instances_app_profiles_get_execute()` to send, or `bigtableadmin_projects_instances_app_profiles_get` for simplest API.
+
+pub fn bigtableadmin_projects_instances_app_profiles_get_builder(
+    client: &SimpleHttpClient,
+    name: &String,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!(
+        "https://bigtableadmin.googleapis.com/v2/projects/{}/instances/{instancesId}/appProfiles/{appProfilesId}",
+        name,
+    );
+
+    // Build request
+    let builder = client
+        .get(&endpoint_url)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// GET v2/projects/{projectsId}/instances/{instancesId}/appProfiles/{appProfilesId}
+/// Gets information about an app profile.
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `bigtableadmin_projects_instances_app_profiles_get_execute()` or `bigtableadmin_projects_instances_app_profiles_get`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `bigtableadmin_projects_instances_app_profiles_get_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn bigtableadmin_projects_instances_app_profiles_get_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<AppProfile>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: AppProfile = serde_json::from_str(&body)
+                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// GET v2/projects/{projectsId}/instances/{instancesId}/appProfiles/{appProfilesId}
+/// Gets information about an app profile.
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `bigtableadmin_projects_instances_app_profiles_get_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `bigtableadmin_projects_instances_app_profiles_get_task()`.
+/// For the simplest API, use `bigtableadmin_projects_instances_app_profiles_get()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `bigtableadmin_projects_instances_app_profiles_get_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn bigtableadmin_projects_instances_app_profiles_get_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<AppProfile>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let task = bigtableadmin_projects_instances_app_profiles_get_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`bigtableadmin_projects_instances_app_profiles_get`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct BigtableadminProjectsInstancesAppProfilesGetArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
+/// GET v2/projects/{projectsId}/instances/{instancesId}/appProfiles/{appProfilesId}
+/// Gets information about an app profile.
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `bigtableadmin_projects_instances_app_profiles_get_builder()` + `bigtableadmin_projects_instances_app_profiles_get_execute()`.
+/// For task-level control, use `bigtableadmin_projects_instances_app_profiles_get_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn bigtableadmin_projects_instances_app_profiles_get(
+    client: &SimpleHttpClient,
+    args: &BigtableadminProjectsInstancesAppProfilesGetArgs,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<AppProfile>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let builder = bigtableadmin_projects_instances_app_profiles_get_builder(client, &args.name)?;
+    bigtableadmin_projects_instances_app_profiles_get_execute(builder)
+}
+
+/// GET v2/projects/{projectsId}/instances/{instancesId}/appProfiles
+/// Lists information about app profiles in an instance.
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `bigtableadmin_projects_instances_app_profiles_list_execute()` to send, or `bigtableadmin_projects_instances_app_profiles_list` for simplest API.
+
+pub fn bigtableadmin_projects_instances_app_profiles_list_builder(
+    client: &SimpleHttpClient,
+    parent: &String,
+    pageSize: &Option<Option<String>>,
+    pageToken: &Option<Option<String>>,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!(
+        "https://bigtableadmin.googleapis.com/v2/projects/{}/instances/{instancesId}/appProfiles",
+        parent,
+    );
+
+    // Build request
+    let mut query_parts = Vec::new();
+    if let Some(val) = pageSize.as_ref() {
+        query_parts.push(format!("pageSize={}", val));
+    }
+    if let Some(val) = pageToken.as_ref() {
+        query_parts.push(format!("pageToken={}", val));
+    }
+
+    let url_with_query = if query_parts.is_empty() {
+        endpoint_url
+    } else {
+        format!("{}?{}", endpoint_url, query_parts.join("&"))
+    };
+
+    let builder = client
+        .get(&url_with_query)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// GET v2/projects/{projectsId}/instances/{instancesId}/appProfiles
+/// Lists information about app profiles in an instance.
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `bigtableadmin_projects_instances_app_profiles_list_execute()` or `bigtableadmin_projects_instances_app_profiles_list`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `bigtableadmin_projects_instances_app_profiles_list_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn bigtableadmin_projects_instances_app_profiles_list_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<ListAppProfilesResponse>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: ListAppProfilesResponse = serde_json::from_str(&body)
+                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// GET v2/projects/{projectsId}/instances/{instancesId}/appProfiles
+/// Lists information about app profiles in an instance.
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `bigtableadmin_projects_instances_app_profiles_list_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `bigtableadmin_projects_instances_app_profiles_list_task()`.
+/// For the simplest API, use `bigtableadmin_projects_instances_app_profiles_list()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `bigtableadmin_projects_instances_app_profiles_list_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn bigtableadmin_projects_instances_app_profiles_list_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<ListAppProfilesResponse>, ApiError>, P = ApiPending>
+        + Send
+        + 'static,
+    ApiError,
+> {
+    let task = bigtableadmin_projects_instances_app_profiles_list_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`bigtableadmin_projects_instances_app_profiles_list`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct BigtableadminProjectsInstancesAppProfilesListArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Query parameter: pageSize
+    pub pageSize: Option<Option<String>>,
+    /// Query parameter: pageToken
+    pub pageToken: Option<Option<String>>,
+}
+
+/// GET v2/projects/{projectsId}/instances/{instancesId}/appProfiles
+/// Lists information about app profiles in an instance.
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `bigtableadmin_projects_instances_app_profiles_list_builder()` + `bigtableadmin_projects_instances_app_profiles_list_execute()`.
+/// For task-level control, use `bigtableadmin_projects_instances_app_profiles_list_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn bigtableadmin_projects_instances_app_profiles_list(
+    client: &SimpleHttpClient,
+    args: &BigtableadminProjectsInstancesAppProfilesListArgs,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<ListAppProfilesResponse>, ApiError>, P = ApiPending>
+        + Send
+        + 'static,
+    ApiError,
+> {
+    let builder = bigtableadmin_projects_instances_app_profiles_list_builder(
+        client,
+        &args.parent,
+        &args.pageSize,
+        &args.pageToken,
+    )?;
+    bigtableadmin_projects_instances_app_profiles_list_execute(builder)
+}
+
+/// PATCH v2/projects/{projectsId}/instances/{instancesId}/appProfiles/{appProfilesId}
+/// Updates an app profile within an instance.
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `bigtableadmin_projects_instances_app_profiles_patch_execute()` to send, or `bigtableadmin_projects_instances_app_profiles_patch` for simplest API.
+
+pub fn bigtableadmin_projects_instances_app_profiles_patch_builder(
+    client: &SimpleHttpClient,
+    name: &String,
+    ignoreWarnings: &Option<Option<String>>,
+    updateMask: &Option<Option<String>>,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!(
+        "https://bigtableadmin.googleapis.com/v2/projects/{}/instances/{instancesId}/appProfiles/{appProfilesId}",
+        name,
+    );
+
+    // Build request
+    let mut query_parts = Vec::new();
+    if let Some(val) = ignoreWarnings.as_ref() {
+        query_parts.push(format!("ignoreWarnings={}", val));
+    }
+    if let Some(val) = updateMask.as_ref() {
+        query_parts.push(format!("updateMask={}", val));
+    }
+
+    let url_with_query = if query_parts.is_empty() {
+        endpoint_url
+    } else {
+        format!("{}?{}", endpoint_url, query_parts.join("&"))
+    };
+
+    let builder = client
+        .patch(&url_with_query)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// PATCH v2/projects/{projectsId}/instances/{instancesId}/appProfiles/{appProfilesId}
+/// Updates an app profile within an instance.
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `bigtableadmin_projects_instances_app_profiles_patch_execute()` or `bigtableadmin_projects_instances_app_profiles_patch`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `bigtableadmin_projects_instances_app_profiles_patch_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn bigtableadmin_projects_instances_app_profiles_patch_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<Operation>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: Operation = serde_json::from_str(&body)
+                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// PATCH v2/projects/{projectsId}/instances/{instancesId}/appProfiles/{appProfilesId}
+/// Updates an app profile within an instance.
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `bigtableadmin_projects_instances_app_profiles_patch_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `bigtableadmin_projects_instances_app_profiles_patch_task()`.
+/// For the simplest API, use `bigtableadmin_projects_instances_app_profiles_patch()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `bigtableadmin_projects_instances_app_profiles_patch_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn bigtableadmin_projects_instances_app_profiles_patch_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<Operation>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let task = bigtableadmin_projects_instances_app_profiles_patch_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`bigtableadmin_projects_instances_app_profiles_patch`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct BigtableadminProjectsInstancesAppProfilesPatchArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Query parameter: ignoreWarnings
+    pub ignoreWarnings: Option<Option<String>>,
+    /// Query parameter: updateMask
+    pub updateMask: Option<Option<String>>,
+}
+
+/// PATCH v2/projects/{projectsId}/instances/{instancesId}/appProfiles/{appProfilesId}
+/// Updates an app profile within an instance.
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `bigtableadmin_projects_instances_app_profiles_patch_builder()` + `bigtableadmin_projects_instances_app_profiles_patch_execute()`.
+/// For task-level control, use `bigtableadmin_projects_instances_app_profiles_patch_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn bigtableadmin_projects_instances_app_profiles_patch(
+    client: &SimpleHttpClient,
+    args: &BigtableadminProjectsInstancesAppProfilesPatchArgs,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<Operation>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let builder = bigtableadmin_projects_instances_app_profiles_patch_builder(
+        client,
+        &args.name,
+        &args.ignoreWarnings,
+        &args.updateMask,
+    )?;
+    bigtableadmin_projects_instances_app_profiles_patch_execute(builder)
+}
+
+/// POST v2/projects/{projectsId}/instances/{instancesId}/clusters
+/// Creates a cluster within an instance. Note that exactly one of Cluster.serve_nodes and Cluster.cluster_config.cluster_autoscaling_config can be set. If serve_nodes is set to non-zero, then the cluster is manually scaled. If cluster_config.cluster_autoscaling_config is non-empty, then autoscaling is enabled.
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `bigtableadmin_projects_instances_clusters_create_execute()` to send, or `bigtableadmin_projects_instances_clusters_create` for simplest API.
+
+pub fn bigtableadmin_projects_instances_clusters_create_builder(
+    client: &SimpleHttpClient,
+    parent: &String,
+    clusterId: &Option<Option<String>>,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!(
+        "https://bigtableadmin.googleapis.com/v2/projects/{}/instances/{instancesId}/clusters",
+        parent,
+    );
+
+    // Build request
+    let mut query_parts = Vec::new();
+    if let Some(val) = clusterId.as_ref() {
+        query_parts.push(format!("clusterId={}", val));
+    }
+
+    let url_with_query = if query_parts.is_empty() {
+        endpoint_url
+    } else {
+        format!("{}?{}", endpoint_url, query_parts.join("&"))
+    };
+
+    let builder = client
+        .post(&url_with_query)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// POST v2/projects/{projectsId}/instances/{instancesId}/clusters
+/// Creates a cluster within an instance. Note that exactly one of Cluster.serve_nodes and Cluster.cluster_config.cluster_autoscaling_config can be set. If serve_nodes is set to non-zero, then the cluster is manually scaled. If cluster_config.cluster_autoscaling_config is non-empty, then autoscaling is enabled.
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `bigtableadmin_projects_instances_clusters_create_execute()` or `bigtableadmin_projects_instances_clusters_create`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `bigtableadmin_projects_instances_clusters_create_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn bigtableadmin_projects_instances_clusters_create_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<Operation>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: Operation = serde_json::from_str(&body)
+                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// POST v2/projects/{projectsId}/instances/{instancesId}/clusters
+/// Creates a cluster within an instance. Note that exactly one of Cluster.serve_nodes and Cluster.cluster_config.cluster_autoscaling_config can be set. If serve_nodes is set to non-zero, then the cluster is manually scaled. If cluster_config.cluster_autoscaling_config is non-empty, then autoscaling is enabled.
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `bigtableadmin_projects_instances_clusters_create_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `bigtableadmin_projects_instances_clusters_create_task()`.
+/// For the simplest API, use `bigtableadmin_projects_instances_clusters_create()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `bigtableadmin_projects_instances_clusters_create_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn bigtableadmin_projects_instances_clusters_create_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<Operation>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let task = bigtableadmin_projects_instances_clusters_create_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`bigtableadmin_projects_instances_clusters_create`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct BigtableadminProjectsInstancesClustersCreateArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Query parameter: clusterId
+    pub clusterId: Option<Option<String>>,
+}
+
+/// POST v2/projects/{projectsId}/instances/{instancesId}/clusters
+/// Creates a cluster within an instance. Note that exactly one of Cluster.serve_nodes and Cluster.cluster_config.cluster_autoscaling_config can be set. If serve_nodes is set to non-zero, then the cluster is manually scaled. If cluster_config.cluster_autoscaling_config is non-empty, then autoscaling is enabled.
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `bigtableadmin_projects_instances_clusters_create_builder()` + `bigtableadmin_projects_instances_clusters_create_execute()`.
+/// For task-level control, use `bigtableadmin_projects_instances_clusters_create_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn bigtableadmin_projects_instances_clusters_create(
+    client: &SimpleHttpClient,
+    args: &BigtableadminProjectsInstancesClustersCreateArgs,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<Operation>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let builder = bigtableadmin_projects_instances_clusters_create_builder(
+        client,
+        &args.parent,
+        &args.clusterId,
+    )?;
+    bigtableadmin_projects_instances_clusters_create_execute(builder)
+}
+
+/// DELETE v2/projects/{projectsId}/instances/{instancesId}/clusters/{clustersId}
+/// Deletes a cluster from an instance.
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `bigtableadmin_projects_instances_clusters_delete_execute()` to send, or `bigtableadmin_projects_instances_clusters_delete` for simplest API.
+
+pub fn bigtableadmin_projects_instances_clusters_delete_builder(
+    client: &SimpleHttpClient,
+    name: &String,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!(
+        "https://bigtableadmin.googleapis.com/v2/projects/{}/instances/{instancesId}/clusters/{clustersId}",
+        name,
+    );
+
+    // Build request
+    let builder = client
+        .delete(&endpoint_url)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// DELETE v2/projects/{projectsId}/instances/{instancesId}/clusters/{clustersId}
+/// Deletes a cluster from an instance.
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `bigtableadmin_projects_instances_clusters_delete_execute()` or `bigtableadmin_projects_instances_clusters_delete`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `bigtableadmin_projects_instances_clusters_delete_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn bigtableadmin_projects_instances_clusters_delete_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<Empty>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: Empty = serde_json::from_str(&body)
+                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// DELETE v2/projects/{projectsId}/instances/{instancesId}/clusters/{clustersId}
+/// Deletes a cluster from an instance.
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `bigtableadmin_projects_instances_clusters_delete_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `bigtableadmin_projects_instances_clusters_delete_task()`.
+/// For the simplest API, use `bigtableadmin_projects_instances_clusters_delete()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `bigtableadmin_projects_instances_clusters_delete_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn bigtableadmin_projects_instances_clusters_delete_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<Empty>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let task = bigtableadmin_projects_instances_clusters_delete_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`bigtableadmin_projects_instances_clusters_delete`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct BigtableadminProjectsInstancesClustersDeleteArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
+/// DELETE v2/projects/{projectsId}/instances/{instancesId}/clusters/{clustersId}
+/// Deletes a cluster from an instance.
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `bigtableadmin_projects_instances_clusters_delete_builder()` + `bigtableadmin_projects_instances_clusters_delete_execute()`.
+/// For task-level control, use `bigtableadmin_projects_instances_clusters_delete_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn bigtableadmin_projects_instances_clusters_delete(
+    client: &SimpleHttpClient,
+    args: &BigtableadminProjectsInstancesClustersDeleteArgs,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<Empty>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let builder = bigtableadmin_projects_instances_clusters_delete_builder(client, &args.name)?;
+    bigtableadmin_projects_instances_clusters_delete_execute(builder)
+}
+
+/// GET v2/projects/{projectsId}/instances/{instancesId}/clusters/{clustersId}
+/// Gets information about a cluster.
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `bigtableadmin_projects_instances_clusters_get_execute()` to send, or `bigtableadmin_projects_instances_clusters_get` for simplest API.
+
+pub fn bigtableadmin_projects_instances_clusters_get_builder(
+    client: &SimpleHttpClient,
+    name: &String,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!(
+        "https://bigtableadmin.googleapis.com/v2/projects/{}/instances/{instancesId}/clusters/{clustersId}",
+        name,
+    );
+
+    // Build request
+    let builder = client
+        .get(&endpoint_url)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// GET v2/projects/{projectsId}/instances/{instancesId}/clusters/{clustersId}
+/// Gets information about a cluster.
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `bigtableadmin_projects_instances_clusters_get_execute()` or `bigtableadmin_projects_instances_clusters_get`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `bigtableadmin_projects_instances_clusters_get_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn bigtableadmin_projects_instances_clusters_get_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<Cluster>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: Cluster = serde_json::from_str(&body)
+                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// GET v2/projects/{projectsId}/instances/{instancesId}/clusters/{clustersId}
+/// Gets information about a cluster.
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `bigtableadmin_projects_instances_clusters_get_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `bigtableadmin_projects_instances_clusters_get_task()`.
+/// For the simplest API, use `bigtableadmin_projects_instances_clusters_get()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `bigtableadmin_projects_instances_clusters_get_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn bigtableadmin_projects_instances_clusters_get_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<Cluster>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let task = bigtableadmin_projects_instances_clusters_get_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`bigtableadmin_projects_instances_clusters_get`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct BigtableadminProjectsInstancesClustersGetArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
+/// GET v2/projects/{projectsId}/instances/{instancesId}/clusters/{clustersId}
+/// Gets information about a cluster.
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `bigtableadmin_projects_instances_clusters_get_builder()` + `bigtableadmin_projects_instances_clusters_get_execute()`.
+/// For task-level control, use `bigtableadmin_projects_instances_clusters_get_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn bigtableadmin_projects_instances_clusters_get(
+    client: &SimpleHttpClient,
+    args: &BigtableadminProjectsInstancesClustersGetArgs,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<Cluster>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let builder = bigtableadmin_projects_instances_clusters_get_builder(client, &args.name)?;
+    bigtableadmin_projects_instances_clusters_get_execute(builder)
+}
+
+/// GET v2/projects/{projectsId}/instances/{instancesId}/clusters/{clustersId}/memoryLayer
+/// Gets information about the memory layer of a cluster.
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `bigtableadmin_projects_instances_clusters_get_memory_layer_execute()` to send, or `bigtableadmin_projects_instances_clusters_get_memory_layer` for simplest API.
+
+pub fn bigtableadmin_projects_instances_clusters_get_memory_layer_builder(
+    client: &SimpleHttpClient,
+    name: &String,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!(
+        "https://bigtableadmin.googleapis.com/v2/projects/{}/instances/{instancesId}/clusters/{clustersId}/memoryLayer",
+        name,
+    );
+
+    // Build request
+    let builder = client
+        .get(&endpoint_url)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// GET v2/projects/{projectsId}/instances/{instancesId}/clusters/{clustersId}/memoryLayer
+/// Gets information about the memory layer of a cluster.
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `bigtableadmin_projects_instances_clusters_get_memory_layer_execute()` or `bigtableadmin_projects_instances_clusters_get_memory_layer`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `bigtableadmin_projects_instances_clusters_get_memory_layer_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn bigtableadmin_projects_instances_clusters_get_memory_layer_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<MemoryLayer>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: MemoryLayer = serde_json::from_str(&body)
+                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// GET v2/projects/{projectsId}/instances/{instancesId}/clusters/{clustersId}/memoryLayer
+/// Gets information about the memory layer of a cluster.
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `bigtableadmin_projects_instances_clusters_get_memory_layer_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `bigtableadmin_projects_instances_clusters_get_memory_layer_task()`.
+/// For the simplest API, use `bigtableadmin_projects_instances_clusters_get_memory_layer()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `bigtableadmin_projects_instances_clusters_get_memory_layer_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn bigtableadmin_projects_instances_clusters_get_memory_layer_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<MemoryLayer>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let task = bigtableadmin_projects_instances_clusters_get_memory_layer_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`bigtableadmin_projects_instances_clusters_get_memory_layer`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct BigtableadminProjectsInstancesClustersGetMemoryLayerArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
+/// GET v2/projects/{projectsId}/instances/{instancesId}/clusters/{clustersId}/memoryLayer
+/// Gets information about the memory layer of a cluster.
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `bigtableadmin_projects_instances_clusters_get_memory_layer_builder()` + `bigtableadmin_projects_instances_clusters_get_memory_layer_execute()`.
+/// For task-level control, use `bigtableadmin_projects_instances_clusters_get_memory_layer_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn bigtableadmin_projects_instances_clusters_get_memory_layer(
+    client: &SimpleHttpClient,
+    args: &BigtableadminProjectsInstancesClustersGetMemoryLayerArgs,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<MemoryLayer>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let builder =
+        bigtableadmin_projects_instances_clusters_get_memory_layer_builder(client, &args.name)?;
+    bigtableadmin_projects_instances_clusters_get_memory_layer_execute(builder)
+}
+
+/// GET v2/projects/{projectsId}/instances/{instancesId}/clusters
+/// Lists information about clusters in an instance.
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `bigtableadmin_projects_instances_clusters_list_execute()` to send, or `bigtableadmin_projects_instances_clusters_list` for simplest API.
+
+pub fn bigtableadmin_projects_instances_clusters_list_builder(
+    client: &SimpleHttpClient,
+    parent: &String,
+    pageToken: &Option<Option<String>>,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!(
+        "https://bigtableadmin.googleapis.com/v2/projects/{}/instances/{instancesId}/clusters",
+        parent,
+    );
+
+    // Build request
+    let mut query_parts = Vec::new();
+    if let Some(val) = pageToken.as_ref() {
+        query_parts.push(format!("pageToken={}", val));
+    }
+
+    let url_with_query = if query_parts.is_empty() {
+        endpoint_url
+    } else {
+        format!("{}?{}", endpoint_url, query_parts.join("&"))
+    };
+
+    let builder = client
+        .get(&url_with_query)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// GET v2/projects/{projectsId}/instances/{instancesId}/clusters
+/// Lists information about clusters in an instance.
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `bigtableadmin_projects_instances_clusters_list_execute()` or `bigtableadmin_projects_instances_clusters_list`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `bigtableadmin_projects_instances_clusters_list_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn bigtableadmin_projects_instances_clusters_list_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<ListClustersResponse>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: ListClustersResponse = serde_json::from_str(&body)
+                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// GET v2/projects/{projectsId}/instances/{instancesId}/clusters
+/// Lists information about clusters in an instance.
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `bigtableadmin_projects_instances_clusters_list_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `bigtableadmin_projects_instances_clusters_list_task()`.
+/// For the simplest API, use `bigtableadmin_projects_instances_clusters_list()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `bigtableadmin_projects_instances_clusters_list_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn bigtableadmin_projects_instances_clusters_list_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<ListClustersResponse>, ApiError>, P = ApiPending>
+        + Send
+        + 'static,
+    ApiError,
+> {
+    let task = bigtableadmin_projects_instances_clusters_list_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`bigtableadmin_projects_instances_clusters_list`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct BigtableadminProjectsInstancesClustersListArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Query parameter: pageToken
+    pub pageToken: Option<Option<String>>,
+}
+
+/// GET v2/projects/{projectsId}/instances/{instancesId}/clusters
+/// Lists information about clusters in an instance.
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `bigtableadmin_projects_instances_clusters_list_builder()` + `bigtableadmin_projects_instances_clusters_list_execute()`.
+/// For task-level control, use `bigtableadmin_projects_instances_clusters_list_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn bigtableadmin_projects_instances_clusters_list(
+    client: &SimpleHttpClient,
+    args: &BigtableadminProjectsInstancesClustersListArgs,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<ListClustersResponse>, ApiError>, P = ApiPending>
+        + Send
+        + 'static,
+    ApiError,
+> {
+    let builder = bigtableadmin_projects_instances_clusters_list_builder(
+        client,
+        &args.parent,
+        &args.pageToken,
+    )?;
+    bigtableadmin_projects_instances_clusters_list_execute(builder)
+}
+
+/// PATCH v2/projects/{projectsId}/instances/{instancesId}/clusters/{clustersId}
+/// Partially updates a cluster within a project. This method is the preferred way to update a Cluster. To enable and update autoscaling, set cluster_config.cluster_autoscaling_config. When autoscaling is enabled, serve_nodes is treated as an OUTPUT_ONLY field, meaning that updates to it are ignored. Note that an update cannot simultaneously set serve_nodes to non-zero and cluster_config.cluster_autoscaling_config to non-empty, and also specify both in the update_mask. To disable autoscaling, clear cluster_config.cluster_autoscaling_config, and explicitly set a serve_node count via the update_mask.
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `bigtableadmin_projects_instances_clusters_partial_update_cluster_execute()` to send, or `bigtableadmin_projects_instances_clusters_partial_update_cluster` for simplest API.
+
+pub fn bigtableadmin_projects_instances_clusters_partial_update_cluster_builder(
+    client: &SimpleHttpClient,
+    name: &String,
+    updateMask: &Option<Option<String>>,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!(
+        "https://bigtableadmin.googleapis.com/v2/projects/{}/instances/{instancesId}/clusters/{clustersId}",
+        name,
+    );
+
+    // Build request
+    let mut query_parts = Vec::new();
+    if let Some(val) = updateMask.as_ref() {
+        query_parts.push(format!("updateMask={}", val));
+    }
+
+    let url_with_query = if query_parts.is_empty() {
+        endpoint_url
+    } else {
+        format!("{}?{}", endpoint_url, query_parts.join("&"))
+    };
+
+    let builder = client
+        .patch(&url_with_query)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// PATCH v2/projects/{projectsId}/instances/{instancesId}/clusters/{clustersId}
+/// Partially updates a cluster within a project. This method is the preferred way to update a Cluster. To enable and update autoscaling, set cluster_config.cluster_autoscaling_config. When autoscaling is enabled, serve_nodes is treated as an OUTPUT_ONLY field, meaning that updates to it are ignored. Note that an update cannot simultaneously set serve_nodes to non-zero and cluster_config.cluster_autoscaling_config to non-empty, and also specify both in the update_mask. To disable autoscaling, clear cluster_config.cluster_autoscaling_config, and explicitly set a serve_node count via the update_mask.
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `bigtableadmin_projects_instances_clusters_partial_update_cluster_execute()` or `bigtableadmin_projects_instances_clusters_partial_update_cluster`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `bigtableadmin_projects_instances_clusters_partial_update_cluster_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn bigtableadmin_projects_instances_clusters_partial_update_cluster_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<Operation>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: Operation = serde_json::from_str(&body)
+                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// PATCH v2/projects/{projectsId}/instances/{instancesId}/clusters/{clustersId}
+/// Partially updates a cluster within a project. This method is the preferred way to update a Cluster. To enable and update autoscaling, set cluster_config.cluster_autoscaling_config. When autoscaling is enabled, serve_nodes is treated as an OUTPUT_ONLY field, meaning that updates to it are ignored. Note that an update cannot simultaneously set serve_nodes to non-zero and cluster_config.cluster_autoscaling_config to non-empty, and also specify both in the update_mask. To disable autoscaling, clear cluster_config.cluster_autoscaling_config, and explicitly set a serve_node count via the update_mask.
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `bigtableadmin_projects_instances_clusters_partial_update_cluster_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `bigtableadmin_projects_instances_clusters_partial_update_cluster_task()`.
+/// For the simplest API, use `bigtableadmin_projects_instances_clusters_partial_update_cluster()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `bigtableadmin_projects_instances_clusters_partial_update_cluster_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn bigtableadmin_projects_instances_clusters_partial_update_cluster_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<Operation>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let task = bigtableadmin_projects_instances_clusters_partial_update_cluster_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`bigtableadmin_projects_instances_clusters_partial_update_cluster`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct BigtableadminProjectsInstancesClustersPartialUpdateClusterArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Query parameter: updateMask
+    pub updateMask: Option<Option<String>>,
+}
+
+/// PATCH v2/projects/{projectsId}/instances/{instancesId}/clusters/{clustersId}
+/// Partially updates a cluster within a project. This method is the preferred way to update a Cluster. To enable and update autoscaling, set cluster_config.cluster_autoscaling_config. When autoscaling is enabled, serve_nodes is treated as an OUTPUT_ONLY field, meaning that updates to it are ignored. Note that an update cannot simultaneously set serve_nodes to non-zero and cluster_config.cluster_autoscaling_config to non-empty, and also specify both in the update_mask. To disable autoscaling, clear cluster_config.cluster_autoscaling_config, and explicitly set a serve_node count via the update_mask.
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `bigtableadmin_projects_instances_clusters_partial_update_cluster_builder()` + `bigtableadmin_projects_instances_clusters_partial_update_cluster_execute()`.
+/// For task-level control, use `bigtableadmin_projects_instances_clusters_partial_update_cluster_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn bigtableadmin_projects_instances_clusters_partial_update_cluster(
+    client: &SimpleHttpClient,
+    args: &BigtableadminProjectsInstancesClustersPartialUpdateClusterArgs,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<Operation>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let builder = bigtableadmin_projects_instances_clusters_partial_update_cluster_builder(
+        client,
+        &args.name,
+        &args.updateMask,
+    )?;
+    bigtableadmin_projects_instances_clusters_partial_update_cluster_execute(builder)
+}
+
+/// PUT v2/projects/{projectsId}/instances/{instancesId}/clusters/{clustersId}
+/// Updates a cluster within an instance. Note that UpdateCluster does not support updating cluster_config.cluster_autoscaling_config. In order to update it, you must use PartialUpdateCluster.
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `bigtableadmin_projects_instances_clusters_update_execute()` to send, or `bigtableadmin_projects_instances_clusters_update` for simplest API.
+
+pub fn bigtableadmin_projects_instances_clusters_update_builder(
+    client: &SimpleHttpClient,
+    name: &String,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!(
+        "https://bigtableadmin.googleapis.com/v2/projects/{}/instances/{instancesId}/clusters/{clustersId}",
+        name,
+    );
+
+    // Build request
+    let builder = client
+        .put(&endpoint_url)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// PUT v2/projects/{projectsId}/instances/{instancesId}/clusters/{clustersId}
+/// Updates a cluster within an instance. Note that UpdateCluster does not support updating cluster_config.cluster_autoscaling_config. In order to update it, you must use PartialUpdateCluster.
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `bigtableadmin_projects_instances_clusters_update_execute()` or `bigtableadmin_projects_instances_clusters_update`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `bigtableadmin_projects_instances_clusters_update_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn bigtableadmin_projects_instances_clusters_update_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<Operation>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: Operation = serde_json::from_str(&body)
+                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// PUT v2/projects/{projectsId}/instances/{instancesId}/clusters/{clustersId}
+/// Updates a cluster within an instance. Note that UpdateCluster does not support updating cluster_config.cluster_autoscaling_config. In order to update it, you must use PartialUpdateCluster.
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `bigtableadmin_projects_instances_clusters_update_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `bigtableadmin_projects_instances_clusters_update_task()`.
+/// For the simplest API, use `bigtableadmin_projects_instances_clusters_update()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `bigtableadmin_projects_instances_clusters_update_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn bigtableadmin_projects_instances_clusters_update_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<Operation>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let task = bigtableadmin_projects_instances_clusters_update_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`bigtableadmin_projects_instances_clusters_update`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct BigtableadminProjectsInstancesClustersUpdateArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
+/// PUT v2/projects/{projectsId}/instances/{instancesId}/clusters/{clustersId}
+/// Updates a cluster within an instance. Note that UpdateCluster does not support updating cluster_config.cluster_autoscaling_config. In order to update it, you must use PartialUpdateCluster.
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `bigtableadmin_projects_instances_clusters_update_builder()` + `bigtableadmin_projects_instances_clusters_update_execute()`.
+/// For task-level control, use `bigtableadmin_projects_instances_clusters_update_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn bigtableadmin_projects_instances_clusters_update(
+    client: &SimpleHttpClient,
+    args: &BigtableadminProjectsInstancesClustersUpdateArgs,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<Operation>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let builder = bigtableadmin_projects_instances_clusters_update_builder(client, &args.name)?;
+    bigtableadmin_projects_instances_clusters_update_execute(builder)
+}
+
+/// PATCH v2/projects/{projectsId}/instances/{instancesId}/clusters/{clustersId}/memoryLayer
+/// Updates the memory layer of a cluster. To enable the memory layer, set the memory_config. To disable the memory layer, unset the memory_config.
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `bigtableadmin_projects_instances_clusters_update_memory_layer_execute()` to send, or `bigtableadmin_projects_instances_clusters_update_memory_layer` for simplest API.
+
+pub fn bigtableadmin_projects_instances_clusters_update_memory_layer_builder(
+    client: &SimpleHttpClient,
+    name: &String,
+    updateMask: &Option<Option<String>>,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!(
+        "https://bigtableadmin.googleapis.com/v2/projects/{}/instances/{instancesId}/clusters/{clustersId}/memoryLayer",
+        name,
+    );
+
+    // Build request
+    let mut query_parts = Vec::new();
+    if let Some(val) = updateMask.as_ref() {
+        query_parts.push(format!("updateMask={}", val));
+    }
+
+    let url_with_query = if query_parts.is_empty() {
+        endpoint_url
+    } else {
+        format!("{}?{}", endpoint_url, query_parts.join("&"))
+    };
+
+    let builder = client
+        .patch(&url_with_query)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// PATCH v2/projects/{projectsId}/instances/{instancesId}/clusters/{clustersId}/memoryLayer
+/// Updates the memory layer of a cluster. To enable the memory layer, set the memory_config. To disable the memory layer, unset the memory_config.
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `bigtableadmin_projects_instances_clusters_update_memory_layer_execute()` or `bigtableadmin_projects_instances_clusters_update_memory_layer`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `bigtableadmin_projects_instances_clusters_update_memory_layer_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn bigtableadmin_projects_instances_clusters_update_memory_layer_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<Operation>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: Operation = serde_json::from_str(&body)
+                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// PATCH v2/projects/{projectsId}/instances/{instancesId}/clusters/{clustersId}/memoryLayer
+/// Updates the memory layer of a cluster. To enable the memory layer, set the memory_config. To disable the memory layer, unset the memory_config.
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `bigtableadmin_projects_instances_clusters_update_memory_layer_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `bigtableadmin_projects_instances_clusters_update_memory_layer_task()`.
+/// For the simplest API, use `bigtableadmin_projects_instances_clusters_update_memory_layer()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `bigtableadmin_projects_instances_clusters_update_memory_layer_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn bigtableadmin_projects_instances_clusters_update_memory_layer_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<Operation>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let task = bigtableadmin_projects_instances_clusters_update_memory_layer_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`bigtableadmin_projects_instances_clusters_update_memory_layer`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct BigtableadminProjectsInstancesClustersUpdateMemoryLayerArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Query parameter: updateMask
+    pub updateMask: Option<Option<String>>,
+}
+
+/// PATCH v2/projects/{projectsId}/instances/{instancesId}/clusters/{clustersId}/memoryLayer
+/// Updates the memory layer of a cluster. To enable the memory layer, set the memory_config. To disable the memory layer, unset the memory_config.
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `bigtableadmin_projects_instances_clusters_update_memory_layer_builder()` + `bigtableadmin_projects_instances_clusters_update_memory_layer_execute()`.
+/// For task-level control, use `bigtableadmin_projects_instances_clusters_update_memory_layer_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn bigtableadmin_projects_instances_clusters_update_memory_layer(
+    client: &SimpleHttpClient,
+    args: &BigtableadminProjectsInstancesClustersUpdateMemoryLayerArgs,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<Operation>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let builder = bigtableadmin_projects_instances_clusters_update_memory_layer_builder(
+        client,
+        &args.name,
+        &args.updateMask,
+    )?;
+    bigtableadmin_projects_instances_clusters_update_memory_layer_execute(builder)
+}
+
+/// POST v2/projects/{projectsId}/instances/{instancesId}/clusters/{clustersId}/backups:copy
+/// Copy a Cloud Bigtable backup to a new backup in the destination cluster located in the destination instance and project.
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `bigtableadmin_projects_instances_clusters_backups_copy_execute()` to send, or `bigtableadmin_projects_instances_clusters_backups_copy` for simplest API.
+
+pub fn bigtableadmin_projects_instances_clusters_backups_copy_builder(
+    client: &SimpleHttpClient,
+    parent: &String,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!(
+        "https://bigtableadmin.googleapis.com/v2/projects/{}/instances/{instancesId}/clusters/{clustersId}/backups:copy",
+        parent,
+    );
+
+    // Build request
+    let builder = client
+        .post(&endpoint_url)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// POST v2/projects/{projectsId}/instances/{instancesId}/clusters/{clustersId}/backups:copy
+/// Copy a Cloud Bigtable backup to a new backup in the destination cluster located in the destination instance and project.
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `bigtableadmin_projects_instances_clusters_backups_copy_execute()` or `bigtableadmin_projects_instances_clusters_backups_copy`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `bigtableadmin_projects_instances_clusters_backups_copy_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn bigtableadmin_projects_instances_clusters_backups_copy_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<Operation>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: Operation = serde_json::from_str(&body)
+                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// POST v2/projects/{projectsId}/instances/{instancesId}/clusters/{clustersId}/backups:copy
+/// Copy a Cloud Bigtable backup to a new backup in the destination cluster located in the destination instance and project.
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `bigtableadmin_projects_instances_clusters_backups_copy_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `bigtableadmin_projects_instances_clusters_backups_copy_task()`.
+/// For the simplest API, use `bigtableadmin_projects_instances_clusters_backups_copy()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `bigtableadmin_projects_instances_clusters_backups_copy_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn bigtableadmin_projects_instances_clusters_backups_copy_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<Operation>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let task = bigtableadmin_projects_instances_clusters_backups_copy_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`bigtableadmin_projects_instances_clusters_backups_copy`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct BigtableadminProjectsInstancesClustersBackupsCopyArgs {
+    /// Path parameter: parent
+    pub parent: String,
+}
+
+/// POST v2/projects/{projectsId}/instances/{instancesId}/clusters/{clustersId}/backups:copy
+/// Copy a Cloud Bigtable backup to a new backup in the destination cluster located in the destination instance and project.
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `bigtableadmin_projects_instances_clusters_backups_copy_builder()` + `bigtableadmin_projects_instances_clusters_backups_copy_execute()`.
+/// For task-level control, use `bigtableadmin_projects_instances_clusters_backups_copy_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn bigtableadmin_projects_instances_clusters_backups_copy(
+    client: &SimpleHttpClient,
+    args: &BigtableadminProjectsInstancesClustersBackupsCopyArgs,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<Operation>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let builder =
+        bigtableadmin_projects_instances_clusters_backups_copy_builder(client, &args.parent)?;
+    bigtableadmin_projects_instances_clusters_backups_copy_execute(builder)
+}
+
+/// POST v2/projects/{projectsId}/instances/{instancesId}/clusters/{clustersId}/backups
+/// Starts creating a new Cloud Bigtable Backup. The returned backup long-running operation can be used to track creation of the backup. The metadata field type is CreateBackupMetadata. The response field type is Backup, if successful. Cancelling the returned operation will stop the creation and delete the backup.
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `bigtableadmin_projects_instances_clusters_backups_create_execute()` to send, or `bigtableadmin_projects_instances_clusters_backups_create` for simplest API.
+
+pub fn bigtableadmin_projects_instances_clusters_backups_create_builder(
+    client: &SimpleHttpClient,
+    parent: &String,
+    backupId: &Option<Option<String>>,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!(
+        "https://bigtableadmin.googleapis.com/v2/projects/{}/instances/{instancesId}/clusters/{clustersId}/backups",
+        parent,
+    );
+
+    // Build request
+    let mut query_parts = Vec::new();
+    if let Some(val) = backupId.as_ref() {
+        query_parts.push(format!("backupId={}", val));
+    }
+
+    let url_with_query = if query_parts.is_empty() {
+        endpoint_url
+    } else {
+        format!("{}?{}", endpoint_url, query_parts.join("&"))
+    };
+
+    let builder = client
+        .post(&url_with_query)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// POST v2/projects/{projectsId}/instances/{instancesId}/clusters/{clustersId}/backups
+/// Starts creating a new Cloud Bigtable Backup. The returned backup long-running operation can be used to track creation of the backup. The metadata field type is CreateBackupMetadata. The response field type is Backup, if successful. Cancelling the returned operation will stop the creation and delete the backup.
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `bigtableadmin_projects_instances_clusters_backups_create_execute()` or `bigtableadmin_projects_instances_clusters_backups_create`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `bigtableadmin_projects_instances_clusters_backups_create_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn bigtableadmin_projects_instances_clusters_backups_create_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<Operation>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: Operation = serde_json::from_str(&body)
+                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// POST v2/projects/{projectsId}/instances/{instancesId}/clusters/{clustersId}/backups
+/// Starts creating a new Cloud Bigtable Backup. The returned backup long-running operation can be used to track creation of the backup. The metadata field type is CreateBackupMetadata. The response field type is Backup, if successful. Cancelling the returned operation will stop the creation and delete the backup.
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `bigtableadmin_projects_instances_clusters_backups_create_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `bigtableadmin_projects_instances_clusters_backups_create_task()`.
+/// For the simplest API, use `bigtableadmin_projects_instances_clusters_backups_create()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `bigtableadmin_projects_instances_clusters_backups_create_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn bigtableadmin_projects_instances_clusters_backups_create_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<Operation>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let task = bigtableadmin_projects_instances_clusters_backups_create_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`bigtableadmin_projects_instances_clusters_backups_create`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct BigtableadminProjectsInstancesClustersBackupsCreateArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Query parameter: backupId
+    pub backupId: Option<Option<String>>,
+}
+
+/// POST v2/projects/{projectsId}/instances/{instancesId}/clusters/{clustersId}/backups
+/// Starts creating a new Cloud Bigtable Backup. The returned backup long-running operation can be used to track creation of the backup. The metadata field type is CreateBackupMetadata. The response field type is Backup, if successful. Cancelling the returned operation will stop the creation and delete the backup.
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `bigtableadmin_projects_instances_clusters_backups_create_builder()` + `bigtableadmin_projects_instances_clusters_backups_create_execute()`.
+/// For task-level control, use `bigtableadmin_projects_instances_clusters_backups_create_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn bigtableadmin_projects_instances_clusters_backups_create(
+    client: &SimpleHttpClient,
+    args: &BigtableadminProjectsInstancesClustersBackupsCreateArgs,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<Operation>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let builder = bigtableadmin_projects_instances_clusters_backups_create_builder(
+        client,
+        &args.parent,
+        &args.backupId,
+    )?;
+    bigtableadmin_projects_instances_clusters_backups_create_execute(builder)
+}
+
+/// DELETE v2/projects/{projectsId}/instances/{instancesId}/clusters/{clustersId}/backups/{backupsId}
+/// Deletes a pending or completed Cloud Bigtable backup.
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `bigtableadmin_projects_instances_clusters_backups_delete_execute()` to send, or `bigtableadmin_projects_instances_clusters_backups_delete` for simplest API.
+
+pub fn bigtableadmin_projects_instances_clusters_backups_delete_builder(
+    client: &SimpleHttpClient,
+    name: &String,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!(
+        "https://bigtableadmin.googleapis.com/v2/projects/{}/instances/{instancesId}/clusters/{clustersId}/backups/{backupsId}",
+        name,
+    );
+
+    // Build request
+    let builder = client
+        .delete(&endpoint_url)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// DELETE v2/projects/{projectsId}/instances/{instancesId}/clusters/{clustersId}/backups/{backupsId}
+/// Deletes a pending or completed Cloud Bigtable backup.
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `bigtableadmin_projects_instances_clusters_backups_delete_execute()` or `bigtableadmin_projects_instances_clusters_backups_delete`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `bigtableadmin_projects_instances_clusters_backups_delete_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn bigtableadmin_projects_instances_clusters_backups_delete_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<Empty>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: Empty = serde_json::from_str(&body)
+                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// DELETE v2/projects/{projectsId}/instances/{instancesId}/clusters/{clustersId}/backups/{backupsId}
+/// Deletes a pending or completed Cloud Bigtable backup.
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `bigtableadmin_projects_instances_clusters_backups_delete_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `bigtableadmin_projects_instances_clusters_backups_delete_task()`.
+/// For the simplest API, use `bigtableadmin_projects_instances_clusters_backups_delete()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `bigtableadmin_projects_instances_clusters_backups_delete_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn bigtableadmin_projects_instances_clusters_backups_delete_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<Empty>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let task = bigtableadmin_projects_instances_clusters_backups_delete_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`bigtableadmin_projects_instances_clusters_backups_delete`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct BigtableadminProjectsInstancesClustersBackupsDeleteArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
+/// DELETE v2/projects/{projectsId}/instances/{instancesId}/clusters/{clustersId}/backups/{backupsId}
+/// Deletes a pending or completed Cloud Bigtable backup.
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `bigtableadmin_projects_instances_clusters_backups_delete_builder()` + `bigtableadmin_projects_instances_clusters_backups_delete_execute()`.
+/// For task-level control, use `bigtableadmin_projects_instances_clusters_backups_delete_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn bigtableadmin_projects_instances_clusters_backups_delete(
+    client: &SimpleHttpClient,
+    args: &BigtableadminProjectsInstancesClustersBackupsDeleteArgs,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<Empty>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let builder =
+        bigtableadmin_projects_instances_clusters_backups_delete_builder(client, &args.name)?;
+    bigtableadmin_projects_instances_clusters_backups_delete_execute(builder)
+}
+
+/// GET v2/projects/{projectsId}/instances/{instancesId}/clusters/{clustersId}/backups/{backupsId}
+/// Gets metadata on a pending or completed Cloud Bigtable Backup.
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `bigtableadmin_projects_instances_clusters_backups_get_execute()` to send, or `bigtableadmin_projects_instances_clusters_backups_get` for simplest API.
+
+pub fn bigtableadmin_projects_instances_clusters_backups_get_builder(
+    client: &SimpleHttpClient,
+    name: &String,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!(
+        "https://bigtableadmin.googleapis.com/v2/projects/{}/instances/{instancesId}/clusters/{clustersId}/backups/{backupsId}",
+        name,
+    );
+
+    // Build request
+    let builder = client
+        .get(&endpoint_url)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// GET v2/projects/{projectsId}/instances/{instancesId}/clusters/{clustersId}/backups/{backupsId}
+/// Gets metadata on a pending or completed Cloud Bigtable Backup.
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `bigtableadmin_projects_instances_clusters_backups_get_execute()` or `bigtableadmin_projects_instances_clusters_backups_get`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `bigtableadmin_projects_instances_clusters_backups_get_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn bigtableadmin_projects_instances_clusters_backups_get_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<Backup>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: Backup = serde_json::from_str(&body)
+                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// GET v2/projects/{projectsId}/instances/{instancesId}/clusters/{clustersId}/backups/{backupsId}
+/// Gets metadata on a pending or completed Cloud Bigtable Backup.
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `bigtableadmin_projects_instances_clusters_backups_get_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `bigtableadmin_projects_instances_clusters_backups_get_task()`.
+/// For the simplest API, use `bigtableadmin_projects_instances_clusters_backups_get()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `bigtableadmin_projects_instances_clusters_backups_get_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn bigtableadmin_projects_instances_clusters_backups_get_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<Backup>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let task = bigtableadmin_projects_instances_clusters_backups_get_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`bigtableadmin_projects_instances_clusters_backups_get`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct BigtableadminProjectsInstancesClustersBackupsGetArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
+/// GET v2/projects/{projectsId}/instances/{instancesId}/clusters/{clustersId}/backups/{backupsId}
+/// Gets metadata on a pending or completed Cloud Bigtable Backup.
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `bigtableadmin_projects_instances_clusters_backups_get_builder()` + `bigtableadmin_projects_instances_clusters_backups_get_execute()`.
+/// For task-level control, use `bigtableadmin_projects_instances_clusters_backups_get_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn bigtableadmin_projects_instances_clusters_backups_get(
+    client: &SimpleHttpClient,
+    args: &BigtableadminProjectsInstancesClustersBackupsGetArgs,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<Backup>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let builder =
+        bigtableadmin_projects_instances_clusters_backups_get_builder(client, &args.name)?;
+    bigtableadmin_projects_instances_clusters_backups_get_execute(builder)
+}
+
+/// POST v2/projects/{projectsId}/instances/{instancesId}/clusters/{clustersId}/backups/{backupsId}:getIamPolicy
+/// Gets the access control policy for a Bigtable resource. Returns an empty policy if the resource exists but does not have a policy set.
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `bigtableadmin_projects_instances_clusters_backups_get_iam_policy_execute()` to send, or `bigtableadmin_projects_instances_clusters_backups_get_iam_policy` for simplest API.
+
+pub fn bigtableadmin_projects_instances_clusters_backups_get_iam_policy_builder(
+    client: &SimpleHttpClient,
+    resource: &String,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!(
+        "https://bigtableadmin.googleapis.com/v2/projects/{}/instances/{instancesId}/clusters/{clustersId}/backups/{backupsId}:getIamPolicy",
+        resource,
+    );
+
+    // Build request
+    let builder = client
+        .post(&endpoint_url)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// POST v2/projects/{projectsId}/instances/{instancesId}/clusters/{clustersId}/backups/{backupsId}:getIamPolicy
+/// Gets the access control policy for a Bigtable resource. Returns an empty policy if the resource exists but does not have a policy set.
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `bigtableadmin_projects_instances_clusters_backups_get_iam_policy_execute()` or `bigtableadmin_projects_instances_clusters_backups_get_iam_policy`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `bigtableadmin_projects_instances_clusters_backups_get_iam_policy_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn bigtableadmin_projects_instances_clusters_backups_get_iam_policy_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<Policy>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: Policy = serde_json::from_str(&body)
+                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// POST v2/projects/{projectsId}/instances/{instancesId}/clusters/{clustersId}/backups/{backupsId}:getIamPolicy
+/// Gets the access control policy for a Bigtable resource. Returns an empty policy if the resource exists but does not have a policy set.
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `bigtableadmin_projects_instances_clusters_backups_get_iam_policy_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `bigtableadmin_projects_instances_clusters_backups_get_iam_policy_task()`.
+/// For the simplest API, use `bigtableadmin_projects_instances_clusters_backups_get_iam_policy()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `bigtableadmin_projects_instances_clusters_backups_get_iam_policy_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn bigtableadmin_projects_instances_clusters_backups_get_iam_policy_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<Policy>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let task = bigtableadmin_projects_instances_clusters_backups_get_iam_policy_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`bigtableadmin_projects_instances_clusters_backups_get_iam_policy`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct BigtableadminProjectsInstancesClustersBackupsGetIamPolicyArgs {
+    /// Path parameter: resource
+    pub resource: String,
+}
+
+/// POST v2/projects/{projectsId}/instances/{instancesId}/clusters/{clustersId}/backups/{backupsId}:getIamPolicy
+/// Gets the access control policy for a Bigtable resource. Returns an empty policy if the resource exists but does not have a policy set.
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `bigtableadmin_projects_instances_clusters_backups_get_iam_policy_builder()` + `bigtableadmin_projects_instances_clusters_backups_get_iam_policy_execute()`.
+/// For task-level control, use `bigtableadmin_projects_instances_clusters_backups_get_iam_policy_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn bigtableadmin_projects_instances_clusters_backups_get_iam_policy(
+    client: &SimpleHttpClient,
+    args: &BigtableadminProjectsInstancesClustersBackupsGetIamPolicyArgs,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<Policy>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let builder = bigtableadmin_projects_instances_clusters_backups_get_iam_policy_builder(
+        client,
+        &args.resource,
+    )?;
+    bigtableadmin_projects_instances_clusters_backups_get_iam_policy_execute(builder)
+}
+
+/// GET v2/projects/{projectsId}/instances/{instancesId}/clusters/{clustersId}/backups
+/// Lists Cloud Bigtable backups. Returns both completed and pending backups.
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `bigtableadmin_projects_instances_clusters_backups_list_execute()` to send, or `bigtableadmin_projects_instances_clusters_backups_list` for simplest API.
+
+pub fn bigtableadmin_projects_instances_clusters_backups_list_builder(
+    client: &SimpleHttpClient,
+    parent: &String,
+    filter: &Option<Option<String>>,
+    orderBy: &Option<Option<String>>,
+    pageSize: &Option<Option<String>>,
+    pageToken: &Option<Option<String>>,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!(
+        "https://bigtableadmin.googleapis.com/v2/projects/{}/instances/{instancesId}/clusters/{clustersId}/backups",
+        parent,
+    );
+
+    // Build request
+    let mut query_parts = Vec::new();
+    if let Some(val) = filter.as_ref() {
+        query_parts.push(format!("filter={}", val));
+    }
+    if let Some(val) = orderBy.as_ref() {
+        query_parts.push(format!("orderBy={}", val));
+    }
+    if let Some(val) = pageSize.as_ref() {
+        query_parts.push(format!("pageSize={}", val));
+    }
+    if let Some(val) = pageToken.as_ref() {
+        query_parts.push(format!("pageToken={}", val));
+    }
+
+    let url_with_query = if query_parts.is_empty() {
+        endpoint_url
+    } else {
+        format!("{}?{}", endpoint_url, query_parts.join("&"))
+    };
+
+    let builder = client
+        .get(&url_with_query)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// GET v2/projects/{projectsId}/instances/{instancesId}/clusters/{clustersId}/backups
+/// Lists Cloud Bigtable backups. Returns both completed and pending backups.
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `bigtableadmin_projects_instances_clusters_backups_list_execute()` or `bigtableadmin_projects_instances_clusters_backups_list`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `bigtableadmin_projects_instances_clusters_backups_list_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn bigtableadmin_projects_instances_clusters_backups_list_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<ListBackupsResponse>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: ListBackupsResponse = serde_json::from_str(&body)
+                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// GET v2/projects/{projectsId}/instances/{instancesId}/clusters/{clustersId}/backups
+/// Lists Cloud Bigtable backups. Returns both completed and pending backups.
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `bigtableadmin_projects_instances_clusters_backups_list_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `bigtableadmin_projects_instances_clusters_backups_list_task()`.
+/// For the simplest API, use `bigtableadmin_projects_instances_clusters_backups_list()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `bigtableadmin_projects_instances_clusters_backups_list_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn bigtableadmin_projects_instances_clusters_backups_list_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<ListBackupsResponse>, ApiError>, P = ApiPending>
+        + Send
+        + 'static,
+    ApiError,
+> {
+    let task = bigtableadmin_projects_instances_clusters_backups_list_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`bigtableadmin_projects_instances_clusters_backups_list`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct BigtableadminProjectsInstancesClustersBackupsListArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Query parameter: filter
+    pub filter: Option<Option<String>>,
+    /// Query parameter: orderBy
+    pub orderBy: Option<Option<String>>,
+    /// Query parameter: pageSize
+    pub pageSize: Option<Option<String>>,
+    /// Query parameter: pageToken
+    pub pageToken: Option<Option<String>>,
+}
+
+/// GET v2/projects/{projectsId}/instances/{instancesId}/clusters/{clustersId}/backups
+/// Lists Cloud Bigtable backups. Returns both completed and pending backups.
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `bigtableadmin_projects_instances_clusters_backups_list_builder()` + `bigtableadmin_projects_instances_clusters_backups_list_execute()`.
+/// For task-level control, use `bigtableadmin_projects_instances_clusters_backups_list_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn bigtableadmin_projects_instances_clusters_backups_list(
+    client: &SimpleHttpClient,
+    args: &BigtableadminProjectsInstancesClustersBackupsListArgs,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<ListBackupsResponse>, ApiError>, P = ApiPending>
+        + Send
+        + 'static,
+    ApiError,
+> {
+    let builder = bigtableadmin_projects_instances_clusters_backups_list_builder(
+        client,
+        &args.parent,
+        &args.filter,
+        &args.orderBy,
+        &args.pageSize,
+        &args.pageToken,
+    )?;
+    bigtableadmin_projects_instances_clusters_backups_list_execute(builder)
+}
+
+/// PATCH v2/projects/{projectsId}/instances/{instancesId}/clusters/{clustersId}/backups/{backupsId}
+/// Updates a pending or completed Cloud Bigtable Backup.
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `bigtableadmin_projects_instances_clusters_backups_patch_execute()` to send, or `bigtableadmin_projects_instances_clusters_backups_patch` for simplest API.
+
+pub fn bigtableadmin_projects_instances_clusters_backups_patch_builder(
+    client: &SimpleHttpClient,
+    name: &String,
+    updateMask: &Option<Option<String>>,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!(
+        "https://bigtableadmin.googleapis.com/v2/projects/{}/instances/{instancesId}/clusters/{clustersId}/backups/{backupsId}",
+        name,
+    );
+
+    // Build request
+    let mut query_parts = Vec::new();
+    if let Some(val) = updateMask.as_ref() {
+        query_parts.push(format!("updateMask={}", val));
+    }
+
+    let url_with_query = if query_parts.is_empty() {
+        endpoint_url
+    } else {
+        format!("{}?{}", endpoint_url, query_parts.join("&"))
+    };
+
+    let builder = client
+        .patch(&url_with_query)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// PATCH v2/projects/{projectsId}/instances/{instancesId}/clusters/{clustersId}/backups/{backupsId}
+/// Updates a pending or completed Cloud Bigtable Backup.
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `bigtableadmin_projects_instances_clusters_backups_patch_execute()` or `bigtableadmin_projects_instances_clusters_backups_patch`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `bigtableadmin_projects_instances_clusters_backups_patch_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn bigtableadmin_projects_instances_clusters_backups_patch_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<Backup>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: Backup = serde_json::from_str(&body)
+                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// PATCH v2/projects/{projectsId}/instances/{instancesId}/clusters/{clustersId}/backups/{backupsId}
+/// Updates a pending or completed Cloud Bigtable Backup.
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `bigtableadmin_projects_instances_clusters_backups_patch_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `bigtableadmin_projects_instances_clusters_backups_patch_task()`.
+/// For the simplest API, use `bigtableadmin_projects_instances_clusters_backups_patch()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `bigtableadmin_projects_instances_clusters_backups_patch_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn bigtableadmin_projects_instances_clusters_backups_patch_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<Backup>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let task = bigtableadmin_projects_instances_clusters_backups_patch_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`bigtableadmin_projects_instances_clusters_backups_patch`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct BigtableadminProjectsInstancesClustersBackupsPatchArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Query parameter: updateMask
+    pub updateMask: Option<Option<String>>,
+}
+
+/// PATCH v2/projects/{projectsId}/instances/{instancesId}/clusters/{clustersId}/backups/{backupsId}
+/// Updates a pending or completed Cloud Bigtable Backup.
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `bigtableadmin_projects_instances_clusters_backups_patch_builder()` + `bigtableadmin_projects_instances_clusters_backups_patch_execute()`.
+/// For task-level control, use `bigtableadmin_projects_instances_clusters_backups_patch_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn bigtableadmin_projects_instances_clusters_backups_patch(
+    client: &SimpleHttpClient,
+    args: &BigtableadminProjectsInstancesClustersBackupsPatchArgs,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<Backup>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let builder = bigtableadmin_projects_instances_clusters_backups_patch_builder(
+        client,
+        &args.name,
+        &args.updateMask,
+    )?;
+    bigtableadmin_projects_instances_clusters_backups_patch_execute(builder)
+}
+
+/// POST v2/projects/{projectsId}/instances/{instancesId}/clusters/{clustersId}/backups/{backupsId}:setIamPolicy
+/// Sets the access control policy on a Bigtable resource. Replaces any existing policy.
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `bigtableadmin_projects_instances_clusters_backups_set_iam_policy_execute()` to send, or `bigtableadmin_projects_instances_clusters_backups_set_iam_policy` for simplest API.
+
+pub fn bigtableadmin_projects_instances_clusters_backups_set_iam_policy_builder(
+    client: &SimpleHttpClient,
+    resource: &String,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!(
+        "https://bigtableadmin.googleapis.com/v2/projects/{}/instances/{instancesId}/clusters/{clustersId}/backups/{backupsId}:setIamPolicy",
+        resource,
+    );
+
+    // Build request
+    let builder = client
+        .post(&endpoint_url)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// POST v2/projects/{projectsId}/instances/{instancesId}/clusters/{clustersId}/backups/{backupsId}:setIamPolicy
+/// Sets the access control policy on a Bigtable resource. Replaces any existing policy.
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `bigtableadmin_projects_instances_clusters_backups_set_iam_policy_execute()` or `bigtableadmin_projects_instances_clusters_backups_set_iam_policy`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `bigtableadmin_projects_instances_clusters_backups_set_iam_policy_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn bigtableadmin_projects_instances_clusters_backups_set_iam_policy_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<Policy>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: Policy = serde_json::from_str(&body)
+                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// POST v2/projects/{projectsId}/instances/{instancesId}/clusters/{clustersId}/backups/{backupsId}:setIamPolicy
+/// Sets the access control policy on a Bigtable resource. Replaces any existing policy.
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `bigtableadmin_projects_instances_clusters_backups_set_iam_policy_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `bigtableadmin_projects_instances_clusters_backups_set_iam_policy_task()`.
+/// For the simplest API, use `bigtableadmin_projects_instances_clusters_backups_set_iam_policy()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `bigtableadmin_projects_instances_clusters_backups_set_iam_policy_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn bigtableadmin_projects_instances_clusters_backups_set_iam_policy_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<Policy>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let task = bigtableadmin_projects_instances_clusters_backups_set_iam_policy_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`bigtableadmin_projects_instances_clusters_backups_set_iam_policy`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct BigtableadminProjectsInstancesClustersBackupsSetIamPolicyArgs {
+    /// Path parameter: resource
+    pub resource: String,
+}
+
+/// POST v2/projects/{projectsId}/instances/{instancesId}/clusters/{clustersId}/backups/{backupsId}:setIamPolicy
+/// Sets the access control policy on a Bigtable resource. Replaces any existing policy.
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `bigtableadmin_projects_instances_clusters_backups_set_iam_policy_builder()` + `bigtableadmin_projects_instances_clusters_backups_set_iam_policy_execute()`.
+/// For task-level control, use `bigtableadmin_projects_instances_clusters_backups_set_iam_policy_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn bigtableadmin_projects_instances_clusters_backups_set_iam_policy(
+    client: &SimpleHttpClient,
+    args: &BigtableadminProjectsInstancesClustersBackupsSetIamPolicyArgs,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<Policy>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let builder = bigtableadmin_projects_instances_clusters_backups_set_iam_policy_builder(
+        client,
+        &args.resource,
+    )?;
+    bigtableadmin_projects_instances_clusters_backups_set_iam_policy_execute(builder)
+}
+
+/// POST v2/projects/{projectsId}/instances/{instancesId}/clusters/{clustersId}/backups/{backupsId}:testIamPermissions
+/// Returns permissions that the caller has on the specified Bigtable resource.
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `bigtableadmin_projects_instances_clusters_backups_test_iam_permissions_execute()` to send, or `bigtableadmin_projects_instances_clusters_backups_test_iam_permissions` for simplest API.
+
+pub fn bigtableadmin_projects_instances_clusters_backups_test_iam_permissions_builder(
+    client: &SimpleHttpClient,
+    resource: &String,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!(
+        "https://bigtableadmin.googleapis.com/v2/projects/{}/instances/{instancesId}/clusters/{clustersId}/backups/{backupsId}:testIamPermissions",
+        resource,
+    );
+
+    // Build request
+    let builder = client
+        .post(&endpoint_url)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// POST v2/projects/{projectsId}/instances/{instancesId}/clusters/{clustersId}/backups/{backupsId}:testIamPermissions
+/// Returns permissions that the caller has on the specified Bigtable resource.
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `bigtableadmin_projects_instances_clusters_backups_test_iam_permissions_execute()` or `bigtableadmin_projects_instances_clusters_backups_test_iam_permissions`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `bigtableadmin_projects_instances_clusters_backups_test_iam_permissions_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn bigtableadmin_projects_instances_clusters_backups_test_iam_permissions_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<TestIamPermissionsResponse>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: TestIamPermissionsResponse = serde_json::from_str(&body)
+                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// POST v2/projects/{projectsId}/instances/{instancesId}/clusters/{clustersId}/backups/{backupsId}:testIamPermissions
+/// Returns permissions that the caller has on the specified Bigtable resource.
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `bigtableadmin_projects_instances_clusters_backups_test_iam_permissions_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `bigtableadmin_projects_instances_clusters_backups_test_iam_permissions_task()`.
+/// For the simplest API, use `bigtableadmin_projects_instances_clusters_backups_test_iam_permissions()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `bigtableadmin_projects_instances_clusters_backups_test_iam_permissions_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn bigtableadmin_projects_instances_clusters_backups_test_iam_permissions_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<
+            D = Result<ApiResponse<TestIamPermissionsResponse>, ApiError>,
+            P = ApiPending,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    let task =
+        bigtableadmin_projects_instances_clusters_backups_test_iam_permissions_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`bigtableadmin_projects_instances_clusters_backups_test_iam_permissions`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct BigtableadminProjectsInstancesClustersBackupsTestIamPermissionsArgs {
+    /// Path parameter: resource
+    pub resource: String,
+}
+
+/// POST v2/projects/{projectsId}/instances/{instancesId}/clusters/{clustersId}/backups/{backupsId}:testIamPermissions
+/// Returns permissions that the caller has on the specified Bigtable resource.
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `bigtableadmin_projects_instances_clusters_backups_test_iam_permissions_builder()` + `bigtableadmin_projects_instances_clusters_backups_test_iam_permissions_execute()`.
+/// For task-level control, use `bigtableadmin_projects_instances_clusters_backups_test_iam_permissions_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn bigtableadmin_projects_instances_clusters_backups_test_iam_permissions(
+    client: &SimpleHttpClient,
+    args: &BigtableadminProjectsInstancesClustersBackupsTestIamPermissionsArgs,
+) -> Result<
+    impl StreamIterator<
+            D = Result<ApiResponse<TestIamPermissionsResponse>, ApiError>,
+            P = ApiPending,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    let builder = bigtableadmin_projects_instances_clusters_backups_test_iam_permissions_builder(
+        client,
+        &args.resource,
+    )?;
+    bigtableadmin_projects_instances_clusters_backups_test_iam_permissions_execute(builder)
+}
+
+/// GET v2/projects/{projectsId}/instances/{instancesId}/clusters/{clustersId}/hotTablets
+/// Lists hot tablets in a cluster, within the time range provided. Hot tablets are ordered based on CPU usage.
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `bigtableadmin_projects_instances_clusters_hot_tablets_list_execute()` to send, or `bigtableadmin_projects_instances_clusters_hot_tablets_list` for simplest API.
+
+pub fn bigtableadmin_projects_instances_clusters_hot_tablets_list_builder(
+    client: &SimpleHttpClient,
+    parent: &String,
+    endTime: &Option<Option<String>>,
+    pageSize: &Option<Option<String>>,
+    pageToken: &Option<Option<String>>,
+    startTime: &Option<Option<String>>,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!(
+        "https://bigtableadmin.googleapis.com/v2/projects/{}/instances/{instancesId}/clusters/{clustersId}/hotTablets",
+        parent,
+    );
+
+    // Build request
+    let mut query_parts = Vec::new();
+    if let Some(val) = endTime.as_ref() {
+        query_parts.push(format!("endTime={}", val));
+    }
+    if let Some(val) = pageSize.as_ref() {
+        query_parts.push(format!("pageSize={}", val));
+    }
+    if let Some(val) = pageToken.as_ref() {
+        query_parts.push(format!("pageToken={}", val));
+    }
+    if let Some(val) = startTime.as_ref() {
+        query_parts.push(format!("startTime={}", val));
+    }
+
+    let url_with_query = if query_parts.is_empty() {
+        endpoint_url
+    } else {
+        format!("{}?{}", endpoint_url, query_parts.join("&"))
+    };
+
+    let builder = client
+        .get(&url_with_query)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// GET v2/projects/{projectsId}/instances/{instancesId}/clusters/{clustersId}/hotTablets
+/// Lists hot tablets in a cluster, within the time range provided. Hot tablets are ordered based on CPU usage.
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `bigtableadmin_projects_instances_clusters_hot_tablets_list_execute()` or `bigtableadmin_projects_instances_clusters_hot_tablets_list`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `bigtableadmin_projects_instances_clusters_hot_tablets_list_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn bigtableadmin_projects_instances_clusters_hot_tablets_list_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<ListHotTabletsResponse>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: ListHotTabletsResponse = serde_json::from_str(&body)
+                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// GET v2/projects/{projectsId}/instances/{instancesId}/clusters/{clustersId}/hotTablets
+/// Lists hot tablets in a cluster, within the time range provided. Hot tablets are ordered based on CPU usage.
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `bigtableadmin_projects_instances_clusters_hot_tablets_list_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `bigtableadmin_projects_instances_clusters_hot_tablets_list_task()`.
+/// For the simplest API, use `bigtableadmin_projects_instances_clusters_hot_tablets_list()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `bigtableadmin_projects_instances_clusters_hot_tablets_list_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn bigtableadmin_projects_instances_clusters_hot_tablets_list_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<ListHotTabletsResponse>, ApiError>, P = ApiPending>
+        + Send
+        + 'static,
+    ApiError,
+> {
+    let task = bigtableadmin_projects_instances_clusters_hot_tablets_list_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`bigtableadmin_projects_instances_clusters_hot_tablets_list`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct BigtableadminProjectsInstancesClustersHotTabletsListArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Query parameter: endTime
+    pub endTime: Option<Option<String>>,
+    /// Query parameter: pageSize
+    pub pageSize: Option<Option<String>>,
+    /// Query parameter: pageToken
+    pub pageToken: Option<Option<String>>,
+    /// Query parameter: startTime
+    pub startTime: Option<Option<String>>,
+}
+
+/// GET v2/projects/{projectsId}/instances/{instancesId}/clusters/{clustersId}/hotTablets
+/// Lists hot tablets in a cluster, within the time range provided. Hot tablets are ordered based on CPU usage.
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `bigtableadmin_projects_instances_clusters_hot_tablets_list_builder()` + `bigtableadmin_projects_instances_clusters_hot_tablets_list_execute()`.
+/// For task-level control, use `bigtableadmin_projects_instances_clusters_hot_tablets_list_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn bigtableadmin_projects_instances_clusters_hot_tablets_list(
+    client: &SimpleHttpClient,
+    args: &BigtableadminProjectsInstancesClustersHotTabletsListArgs,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<ListHotTabletsResponse>, ApiError>, P = ApiPending>
+        + Send
+        + 'static,
+    ApiError,
+> {
+    let builder = bigtableadmin_projects_instances_clusters_hot_tablets_list_builder(
+        client,
+        &args.parent,
+        &args.endTime,
+        &args.pageSize,
+        &args.pageToken,
+        &args.startTime,
+    )?;
+    bigtableadmin_projects_instances_clusters_hot_tablets_list_execute(builder)
+}
+
+/// GET v2/projects/{projectsId}/instances/{instancesId}/clusters/{clustersId}/memoryLayers
+/// Lists information about memory layers.
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `bigtableadmin_projects_instances_clusters_memory_layers_list_execute()` to send, or `bigtableadmin_projects_instances_clusters_memory_layers_list` for simplest API.
+
+pub fn bigtableadmin_projects_instances_clusters_memory_layers_list_builder(
+    client: &SimpleHttpClient,
+    parent: &String,
+    pageSize: &Option<Option<String>>,
+    pageToken: &Option<Option<String>>,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!(
+        "https://bigtableadmin.googleapis.com/v2/projects/{}/instances/{instancesId}/clusters/{clustersId}/memoryLayers",
+        parent,
+    );
+
+    // Build request
+    let mut query_parts = Vec::new();
+    if let Some(val) = pageSize.as_ref() {
+        query_parts.push(format!("pageSize={}", val));
+    }
+    if let Some(val) = pageToken.as_ref() {
+        query_parts.push(format!("pageToken={}", val));
+    }
+
+    let url_with_query = if query_parts.is_empty() {
+        endpoint_url
+    } else {
+        format!("{}?{}", endpoint_url, query_parts.join("&"))
+    };
+
+    let builder = client
+        .get(&url_with_query)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// GET v2/projects/{projectsId}/instances/{instancesId}/clusters/{clustersId}/memoryLayers
+/// Lists information about memory layers.
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `bigtableadmin_projects_instances_clusters_memory_layers_list_execute()` or `bigtableadmin_projects_instances_clusters_memory_layers_list`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `bigtableadmin_projects_instances_clusters_memory_layers_list_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn bigtableadmin_projects_instances_clusters_memory_layers_list_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<ListMemoryLayersResponse>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: ListMemoryLayersResponse = serde_json::from_str(&body)
+                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// GET v2/projects/{projectsId}/instances/{instancesId}/clusters/{clustersId}/memoryLayers
+/// Lists information about memory layers.
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `bigtableadmin_projects_instances_clusters_memory_layers_list_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `bigtableadmin_projects_instances_clusters_memory_layers_list_task()`.
+/// For the simplest API, use `bigtableadmin_projects_instances_clusters_memory_layers_list()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `bigtableadmin_projects_instances_clusters_memory_layers_list_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn bigtableadmin_projects_instances_clusters_memory_layers_list_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<ListMemoryLayersResponse>, ApiError>, P = ApiPending>
+        + Send
+        + 'static,
+    ApiError,
+> {
+    let task = bigtableadmin_projects_instances_clusters_memory_layers_list_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`bigtableadmin_projects_instances_clusters_memory_layers_list`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct BigtableadminProjectsInstancesClustersMemoryLayersListArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Query parameter: pageSize
+    pub pageSize: Option<Option<String>>,
+    /// Query parameter: pageToken
+    pub pageToken: Option<Option<String>>,
+}
+
+/// GET v2/projects/{projectsId}/instances/{instancesId}/clusters/{clustersId}/memoryLayers
+/// Lists information about memory layers.
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `bigtableadmin_projects_instances_clusters_memory_layers_list_builder()` + `bigtableadmin_projects_instances_clusters_memory_layers_list_execute()`.
+/// For task-level control, use `bigtableadmin_projects_instances_clusters_memory_layers_list_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn bigtableadmin_projects_instances_clusters_memory_layers_list(
+    client: &SimpleHttpClient,
+    args: &BigtableadminProjectsInstancesClustersMemoryLayersListArgs,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<ListMemoryLayersResponse>, ApiError>, P = ApiPending>
+        + Send
+        + 'static,
+    ApiError,
+> {
+    let builder = bigtableadmin_projects_instances_clusters_memory_layers_list_builder(
+        client,
+        &args.parent,
+        &args.pageSize,
+        &args.pageToken,
+    )?;
+    bigtableadmin_projects_instances_clusters_memory_layers_list_execute(builder)
+}
+
+/// POST v2/projects/{projectsId}/instances/{instancesId}/logicalViews
+/// Creates a logical view within an instance.
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `bigtableadmin_projects_instances_logical_views_create_execute()` to send, or `bigtableadmin_projects_instances_logical_views_create` for simplest API.
+
+pub fn bigtableadmin_projects_instances_logical_views_create_builder(
+    client: &SimpleHttpClient,
+    parent: &String,
+    logicalViewId: &Option<Option<String>>,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!(
+        "https://bigtableadmin.googleapis.com/v2/projects/{}/instances/{instancesId}/logicalViews",
+        parent,
+    );
+
+    // Build request
+    let mut query_parts = Vec::new();
+    if let Some(val) = logicalViewId.as_ref() {
+        query_parts.push(format!("logicalViewId={}", val));
+    }
+
+    let url_with_query = if query_parts.is_empty() {
+        endpoint_url
+    } else {
+        format!("{}?{}", endpoint_url, query_parts.join("&"))
+    };
+
+    let builder = client
+        .post(&url_with_query)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// POST v2/projects/{projectsId}/instances/{instancesId}/logicalViews
+/// Creates a logical view within an instance.
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `bigtableadmin_projects_instances_logical_views_create_execute()` or `bigtableadmin_projects_instances_logical_views_create`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `bigtableadmin_projects_instances_logical_views_create_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn bigtableadmin_projects_instances_logical_views_create_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<Operation>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: Operation = serde_json::from_str(&body)
+                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// POST v2/projects/{projectsId}/instances/{instancesId}/logicalViews
+/// Creates a logical view within an instance.
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `bigtableadmin_projects_instances_logical_views_create_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `bigtableadmin_projects_instances_logical_views_create_task()`.
+/// For the simplest API, use `bigtableadmin_projects_instances_logical_views_create()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `bigtableadmin_projects_instances_logical_views_create_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn bigtableadmin_projects_instances_logical_views_create_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<Operation>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let task = bigtableadmin_projects_instances_logical_views_create_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`bigtableadmin_projects_instances_logical_views_create`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct BigtableadminProjectsInstancesLogicalViewsCreateArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Query parameter: logicalViewId
+    pub logicalViewId: Option<Option<String>>,
+}
+
+/// POST v2/projects/{projectsId}/instances/{instancesId}/logicalViews
+/// Creates a logical view within an instance.
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `bigtableadmin_projects_instances_logical_views_create_builder()` + `bigtableadmin_projects_instances_logical_views_create_execute()`.
+/// For task-level control, use `bigtableadmin_projects_instances_logical_views_create_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn bigtableadmin_projects_instances_logical_views_create(
+    client: &SimpleHttpClient,
+    args: &BigtableadminProjectsInstancesLogicalViewsCreateArgs,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<Operation>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let builder = bigtableadmin_projects_instances_logical_views_create_builder(
+        client,
+        &args.parent,
+        &args.logicalViewId,
+    )?;
+    bigtableadmin_projects_instances_logical_views_create_execute(builder)
+}
+
+/// DELETE v2/projects/{projectsId}/instances/{instancesId}/logicalViews/{logicalViewsId}
+/// Deletes a logical view from an instance.
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `bigtableadmin_projects_instances_logical_views_delete_execute()` to send, or `bigtableadmin_projects_instances_logical_views_delete` for simplest API.
+
+pub fn bigtableadmin_projects_instances_logical_views_delete_builder(
+    client: &SimpleHttpClient,
+    name: &String,
+    etag: &Option<Option<String>>,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!(
+        "https://bigtableadmin.googleapis.com/v2/projects/{}/instances/{instancesId}/logicalViews/{logicalViewsId}",
+        name,
+    );
+
+    // Build request
+    let mut query_parts = Vec::new();
+    if let Some(val) = etag.as_ref() {
+        query_parts.push(format!("etag={}", val));
+    }
+
+    let url_with_query = if query_parts.is_empty() {
+        endpoint_url
+    } else {
+        format!("{}?{}", endpoint_url, query_parts.join("&"))
+    };
+
+    let builder = client
+        .delete(&url_with_query)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// DELETE v2/projects/{projectsId}/instances/{instancesId}/logicalViews/{logicalViewsId}
+/// Deletes a logical view from an instance.
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `bigtableadmin_projects_instances_logical_views_delete_execute()` or `bigtableadmin_projects_instances_logical_views_delete`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `bigtableadmin_projects_instances_logical_views_delete_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn bigtableadmin_projects_instances_logical_views_delete_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<Empty>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: Empty = serde_json::from_str(&body)
+                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// DELETE v2/projects/{projectsId}/instances/{instancesId}/logicalViews/{logicalViewsId}
+/// Deletes a logical view from an instance.
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `bigtableadmin_projects_instances_logical_views_delete_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `bigtableadmin_projects_instances_logical_views_delete_task()`.
+/// For the simplest API, use `bigtableadmin_projects_instances_logical_views_delete()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `bigtableadmin_projects_instances_logical_views_delete_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn bigtableadmin_projects_instances_logical_views_delete_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<Empty>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let task = bigtableadmin_projects_instances_logical_views_delete_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`bigtableadmin_projects_instances_logical_views_delete`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct BigtableadminProjectsInstancesLogicalViewsDeleteArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Query parameter: etag
+    pub etag: Option<Option<String>>,
+}
+
+/// DELETE v2/projects/{projectsId}/instances/{instancesId}/logicalViews/{logicalViewsId}
+/// Deletes a logical view from an instance.
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `bigtableadmin_projects_instances_logical_views_delete_builder()` + `bigtableadmin_projects_instances_logical_views_delete_execute()`.
+/// For task-level control, use `bigtableadmin_projects_instances_logical_views_delete_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn bigtableadmin_projects_instances_logical_views_delete(
+    client: &SimpleHttpClient,
+    args: &BigtableadminProjectsInstancesLogicalViewsDeleteArgs,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<Empty>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let builder = bigtableadmin_projects_instances_logical_views_delete_builder(
+        client, &args.name, &args.etag,
+    )?;
+    bigtableadmin_projects_instances_logical_views_delete_execute(builder)
+}
+
+/// GET v2/projects/{projectsId}/instances/{instancesId}/logicalViews/{logicalViewsId}
+/// Gets information about a logical view.
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `bigtableadmin_projects_instances_logical_views_get_execute()` to send, or `bigtableadmin_projects_instances_logical_views_get` for simplest API.
+
+pub fn bigtableadmin_projects_instances_logical_views_get_builder(
+    client: &SimpleHttpClient,
+    name: &String,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!(
+        "https://bigtableadmin.googleapis.com/v2/projects/{}/instances/{instancesId}/logicalViews/{logicalViewsId}",
+        name,
+    );
+
+    // Build request
+    let builder = client
+        .get(&endpoint_url)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// GET v2/projects/{projectsId}/instances/{instancesId}/logicalViews/{logicalViewsId}
+/// Gets information about a logical view.
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `bigtableadmin_projects_instances_logical_views_get_execute()` or `bigtableadmin_projects_instances_logical_views_get`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `bigtableadmin_projects_instances_logical_views_get_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn bigtableadmin_projects_instances_logical_views_get_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<LogicalView>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: LogicalView = serde_json::from_str(&body)
+                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// GET v2/projects/{projectsId}/instances/{instancesId}/logicalViews/{logicalViewsId}
+/// Gets information about a logical view.
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `bigtableadmin_projects_instances_logical_views_get_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `bigtableadmin_projects_instances_logical_views_get_task()`.
+/// For the simplest API, use `bigtableadmin_projects_instances_logical_views_get()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `bigtableadmin_projects_instances_logical_views_get_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn bigtableadmin_projects_instances_logical_views_get_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<LogicalView>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let task = bigtableadmin_projects_instances_logical_views_get_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`bigtableadmin_projects_instances_logical_views_get`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct BigtableadminProjectsInstancesLogicalViewsGetArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
+/// GET v2/projects/{projectsId}/instances/{instancesId}/logicalViews/{logicalViewsId}
+/// Gets information about a logical view.
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `bigtableadmin_projects_instances_logical_views_get_builder()` + `bigtableadmin_projects_instances_logical_views_get_execute()`.
+/// For task-level control, use `bigtableadmin_projects_instances_logical_views_get_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn bigtableadmin_projects_instances_logical_views_get(
+    client: &SimpleHttpClient,
+    args: &BigtableadminProjectsInstancesLogicalViewsGetArgs,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<LogicalView>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let builder = bigtableadmin_projects_instances_logical_views_get_builder(client, &args.name)?;
+    bigtableadmin_projects_instances_logical_views_get_execute(builder)
+}
+
+/// POST v2/projects/{projectsId}/instances/{instancesId}/logicalViews/{logicalViewsId}:getIamPolicy
+/// Gets the access control policy for an instance resource. Returns an empty policy if an instance exists but does not have a policy set.
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `bigtableadmin_projects_instances_logical_views_get_iam_policy_execute()` to send, or `bigtableadmin_projects_instances_logical_views_get_iam_policy` for simplest API.
+
+pub fn bigtableadmin_projects_instances_logical_views_get_iam_policy_builder(
+    client: &SimpleHttpClient,
+    resource: &String,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!(
+        "https://bigtableadmin.googleapis.com/v2/projects/{}/instances/{instancesId}/logicalViews/{logicalViewsId}:getIamPolicy",
+        resource,
+    );
+
+    // Build request
+    let builder = client
+        .post(&endpoint_url)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// POST v2/projects/{projectsId}/instances/{instancesId}/logicalViews/{logicalViewsId}:getIamPolicy
+/// Gets the access control policy for an instance resource. Returns an empty policy if an instance exists but does not have a policy set.
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `bigtableadmin_projects_instances_logical_views_get_iam_policy_execute()` or `bigtableadmin_projects_instances_logical_views_get_iam_policy`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `bigtableadmin_projects_instances_logical_views_get_iam_policy_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn bigtableadmin_projects_instances_logical_views_get_iam_policy_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<Policy>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: Policy = serde_json::from_str(&body)
+                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// POST v2/projects/{projectsId}/instances/{instancesId}/logicalViews/{logicalViewsId}:getIamPolicy
+/// Gets the access control policy for an instance resource. Returns an empty policy if an instance exists but does not have a policy set.
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `bigtableadmin_projects_instances_logical_views_get_iam_policy_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `bigtableadmin_projects_instances_logical_views_get_iam_policy_task()`.
+/// For the simplest API, use `bigtableadmin_projects_instances_logical_views_get_iam_policy()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `bigtableadmin_projects_instances_logical_views_get_iam_policy_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn bigtableadmin_projects_instances_logical_views_get_iam_policy_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<Policy>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let task = bigtableadmin_projects_instances_logical_views_get_iam_policy_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`bigtableadmin_projects_instances_logical_views_get_iam_policy`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct BigtableadminProjectsInstancesLogicalViewsGetIamPolicyArgs {
+    /// Path parameter: resource
+    pub resource: String,
+}
+
+/// POST v2/projects/{projectsId}/instances/{instancesId}/logicalViews/{logicalViewsId}:getIamPolicy
+/// Gets the access control policy for an instance resource. Returns an empty policy if an instance exists but does not have a policy set.
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `bigtableadmin_projects_instances_logical_views_get_iam_policy_builder()` + `bigtableadmin_projects_instances_logical_views_get_iam_policy_execute()`.
+/// For task-level control, use `bigtableadmin_projects_instances_logical_views_get_iam_policy_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn bigtableadmin_projects_instances_logical_views_get_iam_policy(
+    client: &SimpleHttpClient,
+    args: &BigtableadminProjectsInstancesLogicalViewsGetIamPolicyArgs,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<Policy>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let builder = bigtableadmin_projects_instances_logical_views_get_iam_policy_builder(
+        client,
+        &args.resource,
+    )?;
+    bigtableadmin_projects_instances_logical_views_get_iam_policy_execute(builder)
+}
+
+/// GET v2/projects/{projectsId}/instances/{instancesId}/logicalViews
+/// Lists information about logical views in an instance.
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `bigtableadmin_projects_instances_logical_views_list_execute()` to send, or `bigtableadmin_projects_instances_logical_views_list` for simplest API.
+
+pub fn bigtableadmin_projects_instances_logical_views_list_builder(
+    client: &SimpleHttpClient,
+    parent: &String,
+    pageSize: &Option<Option<String>>,
+    pageToken: &Option<Option<String>>,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!(
+        "https://bigtableadmin.googleapis.com/v2/projects/{}/instances/{instancesId}/logicalViews",
+        parent,
+    );
+
+    // Build request
+    let mut query_parts = Vec::new();
+    if let Some(val) = pageSize.as_ref() {
+        query_parts.push(format!("pageSize={}", val));
+    }
+    if let Some(val) = pageToken.as_ref() {
+        query_parts.push(format!("pageToken={}", val));
+    }
+
+    let url_with_query = if query_parts.is_empty() {
+        endpoint_url
+    } else {
+        format!("{}?{}", endpoint_url, query_parts.join("&"))
+    };
+
+    let builder = client
+        .get(&url_with_query)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// GET v2/projects/{projectsId}/instances/{instancesId}/logicalViews
+/// Lists information about logical views in an instance.
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `bigtableadmin_projects_instances_logical_views_list_execute()` or `bigtableadmin_projects_instances_logical_views_list`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `bigtableadmin_projects_instances_logical_views_list_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn bigtableadmin_projects_instances_logical_views_list_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<ListLogicalViewsResponse>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: ListLogicalViewsResponse = serde_json::from_str(&body)
+                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// GET v2/projects/{projectsId}/instances/{instancesId}/logicalViews
+/// Lists information about logical views in an instance.
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `bigtableadmin_projects_instances_logical_views_list_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `bigtableadmin_projects_instances_logical_views_list_task()`.
+/// For the simplest API, use `bigtableadmin_projects_instances_logical_views_list()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `bigtableadmin_projects_instances_logical_views_list_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn bigtableadmin_projects_instances_logical_views_list_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<ListLogicalViewsResponse>, ApiError>, P = ApiPending>
+        + Send
+        + 'static,
+    ApiError,
+> {
+    let task = bigtableadmin_projects_instances_logical_views_list_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`bigtableadmin_projects_instances_logical_views_list`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct BigtableadminProjectsInstancesLogicalViewsListArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Query parameter: pageSize
+    pub pageSize: Option<Option<String>>,
+    /// Query parameter: pageToken
+    pub pageToken: Option<Option<String>>,
+}
+
+/// GET v2/projects/{projectsId}/instances/{instancesId}/logicalViews
+/// Lists information about logical views in an instance.
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `bigtableadmin_projects_instances_logical_views_list_builder()` + `bigtableadmin_projects_instances_logical_views_list_execute()`.
+/// For task-level control, use `bigtableadmin_projects_instances_logical_views_list_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn bigtableadmin_projects_instances_logical_views_list(
+    client: &SimpleHttpClient,
+    args: &BigtableadminProjectsInstancesLogicalViewsListArgs,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<ListLogicalViewsResponse>, ApiError>, P = ApiPending>
+        + Send
+        + 'static,
+    ApiError,
+> {
+    let builder = bigtableadmin_projects_instances_logical_views_list_builder(
+        client,
+        &args.parent,
+        &args.pageSize,
+        &args.pageToken,
+    )?;
+    bigtableadmin_projects_instances_logical_views_list_execute(builder)
+}
+
+/// PATCH v2/projects/{projectsId}/instances/{instancesId}/logicalViews/{logicalViewsId}
+/// Updates a logical view within an instance.
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `bigtableadmin_projects_instances_logical_views_patch_execute()` to send, or `bigtableadmin_projects_instances_logical_views_patch` for simplest API.
+
+pub fn bigtableadmin_projects_instances_logical_views_patch_builder(
+    client: &SimpleHttpClient,
+    name: &String,
+    updateMask: &Option<Option<String>>,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!(
+        "https://bigtableadmin.googleapis.com/v2/projects/{}/instances/{instancesId}/logicalViews/{logicalViewsId}",
+        name,
+    );
+
+    // Build request
+    let mut query_parts = Vec::new();
+    if let Some(val) = updateMask.as_ref() {
+        query_parts.push(format!("updateMask={}", val));
+    }
+
+    let url_with_query = if query_parts.is_empty() {
+        endpoint_url
+    } else {
+        format!("{}?{}", endpoint_url, query_parts.join("&"))
+    };
+
+    let builder = client
+        .patch(&url_with_query)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// PATCH v2/projects/{projectsId}/instances/{instancesId}/logicalViews/{logicalViewsId}
+/// Updates a logical view within an instance.
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `bigtableadmin_projects_instances_logical_views_patch_execute()` or `bigtableadmin_projects_instances_logical_views_patch`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `bigtableadmin_projects_instances_logical_views_patch_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn bigtableadmin_projects_instances_logical_views_patch_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<Operation>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: Operation = serde_json::from_str(&body)
+                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// PATCH v2/projects/{projectsId}/instances/{instancesId}/logicalViews/{logicalViewsId}
+/// Updates a logical view within an instance.
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `bigtableadmin_projects_instances_logical_views_patch_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `bigtableadmin_projects_instances_logical_views_patch_task()`.
+/// For the simplest API, use `bigtableadmin_projects_instances_logical_views_patch()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `bigtableadmin_projects_instances_logical_views_patch_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn bigtableadmin_projects_instances_logical_views_patch_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<Operation>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let task = bigtableadmin_projects_instances_logical_views_patch_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`bigtableadmin_projects_instances_logical_views_patch`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct BigtableadminProjectsInstancesLogicalViewsPatchArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Query parameter: updateMask
+    pub updateMask: Option<Option<String>>,
+}
+
+/// PATCH v2/projects/{projectsId}/instances/{instancesId}/logicalViews/{logicalViewsId}
+/// Updates a logical view within an instance.
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `bigtableadmin_projects_instances_logical_views_patch_builder()` + `bigtableadmin_projects_instances_logical_views_patch_execute()`.
+/// For task-level control, use `bigtableadmin_projects_instances_logical_views_patch_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn bigtableadmin_projects_instances_logical_views_patch(
+    client: &SimpleHttpClient,
+    args: &BigtableadminProjectsInstancesLogicalViewsPatchArgs,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<Operation>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let builder = bigtableadmin_projects_instances_logical_views_patch_builder(
+        client,
+        &args.name,
+        &args.updateMask,
+    )?;
+    bigtableadmin_projects_instances_logical_views_patch_execute(builder)
+}
+
+/// POST v2/projects/{projectsId}/instances/{instancesId}/logicalViews/{logicalViewsId}:setIamPolicy
+/// Sets the access control policy on an instance resource. Replaces any existing policy.
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `bigtableadmin_projects_instances_logical_views_set_iam_policy_execute()` to send, or `bigtableadmin_projects_instances_logical_views_set_iam_policy` for simplest API.
+
+pub fn bigtableadmin_projects_instances_logical_views_set_iam_policy_builder(
+    client: &SimpleHttpClient,
+    resource: &String,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!(
+        "https://bigtableadmin.googleapis.com/v2/projects/{}/instances/{instancesId}/logicalViews/{logicalViewsId}:setIamPolicy",
+        resource,
+    );
+
+    // Build request
+    let builder = client
+        .post(&endpoint_url)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// POST v2/projects/{projectsId}/instances/{instancesId}/logicalViews/{logicalViewsId}:setIamPolicy
+/// Sets the access control policy on an instance resource. Replaces any existing policy.
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `bigtableadmin_projects_instances_logical_views_set_iam_policy_execute()` or `bigtableadmin_projects_instances_logical_views_set_iam_policy`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `bigtableadmin_projects_instances_logical_views_set_iam_policy_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn bigtableadmin_projects_instances_logical_views_set_iam_policy_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<Policy>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: Policy = serde_json::from_str(&body)
+                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// POST v2/projects/{projectsId}/instances/{instancesId}/logicalViews/{logicalViewsId}:setIamPolicy
+/// Sets the access control policy on an instance resource. Replaces any existing policy.
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `bigtableadmin_projects_instances_logical_views_set_iam_policy_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `bigtableadmin_projects_instances_logical_views_set_iam_policy_task()`.
+/// For the simplest API, use `bigtableadmin_projects_instances_logical_views_set_iam_policy()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `bigtableadmin_projects_instances_logical_views_set_iam_policy_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn bigtableadmin_projects_instances_logical_views_set_iam_policy_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<Policy>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let task = bigtableadmin_projects_instances_logical_views_set_iam_policy_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`bigtableadmin_projects_instances_logical_views_set_iam_policy`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct BigtableadminProjectsInstancesLogicalViewsSetIamPolicyArgs {
+    /// Path parameter: resource
+    pub resource: String,
+}
+
+/// POST v2/projects/{projectsId}/instances/{instancesId}/logicalViews/{logicalViewsId}:setIamPolicy
+/// Sets the access control policy on an instance resource. Replaces any existing policy.
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `bigtableadmin_projects_instances_logical_views_set_iam_policy_builder()` + `bigtableadmin_projects_instances_logical_views_set_iam_policy_execute()`.
+/// For task-level control, use `bigtableadmin_projects_instances_logical_views_set_iam_policy_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn bigtableadmin_projects_instances_logical_views_set_iam_policy(
+    client: &SimpleHttpClient,
+    args: &BigtableadminProjectsInstancesLogicalViewsSetIamPolicyArgs,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<Policy>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let builder = bigtableadmin_projects_instances_logical_views_set_iam_policy_builder(
+        client,
+        &args.resource,
+    )?;
+    bigtableadmin_projects_instances_logical_views_set_iam_policy_execute(builder)
+}
+
+/// POST v2/projects/{projectsId}/instances/{instancesId}/logicalViews/{logicalViewsId}:testIamPermissions
+/// Returns permissions that the caller has on the specified instance resource.
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `bigtableadmin_projects_instances_logical_views_test_iam_permissions_execute()` to send, or `bigtableadmin_projects_instances_logical_views_test_iam_permissions` for simplest API.
+
+pub fn bigtableadmin_projects_instances_logical_views_test_iam_permissions_builder(
+    client: &SimpleHttpClient,
+    resource: &String,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!(
+        "https://bigtableadmin.googleapis.com/v2/projects/{}/instances/{instancesId}/logicalViews/{logicalViewsId}:testIamPermissions",
+        resource,
+    );
+
+    // Build request
+    let builder = client
+        .post(&endpoint_url)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// POST v2/projects/{projectsId}/instances/{instancesId}/logicalViews/{logicalViewsId}:testIamPermissions
+/// Returns permissions that the caller has on the specified instance resource.
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `bigtableadmin_projects_instances_logical_views_test_iam_permissions_execute()` or `bigtableadmin_projects_instances_logical_views_test_iam_permissions`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `bigtableadmin_projects_instances_logical_views_test_iam_permissions_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn bigtableadmin_projects_instances_logical_views_test_iam_permissions_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<TestIamPermissionsResponse>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: TestIamPermissionsResponse = serde_json::from_str(&body)
+                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// POST v2/projects/{projectsId}/instances/{instancesId}/logicalViews/{logicalViewsId}:testIamPermissions
+/// Returns permissions that the caller has on the specified instance resource.
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `bigtableadmin_projects_instances_logical_views_test_iam_permissions_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `bigtableadmin_projects_instances_logical_views_test_iam_permissions_task()`.
+/// For the simplest API, use `bigtableadmin_projects_instances_logical_views_test_iam_permissions()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `bigtableadmin_projects_instances_logical_views_test_iam_permissions_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn bigtableadmin_projects_instances_logical_views_test_iam_permissions_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<
+            D = Result<ApiResponse<TestIamPermissionsResponse>, ApiError>,
+            P = ApiPending,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    let task = bigtableadmin_projects_instances_logical_views_test_iam_permissions_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`bigtableadmin_projects_instances_logical_views_test_iam_permissions`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct BigtableadminProjectsInstancesLogicalViewsTestIamPermissionsArgs {
+    /// Path parameter: resource
+    pub resource: String,
+}
+
+/// POST v2/projects/{projectsId}/instances/{instancesId}/logicalViews/{logicalViewsId}:testIamPermissions
+/// Returns permissions that the caller has on the specified instance resource.
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `bigtableadmin_projects_instances_logical_views_test_iam_permissions_builder()` + `bigtableadmin_projects_instances_logical_views_test_iam_permissions_execute()`.
+/// For task-level control, use `bigtableadmin_projects_instances_logical_views_test_iam_permissions_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn bigtableadmin_projects_instances_logical_views_test_iam_permissions(
+    client: &SimpleHttpClient,
+    args: &BigtableadminProjectsInstancesLogicalViewsTestIamPermissionsArgs,
+) -> Result<
+    impl StreamIterator<
+            D = Result<ApiResponse<TestIamPermissionsResponse>, ApiError>,
+            P = ApiPending,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    let builder = bigtableadmin_projects_instances_logical_views_test_iam_permissions_builder(
+        client,
+        &args.resource,
+    )?;
+    bigtableadmin_projects_instances_logical_views_test_iam_permissions_execute(builder)
+}
+
+/// POST v2/projects/{projectsId}/instances/{instancesId}/materializedViews
+/// Creates a materialized view within an instance.
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `bigtableadmin_projects_instances_materialized_views_create_execute()` to send, or `bigtableadmin_projects_instances_materialized_views_create` for simplest API.
+
+pub fn bigtableadmin_projects_instances_materialized_views_create_builder(
+    client: &SimpleHttpClient,
+    parent: &String,
+    materializedViewId: &Option<Option<String>>,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!(
+        "https://bigtableadmin.googleapis.com/v2/projects/{}/instances/{instancesId}/materializedViews",
+        parent,
+    );
+
+    // Build request
+    let mut query_parts = Vec::new();
+    if let Some(val) = materializedViewId.as_ref() {
+        query_parts.push(format!("materializedViewId={}", val));
+    }
+
+    let url_with_query = if query_parts.is_empty() {
+        endpoint_url
+    } else {
+        format!("{}?{}", endpoint_url, query_parts.join("&"))
+    };
+
+    let builder = client
+        .post(&url_with_query)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// POST v2/projects/{projectsId}/instances/{instancesId}/materializedViews
+/// Creates a materialized view within an instance.
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `bigtableadmin_projects_instances_materialized_views_create_execute()` or `bigtableadmin_projects_instances_materialized_views_create`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `bigtableadmin_projects_instances_materialized_views_create_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn bigtableadmin_projects_instances_materialized_views_create_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<Operation>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: Operation = serde_json::from_str(&body)
+                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// POST v2/projects/{projectsId}/instances/{instancesId}/materializedViews
+/// Creates a materialized view within an instance.
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `bigtableadmin_projects_instances_materialized_views_create_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `bigtableadmin_projects_instances_materialized_views_create_task()`.
+/// For the simplest API, use `bigtableadmin_projects_instances_materialized_views_create()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `bigtableadmin_projects_instances_materialized_views_create_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn bigtableadmin_projects_instances_materialized_views_create_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<Operation>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let task = bigtableadmin_projects_instances_materialized_views_create_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`bigtableadmin_projects_instances_materialized_views_create`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct BigtableadminProjectsInstancesMaterializedViewsCreateArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Query parameter: materializedViewId
+    pub materializedViewId: Option<Option<String>>,
+}
+
+/// POST v2/projects/{projectsId}/instances/{instancesId}/materializedViews
+/// Creates a materialized view within an instance.
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `bigtableadmin_projects_instances_materialized_views_create_builder()` + `bigtableadmin_projects_instances_materialized_views_create_execute()`.
+/// For task-level control, use `bigtableadmin_projects_instances_materialized_views_create_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn bigtableadmin_projects_instances_materialized_views_create(
+    client: &SimpleHttpClient,
+    args: &BigtableadminProjectsInstancesMaterializedViewsCreateArgs,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<Operation>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let builder = bigtableadmin_projects_instances_materialized_views_create_builder(
+        client,
+        &args.parent,
+        &args.materializedViewId,
+    )?;
+    bigtableadmin_projects_instances_materialized_views_create_execute(builder)
+}
+
+/// DELETE v2/projects/{projectsId}/instances/{instancesId}/materializedViews/{materializedViewsId}
+/// Deletes a materialized view from an instance.
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `bigtableadmin_projects_instances_materialized_views_delete_execute()` to send, or `bigtableadmin_projects_instances_materialized_views_delete` for simplest API.
+
+pub fn bigtableadmin_projects_instances_materialized_views_delete_builder(
+    client: &SimpleHttpClient,
+    name: &String,
+    etag: &Option<Option<String>>,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!(
+        "https://bigtableadmin.googleapis.com/v2/projects/{}/instances/{instancesId}/materializedViews/{materializedViewsId}",
+        name,
+    );
+
+    // Build request
+    let mut query_parts = Vec::new();
+    if let Some(val) = etag.as_ref() {
+        query_parts.push(format!("etag={}", val));
+    }
+
+    let url_with_query = if query_parts.is_empty() {
+        endpoint_url
+    } else {
+        format!("{}?{}", endpoint_url, query_parts.join("&"))
+    };
+
+    let builder = client
+        .delete(&url_with_query)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// DELETE v2/projects/{projectsId}/instances/{instancesId}/materializedViews/{materializedViewsId}
+/// Deletes a materialized view from an instance.
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `bigtableadmin_projects_instances_materialized_views_delete_execute()` or `bigtableadmin_projects_instances_materialized_views_delete`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `bigtableadmin_projects_instances_materialized_views_delete_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn bigtableadmin_projects_instances_materialized_views_delete_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<Empty>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: Empty = serde_json::from_str(&body)
+                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// DELETE v2/projects/{projectsId}/instances/{instancesId}/materializedViews/{materializedViewsId}
+/// Deletes a materialized view from an instance.
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `bigtableadmin_projects_instances_materialized_views_delete_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `bigtableadmin_projects_instances_materialized_views_delete_task()`.
+/// For the simplest API, use `bigtableadmin_projects_instances_materialized_views_delete()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `bigtableadmin_projects_instances_materialized_views_delete_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn bigtableadmin_projects_instances_materialized_views_delete_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<Empty>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let task = bigtableadmin_projects_instances_materialized_views_delete_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`bigtableadmin_projects_instances_materialized_views_delete`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct BigtableadminProjectsInstancesMaterializedViewsDeleteArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Query parameter: etag
+    pub etag: Option<Option<String>>,
+}
+
+/// DELETE v2/projects/{projectsId}/instances/{instancesId}/materializedViews/{materializedViewsId}
+/// Deletes a materialized view from an instance.
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `bigtableadmin_projects_instances_materialized_views_delete_builder()` + `bigtableadmin_projects_instances_materialized_views_delete_execute()`.
+/// For task-level control, use `bigtableadmin_projects_instances_materialized_views_delete_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn bigtableadmin_projects_instances_materialized_views_delete(
+    client: &SimpleHttpClient,
+    args: &BigtableadminProjectsInstancesMaterializedViewsDeleteArgs,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<Empty>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let builder = bigtableadmin_projects_instances_materialized_views_delete_builder(
+        client, &args.name, &args.etag,
+    )?;
+    bigtableadmin_projects_instances_materialized_views_delete_execute(builder)
+}
+
+/// GET v2/projects/{projectsId}/instances/{instancesId}/materializedViews/{materializedViewsId}
+/// Gets information about a materialized view.
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `bigtableadmin_projects_instances_materialized_views_get_execute()` to send, or `bigtableadmin_projects_instances_materialized_views_get` for simplest API.
+
+pub fn bigtableadmin_projects_instances_materialized_views_get_builder(
+    client: &SimpleHttpClient,
+    name: &String,
+    view: &Option<Option<String>>,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!(
+        "https://bigtableadmin.googleapis.com/v2/projects/{}/instances/{instancesId}/materializedViews/{materializedViewsId}",
+        name,
+    );
+
+    // Build request
+    let mut query_parts = Vec::new();
+    if let Some(val) = view.as_ref() {
+        query_parts.push(format!("view={}", val));
+    }
+
+    let url_with_query = if query_parts.is_empty() {
+        endpoint_url
+    } else {
+        format!("{}?{}", endpoint_url, query_parts.join("&"))
+    };
+
+    let builder = client
+        .get(&url_with_query)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// GET v2/projects/{projectsId}/instances/{instancesId}/materializedViews/{materializedViewsId}
+/// Gets information about a materialized view.
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `bigtableadmin_projects_instances_materialized_views_get_execute()` or `bigtableadmin_projects_instances_materialized_views_get`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `bigtableadmin_projects_instances_materialized_views_get_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn bigtableadmin_projects_instances_materialized_views_get_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<MaterializedView>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: MaterializedView = serde_json::from_str(&body)
+                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// GET v2/projects/{projectsId}/instances/{instancesId}/materializedViews/{materializedViewsId}
+/// Gets information about a materialized view.
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `bigtableadmin_projects_instances_materialized_views_get_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `bigtableadmin_projects_instances_materialized_views_get_task()`.
+/// For the simplest API, use `bigtableadmin_projects_instances_materialized_views_get()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `bigtableadmin_projects_instances_materialized_views_get_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn bigtableadmin_projects_instances_materialized_views_get_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<MaterializedView>, ApiError>, P = ApiPending>
+        + Send
+        + 'static,
+    ApiError,
+> {
+    let task = bigtableadmin_projects_instances_materialized_views_get_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`bigtableadmin_projects_instances_materialized_views_get`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct BigtableadminProjectsInstancesMaterializedViewsGetArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Query parameter: view
+    pub view: Option<Option<String>>,
+}
+
+/// GET v2/projects/{projectsId}/instances/{instancesId}/materializedViews/{materializedViewsId}
+/// Gets information about a materialized view.
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `bigtableadmin_projects_instances_materialized_views_get_builder()` + `bigtableadmin_projects_instances_materialized_views_get_execute()`.
+/// For task-level control, use `bigtableadmin_projects_instances_materialized_views_get_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn bigtableadmin_projects_instances_materialized_views_get(
+    client: &SimpleHttpClient,
+    args: &BigtableadminProjectsInstancesMaterializedViewsGetArgs,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<MaterializedView>, ApiError>, P = ApiPending>
+        + Send
+        + 'static,
+    ApiError,
+> {
+    let builder = bigtableadmin_projects_instances_materialized_views_get_builder(
+        client, &args.name, &args.view,
+    )?;
+    bigtableadmin_projects_instances_materialized_views_get_execute(builder)
+}
+
+/// POST v2/projects/{projectsId}/instances/{instancesId}/materializedViews/{materializedViewsId}:getIamPolicy
+/// Gets the access control policy for an instance resource. Returns an empty policy if an instance exists but does not have a policy set.
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `bigtableadmin_projects_instances_materialized_views_get_iam_policy_execute()` to send, or `bigtableadmin_projects_instances_materialized_views_get_iam_policy` for simplest API.
+
+pub fn bigtableadmin_projects_instances_materialized_views_get_iam_policy_builder(
+    client: &SimpleHttpClient,
+    resource: &String,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!(
+        "https://bigtableadmin.googleapis.com/v2/projects/{}/instances/{instancesId}/materializedViews/{materializedViewsId}:getIamPolicy",
+        resource,
+    );
+
+    // Build request
+    let builder = client
+        .post(&endpoint_url)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// POST v2/projects/{projectsId}/instances/{instancesId}/materializedViews/{materializedViewsId}:getIamPolicy
+/// Gets the access control policy for an instance resource. Returns an empty policy if an instance exists but does not have a policy set.
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `bigtableadmin_projects_instances_materialized_views_get_iam_policy_execute()` or `bigtableadmin_projects_instances_materialized_views_get_iam_policy`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `bigtableadmin_projects_instances_materialized_views_get_iam_policy_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn bigtableadmin_projects_instances_materialized_views_get_iam_policy_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<Policy>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: Policy = serde_json::from_str(&body)
+                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// POST v2/projects/{projectsId}/instances/{instancesId}/materializedViews/{materializedViewsId}:getIamPolicy
+/// Gets the access control policy for an instance resource. Returns an empty policy if an instance exists but does not have a policy set.
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `bigtableadmin_projects_instances_materialized_views_get_iam_policy_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `bigtableadmin_projects_instances_materialized_views_get_iam_policy_task()`.
+/// For the simplest API, use `bigtableadmin_projects_instances_materialized_views_get_iam_policy()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `bigtableadmin_projects_instances_materialized_views_get_iam_policy_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn bigtableadmin_projects_instances_materialized_views_get_iam_policy_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<Policy>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let task = bigtableadmin_projects_instances_materialized_views_get_iam_policy_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`bigtableadmin_projects_instances_materialized_views_get_iam_policy`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct BigtableadminProjectsInstancesMaterializedViewsGetIamPolicyArgs {
+    /// Path parameter: resource
+    pub resource: String,
+}
+
+/// POST v2/projects/{projectsId}/instances/{instancesId}/materializedViews/{materializedViewsId}:getIamPolicy
+/// Gets the access control policy for an instance resource. Returns an empty policy if an instance exists but does not have a policy set.
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `bigtableadmin_projects_instances_materialized_views_get_iam_policy_builder()` + `bigtableadmin_projects_instances_materialized_views_get_iam_policy_execute()`.
+/// For task-level control, use `bigtableadmin_projects_instances_materialized_views_get_iam_policy_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn bigtableadmin_projects_instances_materialized_views_get_iam_policy(
+    client: &SimpleHttpClient,
+    args: &BigtableadminProjectsInstancesMaterializedViewsGetIamPolicyArgs,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<Policy>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let builder = bigtableadmin_projects_instances_materialized_views_get_iam_policy_builder(
+        client,
+        &args.resource,
+    )?;
+    bigtableadmin_projects_instances_materialized_views_get_iam_policy_execute(builder)
+}
+
+/// GET v2/projects/{projectsId}/instances/{instancesId}/materializedViews
+/// Lists information about materialized views in an instance.
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `bigtableadmin_projects_instances_materialized_views_list_execute()` to send, or `bigtableadmin_projects_instances_materialized_views_list` for simplest API.
+
+pub fn bigtableadmin_projects_instances_materialized_views_list_builder(
+    client: &SimpleHttpClient,
+    parent: &String,
+    pageSize: &Option<Option<String>>,
+    pageToken: &Option<Option<String>>,
+    view: &Option<Option<String>>,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!(
+        "https://bigtableadmin.googleapis.com/v2/projects/{}/instances/{instancesId}/materializedViews",
+        parent,
+    );
+
+    // Build request
+    let mut query_parts = Vec::new();
+    if let Some(val) = pageSize.as_ref() {
+        query_parts.push(format!("pageSize={}", val));
+    }
+    if let Some(val) = pageToken.as_ref() {
+        query_parts.push(format!("pageToken={}", val));
+    }
+    if let Some(val) = view.as_ref() {
+        query_parts.push(format!("view={}", val));
+    }
+
+    let url_with_query = if query_parts.is_empty() {
+        endpoint_url
+    } else {
+        format!("{}?{}", endpoint_url, query_parts.join("&"))
+    };
+
+    let builder = client
+        .get(&url_with_query)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// GET v2/projects/{projectsId}/instances/{instancesId}/materializedViews
+/// Lists information about materialized views in an instance.
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `bigtableadmin_projects_instances_materialized_views_list_execute()` or `bigtableadmin_projects_instances_materialized_views_list`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `bigtableadmin_projects_instances_materialized_views_list_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn bigtableadmin_projects_instances_materialized_views_list_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<ListMaterializedViewsResponse>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: ListMaterializedViewsResponse = serde_json::from_str(&body)
+                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// GET v2/projects/{projectsId}/instances/{instancesId}/materializedViews
+/// Lists information about materialized views in an instance.
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `bigtableadmin_projects_instances_materialized_views_list_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `bigtableadmin_projects_instances_materialized_views_list_task()`.
+/// For the simplest API, use `bigtableadmin_projects_instances_materialized_views_list()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `bigtableadmin_projects_instances_materialized_views_list_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn bigtableadmin_projects_instances_materialized_views_list_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<
+            D = Result<ApiResponse<ListMaterializedViewsResponse>, ApiError>,
+            P = ApiPending,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    let task = bigtableadmin_projects_instances_materialized_views_list_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`bigtableadmin_projects_instances_materialized_views_list`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct BigtableadminProjectsInstancesMaterializedViewsListArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Query parameter: pageSize
+    pub pageSize: Option<Option<String>>,
+    /// Query parameter: pageToken
+    pub pageToken: Option<Option<String>>,
+    /// Query parameter: view
+    pub view: Option<Option<String>>,
+}
+
+/// GET v2/projects/{projectsId}/instances/{instancesId}/materializedViews
+/// Lists information about materialized views in an instance.
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `bigtableadmin_projects_instances_materialized_views_list_builder()` + `bigtableadmin_projects_instances_materialized_views_list_execute()`.
+/// For task-level control, use `bigtableadmin_projects_instances_materialized_views_list_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn bigtableadmin_projects_instances_materialized_views_list(
+    client: &SimpleHttpClient,
+    args: &BigtableadminProjectsInstancesMaterializedViewsListArgs,
+) -> Result<
+    impl StreamIterator<
+            D = Result<ApiResponse<ListMaterializedViewsResponse>, ApiError>,
+            P = ApiPending,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    let builder = bigtableadmin_projects_instances_materialized_views_list_builder(
+        client,
+        &args.parent,
+        &args.pageSize,
+        &args.pageToken,
+        &args.view,
+    )?;
+    bigtableadmin_projects_instances_materialized_views_list_execute(builder)
+}
+
+/// PATCH v2/projects/{projectsId}/instances/{instancesId}/materializedViews/{materializedViewsId}
+/// Updates a materialized view within an instance.
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `bigtableadmin_projects_instances_materialized_views_patch_execute()` to send, or `bigtableadmin_projects_instances_materialized_views_patch` for simplest API.
+
+pub fn bigtableadmin_projects_instances_materialized_views_patch_builder(
+    client: &SimpleHttpClient,
+    name: &String,
+    updateMask: &Option<Option<String>>,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!(
+        "https://bigtableadmin.googleapis.com/v2/projects/{}/instances/{instancesId}/materializedViews/{materializedViewsId}",
+        name,
+    );
+
+    // Build request
+    let mut query_parts = Vec::new();
+    if let Some(val) = updateMask.as_ref() {
+        query_parts.push(format!("updateMask={}", val));
+    }
+
+    let url_with_query = if query_parts.is_empty() {
+        endpoint_url
+    } else {
+        format!("{}?{}", endpoint_url, query_parts.join("&"))
+    };
+
+    let builder = client
+        .patch(&url_with_query)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// PATCH v2/projects/{projectsId}/instances/{instancesId}/materializedViews/{materializedViewsId}
+/// Updates a materialized view within an instance.
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `bigtableadmin_projects_instances_materialized_views_patch_execute()` or `bigtableadmin_projects_instances_materialized_views_patch`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `bigtableadmin_projects_instances_materialized_views_patch_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn bigtableadmin_projects_instances_materialized_views_patch_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<Operation>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: Operation = serde_json::from_str(&body)
+                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// PATCH v2/projects/{projectsId}/instances/{instancesId}/materializedViews/{materializedViewsId}
+/// Updates a materialized view within an instance.
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `bigtableadmin_projects_instances_materialized_views_patch_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `bigtableadmin_projects_instances_materialized_views_patch_task()`.
+/// For the simplest API, use `bigtableadmin_projects_instances_materialized_views_patch()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `bigtableadmin_projects_instances_materialized_views_patch_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn bigtableadmin_projects_instances_materialized_views_patch_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<Operation>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let task = bigtableadmin_projects_instances_materialized_views_patch_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`bigtableadmin_projects_instances_materialized_views_patch`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct BigtableadminProjectsInstancesMaterializedViewsPatchArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Query parameter: updateMask
+    pub updateMask: Option<Option<String>>,
+}
+
+/// PATCH v2/projects/{projectsId}/instances/{instancesId}/materializedViews/{materializedViewsId}
+/// Updates a materialized view within an instance.
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `bigtableadmin_projects_instances_materialized_views_patch_builder()` + `bigtableadmin_projects_instances_materialized_views_patch_execute()`.
+/// For task-level control, use `bigtableadmin_projects_instances_materialized_views_patch_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn bigtableadmin_projects_instances_materialized_views_patch(
+    client: &SimpleHttpClient,
+    args: &BigtableadminProjectsInstancesMaterializedViewsPatchArgs,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<Operation>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let builder = bigtableadmin_projects_instances_materialized_views_patch_builder(
+        client,
+        &args.name,
+        &args.updateMask,
+    )?;
+    bigtableadmin_projects_instances_materialized_views_patch_execute(builder)
+}
+
+/// POST v2/projects/{projectsId}/instances/{instancesId}/materializedViews/{materializedViewsId}:setIamPolicy
+/// Sets the access control policy on an instance resource. Replaces any existing policy.
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `bigtableadmin_projects_instances_materialized_views_set_iam_policy_execute()` to send, or `bigtableadmin_projects_instances_materialized_views_set_iam_policy` for simplest API.
+
+pub fn bigtableadmin_projects_instances_materialized_views_set_iam_policy_builder(
+    client: &SimpleHttpClient,
+    resource: &String,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!(
+        "https://bigtableadmin.googleapis.com/v2/projects/{}/instances/{instancesId}/materializedViews/{materializedViewsId}:setIamPolicy",
+        resource,
+    );
+
+    // Build request
+    let builder = client
+        .post(&endpoint_url)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// POST v2/projects/{projectsId}/instances/{instancesId}/materializedViews/{materializedViewsId}:setIamPolicy
+/// Sets the access control policy on an instance resource. Replaces any existing policy.
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `bigtableadmin_projects_instances_materialized_views_set_iam_policy_execute()` or `bigtableadmin_projects_instances_materialized_views_set_iam_policy`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `bigtableadmin_projects_instances_materialized_views_set_iam_policy_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn bigtableadmin_projects_instances_materialized_views_set_iam_policy_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<Policy>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: Policy = serde_json::from_str(&body)
+                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// POST v2/projects/{projectsId}/instances/{instancesId}/materializedViews/{materializedViewsId}:setIamPolicy
+/// Sets the access control policy on an instance resource. Replaces any existing policy.
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `bigtableadmin_projects_instances_materialized_views_set_iam_policy_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `bigtableadmin_projects_instances_materialized_views_set_iam_policy_task()`.
+/// For the simplest API, use `bigtableadmin_projects_instances_materialized_views_set_iam_policy()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `bigtableadmin_projects_instances_materialized_views_set_iam_policy_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn bigtableadmin_projects_instances_materialized_views_set_iam_policy_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<Policy>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let task = bigtableadmin_projects_instances_materialized_views_set_iam_policy_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`bigtableadmin_projects_instances_materialized_views_set_iam_policy`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct BigtableadminProjectsInstancesMaterializedViewsSetIamPolicyArgs {
+    /// Path parameter: resource
+    pub resource: String,
+}
+
+/// POST v2/projects/{projectsId}/instances/{instancesId}/materializedViews/{materializedViewsId}:setIamPolicy
+/// Sets the access control policy on an instance resource. Replaces any existing policy.
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `bigtableadmin_projects_instances_materialized_views_set_iam_policy_builder()` + `bigtableadmin_projects_instances_materialized_views_set_iam_policy_execute()`.
+/// For task-level control, use `bigtableadmin_projects_instances_materialized_views_set_iam_policy_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn bigtableadmin_projects_instances_materialized_views_set_iam_policy(
+    client: &SimpleHttpClient,
+    args: &BigtableadminProjectsInstancesMaterializedViewsSetIamPolicyArgs,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<Policy>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let builder = bigtableadmin_projects_instances_materialized_views_set_iam_policy_builder(
+        client,
+        &args.resource,
+    )?;
+    bigtableadmin_projects_instances_materialized_views_set_iam_policy_execute(builder)
+}
+
+/// POST v2/projects/{projectsId}/instances/{instancesId}/materializedViews/{materializedViewsId}:testIamPermissions
+/// Returns permissions that the caller has on the specified instance resource.
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `bigtableadmin_projects_instances_materialized_views_test_iam_permissions_execute()` to send, or `bigtableadmin_projects_instances_materialized_views_test_iam_permissions` for simplest API.
+
+pub fn bigtableadmin_projects_instances_materialized_views_test_iam_permissions_builder(
+    client: &SimpleHttpClient,
+    resource: &String,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!(
+        "https://bigtableadmin.googleapis.com/v2/projects/{}/instances/{instancesId}/materializedViews/{materializedViewsId}:testIamPermissions",
+        resource,
+    );
+
+    // Build request
+    let builder = client
+        .post(&endpoint_url)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// POST v2/projects/{projectsId}/instances/{instancesId}/materializedViews/{materializedViewsId}:testIamPermissions
+/// Returns permissions that the caller has on the specified instance resource.
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `bigtableadmin_projects_instances_materialized_views_test_iam_permissions_execute()` or `bigtableadmin_projects_instances_materialized_views_test_iam_permissions`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `bigtableadmin_projects_instances_materialized_views_test_iam_permissions_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn bigtableadmin_projects_instances_materialized_views_test_iam_permissions_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<TestIamPermissionsResponse>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: TestIamPermissionsResponse = serde_json::from_str(&body)
+                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// POST v2/projects/{projectsId}/instances/{instancesId}/materializedViews/{materializedViewsId}:testIamPermissions
+/// Returns permissions that the caller has on the specified instance resource.
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `bigtableadmin_projects_instances_materialized_views_test_iam_permissions_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `bigtableadmin_projects_instances_materialized_views_test_iam_permissions_task()`.
+/// For the simplest API, use `bigtableadmin_projects_instances_materialized_views_test_iam_permissions()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `bigtableadmin_projects_instances_materialized_views_test_iam_permissions_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn bigtableadmin_projects_instances_materialized_views_test_iam_permissions_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<
+            D = Result<ApiResponse<TestIamPermissionsResponse>, ApiError>,
+            P = ApiPending,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    let task =
+        bigtableadmin_projects_instances_materialized_views_test_iam_permissions_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`bigtableadmin_projects_instances_materialized_views_test_iam_permissions`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct BigtableadminProjectsInstancesMaterializedViewsTestIamPermissionsArgs {
+    /// Path parameter: resource
+    pub resource: String,
+}
+
+/// POST v2/projects/{projectsId}/instances/{instancesId}/materializedViews/{materializedViewsId}:testIamPermissions
+/// Returns permissions that the caller has on the specified instance resource.
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `bigtableadmin_projects_instances_materialized_views_test_iam_permissions_builder()` + `bigtableadmin_projects_instances_materialized_views_test_iam_permissions_execute()`.
+/// For task-level control, use `bigtableadmin_projects_instances_materialized_views_test_iam_permissions_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn bigtableadmin_projects_instances_materialized_views_test_iam_permissions(
+    client: &SimpleHttpClient,
+    args: &BigtableadminProjectsInstancesMaterializedViewsTestIamPermissionsArgs,
+) -> Result<
+    impl StreamIterator<
+            D = Result<ApiResponse<TestIamPermissionsResponse>, ApiError>,
+            P = ApiPending,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    let builder = bigtableadmin_projects_instances_materialized_views_test_iam_permissions_builder(
+        client,
+        &args.resource,
+    )?;
+    bigtableadmin_projects_instances_materialized_views_test_iam_permissions_execute(builder)
+}
+
+/// POST v2/projects/{projectsId}/instances/{instancesId}/tables/{tablesId}:checkConsistency
+/// Checks replication consistency based on a consistency token, that is, if replication has caught up based on the conditions specified in the token and the check request.
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `bigtableadmin_projects_instances_tables_check_consistency_execute()` to send, or `bigtableadmin_projects_instances_tables_check_consistency` for simplest API.
+
+pub fn bigtableadmin_projects_instances_tables_check_consistency_builder(
+    client: &SimpleHttpClient,
+    name: &String,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!(
+        "https://bigtableadmin.googleapis.com/v2/projects/{}/instances/{instancesId}/tables/{tablesId}:checkConsistency",
+        name,
+    );
+
+    // Build request
+    let builder = client
+        .post(&endpoint_url)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// POST v2/projects/{projectsId}/instances/{instancesId}/tables/{tablesId}:checkConsistency
+/// Checks replication consistency based on a consistency token, that is, if replication has caught up based on the conditions specified in the token and the check request.
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `bigtableadmin_projects_instances_tables_check_consistency_execute()` or `bigtableadmin_projects_instances_tables_check_consistency`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `bigtableadmin_projects_instances_tables_check_consistency_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn bigtableadmin_projects_instances_tables_check_consistency_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<CheckConsistencyResponse>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: CheckConsistencyResponse = serde_json::from_str(&body)
+                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// POST v2/projects/{projectsId}/instances/{instancesId}/tables/{tablesId}:checkConsistency
+/// Checks replication consistency based on a consistency token, that is, if replication has caught up based on the conditions specified in the token and the check request.
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `bigtableadmin_projects_instances_tables_check_consistency_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `bigtableadmin_projects_instances_tables_check_consistency_task()`.
+/// For the simplest API, use `bigtableadmin_projects_instances_tables_check_consistency()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `bigtableadmin_projects_instances_tables_check_consistency_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn bigtableadmin_projects_instances_tables_check_consistency_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<CheckConsistencyResponse>, ApiError>, P = ApiPending>
+        + Send
+        + 'static,
+    ApiError,
+> {
+    let task = bigtableadmin_projects_instances_tables_check_consistency_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`bigtableadmin_projects_instances_tables_check_consistency`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct BigtableadminProjectsInstancesTablesCheckConsistencyArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
+/// POST v2/projects/{projectsId}/instances/{instancesId}/tables/{tablesId}:checkConsistency
+/// Checks replication consistency based on a consistency token, that is, if replication has caught up based on the conditions specified in the token and the check request.
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `bigtableadmin_projects_instances_tables_check_consistency_builder()` + `bigtableadmin_projects_instances_tables_check_consistency_execute()`.
+/// For task-level control, use `bigtableadmin_projects_instances_tables_check_consistency_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn bigtableadmin_projects_instances_tables_check_consistency(
+    client: &SimpleHttpClient,
+    args: &BigtableadminProjectsInstancesTablesCheckConsistencyArgs,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<CheckConsistencyResponse>, ApiError>, P = ApiPending>
+        + Send
+        + 'static,
+    ApiError,
+> {
+    let builder =
+        bigtableadmin_projects_instances_tables_check_consistency_builder(client, &args.name)?;
+    bigtableadmin_projects_instances_tables_check_consistency_execute(builder)
+}
+
+/// POST v2/projects/{projectsId}/instances/{instancesId}/tables
+/// Creates a new table in the specified instance. The table can be created with a full set of initial column families, specified in the request.
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `bigtableadmin_projects_instances_tables_create_execute()` to send, or `bigtableadmin_projects_instances_tables_create` for simplest API.
+
+pub fn bigtableadmin_projects_instances_tables_create_builder(
+    client: &SimpleHttpClient,
+    parent: &String,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!(
+        "https://bigtableadmin.googleapis.com/v2/projects/{}/instances/{instancesId}/tables",
+        parent,
+    );
+
+    // Build request
+    let builder = client
+        .post(&endpoint_url)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// POST v2/projects/{projectsId}/instances/{instancesId}/tables
+/// Creates a new table in the specified instance. The table can be created with a full set of initial column families, specified in the request.
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `bigtableadmin_projects_instances_tables_create_execute()` or `bigtableadmin_projects_instances_tables_create`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `bigtableadmin_projects_instances_tables_create_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn bigtableadmin_projects_instances_tables_create_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<Table>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: Table = serde_json::from_str(&body)
+                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// POST v2/projects/{projectsId}/instances/{instancesId}/tables
+/// Creates a new table in the specified instance. The table can be created with a full set of initial column families, specified in the request.
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `bigtableadmin_projects_instances_tables_create_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `bigtableadmin_projects_instances_tables_create_task()`.
+/// For the simplest API, use `bigtableadmin_projects_instances_tables_create()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `bigtableadmin_projects_instances_tables_create_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn bigtableadmin_projects_instances_tables_create_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<Table>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let task = bigtableadmin_projects_instances_tables_create_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`bigtableadmin_projects_instances_tables_create`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct BigtableadminProjectsInstancesTablesCreateArgs {
+    /// Path parameter: parent
+    pub parent: String,
+}
+
+/// POST v2/projects/{projectsId}/instances/{instancesId}/tables
+/// Creates a new table in the specified instance. The table can be created with a full set of initial column families, specified in the request.
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `bigtableadmin_projects_instances_tables_create_builder()` + `bigtableadmin_projects_instances_tables_create_execute()`.
+/// For task-level control, use `bigtableadmin_projects_instances_tables_create_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn bigtableadmin_projects_instances_tables_create(
+    client: &SimpleHttpClient,
+    args: &BigtableadminProjectsInstancesTablesCreateArgs,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<Table>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let builder = bigtableadmin_projects_instances_tables_create_builder(client, &args.parent)?;
+    bigtableadmin_projects_instances_tables_create_execute(builder)
+}
+
+/// DELETE v2/projects/{projectsId}/instances/{instancesId}/tables/{tablesId}
+/// Permanently deletes a specified table and all of its data.
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `bigtableadmin_projects_instances_tables_delete_execute()` to send, or `bigtableadmin_projects_instances_tables_delete` for simplest API.
+
+pub fn bigtableadmin_projects_instances_tables_delete_builder(
+    client: &SimpleHttpClient,
+    name: &String,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!(
+        "https://bigtableadmin.googleapis.com/v2/projects/{}/instances/{instancesId}/tables/{tablesId}",
+        name,
+    );
+
+    // Build request
+    let builder = client
+        .delete(&endpoint_url)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// DELETE v2/projects/{projectsId}/instances/{instancesId}/tables/{tablesId}
+/// Permanently deletes a specified table and all of its data.
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `bigtableadmin_projects_instances_tables_delete_execute()` or `bigtableadmin_projects_instances_tables_delete`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `bigtableadmin_projects_instances_tables_delete_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn bigtableadmin_projects_instances_tables_delete_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<Empty>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: Empty = serde_json::from_str(&body)
+                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// DELETE v2/projects/{projectsId}/instances/{instancesId}/tables/{tablesId}
+/// Permanently deletes a specified table and all of its data.
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `bigtableadmin_projects_instances_tables_delete_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `bigtableadmin_projects_instances_tables_delete_task()`.
+/// For the simplest API, use `bigtableadmin_projects_instances_tables_delete()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `bigtableadmin_projects_instances_tables_delete_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn bigtableadmin_projects_instances_tables_delete_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<Empty>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let task = bigtableadmin_projects_instances_tables_delete_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`bigtableadmin_projects_instances_tables_delete`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct BigtableadminProjectsInstancesTablesDeleteArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
+/// DELETE v2/projects/{projectsId}/instances/{instancesId}/tables/{tablesId}
+/// Permanently deletes a specified table and all of its data.
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `bigtableadmin_projects_instances_tables_delete_builder()` + `bigtableadmin_projects_instances_tables_delete_execute()`.
+/// For task-level control, use `bigtableadmin_projects_instances_tables_delete_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn bigtableadmin_projects_instances_tables_delete(
+    client: &SimpleHttpClient,
+    args: &BigtableadminProjectsInstancesTablesDeleteArgs,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<Empty>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let builder = bigtableadmin_projects_instances_tables_delete_builder(client, &args.name)?;
+    bigtableadmin_projects_instances_tables_delete_execute(builder)
+}
+
+/// POST v2/projects/{projectsId}/instances/{instancesId}/tables/{tablesId}:dropRowRange
+/// Permanently `drop/delete` a row range from a specified table. The request can specify whether to delete all rows in a table, or only those that match a particular prefix. Note that row key prefixes used here are treated as service data. For more information about how service data is handled, see the [Google Cloud Privacy Notice](<https://cloud.google.`com/terms/cloud-privacy-notice`>).
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `bigtableadmin_projects_instances_tables_drop_row_range_execute()` to send, or `bigtableadmin_projects_instances_tables_drop_row_range` for simplest API.
+
+pub fn bigtableadmin_projects_instances_tables_drop_row_range_builder(
+    client: &SimpleHttpClient,
+    name: &String,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!(
+        "https://bigtableadmin.googleapis.com/v2/projects/{}/instances/{instancesId}/tables/{tablesId}:dropRowRange",
+        name,
+    );
+
+    // Build request
+    let builder = client
+        .post(&endpoint_url)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// POST v2/projects/{projectsId}/instances/{instancesId}/tables/{tablesId}:dropRowRange
+/// Permanently `drop/delete` a row range from a specified table. The request can specify whether to delete all rows in a table, or only those that match a particular prefix. Note that row key prefixes used here are treated as service data. For more information about how service data is handled, see the [Google Cloud Privacy Notice](<https://cloud.google.`com/terms/cloud-privacy-notice`>).
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `bigtableadmin_projects_instances_tables_drop_row_range_execute()` or `bigtableadmin_projects_instances_tables_drop_row_range`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `bigtableadmin_projects_instances_tables_drop_row_range_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn bigtableadmin_projects_instances_tables_drop_row_range_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<Empty>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: Empty = serde_json::from_str(&body)
+                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// POST v2/projects/{projectsId}/instances/{instancesId}/tables/{tablesId}:dropRowRange
+/// Permanently `drop/delete` a row range from a specified table. The request can specify whether to delete all rows in a table, or only those that match a particular prefix. Note that row key prefixes used here are treated as service data. For more information about how service data is handled, see the [Google Cloud Privacy Notice](<https://cloud.google.`com/terms/cloud-privacy-notice`>).
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `bigtableadmin_projects_instances_tables_drop_row_range_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `bigtableadmin_projects_instances_tables_drop_row_range_task()`.
+/// For the simplest API, use `bigtableadmin_projects_instances_tables_drop_row_range()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `bigtableadmin_projects_instances_tables_drop_row_range_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn bigtableadmin_projects_instances_tables_drop_row_range_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<Empty>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let task = bigtableadmin_projects_instances_tables_drop_row_range_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`bigtableadmin_projects_instances_tables_drop_row_range`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct BigtableadminProjectsInstancesTablesDropRowRangeArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
+/// POST v2/projects/{projectsId}/instances/{instancesId}/tables/{tablesId}:dropRowRange
+/// Permanently `drop/delete` a row range from a specified table. The request can specify whether to delete all rows in a table, or only those that match a particular prefix. Note that row key prefixes used here are treated as service data. For more information about how service data is handled, see the [Google Cloud Privacy Notice](<https://cloud.google.`com/terms/cloud-privacy-notice`>).
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `bigtableadmin_projects_instances_tables_drop_row_range_builder()` + `bigtableadmin_projects_instances_tables_drop_row_range_execute()`.
+/// For task-level control, use `bigtableadmin_projects_instances_tables_drop_row_range_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn bigtableadmin_projects_instances_tables_drop_row_range(
+    client: &SimpleHttpClient,
+    args: &BigtableadminProjectsInstancesTablesDropRowRangeArgs,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<Empty>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let builder =
+        bigtableadmin_projects_instances_tables_drop_row_range_builder(client, &args.name)?;
+    bigtableadmin_projects_instances_tables_drop_row_range_execute(builder)
+}
+
+/// POST v2/projects/{projectsId}/instances/{instancesId}/tables/{tablesId}:generateConsistencyToken
+/// Generates a consistency token for a Table, which can be used in CheckConsistency to check whether mutations to the table that finished before this call started have been replicated. The tokens will be available for 90 days.
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `bigtableadmin_projects_instances_tables_generate_consistency_token_execute()` to send, or `bigtableadmin_projects_instances_tables_generate_consistency_token` for simplest API.
+
+pub fn bigtableadmin_projects_instances_tables_generate_consistency_token_builder(
+    client: &SimpleHttpClient,
+    name: &String,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!(
+        "https://bigtableadmin.googleapis.com/v2/projects/{}/instances/{instancesId}/tables/{tablesId}:generateConsistencyToken",
+        name,
+    );
+
+    // Build request
+    let builder = client
+        .post(&endpoint_url)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// POST v2/projects/{projectsId}/instances/{instancesId}/tables/{tablesId}:generateConsistencyToken
+/// Generates a consistency token for a Table, which can be used in CheckConsistency to check whether mutations to the table that finished before this call started have been replicated. The tokens will be available for 90 days.
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `bigtableadmin_projects_instances_tables_generate_consistency_token_execute()` or `bigtableadmin_projects_instances_tables_generate_consistency_token`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `bigtableadmin_projects_instances_tables_generate_consistency_token_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn bigtableadmin_projects_instances_tables_generate_consistency_token_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<GenerateConsistencyTokenResponse>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: GenerateConsistencyTokenResponse = serde_json::from_str(&body)
+                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// POST v2/projects/{projectsId}/instances/{instancesId}/tables/{tablesId}:generateConsistencyToken
+/// Generates a consistency token for a Table, which can be used in CheckConsistency to check whether mutations to the table that finished before this call started have been replicated. The tokens will be available for 90 days.
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `bigtableadmin_projects_instances_tables_generate_consistency_token_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `bigtableadmin_projects_instances_tables_generate_consistency_token_task()`.
+/// For the simplest API, use `bigtableadmin_projects_instances_tables_generate_consistency_token()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `bigtableadmin_projects_instances_tables_generate_consistency_token_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn bigtableadmin_projects_instances_tables_generate_consistency_token_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<
+            D = Result<ApiResponse<GenerateConsistencyTokenResponse>, ApiError>,
+            P = ApiPending,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    let task = bigtableadmin_projects_instances_tables_generate_consistency_token_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`bigtableadmin_projects_instances_tables_generate_consistency_token`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct BigtableadminProjectsInstancesTablesGenerateConsistencyTokenArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
+/// POST v2/projects/{projectsId}/instances/{instancesId}/tables/{tablesId}:generateConsistencyToken
+/// Generates a consistency token for a Table, which can be used in CheckConsistency to check whether mutations to the table that finished before this call started have been replicated. The tokens will be available for 90 days.
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `bigtableadmin_projects_instances_tables_generate_consistency_token_builder()` + `bigtableadmin_projects_instances_tables_generate_consistency_token_execute()`.
+/// For task-level control, use `bigtableadmin_projects_instances_tables_generate_consistency_token_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn bigtableadmin_projects_instances_tables_generate_consistency_token(
+    client: &SimpleHttpClient,
+    args: &BigtableadminProjectsInstancesTablesGenerateConsistencyTokenArgs,
+) -> Result<
+    impl StreamIterator<
+            D = Result<ApiResponse<GenerateConsistencyTokenResponse>, ApiError>,
+            P = ApiPending,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    let builder = bigtableadmin_projects_instances_tables_generate_consistency_token_builder(
+        client, &args.name,
+    )?;
+    bigtableadmin_projects_instances_tables_generate_consistency_token_execute(builder)
+}
+
+/// GET v2/projects/{projectsId}/instances/{instancesId}/tables/{tablesId}
+/// Gets metadata information about the specified table.
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `bigtableadmin_projects_instances_tables_get_execute()` to send, or `bigtableadmin_projects_instances_tables_get` for simplest API.
+
+pub fn bigtableadmin_projects_instances_tables_get_builder(
+    client: &SimpleHttpClient,
+    name: &String,
+    view: &Option<Option<String>>,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!(
+        "https://bigtableadmin.googleapis.com/v2/projects/{}/instances/{instancesId}/tables/{tablesId}",
+        name,
+    );
+
+    // Build request
+    let mut query_parts = Vec::new();
+    if let Some(val) = view.as_ref() {
+        query_parts.push(format!("view={}", val));
+    }
+
+    let url_with_query = if query_parts.is_empty() {
+        endpoint_url
+    } else {
+        format!("{}?{}", endpoint_url, query_parts.join("&"))
+    };
+
+    let builder = client
+        .get(&url_with_query)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// GET v2/projects/{projectsId}/instances/{instancesId}/tables/{tablesId}
+/// Gets metadata information about the specified table.
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `bigtableadmin_projects_instances_tables_get_execute()` or `bigtableadmin_projects_instances_tables_get`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `bigtableadmin_projects_instances_tables_get_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn bigtableadmin_projects_instances_tables_get_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<Table>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: Table = serde_json::from_str(&body)
+                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// GET v2/projects/{projectsId}/instances/{instancesId}/tables/{tablesId}
+/// Gets metadata information about the specified table.
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `bigtableadmin_projects_instances_tables_get_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `bigtableadmin_projects_instances_tables_get_task()`.
+/// For the simplest API, use `bigtableadmin_projects_instances_tables_get()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `bigtableadmin_projects_instances_tables_get_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn bigtableadmin_projects_instances_tables_get_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<Table>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let task = bigtableadmin_projects_instances_tables_get_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`bigtableadmin_projects_instances_tables_get`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct BigtableadminProjectsInstancesTablesGetArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Query parameter: view
+    pub view: Option<Option<String>>,
+}
+
+/// GET v2/projects/{projectsId}/instances/{instancesId}/tables/{tablesId}
+/// Gets metadata information about the specified table.
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `bigtableadmin_projects_instances_tables_get_builder()` + `bigtableadmin_projects_instances_tables_get_execute()`.
+/// For task-level control, use `bigtableadmin_projects_instances_tables_get_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn bigtableadmin_projects_instances_tables_get(
+    client: &SimpleHttpClient,
+    args: &BigtableadminProjectsInstancesTablesGetArgs,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<Table>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let builder =
+        bigtableadmin_projects_instances_tables_get_builder(client, &args.name, &args.view)?;
+    bigtableadmin_projects_instances_tables_get_execute(builder)
+}
+
+/// POST v2/projects/{projectsId}/instances/{instancesId}/tables/{tablesId}:getIamPolicy
+/// Gets the access control policy for a Bigtable resource. Returns an empty policy if the resource exists but does not have a policy set.
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `bigtableadmin_projects_instances_tables_get_iam_policy_execute()` to send, or `bigtableadmin_projects_instances_tables_get_iam_policy` for simplest API.
+
+pub fn bigtableadmin_projects_instances_tables_get_iam_policy_builder(
+    client: &SimpleHttpClient,
+    resource: &String,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!(
+        "https://bigtableadmin.googleapis.com/v2/projects/{}/instances/{instancesId}/tables/{tablesId}:getIamPolicy",
+        resource,
+    );
+
+    // Build request
+    let builder = client
+        .post(&endpoint_url)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// POST v2/projects/{projectsId}/instances/{instancesId}/tables/{tablesId}:getIamPolicy
+/// Gets the access control policy for a Bigtable resource. Returns an empty policy if the resource exists but does not have a policy set.
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `bigtableadmin_projects_instances_tables_get_iam_policy_execute()` or `bigtableadmin_projects_instances_tables_get_iam_policy`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `bigtableadmin_projects_instances_tables_get_iam_policy_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn bigtableadmin_projects_instances_tables_get_iam_policy_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<Policy>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: Policy = serde_json::from_str(&body)
+                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// POST v2/projects/{projectsId}/instances/{instancesId}/tables/{tablesId}:getIamPolicy
+/// Gets the access control policy for a Bigtable resource. Returns an empty policy if the resource exists but does not have a policy set.
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `bigtableadmin_projects_instances_tables_get_iam_policy_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `bigtableadmin_projects_instances_tables_get_iam_policy_task()`.
+/// For the simplest API, use `bigtableadmin_projects_instances_tables_get_iam_policy()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `bigtableadmin_projects_instances_tables_get_iam_policy_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn bigtableadmin_projects_instances_tables_get_iam_policy_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<Policy>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let task = bigtableadmin_projects_instances_tables_get_iam_policy_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`bigtableadmin_projects_instances_tables_get_iam_policy`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct BigtableadminProjectsInstancesTablesGetIamPolicyArgs {
+    /// Path parameter: resource
+    pub resource: String,
+}
+
+/// POST v2/projects/{projectsId}/instances/{instancesId}/tables/{tablesId}:getIamPolicy
+/// Gets the access control policy for a Bigtable resource. Returns an empty policy if the resource exists but does not have a policy set.
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `bigtableadmin_projects_instances_tables_get_iam_policy_builder()` + `bigtableadmin_projects_instances_tables_get_iam_policy_execute()`.
+/// For task-level control, use `bigtableadmin_projects_instances_tables_get_iam_policy_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn bigtableadmin_projects_instances_tables_get_iam_policy(
+    client: &SimpleHttpClient,
+    args: &BigtableadminProjectsInstancesTablesGetIamPolicyArgs,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<Policy>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let builder =
+        bigtableadmin_projects_instances_tables_get_iam_policy_builder(client, &args.resource)?;
+    bigtableadmin_projects_instances_tables_get_iam_policy_execute(builder)
+}
+
+/// GET v2/projects/{projectsId}/instances/{instancesId}/tables
+/// Lists all tables served from a specified instance.
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `bigtableadmin_projects_instances_tables_list_execute()` to send, or `bigtableadmin_projects_instances_tables_list` for simplest API.
+
+pub fn bigtableadmin_projects_instances_tables_list_builder(
+    client: &SimpleHttpClient,
+    parent: &String,
+    pageSize: &Option<Option<String>>,
+    pageToken: &Option<Option<String>>,
+    view: &Option<Option<String>>,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!(
+        "https://bigtableadmin.googleapis.com/v2/projects/{}/instances/{instancesId}/tables",
+        parent,
+    );
+
+    // Build request
+    let mut query_parts = Vec::new();
+    if let Some(val) = pageSize.as_ref() {
+        query_parts.push(format!("pageSize={}", val));
+    }
+    if let Some(val) = pageToken.as_ref() {
+        query_parts.push(format!("pageToken={}", val));
+    }
+    if let Some(val) = view.as_ref() {
+        query_parts.push(format!("view={}", val));
+    }
+
+    let url_with_query = if query_parts.is_empty() {
+        endpoint_url
+    } else {
+        format!("{}?{}", endpoint_url, query_parts.join("&"))
+    };
+
+    let builder = client
+        .get(&url_with_query)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// GET v2/projects/{projectsId}/instances/{instancesId}/tables
+/// Lists all tables served from a specified instance.
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `bigtableadmin_projects_instances_tables_list_execute()` or `bigtableadmin_projects_instances_tables_list`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `bigtableadmin_projects_instances_tables_list_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn bigtableadmin_projects_instances_tables_list_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<ListTablesResponse>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: ListTablesResponse = serde_json::from_str(&body)
+                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// GET v2/projects/{projectsId}/instances/{instancesId}/tables
+/// Lists all tables served from a specified instance.
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `bigtableadmin_projects_instances_tables_list_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `bigtableadmin_projects_instances_tables_list_task()`.
+/// For the simplest API, use `bigtableadmin_projects_instances_tables_list()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `bigtableadmin_projects_instances_tables_list_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn bigtableadmin_projects_instances_tables_list_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<ListTablesResponse>, ApiError>, P = ApiPending>
+        + Send
+        + 'static,
+    ApiError,
+> {
+    let task = bigtableadmin_projects_instances_tables_list_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`bigtableadmin_projects_instances_tables_list`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct BigtableadminProjectsInstancesTablesListArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Query parameter: pageSize
+    pub pageSize: Option<Option<String>>,
+    /// Query parameter: pageToken
+    pub pageToken: Option<Option<String>>,
+    /// Query parameter: view
+    pub view: Option<Option<String>>,
+}
+
+/// GET v2/projects/{projectsId}/instances/{instancesId}/tables
+/// Lists all tables served from a specified instance.
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `bigtableadmin_projects_instances_tables_list_builder()` + `bigtableadmin_projects_instances_tables_list_execute()`.
+/// For task-level control, use `bigtableadmin_projects_instances_tables_list_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn bigtableadmin_projects_instances_tables_list(
+    client: &SimpleHttpClient,
+    args: &BigtableadminProjectsInstancesTablesListArgs,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<ListTablesResponse>, ApiError>, P = ApiPending>
+        + Send
+        + 'static,
+    ApiError,
+> {
+    let builder = bigtableadmin_projects_instances_tables_list_builder(
+        client,
+        &args.parent,
+        &args.pageSize,
+        &args.pageToken,
+        &args.view,
+    )?;
+    bigtableadmin_projects_instances_tables_list_execute(builder)
+}
+
+/// POST v2/projects/{projectsId}/instances/{instancesId}/tables/{tablesId}:modifyColumnFamilies
+/// Performs a series of column family modifications on the specified table. Either all or none of the modifications will occur before this method returns, but data requests received prior to that point may see a table where only some modifications have taken effect.
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `bigtableadmin_projects_instances_tables_modify_column_families_execute()` to send, or `bigtableadmin_projects_instances_tables_modify_column_families` for simplest API.
+
+pub fn bigtableadmin_projects_instances_tables_modify_column_families_builder(
+    client: &SimpleHttpClient,
+    name: &String,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!(
+        "https://bigtableadmin.googleapis.com/v2/projects/{}/instances/{instancesId}/tables/{tablesId}:modifyColumnFamilies",
+        name,
+    );
+
+    // Build request
+    let builder = client
+        .post(&endpoint_url)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// POST v2/projects/{projectsId}/instances/{instancesId}/tables/{tablesId}:modifyColumnFamilies
+/// Performs a series of column family modifications on the specified table. Either all or none of the modifications will occur before this method returns, but data requests received prior to that point may see a table where only some modifications have taken effect.
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `bigtableadmin_projects_instances_tables_modify_column_families_execute()` or `bigtableadmin_projects_instances_tables_modify_column_families`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `bigtableadmin_projects_instances_tables_modify_column_families_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn bigtableadmin_projects_instances_tables_modify_column_families_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<Table>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: Table = serde_json::from_str(&body)
+                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// POST v2/projects/{projectsId}/instances/{instancesId}/tables/{tablesId}:modifyColumnFamilies
+/// Performs a series of column family modifications on the specified table. Either all or none of the modifications will occur before this method returns, but data requests received prior to that point may see a table where only some modifications have taken effect.
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `bigtableadmin_projects_instances_tables_modify_column_families_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `bigtableadmin_projects_instances_tables_modify_column_families_task()`.
+/// For the simplest API, use `bigtableadmin_projects_instances_tables_modify_column_families()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `bigtableadmin_projects_instances_tables_modify_column_families_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn bigtableadmin_projects_instances_tables_modify_column_families_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<Table>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let task = bigtableadmin_projects_instances_tables_modify_column_families_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`bigtableadmin_projects_instances_tables_modify_column_families`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct BigtableadminProjectsInstancesTablesModifyColumnFamiliesArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
+/// POST v2/projects/{projectsId}/instances/{instancesId}/tables/{tablesId}:modifyColumnFamilies
+/// Performs a series of column family modifications on the specified table. Either all or none of the modifications will occur before this method returns, but data requests received prior to that point may see a table where only some modifications have taken effect.
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `bigtableadmin_projects_instances_tables_modify_column_families_builder()` + `bigtableadmin_projects_instances_tables_modify_column_families_execute()`.
+/// For task-level control, use `bigtableadmin_projects_instances_tables_modify_column_families_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn bigtableadmin_projects_instances_tables_modify_column_families(
+    client: &SimpleHttpClient,
+    args: &BigtableadminProjectsInstancesTablesModifyColumnFamiliesArgs,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<Table>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let builder =
+        bigtableadmin_projects_instances_tables_modify_column_families_builder(client, &args.name)?;
+    bigtableadmin_projects_instances_tables_modify_column_families_execute(builder)
+}
+
+/// PATCH v2/projects/{projectsId}/instances/{instancesId}/tables/{tablesId}
+/// Updates a specified table.
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `bigtableadmin_projects_instances_tables_patch_execute()` to send, or `bigtableadmin_projects_instances_tables_patch` for simplest API.
+
+pub fn bigtableadmin_projects_instances_tables_patch_builder(
+    client: &SimpleHttpClient,
+    name: &String,
+    ignoreWarnings: &Option<Option<String>>,
+    updateMask: &Option<Option<String>>,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!(
+        "https://bigtableadmin.googleapis.com/v2/projects/{}/instances/{instancesId}/tables/{tablesId}",
+        name,
+    );
+
+    // Build request
+    let mut query_parts = Vec::new();
+    if let Some(val) = ignoreWarnings.as_ref() {
+        query_parts.push(format!("ignoreWarnings={}", val));
+    }
+    if let Some(val) = updateMask.as_ref() {
+        query_parts.push(format!("updateMask={}", val));
+    }
+
+    let url_with_query = if query_parts.is_empty() {
+        endpoint_url
+    } else {
+        format!("{}?{}", endpoint_url, query_parts.join("&"))
+    };
+
+    let builder = client
+        .patch(&url_with_query)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// PATCH v2/projects/{projectsId}/instances/{instancesId}/tables/{tablesId}
+/// Updates a specified table.
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `bigtableadmin_projects_instances_tables_patch_execute()` or `bigtableadmin_projects_instances_tables_patch`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `bigtableadmin_projects_instances_tables_patch_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn bigtableadmin_projects_instances_tables_patch_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<Operation>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: Operation = serde_json::from_str(&body)
+                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// PATCH v2/projects/{projectsId}/instances/{instancesId}/tables/{tablesId}
+/// Updates a specified table.
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `bigtableadmin_projects_instances_tables_patch_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `bigtableadmin_projects_instances_tables_patch_task()`.
+/// For the simplest API, use `bigtableadmin_projects_instances_tables_patch()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `bigtableadmin_projects_instances_tables_patch_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn bigtableadmin_projects_instances_tables_patch_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<Operation>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let task = bigtableadmin_projects_instances_tables_patch_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`bigtableadmin_projects_instances_tables_patch`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct BigtableadminProjectsInstancesTablesPatchArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Query parameter: ignoreWarnings
+    pub ignoreWarnings: Option<Option<String>>,
+    /// Query parameter: updateMask
+    pub updateMask: Option<Option<String>>,
+}
+
+/// PATCH v2/projects/{projectsId}/instances/{instancesId}/tables/{tablesId}
+/// Updates a specified table.
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `bigtableadmin_projects_instances_tables_patch_builder()` + `bigtableadmin_projects_instances_tables_patch_execute()`.
+/// For task-level control, use `bigtableadmin_projects_instances_tables_patch_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn bigtableadmin_projects_instances_tables_patch(
+    client: &SimpleHttpClient,
+    args: &BigtableadminProjectsInstancesTablesPatchArgs,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<Operation>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let builder = bigtableadmin_projects_instances_tables_patch_builder(
+        client,
+        &args.name,
+        &args.ignoreWarnings,
+        &args.updateMask,
+    )?;
+    bigtableadmin_projects_instances_tables_patch_execute(builder)
+}
+
+/// POST v2/projects/{projectsId}/instances/{instancesId}/tables:restore
+/// Create a new table by restoring from a completed backup. The returned table long-running operation can be used to track the progress of the operation, and to cancel it. The metadata field type is RestoreTableMetadata. The response type is Table, if successful.
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `bigtableadmin_projects_instances_tables_restore_execute()` to send, or `bigtableadmin_projects_instances_tables_restore` for simplest API.
+
+pub fn bigtableadmin_projects_instances_tables_restore_builder(
+    client: &SimpleHttpClient,
+    parent: &String,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!(
+        "https://bigtableadmin.googleapis.com/v2/projects/{}/instances/{instancesId}/tables:restore",
+        parent,
+    );
+
+    // Build request
+    let builder = client
+        .post(&endpoint_url)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// POST v2/projects/{projectsId}/instances/{instancesId}/tables:restore
+/// Create a new table by restoring from a completed backup. The returned table long-running operation can be used to track the progress of the operation, and to cancel it. The metadata field type is RestoreTableMetadata. The response type is Table, if successful.
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `bigtableadmin_projects_instances_tables_restore_execute()` or `bigtableadmin_projects_instances_tables_restore`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `bigtableadmin_projects_instances_tables_restore_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn bigtableadmin_projects_instances_tables_restore_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<Operation>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: Operation = serde_json::from_str(&body)
+                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// POST v2/projects/{projectsId}/instances/{instancesId}/tables:restore
+/// Create a new table by restoring from a completed backup. The returned table long-running operation can be used to track the progress of the operation, and to cancel it. The metadata field type is RestoreTableMetadata. The response type is Table, if successful.
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `bigtableadmin_projects_instances_tables_restore_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `bigtableadmin_projects_instances_tables_restore_task()`.
+/// For the simplest API, use `bigtableadmin_projects_instances_tables_restore()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `bigtableadmin_projects_instances_tables_restore_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn bigtableadmin_projects_instances_tables_restore_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<Operation>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let task = bigtableadmin_projects_instances_tables_restore_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`bigtableadmin_projects_instances_tables_restore`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct BigtableadminProjectsInstancesTablesRestoreArgs {
+    /// Path parameter: parent
+    pub parent: String,
+}
+
+/// POST v2/projects/{projectsId}/instances/{instancesId}/tables:restore
+/// Create a new table by restoring from a completed backup. The returned table long-running operation can be used to track the progress of the operation, and to cancel it. The metadata field type is RestoreTableMetadata. The response type is Table, if successful.
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `bigtableadmin_projects_instances_tables_restore_builder()` + `bigtableadmin_projects_instances_tables_restore_execute()`.
+/// For task-level control, use `bigtableadmin_projects_instances_tables_restore_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn bigtableadmin_projects_instances_tables_restore(
+    client: &SimpleHttpClient,
+    args: &BigtableadminProjectsInstancesTablesRestoreArgs,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<Operation>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let builder = bigtableadmin_projects_instances_tables_restore_builder(client, &args.parent)?;
+    bigtableadmin_projects_instances_tables_restore_execute(builder)
+}
+
+/// POST v2/projects/{projectsId}/instances/{instancesId}/tables/{tablesId}:setIamPolicy
+/// Sets the access control policy on a Bigtable resource. Replaces any existing policy.
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `bigtableadmin_projects_instances_tables_set_iam_policy_execute()` to send, or `bigtableadmin_projects_instances_tables_set_iam_policy` for simplest API.
+
+pub fn bigtableadmin_projects_instances_tables_set_iam_policy_builder(
+    client: &SimpleHttpClient,
+    resource: &String,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!(
+        "https://bigtableadmin.googleapis.com/v2/projects/{}/instances/{instancesId}/tables/{tablesId}:setIamPolicy",
+        resource,
+    );
+
+    // Build request
+    let builder = client
+        .post(&endpoint_url)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// POST v2/projects/{projectsId}/instances/{instancesId}/tables/{tablesId}:setIamPolicy
+/// Sets the access control policy on a Bigtable resource. Replaces any existing policy.
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `bigtableadmin_projects_instances_tables_set_iam_policy_execute()` or `bigtableadmin_projects_instances_tables_set_iam_policy`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `bigtableadmin_projects_instances_tables_set_iam_policy_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn bigtableadmin_projects_instances_tables_set_iam_policy_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<Policy>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: Policy = serde_json::from_str(&body)
+                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// POST v2/projects/{projectsId}/instances/{instancesId}/tables/{tablesId}:setIamPolicy
+/// Sets the access control policy on a Bigtable resource. Replaces any existing policy.
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `bigtableadmin_projects_instances_tables_set_iam_policy_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `bigtableadmin_projects_instances_tables_set_iam_policy_task()`.
+/// For the simplest API, use `bigtableadmin_projects_instances_tables_set_iam_policy()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `bigtableadmin_projects_instances_tables_set_iam_policy_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn bigtableadmin_projects_instances_tables_set_iam_policy_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<Policy>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let task = bigtableadmin_projects_instances_tables_set_iam_policy_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`bigtableadmin_projects_instances_tables_set_iam_policy`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct BigtableadminProjectsInstancesTablesSetIamPolicyArgs {
+    /// Path parameter: resource
+    pub resource: String,
+}
+
+/// POST v2/projects/{projectsId}/instances/{instancesId}/tables/{tablesId}:setIamPolicy
+/// Sets the access control policy on a Bigtable resource. Replaces any existing policy.
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `bigtableadmin_projects_instances_tables_set_iam_policy_builder()` + `bigtableadmin_projects_instances_tables_set_iam_policy_execute()`.
+/// For task-level control, use `bigtableadmin_projects_instances_tables_set_iam_policy_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn bigtableadmin_projects_instances_tables_set_iam_policy(
+    client: &SimpleHttpClient,
+    args: &BigtableadminProjectsInstancesTablesSetIamPolicyArgs,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<Policy>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let builder =
+        bigtableadmin_projects_instances_tables_set_iam_policy_builder(client, &args.resource)?;
+    bigtableadmin_projects_instances_tables_set_iam_policy_execute(builder)
+}
+
+/// POST v2/projects/{projectsId}/instances/{instancesId}/tables/{tablesId}:testIamPermissions
+/// Returns permissions that the caller has on the specified Bigtable resource.
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `bigtableadmin_projects_instances_tables_test_iam_permissions_execute()` to send, or `bigtableadmin_projects_instances_tables_test_iam_permissions` for simplest API.
+
+pub fn bigtableadmin_projects_instances_tables_test_iam_permissions_builder(
+    client: &SimpleHttpClient,
+    resource: &String,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!(
+        "https://bigtableadmin.googleapis.com/v2/projects/{}/instances/{instancesId}/tables/{tablesId}:testIamPermissions",
+        resource,
+    );
+
+    // Build request
+    let builder = client
+        .post(&endpoint_url)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// POST v2/projects/{projectsId}/instances/{instancesId}/tables/{tablesId}:testIamPermissions
+/// Returns permissions that the caller has on the specified Bigtable resource.
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `bigtableadmin_projects_instances_tables_test_iam_permissions_execute()` or `bigtableadmin_projects_instances_tables_test_iam_permissions`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `bigtableadmin_projects_instances_tables_test_iam_permissions_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn bigtableadmin_projects_instances_tables_test_iam_permissions_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<TestIamPermissionsResponse>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: TestIamPermissionsResponse = serde_json::from_str(&body)
+                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// POST v2/projects/{projectsId}/instances/{instancesId}/tables/{tablesId}:testIamPermissions
+/// Returns permissions that the caller has on the specified Bigtable resource.
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `bigtableadmin_projects_instances_tables_test_iam_permissions_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `bigtableadmin_projects_instances_tables_test_iam_permissions_task()`.
+/// For the simplest API, use `bigtableadmin_projects_instances_tables_test_iam_permissions()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `bigtableadmin_projects_instances_tables_test_iam_permissions_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn bigtableadmin_projects_instances_tables_test_iam_permissions_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<
+            D = Result<ApiResponse<TestIamPermissionsResponse>, ApiError>,
+            P = ApiPending,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    let task = bigtableadmin_projects_instances_tables_test_iam_permissions_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`bigtableadmin_projects_instances_tables_test_iam_permissions`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct BigtableadminProjectsInstancesTablesTestIamPermissionsArgs {
+    /// Path parameter: resource
+    pub resource: String,
+}
+
+/// POST v2/projects/{projectsId}/instances/{instancesId}/tables/{tablesId}:testIamPermissions
+/// Returns permissions that the caller has on the specified Bigtable resource.
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `bigtableadmin_projects_instances_tables_test_iam_permissions_builder()` + `bigtableadmin_projects_instances_tables_test_iam_permissions_execute()`.
+/// For task-level control, use `bigtableadmin_projects_instances_tables_test_iam_permissions_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn bigtableadmin_projects_instances_tables_test_iam_permissions(
+    client: &SimpleHttpClient,
+    args: &BigtableadminProjectsInstancesTablesTestIamPermissionsArgs,
+) -> Result<
+    impl StreamIterator<
+            D = Result<ApiResponse<TestIamPermissionsResponse>, ApiError>,
+            P = ApiPending,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    let builder = bigtableadmin_projects_instances_tables_test_iam_permissions_builder(
+        client,
+        &args.resource,
+    )?;
+    bigtableadmin_projects_instances_tables_test_iam_permissions_execute(builder)
+}
+
+/// POST v2/projects/{projectsId}/instances/{instancesId}/tables/{tablesId}:undelete
+/// Restores a specified table which was accidentally deleted.
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `bigtableadmin_projects_instances_tables_undelete_execute()` to send, or `bigtableadmin_projects_instances_tables_undelete` for simplest API.
+
+pub fn bigtableadmin_projects_instances_tables_undelete_builder(
+    client: &SimpleHttpClient,
+    name: &String,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!(
+        "https://bigtableadmin.googleapis.com/v2/projects/{}/instances/{instancesId}/tables/{tablesId}:undelete",
+        name,
+    );
+
+    // Build request
+    let builder = client
+        .post(&endpoint_url)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// POST v2/projects/{projectsId}/instances/{instancesId}/tables/{tablesId}:undelete
+/// Restores a specified table which was accidentally deleted.
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `bigtableadmin_projects_instances_tables_undelete_execute()` or `bigtableadmin_projects_instances_tables_undelete`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `bigtableadmin_projects_instances_tables_undelete_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn bigtableadmin_projects_instances_tables_undelete_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<Operation>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: Operation = serde_json::from_str(&body)
+                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// POST v2/projects/{projectsId}/instances/{instancesId}/tables/{tablesId}:undelete
+/// Restores a specified table which was accidentally deleted.
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `bigtableadmin_projects_instances_tables_undelete_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `bigtableadmin_projects_instances_tables_undelete_task()`.
+/// For the simplest API, use `bigtableadmin_projects_instances_tables_undelete()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `bigtableadmin_projects_instances_tables_undelete_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn bigtableadmin_projects_instances_tables_undelete_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<Operation>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let task = bigtableadmin_projects_instances_tables_undelete_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`bigtableadmin_projects_instances_tables_undelete`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct BigtableadminProjectsInstancesTablesUndeleteArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
+/// POST v2/projects/{projectsId}/instances/{instancesId}/tables/{tablesId}:undelete
+/// Restores a specified table which was accidentally deleted.
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `bigtableadmin_projects_instances_tables_undelete_builder()` + `bigtableadmin_projects_instances_tables_undelete_execute()`.
+/// For task-level control, use `bigtableadmin_projects_instances_tables_undelete_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn bigtableadmin_projects_instances_tables_undelete(
+    client: &SimpleHttpClient,
+    args: &BigtableadminProjectsInstancesTablesUndeleteArgs,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<Operation>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let builder = bigtableadmin_projects_instances_tables_undelete_builder(client, &args.name)?;
+    bigtableadmin_projects_instances_tables_undelete_execute(builder)
+}
+
+/// POST v2/projects/{projectsId}/instances/{instancesId}/tables/{tablesId}/authorizedViews
+/// Creates a new AuthorizedView in a table.
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `bigtableadmin_projects_instances_tables_authorized_views_create_execute()` to send, or `bigtableadmin_projects_instances_tables_authorized_views_create` for simplest API.
+
+pub fn bigtableadmin_projects_instances_tables_authorized_views_create_builder(
+    client: &SimpleHttpClient,
+    parent: &String,
+    authorizedViewId: &Option<Option<String>>,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!(
+        "https://bigtableadmin.googleapis.com/v2/projects/{}/instances/{instancesId}/tables/{tablesId}/authorizedViews",
+        parent,
+    );
+
+    // Build request
+    let mut query_parts = Vec::new();
+    if let Some(val) = authorizedViewId.as_ref() {
+        query_parts.push(format!("authorizedViewId={}", val));
+    }
+
+    let url_with_query = if query_parts.is_empty() {
+        endpoint_url
+    } else {
+        format!("{}?{}", endpoint_url, query_parts.join("&"))
+    };
+
+    let builder = client
+        .post(&url_with_query)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// POST v2/projects/{projectsId}/instances/{instancesId}/tables/{tablesId}/authorizedViews
+/// Creates a new AuthorizedView in a table.
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `bigtableadmin_projects_instances_tables_authorized_views_create_execute()` or `bigtableadmin_projects_instances_tables_authorized_views_create`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `bigtableadmin_projects_instances_tables_authorized_views_create_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn bigtableadmin_projects_instances_tables_authorized_views_create_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<Operation>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: Operation = serde_json::from_str(&body)
+                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// POST v2/projects/{projectsId}/instances/{instancesId}/tables/{tablesId}/authorizedViews
+/// Creates a new AuthorizedView in a table.
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `bigtableadmin_projects_instances_tables_authorized_views_create_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `bigtableadmin_projects_instances_tables_authorized_views_create_task()`.
+/// For the simplest API, use `bigtableadmin_projects_instances_tables_authorized_views_create()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `bigtableadmin_projects_instances_tables_authorized_views_create_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn bigtableadmin_projects_instances_tables_authorized_views_create_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<Operation>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let task = bigtableadmin_projects_instances_tables_authorized_views_create_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`bigtableadmin_projects_instances_tables_authorized_views_create`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct BigtableadminProjectsInstancesTablesAuthorizedViewsCreateArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Query parameter: authorizedViewId
+    pub authorizedViewId: Option<Option<String>>,
+}
+
+/// POST v2/projects/{projectsId}/instances/{instancesId}/tables/{tablesId}/authorizedViews
+/// Creates a new AuthorizedView in a table.
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `bigtableadmin_projects_instances_tables_authorized_views_create_builder()` + `bigtableadmin_projects_instances_tables_authorized_views_create_execute()`.
+/// For task-level control, use `bigtableadmin_projects_instances_tables_authorized_views_create_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn bigtableadmin_projects_instances_tables_authorized_views_create(
+    client: &SimpleHttpClient,
+    args: &BigtableadminProjectsInstancesTablesAuthorizedViewsCreateArgs,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<Operation>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let builder = bigtableadmin_projects_instances_tables_authorized_views_create_builder(
+        client,
+        &args.parent,
+        &args.authorizedViewId,
+    )?;
+    bigtableadmin_projects_instances_tables_authorized_views_create_execute(builder)
+}
+
+/// DELETE v2/projects/{projectsId}/instances/{instancesId}/tables/{tablesId}/authorizedViews/{authorizedViewsId}
+/// Permanently deletes a specified AuthorizedView.
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `bigtableadmin_projects_instances_tables_authorized_views_delete_execute()` to send, or `bigtableadmin_projects_instances_tables_authorized_views_delete` for simplest API.
+
+pub fn bigtableadmin_projects_instances_tables_authorized_views_delete_builder(
+    client: &SimpleHttpClient,
+    name: &String,
+    etag: &Option<Option<String>>,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!(
+        "https://bigtableadmin.googleapis.com/v2/projects/{}/instances/{instancesId}/tables/{tablesId}/authorizedViews/{authorizedViewsId}",
+        name,
+    );
+
+    // Build request
+    let mut query_parts = Vec::new();
+    if let Some(val) = etag.as_ref() {
+        query_parts.push(format!("etag={}", val));
+    }
+
+    let url_with_query = if query_parts.is_empty() {
+        endpoint_url
+    } else {
+        format!("{}?{}", endpoint_url, query_parts.join("&"))
+    };
+
+    let builder = client
+        .delete(&url_with_query)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// DELETE v2/projects/{projectsId}/instances/{instancesId}/tables/{tablesId}/authorizedViews/{authorizedViewsId}
+/// Permanently deletes a specified AuthorizedView.
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `bigtableadmin_projects_instances_tables_authorized_views_delete_execute()` or `bigtableadmin_projects_instances_tables_authorized_views_delete`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `bigtableadmin_projects_instances_tables_authorized_views_delete_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn bigtableadmin_projects_instances_tables_authorized_views_delete_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<Empty>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: Empty = serde_json::from_str(&body)
+                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// DELETE v2/projects/{projectsId}/instances/{instancesId}/tables/{tablesId}/authorizedViews/{authorizedViewsId}
+/// Permanently deletes a specified AuthorizedView.
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `bigtableadmin_projects_instances_tables_authorized_views_delete_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `bigtableadmin_projects_instances_tables_authorized_views_delete_task()`.
+/// For the simplest API, use `bigtableadmin_projects_instances_tables_authorized_views_delete()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `bigtableadmin_projects_instances_tables_authorized_views_delete_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn bigtableadmin_projects_instances_tables_authorized_views_delete_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<Empty>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let task = bigtableadmin_projects_instances_tables_authorized_views_delete_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`bigtableadmin_projects_instances_tables_authorized_views_delete`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct BigtableadminProjectsInstancesTablesAuthorizedViewsDeleteArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Query parameter: etag
+    pub etag: Option<Option<String>>,
+}
+
+/// DELETE v2/projects/{projectsId}/instances/{instancesId}/tables/{tablesId}/authorizedViews/{authorizedViewsId}
+/// Permanently deletes a specified AuthorizedView.
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `bigtableadmin_projects_instances_tables_authorized_views_delete_builder()` + `bigtableadmin_projects_instances_tables_authorized_views_delete_execute()`.
+/// For task-level control, use `bigtableadmin_projects_instances_tables_authorized_views_delete_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn bigtableadmin_projects_instances_tables_authorized_views_delete(
+    client: &SimpleHttpClient,
+    args: &BigtableadminProjectsInstancesTablesAuthorizedViewsDeleteArgs,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<Empty>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let builder = bigtableadmin_projects_instances_tables_authorized_views_delete_builder(
+        client, &args.name, &args.etag,
+    )?;
+    bigtableadmin_projects_instances_tables_authorized_views_delete_execute(builder)
+}
+
+/// GET v2/projects/{projectsId}/instances/{instancesId}/tables/{tablesId}/authorizedViews/{authorizedViewsId}
+/// Gets information from a specified AuthorizedView.
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `bigtableadmin_projects_instances_tables_authorized_views_get_execute()` to send, or `bigtableadmin_projects_instances_tables_authorized_views_get` for simplest API.
+
+pub fn bigtableadmin_projects_instances_tables_authorized_views_get_builder(
+    client: &SimpleHttpClient,
+    name: &String,
+    view: &Option<Option<String>>,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!(
+        "https://bigtableadmin.googleapis.com/v2/projects/{}/instances/{instancesId}/tables/{tablesId}/authorizedViews/{authorizedViewsId}",
+        name,
+    );
+
+    // Build request
+    let mut query_parts = Vec::new();
+    if let Some(val) = view.as_ref() {
+        query_parts.push(format!("view={}", val));
+    }
+
+    let url_with_query = if query_parts.is_empty() {
+        endpoint_url
+    } else {
+        format!("{}?{}", endpoint_url, query_parts.join("&"))
+    };
+
+    let builder = client
+        .get(&url_with_query)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// GET v2/projects/{projectsId}/instances/{instancesId}/tables/{tablesId}/authorizedViews/{authorizedViewsId}
+/// Gets information from a specified AuthorizedView.
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `bigtableadmin_projects_instances_tables_authorized_views_get_execute()` or `bigtableadmin_projects_instances_tables_authorized_views_get`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `bigtableadmin_projects_instances_tables_authorized_views_get_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn bigtableadmin_projects_instances_tables_authorized_views_get_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<AuthorizedView>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: AuthorizedView = serde_json::from_str(&body)
+                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// GET v2/projects/{projectsId}/instances/{instancesId}/tables/{tablesId}/authorizedViews/{authorizedViewsId}
+/// Gets information from a specified AuthorizedView.
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `bigtableadmin_projects_instances_tables_authorized_views_get_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `bigtableadmin_projects_instances_tables_authorized_views_get_task()`.
+/// For the simplest API, use `bigtableadmin_projects_instances_tables_authorized_views_get()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `bigtableadmin_projects_instances_tables_authorized_views_get_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn bigtableadmin_projects_instances_tables_authorized_views_get_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<AuthorizedView>, ApiError>, P = ApiPending>
+        + Send
+        + 'static,
+    ApiError,
+> {
+    let task = bigtableadmin_projects_instances_tables_authorized_views_get_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`bigtableadmin_projects_instances_tables_authorized_views_get`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct BigtableadminProjectsInstancesTablesAuthorizedViewsGetArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Query parameter: view
+    pub view: Option<Option<String>>,
+}
+
+/// GET v2/projects/{projectsId}/instances/{instancesId}/tables/{tablesId}/authorizedViews/{authorizedViewsId}
+/// Gets information from a specified AuthorizedView.
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `bigtableadmin_projects_instances_tables_authorized_views_get_builder()` + `bigtableadmin_projects_instances_tables_authorized_views_get_execute()`.
+/// For task-level control, use `bigtableadmin_projects_instances_tables_authorized_views_get_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn bigtableadmin_projects_instances_tables_authorized_views_get(
+    client: &SimpleHttpClient,
+    args: &BigtableadminProjectsInstancesTablesAuthorizedViewsGetArgs,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<AuthorizedView>, ApiError>, P = ApiPending>
+        + Send
+        + 'static,
+    ApiError,
+> {
+    let builder = bigtableadmin_projects_instances_tables_authorized_views_get_builder(
+        client, &args.name, &args.view,
+    )?;
+    bigtableadmin_projects_instances_tables_authorized_views_get_execute(builder)
+}
+
+/// POST v2/projects/{projectsId}/instances/{instancesId}/tables/{tablesId}/authorizedViews/{authorizedViewsId}:getIamPolicy
+/// Gets the access control policy for a Bigtable resource. Returns an empty policy if the resource exists but does not have a policy set.
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `bigtableadmin_projects_instances_tables_authorized_views_get_iam_policy_execute()` to send, or `bigtableadmin_projects_instances_tables_authorized_views_get_iam_policy` for simplest API.
+
+pub fn bigtableadmin_projects_instances_tables_authorized_views_get_iam_policy_builder(
+    client: &SimpleHttpClient,
+    resource: &String,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!(
+        "https://bigtableadmin.googleapis.com/v2/projects/{}/instances/{instancesId}/tables/{tablesId}/authorizedViews/{authorizedViewsId}:getIamPolicy",
+        resource,
+    );
+
+    // Build request
+    let builder = client
+        .post(&endpoint_url)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// POST v2/projects/{projectsId}/instances/{instancesId}/tables/{tablesId}/authorizedViews/{authorizedViewsId}:getIamPolicy
+/// Gets the access control policy for a Bigtable resource. Returns an empty policy if the resource exists but does not have a policy set.
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `bigtableadmin_projects_instances_tables_authorized_views_get_iam_policy_execute()` or `bigtableadmin_projects_instances_tables_authorized_views_get_iam_policy`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `bigtableadmin_projects_instances_tables_authorized_views_get_iam_policy_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn bigtableadmin_projects_instances_tables_authorized_views_get_iam_policy_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<Policy>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: Policy = serde_json::from_str(&body)
+                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// POST v2/projects/{projectsId}/instances/{instancesId}/tables/{tablesId}/authorizedViews/{authorizedViewsId}:getIamPolicy
+/// Gets the access control policy for a Bigtable resource. Returns an empty policy if the resource exists but does not have a policy set.
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `bigtableadmin_projects_instances_tables_authorized_views_get_iam_policy_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `bigtableadmin_projects_instances_tables_authorized_views_get_iam_policy_task()`.
+/// For the simplest API, use `bigtableadmin_projects_instances_tables_authorized_views_get_iam_policy()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `bigtableadmin_projects_instances_tables_authorized_views_get_iam_policy_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn bigtableadmin_projects_instances_tables_authorized_views_get_iam_policy_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<Policy>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let task =
+        bigtableadmin_projects_instances_tables_authorized_views_get_iam_policy_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`bigtableadmin_projects_instances_tables_authorized_views_get_iam_policy`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct BigtableadminProjectsInstancesTablesAuthorizedViewsGetIamPolicyArgs {
+    /// Path parameter: resource
+    pub resource: String,
+}
+
+/// POST v2/projects/{projectsId}/instances/{instancesId}/tables/{tablesId}/authorizedViews/{authorizedViewsId}:getIamPolicy
+/// Gets the access control policy for a Bigtable resource. Returns an empty policy if the resource exists but does not have a policy set.
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `bigtableadmin_projects_instances_tables_authorized_views_get_iam_policy_builder()` + `bigtableadmin_projects_instances_tables_authorized_views_get_iam_policy_execute()`.
+/// For task-level control, use `bigtableadmin_projects_instances_tables_authorized_views_get_iam_policy_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn bigtableadmin_projects_instances_tables_authorized_views_get_iam_policy(
+    client: &SimpleHttpClient,
+    args: &BigtableadminProjectsInstancesTablesAuthorizedViewsGetIamPolicyArgs,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<Policy>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let builder = bigtableadmin_projects_instances_tables_authorized_views_get_iam_policy_builder(
+        client,
+        &args.resource,
+    )?;
+    bigtableadmin_projects_instances_tables_authorized_views_get_iam_policy_execute(builder)
+}
+
+/// GET v2/projects/{projectsId}/instances/{instancesId}/tables/{tablesId}/authorizedViews
+/// Lists all AuthorizedViews from a specific table.
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `bigtableadmin_projects_instances_tables_authorized_views_list_execute()` to send, or `bigtableadmin_projects_instances_tables_authorized_views_list` for simplest API.
+
+pub fn bigtableadmin_projects_instances_tables_authorized_views_list_builder(
+    client: &SimpleHttpClient,
+    parent: &String,
+    pageSize: &Option<Option<String>>,
+    pageToken: &Option<Option<String>>,
+    view: &Option<Option<String>>,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!(
+        "https://bigtableadmin.googleapis.com/v2/projects/{}/instances/{instancesId}/tables/{tablesId}/authorizedViews",
+        parent,
+    );
+
+    // Build request
+    let mut query_parts = Vec::new();
+    if let Some(val) = pageSize.as_ref() {
+        query_parts.push(format!("pageSize={}", val));
+    }
+    if let Some(val) = pageToken.as_ref() {
+        query_parts.push(format!("pageToken={}", val));
+    }
+    if let Some(val) = view.as_ref() {
+        query_parts.push(format!("view={}", val));
+    }
+
+    let url_with_query = if query_parts.is_empty() {
+        endpoint_url
+    } else {
+        format!("{}?{}", endpoint_url, query_parts.join("&"))
+    };
+
+    let builder = client
+        .get(&url_with_query)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// GET v2/projects/{projectsId}/instances/{instancesId}/tables/{tablesId}/authorizedViews
+/// Lists all AuthorizedViews from a specific table.
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `bigtableadmin_projects_instances_tables_authorized_views_list_execute()` or `bigtableadmin_projects_instances_tables_authorized_views_list`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `bigtableadmin_projects_instances_tables_authorized_views_list_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn bigtableadmin_projects_instances_tables_authorized_views_list_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<ListAuthorizedViewsResponse>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: ListAuthorizedViewsResponse = serde_json::from_str(&body)
+                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// GET v2/projects/{projectsId}/instances/{instancesId}/tables/{tablesId}/authorizedViews
+/// Lists all AuthorizedViews from a specific table.
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `bigtableadmin_projects_instances_tables_authorized_views_list_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `bigtableadmin_projects_instances_tables_authorized_views_list_task()`.
+/// For the simplest API, use `bigtableadmin_projects_instances_tables_authorized_views_list()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `bigtableadmin_projects_instances_tables_authorized_views_list_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn bigtableadmin_projects_instances_tables_authorized_views_list_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<
+            D = Result<ApiResponse<ListAuthorizedViewsResponse>, ApiError>,
+            P = ApiPending,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    let task = bigtableadmin_projects_instances_tables_authorized_views_list_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`bigtableadmin_projects_instances_tables_authorized_views_list`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct BigtableadminProjectsInstancesTablesAuthorizedViewsListArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Query parameter: pageSize
+    pub pageSize: Option<Option<String>>,
+    /// Query parameter: pageToken
+    pub pageToken: Option<Option<String>>,
+    /// Query parameter: view
+    pub view: Option<Option<String>>,
+}
+
+/// GET v2/projects/{projectsId}/instances/{instancesId}/tables/{tablesId}/authorizedViews
+/// Lists all AuthorizedViews from a specific table.
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `bigtableadmin_projects_instances_tables_authorized_views_list_builder()` + `bigtableadmin_projects_instances_tables_authorized_views_list_execute()`.
+/// For task-level control, use `bigtableadmin_projects_instances_tables_authorized_views_list_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn bigtableadmin_projects_instances_tables_authorized_views_list(
+    client: &SimpleHttpClient,
+    args: &BigtableadminProjectsInstancesTablesAuthorizedViewsListArgs,
+) -> Result<
+    impl StreamIterator<
+            D = Result<ApiResponse<ListAuthorizedViewsResponse>, ApiError>,
+            P = ApiPending,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    let builder = bigtableadmin_projects_instances_tables_authorized_views_list_builder(
+        client,
+        &args.parent,
+        &args.pageSize,
+        &args.pageToken,
+        &args.view,
+    )?;
+    bigtableadmin_projects_instances_tables_authorized_views_list_execute(builder)
+}
+
+/// PATCH v2/projects/{projectsId}/instances/{instancesId}/tables/{tablesId}/authorizedViews/{authorizedViewsId}
+/// Updates an AuthorizedView in a table.
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `bigtableadmin_projects_instances_tables_authorized_views_patch_execute()` to send, or `bigtableadmin_projects_instances_tables_authorized_views_patch` for simplest API.
+
+pub fn bigtableadmin_projects_instances_tables_authorized_views_patch_builder(
+    client: &SimpleHttpClient,
+    name: &String,
+    ignoreWarnings: &Option<Option<String>>,
+    updateMask: &Option<Option<String>>,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!(
+        "https://bigtableadmin.googleapis.com/v2/projects/{}/instances/{instancesId}/tables/{tablesId}/authorizedViews/{authorizedViewsId}",
+        name,
+    );
+
+    // Build request
+    let mut query_parts = Vec::new();
+    if let Some(val) = ignoreWarnings.as_ref() {
+        query_parts.push(format!("ignoreWarnings={}", val));
+    }
+    if let Some(val) = updateMask.as_ref() {
+        query_parts.push(format!("updateMask={}", val));
+    }
+
+    let url_with_query = if query_parts.is_empty() {
+        endpoint_url
+    } else {
+        format!("{}?{}", endpoint_url, query_parts.join("&"))
+    };
+
+    let builder = client
+        .patch(&url_with_query)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// PATCH v2/projects/{projectsId}/instances/{instancesId}/tables/{tablesId}/authorizedViews/{authorizedViewsId}
+/// Updates an AuthorizedView in a table.
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `bigtableadmin_projects_instances_tables_authorized_views_patch_execute()` or `bigtableadmin_projects_instances_tables_authorized_views_patch`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `bigtableadmin_projects_instances_tables_authorized_views_patch_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn bigtableadmin_projects_instances_tables_authorized_views_patch_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<Operation>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: Operation = serde_json::from_str(&body)
+                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// PATCH v2/projects/{projectsId}/instances/{instancesId}/tables/{tablesId}/authorizedViews/{authorizedViewsId}
+/// Updates an AuthorizedView in a table.
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `bigtableadmin_projects_instances_tables_authorized_views_patch_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `bigtableadmin_projects_instances_tables_authorized_views_patch_task()`.
+/// For the simplest API, use `bigtableadmin_projects_instances_tables_authorized_views_patch()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `bigtableadmin_projects_instances_tables_authorized_views_patch_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn bigtableadmin_projects_instances_tables_authorized_views_patch_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<Operation>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let task = bigtableadmin_projects_instances_tables_authorized_views_patch_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`bigtableadmin_projects_instances_tables_authorized_views_patch`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct BigtableadminProjectsInstancesTablesAuthorizedViewsPatchArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Query parameter: ignoreWarnings
+    pub ignoreWarnings: Option<Option<String>>,
+    /// Query parameter: updateMask
+    pub updateMask: Option<Option<String>>,
+}
+
+/// PATCH v2/projects/{projectsId}/instances/{instancesId}/tables/{tablesId}/authorizedViews/{authorizedViewsId}
+/// Updates an AuthorizedView in a table.
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `bigtableadmin_projects_instances_tables_authorized_views_patch_builder()` + `bigtableadmin_projects_instances_tables_authorized_views_patch_execute()`.
+/// For task-level control, use `bigtableadmin_projects_instances_tables_authorized_views_patch_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn bigtableadmin_projects_instances_tables_authorized_views_patch(
+    client: &SimpleHttpClient,
+    args: &BigtableadminProjectsInstancesTablesAuthorizedViewsPatchArgs,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<Operation>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let builder = bigtableadmin_projects_instances_tables_authorized_views_patch_builder(
+        client,
+        &args.name,
+        &args.ignoreWarnings,
+        &args.updateMask,
+    )?;
+    bigtableadmin_projects_instances_tables_authorized_views_patch_execute(builder)
+}
+
+/// POST v2/projects/{projectsId}/instances/{instancesId}/tables/{tablesId}/authorizedViews/{authorizedViewsId}:setIamPolicy
+/// Sets the access control policy on a Bigtable resource. Replaces any existing policy.
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `bigtableadmin_projects_instances_tables_authorized_views_set_iam_policy_execute()` to send, or `bigtableadmin_projects_instances_tables_authorized_views_set_iam_policy` for simplest API.
+
+pub fn bigtableadmin_projects_instances_tables_authorized_views_set_iam_policy_builder(
+    client: &SimpleHttpClient,
+    resource: &String,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!(
+        "https://bigtableadmin.googleapis.com/v2/projects/{}/instances/{instancesId}/tables/{tablesId}/authorizedViews/{authorizedViewsId}:setIamPolicy",
+        resource,
+    );
+
+    // Build request
+    let builder = client
+        .post(&endpoint_url)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// POST v2/projects/{projectsId}/instances/{instancesId}/tables/{tablesId}/authorizedViews/{authorizedViewsId}:setIamPolicy
+/// Sets the access control policy on a Bigtable resource. Replaces any existing policy.
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `bigtableadmin_projects_instances_tables_authorized_views_set_iam_policy_execute()` or `bigtableadmin_projects_instances_tables_authorized_views_set_iam_policy`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `bigtableadmin_projects_instances_tables_authorized_views_set_iam_policy_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn bigtableadmin_projects_instances_tables_authorized_views_set_iam_policy_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<Policy>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: Policy = serde_json::from_str(&body)
+                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// POST v2/projects/{projectsId}/instances/{instancesId}/tables/{tablesId}/authorizedViews/{authorizedViewsId}:setIamPolicy
+/// Sets the access control policy on a Bigtable resource. Replaces any existing policy.
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `bigtableadmin_projects_instances_tables_authorized_views_set_iam_policy_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `bigtableadmin_projects_instances_tables_authorized_views_set_iam_policy_task()`.
+/// For the simplest API, use `bigtableadmin_projects_instances_tables_authorized_views_set_iam_policy()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `bigtableadmin_projects_instances_tables_authorized_views_set_iam_policy_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn bigtableadmin_projects_instances_tables_authorized_views_set_iam_policy_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<Policy>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let task =
+        bigtableadmin_projects_instances_tables_authorized_views_set_iam_policy_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`bigtableadmin_projects_instances_tables_authorized_views_set_iam_policy`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct BigtableadminProjectsInstancesTablesAuthorizedViewsSetIamPolicyArgs {
+    /// Path parameter: resource
+    pub resource: String,
+}
+
+/// POST v2/projects/{projectsId}/instances/{instancesId}/tables/{tablesId}/authorizedViews/{authorizedViewsId}:setIamPolicy
+/// Sets the access control policy on a Bigtable resource. Replaces any existing policy.
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `bigtableadmin_projects_instances_tables_authorized_views_set_iam_policy_builder()` + `bigtableadmin_projects_instances_tables_authorized_views_set_iam_policy_execute()`.
+/// For task-level control, use `bigtableadmin_projects_instances_tables_authorized_views_set_iam_policy_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn bigtableadmin_projects_instances_tables_authorized_views_set_iam_policy(
+    client: &SimpleHttpClient,
+    args: &BigtableadminProjectsInstancesTablesAuthorizedViewsSetIamPolicyArgs,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<Policy>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let builder = bigtableadmin_projects_instances_tables_authorized_views_set_iam_policy_builder(
+        client,
+        &args.resource,
+    )?;
+    bigtableadmin_projects_instances_tables_authorized_views_set_iam_policy_execute(builder)
+}
+
+/// POST v2/projects/{projectsId}/instances/{instancesId}/tables/{tablesId}/authorizedViews/{authorizedViewsId}:testIamPermissions
+/// Returns permissions that the caller has on the specified Bigtable resource.
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `bigtableadmin_projects_instances_tables_authorized_views_test_iam_permissions_execute()` to send, or `bigtableadmin_projects_instances_tables_authorized_views_test_iam_permissions` for simplest API.
+
+pub fn bigtableadmin_projects_instances_tables_authorized_views_test_iam_permissions_builder(
+    client: &SimpleHttpClient,
+    resource: &String,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!(
+        "https://bigtableadmin.googleapis.com/v2/projects/{}/instances/{instancesId}/tables/{tablesId}/authorizedViews/{authorizedViewsId}:testIamPermissions",
+        resource,
+    );
+
+    // Build request
+    let builder = client
+        .post(&endpoint_url)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// POST v2/projects/{projectsId}/instances/{instancesId}/tables/{tablesId}/authorizedViews/{authorizedViewsId}:testIamPermissions
+/// Returns permissions that the caller has on the specified Bigtable resource.
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `bigtableadmin_projects_instances_tables_authorized_views_test_iam_permissions_execute()` or `bigtableadmin_projects_instances_tables_authorized_views_test_iam_permissions`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `bigtableadmin_projects_instances_tables_authorized_views_test_iam_permissions_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn bigtableadmin_projects_instances_tables_authorized_views_test_iam_permissions_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<TestIamPermissionsResponse>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: TestIamPermissionsResponse = serde_json::from_str(&body)
+                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// POST v2/projects/{projectsId}/instances/{instancesId}/tables/{tablesId}/authorizedViews/{authorizedViewsId}:testIamPermissions
+/// Returns permissions that the caller has on the specified Bigtable resource.
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `bigtableadmin_projects_instances_tables_authorized_views_test_iam_permissions_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `bigtableadmin_projects_instances_tables_authorized_views_test_iam_permissions_task()`.
+/// For the simplest API, use `bigtableadmin_projects_instances_tables_authorized_views_test_iam_permissions()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `bigtableadmin_projects_instances_tables_authorized_views_test_iam_permissions_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn bigtableadmin_projects_instances_tables_authorized_views_test_iam_permissions_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<
+            D = Result<ApiResponse<TestIamPermissionsResponse>, ApiError>,
+            P = ApiPending,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    let task = bigtableadmin_projects_instances_tables_authorized_views_test_iam_permissions_task(
+        builder,
+    )?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`bigtableadmin_projects_instances_tables_authorized_views_test_iam_permissions`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct BigtableadminProjectsInstancesTablesAuthorizedViewsTestIamPermissionsArgs {
+    /// Path parameter: resource
+    pub resource: String,
+}
+
+/// POST v2/projects/{projectsId}/instances/{instancesId}/tables/{tablesId}/authorizedViews/{authorizedViewsId}:testIamPermissions
+/// Returns permissions that the caller has on the specified Bigtable resource.
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `bigtableadmin_projects_instances_tables_authorized_views_test_iam_permissions_builder()` + `bigtableadmin_projects_instances_tables_authorized_views_test_iam_permissions_execute()`.
+/// For task-level control, use `bigtableadmin_projects_instances_tables_authorized_views_test_iam_permissions_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn bigtableadmin_projects_instances_tables_authorized_views_test_iam_permissions(
+    client: &SimpleHttpClient,
+    args: &BigtableadminProjectsInstancesTablesAuthorizedViewsTestIamPermissionsArgs,
+) -> Result<
+    impl StreamIterator<
+            D = Result<ApiResponse<TestIamPermissionsResponse>, ApiError>,
+            P = ApiPending,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    let builder =
+        bigtableadmin_projects_instances_tables_authorized_views_test_iam_permissions_builder(
+            client,
+            &args.resource,
+        )?;
+    bigtableadmin_projects_instances_tables_authorized_views_test_iam_permissions_execute(builder)
+}
+
+/// POST v2/projects/{projectsId}/instances/{instancesId}/tables/{tablesId}/schemaBundles
+/// Creates a new schema bundle in the specified table.
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `bigtableadmin_projects_instances_tables_schema_bundles_create_execute()` to send, or `bigtableadmin_projects_instances_tables_schema_bundles_create` for simplest API.
+
+pub fn bigtableadmin_projects_instances_tables_schema_bundles_create_builder(
+    client: &SimpleHttpClient,
+    parent: &String,
+    schemaBundleId: &Option<Option<String>>,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!(
+        "https://bigtableadmin.googleapis.com/v2/projects/{}/instances/{instancesId}/tables/{tablesId}/schemaBundles",
+        parent,
+    );
+
+    // Build request
+    let mut query_parts = Vec::new();
+    if let Some(val) = schemaBundleId.as_ref() {
+        query_parts.push(format!("schemaBundleId={}", val));
+    }
+
+    let url_with_query = if query_parts.is_empty() {
+        endpoint_url
+    } else {
+        format!("{}?{}", endpoint_url, query_parts.join("&"))
+    };
+
+    let builder = client
+        .post(&url_with_query)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// POST v2/projects/{projectsId}/instances/{instancesId}/tables/{tablesId}/schemaBundles
+/// Creates a new schema bundle in the specified table.
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `bigtableadmin_projects_instances_tables_schema_bundles_create_execute()` or `bigtableadmin_projects_instances_tables_schema_bundles_create`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `bigtableadmin_projects_instances_tables_schema_bundles_create_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn bigtableadmin_projects_instances_tables_schema_bundles_create_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<Operation>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: Operation = serde_json::from_str(&body)
+                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// POST v2/projects/{projectsId}/instances/{instancesId}/tables/{tablesId}/schemaBundles
+/// Creates a new schema bundle in the specified table.
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `bigtableadmin_projects_instances_tables_schema_bundles_create_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `bigtableadmin_projects_instances_tables_schema_bundles_create_task()`.
+/// For the simplest API, use `bigtableadmin_projects_instances_tables_schema_bundles_create()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `bigtableadmin_projects_instances_tables_schema_bundles_create_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn bigtableadmin_projects_instances_tables_schema_bundles_create_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<Operation>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let task = bigtableadmin_projects_instances_tables_schema_bundles_create_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`bigtableadmin_projects_instances_tables_schema_bundles_create`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct BigtableadminProjectsInstancesTablesSchemaBundlesCreateArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Query parameter: schemaBundleId
+    pub schemaBundleId: Option<Option<String>>,
+}
+
+/// POST v2/projects/{projectsId}/instances/{instancesId}/tables/{tablesId}/schemaBundles
+/// Creates a new schema bundle in the specified table.
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `bigtableadmin_projects_instances_tables_schema_bundles_create_builder()` + `bigtableadmin_projects_instances_tables_schema_bundles_create_execute()`.
+/// For task-level control, use `bigtableadmin_projects_instances_tables_schema_bundles_create_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn bigtableadmin_projects_instances_tables_schema_bundles_create(
+    client: &SimpleHttpClient,
+    args: &BigtableadminProjectsInstancesTablesSchemaBundlesCreateArgs,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<Operation>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let builder = bigtableadmin_projects_instances_tables_schema_bundles_create_builder(
+        client,
+        &args.parent,
+        &args.schemaBundleId,
+    )?;
+    bigtableadmin_projects_instances_tables_schema_bundles_create_execute(builder)
+}
+
+/// DELETE v2/projects/{projectsId}/instances/{instancesId}/tables/{tablesId}/schemaBundles/{schemaBundlesId}
+/// Deletes a schema bundle in the specified table.
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `bigtableadmin_projects_instances_tables_schema_bundles_delete_execute()` to send, or `bigtableadmin_projects_instances_tables_schema_bundles_delete` for simplest API.
+
+pub fn bigtableadmin_projects_instances_tables_schema_bundles_delete_builder(
+    client: &SimpleHttpClient,
+    name: &String,
+    etag: &Option<Option<String>>,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!(
+        "https://bigtableadmin.googleapis.com/v2/projects/{}/instances/{instancesId}/tables/{tablesId}/schemaBundles/{schemaBundlesId}",
+        name,
+    );
+
+    // Build request
+    let mut query_parts = Vec::new();
+    if let Some(val) = etag.as_ref() {
+        query_parts.push(format!("etag={}", val));
+    }
+
+    let url_with_query = if query_parts.is_empty() {
+        endpoint_url
+    } else {
+        format!("{}?{}", endpoint_url, query_parts.join("&"))
+    };
+
+    let builder = client
+        .delete(&url_with_query)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// DELETE v2/projects/{projectsId}/instances/{instancesId}/tables/{tablesId}/schemaBundles/{schemaBundlesId}
+/// Deletes a schema bundle in the specified table.
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `bigtableadmin_projects_instances_tables_schema_bundles_delete_execute()` or `bigtableadmin_projects_instances_tables_schema_bundles_delete`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `bigtableadmin_projects_instances_tables_schema_bundles_delete_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn bigtableadmin_projects_instances_tables_schema_bundles_delete_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<Empty>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: Empty = serde_json::from_str(&body)
+                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// DELETE v2/projects/{projectsId}/instances/{instancesId}/tables/{tablesId}/schemaBundles/{schemaBundlesId}
+/// Deletes a schema bundle in the specified table.
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `bigtableadmin_projects_instances_tables_schema_bundles_delete_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `bigtableadmin_projects_instances_tables_schema_bundles_delete_task()`.
+/// For the simplest API, use `bigtableadmin_projects_instances_tables_schema_bundles_delete()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `bigtableadmin_projects_instances_tables_schema_bundles_delete_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn bigtableadmin_projects_instances_tables_schema_bundles_delete_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<Empty>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let task = bigtableadmin_projects_instances_tables_schema_bundles_delete_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`bigtableadmin_projects_instances_tables_schema_bundles_delete`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct BigtableadminProjectsInstancesTablesSchemaBundlesDeleteArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Query parameter: etag
+    pub etag: Option<Option<String>>,
+}
+
+/// DELETE v2/projects/{projectsId}/instances/{instancesId}/tables/{tablesId}/schemaBundles/{schemaBundlesId}
+/// Deletes a schema bundle in the specified table.
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `bigtableadmin_projects_instances_tables_schema_bundles_delete_builder()` + `bigtableadmin_projects_instances_tables_schema_bundles_delete_execute()`.
+/// For task-level control, use `bigtableadmin_projects_instances_tables_schema_bundles_delete_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn bigtableadmin_projects_instances_tables_schema_bundles_delete(
+    client: &SimpleHttpClient,
+    args: &BigtableadminProjectsInstancesTablesSchemaBundlesDeleteArgs,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<Empty>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let builder = bigtableadmin_projects_instances_tables_schema_bundles_delete_builder(
+        client, &args.name, &args.etag,
+    )?;
+    bigtableadmin_projects_instances_tables_schema_bundles_delete_execute(builder)
+}
+
+/// GET v2/projects/{projectsId}/instances/{instancesId}/tables/{tablesId}/schemaBundles/{schemaBundlesId}
+/// Gets metadata information about the specified schema bundle.
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `bigtableadmin_projects_instances_tables_schema_bundles_get_execute()` to send, or `bigtableadmin_projects_instances_tables_schema_bundles_get` for simplest API.
+
+pub fn bigtableadmin_projects_instances_tables_schema_bundles_get_builder(
+    client: &SimpleHttpClient,
+    name: &String,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!(
+        "https://bigtableadmin.googleapis.com/v2/projects/{}/instances/{instancesId}/tables/{tablesId}/schemaBundles/{schemaBundlesId}",
+        name,
+    );
+
+    // Build request
+    let builder = client
+        .get(&endpoint_url)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// GET v2/projects/{projectsId}/instances/{instancesId}/tables/{tablesId}/schemaBundles/{schemaBundlesId}
+/// Gets metadata information about the specified schema bundle.
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `bigtableadmin_projects_instances_tables_schema_bundles_get_execute()` or `bigtableadmin_projects_instances_tables_schema_bundles_get`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `bigtableadmin_projects_instances_tables_schema_bundles_get_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn bigtableadmin_projects_instances_tables_schema_bundles_get_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<SchemaBundle>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: SchemaBundle = serde_json::from_str(&body)
+                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// GET v2/projects/{projectsId}/instances/{instancesId}/tables/{tablesId}/schemaBundles/{schemaBundlesId}
+/// Gets metadata information about the specified schema bundle.
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `bigtableadmin_projects_instances_tables_schema_bundles_get_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `bigtableadmin_projects_instances_tables_schema_bundles_get_task()`.
+/// For the simplest API, use `bigtableadmin_projects_instances_tables_schema_bundles_get()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `bigtableadmin_projects_instances_tables_schema_bundles_get_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn bigtableadmin_projects_instances_tables_schema_bundles_get_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<SchemaBundle>, ApiError>, P = ApiPending>
+        + Send
+        + 'static,
+    ApiError,
+> {
+    let task = bigtableadmin_projects_instances_tables_schema_bundles_get_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`bigtableadmin_projects_instances_tables_schema_bundles_get`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct BigtableadminProjectsInstancesTablesSchemaBundlesGetArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
+/// GET v2/projects/{projectsId}/instances/{instancesId}/tables/{tablesId}/schemaBundles/{schemaBundlesId}
+/// Gets metadata information about the specified schema bundle.
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `bigtableadmin_projects_instances_tables_schema_bundles_get_builder()` + `bigtableadmin_projects_instances_tables_schema_bundles_get_execute()`.
+/// For task-level control, use `bigtableadmin_projects_instances_tables_schema_bundles_get_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn bigtableadmin_projects_instances_tables_schema_bundles_get(
+    client: &SimpleHttpClient,
+    args: &BigtableadminProjectsInstancesTablesSchemaBundlesGetArgs,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<SchemaBundle>, ApiError>, P = ApiPending>
+        + Send
+        + 'static,
+    ApiError,
+> {
+    let builder =
+        bigtableadmin_projects_instances_tables_schema_bundles_get_builder(client, &args.name)?;
+    bigtableadmin_projects_instances_tables_schema_bundles_get_execute(builder)
+}
+
+/// POST v2/projects/{projectsId}/instances/{instancesId}/tables/{tablesId}/schemaBundles/{schemaBundlesId}:getIamPolicy
+/// Gets the access control policy for a Bigtable resource. Returns an empty policy if the resource exists but does not have a policy set.
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `bigtableadmin_projects_instances_tables_schema_bundles_get_iam_policy_execute()` to send, or `bigtableadmin_projects_instances_tables_schema_bundles_get_iam_policy` for simplest API.
+
+pub fn bigtableadmin_projects_instances_tables_schema_bundles_get_iam_policy_builder(
+    client: &SimpleHttpClient,
+    resource: &String,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!(
+        "https://bigtableadmin.googleapis.com/v2/projects/{}/instances/{instancesId}/tables/{tablesId}/schemaBundles/{schemaBundlesId}:getIamPolicy",
+        resource,
+    );
+
+    // Build request
+    let builder = client
+        .post(&endpoint_url)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// POST v2/projects/{projectsId}/instances/{instancesId}/tables/{tablesId}/schemaBundles/{schemaBundlesId}:getIamPolicy
+/// Gets the access control policy for a Bigtable resource. Returns an empty policy if the resource exists but does not have a policy set.
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `bigtableadmin_projects_instances_tables_schema_bundles_get_iam_policy_execute()` or `bigtableadmin_projects_instances_tables_schema_bundles_get_iam_policy`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `bigtableadmin_projects_instances_tables_schema_bundles_get_iam_policy_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn bigtableadmin_projects_instances_tables_schema_bundles_get_iam_policy_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<Policy>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: Policy = serde_json::from_str(&body)
+                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// POST v2/projects/{projectsId}/instances/{instancesId}/tables/{tablesId}/schemaBundles/{schemaBundlesId}:getIamPolicy
+/// Gets the access control policy for a Bigtable resource. Returns an empty policy if the resource exists but does not have a policy set.
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `bigtableadmin_projects_instances_tables_schema_bundles_get_iam_policy_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `bigtableadmin_projects_instances_tables_schema_bundles_get_iam_policy_task()`.
+/// For the simplest API, use `bigtableadmin_projects_instances_tables_schema_bundles_get_iam_policy()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `bigtableadmin_projects_instances_tables_schema_bundles_get_iam_policy_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn bigtableadmin_projects_instances_tables_schema_bundles_get_iam_policy_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<Policy>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let task = bigtableadmin_projects_instances_tables_schema_bundles_get_iam_policy_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`bigtableadmin_projects_instances_tables_schema_bundles_get_iam_policy`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct BigtableadminProjectsInstancesTablesSchemaBundlesGetIamPolicyArgs {
+    /// Path parameter: resource
+    pub resource: String,
+}
+
+/// POST v2/projects/{projectsId}/instances/{instancesId}/tables/{tablesId}/schemaBundles/{schemaBundlesId}:getIamPolicy
+/// Gets the access control policy for a Bigtable resource. Returns an empty policy if the resource exists but does not have a policy set.
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `bigtableadmin_projects_instances_tables_schema_bundles_get_iam_policy_builder()` + `bigtableadmin_projects_instances_tables_schema_bundles_get_iam_policy_execute()`.
+/// For task-level control, use `bigtableadmin_projects_instances_tables_schema_bundles_get_iam_policy_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn bigtableadmin_projects_instances_tables_schema_bundles_get_iam_policy(
+    client: &SimpleHttpClient,
+    args: &BigtableadminProjectsInstancesTablesSchemaBundlesGetIamPolicyArgs,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<Policy>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let builder = bigtableadmin_projects_instances_tables_schema_bundles_get_iam_policy_builder(
+        client,
+        &args.resource,
+    )?;
+    bigtableadmin_projects_instances_tables_schema_bundles_get_iam_policy_execute(builder)
+}
+
+/// GET v2/projects/{projectsId}/instances/{instancesId}/tables/{tablesId}/schemaBundles
+/// Lists all schema bundles associated with the specified table.
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `bigtableadmin_projects_instances_tables_schema_bundles_list_execute()` to send, or `bigtableadmin_projects_instances_tables_schema_bundles_list` for simplest API.
+
+pub fn bigtableadmin_projects_instances_tables_schema_bundles_list_builder(
+    client: &SimpleHttpClient,
+    parent: &String,
+    pageSize: &Option<Option<String>>,
+    pageToken: &Option<Option<String>>,
+    view: &Option<Option<String>>,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!(
+        "https://bigtableadmin.googleapis.com/v2/projects/{}/instances/{instancesId}/tables/{tablesId}/schemaBundles",
+        parent,
+    );
+
+    // Build request
+    let mut query_parts = Vec::new();
+    if let Some(val) = pageSize.as_ref() {
+        query_parts.push(format!("pageSize={}", val));
+    }
+    if let Some(val) = pageToken.as_ref() {
+        query_parts.push(format!("pageToken={}", val));
+    }
+    if let Some(val) = view.as_ref() {
+        query_parts.push(format!("view={}", val));
+    }
+
+    let url_with_query = if query_parts.is_empty() {
+        endpoint_url
+    } else {
+        format!("{}?{}", endpoint_url, query_parts.join("&"))
+    };
+
+    let builder = client
+        .get(&url_with_query)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// GET v2/projects/{projectsId}/instances/{instancesId}/tables/{tablesId}/schemaBundles
+/// Lists all schema bundles associated with the specified table.
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `bigtableadmin_projects_instances_tables_schema_bundles_list_execute()` or `bigtableadmin_projects_instances_tables_schema_bundles_list`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `bigtableadmin_projects_instances_tables_schema_bundles_list_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn bigtableadmin_projects_instances_tables_schema_bundles_list_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<ListSchemaBundlesResponse>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: ListSchemaBundlesResponse = serde_json::from_str(&body)
+                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// GET v2/projects/{projectsId}/instances/{instancesId}/tables/{tablesId}/schemaBundles
+/// Lists all schema bundles associated with the specified table.
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `bigtableadmin_projects_instances_tables_schema_bundles_list_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `bigtableadmin_projects_instances_tables_schema_bundles_list_task()`.
+/// For the simplest API, use `bigtableadmin_projects_instances_tables_schema_bundles_list()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `bigtableadmin_projects_instances_tables_schema_bundles_list_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn bigtableadmin_projects_instances_tables_schema_bundles_list_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<ListSchemaBundlesResponse>, ApiError>, P = ApiPending>
+        + Send
+        + 'static,
+    ApiError,
+> {
+    let task = bigtableadmin_projects_instances_tables_schema_bundles_list_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`bigtableadmin_projects_instances_tables_schema_bundles_list`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct BigtableadminProjectsInstancesTablesSchemaBundlesListArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Query parameter: pageSize
+    pub pageSize: Option<Option<String>>,
+    /// Query parameter: pageToken
+    pub pageToken: Option<Option<String>>,
+    /// Query parameter: view
+    pub view: Option<Option<String>>,
+}
+
+/// GET v2/projects/{projectsId}/instances/{instancesId}/tables/{tablesId}/schemaBundles
+/// Lists all schema bundles associated with the specified table.
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `bigtableadmin_projects_instances_tables_schema_bundles_list_builder()` + `bigtableadmin_projects_instances_tables_schema_bundles_list_execute()`.
+/// For task-level control, use `bigtableadmin_projects_instances_tables_schema_bundles_list_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn bigtableadmin_projects_instances_tables_schema_bundles_list(
+    client: &SimpleHttpClient,
+    args: &BigtableadminProjectsInstancesTablesSchemaBundlesListArgs,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<ListSchemaBundlesResponse>, ApiError>, P = ApiPending>
+        + Send
+        + 'static,
+    ApiError,
+> {
+    let builder = bigtableadmin_projects_instances_tables_schema_bundles_list_builder(
+        client,
+        &args.parent,
+        &args.pageSize,
+        &args.pageToken,
+        &args.view,
+    )?;
+    bigtableadmin_projects_instances_tables_schema_bundles_list_execute(builder)
+}
+
+/// PATCH v2/projects/{projectsId}/instances/{instancesId}/tables/{tablesId}/schemaBundles/{schemaBundlesId}
+/// Updates a schema bundle in the specified table.
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `bigtableadmin_projects_instances_tables_schema_bundles_patch_execute()` to send, or `bigtableadmin_projects_instances_tables_schema_bundles_patch` for simplest API.
+
+pub fn bigtableadmin_projects_instances_tables_schema_bundles_patch_builder(
+    client: &SimpleHttpClient,
+    name: &String,
+    ignoreWarnings: &Option<Option<String>>,
+    updateMask: &Option<Option<String>>,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!(
+        "https://bigtableadmin.googleapis.com/v2/projects/{}/instances/{instancesId}/tables/{tablesId}/schemaBundles/{schemaBundlesId}",
+        name,
+    );
+
+    // Build request
+    let mut query_parts = Vec::new();
+    if let Some(val) = ignoreWarnings.as_ref() {
+        query_parts.push(format!("ignoreWarnings={}", val));
+    }
+    if let Some(val) = updateMask.as_ref() {
+        query_parts.push(format!("updateMask={}", val));
+    }
+
+    let url_with_query = if query_parts.is_empty() {
+        endpoint_url
+    } else {
+        format!("{}?{}", endpoint_url, query_parts.join("&"))
+    };
+
+    let builder = client
+        .patch(&url_with_query)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// PATCH v2/projects/{projectsId}/instances/{instancesId}/tables/{tablesId}/schemaBundles/{schemaBundlesId}
+/// Updates a schema bundle in the specified table.
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `bigtableadmin_projects_instances_tables_schema_bundles_patch_execute()` or `bigtableadmin_projects_instances_tables_schema_bundles_patch`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `bigtableadmin_projects_instances_tables_schema_bundles_patch_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn bigtableadmin_projects_instances_tables_schema_bundles_patch_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<Operation>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: Operation = serde_json::from_str(&body)
+                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// PATCH v2/projects/{projectsId}/instances/{instancesId}/tables/{tablesId}/schemaBundles/{schemaBundlesId}
+/// Updates a schema bundle in the specified table.
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `bigtableadmin_projects_instances_tables_schema_bundles_patch_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `bigtableadmin_projects_instances_tables_schema_bundles_patch_task()`.
+/// For the simplest API, use `bigtableadmin_projects_instances_tables_schema_bundles_patch()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `bigtableadmin_projects_instances_tables_schema_bundles_patch_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn bigtableadmin_projects_instances_tables_schema_bundles_patch_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<Operation>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let task = bigtableadmin_projects_instances_tables_schema_bundles_patch_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`bigtableadmin_projects_instances_tables_schema_bundles_patch`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct BigtableadminProjectsInstancesTablesSchemaBundlesPatchArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Query parameter: ignoreWarnings
+    pub ignoreWarnings: Option<Option<String>>,
+    /// Query parameter: updateMask
+    pub updateMask: Option<Option<String>>,
+}
+
+/// PATCH v2/projects/{projectsId}/instances/{instancesId}/tables/{tablesId}/schemaBundles/{schemaBundlesId}
+/// Updates a schema bundle in the specified table.
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `bigtableadmin_projects_instances_tables_schema_bundles_patch_builder()` + `bigtableadmin_projects_instances_tables_schema_bundles_patch_execute()`.
+/// For task-level control, use `bigtableadmin_projects_instances_tables_schema_bundles_patch_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn bigtableadmin_projects_instances_tables_schema_bundles_patch(
+    client: &SimpleHttpClient,
+    args: &BigtableadminProjectsInstancesTablesSchemaBundlesPatchArgs,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<Operation>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let builder = bigtableadmin_projects_instances_tables_schema_bundles_patch_builder(
+        client,
+        &args.name,
+        &args.ignoreWarnings,
+        &args.updateMask,
+    )?;
+    bigtableadmin_projects_instances_tables_schema_bundles_patch_execute(builder)
+}
+
+/// POST v2/projects/{projectsId}/instances/{instancesId}/tables/{tablesId}/schemaBundles/{schemaBundlesId}:setIamPolicy
+/// Sets the access control policy on a Bigtable resource. Replaces any existing policy.
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `bigtableadmin_projects_instances_tables_schema_bundles_set_iam_policy_execute()` to send, or `bigtableadmin_projects_instances_tables_schema_bundles_set_iam_policy` for simplest API.
+
+pub fn bigtableadmin_projects_instances_tables_schema_bundles_set_iam_policy_builder(
+    client: &SimpleHttpClient,
+    resource: &String,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!(
+        "https://bigtableadmin.googleapis.com/v2/projects/{}/instances/{instancesId}/tables/{tablesId}/schemaBundles/{schemaBundlesId}:setIamPolicy",
+        resource,
+    );
+
+    // Build request
+    let builder = client
+        .post(&endpoint_url)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// POST v2/projects/{projectsId}/instances/{instancesId}/tables/{tablesId}/schemaBundles/{schemaBundlesId}:setIamPolicy
+/// Sets the access control policy on a Bigtable resource. Replaces any existing policy.
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `bigtableadmin_projects_instances_tables_schema_bundles_set_iam_policy_execute()` or `bigtableadmin_projects_instances_tables_schema_bundles_set_iam_policy`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `bigtableadmin_projects_instances_tables_schema_bundles_set_iam_policy_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn bigtableadmin_projects_instances_tables_schema_bundles_set_iam_policy_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<Policy>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: Policy = serde_json::from_str(&body)
+                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// POST v2/projects/{projectsId}/instances/{instancesId}/tables/{tablesId}/schemaBundles/{schemaBundlesId}:setIamPolicy
+/// Sets the access control policy on a Bigtable resource. Replaces any existing policy.
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `bigtableadmin_projects_instances_tables_schema_bundles_set_iam_policy_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `bigtableadmin_projects_instances_tables_schema_bundles_set_iam_policy_task()`.
+/// For the simplest API, use `bigtableadmin_projects_instances_tables_schema_bundles_set_iam_policy()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `bigtableadmin_projects_instances_tables_schema_bundles_set_iam_policy_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn bigtableadmin_projects_instances_tables_schema_bundles_set_iam_policy_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<Policy>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let task = bigtableadmin_projects_instances_tables_schema_bundles_set_iam_policy_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`bigtableadmin_projects_instances_tables_schema_bundles_set_iam_policy`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct BigtableadminProjectsInstancesTablesSchemaBundlesSetIamPolicyArgs {
+    /// Path parameter: resource
+    pub resource: String,
+}
+
+/// POST v2/projects/{projectsId}/instances/{instancesId}/tables/{tablesId}/schemaBundles/{schemaBundlesId}:setIamPolicy
+/// Sets the access control policy on a Bigtable resource. Replaces any existing policy.
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `bigtableadmin_projects_instances_tables_schema_bundles_set_iam_policy_builder()` + `bigtableadmin_projects_instances_tables_schema_bundles_set_iam_policy_execute()`.
+/// For task-level control, use `bigtableadmin_projects_instances_tables_schema_bundles_set_iam_policy_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn bigtableadmin_projects_instances_tables_schema_bundles_set_iam_policy(
+    client: &SimpleHttpClient,
+    args: &BigtableadminProjectsInstancesTablesSchemaBundlesSetIamPolicyArgs,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<Policy>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let builder = bigtableadmin_projects_instances_tables_schema_bundles_set_iam_policy_builder(
+        client,
+        &args.resource,
+    )?;
+    bigtableadmin_projects_instances_tables_schema_bundles_set_iam_policy_execute(builder)
+}
+
+/// POST v2/projects/{projectsId}/instances/{instancesId}/tables/{tablesId}/schemaBundles/{schemaBundlesId}:testIamPermissions
+/// Returns permissions that the caller has on the specified Bigtable resource.
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `bigtableadmin_projects_instances_tables_schema_bundles_test_iam_permissions_execute()` to send, or `bigtableadmin_projects_instances_tables_schema_bundles_test_iam_permissions` for simplest API.
+
+pub fn bigtableadmin_projects_instances_tables_schema_bundles_test_iam_permissions_builder(
+    client: &SimpleHttpClient,
+    resource: &String,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!(
+        "https://bigtableadmin.googleapis.com/v2/projects/{}/instances/{instancesId}/tables/{tablesId}/schemaBundles/{schemaBundlesId}:testIamPermissions",
+        resource,
+    );
+
+    // Build request
+    let builder = client
+        .post(&endpoint_url)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// POST v2/projects/{projectsId}/instances/{instancesId}/tables/{tablesId}/schemaBundles/{schemaBundlesId}:testIamPermissions
+/// Returns permissions that the caller has on the specified Bigtable resource.
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `bigtableadmin_projects_instances_tables_schema_bundles_test_iam_permissions_execute()` or `bigtableadmin_projects_instances_tables_schema_bundles_test_iam_permissions`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `bigtableadmin_projects_instances_tables_schema_bundles_test_iam_permissions_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn bigtableadmin_projects_instances_tables_schema_bundles_test_iam_permissions_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<TestIamPermissionsResponse>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: TestIamPermissionsResponse = serde_json::from_str(&body)
+                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// POST v2/projects/{projectsId}/instances/{instancesId}/tables/{tablesId}/schemaBundles/{schemaBundlesId}:testIamPermissions
+/// Returns permissions that the caller has on the specified Bigtable resource.
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `bigtableadmin_projects_instances_tables_schema_bundles_test_iam_permissions_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `bigtableadmin_projects_instances_tables_schema_bundles_test_iam_permissions_task()`.
+/// For the simplest API, use `bigtableadmin_projects_instances_tables_schema_bundles_test_iam_permissions()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `bigtableadmin_projects_instances_tables_schema_bundles_test_iam_permissions_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn bigtableadmin_projects_instances_tables_schema_bundles_test_iam_permissions_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<
+            D = Result<ApiResponse<TestIamPermissionsResponse>, ApiError>,
+            P = ApiPending,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    let task =
+        bigtableadmin_projects_instances_tables_schema_bundles_test_iam_permissions_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`bigtableadmin_projects_instances_tables_schema_bundles_test_iam_permissions`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct BigtableadminProjectsInstancesTablesSchemaBundlesTestIamPermissionsArgs {
+    /// Path parameter: resource
+    pub resource: String,
+}
+
+/// POST v2/projects/{projectsId}/instances/{instancesId}/tables/{tablesId}/schemaBundles/{schemaBundlesId}:testIamPermissions
+/// Returns permissions that the caller has on the specified Bigtable resource.
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `bigtableadmin_projects_instances_tables_schema_bundles_test_iam_permissions_builder()` + `bigtableadmin_projects_instances_tables_schema_bundles_test_iam_permissions_execute()`.
+/// For task-level control, use `bigtableadmin_projects_instances_tables_schema_bundles_test_iam_permissions_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn bigtableadmin_projects_instances_tables_schema_bundles_test_iam_permissions(
+    client: &SimpleHttpClient,
+    args: &BigtableadminProjectsInstancesTablesSchemaBundlesTestIamPermissionsArgs,
+) -> Result<
+    impl StreamIterator<
+            D = Result<ApiResponse<TestIamPermissionsResponse>, ApiError>,
+            P = ApiPending,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    let builder =
+        bigtableadmin_projects_instances_tables_schema_bundles_test_iam_permissions_builder(
+            client,
+            &args.resource,
+        )?;
+    bigtableadmin_projects_instances_tables_schema_bundles_test_iam_permissions_execute(builder)
+}
+
 /// GET v2/projects/{projectsId}/locations
-/// Lists information about the supported locations for this service. This method can be called in two ways: * **List all public locations:** Use the path GET /v1/locations. * **List project-visible locations:** Use the path GET /v1/`projects/{project_id}/locations`. This may include public locations as well as private or other locations specifically visible to the project.
+/// Lists information about the supported locations for this service. This method lists locations based on the resource scope provided in the [ListLocationsRequest.name] field: * **Global locations**: If name is empty, the method lists the public locations available to all projects. * **Project-specific locations**: If name follows the format `projects/{project}`, the method lists locations visible to that specific project. This includes public, private, or other project-specific locations enabled for the project. For `gRPC` and client library implementations, the resource name is passed as the name field. For direct service calls, the resource name is incorporated into the request path based on the specific service implementation and version.
 ///
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `bigtableadmin_projects_locations_list_execute()` to send, or `bigtableadmin_projects_locations_list` for simplest API.
@@ -541,13 +13775,16 @@ pub fn bigtableadmin_projects_instances_create(
 pub fn bigtableadmin_projects_locations_list_builder(
     client: &SimpleHttpClient,
     name: &String,
-    extraLocationTypes: &Option<String>,
-    filter: &Option<String>,
-    pageSize: &Option<i32>,
-    pageToken: &Option<String>,
+    extraLocationTypes: &Option<Option<String>>,
+    filter: &Option<Option<String>>,
+    pageSize: &Option<Option<String>>,
+    pageToken: &Option<Option<String>>,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
-    let endpoint_url = format!("https://bigtableadmin.googleapis.com/v2/projects/{}/locations",);
+    let endpoint_url = format!(
+        "https://bigtableadmin.googleapis.com/v2/projects/{}/locations",
+        name,
+    );
 
     // Build request
     let mut query_parts = Vec::new();
@@ -578,7 +13815,7 @@ pub fn bigtableadmin_projects_locations_list_builder(
 }
 
 /// GET v2/projects/{projectsId}/locations
-/// Lists information about the supported locations for this service. This method can be called in two ways: * **List all public locations:** Use the path GET /v1/locations. * **List project-visible locations:** Use the path GET /v1/`projects/{project_id}/locations`. This may include public locations as well as private or other locations specifically visible to the project.
+/// Lists information about the supported locations for this service. This method lists locations based on the resource scope provided in the [ListLocationsRequest.name] field: * **Global locations**: If name is empty, the method lists the public locations available to all projects. * **Project-specific locations**: If name follows the format `projects/{project}`, the method lists locations visible to that specific project. This includes public, private, or other project-specific locations enabled for the project. For `gRPC` and client library implementations, the resource name is passed as the name field. For direct service calls, the resource name is incorporated into the request path based on the specific service implementation and version.
 ///
 /// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
 /// and returns a `TaskIterator` for customization before execution.
@@ -652,7 +13889,7 @@ pub fn bigtableadmin_projects_locations_list_task(
 }
 
 /// GET v2/projects/{projectsId}/locations
-/// Lists information about the supported locations for this service. This method can be called in two ways: * **List all public locations:** Use the path GET /v1/locations. * **List project-visible locations:** Use the path GET /v1/`projects/{project_id}/locations`. This may include public locations as well as private or other locations specifically visible to the project.
+/// Lists information about the supported locations for this service. This method lists locations based on the resource scope provided in the [ListLocationsRequest.name] field: * **Global locations**: If name is empty, the method lists the public locations available to all projects. * **Project-specific locations**: If name follows the format `projects/{project}`, the method lists locations visible to that specific project. This includes public, private, or other project-specific locations enabled for the project. For `gRPC` and client library implementations, the resource name is passed as the name field. For direct service calls, the resource name is incorporated into the request path based on the specific service implementation and version.
 ///
 /// Takes a `ClientRequestBuilder`, builds and executes the request,
 /// and returns the parsed response via a `StreamIterator`.
@@ -689,17 +13926,17 @@ pub struct BigtableadminProjectsLocationsListArgs {
     /// Path parameter: name
     pub name: String,
     /// Query parameter: extraLocationTypes
-    pub extraLocationTypes: Option<String>,
+    pub extraLocationTypes: Option<Option<String>>,
     /// Query parameter: filter
-    pub filter: Option<String>,
+    pub filter: Option<Option<String>>,
     /// Query parameter: pageSize
-    pub pageSize: Option<i32>,
+    pub pageSize: Option<Option<String>>,
     /// Query parameter: pageToken
-    pub pageToken: Option<String>,
+    pub pageToken: Option<Option<String>>,
 }
 
 /// GET v2/projects/{projectsId}/locations
-/// Lists information about the supported locations for this service. This method can be called in two ways: * **List all public locations:** Use the path GET /v1/locations. * **List project-visible locations:** Use the path GET /v1/`projects/{project_id}/locations`. This may include public locations as well as private or other locations specifically visible to the project.
+/// Lists information about the supported locations for this service. This method lists locations based on the resource scope provided in the [ListLocationsRequest.name] field: * **Global locations**: If name is empty, the method lists the public locations available to all projects. * **Project-specific locations**: If name follows the format `projects/{project}`, the method lists locations visible to that specific project. This includes public, private, or other project-specific locations enabled for the project. For `gRPC` and client library implementations, the resource name is passed as the name field. For direct service calls, the resource name is incorporated into the request path based on the specific service implementation and version.
 ///
 /// Simplest API - builds and executes the request in one call.
 /// For customization, use `bigtableadmin_projects_locations_list_builder()` + `bigtableadmin_projects_locations_list_execute()`.
@@ -727,4 +13964,2215 @@ pub fn bigtableadmin_projects_locations_list(
         &args.pageToken,
     )?;
     bigtableadmin_projects_locations_list_execute(builder)
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for Operation
+// =============================================================================
+
+/// ResourceIdentifier implementation for Operation with BigtableadminOperationsGetArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<BigtableadminOperationsGetArgs> for Operation {
+    fn generate_resource_id(&self, input: &BigtableadminOperationsGetArgs) -> String {
+        format!("gcp::bigtableadmin::Operation/{}", input.name)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::bigtableadmin::Operation"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for ListOperationsResponse
+// =============================================================================
+
+/// ResourceIdentifier implementation for ListOperationsResponse with BigtableadminOperationsProjectsOperationsListArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<BigtableadminOperationsProjectsOperationsListArgs>
+    for ListOperationsResponse
+{
+    fn generate_resource_id(
+        &self,
+        input: &BigtableadminOperationsProjectsOperationsListArgs,
+    ) -> String {
+        format!("gcp::bigtableadmin::ListOperationsResponse/{}", input.name)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::bigtableadmin::ListOperationsResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for Operation
+// =============================================================================
+
+/// ResourceIdentifier implementation for Operation with BigtableadminProjectsInstancesCreateArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<BigtableadminProjectsInstancesCreateArgs> for Operation {
+    fn generate_resource_id(&self, input: &BigtableadminProjectsInstancesCreateArgs) -> String {
+        format!("gcp::bigtableadmin::Operation/{}", input.parent)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::bigtableadmin::Operation"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for Empty
+// =============================================================================
+
+/// ResourceIdentifier implementation for Empty with BigtableadminProjectsInstancesDeleteArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<BigtableadminProjectsInstancesDeleteArgs> for Empty {
+    fn generate_resource_id(&self, input: &BigtableadminProjectsInstancesDeleteArgs) -> String {
+        format!("gcp::bigtableadmin::Empty/{}", input.name)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::bigtableadmin::Empty"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for Instance
+// =============================================================================
+
+/// ResourceIdentifier implementation for Instance with BigtableadminProjectsInstancesGetArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<BigtableadminProjectsInstancesGetArgs> for Instance {
+    fn generate_resource_id(&self, input: &BigtableadminProjectsInstancesGetArgs) -> String {
+        format!("gcp::bigtableadmin::Instance/{}", input.name)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::bigtableadmin::Instance"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for Policy
+// =============================================================================
+
+/// ResourceIdentifier implementation for Policy with BigtableadminProjectsInstancesGetIamPolicyArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<BigtableadminProjectsInstancesGetIamPolicyArgs> for Policy {
+    fn generate_resource_id(
+        &self,
+        input: &BigtableadminProjectsInstancesGetIamPolicyArgs,
+    ) -> String {
+        format!("gcp::bigtableadmin::Policy/{}", input.resource)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::bigtableadmin::Policy"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for ListInstancesResponse
+// =============================================================================
+
+/// ResourceIdentifier implementation for ListInstancesResponse with BigtableadminProjectsInstancesListArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<BigtableadminProjectsInstancesListArgs> for ListInstancesResponse {
+    fn generate_resource_id(&self, input: &BigtableadminProjectsInstancesListArgs) -> String {
+        format!("gcp::bigtableadmin::ListInstancesResponse/{}", input.parent)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::bigtableadmin::ListInstancesResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for Operation
+// =============================================================================
+
+/// ResourceIdentifier implementation for Operation with BigtableadminProjectsInstancesPartialUpdateInstanceArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<BigtableadminProjectsInstancesPartialUpdateInstanceArgs> for Operation {
+    fn generate_resource_id(
+        &self,
+        input: &BigtableadminProjectsInstancesPartialUpdateInstanceArgs,
+    ) -> String {
+        format!("gcp::bigtableadmin::Operation/{}", input.name)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::bigtableadmin::Operation"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for Policy
+// =============================================================================
+
+/// ResourceIdentifier implementation for Policy with BigtableadminProjectsInstancesSetIamPolicyArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<BigtableadminProjectsInstancesSetIamPolicyArgs> for Policy {
+    fn generate_resource_id(
+        &self,
+        input: &BigtableadminProjectsInstancesSetIamPolicyArgs,
+    ) -> String {
+        format!("gcp::bigtableadmin::Policy/{}", input.resource)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::bigtableadmin::Policy"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for TestIamPermissionsResponse
+// =============================================================================
+
+/// ResourceIdentifier implementation for TestIamPermissionsResponse with BigtableadminProjectsInstancesTestIamPermissionsArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<BigtableadminProjectsInstancesTestIamPermissionsArgs>
+    for TestIamPermissionsResponse
+{
+    fn generate_resource_id(
+        &self,
+        input: &BigtableadminProjectsInstancesTestIamPermissionsArgs,
+    ) -> String {
+        format!(
+            "gcp::bigtableadmin::TestIamPermissionsResponse/{}",
+            input.resource
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::bigtableadmin::TestIamPermissionsResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for Instance
+// =============================================================================
+
+/// ResourceIdentifier implementation for Instance with BigtableadminProjectsInstancesUpdateArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<BigtableadminProjectsInstancesUpdateArgs> for Instance {
+    fn generate_resource_id(&self, input: &BigtableadminProjectsInstancesUpdateArgs) -> String {
+        format!("gcp::bigtableadmin::Instance/{}", input.name)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::bigtableadmin::Instance"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for AppProfile
+// =============================================================================
+
+/// ResourceIdentifier implementation for AppProfile with BigtableadminProjectsInstancesAppProfilesCreateArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<BigtableadminProjectsInstancesAppProfilesCreateArgs> for AppProfile {
+    fn generate_resource_id(
+        &self,
+        input: &BigtableadminProjectsInstancesAppProfilesCreateArgs,
+    ) -> String {
+        format!("gcp::bigtableadmin::AppProfile/{}", input.parent)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::bigtableadmin::AppProfile"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for Empty
+// =============================================================================
+
+/// ResourceIdentifier implementation for Empty with BigtableadminProjectsInstancesAppProfilesDeleteArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<BigtableadminProjectsInstancesAppProfilesDeleteArgs> for Empty {
+    fn generate_resource_id(
+        &self,
+        input: &BigtableadminProjectsInstancesAppProfilesDeleteArgs,
+    ) -> String {
+        format!("gcp::bigtableadmin::Empty/{}", input.name)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::bigtableadmin::Empty"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for AppProfile
+// =============================================================================
+
+/// ResourceIdentifier implementation for AppProfile with BigtableadminProjectsInstancesAppProfilesGetArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<BigtableadminProjectsInstancesAppProfilesGetArgs> for AppProfile {
+    fn generate_resource_id(
+        &self,
+        input: &BigtableadminProjectsInstancesAppProfilesGetArgs,
+    ) -> String {
+        format!("gcp::bigtableadmin::AppProfile/{}", input.name)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::bigtableadmin::AppProfile"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for ListAppProfilesResponse
+// =============================================================================
+
+/// ResourceIdentifier implementation for ListAppProfilesResponse with BigtableadminProjectsInstancesAppProfilesListArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<BigtableadminProjectsInstancesAppProfilesListArgs>
+    for ListAppProfilesResponse
+{
+    fn generate_resource_id(
+        &self,
+        input: &BigtableadminProjectsInstancesAppProfilesListArgs,
+    ) -> String {
+        format!(
+            "gcp::bigtableadmin::ListAppProfilesResponse/{}",
+            input.parent
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::bigtableadmin::ListAppProfilesResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for Operation
+// =============================================================================
+
+/// ResourceIdentifier implementation for Operation with BigtableadminProjectsInstancesAppProfilesPatchArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<BigtableadminProjectsInstancesAppProfilesPatchArgs> for Operation {
+    fn generate_resource_id(
+        &self,
+        input: &BigtableadminProjectsInstancesAppProfilesPatchArgs,
+    ) -> String {
+        format!("gcp::bigtableadmin::Operation/{}", input.name)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::bigtableadmin::Operation"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for Operation
+// =============================================================================
+
+/// ResourceIdentifier implementation for Operation with BigtableadminProjectsInstancesClustersCreateArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<BigtableadminProjectsInstancesClustersCreateArgs> for Operation {
+    fn generate_resource_id(
+        &self,
+        input: &BigtableadminProjectsInstancesClustersCreateArgs,
+    ) -> String {
+        format!("gcp::bigtableadmin::Operation/{}", input.parent)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::bigtableadmin::Operation"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for Empty
+// =============================================================================
+
+/// ResourceIdentifier implementation for Empty with BigtableadminProjectsInstancesClustersDeleteArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<BigtableadminProjectsInstancesClustersDeleteArgs> for Empty {
+    fn generate_resource_id(
+        &self,
+        input: &BigtableadminProjectsInstancesClustersDeleteArgs,
+    ) -> String {
+        format!("gcp::bigtableadmin::Empty/{}", input.name)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::bigtableadmin::Empty"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for Cluster
+// =============================================================================
+
+/// ResourceIdentifier implementation for Cluster with BigtableadminProjectsInstancesClustersGetArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<BigtableadminProjectsInstancesClustersGetArgs> for Cluster {
+    fn generate_resource_id(
+        &self,
+        input: &BigtableadminProjectsInstancesClustersGetArgs,
+    ) -> String {
+        format!("gcp::bigtableadmin::Cluster/{}", input.name)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::bigtableadmin::Cluster"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for MemoryLayer
+// =============================================================================
+
+/// ResourceIdentifier implementation for MemoryLayer with BigtableadminProjectsInstancesClustersGetMemoryLayerArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<BigtableadminProjectsInstancesClustersGetMemoryLayerArgs> for MemoryLayer {
+    fn generate_resource_id(
+        &self,
+        input: &BigtableadminProjectsInstancesClustersGetMemoryLayerArgs,
+    ) -> String {
+        format!("gcp::bigtableadmin::MemoryLayer/{}", input.name)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::bigtableadmin::MemoryLayer"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for ListClustersResponse
+// =============================================================================
+
+/// ResourceIdentifier implementation for ListClustersResponse with BigtableadminProjectsInstancesClustersListArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<BigtableadminProjectsInstancesClustersListArgs> for ListClustersResponse {
+    fn generate_resource_id(
+        &self,
+        input: &BigtableadminProjectsInstancesClustersListArgs,
+    ) -> String {
+        format!("gcp::bigtableadmin::ListClustersResponse/{}", input.parent)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::bigtableadmin::ListClustersResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for Operation
+// =============================================================================
+
+/// ResourceIdentifier implementation for Operation with BigtableadminProjectsInstancesClustersPartialUpdateClusterArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<BigtableadminProjectsInstancesClustersPartialUpdateClusterArgs>
+    for Operation
+{
+    fn generate_resource_id(
+        &self,
+        input: &BigtableadminProjectsInstancesClustersPartialUpdateClusterArgs,
+    ) -> String {
+        format!("gcp::bigtableadmin::Operation/{}", input.name)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::bigtableadmin::Operation"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for Operation
+// =============================================================================
+
+/// ResourceIdentifier implementation for Operation with BigtableadminProjectsInstancesClustersUpdateArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<BigtableadminProjectsInstancesClustersUpdateArgs> for Operation {
+    fn generate_resource_id(
+        &self,
+        input: &BigtableadminProjectsInstancesClustersUpdateArgs,
+    ) -> String {
+        format!("gcp::bigtableadmin::Operation/{}", input.name)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::bigtableadmin::Operation"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for Operation
+// =============================================================================
+
+/// ResourceIdentifier implementation for Operation with BigtableadminProjectsInstancesClustersUpdateMemoryLayerArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<BigtableadminProjectsInstancesClustersUpdateMemoryLayerArgs> for Operation {
+    fn generate_resource_id(
+        &self,
+        input: &BigtableadminProjectsInstancesClustersUpdateMemoryLayerArgs,
+    ) -> String {
+        format!("gcp::bigtableadmin::Operation/{}", input.name)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::bigtableadmin::Operation"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for Operation
+// =============================================================================
+
+/// ResourceIdentifier implementation for Operation with BigtableadminProjectsInstancesClustersBackupsCopyArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<BigtableadminProjectsInstancesClustersBackupsCopyArgs> for Operation {
+    fn generate_resource_id(
+        &self,
+        input: &BigtableadminProjectsInstancesClustersBackupsCopyArgs,
+    ) -> String {
+        format!("gcp::bigtableadmin::Operation/{}", input.parent)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::bigtableadmin::Operation"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for Operation
+// =============================================================================
+
+/// ResourceIdentifier implementation for Operation with BigtableadminProjectsInstancesClustersBackupsCreateArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<BigtableadminProjectsInstancesClustersBackupsCreateArgs> for Operation {
+    fn generate_resource_id(
+        &self,
+        input: &BigtableadminProjectsInstancesClustersBackupsCreateArgs,
+    ) -> String {
+        format!("gcp::bigtableadmin::Operation/{}", input.parent)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::bigtableadmin::Operation"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for Empty
+// =============================================================================
+
+/// ResourceIdentifier implementation for Empty with BigtableadminProjectsInstancesClustersBackupsDeleteArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<BigtableadminProjectsInstancesClustersBackupsDeleteArgs> for Empty {
+    fn generate_resource_id(
+        &self,
+        input: &BigtableadminProjectsInstancesClustersBackupsDeleteArgs,
+    ) -> String {
+        format!("gcp::bigtableadmin::Empty/{}", input.name)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::bigtableadmin::Empty"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for Backup
+// =============================================================================
+
+/// ResourceIdentifier implementation for Backup with BigtableadminProjectsInstancesClustersBackupsGetArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<BigtableadminProjectsInstancesClustersBackupsGetArgs> for Backup {
+    fn generate_resource_id(
+        &self,
+        input: &BigtableadminProjectsInstancesClustersBackupsGetArgs,
+    ) -> String {
+        format!("gcp::bigtableadmin::Backup/{}", input.name)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::bigtableadmin::Backup"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for Policy
+// =============================================================================
+
+/// ResourceIdentifier implementation for Policy with BigtableadminProjectsInstancesClustersBackupsGetIamPolicyArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<BigtableadminProjectsInstancesClustersBackupsGetIamPolicyArgs> for Policy {
+    fn generate_resource_id(
+        &self,
+        input: &BigtableadminProjectsInstancesClustersBackupsGetIamPolicyArgs,
+    ) -> String {
+        format!("gcp::bigtableadmin::Policy/{}", input.resource)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::bigtableadmin::Policy"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for ListBackupsResponse
+// =============================================================================
+
+/// ResourceIdentifier implementation for ListBackupsResponse with BigtableadminProjectsInstancesClustersBackupsListArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<BigtableadminProjectsInstancesClustersBackupsListArgs>
+    for ListBackupsResponse
+{
+    fn generate_resource_id(
+        &self,
+        input: &BigtableadminProjectsInstancesClustersBackupsListArgs,
+    ) -> String {
+        format!("gcp::bigtableadmin::ListBackupsResponse/{}", input.parent)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::bigtableadmin::ListBackupsResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for Backup
+// =============================================================================
+
+/// ResourceIdentifier implementation for Backup with BigtableadminProjectsInstancesClustersBackupsPatchArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<BigtableadminProjectsInstancesClustersBackupsPatchArgs> for Backup {
+    fn generate_resource_id(
+        &self,
+        input: &BigtableadminProjectsInstancesClustersBackupsPatchArgs,
+    ) -> String {
+        format!("gcp::bigtableadmin::Backup/{}", input.name)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::bigtableadmin::Backup"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for Policy
+// =============================================================================
+
+/// ResourceIdentifier implementation for Policy with BigtableadminProjectsInstancesClustersBackupsSetIamPolicyArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<BigtableadminProjectsInstancesClustersBackupsSetIamPolicyArgs> for Policy {
+    fn generate_resource_id(
+        &self,
+        input: &BigtableadminProjectsInstancesClustersBackupsSetIamPolicyArgs,
+    ) -> String {
+        format!("gcp::bigtableadmin::Policy/{}", input.resource)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::bigtableadmin::Policy"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for TestIamPermissionsResponse
+// =============================================================================
+
+/// ResourceIdentifier implementation for TestIamPermissionsResponse with BigtableadminProjectsInstancesClustersBackupsTestIamPermissionsArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<BigtableadminProjectsInstancesClustersBackupsTestIamPermissionsArgs>
+    for TestIamPermissionsResponse
+{
+    fn generate_resource_id(
+        &self,
+        input: &BigtableadminProjectsInstancesClustersBackupsTestIamPermissionsArgs,
+    ) -> String {
+        format!(
+            "gcp::bigtableadmin::TestIamPermissionsResponse/{}",
+            input.resource
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::bigtableadmin::TestIamPermissionsResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for ListHotTabletsResponse
+// =============================================================================
+
+/// ResourceIdentifier implementation for ListHotTabletsResponse with BigtableadminProjectsInstancesClustersHotTabletsListArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<BigtableadminProjectsInstancesClustersHotTabletsListArgs>
+    for ListHotTabletsResponse
+{
+    fn generate_resource_id(
+        &self,
+        input: &BigtableadminProjectsInstancesClustersHotTabletsListArgs,
+    ) -> String {
+        format!(
+            "gcp::bigtableadmin::ListHotTabletsResponse/{}",
+            input.parent
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::bigtableadmin::ListHotTabletsResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for ListMemoryLayersResponse
+// =============================================================================
+
+/// ResourceIdentifier implementation for ListMemoryLayersResponse with BigtableadminProjectsInstancesClustersMemoryLayersListArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<BigtableadminProjectsInstancesClustersMemoryLayersListArgs>
+    for ListMemoryLayersResponse
+{
+    fn generate_resource_id(
+        &self,
+        input: &BigtableadminProjectsInstancesClustersMemoryLayersListArgs,
+    ) -> String {
+        format!(
+            "gcp::bigtableadmin::ListMemoryLayersResponse/{}",
+            input.parent
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::bigtableadmin::ListMemoryLayersResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for Operation
+// =============================================================================
+
+/// ResourceIdentifier implementation for Operation with BigtableadminProjectsInstancesLogicalViewsCreateArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<BigtableadminProjectsInstancesLogicalViewsCreateArgs> for Operation {
+    fn generate_resource_id(
+        &self,
+        input: &BigtableadminProjectsInstancesLogicalViewsCreateArgs,
+    ) -> String {
+        format!("gcp::bigtableadmin::Operation/{}", input.parent)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::bigtableadmin::Operation"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for Empty
+// =============================================================================
+
+/// ResourceIdentifier implementation for Empty with BigtableadminProjectsInstancesLogicalViewsDeleteArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<BigtableadminProjectsInstancesLogicalViewsDeleteArgs> for Empty {
+    fn generate_resource_id(
+        &self,
+        input: &BigtableadminProjectsInstancesLogicalViewsDeleteArgs,
+    ) -> String {
+        format!("gcp::bigtableadmin::Empty/{}", input.name)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::bigtableadmin::Empty"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for LogicalView
+// =============================================================================
+
+/// ResourceIdentifier implementation for LogicalView with BigtableadminProjectsInstancesLogicalViewsGetArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<BigtableadminProjectsInstancesLogicalViewsGetArgs> for LogicalView {
+    fn generate_resource_id(
+        &self,
+        input: &BigtableadminProjectsInstancesLogicalViewsGetArgs,
+    ) -> String {
+        format!("gcp::bigtableadmin::LogicalView/{}", input.name)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::bigtableadmin::LogicalView"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for Policy
+// =============================================================================
+
+/// ResourceIdentifier implementation for Policy with BigtableadminProjectsInstancesLogicalViewsGetIamPolicyArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<BigtableadminProjectsInstancesLogicalViewsGetIamPolicyArgs> for Policy {
+    fn generate_resource_id(
+        &self,
+        input: &BigtableadminProjectsInstancesLogicalViewsGetIamPolicyArgs,
+    ) -> String {
+        format!("gcp::bigtableadmin::Policy/{}", input.resource)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::bigtableadmin::Policy"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for ListLogicalViewsResponse
+// =============================================================================
+
+/// ResourceIdentifier implementation for ListLogicalViewsResponse with BigtableadminProjectsInstancesLogicalViewsListArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<BigtableadminProjectsInstancesLogicalViewsListArgs>
+    for ListLogicalViewsResponse
+{
+    fn generate_resource_id(
+        &self,
+        input: &BigtableadminProjectsInstancesLogicalViewsListArgs,
+    ) -> String {
+        format!(
+            "gcp::bigtableadmin::ListLogicalViewsResponse/{}",
+            input.parent
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::bigtableadmin::ListLogicalViewsResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for Operation
+// =============================================================================
+
+/// ResourceIdentifier implementation for Operation with BigtableadminProjectsInstancesLogicalViewsPatchArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<BigtableadminProjectsInstancesLogicalViewsPatchArgs> for Operation {
+    fn generate_resource_id(
+        &self,
+        input: &BigtableadminProjectsInstancesLogicalViewsPatchArgs,
+    ) -> String {
+        format!("gcp::bigtableadmin::Operation/{}", input.name)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::bigtableadmin::Operation"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for Policy
+// =============================================================================
+
+/// ResourceIdentifier implementation for Policy with BigtableadminProjectsInstancesLogicalViewsSetIamPolicyArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<BigtableadminProjectsInstancesLogicalViewsSetIamPolicyArgs> for Policy {
+    fn generate_resource_id(
+        &self,
+        input: &BigtableadminProjectsInstancesLogicalViewsSetIamPolicyArgs,
+    ) -> String {
+        format!("gcp::bigtableadmin::Policy/{}", input.resource)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::bigtableadmin::Policy"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for TestIamPermissionsResponse
+// =============================================================================
+
+/// ResourceIdentifier implementation for TestIamPermissionsResponse with BigtableadminProjectsInstancesLogicalViewsTestIamPermissionsArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<BigtableadminProjectsInstancesLogicalViewsTestIamPermissionsArgs>
+    for TestIamPermissionsResponse
+{
+    fn generate_resource_id(
+        &self,
+        input: &BigtableadminProjectsInstancesLogicalViewsTestIamPermissionsArgs,
+    ) -> String {
+        format!(
+            "gcp::bigtableadmin::TestIamPermissionsResponse/{}",
+            input.resource
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::bigtableadmin::TestIamPermissionsResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for Operation
+// =============================================================================
+
+/// ResourceIdentifier implementation for Operation with BigtableadminProjectsInstancesMaterializedViewsCreateArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<BigtableadminProjectsInstancesMaterializedViewsCreateArgs> for Operation {
+    fn generate_resource_id(
+        &self,
+        input: &BigtableadminProjectsInstancesMaterializedViewsCreateArgs,
+    ) -> String {
+        format!("gcp::bigtableadmin::Operation/{}", input.parent)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::bigtableadmin::Operation"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for Empty
+// =============================================================================
+
+/// ResourceIdentifier implementation for Empty with BigtableadminProjectsInstancesMaterializedViewsDeleteArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<BigtableadminProjectsInstancesMaterializedViewsDeleteArgs> for Empty {
+    fn generate_resource_id(
+        &self,
+        input: &BigtableadminProjectsInstancesMaterializedViewsDeleteArgs,
+    ) -> String {
+        format!("gcp::bigtableadmin::Empty/{}", input.name)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::bigtableadmin::Empty"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for MaterializedView
+// =============================================================================
+
+/// ResourceIdentifier implementation for MaterializedView with BigtableadminProjectsInstancesMaterializedViewsGetArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<BigtableadminProjectsInstancesMaterializedViewsGetArgs>
+    for MaterializedView
+{
+    fn generate_resource_id(
+        &self,
+        input: &BigtableadminProjectsInstancesMaterializedViewsGetArgs,
+    ) -> String {
+        format!("gcp::bigtableadmin::MaterializedView/{}", input.name)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::bigtableadmin::MaterializedView"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for Policy
+// =============================================================================
+
+/// ResourceIdentifier implementation for Policy with BigtableadminProjectsInstancesMaterializedViewsGetIamPolicyArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<BigtableadminProjectsInstancesMaterializedViewsGetIamPolicyArgs>
+    for Policy
+{
+    fn generate_resource_id(
+        &self,
+        input: &BigtableadminProjectsInstancesMaterializedViewsGetIamPolicyArgs,
+    ) -> String {
+        format!("gcp::bigtableadmin::Policy/{}", input.resource)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::bigtableadmin::Policy"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for ListMaterializedViewsResponse
+// =============================================================================
+
+/// ResourceIdentifier implementation for ListMaterializedViewsResponse with BigtableadminProjectsInstancesMaterializedViewsListArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<BigtableadminProjectsInstancesMaterializedViewsListArgs>
+    for ListMaterializedViewsResponse
+{
+    fn generate_resource_id(
+        &self,
+        input: &BigtableadminProjectsInstancesMaterializedViewsListArgs,
+    ) -> String {
+        format!(
+            "gcp::bigtableadmin::ListMaterializedViewsResponse/{}",
+            input.parent
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::bigtableadmin::ListMaterializedViewsResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for Operation
+// =============================================================================
+
+/// ResourceIdentifier implementation for Operation with BigtableadminProjectsInstancesMaterializedViewsPatchArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<BigtableadminProjectsInstancesMaterializedViewsPatchArgs> for Operation {
+    fn generate_resource_id(
+        &self,
+        input: &BigtableadminProjectsInstancesMaterializedViewsPatchArgs,
+    ) -> String {
+        format!("gcp::bigtableadmin::Operation/{}", input.name)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::bigtableadmin::Operation"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for Policy
+// =============================================================================
+
+/// ResourceIdentifier implementation for Policy with BigtableadminProjectsInstancesMaterializedViewsSetIamPolicyArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<BigtableadminProjectsInstancesMaterializedViewsSetIamPolicyArgs>
+    for Policy
+{
+    fn generate_resource_id(
+        &self,
+        input: &BigtableadminProjectsInstancesMaterializedViewsSetIamPolicyArgs,
+    ) -> String {
+        format!("gcp::bigtableadmin::Policy/{}", input.resource)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::bigtableadmin::Policy"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for TestIamPermissionsResponse
+// =============================================================================
+
+/// ResourceIdentifier implementation for TestIamPermissionsResponse with BigtableadminProjectsInstancesMaterializedViewsTestIamPermissionsArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<BigtableadminProjectsInstancesMaterializedViewsTestIamPermissionsArgs>
+    for TestIamPermissionsResponse
+{
+    fn generate_resource_id(
+        &self,
+        input: &BigtableadminProjectsInstancesMaterializedViewsTestIamPermissionsArgs,
+    ) -> String {
+        format!(
+            "gcp::bigtableadmin::TestIamPermissionsResponse/{}",
+            input.resource
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::bigtableadmin::TestIamPermissionsResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for CheckConsistencyResponse
+// =============================================================================
+
+/// ResourceIdentifier implementation for CheckConsistencyResponse with BigtableadminProjectsInstancesTablesCheckConsistencyArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<BigtableadminProjectsInstancesTablesCheckConsistencyArgs>
+    for CheckConsistencyResponse
+{
+    fn generate_resource_id(
+        &self,
+        input: &BigtableadminProjectsInstancesTablesCheckConsistencyArgs,
+    ) -> String {
+        format!(
+            "gcp::bigtableadmin::CheckConsistencyResponse/{}",
+            input.name
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::bigtableadmin::CheckConsistencyResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for Table
+// =============================================================================
+
+/// ResourceIdentifier implementation for Table with BigtableadminProjectsInstancesTablesCreateArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<BigtableadminProjectsInstancesTablesCreateArgs> for Table {
+    fn generate_resource_id(
+        &self,
+        input: &BigtableadminProjectsInstancesTablesCreateArgs,
+    ) -> String {
+        format!("gcp::bigtableadmin::Table/{}", input.parent)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::bigtableadmin::Table"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for Empty
+// =============================================================================
+
+/// ResourceIdentifier implementation for Empty with BigtableadminProjectsInstancesTablesDeleteArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<BigtableadminProjectsInstancesTablesDeleteArgs> for Empty {
+    fn generate_resource_id(
+        &self,
+        input: &BigtableadminProjectsInstancesTablesDeleteArgs,
+    ) -> String {
+        format!("gcp::bigtableadmin::Empty/{}", input.name)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::bigtableadmin::Empty"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for Empty
+// =============================================================================
+
+/// ResourceIdentifier implementation for Empty with BigtableadminProjectsInstancesTablesDropRowRangeArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<BigtableadminProjectsInstancesTablesDropRowRangeArgs> for Empty {
+    fn generate_resource_id(
+        &self,
+        input: &BigtableadminProjectsInstancesTablesDropRowRangeArgs,
+    ) -> String {
+        format!("gcp::bigtableadmin::Empty/{}", input.name)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::bigtableadmin::Empty"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for GenerateConsistencyTokenResponse
+// =============================================================================
+
+/// ResourceIdentifier implementation for GenerateConsistencyTokenResponse with BigtableadminProjectsInstancesTablesGenerateConsistencyTokenArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<BigtableadminProjectsInstancesTablesGenerateConsistencyTokenArgs>
+    for GenerateConsistencyTokenResponse
+{
+    fn generate_resource_id(
+        &self,
+        input: &BigtableadminProjectsInstancesTablesGenerateConsistencyTokenArgs,
+    ) -> String {
+        format!(
+            "gcp::bigtableadmin::GenerateConsistencyTokenResponse/{}",
+            input.name
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::bigtableadmin::GenerateConsistencyTokenResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for Table
+// =============================================================================
+
+/// ResourceIdentifier implementation for Table with BigtableadminProjectsInstancesTablesGetArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<BigtableadminProjectsInstancesTablesGetArgs> for Table {
+    fn generate_resource_id(&self, input: &BigtableadminProjectsInstancesTablesGetArgs) -> String {
+        format!("gcp::bigtableadmin::Table/{}", input.name)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::bigtableadmin::Table"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for Policy
+// =============================================================================
+
+/// ResourceIdentifier implementation for Policy with BigtableadminProjectsInstancesTablesGetIamPolicyArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<BigtableadminProjectsInstancesTablesGetIamPolicyArgs> for Policy {
+    fn generate_resource_id(
+        &self,
+        input: &BigtableadminProjectsInstancesTablesGetIamPolicyArgs,
+    ) -> String {
+        format!("gcp::bigtableadmin::Policy/{}", input.resource)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::bigtableadmin::Policy"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for ListTablesResponse
+// =============================================================================
+
+/// ResourceIdentifier implementation for ListTablesResponse with BigtableadminProjectsInstancesTablesListArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<BigtableadminProjectsInstancesTablesListArgs> for ListTablesResponse {
+    fn generate_resource_id(&self, input: &BigtableadminProjectsInstancesTablesListArgs) -> String {
+        format!("gcp::bigtableadmin::ListTablesResponse/{}", input.parent)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::bigtableadmin::ListTablesResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for Table
+// =============================================================================
+
+/// ResourceIdentifier implementation for Table with BigtableadminProjectsInstancesTablesModifyColumnFamiliesArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<BigtableadminProjectsInstancesTablesModifyColumnFamiliesArgs> for Table {
+    fn generate_resource_id(
+        &self,
+        input: &BigtableadminProjectsInstancesTablesModifyColumnFamiliesArgs,
+    ) -> String {
+        format!("gcp::bigtableadmin::Table/{}", input.name)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::bigtableadmin::Table"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for Operation
+// =============================================================================
+
+/// ResourceIdentifier implementation for Operation with BigtableadminProjectsInstancesTablesPatchArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<BigtableadminProjectsInstancesTablesPatchArgs> for Operation {
+    fn generate_resource_id(
+        &self,
+        input: &BigtableadminProjectsInstancesTablesPatchArgs,
+    ) -> String {
+        format!("gcp::bigtableadmin::Operation/{}", input.name)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::bigtableadmin::Operation"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for Operation
+// =============================================================================
+
+/// ResourceIdentifier implementation for Operation with BigtableadminProjectsInstancesTablesRestoreArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<BigtableadminProjectsInstancesTablesRestoreArgs> for Operation {
+    fn generate_resource_id(
+        &self,
+        input: &BigtableadminProjectsInstancesTablesRestoreArgs,
+    ) -> String {
+        format!("gcp::bigtableadmin::Operation/{}", input.parent)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::bigtableadmin::Operation"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for Policy
+// =============================================================================
+
+/// ResourceIdentifier implementation for Policy with BigtableadminProjectsInstancesTablesSetIamPolicyArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<BigtableadminProjectsInstancesTablesSetIamPolicyArgs> for Policy {
+    fn generate_resource_id(
+        &self,
+        input: &BigtableadminProjectsInstancesTablesSetIamPolicyArgs,
+    ) -> String {
+        format!("gcp::bigtableadmin::Policy/{}", input.resource)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::bigtableadmin::Policy"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for TestIamPermissionsResponse
+// =============================================================================
+
+/// ResourceIdentifier implementation for TestIamPermissionsResponse with BigtableadminProjectsInstancesTablesTestIamPermissionsArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<BigtableadminProjectsInstancesTablesTestIamPermissionsArgs>
+    for TestIamPermissionsResponse
+{
+    fn generate_resource_id(
+        &self,
+        input: &BigtableadminProjectsInstancesTablesTestIamPermissionsArgs,
+    ) -> String {
+        format!(
+            "gcp::bigtableadmin::TestIamPermissionsResponse/{}",
+            input.resource
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::bigtableadmin::TestIamPermissionsResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for Operation
+// =============================================================================
+
+/// ResourceIdentifier implementation for Operation with BigtableadminProjectsInstancesTablesUndeleteArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<BigtableadminProjectsInstancesTablesUndeleteArgs> for Operation {
+    fn generate_resource_id(
+        &self,
+        input: &BigtableadminProjectsInstancesTablesUndeleteArgs,
+    ) -> String {
+        format!("gcp::bigtableadmin::Operation/{}", input.name)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::bigtableadmin::Operation"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for Operation
+// =============================================================================
+
+/// ResourceIdentifier implementation for Operation with BigtableadminProjectsInstancesTablesAuthorizedViewsCreateArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<BigtableadminProjectsInstancesTablesAuthorizedViewsCreateArgs>
+    for Operation
+{
+    fn generate_resource_id(
+        &self,
+        input: &BigtableadminProjectsInstancesTablesAuthorizedViewsCreateArgs,
+    ) -> String {
+        format!("gcp::bigtableadmin::Operation/{}", input.parent)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::bigtableadmin::Operation"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for Empty
+// =============================================================================
+
+/// ResourceIdentifier implementation for Empty with BigtableadminProjectsInstancesTablesAuthorizedViewsDeleteArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<BigtableadminProjectsInstancesTablesAuthorizedViewsDeleteArgs> for Empty {
+    fn generate_resource_id(
+        &self,
+        input: &BigtableadminProjectsInstancesTablesAuthorizedViewsDeleteArgs,
+    ) -> String {
+        format!("gcp::bigtableadmin::Empty/{}", input.name)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::bigtableadmin::Empty"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for AuthorizedView
+// =============================================================================
+
+/// ResourceIdentifier implementation for AuthorizedView with BigtableadminProjectsInstancesTablesAuthorizedViewsGetArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<BigtableadminProjectsInstancesTablesAuthorizedViewsGetArgs>
+    for AuthorizedView
+{
+    fn generate_resource_id(
+        &self,
+        input: &BigtableadminProjectsInstancesTablesAuthorizedViewsGetArgs,
+    ) -> String {
+        format!("gcp::bigtableadmin::AuthorizedView/{}", input.name)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::bigtableadmin::AuthorizedView"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for Policy
+// =============================================================================
+
+/// ResourceIdentifier implementation for Policy with BigtableadminProjectsInstancesTablesAuthorizedViewsGetIamPolicyArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<BigtableadminProjectsInstancesTablesAuthorizedViewsGetIamPolicyArgs>
+    for Policy
+{
+    fn generate_resource_id(
+        &self,
+        input: &BigtableadminProjectsInstancesTablesAuthorizedViewsGetIamPolicyArgs,
+    ) -> String {
+        format!("gcp::bigtableadmin::Policy/{}", input.resource)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::bigtableadmin::Policy"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for ListAuthorizedViewsResponse
+// =============================================================================
+
+/// ResourceIdentifier implementation for ListAuthorizedViewsResponse with BigtableadminProjectsInstancesTablesAuthorizedViewsListArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<BigtableadminProjectsInstancesTablesAuthorizedViewsListArgs>
+    for ListAuthorizedViewsResponse
+{
+    fn generate_resource_id(
+        &self,
+        input: &BigtableadminProjectsInstancesTablesAuthorizedViewsListArgs,
+    ) -> String {
+        format!(
+            "gcp::bigtableadmin::ListAuthorizedViewsResponse/{}",
+            input.parent
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::bigtableadmin::ListAuthorizedViewsResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for Operation
+// =============================================================================
+
+/// ResourceIdentifier implementation for Operation with BigtableadminProjectsInstancesTablesAuthorizedViewsPatchArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<BigtableadminProjectsInstancesTablesAuthorizedViewsPatchArgs>
+    for Operation
+{
+    fn generate_resource_id(
+        &self,
+        input: &BigtableadminProjectsInstancesTablesAuthorizedViewsPatchArgs,
+    ) -> String {
+        format!("gcp::bigtableadmin::Operation/{}", input.name)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::bigtableadmin::Operation"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for Policy
+// =============================================================================
+
+/// ResourceIdentifier implementation for Policy with BigtableadminProjectsInstancesTablesAuthorizedViewsSetIamPolicyArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<BigtableadminProjectsInstancesTablesAuthorizedViewsSetIamPolicyArgs>
+    for Policy
+{
+    fn generate_resource_id(
+        &self,
+        input: &BigtableadminProjectsInstancesTablesAuthorizedViewsSetIamPolicyArgs,
+    ) -> String {
+        format!("gcp::bigtableadmin::Policy/{}", input.resource)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::bigtableadmin::Policy"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for TestIamPermissionsResponse
+// =============================================================================
+
+/// ResourceIdentifier implementation for TestIamPermissionsResponse with BigtableadminProjectsInstancesTablesAuthorizedViewsTestIamPermissionsArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<BigtableadminProjectsInstancesTablesAuthorizedViewsTestIamPermissionsArgs>
+    for TestIamPermissionsResponse
+{
+    fn generate_resource_id(
+        &self,
+        input: &BigtableadminProjectsInstancesTablesAuthorizedViewsTestIamPermissionsArgs,
+    ) -> String {
+        format!(
+            "gcp::bigtableadmin::TestIamPermissionsResponse/{}",
+            input.resource
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::bigtableadmin::TestIamPermissionsResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for Operation
+// =============================================================================
+
+/// ResourceIdentifier implementation for Operation with BigtableadminProjectsInstancesTablesSchemaBundlesCreateArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<BigtableadminProjectsInstancesTablesSchemaBundlesCreateArgs> for Operation {
+    fn generate_resource_id(
+        &self,
+        input: &BigtableadminProjectsInstancesTablesSchemaBundlesCreateArgs,
+    ) -> String {
+        format!("gcp::bigtableadmin::Operation/{}", input.parent)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::bigtableadmin::Operation"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for Empty
+// =============================================================================
+
+/// ResourceIdentifier implementation for Empty with BigtableadminProjectsInstancesTablesSchemaBundlesDeleteArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<BigtableadminProjectsInstancesTablesSchemaBundlesDeleteArgs> for Empty {
+    fn generate_resource_id(
+        &self,
+        input: &BigtableadminProjectsInstancesTablesSchemaBundlesDeleteArgs,
+    ) -> String {
+        format!("gcp::bigtableadmin::Empty/{}", input.name)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::bigtableadmin::Empty"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for SchemaBundle
+// =============================================================================
+
+/// ResourceIdentifier implementation for SchemaBundle with BigtableadminProjectsInstancesTablesSchemaBundlesGetArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<BigtableadminProjectsInstancesTablesSchemaBundlesGetArgs> for SchemaBundle {
+    fn generate_resource_id(
+        &self,
+        input: &BigtableadminProjectsInstancesTablesSchemaBundlesGetArgs,
+    ) -> String {
+        format!("gcp::bigtableadmin::SchemaBundle/{}", input.name)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::bigtableadmin::SchemaBundle"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for Policy
+// =============================================================================
+
+/// ResourceIdentifier implementation for Policy with BigtableadminProjectsInstancesTablesSchemaBundlesGetIamPolicyArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<BigtableadminProjectsInstancesTablesSchemaBundlesGetIamPolicyArgs>
+    for Policy
+{
+    fn generate_resource_id(
+        &self,
+        input: &BigtableadminProjectsInstancesTablesSchemaBundlesGetIamPolicyArgs,
+    ) -> String {
+        format!("gcp::bigtableadmin::Policy/{}", input.resource)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::bigtableadmin::Policy"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for ListSchemaBundlesResponse
+// =============================================================================
+
+/// ResourceIdentifier implementation for ListSchemaBundlesResponse with BigtableadminProjectsInstancesTablesSchemaBundlesListArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<BigtableadminProjectsInstancesTablesSchemaBundlesListArgs>
+    for ListSchemaBundlesResponse
+{
+    fn generate_resource_id(
+        &self,
+        input: &BigtableadminProjectsInstancesTablesSchemaBundlesListArgs,
+    ) -> String {
+        format!(
+            "gcp::bigtableadmin::ListSchemaBundlesResponse/{}",
+            input.parent
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::bigtableadmin::ListSchemaBundlesResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for Operation
+// =============================================================================
+
+/// ResourceIdentifier implementation for Operation with BigtableadminProjectsInstancesTablesSchemaBundlesPatchArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<BigtableadminProjectsInstancesTablesSchemaBundlesPatchArgs> for Operation {
+    fn generate_resource_id(
+        &self,
+        input: &BigtableadminProjectsInstancesTablesSchemaBundlesPatchArgs,
+    ) -> String {
+        format!("gcp::bigtableadmin::Operation/{}", input.name)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::bigtableadmin::Operation"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for Policy
+// =============================================================================
+
+/// ResourceIdentifier implementation for Policy with BigtableadminProjectsInstancesTablesSchemaBundlesSetIamPolicyArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<BigtableadminProjectsInstancesTablesSchemaBundlesSetIamPolicyArgs>
+    for Policy
+{
+    fn generate_resource_id(
+        &self,
+        input: &BigtableadminProjectsInstancesTablesSchemaBundlesSetIamPolicyArgs,
+    ) -> String {
+        format!("gcp::bigtableadmin::Policy/{}", input.resource)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::bigtableadmin::Policy"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for TestIamPermissionsResponse
+// =============================================================================
+
+/// ResourceIdentifier implementation for TestIamPermissionsResponse with BigtableadminProjectsInstancesTablesSchemaBundlesTestIamPermissionsArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<BigtableadminProjectsInstancesTablesSchemaBundlesTestIamPermissionsArgs>
+    for TestIamPermissionsResponse
+{
+    fn generate_resource_id(
+        &self,
+        input: &BigtableadminProjectsInstancesTablesSchemaBundlesTestIamPermissionsArgs,
+    ) -> String {
+        format!(
+            "gcp::bigtableadmin::TestIamPermissionsResponse/{}",
+            input.resource
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::bigtableadmin::TestIamPermissionsResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for ListLocationsResponse
+// =============================================================================
+
+/// ResourceIdentifier implementation for ListLocationsResponse with BigtableadminProjectsLocationsListArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<BigtableadminProjectsLocationsListArgs> for ListLocationsResponse {
+    fn generate_resource_id(&self, input: &BigtableadminProjectsLocationsListArgs) -> String {
+        format!("gcp::bigtableadmin::ListLocationsResponse/{}", input.name)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::bigtableadmin::ListLocationsResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
 }

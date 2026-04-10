@@ -17,6 +17,22 @@ use std::fs;
 use std::path::{Path, PathBuf};
 
 // ---------------------------------------------------------------------------
+// Helper functions
+// ---------------------------------------------------------------------------
+
+/// Escape Rust keywords by appending `_rs`.
+fn escape_keyword(name: &str) -> String {
+    match name {
+        "as" | "break" | "const" | "continue" | "crate" | "else" | "enum" | "extern"
+        | "false" | "fn" | "for" | "if" | "impl" | "in" | "let" | "loop" | "match"
+        | "mod" | "move" | "mut" | "pub" | "ref" | "return" | "self" | "Self"
+        | "static" | "struct" | "super" | "trait" | "true" | "type" | "unsafe"
+        | "use" | "where" | "while" | "async" | "await" | "dyn" | "override" => format!("{}_rs", name),
+        _ => name.to_string(),
+    }
+}
+
+// ---------------------------------------------------------------------------
 // Error types
 // ---------------------------------------------------------------------------
 
@@ -105,9 +121,11 @@ impl ProviderWrapperGenerator {
     pub fn generate_all(&self) -> Result<(), GenWrapperError> {
         let providers = foundation_openapi::discover_providers(&self.artefacts_dir)
             .map_err(|e| GenWrapperError::CatalogBuildFailed(e.to_string()))?;
+        eprintln!("DEBUG: Found providers: {:?}", providers);
         tracing::info!("Found {} providers: {:?}", providers.len(), providers);
 
         for provider in &providers {
+            eprintln!("DEBUG: Generating for: {}", provider);
             tracing::info!("Generating for: {}", provider);
             self.generate_for_provider(provider)?;
         }
@@ -172,36 +190,31 @@ impl ProviderWrapperGenerator {
             return Ok(());
         }
 
-        // Convert endpoints to EndpointFn format
+        // Convert endpoints to EndpointFn format - ALL endpoints, not just mutating
         let mut endpoints = Vec::new();
         for ep in &api.endpoints {
-            let is_mutating = matches!(
-                ep.method.as_str(),
-                "POST" | "PUT" | "PATCH" | "DELETE"
-            );
+            // Use operation_type to determine if mutating
+            let is_mutating = ep.operation_type.requires_state_tracking();
 
-            // Only generate methods for mutating endpoints
-            if is_mutating {
-                let base_name = to_snake_case(&ep.operation_id);
-                endpoints.push(EndpointFn {
-                    base_name: base_name.clone(),
-                    args_type: to_pascal_case(&ep.operation_id) + "Args",
-                    response_type: ep.response_type.as_ref().map(|rt| rt.as_rust_type()).unwrap_or("serde_json::Value").to_string(),
-                    is_mutating: true,
-                    path_params: ep.path_params.clone(),
-                    query_params: ep.query_params.clone(),
-                });
-            }
+            let base_name = to_snake_case(&ep.operation_id);
+            endpoints.push(EndpointFn {
+                base_name: base_name.clone(),
+                args_type: to_pascal_case(&ep.operation_id) + "Args",
+                response_type: ep.response_type.as_ref().map(|rt| rt.as_rust_type()).unwrap_or("serde_json::Value").to_string(),
+                is_mutating,
+                path_params: ep.path_params.clone(),
+                query_params: ep.query_params.clone(),
+            });
         }
 
         if endpoints.is_empty() {
-            tracing::debug!("    No mutating endpoints for {}, writing empty module", api.name);
+            tracing::debug!("    No endpoints for {}, writing empty module", api.name);
             // Write empty module with proper structure
             let provider_name = to_pascal_case(&api.name) + "Provider";
             let mut out = String::new();
             writeln!(out, "//! {} - State-aware {} API client.", provider_name, api.name)?;
             writeln!(out, "//!")?;
-            writeln!(out, "//! No mutating endpoints to wrap.")?;
+            writeln!(out, "//! No endpoints to wrap.")?;
             writeln!(out)?;
             writeln!(out, "#![cfg(feature = \"{}\")]", provider)?;
             writeln!(out)?;
@@ -371,56 +384,106 @@ impl ProviderWrapperGenerator {
     ) -> Result<(), GenWrapperError> {
         let base_name = &endpoint.base_name;
 
-        writeln!(out, "    /// {}.", to_sentence_case(base_name))?;
-        writeln!(out, "    ///")?;
-        writeln!(out, "    /// Automatically stores the result in the state store on success.")?;
-        writeln!(out, "    ///")?;
-        writeln!(out, "    /// # Arguments")?;
-        writeln!(out, "    ///")?;
-        writeln!(out, "    /// * `args` - Request arguments")?;
-        writeln!(out, "    ///")?;
-        writeln!(out, "    /// # Returns")?;
-        writeln!(out, "    ///")?;
-        writeln!(out, "    /// StreamIterator yielding the {} result.", endpoint.response_type)?;
-        writeln!(out, "    ///")?;
-        writeln!(out, "    /// # Errors")?;
-        writeln!(out, "    ///")?;
-        writeln!(out, "    /// Returns ProviderError if the API request or state storage fails.")?;
-        writeln!(out, "    pub fn {}(", base_name)?;
-        writeln!(out, "        &self,")?;
-        writeln!(out, "        args: &{},", endpoint.args_type)?;
-        writeln!(out, "    ) -> Result<")?;
-        writeln!(out, "        impl StreamIterator<")?;
-        writeln!(out, "            D = Result<{}, ProviderError<ApiError>>,", endpoint.response_type)?;
-        writeln!(out, "            P = crate::providers::{}::clients::types::ApiPending,", provider)?;
-        writeln!(out, "        > + Send")?;
-        writeln!(out, "        + 'static,")?;
-        writeln!(out, "        ProviderError<ApiError>,")?;
-        writeln!(out, "    > {{")?;
-        writeln!(out, "        let builder = {}_builder(", base_name)?;
-        writeln!(out, "            &self.http_client,")?;
-        // Generate args fields from path_params
-        for param in &endpoint.path_params {
-            writeln!(out, "            &args.{},", param)?;
+        if endpoint.is_mutating {
+            // Generate wrapped method with state tracking
+            writeln!(out, "    /// {}.", to_sentence_case(base_name))?;
+            writeln!(out, "    ///")?;
+            writeln!(out, "    /// Automatically stores the result in the state store on success.")?;
+            writeln!(out, "    ///")?;
+            writeln!(out, "    /// # Arguments")?;
+            writeln!(out, "    ///")?;
+            writeln!(out, "    /// * `args` - Request arguments")?;
+            writeln!(out, "    ///")?;
+            writeln!(out, "    /// # Returns")?;
+            writeln!(out, "    ///")?;
+            writeln!(out, "    /// StreamIterator yielding the {} result.", endpoint.response_type)?;
+            writeln!(out, "    ///")?;
+            writeln!(out, "    /// # Errors")?;
+            writeln!(out, "    ///")?;
+            writeln!(out, "    /// Returns ProviderError if the API request or state storage fails.")?;
+            writeln!(out, "    pub fn {}(", base_name)?;
+            writeln!(out, "        &self,")?;
+            writeln!(out, "        args: &{},", endpoint.args_type)?;
+            writeln!(out, "    ) -> Result<")?;
+            writeln!(out, "        impl StreamIterator<")?;
+            writeln!(out, "            D = Result<{}, ProviderError<ApiError>>,", endpoint.response_type)?;
+            writeln!(out, "            P = crate::providers::{}::clients::types::ApiPending,", provider)?;
+            writeln!(out, "        > + Send")?;
+            writeln!(out, "        + 'static,")?;
+            writeln!(out, "        ProviderError<ApiError>,")?;
+            writeln!(out, "    > {{")?;
+            writeln!(out, "        let builder = {}_builder(", base_name)?;
+            writeln!(out, "            &self.http_client,")?;
+            // Generate args fields from path_params
+            for param in &endpoint.path_params {
+                writeln!(out, "            &args.{},", escape_keyword(param))?;
+            }
+            // Generate args fields from query_params
+            for param in &endpoint.query_params {
+                writeln!(out, "            &args.{},", escape_keyword(param))?;
+            }
+            writeln!(out, "        )")?;
+            writeln!(out, "        .map_err(ProviderError::Api)?;")?;
+            writeln!(out)?;
+            writeln!(out, "        let task = {}_task(builder)", base_name)?;
+            writeln!(out, "            .map_err(ProviderError::Api)?;")?;
+            writeln!(out)?;
+            writeln!(out, "        let state_store = self.client.state_store.clone();")?;
+            writeln!(out, "        let stage = Some(self.client.stage.clone());")?;
+            writeln!(out)?;
+            writeln!(out, "        let store_task = StoreStateIdentifierTask::new(task, state_store, args, stage);")?;
+            writeln!(out)?;
+            writeln!(out, "        execute(store_task, None).map_err(|e: String| ProviderError::ExecuteFailed(e.to_string()))")?;
+            writeln!(out, "    }}")?;
+            writeln!(out)?;
+        } else {
+            // Generate simple execute method without state tracking
+            writeln!(out, "    /// {}.", to_sentence_case(base_name))?;
+            writeln!(out, "    ///")?;
+            writeln!(out, "    /// Read-only operation - no state tracking.")?;
+            writeln!(out, "    ///")?;
+            writeln!(out, "    /// # Arguments")?;
+            writeln!(out, "    ///")?;
+            writeln!(out, "    /// * `args` - Request arguments")?;
+            writeln!(out, "    ///")?;
+            writeln!(out, "    /// # Returns")?;
+            writeln!(out, "    ///")?;
+            writeln!(out, "    /// StreamIterator yielding the {} result.", endpoint.response_type)?;
+            writeln!(out, "    ///")?;
+            writeln!(out, "    /// # Errors")?;
+            writeln!(out, "    ///")?;
+            writeln!(out, "    /// Returns ProviderError if the API request fails.")?;
+            writeln!(out, "    pub fn {}(", base_name)?;
+            writeln!(out, "        &self,")?;
+            writeln!(out, "        args: &{},", endpoint.args_type)?;
+            writeln!(out, "    ) -> Result<")?;
+            writeln!(out, "        impl StreamIterator<")?;
+            writeln!(out, "            D = Result<{}, ProviderError<ApiError>>,", endpoint.response_type)?;
+            writeln!(out, "            P = crate::providers::{}::clients::types::ApiPending,", provider)?;
+            writeln!(out, "        > + Send")?;
+            writeln!(out, "        + 'static,")?;
+            writeln!(out, "        ProviderError<ApiError>,")?;
+            writeln!(out, "    > {{")?;
+            writeln!(out, "        let builder = {}_builder(", base_name)?;
+            writeln!(out, "            &self.http_client,")?;
+            // Generate args fields from path_params
+            for param in &endpoint.path_params {
+                writeln!(out, "            &args.{},", escape_keyword(param))?;
+            }
+            // Generate args fields from query_params
+            for param in &endpoint.query_params {
+                writeln!(out, "            &args.{},", escape_keyword(param))?;
+            }
+            writeln!(out, "        )")?;
+            writeln!(out, "        .map_err(ProviderError::Api)?;")?;
+            writeln!(out)?;
+            writeln!(out, "        let task = {}_task(builder)", base_name)?;
+            writeln!(out, "            .map_err(ProviderError::Api)?;")?;
+            writeln!(out)?;
+            writeln!(out, "        execute(task, None).map_err(|e: String| ProviderError::ExecuteFailed(e.to_string()))")?;
+            writeln!(out, "    }}")?;
+            writeln!(out)?;
         }
-        // Generate args fields from query_params
-        for param in &endpoint.query_params {
-            writeln!(out, "            &args.{},", param)?;
-        }
-        writeln!(out, "        )")?;
-        writeln!(out, "        .map_err(ProviderError::Api)?;")?;
-        writeln!(out)?;
-        writeln!(out, "        let task = {}_task(builder)", base_name)?;
-        writeln!(out, "            .map_err(ProviderError::Api)?;")?;
-        writeln!(out)?;
-        writeln!(out, "        let state_store = self.client.state_store.clone();")?;
-        writeln!(out, "        let stage = Some(self.client.stage.clone());")?;
-        writeln!(out)?;
-        writeln!(out, "        let store_task = StoreStateIdentifierTask::new(task, state_store, args, stage);")?;
-        writeln!(out)?;
-        writeln!(out, "        execute(store_task, None).map_err(|e: String| ProviderError::ExecuteFailed(e.to_string()))")?;
-        writeln!(out, "    }}")?;
-        writeln!(out)?;
 
         Ok(())
     }

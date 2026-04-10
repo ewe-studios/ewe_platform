@@ -7,7 +7,6 @@
 
 #![cfg(feature = "gcp")]
 
-
 use crate::providers::gcp::clients::types::*;
 use crate::providers::gcp::resources::*;
 use foundation_core::valtron::{
@@ -17,8 +16,489 @@ use foundation_core::valtron::{
 use foundation_core::wire::simple_http::client::{
     body_reader, ClientRequestBuilder, RequestIntro, SimpleHttpClient, SystemDnsResolver,
 };
+use foundation_db::state::resource_identifier::ResourceIdentifier;
 use foundation_macros::JsonHash;
 use serde::Serialize;
+
+/// POST v1/customers/{customersId}/userinvitations/{userinvitationsId}:cancel
+/// Cancels a UserInvitation that was already sent.
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `cloudidentity_customers_userinvitations_cancel_execute()` to send, or `cloudidentity_customers_userinvitations_cancel` for simplest API.
+
+pub fn cloudidentity_customers_userinvitations_cancel_builder(
+    client: &SimpleHttpClient,
+    name: &String,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!(
+        "https://cloudidentity.googleapis.com/v1/customers/{}/userinvitations/{userinvitationsId}:cancel",
+        name,
+    );
+
+    // Build request
+    let builder = client
+        .post(&endpoint_url)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// POST v1/customers/{customersId}/userinvitations/{userinvitationsId}:cancel
+/// Cancels a UserInvitation that was already sent.
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `cloudidentity_customers_userinvitations_cancel_execute()` or `cloudidentity_customers_userinvitations_cancel`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `cloudidentity_customers_userinvitations_cancel_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn cloudidentity_customers_userinvitations_cancel_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<Operation>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: Operation = serde_json::from_str(&body)
+                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// POST v1/customers/{customersId}/userinvitations/{userinvitationsId}:cancel
+/// Cancels a UserInvitation that was already sent.
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `cloudidentity_customers_userinvitations_cancel_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `cloudidentity_customers_userinvitations_cancel_task()`.
+/// For the simplest API, use `cloudidentity_customers_userinvitations_cancel()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `cloudidentity_customers_userinvitations_cancel_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn cloudidentity_customers_userinvitations_cancel_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<Operation>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let task = cloudidentity_customers_userinvitations_cancel_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`cloudidentity_customers_userinvitations_cancel`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct CloudidentityCustomersUserinvitationsCancelArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
+/// POST v1/customers/{customersId}/userinvitations/{userinvitationsId}:cancel
+/// Cancels a UserInvitation that was already sent.
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `cloudidentity_customers_userinvitations_cancel_builder()` + `cloudidentity_customers_userinvitations_cancel_execute()`.
+/// For task-level control, use `cloudidentity_customers_userinvitations_cancel_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn cloudidentity_customers_userinvitations_cancel(
+    client: &SimpleHttpClient,
+    args: &CloudidentityCustomersUserinvitationsCancelArgs,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<Operation>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let builder = cloudidentity_customers_userinvitations_cancel_builder(client, &args.name)?;
+    cloudidentity_customers_userinvitations_cancel_execute(builder)
+}
+
+/// GET v1/customers/{customersId}/userinvitations/{userinvitationsId}
+/// Retrieves a UserInvitation resource. **Note:** New consumer accounts with the customer's verified domain created within the previous 48 hours will not appear in the result. This delay also applies to newly-verified domains.
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `cloudidentity_customers_userinvitations_get_execute()` to send, or `cloudidentity_customers_userinvitations_get` for simplest API.
+
+pub fn cloudidentity_customers_userinvitations_get_builder(
+    client: &SimpleHttpClient,
+    name: &String,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!(
+        "https://cloudidentity.googleapis.com/v1/customers/{}/userinvitations/{userinvitationsId}",
+        name,
+    );
+
+    // Build request
+    let builder = client
+        .get(&endpoint_url)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// GET v1/customers/{customersId}/userinvitations/{userinvitationsId}
+/// Retrieves a UserInvitation resource. **Note:** New consumer accounts with the customer's verified domain created within the previous 48 hours will not appear in the result. This delay also applies to newly-verified domains.
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `cloudidentity_customers_userinvitations_get_execute()` or `cloudidentity_customers_userinvitations_get`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `cloudidentity_customers_userinvitations_get_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn cloudidentity_customers_userinvitations_get_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<UserInvitation>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: UserInvitation = serde_json::from_str(&body)
+                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// GET v1/customers/{customersId}/userinvitations/{userinvitationsId}
+/// Retrieves a UserInvitation resource. **Note:** New consumer accounts with the customer's verified domain created within the previous 48 hours will not appear in the result. This delay also applies to newly-verified domains.
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `cloudidentity_customers_userinvitations_get_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `cloudidentity_customers_userinvitations_get_task()`.
+/// For the simplest API, use `cloudidentity_customers_userinvitations_get()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `cloudidentity_customers_userinvitations_get_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn cloudidentity_customers_userinvitations_get_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<UserInvitation>, ApiError>, P = ApiPending>
+        + Send
+        + 'static,
+    ApiError,
+> {
+    let task = cloudidentity_customers_userinvitations_get_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`cloudidentity_customers_userinvitations_get`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct CloudidentityCustomersUserinvitationsGetArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
+/// GET v1/customers/{customersId}/userinvitations/{userinvitationsId}
+/// Retrieves a UserInvitation resource. **Note:** New consumer accounts with the customer's verified domain created within the previous 48 hours will not appear in the result. This delay also applies to newly-verified domains.
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `cloudidentity_customers_userinvitations_get_builder()` + `cloudidentity_customers_userinvitations_get_execute()`.
+/// For task-level control, use `cloudidentity_customers_userinvitations_get_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn cloudidentity_customers_userinvitations_get(
+    client: &SimpleHttpClient,
+    args: &CloudidentityCustomersUserinvitationsGetArgs,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<UserInvitation>, ApiError>, P = ApiPending>
+        + Send
+        + 'static,
+    ApiError,
+> {
+    let builder = cloudidentity_customers_userinvitations_get_builder(client, &args.name)?;
+    cloudidentity_customers_userinvitations_get_execute(builder)
+}
+
+/// GET v1/customers/{customersId}/userinvitations/{userinvitationsId}:isInvitableUser
+/// Verifies whether a user account is eligible to receive a UserInvitation (is an unmanaged account). Eligibility is based on the following criteria: * the email address is a consumer account and it's the primary email address of the account, and * the domain of the email address matches an existing verified Google Workspace or Cloud Identity domain If both conditions are met, the user is eligible. **Note:** This method is not supported for Workspace Essentials customers.
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `cloudidentity_customers_userinvitations_is_invitable_user_execute()` to send, or `cloudidentity_customers_userinvitations_is_invitable_user` for simplest API.
+
+pub fn cloudidentity_customers_userinvitations_is_invitable_user_builder(
+    client: &SimpleHttpClient,
+    name: &String,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!(
+        "https://cloudidentity.googleapis.com/v1/customers/{}/userinvitations/{userinvitationsId}:isInvitableUser",
+        name,
+    );
+
+    // Build request
+    let builder = client
+        .get(&endpoint_url)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// GET v1/customers/{customersId}/userinvitations/{userinvitationsId}:isInvitableUser
+/// Verifies whether a user account is eligible to receive a UserInvitation (is an unmanaged account). Eligibility is based on the following criteria: * the email address is a consumer account and it's the primary email address of the account, and * the domain of the email address matches an existing verified Google Workspace or Cloud Identity domain If both conditions are met, the user is eligible. **Note:** This method is not supported for Workspace Essentials customers.
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `cloudidentity_customers_userinvitations_is_invitable_user_execute()` or `cloudidentity_customers_userinvitations_is_invitable_user`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `cloudidentity_customers_userinvitations_is_invitable_user_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn cloudidentity_customers_userinvitations_is_invitable_user_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<IsInvitableUserResponse>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: IsInvitableUserResponse = serde_json::from_str(&body)
+                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// GET v1/customers/{customersId}/userinvitations/{userinvitationsId}:isInvitableUser
+/// Verifies whether a user account is eligible to receive a UserInvitation (is an unmanaged account). Eligibility is based on the following criteria: * the email address is a consumer account and it's the primary email address of the account, and * the domain of the email address matches an existing verified Google Workspace or Cloud Identity domain If both conditions are met, the user is eligible. **Note:** This method is not supported for Workspace Essentials customers.
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `cloudidentity_customers_userinvitations_is_invitable_user_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `cloudidentity_customers_userinvitations_is_invitable_user_task()`.
+/// For the simplest API, use `cloudidentity_customers_userinvitations_is_invitable_user()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `cloudidentity_customers_userinvitations_is_invitable_user_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn cloudidentity_customers_userinvitations_is_invitable_user_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<IsInvitableUserResponse>, ApiError>, P = ApiPending>
+        + Send
+        + 'static,
+    ApiError,
+> {
+    let task = cloudidentity_customers_userinvitations_is_invitable_user_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`cloudidentity_customers_userinvitations_is_invitable_user`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct CloudidentityCustomersUserinvitationsIsInvitableUserArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
+/// GET v1/customers/{customersId}/userinvitations/{userinvitationsId}:isInvitableUser
+/// Verifies whether a user account is eligible to receive a UserInvitation (is an unmanaged account). Eligibility is based on the following criteria: * the email address is a consumer account and it's the primary email address of the account, and * the domain of the email address matches an existing verified Google Workspace or Cloud Identity domain If both conditions are met, the user is eligible. **Note:** This method is not supported for Workspace Essentials customers.
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `cloudidentity_customers_userinvitations_is_invitable_user_builder()` + `cloudidentity_customers_userinvitations_is_invitable_user_execute()`.
+/// For task-level control, use `cloudidentity_customers_userinvitations_is_invitable_user_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn cloudidentity_customers_userinvitations_is_invitable_user(
+    client: &SimpleHttpClient,
+    args: &CloudidentityCustomersUserinvitationsIsInvitableUserArgs,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<IsInvitableUserResponse>, ApiError>, P = ApiPending>
+        + Send
+        + 'static,
+    ApiError,
+> {
+    let builder =
+        cloudidentity_customers_userinvitations_is_invitable_user_builder(client, &args.name)?;
+    cloudidentity_customers_userinvitations_is_invitable_user_execute(builder)
+}
 
 /// GET v1/customers/{customersId}/userinvitations
 /// Retrieves a list of UserInvitation resources. **Note:** New consumer accounts with the customer's verified domain created within the previous 48 hours will not appear in the result. This delay also applies to newly-verified domains.
@@ -29,14 +509,16 @@ use serde::Serialize;
 pub fn cloudidentity_customers_userinvitations_list_builder(
     client: &SimpleHttpClient,
     parent: &String,
-    filter: &Option<String>,
-    orderBy: &Option<String>,
-    pageSize: &Option<i32>,
-    pageToken: &Option<String>,
+    filter: &Option<Option<String>>,
+    orderBy: &Option<Option<String>>,
+    pageSize: &Option<Option<String>>,
+    pageToken: &Option<Option<String>>,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
-    let endpoint_url =
-        format!("https://cloudidentity.googleapis.com/v1/customers/{}/userinvitations",);
+    let endpoint_url = format!(
+        "https://cloudidentity.googleapis.com/v1/customers/{}/userinvitations",
+        parent,
+    );
 
     // Build request
     let mut query_parts = Vec::new();
@@ -180,13 +662,13 @@ pub struct CloudidentityCustomersUserinvitationsListArgs {
     /// Path parameter: parent
     pub parent: String,
     /// Query parameter: filter
-    pub filter: Option<String>,
+    pub filter: Option<Option<String>>,
     /// Query parameter: orderBy
-    pub orderBy: Option<String>,
+    pub orderBy: Option<Option<String>>,
     /// Query parameter: pageSize
-    pub pageSize: Option<i32>,
+    pub pageSize: Option<Option<String>>,
     /// Query parameter: pageToken
-    pub pageToken: Option<String>,
+    pub pageToken: Option<Option<String>>,
 }
 
 /// GET v1/customers/{customersId}/userinvitations
@@ -222,7 +704,164 @@ pub fn cloudidentity_customers_userinvitations_list(
     cloudidentity_customers_userinvitations_list_execute(builder)
 }
 
-/// GET v1/devices/{devicesId}:cancelWipe
+/// POST v1/customers/{customersId}/userinvitations/{userinvitationsId}:send
+/// Sends a UserInvitation to email. If the UserInvitation does not exist for this request and it is a valid request, the request creates a UserInvitation. **Note:** The get and list methods have a 48-hour delay where newly-created consumer accounts will not appear in the results. You can still send a UserInvitation to those accounts if you know the unmanaged email address and IsInvitableUser==True.
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `cloudidentity_customers_userinvitations_send_execute()` to send, or `cloudidentity_customers_userinvitations_send` for simplest API.
+
+pub fn cloudidentity_customers_userinvitations_send_builder(
+    client: &SimpleHttpClient,
+    name: &String,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!(
+        "https://cloudidentity.googleapis.com/v1/customers/{}/userinvitations/{userinvitationsId}:send",
+        name,
+    );
+
+    // Build request
+    let builder = client
+        .post(&endpoint_url)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// POST v1/customers/{customersId}/userinvitations/{userinvitationsId}:send
+/// Sends a UserInvitation to email. If the UserInvitation does not exist for this request and it is a valid request, the request creates a UserInvitation. **Note:** The get and list methods have a 48-hour delay where newly-created consumer accounts will not appear in the results. You can still send a UserInvitation to those accounts if you know the unmanaged email address and IsInvitableUser==True.
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `cloudidentity_customers_userinvitations_send_execute()` or `cloudidentity_customers_userinvitations_send`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `cloudidentity_customers_userinvitations_send_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn cloudidentity_customers_userinvitations_send_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<Operation>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: Operation = serde_json::from_str(&body)
+                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// POST v1/customers/{customersId}/userinvitations/{userinvitationsId}:send
+/// Sends a UserInvitation to email. If the UserInvitation does not exist for this request and it is a valid request, the request creates a UserInvitation. **Note:** The get and list methods have a 48-hour delay where newly-created consumer accounts will not appear in the results. You can still send a UserInvitation to those accounts if you know the unmanaged email address and IsInvitableUser==True.
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `cloudidentity_customers_userinvitations_send_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `cloudidentity_customers_userinvitations_send_task()`.
+/// For the simplest API, use `cloudidentity_customers_userinvitations_send()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `cloudidentity_customers_userinvitations_send_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn cloudidentity_customers_userinvitations_send_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<Operation>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let task = cloudidentity_customers_userinvitations_send_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`cloudidentity_customers_userinvitations_send`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct CloudidentityCustomersUserinvitationsSendArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
+/// POST v1/customers/{customersId}/userinvitations/{userinvitationsId}:send
+/// Sends a UserInvitation to email. If the UserInvitation does not exist for this request and it is a valid request, the request creates a UserInvitation. **Note:** The get and list methods have a 48-hour delay where newly-created consumer accounts will not appear in the results. You can still send a UserInvitation to those accounts if you know the unmanaged email address and IsInvitableUser==True.
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `cloudidentity_customers_userinvitations_send_builder()` + `cloudidentity_customers_userinvitations_send_execute()`.
+/// For task-level control, use `cloudidentity_customers_userinvitations_send_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn cloudidentity_customers_userinvitations_send(
+    client: &SimpleHttpClient,
+    args: &CloudidentityCustomersUserinvitationsSendArgs,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<Operation>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let builder = cloudidentity_customers_userinvitations_send_builder(client, &args.name)?;
+    cloudidentity_customers_userinvitations_send_execute(builder)
+}
+
+/// POST v1/devices/{devicesId}:cancelWipe
 /// Cancels an unfinished device wipe. This operation can be used to cancel device wipe in the gap between the wipe operation returning success and the device being wiped. This operation is possible when the device is in a "pending wipe" state. The device enters the "pending wipe" state when a wipe device command is issued, but has not yet been sent to the device. The cancel wipe will fail if the wipe command has already been issued to the device.
 ///
 /// Returns `ClientRequestBuilder` for customization.
@@ -231,22 +870,22 @@ pub fn cloudidentity_customers_userinvitations_list(
 pub fn cloudidentity_devices_cancel_wipe_builder(
     client: &SimpleHttpClient,
     name: &String,
-    body: &GoogleAppsCloudidentityDevicesV1CancelWipeDeviceRequest,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
-    let endpoint_url = format!("https://cloudidentity.googleapis.com/v1/devices/{}:cancelWipe",);
+    let endpoint_url = format!(
+        "https://cloudidentity.googleapis.com/v1/devices/{}:cancelWipe",
+        name,
+    );
 
     // Build request
     let builder = client
-        .get(&endpoint_url)
+        .post(&endpoint_url)
         .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
 
-    builder
-        .body_json(body)
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+    Ok(builder)
 }
 
-/// GET v1/devices/{devicesId}:cancelWipe
+/// POST v1/devices/{devicesId}:cancelWipe
 /// Cancels an unfinished device wipe. This operation can be used to cancel device wipe in the gap between the wipe operation returning success and the device being wiped. This operation is possible when the device is in a "pending wipe" state. The device enters the "pending wipe" state when a wipe device command is issued, but has not yet been sent to the device. The cancel wipe will fail if the wipe command has already been issued to the device.
 ///
 /// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
@@ -320,7 +959,7 @@ pub fn cloudidentity_devices_cancel_wipe_task(
         .map_pending(|_| ApiPending::Sending))
 }
 
-/// GET v1/devices/{devicesId}:cancelWipe
+/// POST v1/devices/{devicesId}:cancelWipe
 /// Cancels an unfinished device wipe. This operation can be used to cancel device wipe in the gap between the wipe operation returning success and the device being wiped. This operation is possible when the device is in a "pending wipe" state. The device enters the "pending wipe" state when a wipe device command is issued, but has not yet been sent to the device. The cancel wipe will fail if the wipe command has already been issued to the device.
 ///
 /// Takes a `ClientRequestBuilder`, builds and executes the request,
@@ -355,11 +994,9 @@ pub fn cloudidentity_devices_cancel_wipe_execute(
 pub struct CloudidentityDevicesCancelWipeArgs {
     /// Path parameter: name
     pub name: String,
-    /// Request body.
-    pub body: GoogleAppsCloudidentityDevicesV1CancelWipeDeviceRequest,
 }
 
-/// GET v1/devices/{devicesId}:cancelWipe
+/// POST v1/devices/{devicesId}:cancelWipe
 /// Cancels an unfinished device wipe. This operation can be used to cancel device wipe in the gap between the wipe operation returning success and the device being wiped. This operation is possible when the device is in a "pending wipe" state. The device enters the "pending wipe" state when a wipe device command is issued, but has not yet been sent to the device. The cancel wipe will fail if the wipe command has already been issued to the device.
 ///
 /// Simplest API - builds and executes the request in one call.
@@ -377,11 +1014,11 @@ pub fn cloudidentity_devices_cancel_wipe(
     impl StreamIterator<D = Result<ApiResponse<Operation>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = cloudidentity_devices_cancel_wipe_builder(client, &args.name, &args.body)?;
+    let builder = cloudidentity_devices_cancel_wipe_builder(client, &args.name)?;
     cloudidentity_devices_cancel_wipe_execute(builder)
 }
 
-/// GET v1/devices
+/// POST v1/devices
 /// Creates a device. Only company-owned device may be created. **Note**: This method is available only to customers who have one of the following SKUs: Enterprise Standard, Enterprise Plus, Enterprise for Education, and Cloud Identity Premium
 ///
 /// Returns `ClientRequestBuilder` for customization.
@@ -389,8 +1026,7 @@ pub fn cloudidentity_devices_cancel_wipe(
 
 pub fn cloudidentity_devices_create_builder(
     client: &SimpleHttpClient,
-    customer: &Option<String>,
-    body: &GoogleAppsCloudidentityDevicesV1Device,
+    customer: &Option<Option<String>>,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!("https://cloudidentity.googleapis.com/v1/devices",);
@@ -408,15 +1044,13 @@ pub fn cloudidentity_devices_create_builder(
     };
 
     let builder = client
-        .get(&url_with_query)
+        .post(&url_with_query)
         .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
 
-    builder
-        .body_json(body)
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+    Ok(builder)
 }
 
-/// GET v1/devices
+/// POST v1/devices
 /// Creates a device. Only company-owned device may be created. **Note**: This method is available only to customers who have one of the following SKUs: Enterprise Standard, Enterprise Plus, Enterprise for Education, and Cloud Identity Premium
 ///
 /// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
@@ -490,7 +1124,7 @@ pub fn cloudidentity_devices_create_task(
         .map_pending(|_| ApiPending::Sending))
 }
 
-/// GET v1/devices
+/// POST v1/devices
 /// Creates a device. Only company-owned device may be created. **Note**: This method is available only to customers who have one of the following SKUs: Enterprise Standard, Enterprise Plus, Enterprise for Education, and Cloud Identity Premium
 ///
 /// Takes a `ClientRequestBuilder`, builds and executes the request,
@@ -524,12 +1158,10 @@ pub fn cloudidentity_devices_create_execute(
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct CloudidentityDevicesCreateArgs {
     /// Query parameter: customer
-    pub customer: Option<String>,
-    /// Request body.
-    pub body: GoogleAppsCloudidentityDevicesV1Device,
+    pub customer: Option<Option<String>>,
 }
 
-/// GET v1/devices
+/// POST v1/devices
 /// Creates a device. Only company-owned device may be created. **Note**: This method is available only to customers who have one of the following SKUs: Enterprise Standard, Enterprise Plus, Enterprise for Education, and Cloud Identity Premium
 ///
 /// Simplest API - builds and executes the request in one call.
@@ -547,11 +1179,11 @@ pub fn cloudidentity_devices_create(
     impl StreamIterator<D = Result<ApiResponse<Operation>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = cloudidentity_devices_create_builder(client, &args.customer, &args.body)?;
+    let builder = cloudidentity_devices_create_builder(client, &args.customer)?;
     cloudidentity_devices_create_execute(builder)
 }
 
-/// GET v1/devices/{devicesId}
+/// DELETE v1/devices/{devicesId}
 /// Deletes the specified device.
 ///
 /// Returns `ClientRequestBuilder` for customization.
@@ -560,10 +1192,10 @@ pub fn cloudidentity_devices_create(
 pub fn cloudidentity_devices_delete_builder(
     client: &SimpleHttpClient,
     name: &String,
-    customer: &Option<String>,
+    customer: &Option<Option<String>>,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
-    let endpoint_url = format!("https://cloudidentity.googleapis.com/v1/devices/{}",);
+    let endpoint_url = format!("https://cloudidentity.googleapis.com/v1/devices/{}", name,);
 
     // Build request
     let mut query_parts = Vec::new();
@@ -578,13 +1210,13 @@ pub fn cloudidentity_devices_delete_builder(
     };
 
     let builder = client
-        .get(&url_with_query)
+        .delete(&url_with_query)
         .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
 
     Ok(builder)
 }
 
-/// GET v1/devices/{devicesId}
+/// DELETE v1/devices/{devicesId}
 /// Deletes the specified device.
 ///
 /// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
@@ -658,7 +1290,7 @@ pub fn cloudidentity_devices_delete_task(
         .map_pending(|_| ApiPending::Sending))
 }
 
-/// GET v1/devices/{devicesId}
+/// DELETE v1/devices/{devicesId}
 /// Deletes the specified device.
 ///
 /// Takes a `ClientRequestBuilder`, builds and executes the request,
@@ -694,10 +1326,10 @@ pub struct CloudidentityDevicesDeleteArgs {
     /// Path parameter: name
     pub name: String,
     /// Query parameter: customer
-    pub customer: Option<String>,
+    pub customer: Option<Option<String>>,
 }
 
-/// GET v1/devices/{devicesId}
+/// DELETE v1/devices/{devicesId}
 /// Deletes the specified device.
 ///
 /// Simplest API - builds and executes the request in one call.
@@ -719,7 +1351,398 @@ pub fn cloudidentity_devices_delete(
     cloudidentity_devices_delete_execute(builder)
 }
 
-/// GET v1/devices/{devicesId}:wipe
+/// GET v1/devices/{devicesId}
+/// Retrieves the specified device.
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `cloudidentity_devices_get_execute()` to send, or `cloudidentity_devices_get` for simplest API.
+
+pub fn cloudidentity_devices_get_builder(
+    client: &SimpleHttpClient,
+    name: &String,
+    customer: &Option<Option<String>>,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!("https://cloudidentity.googleapis.com/v1/devices/{}", name,);
+
+    // Build request
+    let mut query_parts = Vec::new();
+    if let Some(val) = customer.as_ref() {
+        query_parts.push(format!("customer={}", val));
+    }
+
+    let url_with_query = if query_parts.is_empty() {
+        endpoint_url
+    } else {
+        format!("{}?{}", endpoint_url, query_parts.join("&"))
+    };
+
+    let builder = client
+        .get(&url_with_query)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// GET v1/devices/{devicesId}
+/// Retrieves the specified device.
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `cloudidentity_devices_get_execute()` or `cloudidentity_devices_get`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `cloudidentity_devices_get_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn cloudidentity_devices_get_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<GoogleAppsCloudidentityDevicesV1Device>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: GoogleAppsCloudidentityDevicesV1Device = serde_json::from_str(&body)
+                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// GET v1/devices/{devicesId}
+/// Retrieves the specified device.
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `cloudidentity_devices_get_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `cloudidentity_devices_get_task()`.
+/// For the simplest API, use `cloudidentity_devices_get()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `cloudidentity_devices_get_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn cloudidentity_devices_get_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<
+            D = Result<ApiResponse<GoogleAppsCloudidentityDevicesV1Device>, ApiError>,
+            P = ApiPending,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    let task = cloudidentity_devices_get_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`cloudidentity_devices_get`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct CloudidentityDevicesGetArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Query parameter: customer
+    pub customer: Option<Option<String>>,
+}
+
+/// GET v1/devices/{devicesId}
+/// Retrieves the specified device.
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `cloudidentity_devices_get_builder()` + `cloudidentity_devices_get_execute()`.
+/// For task-level control, use `cloudidentity_devices_get_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn cloudidentity_devices_get(
+    client: &SimpleHttpClient,
+    args: &CloudidentityDevicesGetArgs,
+) -> Result<
+    impl StreamIterator<
+            D = Result<ApiResponse<GoogleAppsCloudidentityDevicesV1Device>, ApiError>,
+            P = ApiPending,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    let builder = cloudidentity_devices_get_builder(client, &args.name, &args.customer)?;
+    cloudidentity_devices_get_execute(builder)
+}
+
+/// GET v1/devices
+/// L`ists/Searches` devices.
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `cloudidentity_devices_list_execute()` to send, or `cloudidentity_devices_list` for simplest API.
+
+pub fn cloudidentity_devices_list_builder(
+    client: &SimpleHttpClient,
+    customer: &Option<Option<String>>,
+    filter: &Option<Option<String>>,
+    orderBy: &Option<Option<String>>,
+    pageSize: &Option<Option<String>>,
+    pageToken: &Option<Option<String>>,
+    view: &Option<Option<String>>,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!("https://cloudidentity.googleapis.com/v1/devices",);
+
+    // Build request
+    let mut query_parts = Vec::new();
+    if let Some(val) = customer.as_ref() {
+        query_parts.push(format!("customer={}", val));
+    }
+    if let Some(val) = filter.as_ref() {
+        query_parts.push(format!("filter={}", val));
+    }
+    if let Some(val) = orderBy.as_ref() {
+        query_parts.push(format!("orderBy={}", val));
+    }
+    if let Some(val) = pageSize.as_ref() {
+        query_parts.push(format!("pageSize={}", val));
+    }
+    if let Some(val) = pageToken.as_ref() {
+        query_parts.push(format!("pageToken={}", val));
+    }
+    if let Some(val) = view.as_ref() {
+        query_parts.push(format!("view={}", val));
+    }
+
+    let url_with_query = if query_parts.is_empty() {
+        endpoint_url
+    } else {
+        format!("{}?{}", endpoint_url, query_parts.join("&"))
+    };
+
+    let builder = client
+        .get(&url_with_query)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// GET v1/devices
+/// L`ists/Searches` devices.
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `cloudidentity_devices_list_execute()` or `cloudidentity_devices_list`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `cloudidentity_devices_list_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn cloudidentity_devices_list_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<
+                ApiResponse<GoogleAppsCloudidentityDevicesV1ListDevicesResponse>,
+                ApiError,
+            >,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: GoogleAppsCloudidentityDevicesV1ListDevicesResponse =
+                    serde_json::from_str(&body)
+                        .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// GET v1/devices
+/// L`ists/Searches` devices.
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `cloudidentity_devices_list_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `cloudidentity_devices_list_task()`.
+/// For the simplest API, use `cloudidentity_devices_list()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `cloudidentity_devices_list_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn cloudidentity_devices_list_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<
+            D = Result<ApiResponse<GoogleAppsCloudidentityDevicesV1ListDevicesResponse>, ApiError>,
+            P = ApiPending,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    let task = cloudidentity_devices_list_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`cloudidentity_devices_list`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct CloudidentityDevicesListArgs {
+    /// Query parameter: customer
+    pub customer: Option<Option<String>>,
+    /// Query parameter: filter
+    pub filter: Option<Option<String>>,
+    /// Query parameter: orderBy
+    pub orderBy: Option<Option<String>>,
+    /// Query parameter: pageSize
+    pub pageSize: Option<Option<String>>,
+    /// Query parameter: pageToken
+    pub pageToken: Option<Option<String>>,
+    /// Query parameter: view
+    pub view: Option<Option<String>>,
+}
+
+/// GET v1/devices
+/// L`ists/Searches` devices.
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `cloudidentity_devices_list_builder()` + `cloudidentity_devices_list_execute()`.
+/// For task-level control, use `cloudidentity_devices_list_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn cloudidentity_devices_list(
+    client: &SimpleHttpClient,
+    args: &CloudidentityDevicesListArgs,
+) -> Result<
+    impl StreamIterator<
+            D = Result<ApiResponse<GoogleAppsCloudidentityDevicesV1ListDevicesResponse>, ApiError>,
+            P = ApiPending,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    let builder = cloudidentity_devices_list_builder(
+        client,
+        &args.customer,
+        &args.filter,
+        &args.orderBy,
+        &args.pageSize,
+        &args.pageToken,
+        &args.view,
+    )?;
+    cloudidentity_devices_list_execute(builder)
+}
+
+/// POST v1/devices/{devicesId}:wipe
 /// Wipes all data on the specified device.
 ///
 /// Returns `ClientRequestBuilder` for customization.
@@ -728,22 +1751,22 @@ pub fn cloudidentity_devices_delete(
 pub fn cloudidentity_devices_wipe_builder(
     client: &SimpleHttpClient,
     name: &String,
-    body: &GoogleAppsCloudidentityDevicesV1WipeDeviceRequest,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
-    let endpoint_url = format!("https://cloudidentity.googleapis.com/v1/devices/{}:wipe",);
+    let endpoint_url = format!(
+        "https://cloudidentity.googleapis.com/v1/devices/{}:wipe",
+        name,
+    );
 
     // Build request
     let builder = client
-        .get(&endpoint_url)
+        .post(&endpoint_url)
         .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
 
-    builder
-        .body_json(body)
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+    Ok(builder)
 }
 
-/// GET v1/devices/{devicesId}:wipe
+/// POST v1/devices/{devicesId}:wipe
 /// Wipes all data on the specified device.
 ///
 /// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
@@ -817,7 +1840,7 @@ pub fn cloudidentity_devices_wipe_task(
         .map_pending(|_| ApiPending::Sending))
 }
 
-/// GET v1/devices/{devicesId}:wipe
+/// POST v1/devices/{devicesId}:wipe
 /// Wipes all data on the specified device.
 ///
 /// Takes a `ClientRequestBuilder`, builds and executes the request,
@@ -852,11 +1875,9 @@ pub fn cloudidentity_devices_wipe_execute(
 pub struct CloudidentityDevicesWipeArgs {
     /// Path parameter: name
     pub name: String,
-    /// Request body.
-    pub body: GoogleAppsCloudidentityDevicesV1WipeDeviceRequest,
 }
 
-/// GET v1/devices/{devicesId}:wipe
+/// POST v1/devices/{devicesId}:wipe
 /// Wipes all data on the specified device.
 ///
 /// Simplest API - builds and executes the request in one call.
@@ -874,8 +1895,832 @@ pub fn cloudidentity_devices_wipe(
     impl StreamIterator<D = Result<ApiResponse<Operation>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = cloudidentity_devices_wipe_builder(client, &args.name, &args.body)?;
+    let builder = cloudidentity_devices_wipe_builder(client, &args.name)?;
     cloudidentity_devices_wipe_execute(builder)
+}
+
+/// POST v1/devices/{devicesId}/deviceUsers/{deviceUsersId}:approve
+/// Approves device to access user data.
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `cloudidentity_devices_device_users_approve_execute()` to send, or `cloudidentity_devices_device_users_approve` for simplest API.
+
+pub fn cloudidentity_devices_device_users_approve_builder(
+    client: &SimpleHttpClient,
+    name: &String,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!(
+        "https://cloudidentity.googleapis.com/v1/devices/{}/deviceUsers/{deviceUsersId}:approve",
+        name,
+    );
+
+    // Build request
+    let builder = client
+        .post(&endpoint_url)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// POST v1/devices/{devicesId}/deviceUsers/{deviceUsersId}:approve
+/// Approves device to access user data.
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `cloudidentity_devices_device_users_approve_execute()` or `cloudidentity_devices_device_users_approve`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `cloudidentity_devices_device_users_approve_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn cloudidentity_devices_device_users_approve_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<Operation>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: Operation = serde_json::from_str(&body)
+                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// POST v1/devices/{devicesId}/deviceUsers/{deviceUsersId}:approve
+/// Approves device to access user data.
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `cloudidentity_devices_device_users_approve_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `cloudidentity_devices_device_users_approve_task()`.
+/// For the simplest API, use `cloudidentity_devices_device_users_approve()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `cloudidentity_devices_device_users_approve_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn cloudidentity_devices_device_users_approve_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<Operation>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let task = cloudidentity_devices_device_users_approve_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`cloudidentity_devices_device_users_approve`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct CloudidentityDevicesDeviceUsersApproveArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
+/// POST v1/devices/{devicesId}/deviceUsers/{deviceUsersId}:approve
+/// Approves device to access user data.
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `cloudidentity_devices_device_users_approve_builder()` + `cloudidentity_devices_device_users_approve_execute()`.
+/// For task-level control, use `cloudidentity_devices_device_users_approve_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn cloudidentity_devices_device_users_approve(
+    client: &SimpleHttpClient,
+    args: &CloudidentityDevicesDeviceUsersApproveArgs,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<Operation>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let builder = cloudidentity_devices_device_users_approve_builder(client, &args.name)?;
+    cloudidentity_devices_device_users_approve_execute(builder)
+}
+
+/// POST v1/devices/{devicesId}/deviceUsers/{deviceUsersId}:block
+/// Blocks device from accessing user data
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `cloudidentity_devices_device_users_block_execute()` to send, or `cloudidentity_devices_device_users_block` for simplest API.
+
+pub fn cloudidentity_devices_device_users_block_builder(
+    client: &SimpleHttpClient,
+    name: &String,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!(
+        "https://cloudidentity.googleapis.com/v1/devices/{}/deviceUsers/{deviceUsersId}:block",
+        name,
+    );
+
+    // Build request
+    let builder = client
+        .post(&endpoint_url)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// POST v1/devices/{devicesId}/deviceUsers/{deviceUsersId}:block
+/// Blocks device from accessing user data
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `cloudidentity_devices_device_users_block_execute()` or `cloudidentity_devices_device_users_block`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `cloudidentity_devices_device_users_block_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn cloudidentity_devices_device_users_block_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<Operation>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: Operation = serde_json::from_str(&body)
+                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// POST v1/devices/{devicesId}/deviceUsers/{deviceUsersId}:block
+/// Blocks device from accessing user data
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `cloudidentity_devices_device_users_block_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `cloudidentity_devices_device_users_block_task()`.
+/// For the simplest API, use `cloudidentity_devices_device_users_block()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `cloudidentity_devices_device_users_block_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn cloudidentity_devices_device_users_block_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<Operation>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let task = cloudidentity_devices_device_users_block_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`cloudidentity_devices_device_users_block`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct CloudidentityDevicesDeviceUsersBlockArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
+/// POST v1/devices/{devicesId}/deviceUsers/{deviceUsersId}:block
+/// Blocks device from accessing user data
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `cloudidentity_devices_device_users_block_builder()` + `cloudidentity_devices_device_users_block_execute()`.
+/// For task-level control, use `cloudidentity_devices_device_users_block_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn cloudidentity_devices_device_users_block(
+    client: &SimpleHttpClient,
+    args: &CloudidentityDevicesDeviceUsersBlockArgs,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<Operation>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let builder = cloudidentity_devices_device_users_block_builder(client, &args.name)?;
+    cloudidentity_devices_device_users_block_execute(builder)
+}
+
+/// POST v1/devices/{devicesId}/deviceUsers/{deviceUsersId}:cancelWipe
+/// Cancels an unfinished user account wipe. This operation can be used to cancel device wipe in the gap between the wipe operation returning success and the device being wiped.
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `cloudidentity_devices_device_users_cancel_wipe_execute()` to send, or `cloudidentity_devices_device_users_cancel_wipe` for simplest API.
+
+pub fn cloudidentity_devices_device_users_cancel_wipe_builder(
+    client: &SimpleHttpClient,
+    name: &String,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!(
+        "https://cloudidentity.googleapis.com/v1/devices/{}/deviceUsers/{deviceUsersId}:cancelWipe",
+        name,
+    );
+
+    // Build request
+    let builder = client
+        .post(&endpoint_url)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// POST v1/devices/{devicesId}/deviceUsers/{deviceUsersId}:cancelWipe
+/// Cancels an unfinished user account wipe. This operation can be used to cancel device wipe in the gap between the wipe operation returning success and the device being wiped.
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `cloudidentity_devices_device_users_cancel_wipe_execute()` or `cloudidentity_devices_device_users_cancel_wipe`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `cloudidentity_devices_device_users_cancel_wipe_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn cloudidentity_devices_device_users_cancel_wipe_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<Operation>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: Operation = serde_json::from_str(&body)
+                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// POST v1/devices/{devicesId}/deviceUsers/{deviceUsersId}:cancelWipe
+/// Cancels an unfinished user account wipe. This operation can be used to cancel device wipe in the gap between the wipe operation returning success and the device being wiped.
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `cloudidentity_devices_device_users_cancel_wipe_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `cloudidentity_devices_device_users_cancel_wipe_task()`.
+/// For the simplest API, use `cloudidentity_devices_device_users_cancel_wipe()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `cloudidentity_devices_device_users_cancel_wipe_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn cloudidentity_devices_device_users_cancel_wipe_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<Operation>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let task = cloudidentity_devices_device_users_cancel_wipe_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`cloudidentity_devices_device_users_cancel_wipe`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct CloudidentityDevicesDeviceUsersCancelWipeArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
+/// POST v1/devices/{devicesId}/deviceUsers/{deviceUsersId}:cancelWipe
+/// Cancels an unfinished user account wipe. This operation can be used to cancel device wipe in the gap between the wipe operation returning success and the device being wiped.
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `cloudidentity_devices_device_users_cancel_wipe_builder()` + `cloudidentity_devices_device_users_cancel_wipe_execute()`.
+/// For task-level control, use `cloudidentity_devices_device_users_cancel_wipe_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn cloudidentity_devices_device_users_cancel_wipe(
+    client: &SimpleHttpClient,
+    args: &CloudidentityDevicesDeviceUsersCancelWipeArgs,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<Operation>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let builder = cloudidentity_devices_device_users_cancel_wipe_builder(client, &args.name)?;
+    cloudidentity_devices_device_users_cancel_wipe_execute(builder)
+}
+
+/// DELETE v1/devices/{devicesId}/deviceUsers/{deviceUsersId}
+/// Deletes the specified DeviceUser. This also revokes the user's access to device data.
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `cloudidentity_devices_device_users_delete_execute()` to send, or `cloudidentity_devices_device_users_delete` for simplest API.
+
+pub fn cloudidentity_devices_device_users_delete_builder(
+    client: &SimpleHttpClient,
+    name: &String,
+    customer: &Option<Option<String>>,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!(
+        "https://cloudidentity.googleapis.com/v1/devices/{}/deviceUsers/{deviceUsersId}",
+        name,
+    );
+
+    // Build request
+    let mut query_parts = Vec::new();
+    if let Some(val) = customer.as_ref() {
+        query_parts.push(format!("customer={}", val));
+    }
+
+    let url_with_query = if query_parts.is_empty() {
+        endpoint_url
+    } else {
+        format!("{}?{}", endpoint_url, query_parts.join("&"))
+    };
+
+    let builder = client
+        .delete(&url_with_query)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// DELETE v1/devices/{devicesId}/deviceUsers/{deviceUsersId}
+/// Deletes the specified DeviceUser. This also revokes the user's access to device data.
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `cloudidentity_devices_device_users_delete_execute()` or `cloudidentity_devices_device_users_delete`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `cloudidentity_devices_device_users_delete_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn cloudidentity_devices_device_users_delete_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<Operation>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: Operation = serde_json::from_str(&body)
+                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// DELETE v1/devices/{devicesId}/deviceUsers/{deviceUsersId}
+/// Deletes the specified DeviceUser. This also revokes the user's access to device data.
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `cloudidentity_devices_device_users_delete_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `cloudidentity_devices_device_users_delete_task()`.
+/// For the simplest API, use `cloudidentity_devices_device_users_delete()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `cloudidentity_devices_device_users_delete_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn cloudidentity_devices_device_users_delete_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<Operation>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let task = cloudidentity_devices_device_users_delete_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`cloudidentity_devices_device_users_delete`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct CloudidentityDevicesDeviceUsersDeleteArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Query parameter: customer
+    pub customer: Option<Option<String>>,
+}
+
+/// DELETE v1/devices/{devicesId}/deviceUsers/{deviceUsersId}
+/// Deletes the specified DeviceUser. This also revokes the user's access to device data.
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `cloudidentity_devices_device_users_delete_builder()` + `cloudidentity_devices_device_users_delete_execute()`.
+/// For task-level control, use `cloudidentity_devices_device_users_delete_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn cloudidentity_devices_device_users_delete(
+    client: &SimpleHttpClient,
+    args: &CloudidentityDevicesDeviceUsersDeleteArgs,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<Operation>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let builder =
+        cloudidentity_devices_device_users_delete_builder(client, &args.name, &args.customer)?;
+    cloudidentity_devices_device_users_delete_execute(builder)
+}
+
+/// GET v1/devices/{devicesId}/deviceUsers/{deviceUsersId}
+/// Retrieves the specified DeviceUser
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `cloudidentity_devices_device_users_get_execute()` to send, or `cloudidentity_devices_device_users_get` for simplest API.
+
+pub fn cloudidentity_devices_device_users_get_builder(
+    client: &SimpleHttpClient,
+    name: &String,
+    customer: &Option<Option<String>>,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!(
+        "https://cloudidentity.googleapis.com/v1/devices/{}/deviceUsers/{deviceUsersId}",
+        name,
+    );
+
+    // Build request
+    let mut query_parts = Vec::new();
+    if let Some(val) = customer.as_ref() {
+        query_parts.push(format!("customer={}", val));
+    }
+
+    let url_with_query = if query_parts.is_empty() {
+        endpoint_url
+    } else {
+        format!("{}?{}", endpoint_url, query_parts.join("&"))
+    };
+
+    let builder = client
+        .get(&url_with_query)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// GET v1/devices/{devicesId}/deviceUsers/{deviceUsersId}
+/// Retrieves the specified DeviceUser
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `cloudidentity_devices_device_users_get_execute()` or `cloudidentity_devices_device_users_get`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `cloudidentity_devices_device_users_get_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn cloudidentity_devices_device_users_get_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<GoogleAppsCloudidentityDevicesV1DeviceUser>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: GoogleAppsCloudidentityDevicesV1DeviceUser =
+                    serde_json::from_str(&body)
+                        .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// GET v1/devices/{devicesId}/deviceUsers/{deviceUsersId}
+/// Retrieves the specified DeviceUser
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `cloudidentity_devices_device_users_get_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `cloudidentity_devices_device_users_get_task()`.
+/// For the simplest API, use `cloudidentity_devices_device_users_get()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `cloudidentity_devices_device_users_get_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn cloudidentity_devices_device_users_get_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<
+            D = Result<ApiResponse<GoogleAppsCloudidentityDevicesV1DeviceUser>, ApiError>,
+            P = ApiPending,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    let task = cloudidentity_devices_device_users_get_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`cloudidentity_devices_device_users_get`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct CloudidentityDevicesDeviceUsersGetArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Query parameter: customer
+    pub customer: Option<Option<String>>,
+}
+
+/// GET v1/devices/{devicesId}/deviceUsers/{deviceUsersId}
+/// Retrieves the specified DeviceUser
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `cloudidentity_devices_device_users_get_builder()` + `cloudidentity_devices_device_users_get_execute()`.
+/// For task-level control, use `cloudidentity_devices_device_users_get_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn cloudidentity_devices_device_users_get(
+    client: &SimpleHttpClient,
+    args: &CloudidentityDevicesDeviceUsersGetArgs,
+) -> Result<
+    impl StreamIterator<
+            D = Result<ApiResponse<GoogleAppsCloudidentityDevicesV1DeviceUser>, ApiError>,
+            P = ApiPending,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    let builder =
+        cloudidentity_devices_device_users_get_builder(client, &args.name, &args.customer)?;
+    cloudidentity_devices_device_users_get_execute(builder)
 }
 
 /// GET v1/devices/{devicesId}/deviceUsers
@@ -887,14 +2732,17 @@ pub fn cloudidentity_devices_wipe(
 pub fn cloudidentity_devices_device_users_list_builder(
     client: &SimpleHttpClient,
     parent: &String,
-    customer: &Option<String>,
-    filter: &Option<String>,
-    orderBy: &Option<String>,
-    pageSize: &Option<i32>,
-    pageToken: &Option<String>,
+    customer: &Option<Option<String>>,
+    filter: &Option<Option<String>>,
+    orderBy: &Option<Option<String>>,
+    pageSize: &Option<Option<String>>,
+    pageToken: &Option<Option<String>>,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
-    let endpoint_url = format!("https://cloudidentity.googleapis.com/v1/devices/{}/deviceUsers",);
+    let endpoint_url = format!(
+        "https://cloudidentity.googleapis.com/v1/devices/{}/deviceUsers",
+        parent,
+    );
 
     // Build request
     let mut query_parts = Vec::new();
@@ -1048,15 +2896,15 @@ pub struct CloudidentityDevicesDeviceUsersListArgs {
     /// Path parameter: parent
     pub parent: String,
     /// Query parameter: customer
-    pub customer: Option<String>,
+    pub customer: Option<Option<String>>,
     /// Query parameter: filter
-    pub filter: Option<String>,
+    pub filter: Option<Option<String>>,
     /// Query parameter: orderBy
-    pub orderBy: Option<String>,
+    pub orderBy: Option<Option<String>>,
     /// Query parameter: pageSize
-    pub pageSize: Option<i32>,
+    pub pageSize: Option<Option<String>>,
     /// Query parameter: pageToken
-    pub pageToken: Option<String>,
+    pub pageToken: Option<Option<String>>,
 }
 
 /// GET v1/devices/{devicesId}/deviceUsers
@@ -1105,17 +2953,19 @@ pub fn cloudidentity_devices_device_users_list(
 pub fn cloudidentity_devices_device_users_lookup_builder(
     client: &SimpleHttpClient,
     parent: &String,
-    androidId: &Option<String>,
-    iosDeviceId: &Option<String>,
-    pageSize: &Option<i32>,
-    pageToken: &Option<String>,
-    partner: &Option<String>,
-    rawResourceId: &Option<String>,
-    userId: &Option<String>,
+    androidId: &Option<Option<String>>,
+    iosDeviceId: &Option<Option<String>>,
+    pageSize: &Option<Option<String>>,
+    pageToken: &Option<Option<String>>,
+    partner: &Option<Option<String>>,
+    rawResourceId: &Option<Option<String>>,
+    userId: &Option<Option<String>>,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
-    let endpoint_url =
-        format!("https://cloudidentity.googleapis.com/v1/devices/{}/deviceUsers:lookup",);
+    let endpoint_url = format!(
+        "https://cloudidentity.googleapis.com/v1/devices/{}/deviceUsers:lookup",
+        parent,
+    );
 
     // Build request
     let mut query_parts = Vec::new();
@@ -1275,19 +3125,19 @@ pub struct CloudidentityDevicesDeviceUsersLookupArgs {
     /// Path parameter: parent
     pub parent: String,
     /// Query parameter: androidId
-    pub androidId: Option<String>,
+    pub androidId: Option<Option<String>>,
     /// Query parameter: iosDeviceId
-    pub iosDeviceId: Option<String>,
+    pub iosDeviceId: Option<Option<String>>,
     /// Query parameter: pageSize
-    pub pageSize: Option<i32>,
+    pub pageSize: Option<Option<String>>,
     /// Query parameter: pageToken
-    pub pageToken: Option<String>,
+    pub pageToken: Option<Option<String>>,
     /// Query parameter: partner
-    pub partner: Option<String>,
+    pub partner: Option<Option<String>>,
     /// Query parameter: rawResourceId
-    pub rawResourceId: Option<String>,
+    pub rawResourceId: Option<Option<String>>,
     /// Query parameter: userId
-    pub userId: Option<String>,
+    pub userId: Option<Option<String>>,
 }
 
 /// GET v1/devices/{devicesId}/deviceUsers:lookup
@@ -1329,7 +3179,744 @@ pub fn cloudidentity_devices_device_users_lookup(
     cloudidentity_devices_device_users_lookup_execute(builder)
 }
 
-/// GET v1/groups
+/// POST v1/devices/{devicesId}/deviceUsers/{deviceUsersId}:wipe
+/// Wipes the user's account on a device. Other data on the device that is not associated with the user's work account is not affected. For example, if a Gmail app is installed on a device that is used for personal and work purposes, and the user is logged in to the Gmail app with their personal account as well as their work account, wiping the "`deviceUser`" by their work administrator will not affect their personal account within Gmail or other apps such as Photos.
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `cloudidentity_devices_device_users_wipe_execute()` to send, or `cloudidentity_devices_device_users_wipe` for simplest API.
+
+pub fn cloudidentity_devices_device_users_wipe_builder(
+    client: &SimpleHttpClient,
+    name: &String,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!(
+        "https://cloudidentity.googleapis.com/v1/devices/{}/deviceUsers/{deviceUsersId}:wipe",
+        name,
+    );
+
+    // Build request
+    let builder = client
+        .post(&endpoint_url)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// POST v1/devices/{devicesId}/deviceUsers/{deviceUsersId}:wipe
+/// Wipes the user's account on a device. Other data on the device that is not associated with the user's work account is not affected. For example, if a Gmail app is installed on a device that is used for personal and work purposes, and the user is logged in to the Gmail app with their personal account as well as their work account, wiping the "`deviceUser`" by their work administrator will not affect their personal account within Gmail or other apps such as Photos.
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `cloudidentity_devices_device_users_wipe_execute()` or `cloudidentity_devices_device_users_wipe`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `cloudidentity_devices_device_users_wipe_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn cloudidentity_devices_device_users_wipe_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<Operation>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: Operation = serde_json::from_str(&body)
+                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// POST v1/devices/{devicesId}/deviceUsers/{deviceUsersId}:wipe
+/// Wipes the user's account on a device. Other data on the device that is not associated with the user's work account is not affected. For example, if a Gmail app is installed on a device that is used for personal and work purposes, and the user is logged in to the Gmail app with their personal account as well as their work account, wiping the "`deviceUser`" by their work administrator will not affect their personal account within Gmail or other apps such as Photos.
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `cloudidentity_devices_device_users_wipe_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `cloudidentity_devices_device_users_wipe_task()`.
+/// For the simplest API, use `cloudidentity_devices_device_users_wipe()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `cloudidentity_devices_device_users_wipe_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn cloudidentity_devices_device_users_wipe_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<Operation>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let task = cloudidentity_devices_device_users_wipe_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`cloudidentity_devices_device_users_wipe`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct CloudidentityDevicesDeviceUsersWipeArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
+/// POST v1/devices/{devicesId}/deviceUsers/{deviceUsersId}:wipe
+/// Wipes the user's account on a device. Other data on the device that is not associated with the user's work account is not affected. For example, if a Gmail app is installed on a device that is used for personal and work purposes, and the user is logged in to the Gmail app with their personal account as well as their work account, wiping the "`deviceUser`" by their work administrator will not affect their personal account within Gmail or other apps such as Photos.
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `cloudidentity_devices_device_users_wipe_builder()` + `cloudidentity_devices_device_users_wipe_execute()`.
+/// For task-level control, use `cloudidentity_devices_device_users_wipe_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn cloudidentity_devices_device_users_wipe(
+    client: &SimpleHttpClient,
+    args: &CloudidentityDevicesDeviceUsersWipeArgs,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<Operation>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let builder = cloudidentity_devices_device_users_wipe_builder(client, &args.name)?;
+    cloudidentity_devices_device_users_wipe_execute(builder)
+}
+
+/// GET v1/devices/{devicesId}/deviceUsers/{deviceUsersId}/clientStates/{clientStatesId}
+/// Gets the client state for the device user
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `cloudidentity_devices_device_users_client_states_get_execute()` to send, or `cloudidentity_devices_device_users_client_states_get` for simplest API.
+
+pub fn cloudidentity_devices_device_users_client_states_get_builder(
+    client: &SimpleHttpClient,
+    name: &String,
+    customer: &Option<Option<String>>,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!(
+        "https://cloudidentity.googleapis.com/v1/devices/{}/deviceUsers/{deviceUsersId}/clientStates/{clientStatesId}",
+        name,
+    );
+
+    // Build request
+    let mut query_parts = Vec::new();
+    if let Some(val) = customer.as_ref() {
+        query_parts.push(format!("customer={}", val));
+    }
+
+    let url_with_query = if query_parts.is_empty() {
+        endpoint_url
+    } else {
+        format!("{}?{}", endpoint_url, query_parts.join("&"))
+    };
+
+    let builder = client
+        .get(&url_with_query)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// GET v1/devices/{devicesId}/deviceUsers/{deviceUsersId}/clientStates/{clientStatesId}
+/// Gets the client state for the device user
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `cloudidentity_devices_device_users_client_states_get_execute()` or `cloudidentity_devices_device_users_client_states_get`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `cloudidentity_devices_device_users_client_states_get_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn cloudidentity_devices_device_users_client_states_get_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<GoogleAppsCloudidentityDevicesV1ClientState>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: GoogleAppsCloudidentityDevicesV1ClientState =
+                    serde_json::from_str(&body)
+                        .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// GET v1/devices/{devicesId}/deviceUsers/{deviceUsersId}/clientStates/{clientStatesId}
+/// Gets the client state for the device user
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `cloudidentity_devices_device_users_client_states_get_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `cloudidentity_devices_device_users_client_states_get_task()`.
+/// For the simplest API, use `cloudidentity_devices_device_users_client_states_get()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `cloudidentity_devices_device_users_client_states_get_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn cloudidentity_devices_device_users_client_states_get_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<
+            D = Result<ApiResponse<GoogleAppsCloudidentityDevicesV1ClientState>, ApiError>,
+            P = ApiPending,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    let task = cloudidentity_devices_device_users_client_states_get_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`cloudidentity_devices_device_users_client_states_get`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct CloudidentityDevicesDeviceUsersClientStatesGetArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Query parameter: customer
+    pub customer: Option<Option<String>>,
+}
+
+/// GET v1/devices/{devicesId}/deviceUsers/{deviceUsersId}/clientStates/{clientStatesId}
+/// Gets the client state for the device user
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `cloudidentity_devices_device_users_client_states_get_builder()` + `cloudidentity_devices_device_users_client_states_get_execute()`.
+/// For task-level control, use `cloudidentity_devices_device_users_client_states_get_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn cloudidentity_devices_device_users_client_states_get(
+    client: &SimpleHttpClient,
+    args: &CloudidentityDevicesDeviceUsersClientStatesGetArgs,
+) -> Result<
+    impl StreamIterator<
+            D = Result<ApiResponse<GoogleAppsCloudidentityDevicesV1ClientState>, ApiError>,
+            P = ApiPending,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    let builder = cloudidentity_devices_device_users_client_states_get_builder(
+        client,
+        &args.name,
+        &args.customer,
+    )?;
+    cloudidentity_devices_device_users_client_states_get_execute(builder)
+}
+
+/// GET v1/devices/{devicesId}/deviceUsers/{deviceUsersId}/clientStates
+/// Lists the client states for the given search query.
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `cloudidentity_devices_device_users_client_states_list_execute()` to send, or `cloudidentity_devices_device_users_client_states_list` for simplest API.
+
+pub fn cloudidentity_devices_device_users_client_states_list_builder(
+    client: &SimpleHttpClient,
+    parent: &String,
+    customer: &Option<Option<String>>,
+    filter: &Option<Option<String>>,
+    orderBy: &Option<Option<String>>,
+    pageToken: &Option<Option<String>>,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!(
+        "https://cloudidentity.googleapis.com/v1/devices/{}/deviceUsers/{deviceUsersId}/clientStates",
+        parent,
+    );
+
+    // Build request
+    let mut query_parts = Vec::new();
+    if let Some(val) = customer.as_ref() {
+        query_parts.push(format!("customer={}", val));
+    }
+    if let Some(val) = filter.as_ref() {
+        query_parts.push(format!("filter={}", val));
+    }
+    if let Some(val) = orderBy.as_ref() {
+        query_parts.push(format!("orderBy={}", val));
+    }
+    if let Some(val) = pageToken.as_ref() {
+        query_parts.push(format!("pageToken={}", val));
+    }
+
+    let url_with_query = if query_parts.is_empty() {
+        endpoint_url
+    } else {
+        format!("{}?{}", endpoint_url, query_parts.join("&"))
+    };
+
+    let builder = client
+        .get(&url_with_query)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// GET v1/devices/{devicesId}/deviceUsers/{deviceUsersId}/clientStates
+/// Lists the client states for the given search query.
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `cloudidentity_devices_device_users_client_states_list_execute()` or `cloudidentity_devices_device_users_client_states_list`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `cloudidentity_devices_device_users_client_states_list_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn cloudidentity_devices_device_users_client_states_list_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<
+                ApiResponse<GoogleAppsCloudidentityDevicesV1ListClientStatesResponse>,
+                ApiError,
+            >,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: GoogleAppsCloudidentityDevicesV1ListClientStatesResponse =
+                    serde_json::from_str(&body)
+                        .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// GET v1/devices/{devicesId}/deviceUsers/{deviceUsersId}/clientStates
+/// Lists the client states for the given search query.
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `cloudidentity_devices_device_users_client_states_list_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `cloudidentity_devices_device_users_client_states_list_task()`.
+/// For the simplest API, use `cloudidentity_devices_device_users_client_states_list()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `cloudidentity_devices_device_users_client_states_list_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn cloudidentity_devices_device_users_client_states_list_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<
+            D = Result<
+                ApiResponse<GoogleAppsCloudidentityDevicesV1ListClientStatesResponse>,
+                ApiError,
+            >,
+            P = ApiPending,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    let task = cloudidentity_devices_device_users_client_states_list_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`cloudidentity_devices_device_users_client_states_list`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct CloudidentityDevicesDeviceUsersClientStatesListArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Query parameter: customer
+    pub customer: Option<Option<String>>,
+    /// Query parameter: filter
+    pub filter: Option<Option<String>>,
+    /// Query parameter: orderBy
+    pub orderBy: Option<Option<String>>,
+    /// Query parameter: pageToken
+    pub pageToken: Option<Option<String>>,
+}
+
+/// GET v1/devices/{devicesId}/deviceUsers/{deviceUsersId}/clientStates
+/// Lists the client states for the given search query.
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `cloudidentity_devices_device_users_client_states_list_builder()` + `cloudidentity_devices_device_users_client_states_list_execute()`.
+/// For task-level control, use `cloudidentity_devices_device_users_client_states_list_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn cloudidentity_devices_device_users_client_states_list(
+    client: &SimpleHttpClient,
+    args: &CloudidentityDevicesDeviceUsersClientStatesListArgs,
+) -> Result<
+    impl StreamIterator<
+            D = Result<
+                ApiResponse<GoogleAppsCloudidentityDevicesV1ListClientStatesResponse>,
+                ApiError,
+            >,
+            P = ApiPending,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    let builder = cloudidentity_devices_device_users_client_states_list_builder(
+        client,
+        &args.parent,
+        &args.customer,
+        &args.filter,
+        &args.orderBy,
+        &args.pageToken,
+    )?;
+    cloudidentity_devices_device_users_client_states_list_execute(builder)
+}
+
+/// PATCH v1/devices/{devicesId}/deviceUsers/{deviceUsersId}/clientStates/{clientStatesId}
+/// Updates the client state for the device user **Note**: This method is available only to customers who have one of the following SKUs: Enterprise Standard, Enterprise Plus, Enterprise for Education, and Cloud Identity Premium
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `cloudidentity_devices_device_users_client_states_patch_execute()` to send, or `cloudidentity_devices_device_users_client_states_patch` for simplest API.
+
+pub fn cloudidentity_devices_device_users_client_states_patch_builder(
+    client: &SimpleHttpClient,
+    name: &String,
+    customer: &Option<Option<String>>,
+    updateMask: &Option<Option<String>>,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!(
+        "https://cloudidentity.googleapis.com/v1/devices/{}/deviceUsers/{deviceUsersId}/clientStates/{clientStatesId}",
+        name,
+    );
+
+    // Build request
+    let mut query_parts = Vec::new();
+    if let Some(val) = customer.as_ref() {
+        query_parts.push(format!("customer={}", val));
+    }
+    if let Some(val) = updateMask.as_ref() {
+        query_parts.push(format!("updateMask={}", val));
+    }
+
+    let url_with_query = if query_parts.is_empty() {
+        endpoint_url
+    } else {
+        format!("{}?{}", endpoint_url, query_parts.join("&"))
+    };
+
+    let builder = client
+        .patch(&url_with_query)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// PATCH v1/devices/{devicesId}/deviceUsers/{deviceUsersId}/clientStates/{clientStatesId}
+/// Updates the client state for the device user **Note**: This method is available only to customers who have one of the following SKUs: Enterprise Standard, Enterprise Plus, Enterprise for Education, and Cloud Identity Premium
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `cloudidentity_devices_device_users_client_states_patch_execute()` or `cloudidentity_devices_device_users_client_states_patch`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `cloudidentity_devices_device_users_client_states_patch_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn cloudidentity_devices_device_users_client_states_patch_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<Operation>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: Operation = serde_json::from_str(&body)
+                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// PATCH v1/devices/{devicesId}/deviceUsers/{deviceUsersId}/clientStates/{clientStatesId}
+/// Updates the client state for the device user **Note**: This method is available only to customers who have one of the following SKUs: Enterprise Standard, Enterprise Plus, Enterprise for Education, and Cloud Identity Premium
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `cloudidentity_devices_device_users_client_states_patch_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `cloudidentity_devices_device_users_client_states_patch_task()`.
+/// For the simplest API, use `cloudidentity_devices_device_users_client_states_patch()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `cloudidentity_devices_device_users_client_states_patch_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn cloudidentity_devices_device_users_client_states_patch_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<Operation>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let task = cloudidentity_devices_device_users_client_states_patch_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`cloudidentity_devices_device_users_client_states_patch`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct CloudidentityDevicesDeviceUsersClientStatesPatchArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Query parameter: customer
+    pub customer: Option<Option<String>>,
+    /// Query parameter: updateMask
+    pub updateMask: Option<Option<String>>,
+}
+
+/// PATCH v1/devices/{devicesId}/deviceUsers/{deviceUsersId}/clientStates/{clientStatesId}
+/// Updates the client state for the device user **Note**: This method is available only to customers who have one of the following SKUs: Enterprise Standard, Enterprise Plus, Enterprise for Education, and Cloud Identity Premium
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `cloudidentity_devices_device_users_client_states_patch_builder()` + `cloudidentity_devices_device_users_client_states_patch_execute()`.
+/// For task-level control, use `cloudidentity_devices_device_users_client_states_patch_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn cloudidentity_devices_device_users_client_states_patch(
+    client: &SimpleHttpClient,
+    args: &CloudidentityDevicesDeviceUsersClientStatesPatchArgs,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<Operation>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let builder = cloudidentity_devices_device_users_client_states_patch_builder(
+        client,
+        &args.name,
+        &args.customer,
+        &args.updateMask,
+    )?;
+    cloudidentity_devices_device_users_client_states_patch_execute(builder)
+}
+
+/// POST v1/groups
 /// Creates a Group.
 ///
 /// Returns `ClientRequestBuilder` for customization.
@@ -1337,8 +3924,7 @@ pub fn cloudidentity_devices_device_users_lookup(
 
 pub fn cloudidentity_groups_create_builder(
     client: &SimpleHttpClient,
-    initialGroupConfig: &Option<String>,
-    body: &Group,
+    initialGroupConfig: &Option<Option<String>>,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!("https://cloudidentity.googleapis.com/v1/groups",);
@@ -1356,15 +3942,13 @@ pub fn cloudidentity_groups_create_builder(
     };
 
     let builder = client
-        .get(&url_with_query)
+        .post(&url_with_query)
         .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
 
-    builder
-        .body_json(body)
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+    Ok(builder)
 }
 
-/// GET v1/groups
+/// POST v1/groups
 /// Creates a Group.
 ///
 /// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
@@ -1438,7 +4022,7 @@ pub fn cloudidentity_groups_create_task(
         .map_pending(|_| ApiPending::Sending))
 }
 
-/// GET v1/groups
+/// POST v1/groups
 /// Creates a Group.
 ///
 /// Takes a `ClientRequestBuilder`, builds and executes the request,
@@ -1472,12 +4056,10 @@ pub fn cloudidentity_groups_create_execute(
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct CloudidentityGroupsCreateArgs {
     /// Query parameter: initialGroupConfig
-    pub initialGroupConfig: Option<String>,
-    /// Request body.
-    pub body: Group,
+    pub initialGroupConfig: Option<Option<String>>,
 }
 
-/// GET v1/groups
+/// POST v1/groups
 /// Creates a Group.
 ///
 /// Simplest API - builds and executes the request in one call.
@@ -1495,12 +4077,11 @@ pub fn cloudidentity_groups_create(
     impl StreamIterator<D = Result<ApiResponse<Operation>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder =
-        cloudidentity_groups_create_builder(client, &args.initialGroupConfig, &args.body)?;
+    let builder = cloudidentity_groups_create_builder(client, &args.initialGroupConfig)?;
     cloudidentity_groups_create_execute(builder)
 }
 
-/// GET v1/groups/{groupsId}
+/// DELETE v1/groups/{groupsId}
 /// Deletes a Group.
 ///
 /// Returns `ClientRequestBuilder` for customization.
@@ -1511,17 +4092,17 @@ pub fn cloudidentity_groups_delete_builder(
     name: &String,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
-    let endpoint_url = format!("https://cloudidentity.googleapis.com/v1/groups/{}",);
+    let endpoint_url = format!("https://cloudidentity.googleapis.com/v1/groups/{}", name,);
 
     // Build request
     let builder = client
-        .get(&endpoint_url)
+        .delete(&endpoint_url)
         .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
 
     Ok(builder)
 }
 
-/// GET v1/groups/{groupsId}
+/// DELETE v1/groups/{groupsId}
 /// Deletes a Group.
 ///
 /// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
@@ -1595,7 +4176,7 @@ pub fn cloudidentity_groups_delete_task(
         .map_pending(|_| ApiPending::Sending))
 }
 
-/// GET v1/groups/{groupsId}
+/// DELETE v1/groups/{groupsId}
 /// Deletes a Group.
 ///
 /// Takes a `ClientRequestBuilder`, builds and executes the request,
@@ -1632,7 +4213,7 @@ pub struct CloudidentityGroupsDeleteArgs {
     pub name: String,
 }
 
-/// GET v1/groups/{groupsId}
+/// DELETE v1/groups/{groupsId}
 /// Deletes a Group.
 ///
 /// Simplest API - builds and executes the request in one call.
@@ -1654,6 +4235,160 @@ pub fn cloudidentity_groups_delete(
     cloudidentity_groups_delete_execute(builder)
 }
 
+/// GET v1/groups/{groupsId}
+/// Retrieves a Group.
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `cloudidentity_groups_get_execute()` to send, or `cloudidentity_groups_get` for simplest API.
+
+pub fn cloudidentity_groups_get_builder(
+    client: &SimpleHttpClient,
+    name: &String,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!("https://cloudidentity.googleapis.com/v1/groups/{}", name,);
+
+    // Build request
+    let builder = client
+        .get(&endpoint_url)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// GET v1/groups/{groupsId}
+/// Retrieves a Group.
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `cloudidentity_groups_get_execute()` or `cloudidentity_groups_get`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `cloudidentity_groups_get_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn cloudidentity_groups_get_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<Group>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: Group = serde_json::from_str(&body)
+                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// GET v1/groups/{groupsId}
+/// Retrieves a Group.
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `cloudidentity_groups_get_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `cloudidentity_groups_get_task()`.
+/// For the simplest API, use `cloudidentity_groups_get()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `cloudidentity_groups_get_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn cloudidentity_groups_get_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<Group>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let task = cloudidentity_groups_get_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`cloudidentity_groups_get`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct CloudidentityGroupsGetArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
+/// GET v1/groups/{groupsId}
+/// Retrieves a Group.
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `cloudidentity_groups_get_builder()` + `cloudidentity_groups_get_execute()`.
+/// For task-level control, use `cloudidentity_groups_get_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn cloudidentity_groups_get(
+    client: &SimpleHttpClient,
+    args: &CloudidentityGroupsGetArgs,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<Group>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let builder = cloudidentity_groups_get_builder(client, &args.name)?;
+    cloudidentity_groups_get_execute(builder)
+}
+
 /// GET v1/groups/{groupsId}/securitySettings
 /// Get Security Settings
 ///
@@ -1663,11 +4398,13 @@ pub fn cloudidentity_groups_delete(
 pub fn cloudidentity_groups_get_security_settings_builder(
     client: &SimpleHttpClient,
     name: &String,
-    readMask: &Option<String>,
+    readMask: &Option<Option<String>>,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
-    let endpoint_url =
-        format!("https://cloudidentity.googleapis.com/v1/groups/{}/securitySettings",);
+    let endpoint_url = format!(
+        "https://cloudidentity.googleapis.com/v1/groups/{}/securitySettings",
+        name,
+    );
 
     // Build request
     let mut query_parts = Vec::new();
@@ -1800,7 +4537,7 @@ pub struct CloudidentityGroupsGetSecuritySettingsArgs {
     /// Path parameter: name
     pub name: String,
     /// Query parameter: readMask
-    pub readMask: Option<String>,
+    pub readMask: Option<Option<String>>,
 }
 
 /// GET v1/groups/{groupsId}/securitySettings
@@ -1828,6 +4565,199 @@ pub fn cloudidentity_groups_get_security_settings(
     cloudidentity_groups_get_security_settings_execute(builder)
 }
 
+/// GET v1/groups
+/// Lists the Group resources under a customer or namespace.
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `cloudidentity_groups_list_execute()` to send, or `cloudidentity_groups_list` for simplest API.
+
+pub fn cloudidentity_groups_list_builder(
+    client: &SimpleHttpClient,
+    pageSize: &Option<Option<String>>,
+    pageToken: &Option<Option<String>>,
+    parent: &Option<Option<String>>,
+    view: &Option<Option<String>>,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!("https://cloudidentity.googleapis.com/v1/groups",);
+
+    // Build request
+    let mut query_parts = Vec::new();
+    if let Some(val) = pageSize.as_ref() {
+        query_parts.push(format!("pageSize={}", val));
+    }
+    if let Some(val) = pageToken.as_ref() {
+        query_parts.push(format!("pageToken={}", val));
+    }
+    if let Some(val) = parent.as_ref() {
+        query_parts.push(format!("parent={}", val));
+    }
+    if let Some(val) = view.as_ref() {
+        query_parts.push(format!("view={}", val));
+    }
+
+    let url_with_query = if query_parts.is_empty() {
+        endpoint_url
+    } else {
+        format!("{}?{}", endpoint_url, query_parts.join("&"))
+    };
+
+    let builder = client
+        .get(&url_with_query)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// GET v1/groups
+/// Lists the Group resources under a customer or namespace.
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `cloudidentity_groups_list_execute()` or `cloudidentity_groups_list`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `cloudidentity_groups_list_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn cloudidentity_groups_list_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<ListGroupsResponse>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: ListGroupsResponse = serde_json::from_str(&body)
+                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// GET v1/groups
+/// Lists the Group resources under a customer or namespace.
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `cloudidentity_groups_list_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `cloudidentity_groups_list_task()`.
+/// For the simplest API, use `cloudidentity_groups_list()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `cloudidentity_groups_list_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn cloudidentity_groups_list_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<ListGroupsResponse>, ApiError>, P = ApiPending>
+        + Send
+        + 'static,
+    ApiError,
+> {
+    let task = cloudidentity_groups_list_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`cloudidentity_groups_list`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct CloudidentityGroupsListArgs {
+    /// Query parameter: pageSize
+    pub pageSize: Option<Option<String>>,
+    /// Query parameter: pageToken
+    pub pageToken: Option<Option<String>>,
+    /// Query parameter: parent
+    pub parent: Option<Option<String>>,
+    /// Query parameter: view
+    pub view: Option<Option<String>>,
+}
+
+/// GET v1/groups
+/// Lists the Group resources under a customer or namespace.
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `cloudidentity_groups_list_builder()` + `cloudidentity_groups_list_execute()`.
+/// For task-level control, use `cloudidentity_groups_list_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn cloudidentity_groups_list(
+    client: &SimpleHttpClient,
+    args: &CloudidentityGroupsListArgs,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<ListGroupsResponse>, ApiError>, P = ApiPending>
+        + Send
+        + 'static,
+    ApiError,
+> {
+    let builder = cloudidentity_groups_list_builder(
+        client,
+        &args.pageSize,
+        &args.pageToken,
+        &args.parent,
+        &args.view,
+    )?;
+    cloudidentity_groups_list_execute(builder)
+}
+
 /// GET v1/groups:lookup
 /// Looks up the [resource name](<https://cloud.google.`com/apis/design/resource_names`>) of a Group by its EntityKey.
 ///
@@ -1836,8 +4766,8 @@ pub fn cloudidentity_groups_get_security_settings(
 
 pub fn cloudidentity_groups_lookup_builder(
     client: &SimpleHttpClient,
-    groupKey_id: &Option<String>,
-    groupKey_namespace: &Option<String>,
+    groupKey_id: &Option<Option<String>>,
+    groupKey_namespace: &Option<Option<String>>,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!("https://cloudidentity.googleapis.com/v1/groups:lookup",);
@@ -1974,9 +4904,9 @@ pub fn cloudidentity_groups_lookup_execute(
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct CloudidentityGroupsLookupArgs {
     /// Query parameter: groupKey_id
-    pub groupKey_id: Option<String>,
+    pub groupKey_id: Option<Option<String>>,
     /// Query parameter: groupKey_namespace
-    pub groupKey_namespace: Option<String>,
+    pub groupKey_namespace: Option<Option<String>>,
 }
 
 /// GET v1/groups:lookup
@@ -2004,6 +4934,174 @@ pub fn cloudidentity_groups_lookup(
     cloudidentity_groups_lookup_execute(builder)
 }
 
+/// PATCH v1/groups/{groupsId}
+/// Updates a Group.
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `cloudidentity_groups_patch_execute()` to send, or `cloudidentity_groups_patch` for simplest API.
+
+pub fn cloudidentity_groups_patch_builder(
+    client: &SimpleHttpClient,
+    name: &String,
+    updateMask: &Option<Option<String>>,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!("https://cloudidentity.googleapis.com/v1/groups/{}", name,);
+
+    // Build request
+    let mut query_parts = Vec::new();
+    if let Some(val) = updateMask.as_ref() {
+        query_parts.push(format!("updateMask={}", val));
+    }
+
+    let url_with_query = if query_parts.is_empty() {
+        endpoint_url
+    } else {
+        format!("{}?{}", endpoint_url, query_parts.join("&"))
+    };
+
+    let builder = client
+        .patch(&url_with_query)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// PATCH v1/groups/{groupsId}
+/// Updates a Group.
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `cloudidentity_groups_patch_execute()` or `cloudidentity_groups_patch`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `cloudidentity_groups_patch_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn cloudidentity_groups_patch_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<Operation>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: Operation = serde_json::from_str(&body)
+                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// PATCH v1/groups/{groupsId}
+/// Updates a Group.
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `cloudidentity_groups_patch_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `cloudidentity_groups_patch_task()`.
+/// For the simplest API, use `cloudidentity_groups_patch()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `cloudidentity_groups_patch_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn cloudidentity_groups_patch_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<Operation>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let task = cloudidentity_groups_patch_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`cloudidentity_groups_patch`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct CloudidentityGroupsPatchArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Query parameter: updateMask
+    pub updateMask: Option<Option<String>>,
+}
+
+/// PATCH v1/groups/{groupsId}
+/// Updates a Group.
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `cloudidentity_groups_patch_builder()` + `cloudidentity_groups_patch_execute()`.
+/// For task-level control, use `cloudidentity_groups_patch_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn cloudidentity_groups_patch(
+    client: &SimpleHttpClient,
+    args: &CloudidentityGroupsPatchArgs,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<Operation>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let builder = cloudidentity_groups_patch_builder(client, &args.name, &args.updateMask)?;
+    cloudidentity_groups_patch_execute(builder)
+}
+
 /// GET v1/groups:search
 /// Searches for Group resources matching a specified query.
 ///
@@ -2012,10 +5110,10 @@ pub fn cloudidentity_groups_lookup(
 
 pub fn cloudidentity_groups_search_builder(
     client: &SimpleHttpClient,
-    pageSize: &Option<i32>,
-    pageToken: &Option<String>,
-    query: &Option<String>,
-    view: &Option<String>,
+    pageSize: &Option<Option<String>>,
+    pageToken: &Option<Option<String>>,
+    query: &Option<Option<String>>,
+    view: &Option<Option<String>>,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!("https://cloudidentity.googleapis.com/v1/groups:search",);
@@ -2158,13 +5256,13 @@ pub fn cloudidentity_groups_search_execute(
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct CloudidentityGroupsSearchArgs {
     /// Query parameter: pageSize
-    pub pageSize: Option<i32>,
+    pub pageSize: Option<Option<String>>,
     /// Query parameter: pageToken
-    pub pageToken: Option<String>,
+    pub pageToken: Option<Option<String>>,
     /// Query parameter: query
-    pub query: Option<String>,
+    pub query: Option<Option<String>>,
     /// Query parameter: view
-    pub view: Option<String>,
+    pub view: Option<Option<String>>,
 }
 
 /// GET v1/groups:search
@@ -2197,6 +5295,181 @@ pub fn cloudidentity_groups_search(
     cloudidentity_groups_search_execute(builder)
 }
 
+/// PATCH v1/groups/{groupsId}/securitySettings
+/// Update Security Settings
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `cloudidentity_groups_update_security_settings_execute()` to send, or `cloudidentity_groups_update_security_settings` for simplest API.
+
+pub fn cloudidentity_groups_update_security_settings_builder(
+    client: &SimpleHttpClient,
+    name: &String,
+    updateMask: &Option<Option<String>>,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!(
+        "https://cloudidentity.googleapis.com/v1/groups/{}/securitySettings",
+        name,
+    );
+
+    // Build request
+    let mut query_parts = Vec::new();
+    if let Some(val) = updateMask.as_ref() {
+        query_parts.push(format!("updateMask={}", val));
+    }
+
+    let url_with_query = if query_parts.is_empty() {
+        endpoint_url
+    } else {
+        format!("{}?{}", endpoint_url, query_parts.join("&"))
+    };
+
+    let builder = client
+        .patch(&url_with_query)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// PATCH v1/groups/{groupsId}/securitySettings
+/// Update Security Settings
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `cloudidentity_groups_update_security_settings_execute()` or `cloudidentity_groups_update_security_settings`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `cloudidentity_groups_update_security_settings_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn cloudidentity_groups_update_security_settings_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<Operation>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: Operation = serde_json::from_str(&body)
+                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// PATCH v1/groups/{groupsId}/securitySettings
+/// Update Security Settings
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `cloudidentity_groups_update_security_settings_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `cloudidentity_groups_update_security_settings_task()`.
+/// For the simplest API, use `cloudidentity_groups_update_security_settings()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `cloudidentity_groups_update_security_settings_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn cloudidentity_groups_update_security_settings_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<Operation>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let task = cloudidentity_groups_update_security_settings_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`cloudidentity_groups_update_security_settings`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct CloudidentityGroupsUpdateSecuritySettingsArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Query parameter: updateMask
+    pub updateMask: Option<Option<String>>,
+}
+
+/// PATCH v1/groups/{groupsId}/securitySettings
+/// Update Security Settings
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `cloudidentity_groups_update_security_settings_builder()` + `cloudidentity_groups_update_security_settings_execute()`.
+/// For task-level control, use `cloudidentity_groups_update_security_settings_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn cloudidentity_groups_update_security_settings(
+    client: &SimpleHttpClient,
+    args: &CloudidentityGroupsUpdateSecuritySettingsArgs,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<Operation>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let builder = cloudidentity_groups_update_security_settings_builder(
+        client,
+        &args.name,
+        &args.updateMask,
+    )?;
+    cloudidentity_groups_update_security_settings_execute(builder)
+}
+
 /// GET v1/groups/{groupsId}/memberships:checkTransitiveMembership
 /// Check a potential member for membership in a group. **Note:** This feature is only available to Google Workspace Enterprise Standard, Enterprise Plus, and Enterprise for Education; and Cloud Identity Premium accounts. If the account of the member is not one of these, a 403 (PERMISSION_DENIED) HTTP status code will be returned. A member has membership to a group as long as there is a single viewable transitive membership between the group and the member. The actor must have view permissions to at least one transitive membership between the member and group.
 ///
@@ -2206,11 +5479,12 @@ pub fn cloudidentity_groups_search(
 pub fn cloudidentity_groups_memberships_check_transitive_membership_builder(
     client: &SimpleHttpClient,
     parent: &String,
-    query: &Option<String>,
+    query: &Option<Option<String>>,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
         "https://cloudidentity.googleapis.com/v1/groups/{}/memberships:checkTransitiveMembership",
+        parent,
     );
 
     // Build request
@@ -2346,7 +5620,7 @@ pub struct CloudidentityGroupsMembershipsCheckTransitiveMembershipArgs {
     /// Path parameter: parent
     pub parent: String,
     /// Query parameter: query
-    pub query: Option<String>,
+    pub query: Option<Option<String>>,
 }
 
 /// GET v1/groups/{groupsId}/memberships:checkTransitiveMembership
@@ -2379,7 +5653,7 @@ pub fn cloudidentity_groups_memberships_check_transitive_membership(
     cloudidentity_groups_memberships_check_transitive_membership_execute(builder)
 }
 
-/// GET v1/groups/{groupsId}/memberships
+/// POST v1/groups/{groupsId}/memberships
 /// Creates a Membership.
 ///
 /// Returns `ClientRequestBuilder` for customization.
@@ -2388,22 +5662,22 @@ pub fn cloudidentity_groups_memberships_check_transitive_membership(
 pub fn cloudidentity_groups_memberships_create_builder(
     client: &SimpleHttpClient,
     parent: &String,
-    body: &Membership,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
-    let endpoint_url = format!("https://cloudidentity.googleapis.com/v1/groups/{}/memberships",);
+    let endpoint_url = format!(
+        "https://cloudidentity.googleapis.com/v1/groups/{}/memberships",
+        parent,
+    );
 
     // Build request
     let builder = client
-        .get(&endpoint_url)
+        .post(&endpoint_url)
         .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
 
-    builder
-        .body_json(body)
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+    Ok(builder)
 }
 
-/// GET v1/groups/{groupsId}/memberships
+/// POST v1/groups/{groupsId}/memberships
 /// Creates a Membership.
 ///
 /// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
@@ -2477,7 +5751,7 @@ pub fn cloudidentity_groups_memberships_create_task(
         .map_pending(|_| ApiPending::Sending))
 }
 
-/// GET v1/groups/{groupsId}/memberships
+/// POST v1/groups/{groupsId}/memberships
 /// Creates a Membership.
 ///
 /// Takes a `ClientRequestBuilder`, builds and executes the request,
@@ -2512,11 +5786,9 @@ pub fn cloudidentity_groups_memberships_create_execute(
 pub struct CloudidentityGroupsMembershipsCreateArgs {
     /// Path parameter: parent
     pub parent: String,
-    /// Request body.
-    pub body: Membership,
 }
 
-/// GET v1/groups/{groupsId}/memberships
+/// POST v1/groups/{groupsId}/memberships
 /// Creates a Membership.
 ///
 /// Simplest API - builds and executes the request in one call.
@@ -2534,9 +5806,322 @@ pub fn cloudidentity_groups_memberships_create(
     impl StreamIterator<D = Result<ApiResponse<Operation>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder =
-        cloudidentity_groups_memberships_create_builder(client, &args.parent, &args.body)?;
+    let builder = cloudidentity_groups_memberships_create_builder(client, &args.parent)?;
     cloudidentity_groups_memberships_create_execute(builder)
+}
+
+/// DELETE v1/groups/{groupsId}/memberships/{membershipsId}
+/// Deletes a Membership.
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `cloudidentity_groups_memberships_delete_execute()` to send, or `cloudidentity_groups_memberships_delete` for simplest API.
+
+pub fn cloudidentity_groups_memberships_delete_builder(
+    client: &SimpleHttpClient,
+    name: &String,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!(
+        "https://cloudidentity.googleapis.com/v1/groups/{}/memberships/{membershipsId}",
+        name,
+    );
+
+    // Build request
+    let builder = client
+        .delete(&endpoint_url)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// DELETE v1/groups/{groupsId}/memberships/{membershipsId}
+/// Deletes a Membership.
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `cloudidentity_groups_memberships_delete_execute()` or `cloudidentity_groups_memberships_delete`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `cloudidentity_groups_memberships_delete_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn cloudidentity_groups_memberships_delete_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<Operation>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: Operation = serde_json::from_str(&body)
+                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// DELETE v1/groups/{groupsId}/memberships/{membershipsId}
+/// Deletes a Membership.
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `cloudidentity_groups_memberships_delete_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `cloudidentity_groups_memberships_delete_task()`.
+/// For the simplest API, use `cloudidentity_groups_memberships_delete()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `cloudidentity_groups_memberships_delete_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn cloudidentity_groups_memberships_delete_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<Operation>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let task = cloudidentity_groups_memberships_delete_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`cloudidentity_groups_memberships_delete`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct CloudidentityGroupsMembershipsDeleteArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
+/// DELETE v1/groups/{groupsId}/memberships/{membershipsId}
+/// Deletes a Membership.
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `cloudidentity_groups_memberships_delete_builder()` + `cloudidentity_groups_memberships_delete_execute()`.
+/// For task-level control, use `cloudidentity_groups_memberships_delete_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn cloudidentity_groups_memberships_delete(
+    client: &SimpleHttpClient,
+    args: &CloudidentityGroupsMembershipsDeleteArgs,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<Operation>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let builder = cloudidentity_groups_memberships_delete_builder(client, &args.name)?;
+    cloudidentity_groups_memberships_delete_execute(builder)
+}
+
+/// GET v1/groups/{groupsId}/memberships/{membershipsId}
+/// Retrieves a Membership.
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `cloudidentity_groups_memberships_get_execute()` to send, or `cloudidentity_groups_memberships_get` for simplest API.
+
+pub fn cloudidentity_groups_memberships_get_builder(
+    client: &SimpleHttpClient,
+    name: &String,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!(
+        "https://cloudidentity.googleapis.com/v1/groups/{}/memberships/{membershipsId}",
+        name,
+    );
+
+    // Build request
+    let builder = client
+        .get(&endpoint_url)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// GET v1/groups/{groupsId}/memberships/{membershipsId}
+/// Retrieves a Membership.
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `cloudidentity_groups_memberships_get_execute()` or `cloudidentity_groups_memberships_get`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `cloudidentity_groups_memberships_get_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn cloudidentity_groups_memberships_get_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<Membership>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: Membership = serde_json::from_str(&body)
+                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// GET v1/groups/{groupsId}/memberships/{membershipsId}
+/// Retrieves a Membership.
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `cloudidentity_groups_memberships_get_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `cloudidentity_groups_memberships_get_task()`.
+/// For the simplest API, use `cloudidentity_groups_memberships_get()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `cloudidentity_groups_memberships_get_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn cloudidentity_groups_memberships_get_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<Membership>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let task = cloudidentity_groups_memberships_get_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`cloudidentity_groups_memberships_get`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct CloudidentityGroupsMembershipsGetArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
+/// GET v1/groups/{groupsId}/memberships/{membershipsId}
+/// Retrieves a Membership.
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `cloudidentity_groups_memberships_get_builder()` + `cloudidentity_groups_memberships_get_execute()`.
+/// For task-level control, use `cloudidentity_groups_memberships_get_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn cloudidentity_groups_memberships_get(
+    client: &SimpleHttpClient,
+    args: &CloudidentityGroupsMembershipsGetArgs,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<Membership>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let builder = cloudidentity_groups_memberships_get_builder(client, &args.name)?;
+    cloudidentity_groups_memberships_get_execute(builder)
 }
 
 /// GET v1/groups/{groupsId}/memberships:getMembershipGraph
@@ -2548,11 +6133,12 @@ pub fn cloudidentity_groups_memberships_create(
 pub fn cloudidentity_groups_memberships_get_membership_graph_builder(
     client: &SimpleHttpClient,
     parent: &String,
-    query: &Option<String>,
+    query: &Option<Option<String>>,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
         "https://cloudidentity.googleapis.com/v1/groups/{}/memberships:getMembershipGraph",
+        parent,
     );
 
     // Build request
@@ -2684,7 +6270,7 @@ pub struct CloudidentityGroupsMembershipsGetMembershipGraphArgs {
     /// Path parameter: parent
     pub parent: String,
     /// Query parameter: query
-    pub query: Option<String>,
+    pub query: Option<Option<String>>,
 }
 
 /// GET v1/groups/{groupsId}/memberships:getMembershipGraph
@@ -2713,6 +6299,199 @@ pub fn cloudidentity_groups_memberships_get_membership_graph(
     cloudidentity_groups_memberships_get_membership_graph_execute(builder)
 }
 
+/// GET v1/groups/{groupsId}/memberships
+/// Lists the Memberships within a Group.
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `cloudidentity_groups_memberships_list_execute()` to send, or `cloudidentity_groups_memberships_list` for simplest API.
+
+pub fn cloudidentity_groups_memberships_list_builder(
+    client: &SimpleHttpClient,
+    parent: &String,
+    pageSize: &Option<Option<String>>,
+    pageToken: &Option<Option<String>>,
+    view: &Option<Option<String>>,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!(
+        "https://cloudidentity.googleapis.com/v1/groups/{}/memberships",
+        parent,
+    );
+
+    // Build request
+    let mut query_parts = Vec::new();
+    if let Some(val) = pageSize.as_ref() {
+        query_parts.push(format!("pageSize={}", val));
+    }
+    if let Some(val) = pageToken.as_ref() {
+        query_parts.push(format!("pageToken={}", val));
+    }
+    if let Some(val) = view.as_ref() {
+        query_parts.push(format!("view={}", val));
+    }
+
+    let url_with_query = if query_parts.is_empty() {
+        endpoint_url
+    } else {
+        format!("{}?{}", endpoint_url, query_parts.join("&"))
+    };
+
+    let builder = client
+        .get(&url_with_query)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// GET v1/groups/{groupsId}/memberships
+/// Lists the Memberships within a Group.
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `cloudidentity_groups_memberships_list_execute()` or `cloudidentity_groups_memberships_list`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `cloudidentity_groups_memberships_list_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn cloudidentity_groups_memberships_list_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<ListMembershipsResponse>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: ListMembershipsResponse = serde_json::from_str(&body)
+                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// GET v1/groups/{groupsId}/memberships
+/// Lists the Memberships within a Group.
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `cloudidentity_groups_memberships_list_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `cloudidentity_groups_memberships_list_task()`.
+/// For the simplest API, use `cloudidentity_groups_memberships_list()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `cloudidentity_groups_memberships_list_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn cloudidentity_groups_memberships_list_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<ListMembershipsResponse>, ApiError>, P = ApiPending>
+        + Send
+        + 'static,
+    ApiError,
+> {
+    let task = cloudidentity_groups_memberships_list_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`cloudidentity_groups_memberships_list`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct CloudidentityGroupsMembershipsListArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Query parameter: pageSize
+    pub pageSize: Option<Option<String>>,
+    /// Query parameter: pageToken
+    pub pageToken: Option<Option<String>>,
+    /// Query parameter: view
+    pub view: Option<Option<String>>,
+}
+
+/// GET v1/groups/{groupsId}/memberships
+/// Lists the Memberships within a Group.
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `cloudidentity_groups_memberships_list_builder()` + `cloudidentity_groups_memberships_list_execute()`.
+/// For task-level control, use `cloudidentity_groups_memberships_list_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn cloudidentity_groups_memberships_list(
+    client: &SimpleHttpClient,
+    args: &CloudidentityGroupsMembershipsListArgs,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<ListMembershipsResponse>, ApiError>, P = ApiPending>
+        + Send
+        + 'static,
+    ApiError,
+> {
+    let builder = cloudidentity_groups_memberships_list_builder(
+        client,
+        &args.parent,
+        &args.pageSize,
+        &args.pageToken,
+        &args.view,
+    )?;
+    cloudidentity_groups_memberships_list_execute(builder)
+}
+
 /// GET v1/groups/{groupsId}/memberships:lookup
 /// Looks up the [resource name](<https://cloud.google.`com/apis/design/resource_names`>) of a Membership by its EntityKey.
 ///
@@ -2722,12 +6501,14 @@ pub fn cloudidentity_groups_memberships_get_membership_graph(
 pub fn cloudidentity_groups_memberships_lookup_builder(
     client: &SimpleHttpClient,
     parent: &String,
-    memberKey_id: &Option<String>,
-    memberKey_namespace: &Option<String>,
+    memberKey_id: &Option<Option<String>>,
+    memberKey_namespace: &Option<Option<String>>,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
-    let endpoint_url =
-        format!("https://cloudidentity.googleapis.com/v1/groups/{}/memberships:lookup",);
+    let endpoint_url = format!(
+        "https://cloudidentity.googleapis.com/v1/groups/{}/memberships:lookup",
+        parent,
+    );
 
     // Build request
     let mut query_parts = Vec::new();
@@ -2865,9 +6646,9 @@ pub struct CloudidentityGroupsMembershipsLookupArgs {
     /// Path parameter: parent
     pub parent: String,
     /// Query parameter: memberKey_id
-    pub memberKey_id: Option<String>,
+    pub memberKey_id: Option<Option<String>>,
     /// Query parameter: memberKey_namespace
-    pub memberKey_namespace: Option<String>,
+    pub memberKey_namespace: Option<Option<String>>,
 }
 
 /// GET v1/groups/{groupsId}/memberships:lookup
@@ -2901,6 +6682,172 @@ pub fn cloudidentity_groups_memberships_lookup(
     cloudidentity_groups_memberships_lookup_execute(builder)
 }
 
+/// POST v1/groups/{groupsId}/memberships/{membershipsId}:modifyMembershipRoles
+/// Modifies the MembershipRoles of a Membership.
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `cloudidentity_groups_memberships_modify_membership_roles_execute()` to send, or `cloudidentity_groups_memberships_modify_membership_roles` for simplest API.
+
+pub fn cloudidentity_groups_memberships_modify_membership_roles_builder(
+    client: &SimpleHttpClient,
+    name: &String,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!(
+        "https://cloudidentity.googleapis.com/v1/groups/{}/memberships/{membershipsId}:modifyMembershipRoles",
+        name,
+    );
+
+    // Build request
+    let builder = client
+        .post(&endpoint_url)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// POST v1/groups/{groupsId}/memberships/{membershipsId}:modifyMembershipRoles
+/// Modifies the MembershipRoles of a Membership.
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `cloudidentity_groups_memberships_modify_membership_roles_execute()` or `cloudidentity_groups_memberships_modify_membership_roles`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `cloudidentity_groups_memberships_modify_membership_roles_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn cloudidentity_groups_memberships_modify_membership_roles_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<ModifyMembershipRolesResponse>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: ModifyMembershipRolesResponse = serde_json::from_str(&body)
+                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// POST v1/groups/{groupsId}/memberships/{membershipsId}:modifyMembershipRoles
+/// Modifies the MembershipRoles of a Membership.
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `cloudidentity_groups_memberships_modify_membership_roles_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `cloudidentity_groups_memberships_modify_membership_roles_task()`.
+/// For the simplest API, use `cloudidentity_groups_memberships_modify_membership_roles()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `cloudidentity_groups_memberships_modify_membership_roles_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn cloudidentity_groups_memberships_modify_membership_roles_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<
+            D = Result<ApiResponse<ModifyMembershipRolesResponse>, ApiError>,
+            P = ApiPending,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    let task = cloudidentity_groups_memberships_modify_membership_roles_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`cloudidentity_groups_memberships_modify_membership_roles`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct CloudidentityGroupsMembershipsModifyMembershipRolesArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
+/// POST v1/groups/{groupsId}/memberships/{membershipsId}:modifyMembershipRoles
+/// Modifies the MembershipRoles of a Membership.
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `cloudidentity_groups_memberships_modify_membership_roles_builder()` + `cloudidentity_groups_memberships_modify_membership_roles_execute()`.
+/// For task-level control, use `cloudidentity_groups_memberships_modify_membership_roles_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn cloudidentity_groups_memberships_modify_membership_roles(
+    client: &SimpleHttpClient,
+    args: &CloudidentityGroupsMembershipsModifyMembershipRolesArgs,
+) -> Result<
+    impl StreamIterator<
+            D = Result<ApiResponse<ModifyMembershipRolesResponse>, ApiError>,
+            P = ApiPending,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    let builder =
+        cloudidentity_groups_memberships_modify_membership_roles_builder(client, &args.name)?;
+    cloudidentity_groups_memberships_modify_membership_roles_execute(builder)
+}
+
 /// GET v1/groups/{groupsId}/memberships:searchDirectGroups
 /// Searches direct groups of a member.
 ///
@@ -2910,14 +6857,15 @@ pub fn cloudidentity_groups_memberships_lookup(
 pub fn cloudidentity_groups_memberships_search_direct_groups_builder(
     client: &SimpleHttpClient,
     parent: &String,
-    orderBy: &Option<String>,
-    pageSize: &Option<i32>,
-    pageToken: &Option<String>,
-    query: &Option<String>,
+    orderBy: &Option<Option<String>>,
+    pageSize: &Option<Option<String>>,
+    pageToken: &Option<Option<String>>,
+    query: &Option<Option<String>>,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
         "https://cloudidentity.googleapis.com/v1/groups/{}/memberships:searchDirectGroups",
+        parent,
     );
 
     // Build request
@@ -3062,13 +7010,13 @@ pub struct CloudidentityGroupsMembershipsSearchDirectGroupsArgs {
     /// Path parameter: parent
     pub parent: String,
     /// Query parameter: orderBy
-    pub orderBy: Option<String>,
+    pub orderBy: Option<Option<String>>,
     /// Query parameter: pageSize
-    pub pageSize: Option<i32>,
+    pub pageSize: Option<Option<String>>,
     /// Query parameter: pageToken
-    pub pageToken: Option<String>,
+    pub pageToken: Option<Option<String>>,
     /// Query parameter: query
-    pub query: Option<String>,
+    pub query: Option<Option<String>>,
 }
 
 /// GET v1/groups/{groupsId}/memberships:searchDirectGroups
@@ -3113,13 +7061,14 @@ pub fn cloudidentity_groups_memberships_search_direct_groups(
 pub fn cloudidentity_groups_memberships_search_transitive_groups_builder(
     client: &SimpleHttpClient,
     parent: &String,
-    pageSize: &Option<i32>,
-    pageToken: &Option<String>,
-    query: &Option<String>,
+    pageSize: &Option<Option<String>>,
+    pageToken: &Option<Option<String>>,
+    query: &Option<Option<String>>,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
         "https://cloudidentity.googleapis.com/v1/groups/{}/memberships:searchTransitiveGroups",
+        parent,
     );
 
     // Build request
@@ -3261,11 +7210,11 @@ pub struct CloudidentityGroupsMembershipsSearchTransitiveGroupsArgs {
     /// Path parameter: parent
     pub parent: String,
     /// Query parameter: pageSize
-    pub pageSize: Option<i32>,
+    pub pageSize: Option<Option<String>>,
     /// Query parameter: pageToken
-    pub pageToken: Option<String>,
+    pub pageToken: Option<Option<String>>,
     /// Query parameter: query
-    pub query: Option<String>,
+    pub query: Option<Option<String>>,
 }
 
 /// GET v1/groups/{groupsId}/memberships:searchTransitiveGroups
@@ -3309,12 +7258,13 @@ pub fn cloudidentity_groups_memberships_search_transitive_groups(
 pub fn cloudidentity_groups_memberships_search_transitive_memberships_builder(
     client: &SimpleHttpClient,
     parent: &String,
-    pageSize: &Option<i32>,
-    pageToken: &Option<String>,
+    pageSize: &Option<Option<String>>,
+    pageToken: &Option<Option<String>>,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
         "https://cloudidentity.googleapis.com/v1/groups/{}/memberships:searchTransitiveMemberships",
+        parent,
     );
 
     // Build request
@@ -3453,9 +7403,9 @@ pub struct CloudidentityGroupsMembershipsSearchTransitiveMembershipsArgs {
     /// Path parameter: parent
     pub parent: String,
     /// Query parameter: pageSize
-    pub pageSize: Option<i32>,
+    pub pageSize: Option<Option<String>>,
     /// Query parameter: pageToken
-    pub pageToken: Option<String>,
+    pub pageToken: Option<Option<String>>,
 }
 
 /// GET v1/groups/{groupsId}/memberships:searchTransitiveMemberships
@@ -3489,7 +7439,7 @@ pub fn cloudidentity_groups_memberships_search_transitive_memberships(
     cloudidentity_groups_memberships_search_transitive_memberships_execute(builder)
 }
 
-/// GET v1/inboundOidcSsoProfiles
+/// POST v1/inboundOidcSsoProfiles
 /// Creates an InboundOidcSsoProfile for a customer. When the target customer has enabled [Multi-party approval for sensitive actions](<https://support.google.`com/a/answer/13790448`>), the Operation in the response will have "done": `false`, it will not have a response, and the metadata will have "state": "awaiting-multi-party-approval".
 ///
 /// Returns `ClientRequestBuilder` for customization.
@@ -3497,22 +7447,19 @@ pub fn cloudidentity_groups_memberships_search_transitive_memberships(
 
 pub fn cloudidentity_inbound_oidc_sso_profiles_create_builder(
     client: &SimpleHttpClient,
-    body: &InboundOidcSsoProfile,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!("https://cloudidentity.googleapis.com/v1/inboundOidcSsoProfiles",);
 
     // Build request
     let builder = client
-        .get(&endpoint_url)
+        .post(&endpoint_url)
         .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
 
-    builder
-        .body_json(body)
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+    Ok(builder)
 }
 
-/// GET v1/inboundOidcSsoProfiles
+/// POST v1/inboundOidcSsoProfiles
 /// Creates an InboundOidcSsoProfile for a customer. When the target customer has enabled [Multi-party approval for sensitive actions](<https://support.google.`com/a/answer/13790448`>), the Operation in the response will have "done": `false`, it will not have a response, and the metadata will have "state": "awaiting-multi-party-approval".
 ///
 /// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
@@ -3586,7 +7533,7 @@ pub fn cloudidentity_inbound_oidc_sso_profiles_create_task(
         .map_pending(|_| ApiPending::Sending))
 }
 
-/// GET v1/inboundOidcSsoProfiles
+/// POST v1/inboundOidcSsoProfiles
 /// Creates an InboundOidcSsoProfile for a customer. When the target customer has enabled [Multi-party approval for sensitive actions](<https://support.google.`com/a/answer/13790448`>), the Operation in the response will have "done": `false`, it will not have a response, and the metadata will have "state": "awaiting-multi-party-approval".
 ///
 /// Takes a `ClientRequestBuilder`, builds and executes the request,
@@ -3616,14 +7563,7 @@ pub fn cloudidentity_inbound_oidc_sso_profiles_create_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
-/// Arguments for [`cloudidentity_inbound_oidc_sso_profiles_create`].
-#[derive(Debug, Clone, Serialize, JsonHash)]
-pub struct CloudidentityInboundOidcSsoProfilesCreateArgs {
-    /// Request body.
-    pub body: InboundOidcSsoProfile,
-}
-
-/// GET v1/inboundOidcSsoProfiles
+/// POST v1/inboundOidcSsoProfiles
 /// Creates an InboundOidcSsoProfile for a customer. When the target customer has enabled [Multi-party approval for sensitive actions](<https://support.google.`com/a/answer/13790448`>), the Operation in the response will have "done": `false`, it will not have a response, and the metadata will have "state": "awaiting-multi-party-approval".
 ///
 /// Simplest API - builds and executes the request in one call.
@@ -3636,16 +7576,15 @@ pub struct CloudidentityInboundOidcSsoProfilesCreateArgs {
 
 pub fn cloudidentity_inbound_oidc_sso_profiles_create(
     client: &SimpleHttpClient,
-    args: &CloudidentityInboundOidcSsoProfilesCreateArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Operation>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = cloudidentity_inbound_oidc_sso_profiles_create_builder(client, &args.body)?;
+    let builder = cloudidentity_inbound_oidc_sso_profiles_create_builder(client)?;
     cloudidentity_inbound_oidc_sso_profiles_create_execute(builder)
 }
 
-/// GET v1/inboundOidcSsoProfiles/{inboundOidcSsoProfilesId}
+/// DELETE v1/inboundOidcSsoProfiles/{inboundOidcSsoProfilesId}
 /// Deletes an InboundOidcSsoProfile.
 ///
 /// Returns `ClientRequestBuilder` for customization.
@@ -3656,18 +7595,20 @@ pub fn cloudidentity_inbound_oidc_sso_profiles_delete_builder(
     name: &String,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
-    let endpoint_url =
-        format!("https://cloudidentity.googleapis.com/v1/inboundOidcSsoProfiles/{}",);
+    let endpoint_url = format!(
+        "https://cloudidentity.googleapis.com/v1/inboundOidcSsoProfiles/{}",
+        name,
+    );
 
     // Build request
     let builder = client
-        .get(&endpoint_url)
+        .delete(&endpoint_url)
         .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
 
     Ok(builder)
 }
 
-/// GET v1/inboundOidcSsoProfiles/{inboundOidcSsoProfilesId}
+/// DELETE v1/inboundOidcSsoProfiles/{inboundOidcSsoProfilesId}
 /// Deletes an InboundOidcSsoProfile.
 ///
 /// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
@@ -3741,7 +7682,7 @@ pub fn cloudidentity_inbound_oidc_sso_profiles_delete_task(
         .map_pending(|_| ApiPending::Sending))
 }
 
-/// GET v1/inboundOidcSsoProfiles/{inboundOidcSsoProfilesId}
+/// DELETE v1/inboundOidcSsoProfiles/{inboundOidcSsoProfilesId}
 /// Deletes an InboundOidcSsoProfile.
 ///
 /// Takes a `ClientRequestBuilder`, builds and executes the request,
@@ -3778,7 +7719,7 @@ pub struct CloudidentityInboundOidcSsoProfilesDeleteArgs {
     pub name: String,
 }
 
-/// GET v1/inboundOidcSsoProfiles/{inboundOidcSsoProfilesId}
+/// DELETE v1/inboundOidcSsoProfiles/{inboundOidcSsoProfilesId}
 /// Deletes an InboundOidcSsoProfile.
 ///
 /// Simplest API - builds and executes the request in one call.
@@ -3800,7 +7741,533 @@ pub fn cloudidentity_inbound_oidc_sso_profiles_delete(
     cloudidentity_inbound_oidc_sso_profiles_delete_execute(builder)
 }
 
-/// GET v1/inboundSamlSsoProfiles
+/// GET v1/inboundOidcSsoProfiles/{inboundOidcSsoProfilesId}
+/// Gets an InboundOidcSsoProfile.
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `cloudidentity_inbound_oidc_sso_profiles_get_execute()` to send, or `cloudidentity_inbound_oidc_sso_profiles_get` for simplest API.
+
+pub fn cloudidentity_inbound_oidc_sso_profiles_get_builder(
+    client: &SimpleHttpClient,
+    name: &String,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!(
+        "https://cloudidentity.googleapis.com/v1/inboundOidcSsoProfiles/{}",
+        name,
+    );
+
+    // Build request
+    let builder = client
+        .get(&endpoint_url)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// GET v1/inboundOidcSsoProfiles/{inboundOidcSsoProfilesId}
+/// Gets an InboundOidcSsoProfile.
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `cloudidentity_inbound_oidc_sso_profiles_get_execute()` or `cloudidentity_inbound_oidc_sso_profiles_get`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `cloudidentity_inbound_oidc_sso_profiles_get_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn cloudidentity_inbound_oidc_sso_profiles_get_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<InboundOidcSsoProfile>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: InboundOidcSsoProfile = serde_json::from_str(&body)
+                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// GET v1/inboundOidcSsoProfiles/{inboundOidcSsoProfilesId}
+/// Gets an InboundOidcSsoProfile.
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `cloudidentity_inbound_oidc_sso_profiles_get_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `cloudidentity_inbound_oidc_sso_profiles_get_task()`.
+/// For the simplest API, use `cloudidentity_inbound_oidc_sso_profiles_get()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `cloudidentity_inbound_oidc_sso_profiles_get_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn cloudidentity_inbound_oidc_sso_profiles_get_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<InboundOidcSsoProfile>, ApiError>, P = ApiPending>
+        + Send
+        + 'static,
+    ApiError,
+> {
+    let task = cloudidentity_inbound_oidc_sso_profiles_get_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`cloudidentity_inbound_oidc_sso_profiles_get`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct CloudidentityInboundOidcSsoProfilesGetArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
+/// GET v1/inboundOidcSsoProfiles/{inboundOidcSsoProfilesId}
+/// Gets an InboundOidcSsoProfile.
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `cloudidentity_inbound_oidc_sso_profiles_get_builder()` + `cloudidentity_inbound_oidc_sso_profiles_get_execute()`.
+/// For task-level control, use `cloudidentity_inbound_oidc_sso_profiles_get_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn cloudidentity_inbound_oidc_sso_profiles_get(
+    client: &SimpleHttpClient,
+    args: &CloudidentityInboundOidcSsoProfilesGetArgs,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<InboundOidcSsoProfile>, ApiError>, P = ApiPending>
+        + Send
+        + 'static,
+    ApiError,
+> {
+    let builder = cloudidentity_inbound_oidc_sso_profiles_get_builder(client, &args.name)?;
+    cloudidentity_inbound_oidc_sso_profiles_get_execute(builder)
+}
+
+/// GET v1/inboundOidcSsoProfiles
+/// Lists InboundOidcSsoProfile objects for a Google enterprise customer.
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `cloudidentity_inbound_oidc_sso_profiles_list_execute()` to send, or `cloudidentity_inbound_oidc_sso_profiles_list` for simplest API.
+
+pub fn cloudidentity_inbound_oidc_sso_profiles_list_builder(
+    client: &SimpleHttpClient,
+    filter: &Option<Option<String>>,
+    pageSize: &Option<Option<String>>,
+    pageToken: &Option<Option<String>>,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!("https://cloudidentity.googleapis.com/v1/inboundOidcSsoProfiles",);
+
+    // Build request
+    let mut query_parts = Vec::new();
+    if let Some(val) = filter.as_ref() {
+        query_parts.push(format!("filter={}", val));
+    }
+    if let Some(val) = pageSize.as_ref() {
+        query_parts.push(format!("pageSize={}", val));
+    }
+    if let Some(val) = pageToken.as_ref() {
+        query_parts.push(format!("pageToken={}", val));
+    }
+
+    let url_with_query = if query_parts.is_empty() {
+        endpoint_url
+    } else {
+        format!("{}?{}", endpoint_url, query_parts.join("&"))
+    };
+
+    let builder = client
+        .get(&url_with_query)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// GET v1/inboundOidcSsoProfiles
+/// Lists InboundOidcSsoProfile objects for a Google enterprise customer.
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `cloudidentity_inbound_oidc_sso_profiles_list_execute()` or `cloudidentity_inbound_oidc_sso_profiles_list`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `cloudidentity_inbound_oidc_sso_profiles_list_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn cloudidentity_inbound_oidc_sso_profiles_list_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<ListInboundOidcSsoProfilesResponse>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: ListInboundOidcSsoProfilesResponse = serde_json::from_str(&body)
+                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// GET v1/inboundOidcSsoProfiles
+/// Lists InboundOidcSsoProfile objects for a Google enterprise customer.
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `cloudidentity_inbound_oidc_sso_profiles_list_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `cloudidentity_inbound_oidc_sso_profiles_list_task()`.
+/// For the simplest API, use `cloudidentity_inbound_oidc_sso_profiles_list()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `cloudidentity_inbound_oidc_sso_profiles_list_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn cloudidentity_inbound_oidc_sso_profiles_list_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<
+            D = Result<ApiResponse<ListInboundOidcSsoProfilesResponse>, ApiError>,
+            P = ApiPending,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    let task = cloudidentity_inbound_oidc_sso_profiles_list_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`cloudidentity_inbound_oidc_sso_profiles_list`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct CloudidentityInboundOidcSsoProfilesListArgs {
+    /// Query parameter: filter
+    pub filter: Option<Option<String>>,
+    /// Query parameter: pageSize
+    pub pageSize: Option<Option<String>>,
+    /// Query parameter: pageToken
+    pub pageToken: Option<Option<String>>,
+}
+
+/// GET v1/inboundOidcSsoProfiles
+/// Lists InboundOidcSsoProfile objects for a Google enterprise customer.
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `cloudidentity_inbound_oidc_sso_profiles_list_builder()` + `cloudidentity_inbound_oidc_sso_profiles_list_execute()`.
+/// For task-level control, use `cloudidentity_inbound_oidc_sso_profiles_list_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn cloudidentity_inbound_oidc_sso_profiles_list(
+    client: &SimpleHttpClient,
+    args: &CloudidentityInboundOidcSsoProfilesListArgs,
+) -> Result<
+    impl StreamIterator<
+            D = Result<ApiResponse<ListInboundOidcSsoProfilesResponse>, ApiError>,
+            P = ApiPending,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    let builder = cloudidentity_inbound_oidc_sso_profiles_list_builder(
+        client,
+        &args.filter,
+        &args.pageSize,
+        &args.pageToken,
+    )?;
+    cloudidentity_inbound_oidc_sso_profiles_list_execute(builder)
+}
+
+/// PATCH v1/inboundOidcSsoProfiles/{inboundOidcSsoProfilesId}
+/// Updates an InboundOidcSsoProfile. When the target customer has enabled [Multi-party approval for sensitive actions](<https://support.google.`com/a/answer/13790448`>), the Operation in the response will have "done": `false`, it will not have a response, and the metadata will have "state": "awaiting-multi-party-approval".
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `cloudidentity_inbound_oidc_sso_profiles_patch_execute()` to send, or `cloudidentity_inbound_oidc_sso_profiles_patch` for simplest API.
+
+pub fn cloudidentity_inbound_oidc_sso_profiles_patch_builder(
+    client: &SimpleHttpClient,
+    name: &String,
+    updateMask: &Option<Option<String>>,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!(
+        "https://cloudidentity.googleapis.com/v1/inboundOidcSsoProfiles/{}",
+        name,
+    );
+
+    // Build request
+    let mut query_parts = Vec::new();
+    if let Some(val) = updateMask.as_ref() {
+        query_parts.push(format!("updateMask={}", val));
+    }
+
+    let url_with_query = if query_parts.is_empty() {
+        endpoint_url
+    } else {
+        format!("{}?{}", endpoint_url, query_parts.join("&"))
+    };
+
+    let builder = client
+        .patch(&url_with_query)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// PATCH v1/inboundOidcSsoProfiles/{inboundOidcSsoProfilesId}
+/// Updates an InboundOidcSsoProfile. When the target customer has enabled [Multi-party approval for sensitive actions](<https://support.google.`com/a/answer/13790448`>), the Operation in the response will have "done": `false`, it will not have a response, and the metadata will have "state": "awaiting-multi-party-approval".
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `cloudidentity_inbound_oidc_sso_profiles_patch_execute()` or `cloudidentity_inbound_oidc_sso_profiles_patch`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `cloudidentity_inbound_oidc_sso_profiles_patch_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn cloudidentity_inbound_oidc_sso_profiles_patch_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<Operation>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: Operation = serde_json::from_str(&body)
+                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// PATCH v1/inboundOidcSsoProfiles/{inboundOidcSsoProfilesId}
+/// Updates an InboundOidcSsoProfile. When the target customer has enabled [Multi-party approval for sensitive actions](<https://support.google.`com/a/answer/13790448`>), the Operation in the response will have "done": `false`, it will not have a response, and the metadata will have "state": "awaiting-multi-party-approval".
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `cloudidentity_inbound_oidc_sso_profiles_patch_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `cloudidentity_inbound_oidc_sso_profiles_patch_task()`.
+/// For the simplest API, use `cloudidentity_inbound_oidc_sso_profiles_patch()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `cloudidentity_inbound_oidc_sso_profiles_patch_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn cloudidentity_inbound_oidc_sso_profiles_patch_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<Operation>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let task = cloudidentity_inbound_oidc_sso_profiles_patch_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`cloudidentity_inbound_oidc_sso_profiles_patch`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct CloudidentityInboundOidcSsoProfilesPatchArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Query parameter: updateMask
+    pub updateMask: Option<Option<String>>,
+}
+
+/// PATCH v1/inboundOidcSsoProfiles/{inboundOidcSsoProfilesId}
+/// Updates an InboundOidcSsoProfile. When the target customer has enabled [Multi-party approval for sensitive actions](<https://support.google.`com/a/answer/13790448`>), the Operation in the response will have "done": `false`, it will not have a response, and the metadata will have "state": "awaiting-multi-party-approval".
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `cloudidentity_inbound_oidc_sso_profiles_patch_builder()` + `cloudidentity_inbound_oidc_sso_profiles_patch_execute()`.
+/// For task-level control, use `cloudidentity_inbound_oidc_sso_profiles_patch_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn cloudidentity_inbound_oidc_sso_profiles_patch(
+    client: &SimpleHttpClient,
+    args: &CloudidentityInboundOidcSsoProfilesPatchArgs,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<Operation>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let builder = cloudidentity_inbound_oidc_sso_profiles_patch_builder(
+        client,
+        &args.name,
+        &args.updateMask,
+    )?;
+    cloudidentity_inbound_oidc_sso_profiles_patch_execute(builder)
+}
+
+/// POST v1/inboundSamlSsoProfiles
 /// Creates an InboundSamlSsoProfile for a customer. When the target customer has enabled [Multi-party approval for sensitive actions](<https://support.google.`com/a/answer/13790448`>), the Operation in the response will have "done": `false`, it will not have a response, and the metadata will have "state": "awaiting-multi-party-approval".
 ///
 /// Returns `ClientRequestBuilder` for customization.
@@ -3808,22 +8275,19 @@ pub fn cloudidentity_inbound_oidc_sso_profiles_delete(
 
 pub fn cloudidentity_inbound_saml_sso_profiles_create_builder(
     client: &SimpleHttpClient,
-    body: &InboundSamlSsoProfile,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!("https://cloudidentity.googleapis.com/v1/inboundSamlSsoProfiles",);
 
     // Build request
     let builder = client
-        .get(&endpoint_url)
+        .post(&endpoint_url)
         .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
 
-    builder
-        .body_json(body)
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+    Ok(builder)
 }
 
-/// GET v1/inboundSamlSsoProfiles
+/// POST v1/inboundSamlSsoProfiles
 /// Creates an InboundSamlSsoProfile for a customer. When the target customer has enabled [Multi-party approval for sensitive actions](<https://support.google.`com/a/answer/13790448`>), the Operation in the response will have "done": `false`, it will not have a response, and the metadata will have "state": "awaiting-multi-party-approval".
 ///
 /// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
@@ -3897,7 +8361,7 @@ pub fn cloudidentity_inbound_saml_sso_profiles_create_task(
         .map_pending(|_| ApiPending::Sending))
 }
 
-/// GET v1/inboundSamlSsoProfiles
+/// POST v1/inboundSamlSsoProfiles
 /// Creates an InboundSamlSsoProfile for a customer. When the target customer has enabled [Multi-party approval for sensitive actions](<https://support.google.`com/a/answer/13790448`>), the Operation in the response will have "done": `false`, it will not have a response, and the metadata will have "state": "awaiting-multi-party-approval".
 ///
 /// Takes a `ClientRequestBuilder`, builds and executes the request,
@@ -3927,14 +8391,7 @@ pub fn cloudidentity_inbound_saml_sso_profiles_create_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
-/// Arguments for [`cloudidentity_inbound_saml_sso_profiles_create`].
-#[derive(Debug, Clone, Serialize, JsonHash)]
-pub struct CloudidentityInboundSamlSsoProfilesCreateArgs {
-    /// Request body.
-    pub body: InboundSamlSsoProfile,
-}
-
-/// GET v1/inboundSamlSsoProfiles
+/// POST v1/inboundSamlSsoProfiles
 /// Creates an InboundSamlSsoProfile for a customer. When the target customer has enabled [Multi-party approval for sensitive actions](<https://support.google.`com/a/answer/13790448`>), the Operation in the response will have "done": `false`, it will not have a response, and the metadata will have "state": "awaiting-multi-party-approval".
 ///
 /// Simplest API - builds and executes the request in one call.
@@ -3947,16 +8404,15 @@ pub struct CloudidentityInboundSamlSsoProfilesCreateArgs {
 
 pub fn cloudidentity_inbound_saml_sso_profiles_create(
     client: &SimpleHttpClient,
-    args: &CloudidentityInboundSamlSsoProfilesCreateArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Operation>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = cloudidentity_inbound_saml_sso_profiles_create_builder(client, &args.body)?;
+    let builder = cloudidentity_inbound_saml_sso_profiles_create_builder(client)?;
     cloudidentity_inbound_saml_sso_profiles_create_execute(builder)
 }
 
-/// GET v1/inboundSamlSsoProfiles/{inboundSamlSsoProfilesId}
+/// DELETE v1/inboundSamlSsoProfiles/{inboundSamlSsoProfilesId}
 /// Deletes an InboundSamlSsoProfile.
 ///
 /// Returns `ClientRequestBuilder` for customization.
@@ -3967,18 +8423,20 @@ pub fn cloudidentity_inbound_saml_sso_profiles_delete_builder(
     name: &String,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
-    let endpoint_url =
-        format!("https://cloudidentity.googleapis.com/v1/inboundSamlSsoProfiles/{}",);
+    let endpoint_url = format!(
+        "https://cloudidentity.googleapis.com/v1/inboundSamlSsoProfiles/{}",
+        name,
+    );
 
     // Build request
     let builder = client
-        .get(&endpoint_url)
+        .delete(&endpoint_url)
         .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
 
     Ok(builder)
 }
 
-/// GET v1/inboundSamlSsoProfiles/{inboundSamlSsoProfilesId}
+/// DELETE v1/inboundSamlSsoProfiles/{inboundSamlSsoProfilesId}
 /// Deletes an InboundSamlSsoProfile.
 ///
 /// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
@@ -4052,7 +8510,7 @@ pub fn cloudidentity_inbound_saml_sso_profiles_delete_task(
         .map_pending(|_| ApiPending::Sending))
 }
 
-/// GET v1/inboundSamlSsoProfiles/{inboundSamlSsoProfilesId}
+/// DELETE v1/inboundSamlSsoProfiles/{inboundSamlSsoProfilesId}
 /// Deletes an InboundSamlSsoProfile.
 ///
 /// Takes a `ClientRequestBuilder`, builds and executes the request,
@@ -4089,7 +8547,7 @@ pub struct CloudidentityInboundSamlSsoProfilesDeleteArgs {
     pub name: String,
 }
 
-/// GET v1/inboundSamlSsoProfiles/{inboundSamlSsoProfilesId}
+/// DELETE v1/inboundSamlSsoProfiles/{inboundSamlSsoProfilesId}
 /// Deletes an InboundSamlSsoProfile.
 ///
 /// Simplest API - builds and executes the request in one call.
@@ -4111,7 +8569,533 @@ pub fn cloudidentity_inbound_saml_sso_profiles_delete(
     cloudidentity_inbound_saml_sso_profiles_delete_execute(builder)
 }
 
-/// GET v1/inboundSamlSsoProfiles/{inboundSamlSsoProfilesId}/idpCredentials:add
+/// GET v1/inboundSamlSsoProfiles/{inboundSamlSsoProfilesId}
+/// Gets an InboundSamlSsoProfile.
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `cloudidentity_inbound_saml_sso_profiles_get_execute()` to send, or `cloudidentity_inbound_saml_sso_profiles_get` for simplest API.
+
+pub fn cloudidentity_inbound_saml_sso_profiles_get_builder(
+    client: &SimpleHttpClient,
+    name: &String,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!(
+        "https://cloudidentity.googleapis.com/v1/inboundSamlSsoProfiles/{}",
+        name,
+    );
+
+    // Build request
+    let builder = client
+        .get(&endpoint_url)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// GET v1/inboundSamlSsoProfiles/{inboundSamlSsoProfilesId}
+/// Gets an InboundSamlSsoProfile.
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `cloudidentity_inbound_saml_sso_profiles_get_execute()` or `cloudidentity_inbound_saml_sso_profiles_get`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `cloudidentity_inbound_saml_sso_profiles_get_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn cloudidentity_inbound_saml_sso_profiles_get_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<InboundSamlSsoProfile>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: InboundSamlSsoProfile = serde_json::from_str(&body)
+                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// GET v1/inboundSamlSsoProfiles/{inboundSamlSsoProfilesId}
+/// Gets an InboundSamlSsoProfile.
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `cloudidentity_inbound_saml_sso_profiles_get_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `cloudidentity_inbound_saml_sso_profiles_get_task()`.
+/// For the simplest API, use `cloudidentity_inbound_saml_sso_profiles_get()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `cloudidentity_inbound_saml_sso_profiles_get_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn cloudidentity_inbound_saml_sso_profiles_get_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<InboundSamlSsoProfile>, ApiError>, P = ApiPending>
+        + Send
+        + 'static,
+    ApiError,
+> {
+    let task = cloudidentity_inbound_saml_sso_profiles_get_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`cloudidentity_inbound_saml_sso_profiles_get`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct CloudidentityInboundSamlSsoProfilesGetArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
+/// GET v1/inboundSamlSsoProfiles/{inboundSamlSsoProfilesId}
+/// Gets an InboundSamlSsoProfile.
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `cloudidentity_inbound_saml_sso_profiles_get_builder()` + `cloudidentity_inbound_saml_sso_profiles_get_execute()`.
+/// For task-level control, use `cloudidentity_inbound_saml_sso_profiles_get_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn cloudidentity_inbound_saml_sso_profiles_get(
+    client: &SimpleHttpClient,
+    args: &CloudidentityInboundSamlSsoProfilesGetArgs,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<InboundSamlSsoProfile>, ApiError>, P = ApiPending>
+        + Send
+        + 'static,
+    ApiError,
+> {
+    let builder = cloudidentity_inbound_saml_sso_profiles_get_builder(client, &args.name)?;
+    cloudidentity_inbound_saml_sso_profiles_get_execute(builder)
+}
+
+/// GET v1/inboundSamlSsoProfiles
+/// Lists InboundSamlSsoProfiles for a customer.
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `cloudidentity_inbound_saml_sso_profiles_list_execute()` to send, or `cloudidentity_inbound_saml_sso_profiles_list` for simplest API.
+
+pub fn cloudidentity_inbound_saml_sso_profiles_list_builder(
+    client: &SimpleHttpClient,
+    filter: &Option<Option<String>>,
+    pageSize: &Option<Option<String>>,
+    pageToken: &Option<Option<String>>,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!("https://cloudidentity.googleapis.com/v1/inboundSamlSsoProfiles",);
+
+    // Build request
+    let mut query_parts = Vec::new();
+    if let Some(val) = filter.as_ref() {
+        query_parts.push(format!("filter={}", val));
+    }
+    if let Some(val) = pageSize.as_ref() {
+        query_parts.push(format!("pageSize={}", val));
+    }
+    if let Some(val) = pageToken.as_ref() {
+        query_parts.push(format!("pageToken={}", val));
+    }
+
+    let url_with_query = if query_parts.is_empty() {
+        endpoint_url
+    } else {
+        format!("{}?{}", endpoint_url, query_parts.join("&"))
+    };
+
+    let builder = client
+        .get(&url_with_query)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// GET v1/inboundSamlSsoProfiles
+/// Lists InboundSamlSsoProfiles for a customer.
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `cloudidentity_inbound_saml_sso_profiles_list_execute()` or `cloudidentity_inbound_saml_sso_profiles_list`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `cloudidentity_inbound_saml_sso_profiles_list_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn cloudidentity_inbound_saml_sso_profiles_list_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<ListInboundSamlSsoProfilesResponse>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: ListInboundSamlSsoProfilesResponse = serde_json::from_str(&body)
+                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// GET v1/inboundSamlSsoProfiles
+/// Lists InboundSamlSsoProfiles for a customer.
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `cloudidentity_inbound_saml_sso_profiles_list_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `cloudidentity_inbound_saml_sso_profiles_list_task()`.
+/// For the simplest API, use `cloudidentity_inbound_saml_sso_profiles_list()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `cloudidentity_inbound_saml_sso_profiles_list_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn cloudidentity_inbound_saml_sso_profiles_list_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<
+            D = Result<ApiResponse<ListInboundSamlSsoProfilesResponse>, ApiError>,
+            P = ApiPending,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    let task = cloudidentity_inbound_saml_sso_profiles_list_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`cloudidentity_inbound_saml_sso_profiles_list`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct CloudidentityInboundSamlSsoProfilesListArgs {
+    /// Query parameter: filter
+    pub filter: Option<Option<String>>,
+    /// Query parameter: pageSize
+    pub pageSize: Option<Option<String>>,
+    /// Query parameter: pageToken
+    pub pageToken: Option<Option<String>>,
+}
+
+/// GET v1/inboundSamlSsoProfiles
+/// Lists InboundSamlSsoProfiles for a customer.
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `cloudidentity_inbound_saml_sso_profiles_list_builder()` + `cloudidentity_inbound_saml_sso_profiles_list_execute()`.
+/// For task-level control, use `cloudidentity_inbound_saml_sso_profiles_list_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn cloudidentity_inbound_saml_sso_profiles_list(
+    client: &SimpleHttpClient,
+    args: &CloudidentityInboundSamlSsoProfilesListArgs,
+) -> Result<
+    impl StreamIterator<
+            D = Result<ApiResponse<ListInboundSamlSsoProfilesResponse>, ApiError>,
+            P = ApiPending,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    let builder = cloudidentity_inbound_saml_sso_profiles_list_builder(
+        client,
+        &args.filter,
+        &args.pageSize,
+        &args.pageToken,
+    )?;
+    cloudidentity_inbound_saml_sso_profiles_list_execute(builder)
+}
+
+/// PATCH v1/inboundSamlSsoProfiles/{inboundSamlSsoProfilesId}
+/// Updates an InboundSamlSsoProfile. When the target customer has enabled [Multi-party approval for sensitive actions](<https://support.google.`com/a/answer/13790448`>), the Operation in the response will have "done": `false`, it will not have a response, and the metadata will have "state": "awaiting-multi-party-approval".
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `cloudidentity_inbound_saml_sso_profiles_patch_execute()` to send, or `cloudidentity_inbound_saml_sso_profiles_patch` for simplest API.
+
+pub fn cloudidentity_inbound_saml_sso_profiles_patch_builder(
+    client: &SimpleHttpClient,
+    name: &String,
+    updateMask: &Option<Option<String>>,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!(
+        "https://cloudidentity.googleapis.com/v1/inboundSamlSsoProfiles/{}",
+        name,
+    );
+
+    // Build request
+    let mut query_parts = Vec::new();
+    if let Some(val) = updateMask.as_ref() {
+        query_parts.push(format!("updateMask={}", val));
+    }
+
+    let url_with_query = if query_parts.is_empty() {
+        endpoint_url
+    } else {
+        format!("{}?{}", endpoint_url, query_parts.join("&"))
+    };
+
+    let builder = client
+        .patch(&url_with_query)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// PATCH v1/inboundSamlSsoProfiles/{inboundSamlSsoProfilesId}
+/// Updates an InboundSamlSsoProfile. When the target customer has enabled [Multi-party approval for sensitive actions](<https://support.google.`com/a/answer/13790448`>), the Operation in the response will have "done": `false`, it will not have a response, and the metadata will have "state": "awaiting-multi-party-approval".
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `cloudidentity_inbound_saml_sso_profiles_patch_execute()` or `cloudidentity_inbound_saml_sso_profiles_patch`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `cloudidentity_inbound_saml_sso_profiles_patch_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn cloudidentity_inbound_saml_sso_profiles_patch_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<Operation>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: Operation = serde_json::from_str(&body)
+                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// PATCH v1/inboundSamlSsoProfiles/{inboundSamlSsoProfilesId}
+/// Updates an InboundSamlSsoProfile. When the target customer has enabled [Multi-party approval for sensitive actions](<https://support.google.`com/a/answer/13790448`>), the Operation in the response will have "done": `false`, it will not have a response, and the metadata will have "state": "awaiting-multi-party-approval".
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `cloudidentity_inbound_saml_sso_profiles_patch_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `cloudidentity_inbound_saml_sso_profiles_patch_task()`.
+/// For the simplest API, use `cloudidentity_inbound_saml_sso_profiles_patch()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `cloudidentity_inbound_saml_sso_profiles_patch_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn cloudidentity_inbound_saml_sso_profiles_patch_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<Operation>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let task = cloudidentity_inbound_saml_sso_profiles_patch_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`cloudidentity_inbound_saml_sso_profiles_patch`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct CloudidentityInboundSamlSsoProfilesPatchArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Query parameter: updateMask
+    pub updateMask: Option<Option<String>>,
+}
+
+/// PATCH v1/inboundSamlSsoProfiles/{inboundSamlSsoProfilesId}
+/// Updates an InboundSamlSsoProfile. When the target customer has enabled [Multi-party approval for sensitive actions](<https://support.google.`com/a/answer/13790448`>), the Operation in the response will have "done": `false`, it will not have a response, and the metadata will have "state": "awaiting-multi-party-approval".
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `cloudidentity_inbound_saml_sso_profiles_patch_builder()` + `cloudidentity_inbound_saml_sso_profiles_patch_execute()`.
+/// For task-level control, use `cloudidentity_inbound_saml_sso_profiles_patch_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn cloudidentity_inbound_saml_sso_profiles_patch(
+    client: &SimpleHttpClient,
+    args: &CloudidentityInboundSamlSsoProfilesPatchArgs,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<Operation>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let builder = cloudidentity_inbound_saml_sso_profiles_patch_builder(
+        client,
+        &args.name,
+        &args.updateMask,
+    )?;
+    cloudidentity_inbound_saml_sso_profiles_patch_execute(builder)
+}
+
+/// POST v1/inboundSamlSsoProfiles/{inboundSamlSsoProfilesId}/idpCredentials:add
 /// Adds an IdpCredential. Up to 2 credentials are allowed. When the target customer has enabled [Multi-party approval for sensitive actions](<https://support.google.`com/a/answer/13790448`>), the Operation in the response will have "done": `false`, it will not have a response, and the metadata will have "state": "awaiting-multi-party-approval".
 ///
 /// Returns `ClientRequestBuilder` for customization.
@@ -4120,24 +9104,22 @@ pub fn cloudidentity_inbound_saml_sso_profiles_delete(
 pub fn cloudidentity_inbound_saml_sso_profiles_idp_credentials_add_builder(
     client: &SimpleHttpClient,
     parent: &String,
-    body: &AddIdpCredentialRequest,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
         "https://cloudidentity.googleapis.com/v1/inboundSamlSsoProfiles/{}/idpCredentials:add",
+        parent,
     );
 
     // Build request
     let builder = client
-        .get(&endpoint_url)
+        .post(&endpoint_url)
         .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
 
-    builder
-        .body_json(body)
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+    Ok(builder)
 }
 
-/// GET v1/inboundSamlSsoProfiles/{inboundSamlSsoProfilesId}/idpCredentials:add
+/// POST v1/inboundSamlSsoProfiles/{inboundSamlSsoProfilesId}/idpCredentials:add
 /// Adds an IdpCredential. Up to 2 credentials are allowed. When the target customer has enabled [Multi-party approval for sensitive actions](<https://support.google.`com/a/answer/13790448`>), the Operation in the response will have "done": `false`, it will not have a response, and the metadata will have "state": "awaiting-multi-party-approval".
 ///
 /// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
@@ -4211,7 +9193,7 @@ pub fn cloudidentity_inbound_saml_sso_profiles_idp_credentials_add_task(
         .map_pending(|_| ApiPending::Sending))
 }
 
-/// GET v1/inboundSamlSsoProfiles/{inboundSamlSsoProfilesId}/idpCredentials:add
+/// POST v1/inboundSamlSsoProfiles/{inboundSamlSsoProfilesId}/idpCredentials:add
 /// Adds an IdpCredential. Up to 2 credentials are allowed. When the target customer has enabled [Multi-party approval for sensitive actions](<https://support.google.`com/a/answer/13790448`>), the Operation in the response will have "done": `false`, it will not have a response, and the metadata will have "state": "awaiting-multi-party-approval".
 ///
 /// Takes a `ClientRequestBuilder`, builds and executes the request,
@@ -4246,11 +9228,9 @@ pub fn cloudidentity_inbound_saml_sso_profiles_idp_credentials_add_execute(
 pub struct CloudidentityInboundSamlSsoProfilesIdpCredentialsAddArgs {
     /// Path parameter: parent
     pub parent: String,
-    /// Request body.
-    pub body: AddIdpCredentialRequest,
 }
 
-/// GET v1/inboundSamlSsoProfiles/{inboundSamlSsoProfilesId}/idpCredentials:add
+/// POST v1/inboundSamlSsoProfiles/{inboundSamlSsoProfilesId}/idpCredentials:add
 /// Adds an IdpCredential. Up to 2 credentials are allowed. When the target customer has enabled [Multi-party approval for sensitive actions](<https://support.google.`com/a/answer/13790448`>), the Operation in the response will have "done": `false`, it will not have a response, and the metadata will have "state": "awaiting-multi-party-approval".
 ///
 /// Simplest API - builds and executes the request in one call.
@@ -4268,12 +9248,329 @@ pub fn cloudidentity_inbound_saml_sso_profiles_idp_credentials_add(
     impl StreamIterator<D = Result<ApiResponse<Operation>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = cloudidentity_inbound_saml_sso_profiles_idp_credentials_add_builder(
-        client,
-        &args.parent,
-        &args.body,
-    )?;
+    let builder =
+        cloudidentity_inbound_saml_sso_profiles_idp_credentials_add_builder(client, &args.parent)?;
     cloudidentity_inbound_saml_sso_profiles_idp_credentials_add_execute(builder)
+}
+
+/// DELETE v1/inboundSamlSsoProfiles/{inboundSamlSsoProfilesId}/idpCredentials/{idpCredentialsId}
+/// Deletes an IdpCredential.
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `cloudidentity_inbound_saml_sso_profiles_idp_credentials_delete_execute()` to send, or `cloudidentity_inbound_saml_sso_profiles_idp_credentials_delete` for simplest API.
+
+pub fn cloudidentity_inbound_saml_sso_profiles_idp_credentials_delete_builder(
+    client: &SimpleHttpClient,
+    name: &String,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!(
+        "https://cloudidentity.googleapis.com/v1/inboundSamlSsoProfiles/{}/idpCredentials/{idpCredentialsId}",
+        name,
+    );
+
+    // Build request
+    let builder = client
+        .delete(&endpoint_url)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// DELETE v1/inboundSamlSsoProfiles/{inboundSamlSsoProfilesId}/idpCredentials/{idpCredentialsId}
+/// Deletes an IdpCredential.
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `cloudidentity_inbound_saml_sso_profiles_idp_credentials_delete_execute()` or `cloudidentity_inbound_saml_sso_profiles_idp_credentials_delete`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `cloudidentity_inbound_saml_sso_profiles_idp_credentials_delete_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn cloudidentity_inbound_saml_sso_profiles_idp_credentials_delete_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<Operation>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: Operation = serde_json::from_str(&body)
+                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// DELETE v1/inboundSamlSsoProfiles/{inboundSamlSsoProfilesId}/idpCredentials/{idpCredentialsId}
+/// Deletes an IdpCredential.
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `cloudidentity_inbound_saml_sso_profiles_idp_credentials_delete_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `cloudidentity_inbound_saml_sso_profiles_idp_credentials_delete_task()`.
+/// For the simplest API, use `cloudidentity_inbound_saml_sso_profiles_idp_credentials_delete()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `cloudidentity_inbound_saml_sso_profiles_idp_credentials_delete_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn cloudidentity_inbound_saml_sso_profiles_idp_credentials_delete_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<Operation>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let task = cloudidentity_inbound_saml_sso_profiles_idp_credentials_delete_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`cloudidentity_inbound_saml_sso_profiles_idp_credentials_delete`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct CloudidentityInboundSamlSsoProfilesIdpCredentialsDeleteArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
+/// DELETE v1/inboundSamlSsoProfiles/{inboundSamlSsoProfilesId}/idpCredentials/{idpCredentialsId}
+/// Deletes an IdpCredential.
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `cloudidentity_inbound_saml_sso_profiles_idp_credentials_delete_builder()` + `cloudidentity_inbound_saml_sso_profiles_idp_credentials_delete_execute()`.
+/// For task-level control, use `cloudidentity_inbound_saml_sso_profiles_idp_credentials_delete_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn cloudidentity_inbound_saml_sso_profiles_idp_credentials_delete(
+    client: &SimpleHttpClient,
+    args: &CloudidentityInboundSamlSsoProfilesIdpCredentialsDeleteArgs,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<Operation>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let builder =
+        cloudidentity_inbound_saml_sso_profiles_idp_credentials_delete_builder(client, &args.name)?;
+    cloudidentity_inbound_saml_sso_profiles_idp_credentials_delete_execute(builder)
+}
+
+/// GET v1/inboundSamlSsoProfiles/{inboundSamlSsoProfilesId}/idpCredentials/{idpCredentialsId}
+/// Gets an IdpCredential.
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `cloudidentity_inbound_saml_sso_profiles_idp_credentials_get_execute()` to send, or `cloudidentity_inbound_saml_sso_profiles_idp_credentials_get` for simplest API.
+
+pub fn cloudidentity_inbound_saml_sso_profiles_idp_credentials_get_builder(
+    client: &SimpleHttpClient,
+    name: &String,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!(
+        "https://cloudidentity.googleapis.com/v1/inboundSamlSsoProfiles/{}/idpCredentials/{idpCredentialsId}",
+        name,
+    );
+
+    // Build request
+    let builder = client
+        .get(&endpoint_url)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// GET v1/inboundSamlSsoProfiles/{inboundSamlSsoProfilesId}/idpCredentials/{idpCredentialsId}
+/// Gets an IdpCredential.
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `cloudidentity_inbound_saml_sso_profiles_idp_credentials_get_execute()` or `cloudidentity_inbound_saml_sso_profiles_idp_credentials_get`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `cloudidentity_inbound_saml_sso_profiles_idp_credentials_get_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn cloudidentity_inbound_saml_sso_profiles_idp_credentials_get_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<IdpCredential>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: IdpCredential = serde_json::from_str(&body)
+                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// GET v1/inboundSamlSsoProfiles/{inboundSamlSsoProfilesId}/idpCredentials/{idpCredentialsId}
+/// Gets an IdpCredential.
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `cloudidentity_inbound_saml_sso_profiles_idp_credentials_get_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `cloudidentity_inbound_saml_sso_profiles_idp_credentials_get_task()`.
+/// For the simplest API, use `cloudidentity_inbound_saml_sso_profiles_idp_credentials_get()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `cloudidentity_inbound_saml_sso_profiles_idp_credentials_get_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn cloudidentity_inbound_saml_sso_profiles_idp_credentials_get_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<IdpCredential>, ApiError>, P = ApiPending>
+        + Send
+        + 'static,
+    ApiError,
+> {
+    let task = cloudidentity_inbound_saml_sso_profiles_idp_credentials_get_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`cloudidentity_inbound_saml_sso_profiles_idp_credentials_get`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct CloudidentityInboundSamlSsoProfilesIdpCredentialsGetArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
+/// GET v1/inboundSamlSsoProfiles/{inboundSamlSsoProfilesId}/idpCredentials/{idpCredentialsId}
+/// Gets an IdpCredential.
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `cloudidentity_inbound_saml_sso_profiles_idp_credentials_get_builder()` + `cloudidentity_inbound_saml_sso_profiles_idp_credentials_get_execute()`.
+/// For task-level control, use `cloudidentity_inbound_saml_sso_profiles_idp_credentials_get_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn cloudidentity_inbound_saml_sso_profiles_idp_credentials_get(
+    client: &SimpleHttpClient,
+    args: &CloudidentityInboundSamlSsoProfilesIdpCredentialsGetArgs,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<IdpCredential>, ApiError>, P = ApiPending>
+        + Send
+        + 'static,
+    ApiError,
+> {
+    let builder =
+        cloudidentity_inbound_saml_sso_profiles_idp_credentials_get_builder(client, &args.name)?;
+    cloudidentity_inbound_saml_sso_profiles_idp_credentials_get_execute(builder)
 }
 
 /// GET v1/inboundSamlSsoProfiles/{inboundSamlSsoProfilesId}/idpCredentials
@@ -4285,12 +9582,13 @@ pub fn cloudidentity_inbound_saml_sso_profiles_idp_credentials_add(
 pub fn cloudidentity_inbound_saml_sso_profiles_idp_credentials_list_builder(
     client: &SimpleHttpClient,
     parent: &String,
-    pageSize: &Option<i32>,
-    pageToken: &Option<String>,
+    pageSize: &Option<Option<String>>,
+    pageToken: &Option<Option<String>>,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
         "https://cloudidentity.googleapis.com/v1/inboundSamlSsoProfiles/{}/idpCredentials",
+        parent,
     );
 
     // Build request
@@ -4429,9 +9727,9 @@ pub struct CloudidentityInboundSamlSsoProfilesIdpCredentialsListArgs {
     /// Path parameter: parent
     pub parent: String,
     /// Query parameter: pageSize
-    pub pageSize: Option<i32>,
+    pub pageSize: Option<Option<String>>,
     /// Query parameter: pageToken
-    pub pageToken: Option<String>,
+    pub pageToken: Option<Option<String>>,
 }
 
 /// GET v1/inboundSamlSsoProfiles/{inboundSamlSsoProfilesId}/idpCredentials
@@ -4465,7 +9763,7 @@ pub fn cloudidentity_inbound_saml_sso_profiles_idp_credentials_list(
     cloudidentity_inbound_saml_sso_profiles_idp_credentials_list_execute(builder)
 }
 
-/// GET v1/inboundSsoAssignments
+/// POST v1/inboundSsoAssignments
 /// Creates an InboundSsoAssignment for users and devices in a Customer under a given Group or OrgUnit.
 ///
 /// Returns `ClientRequestBuilder` for customization.
@@ -4473,22 +9771,19 @@ pub fn cloudidentity_inbound_saml_sso_profiles_idp_credentials_list(
 
 pub fn cloudidentity_inbound_sso_assignments_create_builder(
     client: &SimpleHttpClient,
-    body: &InboundSsoAssignment,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!("https://cloudidentity.googleapis.com/v1/inboundSsoAssignments",);
 
     // Build request
     let builder = client
-        .get(&endpoint_url)
+        .post(&endpoint_url)
         .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
 
-    builder
-        .body_json(body)
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+    Ok(builder)
 }
 
-/// GET v1/inboundSsoAssignments
+/// POST v1/inboundSsoAssignments
 /// Creates an InboundSsoAssignment for users and devices in a Customer under a given Group or OrgUnit.
 ///
 /// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
@@ -4562,7 +9857,7 @@ pub fn cloudidentity_inbound_sso_assignments_create_task(
         .map_pending(|_| ApiPending::Sending))
 }
 
-/// GET v1/inboundSsoAssignments
+/// POST v1/inboundSsoAssignments
 /// Creates an InboundSsoAssignment for users and devices in a Customer under a given Group or OrgUnit.
 ///
 /// Takes a `ClientRequestBuilder`, builds and executes the request,
@@ -4592,14 +9887,7 @@ pub fn cloudidentity_inbound_sso_assignments_create_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
-/// Arguments for [`cloudidentity_inbound_sso_assignments_create`].
-#[derive(Debug, Clone, Serialize, JsonHash)]
-pub struct CloudidentityInboundSsoAssignmentsCreateArgs {
-    /// Request body.
-    pub body: InboundSsoAssignment,
-}
-
-/// GET v1/inboundSsoAssignments
+/// POST v1/inboundSsoAssignments
 /// Creates an InboundSsoAssignment for users and devices in a Customer under a given Group or OrgUnit.
 ///
 /// Simplest API - builds and executes the request in one call.
@@ -4612,16 +9900,15 @@ pub struct CloudidentityInboundSsoAssignmentsCreateArgs {
 
 pub fn cloudidentity_inbound_sso_assignments_create(
     client: &SimpleHttpClient,
-    args: &CloudidentityInboundSsoAssignmentsCreateArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Operation>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = cloudidentity_inbound_sso_assignments_create_builder(client, &args.body)?;
+    let builder = cloudidentity_inbound_sso_assignments_create_builder(client)?;
     cloudidentity_inbound_sso_assignments_create_execute(builder)
 }
 
-/// GET v1/inboundSsoAssignments/{inboundSsoAssignmentsId}
+/// DELETE v1/inboundSsoAssignments/{inboundSsoAssignmentsId}
 /// Deletes an InboundSsoAssignment. To disable SSO, Create (or Update) an assignment that has sso_mode == SSO_OFF.
 ///
 /// Returns `ClientRequestBuilder` for customization.
@@ -4632,17 +9919,20 @@ pub fn cloudidentity_inbound_sso_assignments_delete_builder(
     name: &String,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
-    let endpoint_url = format!("https://cloudidentity.googleapis.com/v1/inboundSsoAssignments/{}",);
+    let endpoint_url = format!(
+        "https://cloudidentity.googleapis.com/v1/inboundSsoAssignments/{}",
+        name,
+    );
 
     // Build request
     let builder = client
-        .get(&endpoint_url)
+        .delete(&endpoint_url)
         .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
 
     Ok(builder)
 }
 
-/// GET v1/inboundSsoAssignments/{inboundSsoAssignmentsId}
+/// DELETE v1/inboundSsoAssignments/{inboundSsoAssignmentsId}
 /// Deletes an InboundSsoAssignment. To disable SSO, Create (or Update) an assignment that has sso_mode == SSO_OFF.
 ///
 /// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
@@ -4716,7 +10006,7 @@ pub fn cloudidentity_inbound_sso_assignments_delete_task(
         .map_pending(|_| ApiPending::Sending))
 }
 
-/// GET v1/inboundSsoAssignments/{inboundSsoAssignmentsId}
+/// DELETE v1/inboundSsoAssignments/{inboundSsoAssignmentsId}
 /// Deletes an InboundSsoAssignment. To disable SSO, Create (or Update) an assignment that has sso_mode == SSO_OFF.
 ///
 /// Takes a `ClientRequestBuilder`, builds and executes the request,
@@ -4753,7 +10043,7 @@ pub struct CloudidentityInboundSsoAssignmentsDeleteArgs {
     pub name: String,
 }
 
-/// GET v1/inboundSsoAssignments/{inboundSsoAssignmentsId}
+/// DELETE v1/inboundSsoAssignments/{inboundSsoAssignmentsId}
 /// Deletes an InboundSsoAssignment. To disable SSO, Create (or Update) an assignment that has sso_mode == SSO_OFF.
 ///
 /// Simplest API - builds and executes the request in one call.
@@ -4775,6 +10065,529 @@ pub fn cloudidentity_inbound_sso_assignments_delete(
     cloudidentity_inbound_sso_assignments_delete_execute(builder)
 }
 
+/// GET v1/inboundSsoAssignments/{inboundSsoAssignmentsId}
+/// Gets an InboundSsoAssignment.
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `cloudidentity_inbound_sso_assignments_get_execute()` to send, or `cloudidentity_inbound_sso_assignments_get` for simplest API.
+
+pub fn cloudidentity_inbound_sso_assignments_get_builder(
+    client: &SimpleHttpClient,
+    name: &String,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!(
+        "https://cloudidentity.googleapis.com/v1/inboundSsoAssignments/{}",
+        name,
+    );
+
+    // Build request
+    let builder = client
+        .get(&endpoint_url)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// GET v1/inboundSsoAssignments/{inboundSsoAssignmentsId}
+/// Gets an InboundSsoAssignment.
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `cloudidentity_inbound_sso_assignments_get_execute()` or `cloudidentity_inbound_sso_assignments_get`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `cloudidentity_inbound_sso_assignments_get_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn cloudidentity_inbound_sso_assignments_get_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<InboundSsoAssignment>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: InboundSsoAssignment = serde_json::from_str(&body)
+                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// GET v1/inboundSsoAssignments/{inboundSsoAssignmentsId}
+/// Gets an InboundSsoAssignment.
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `cloudidentity_inbound_sso_assignments_get_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `cloudidentity_inbound_sso_assignments_get_task()`.
+/// For the simplest API, use `cloudidentity_inbound_sso_assignments_get()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `cloudidentity_inbound_sso_assignments_get_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn cloudidentity_inbound_sso_assignments_get_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<InboundSsoAssignment>, ApiError>, P = ApiPending>
+        + Send
+        + 'static,
+    ApiError,
+> {
+    let task = cloudidentity_inbound_sso_assignments_get_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`cloudidentity_inbound_sso_assignments_get`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct CloudidentityInboundSsoAssignmentsGetArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
+/// GET v1/inboundSsoAssignments/{inboundSsoAssignmentsId}
+/// Gets an InboundSsoAssignment.
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `cloudidentity_inbound_sso_assignments_get_builder()` + `cloudidentity_inbound_sso_assignments_get_execute()`.
+/// For task-level control, use `cloudidentity_inbound_sso_assignments_get_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn cloudidentity_inbound_sso_assignments_get(
+    client: &SimpleHttpClient,
+    args: &CloudidentityInboundSsoAssignmentsGetArgs,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<InboundSsoAssignment>, ApiError>, P = ApiPending>
+        + Send
+        + 'static,
+    ApiError,
+> {
+    let builder = cloudidentity_inbound_sso_assignments_get_builder(client, &args.name)?;
+    cloudidentity_inbound_sso_assignments_get_execute(builder)
+}
+
+/// GET v1/inboundSsoAssignments
+/// Lists the InboundSsoAssignments for a Customer.
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `cloudidentity_inbound_sso_assignments_list_execute()` to send, or `cloudidentity_inbound_sso_assignments_list` for simplest API.
+
+pub fn cloudidentity_inbound_sso_assignments_list_builder(
+    client: &SimpleHttpClient,
+    filter: &Option<Option<String>>,
+    pageSize: &Option<Option<String>>,
+    pageToken: &Option<Option<String>>,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!("https://cloudidentity.googleapis.com/v1/inboundSsoAssignments",);
+
+    // Build request
+    let mut query_parts = Vec::new();
+    if let Some(val) = filter.as_ref() {
+        query_parts.push(format!("filter={}", val));
+    }
+    if let Some(val) = pageSize.as_ref() {
+        query_parts.push(format!("pageSize={}", val));
+    }
+    if let Some(val) = pageToken.as_ref() {
+        query_parts.push(format!("pageToken={}", val));
+    }
+
+    let url_with_query = if query_parts.is_empty() {
+        endpoint_url
+    } else {
+        format!("{}?{}", endpoint_url, query_parts.join("&"))
+    };
+
+    let builder = client
+        .get(&url_with_query)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// GET v1/inboundSsoAssignments
+/// Lists the InboundSsoAssignments for a Customer.
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `cloudidentity_inbound_sso_assignments_list_execute()` or `cloudidentity_inbound_sso_assignments_list`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `cloudidentity_inbound_sso_assignments_list_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn cloudidentity_inbound_sso_assignments_list_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<ListInboundSsoAssignmentsResponse>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: ListInboundSsoAssignmentsResponse = serde_json::from_str(&body)
+                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// GET v1/inboundSsoAssignments
+/// Lists the InboundSsoAssignments for a Customer.
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `cloudidentity_inbound_sso_assignments_list_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `cloudidentity_inbound_sso_assignments_list_task()`.
+/// For the simplest API, use `cloudidentity_inbound_sso_assignments_list()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `cloudidentity_inbound_sso_assignments_list_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn cloudidentity_inbound_sso_assignments_list_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<
+            D = Result<ApiResponse<ListInboundSsoAssignmentsResponse>, ApiError>,
+            P = ApiPending,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    let task = cloudidentity_inbound_sso_assignments_list_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`cloudidentity_inbound_sso_assignments_list`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct CloudidentityInboundSsoAssignmentsListArgs {
+    /// Query parameter: filter
+    pub filter: Option<Option<String>>,
+    /// Query parameter: pageSize
+    pub pageSize: Option<Option<String>>,
+    /// Query parameter: pageToken
+    pub pageToken: Option<Option<String>>,
+}
+
+/// GET v1/inboundSsoAssignments
+/// Lists the InboundSsoAssignments for a Customer.
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `cloudidentity_inbound_sso_assignments_list_builder()` + `cloudidentity_inbound_sso_assignments_list_execute()`.
+/// For task-level control, use `cloudidentity_inbound_sso_assignments_list_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn cloudidentity_inbound_sso_assignments_list(
+    client: &SimpleHttpClient,
+    args: &CloudidentityInboundSsoAssignmentsListArgs,
+) -> Result<
+    impl StreamIterator<
+            D = Result<ApiResponse<ListInboundSsoAssignmentsResponse>, ApiError>,
+            P = ApiPending,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    let builder = cloudidentity_inbound_sso_assignments_list_builder(
+        client,
+        &args.filter,
+        &args.pageSize,
+        &args.pageToken,
+    )?;
+    cloudidentity_inbound_sso_assignments_list_execute(builder)
+}
+
+/// PATCH v1/inboundSsoAssignments/{inboundSsoAssignmentsId}
+/// Updates an InboundSsoAssignment. The body of this request is the inbound_sso_assignment field and the update_mask is relative to that. For example: a PATCH to /v1/`inboundSsoA``ssignments/0abcdefg1234567`&update_mask=rank with a body of { "rank": 1 } moves that (presumably group-targeted) SSO assignment to the highest priority and shifts any other group-targeted assignments down in priority.
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `cloudidentity_inbound_sso_assignments_patch_execute()` to send, or `cloudidentity_inbound_sso_assignments_patch` for simplest API.
+
+pub fn cloudidentity_inbound_sso_assignments_patch_builder(
+    client: &SimpleHttpClient,
+    name: &String,
+    updateMask: &Option<Option<String>>,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!(
+        "https://cloudidentity.googleapis.com/v1/inboundSsoAssignments/{}",
+        name,
+    );
+
+    // Build request
+    let mut query_parts = Vec::new();
+    if let Some(val) = updateMask.as_ref() {
+        query_parts.push(format!("updateMask={}", val));
+    }
+
+    let url_with_query = if query_parts.is_empty() {
+        endpoint_url
+    } else {
+        format!("{}?{}", endpoint_url, query_parts.join("&"))
+    };
+
+    let builder = client
+        .patch(&url_with_query)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// PATCH v1/inboundSsoAssignments/{inboundSsoAssignmentsId}
+/// Updates an InboundSsoAssignment. The body of this request is the inbound_sso_assignment field and the update_mask is relative to that. For example: a PATCH to /v1/`inboundSsoA``ssignments/0abcdefg1234567`&update_mask=rank with a body of { "rank": 1 } moves that (presumably group-targeted) SSO assignment to the highest priority and shifts any other group-targeted assignments down in priority.
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `cloudidentity_inbound_sso_assignments_patch_execute()` or `cloudidentity_inbound_sso_assignments_patch`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `cloudidentity_inbound_sso_assignments_patch_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn cloudidentity_inbound_sso_assignments_patch_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<Operation>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: Operation = serde_json::from_str(&body)
+                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// PATCH v1/inboundSsoAssignments/{inboundSsoAssignmentsId}
+/// Updates an InboundSsoAssignment. The body of this request is the inbound_sso_assignment field and the update_mask is relative to that. For example: a PATCH to /v1/`inboundSsoA``ssignments/0abcdefg1234567`&update_mask=rank with a body of { "rank": 1 } moves that (presumably group-targeted) SSO assignment to the highest priority and shifts any other group-targeted assignments down in priority.
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `cloudidentity_inbound_sso_assignments_patch_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `cloudidentity_inbound_sso_assignments_patch_task()`.
+/// For the simplest API, use `cloudidentity_inbound_sso_assignments_patch()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `cloudidentity_inbound_sso_assignments_patch_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn cloudidentity_inbound_sso_assignments_patch_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<Operation>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let task = cloudidentity_inbound_sso_assignments_patch_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`cloudidentity_inbound_sso_assignments_patch`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct CloudidentityInboundSsoAssignmentsPatchArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Query parameter: updateMask
+    pub updateMask: Option<Option<String>>,
+}
+
+/// PATCH v1/inboundSsoAssignments/{inboundSsoAssignmentsId}
+/// Updates an InboundSsoAssignment. The body of this request is the inbound_sso_assignment field and the update_mask is relative to that. For example: a PATCH to /v1/`inboundSsoA``ssignments/0abcdefg1234567`&update_mask=rank with a body of { "rank": 1 } moves that (presumably group-targeted) SSO assignment to the highest priority and shifts any other group-targeted assignments down in priority.
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `cloudidentity_inbound_sso_assignments_patch_builder()` + `cloudidentity_inbound_sso_assignments_patch_execute()`.
+/// For task-level control, use `cloudidentity_inbound_sso_assignments_patch_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn cloudidentity_inbound_sso_assignments_patch(
+    client: &SimpleHttpClient,
+    args: &CloudidentityInboundSsoAssignmentsPatchArgs,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<Operation>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let builder =
+        cloudidentity_inbound_sso_assignments_patch_builder(client, &args.name, &args.updateMask)?;
+    cloudidentity_inbound_sso_assignments_patch_execute(builder)
+}
+
 /// GET v1/policies/{policiesId}
 /// Get a policy.
 ///
@@ -4786,7 +10599,7 @@ pub fn cloudidentity_policies_get_builder(
     name: &String,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
-    let endpoint_url = format!("https://cloudidentity.googleapis.com/v1/policies/{}",);
+    let endpoint_url = format!("https://cloudidentity.googleapis.com/v1/policies/{}", name,);
 
     // Build request
     let builder = client
@@ -4937,9 +10750,9 @@ pub fn cloudidentity_policies_get(
 
 pub fn cloudidentity_policies_list_builder(
     client: &SimpleHttpClient,
-    filter: &Option<String>,
-    pageSize: &Option<i32>,
-    pageToken: &Option<String>,
+    filter: &Option<Option<String>>,
+    pageSize: &Option<Option<String>>,
+    pageToken: &Option<Option<String>>,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!("https://cloudidentity.googleapis.com/v1/policies",);
@@ -5079,11 +10892,11 @@ pub fn cloudidentity_policies_list_execute(
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct CloudidentityPoliciesListArgs {
     /// Query parameter: filter
-    pub filter: Option<String>,
+    pub filter: Option<Option<String>>,
     /// Query parameter: pageSize
-    pub pageSize: Option<i32>,
+    pub pageSize: Option<Option<String>>,
     /// Query parameter: pageToken
-    pub pageToken: Option<String>,
+    pub pageToken: Option<Option<String>>,
 }
 
 /// GET v1/policies
@@ -5109,4 +10922,1603 @@ pub fn cloudidentity_policies_list(
     let builder =
         cloudidentity_policies_list_builder(client, &args.filter, &args.pageSize, &args.pageToken)?;
     cloudidentity_policies_list_execute(builder)
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for Operation
+// =============================================================================
+
+/// ResourceIdentifier implementation for Operation with CloudidentityCustomersUserinvitationsCancelArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<CloudidentityCustomersUserinvitationsCancelArgs> for Operation {
+    fn generate_resource_id(
+        &self,
+        input: &CloudidentityCustomersUserinvitationsCancelArgs,
+    ) -> String {
+        format!("gcp::cloudidentity::Operation/{}", input.name)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::cloudidentity::Operation"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for UserInvitation
+// =============================================================================
+
+/// ResourceIdentifier implementation for UserInvitation with CloudidentityCustomersUserinvitationsGetArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<CloudidentityCustomersUserinvitationsGetArgs> for UserInvitation {
+    fn generate_resource_id(&self, input: &CloudidentityCustomersUserinvitationsGetArgs) -> String {
+        format!("gcp::cloudidentity::UserInvitation/{}", input.name)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::cloudidentity::UserInvitation"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for IsInvitableUserResponse
+// =============================================================================
+
+/// ResourceIdentifier implementation for IsInvitableUserResponse with CloudidentityCustomersUserinvitationsIsInvitableUserArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<CloudidentityCustomersUserinvitationsIsInvitableUserArgs>
+    for IsInvitableUserResponse
+{
+    fn generate_resource_id(
+        &self,
+        input: &CloudidentityCustomersUserinvitationsIsInvitableUserArgs,
+    ) -> String {
+        format!("gcp::cloudidentity::IsInvitableUserResponse/{}", input.name)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::cloudidentity::IsInvitableUserResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for ListUserInvitationsResponse
+// =============================================================================
+
+/// ResourceIdentifier implementation for ListUserInvitationsResponse with CloudidentityCustomersUserinvitationsListArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<CloudidentityCustomersUserinvitationsListArgs>
+    for ListUserInvitationsResponse
+{
+    fn generate_resource_id(
+        &self,
+        input: &CloudidentityCustomersUserinvitationsListArgs,
+    ) -> String {
+        format!(
+            "gcp::cloudidentity::ListUserInvitationsResponse/{}",
+            input.parent
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::cloudidentity::ListUserInvitationsResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for Operation
+// =============================================================================
+
+/// ResourceIdentifier implementation for Operation with CloudidentityCustomersUserinvitationsSendArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<CloudidentityCustomersUserinvitationsSendArgs> for Operation {
+    fn generate_resource_id(
+        &self,
+        input: &CloudidentityCustomersUserinvitationsSendArgs,
+    ) -> String {
+        format!("gcp::cloudidentity::Operation/{}", input.name)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::cloudidentity::Operation"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for Operation
+// =============================================================================
+
+/// ResourceIdentifier implementation for Operation with CloudidentityDevicesCancelWipeArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<CloudidentityDevicesCancelWipeArgs> for Operation {
+    fn generate_resource_id(&self, input: &CloudidentityDevicesCancelWipeArgs) -> String {
+        format!("gcp::cloudidentity::Operation/{}", input.name)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::cloudidentity::Operation"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for Operation
+// =============================================================================
+
+/// ResourceIdentifier implementation for Operation with CloudidentityDevicesCreateArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<CloudidentityDevicesCreateArgs> for Operation {
+    fn generate_resource_id(&self, input: &CloudidentityDevicesCreateArgs) -> String {
+        "gcp::cloudidentity::Operation".to_string()
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::cloudidentity::Operation"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for Operation
+// =============================================================================
+
+/// ResourceIdentifier implementation for Operation with CloudidentityDevicesDeleteArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<CloudidentityDevicesDeleteArgs> for Operation {
+    fn generate_resource_id(&self, input: &CloudidentityDevicesDeleteArgs) -> String {
+        format!("gcp::cloudidentity::Operation/{}", input.name)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::cloudidentity::Operation"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for GoogleAppsCloudidentityDevicesV1Device
+// =============================================================================
+
+/// ResourceIdentifier implementation for GoogleAppsCloudidentityDevicesV1Device with CloudidentityDevicesGetArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<CloudidentityDevicesGetArgs> for GoogleAppsCloudidentityDevicesV1Device {
+    fn generate_resource_id(&self, input: &CloudidentityDevicesGetArgs) -> String {
+        format!(
+            "gcp::cloudidentity::GoogleAppsCloudidentityDevicesV1Device/{}",
+            input.name
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::cloudidentity::GoogleAppsCloudidentityDevicesV1Device"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for GoogleAppsCloudidentityDevicesV1ListDevicesResponse
+// =============================================================================
+
+/// ResourceIdentifier implementation for GoogleAppsCloudidentityDevicesV1ListDevicesResponse with CloudidentityDevicesListArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<CloudidentityDevicesListArgs>
+    for GoogleAppsCloudidentityDevicesV1ListDevicesResponse
+{
+    fn generate_resource_id(&self, input: &CloudidentityDevicesListArgs) -> String {
+        "gcp::cloudidentity::GoogleAppsCloudidentityDevicesV1ListDevicesResponse".to_string()
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::cloudidentity::GoogleAppsCloudidentityDevicesV1ListDevicesResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for Operation
+// =============================================================================
+
+/// ResourceIdentifier implementation for Operation with CloudidentityDevicesWipeArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<CloudidentityDevicesWipeArgs> for Operation {
+    fn generate_resource_id(&self, input: &CloudidentityDevicesWipeArgs) -> String {
+        format!("gcp::cloudidentity::Operation/{}", input.name)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::cloudidentity::Operation"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for Operation
+// =============================================================================
+
+/// ResourceIdentifier implementation for Operation with CloudidentityDevicesDeviceUsersApproveArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<CloudidentityDevicesDeviceUsersApproveArgs> for Operation {
+    fn generate_resource_id(&self, input: &CloudidentityDevicesDeviceUsersApproveArgs) -> String {
+        format!("gcp::cloudidentity::Operation/{}", input.name)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::cloudidentity::Operation"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for Operation
+// =============================================================================
+
+/// ResourceIdentifier implementation for Operation with CloudidentityDevicesDeviceUsersBlockArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<CloudidentityDevicesDeviceUsersBlockArgs> for Operation {
+    fn generate_resource_id(&self, input: &CloudidentityDevicesDeviceUsersBlockArgs) -> String {
+        format!("gcp::cloudidentity::Operation/{}", input.name)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::cloudidentity::Operation"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for Operation
+// =============================================================================
+
+/// ResourceIdentifier implementation for Operation with CloudidentityDevicesDeviceUsersCancelWipeArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<CloudidentityDevicesDeviceUsersCancelWipeArgs> for Operation {
+    fn generate_resource_id(
+        &self,
+        input: &CloudidentityDevicesDeviceUsersCancelWipeArgs,
+    ) -> String {
+        format!("gcp::cloudidentity::Operation/{}", input.name)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::cloudidentity::Operation"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for Operation
+// =============================================================================
+
+/// ResourceIdentifier implementation for Operation with CloudidentityDevicesDeviceUsersDeleteArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<CloudidentityDevicesDeviceUsersDeleteArgs> for Operation {
+    fn generate_resource_id(&self, input: &CloudidentityDevicesDeviceUsersDeleteArgs) -> String {
+        format!("gcp::cloudidentity::Operation/{}", input.name)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::cloudidentity::Operation"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for GoogleAppsCloudidentityDevicesV1DeviceUser
+// =============================================================================
+
+/// ResourceIdentifier implementation for GoogleAppsCloudidentityDevicesV1DeviceUser with CloudidentityDevicesDeviceUsersGetArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<CloudidentityDevicesDeviceUsersGetArgs>
+    for GoogleAppsCloudidentityDevicesV1DeviceUser
+{
+    fn generate_resource_id(&self, input: &CloudidentityDevicesDeviceUsersGetArgs) -> String {
+        format!(
+            "gcp::cloudidentity::GoogleAppsCloudidentityDevicesV1DeviceUser/{}",
+            input.name
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::cloudidentity::GoogleAppsCloudidentityDevicesV1DeviceUser"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for GoogleAppsCloudidentityDevicesV1ListDeviceUsersResponse
+// =============================================================================
+
+/// ResourceIdentifier implementation for GoogleAppsCloudidentityDevicesV1ListDeviceUsersResponse with CloudidentityDevicesDeviceUsersListArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<CloudidentityDevicesDeviceUsersListArgs>
+    for GoogleAppsCloudidentityDevicesV1ListDeviceUsersResponse
+{
+    fn generate_resource_id(&self, input: &CloudidentityDevicesDeviceUsersListArgs) -> String {
+        format!(
+            "gcp::cloudidentity::GoogleAppsCloudidentityDevicesV1ListDeviceUsersResponse/{}",
+            input.parent
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::cloudidentity::GoogleAppsCloudidentityDevicesV1ListDeviceUsersResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for GoogleAppsCloudidentityDevicesV1LookupSelfDeviceUsersResponse
+// =============================================================================
+
+/// ResourceIdentifier implementation for GoogleAppsCloudidentityDevicesV1LookupSelfDeviceUsersResponse with CloudidentityDevicesDeviceUsersLookupArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<CloudidentityDevicesDeviceUsersLookupArgs>
+    for GoogleAppsCloudidentityDevicesV1LookupSelfDeviceUsersResponse
+{
+    fn generate_resource_id(&self, input: &CloudidentityDevicesDeviceUsersLookupArgs) -> String {
+        format!(
+            "gcp::cloudidentity::GoogleAppsCloudidentityDevicesV1LookupSelfDeviceUsersResponse/{}",
+            input.parent
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::cloudidentity::GoogleAppsCloudidentityDevicesV1LookupSelfDeviceUsersResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for Operation
+// =============================================================================
+
+/// ResourceIdentifier implementation for Operation with CloudidentityDevicesDeviceUsersWipeArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<CloudidentityDevicesDeviceUsersWipeArgs> for Operation {
+    fn generate_resource_id(&self, input: &CloudidentityDevicesDeviceUsersWipeArgs) -> String {
+        format!("gcp::cloudidentity::Operation/{}", input.name)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::cloudidentity::Operation"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for GoogleAppsCloudidentityDevicesV1ClientState
+// =============================================================================
+
+/// ResourceIdentifier implementation for GoogleAppsCloudidentityDevicesV1ClientState with CloudidentityDevicesDeviceUsersClientStatesGetArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<CloudidentityDevicesDeviceUsersClientStatesGetArgs>
+    for GoogleAppsCloudidentityDevicesV1ClientState
+{
+    fn generate_resource_id(
+        &self,
+        input: &CloudidentityDevicesDeviceUsersClientStatesGetArgs,
+    ) -> String {
+        format!(
+            "gcp::cloudidentity::GoogleAppsCloudidentityDevicesV1ClientState/{}",
+            input.name
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::cloudidentity::GoogleAppsCloudidentityDevicesV1ClientState"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for GoogleAppsCloudidentityDevicesV1ListClientStatesResponse
+// =============================================================================
+
+/// ResourceIdentifier implementation for GoogleAppsCloudidentityDevicesV1ListClientStatesResponse with CloudidentityDevicesDeviceUsersClientStatesListArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<CloudidentityDevicesDeviceUsersClientStatesListArgs>
+    for GoogleAppsCloudidentityDevicesV1ListClientStatesResponse
+{
+    fn generate_resource_id(
+        &self,
+        input: &CloudidentityDevicesDeviceUsersClientStatesListArgs,
+    ) -> String {
+        format!(
+            "gcp::cloudidentity::GoogleAppsCloudidentityDevicesV1ListClientStatesResponse/{}",
+            input.parent
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::cloudidentity::GoogleAppsCloudidentityDevicesV1ListClientStatesResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for Operation
+// =============================================================================
+
+/// ResourceIdentifier implementation for Operation with CloudidentityDevicesDeviceUsersClientStatesPatchArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<CloudidentityDevicesDeviceUsersClientStatesPatchArgs> for Operation {
+    fn generate_resource_id(
+        &self,
+        input: &CloudidentityDevicesDeviceUsersClientStatesPatchArgs,
+    ) -> String {
+        format!("gcp::cloudidentity::Operation/{}", input.name)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::cloudidentity::Operation"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for Operation
+// =============================================================================
+
+/// ResourceIdentifier implementation for Operation with CloudidentityGroupsCreateArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<CloudidentityGroupsCreateArgs> for Operation {
+    fn generate_resource_id(&self, input: &CloudidentityGroupsCreateArgs) -> String {
+        "gcp::cloudidentity::Operation".to_string()
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::cloudidentity::Operation"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for Operation
+// =============================================================================
+
+/// ResourceIdentifier implementation for Operation with CloudidentityGroupsDeleteArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<CloudidentityGroupsDeleteArgs> for Operation {
+    fn generate_resource_id(&self, input: &CloudidentityGroupsDeleteArgs) -> String {
+        format!("gcp::cloudidentity::Operation/{}", input.name)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::cloudidentity::Operation"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for Group
+// =============================================================================
+
+/// ResourceIdentifier implementation for Group with CloudidentityGroupsGetArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<CloudidentityGroupsGetArgs> for Group {
+    fn generate_resource_id(&self, input: &CloudidentityGroupsGetArgs) -> String {
+        format!("gcp::cloudidentity::Group/{}", input.name)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::cloudidentity::Group"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for SecuritySettings
+// =============================================================================
+
+/// ResourceIdentifier implementation for SecuritySettings with CloudidentityGroupsGetSecuritySettingsArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<CloudidentityGroupsGetSecuritySettingsArgs> for SecuritySettings {
+    fn generate_resource_id(&self, input: &CloudidentityGroupsGetSecuritySettingsArgs) -> String {
+        format!("gcp::cloudidentity::SecuritySettings/{}", input.name)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::cloudidentity::SecuritySettings"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for ListGroupsResponse
+// =============================================================================
+
+/// ResourceIdentifier implementation for ListGroupsResponse with CloudidentityGroupsListArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<CloudidentityGroupsListArgs> for ListGroupsResponse {
+    fn generate_resource_id(&self, input: &CloudidentityGroupsListArgs) -> String {
+        "gcp::cloudidentity::ListGroupsResponse".to_string()
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::cloudidentity::ListGroupsResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for LookupGroupNameResponse
+// =============================================================================
+
+/// ResourceIdentifier implementation for LookupGroupNameResponse with CloudidentityGroupsLookupArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<CloudidentityGroupsLookupArgs> for LookupGroupNameResponse {
+    fn generate_resource_id(&self, input: &CloudidentityGroupsLookupArgs) -> String {
+        "gcp::cloudidentity::LookupGroupNameResponse".to_string()
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::cloudidentity::LookupGroupNameResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for Operation
+// =============================================================================
+
+/// ResourceIdentifier implementation for Operation with CloudidentityGroupsPatchArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<CloudidentityGroupsPatchArgs> for Operation {
+    fn generate_resource_id(&self, input: &CloudidentityGroupsPatchArgs) -> String {
+        format!("gcp::cloudidentity::Operation/{}", input.name)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::cloudidentity::Operation"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for SearchGroupsResponse
+// =============================================================================
+
+/// ResourceIdentifier implementation for SearchGroupsResponse with CloudidentityGroupsSearchArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<CloudidentityGroupsSearchArgs> for SearchGroupsResponse {
+    fn generate_resource_id(&self, input: &CloudidentityGroupsSearchArgs) -> String {
+        "gcp::cloudidentity::SearchGroupsResponse".to_string()
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::cloudidentity::SearchGroupsResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for Operation
+// =============================================================================
+
+/// ResourceIdentifier implementation for Operation with CloudidentityGroupsUpdateSecuritySettingsArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<CloudidentityGroupsUpdateSecuritySettingsArgs> for Operation {
+    fn generate_resource_id(
+        &self,
+        input: &CloudidentityGroupsUpdateSecuritySettingsArgs,
+    ) -> String {
+        format!("gcp::cloudidentity::Operation/{}", input.name)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::cloudidentity::Operation"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for CheckTransitiveMembershipResponse
+// =============================================================================
+
+/// ResourceIdentifier implementation for CheckTransitiveMembershipResponse with CloudidentityGroupsMembershipsCheckTransitiveMembershipArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<CloudidentityGroupsMembershipsCheckTransitiveMembershipArgs>
+    for CheckTransitiveMembershipResponse
+{
+    fn generate_resource_id(
+        &self,
+        input: &CloudidentityGroupsMembershipsCheckTransitiveMembershipArgs,
+    ) -> String {
+        format!(
+            "gcp::cloudidentity::CheckTransitiveMembershipResponse/{}",
+            input.parent
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::cloudidentity::CheckTransitiveMembershipResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for Operation
+// =============================================================================
+
+/// ResourceIdentifier implementation for Operation with CloudidentityGroupsMembershipsCreateArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<CloudidentityGroupsMembershipsCreateArgs> for Operation {
+    fn generate_resource_id(&self, input: &CloudidentityGroupsMembershipsCreateArgs) -> String {
+        format!("gcp::cloudidentity::Operation/{}", input.parent)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::cloudidentity::Operation"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for Operation
+// =============================================================================
+
+/// ResourceIdentifier implementation for Operation with CloudidentityGroupsMembershipsDeleteArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<CloudidentityGroupsMembershipsDeleteArgs> for Operation {
+    fn generate_resource_id(&self, input: &CloudidentityGroupsMembershipsDeleteArgs) -> String {
+        format!("gcp::cloudidentity::Operation/{}", input.name)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::cloudidentity::Operation"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for Membership
+// =============================================================================
+
+/// ResourceIdentifier implementation for Membership with CloudidentityGroupsMembershipsGetArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<CloudidentityGroupsMembershipsGetArgs> for Membership {
+    fn generate_resource_id(&self, input: &CloudidentityGroupsMembershipsGetArgs) -> String {
+        format!("gcp::cloudidentity::Membership/{}", input.name)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::cloudidentity::Membership"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for Operation
+// =============================================================================
+
+/// ResourceIdentifier implementation for Operation with CloudidentityGroupsMembershipsGetMembershipGraphArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<CloudidentityGroupsMembershipsGetMembershipGraphArgs> for Operation {
+    fn generate_resource_id(
+        &self,
+        input: &CloudidentityGroupsMembershipsGetMembershipGraphArgs,
+    ) -> String {
+        format!("gcp::cloudidentity::Operation/{}", input.parent)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::cloudidentity::Operation"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for ListMembershipsResponse
+// =============================================================================
+
+/// ResourceIdentifier implementation for ListMembershipsResponse with CloudidentityGroupsMembershipsListArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<CloudidentityGroupsMembershipsListArgs> for ListMembershipsResponse {
+    fn generate_resource_id(&self, input: &CloudidentityGroupsMembershipsListArgs) -> String {
+        format!(
+            "gcp::cloudidentity::ListMembershipsResponse/{}",
+            input.parent
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::cloudidentity::ListMembershipsResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for LookupMembershipNameResponse
+// =============================================================================
+
+/// ResourceIdentifier implementation for LookupMembershipNameResponse with CloudidentityGroupsMembershipsLookupArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<CloudidentityGroupsMembershipsLookupArgs> for LookupMembershipNameResponse {
+    fn generate_resource_id(&self, input: &CloudidentityGroupsMembershipsLookupArgs) -> String {
+        format!(
+            "gcp::cloudidentity::LookupMembershipNameResponse/{}",
+            input.parent
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::cloudidentity::LookupMembershipNameResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for ModifyMembershipRolesResponse
+// =============================================================================
+
+/// ResourceIdentifier implementation for ModifyMembershipRolesResponse with CloudidentityGroupsMembershipsModifyMembershipRolesArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<CloudidentityGroupsMembershipsModifyMembershipRolesArgs>
+    for ModifyMembershipRolesResponse
+{
+    fn generate_resource_id(
+        &self,
+        input: &CloudidentityGroupsMembershipsModifyMembershipRolesArgs,
+    ) -> String {
+        format!(
+            "gcp::cloudidentity::ModifyMembershipRolesResponse/{}",
+            input.name
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::cloudidentity::ModifyMembershipRolesResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for SearchDirectGroupsResponse
+// =============================================================================
+
+/// ResourceIdentifier implementation for SearchDirectGroupsResponse with CloudidentityGroupsMembershipsSearchDirectGroupsArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<CloudidentityGroupsMembershipsSearchDirectGroupsArgs>
+    for SearchDirectGroupsResponse
+{
+    fn generate_resource_id(
+        &self,
+        input: &CloudidentityGroupsMembershipsSearchDirectGroupsArgs,
+    ) -> String {
+        format!(
+            "gcp::cloudidentity::SearchDirectGroupsResponse/{}",
+            input.parent
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::cloudidentity::SearchDirectGroupsResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for SearchTransitiveGroupsResponse
+// =============================================================================
+
+/// ResourceIdentifier implementation for SearchTransitiveGroupsResponse with CloudidentityGroupsMembershipsSearchTransitiveGroupsArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<CloudidentityGroupsMembershipsSearchTransitiveGroupsArgs>
+    for SearchTransitiveGroupsResponse
+{
+    fn generate_resource_id(
+        &self,
+        input: &CloudidentityGroupsMembershipsSearchTransitiveGroupsArgs,
+    ) -> String {
+        format!(
+            "gcp::cloudidentity::SearchTransitiveGroupsResponse/{}",
+            input.parent
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::cloudidentity::SearchTransitiveGroupsResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for SearchTransitiveMembershipsResponse
+// =============================================================================
+
+/// ResourceIdentifier implementation for SearchTransitiveMembershipsResponse with CloudidentityGroupsMembershipsSearchTransitiveMembershipsArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<CloudidentityGroupsMembershipsSearchTransitiveMembershipsArgs>
+    for SearchTransitiveMembershipsResponse
+{
+    fn generate_resource_id(
+        &self,
+        input: &CloudidentityGroupsMembershipsSearchTransitiveMembershipsArgs,
+    ) -> String {
+        format!(
+            "gcp::cloudidentity::SearchTransitiveMembershipsResponse/{}",
+            input.parent
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::cloudidentity::SearchTransitiveMembershipsResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for Operation
+// =============================================================================
+
+/// ResourceIdentifier implementation for Operation with CloudidentityInboundOidcSsoProfilesCreateArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<CloudidentityInboundOidcSsoProfilesCreateArgs> for Operation {
+    fn generate_resource_id(
+        &self,
+        input: &CloudidentityInboundOidcSsoProfilesCreateArgs,
+    ) -> String {
+        "gcp::cloudidentity::Operation".to_string()
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::cloudidentity::Operation"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for Operation
+// =============================================================================
+
+/// ResourceIdentifier implementation for Operation with CloudidentityInboundOidcSsoProfilesDeleteArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<CloudidentityInboundOidcSsoProfilesDeleteArgs> for Operation {
+    fn generate_resource_id(
+        &self,
+        input: &CloudidentityInboundOidcSsoProfilesDeleteArgs,
+    ) -> String {
+        format!("gcp::cloudidentity::Operation/{}", input.name)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::cloudidentity::Operation"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for InboundOidcSsoProfile
+// =============================================================================
+
+/// ResourceIdentifier implementation for InboundOidcSsoProfile with CloudidentityInboundOidcSsoProfilesGetArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<CloudidentityInboundOidcSsoProfilesGetArgs> for InboundOidcSsoProfile {
+    fn generate_resource_id(&self, input: &CloudidentityInboundOidcSsoProfilesGetArgs) -> String {
+        format!("gcp::cloudidentity::InboundOidcSsoProfile/{}", input.name)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::cloudidentity::InboundOidcSsoProfile"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for ListInboundOidcSsoProfilesResponse
+// =============================================================================
+
+/// ResourceIdentifier implementation for ListInboundOidcSsoProfilesResponse with CloudidentityInboundOidcSsoProfilesListArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<CloudidentityInboundOidcSsoProfilesListArgs>
+    for ListInboundOidcSsoProfilesResponse
+{
+    fn generate_resource_id(&self, input: &CloudidentityInboundOidcSsoProfilesListArgs) -> String {
+        "gcp::cloudidentity::ListInboundOidcSsoProfilesResponse".to_string()
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::cloudidentity::ListInboundOidcSsoProfilesResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for Operation
+// =============================================================================
+
+/// ResourceIdentifier implementation for Operation with CloudidentityInboundOidcSsoProfilesPatchArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<CloudidentityInboundOidcSsoProfilesPatchArgs> for Operation {
+    fn generate_resource_id(&self, input: &CloudidentityInboundOidcSsoProfilesPatchArgs) -> String {
+        format!("gcp::cloudidentity::Operation/{}", input.name)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::cloudidentity::Operation"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for Operation
+// =============================================================================
+
+/// ResourceIdentifier implementation for Operation with CloudidentityInboundSamlSsoProfilesCreateArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<CloudidentityInboundSamlSsoProfilesCreateArgs> for Operation {
+    fn generate_resource_id(
+        &self,
+        input: &CloudidentityInboundSamlSsoProfilesCreateArgs,
+    ) -> String {
+        "gcp::cloudidentity::Operation".to_string()
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::cloudidentity::Operation"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for Operation
+// =============================================================================
+
+/// ResourceIdentifier implementation for Operation with CloudidentityInboundSamlSsoProfilesDeleteArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<CloudidentityInboundSamlSsoProfilesDeleteArgs> for Operation {
+    fn generate_resource_id(
+        &self,
+        input: &CloudidentityInboundSamlSsoProfilesDeleteArgs,
+    ) -> String {
+        format!("gcp::cloudidentity::Operation/{}", input.name)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::cloudidentity::Operation"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for InboundSamlSsoProfile
+// =============================================================================
+
+/// ResourceIdentifier implementation for InboundSamlSsoProfile with CloudidentityInboundSamlSsoProfilesGetArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<CloudidentityInboundSamlSsoProfilesGetArgs> for InboundSamlSsoProfile {
+    fn generate_resource_id(&self, input: &CloudidentityInboundSamlSsoProfilesGetArgs) -> String {
+        format!("gcp::cloudidentity::InboundSamlSsoProfile/{}", input.name)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::cloudidentity::InboundSamlSsoProfile"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for ListInboundSamlSsoProfilesResponse
+// =============================================================================
+
+/// ResourceIdentifier implementation for ListInboundSamlSsoProfilesResponse with CloudidentityInboundSamlSsoProfilesListArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<CloudidentityInboundSamlSsoProfilesListArgs>
+    for ListInboundSamlSsoProfilesResponse
+{
+    fn generate_resource_id(&self, input: &CloudidentityInboundSamlSsoProfilesListArgs) -> String {
+        "gcp::cloudidentity::ListInboundSamlSsoProfilesResponse".to_string()
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::cloudidentity::ListInboundSamlSsoProfilesResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for Operation
+// =============================================================================
+
+/// ResourceIdentifier implementation for Operation with CloudidentityInboundSamlSsoProfilesPatchArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<CloudidentityInboundSamlSsoProfilesPatchArgs> for Operation {
+    fn generate_resource_id(&self, input: &CloudidentityInboundSamlSsoProfilesPatchArgs) -> String {
+        format!("gcp::cloudidentity::Operation/{}", input.name)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::cloudidentity::Operation"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for Operation
+// =============================================================================
+
+/// ResourceIdentifier implementation for Operation with CloudidentityInboundSamlSsoProfilesIdpCredentialsAddArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<CloudidentityInboundSamlSsoProfilesIdpCredentialsAddArgs> for Operation {
+    fn generate_resource_id(
+        &self,
+        input: &CloudidentityInboundSamlSsoProfilesIdpCredentialsAddArgs,
+    ) -> String {
+        format!("gcp::cloudidentity::Operation/{}", input.parent)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::cloudidentity::Operation"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for Operation
+// =============================================================================
+
+/// ResourceIdentifier implementation for Operation with CloudidentityInboundSamlSsoProfilesIdpCredentialsDeleteArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<CloudidentityInboundSamlSsoProfilesIdpCredentialsDeleteArgs> for Operation {
+    fn generate_resource_id(
+        &self,
+        input: &CloudidentityInboundSamlSsoProfilesIdpCredentialsDeleteArgs,
+    ) -> String {
+        format!("gcp::cloudidentity::Operation/{}", input.name)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::cloudidentity::Operation"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for IdpCredential
+// =============================================================================
+
+/// ResourceIdentifier implementation for IdpCredential with CloudidentityInboundSamlSsoProfilesIdpCredentialsGetArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<CloudidentityInboundSamlSsoProfilesIdpCredentialsGetArgs>
+    for IdpCredential
+{
+    fn generate_resource_id(
+        &self,
+        input: &CloudidentityInboundSamlSsoProfilesIdpCredentialsGetArgs,
+    ) -> String {
+        format!("gcp::cloudidentity::IdpCredential/{}", input.name)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::cloudidentity::IdpCredential"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for ListIdpCredentialsResponse
+// =============================================================================
+
+/// ResourceIdentifier implementation for ListIdpCredentialsResponse with CloudidentityInboundSamlSsoProfilesIdpCredentialsListArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<CloudidentityInboundSamlSsoProfilesIdpCredentialsListArgs>
+    for ListIdpCredentialsResponse
+{
+    fn generate_resource_id(
+        &self,
+        input: &CloudidentityInboundSamlSsoProfilesIdpCredentialsListArgs,
+    ) -> String {
+        format!(
+            "gcp::cloudidentity::ListIdpCredentialsResponse/{}",
+            input.parent
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::cloudidentity::ListIdpCredentialsResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for Operation
+// =============================================================================
+
+/// ResourceIdentifier implementation for Operation with CloudidentityInboundSsoAssignmentsCreateArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<CloudidentityInboundSsoAssignmentsCreateArgs> for Operation {
+    fn generate_resource_id(&self, input: &CloudidentityInboundSsoAssignmentsCreateArgs) -> String {
+        "gcp::cloudidentity::Operation".to_string()
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::cloudidentity::Operation"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for Operation
+// =============================================================================
+
+/// ResourceIdentifier implementation for Operation with CloudidentityInboundSsoAssignmentsDeleteArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<CloudidentityInboundSsoAssignmentsDeleteArgs> for Operation {
+    fn generate_resource_id(&self, input: &CloudidentityInboundSsoAssignmentsDeleteArgs) -> String {
+        format!("gcp::cloudidentity::Operation/{}", input.name)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::cloudidentity::Operation"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for InboundSsoAssignment
+// =============================================================================
+
+/// ResourceIdentifier implementation for InboundSsoAssignment with CloudidentityInboundSsoAssignmentsGetArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<CloudidentityInboundSsoAssignmentsGetArgs> for InboundSsoAssignment {
+    fn generate_resource_id(&self, input: &CloudidentityInboundSsoAssignmentsGetArgs) -> String {
+        format!("gcp::cloudidentity::InboundSsoAssignment/{}", input.name)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::cloudidentity::InboundSsoAssignment"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for ListInboundSsoAssignmentsResponse
+// =============================================================================
+
+/// ResourceIdentifier implementation for ListInboundSsoAssignmentsResponse with CloudidentityInboundSsoAssignmentsListArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<CloudidentityInboundSsoAssignmentsListArgs>
+    for ListInboundSsoAssignmentsResponse
+{
+    fn generate_resource_id(&self, input: &CloudidentityInboundSsoAssignmentsListArgs) -> String {
+        "gcp::cloudidentity::ListInboundSsoAssignmentsResponse".to_string()
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::cloudidentity::ListInboundSsoAssignmentsResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for Operation
+// =============================================================================
+
+/// ResourceIdentifier implementation for Operation with CloudidentityInboundSsoAssignmentsPatchArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<CloudidentityInboundSsoAssignmentsPatchArgs> for Operation {
+    fn generate_resource_id(&self, input: &CloudidentityInboundSsoAssignmentsPatchArgs) -> String {
+        format!("gcp::cloudidentity::Operation/{}", input.name)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::cloudidentity::Operation"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for Policy
+// =============================================================================
+
+/// ResourceIdentifier implementation for Policy with CloudidentityPoliciesGetArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<CloudidentityPoliciesGetArgs> for Policy {
+    fn generate_resource_id(&self, input: &CloudidentityPoliciesGetArgs) -> String {
+        format!("gcp::cloudidentity::Policy/{}", input.name)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::cloudidentity::Policy"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for ListPoliciesResponse
+// =============================================================================
+
+/// ResourceIdentifier implementation for ListPoliciesResponse with CloudidentityPoliciesListArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<CloudidentityPoliciesListArgs> for ListPoliciesResponse {
+    fn generate_resource_id(&self, input: &CloudidentityPoliciesListArgs) -> String {
+        "gcp::cloudidentity::ListPoliciesResponse".to_string()
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::cloudidentity::ListPoliciesResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
 }

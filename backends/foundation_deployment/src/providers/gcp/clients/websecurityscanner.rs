@@ -7,7 +7,6 @@
 
 #![cfg(feature = "gcp")]
 
-
 use crate::providers::gcp::clients::types::*;
 use crate::providers::gcp::resources::*;
 use foundation_core::valtron::{
@@ -17,10 +16,11 @@ use foundation_core::valtron::{
 use foundation_core::wire::simple_http::client::{
     body_reader, ClientRequestBuilder, RequestIntro, SimpleHttpClient, SystemDnsResolver,
 };
+use foundation_db::state::resource_identifier::ResourceIdentifier;
 use foundation_macros::JsonHash;
 use serde::Serialize;
 
-/// GET v1/projects/{projectsId}/scanConfigs
+/// POST v1/projects/{projectsId}/scanConfigs
 /// Creates a new ScanConfig.
 ///
 /// Returns `ClientRequestBuilder` for customization.
@@ -29,23 +29,22 @@ use serde::Serialize;
 pub fn websecurityscanner_projects_scan_configs_create_builder(
     client: &SimpleHttpClient,
     parent: &String,
-    body: &ScanConfig,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
-    let endpoint_url =
-        format!("https://websecurityscanner.googleapis.com/v1/projects/{}/scanConfigs",);
+    let endpoint_url = format!(
+        "https://websecurityscanner.googleapis.com/v1/projects/{}/scanConfigs",
+        parent,
+    );
 
     // Build request
     let builder = client
-        .get(&endpoint_url)
+        .post(&endpoint_url)
         .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
 
-    builder
-        .body_json(body)
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+    Ok(builder)
 }
 
-/// GET v1/projects/{projectsId}/scanConfigs
+/// POST v1/projects/{projectsId}/scanConfigs
 /// Creates a new ScanConfig.
 ///
 /// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
@@ -119,7 +118,7 @@ pub fn websecurityscanner_projects_scan_configs_create_task(
         .map_pending(|_| ApiPending::Sending))
 }
 
-/// GET v1/projects/{projectsId}/scanConfigs
+/// POST v1/projects/{projectsId}/scanConfigs
 /// Creates a new ScanConfig.
 ///
 /// Takes a `ClientRequestBuilder`, builds and executes the request,
@@ -154,11 +153,9 @@ pub fn websecurityscanner_projects_scan_configs_create_execute(
 pub struct WebsecurityscannerProjectsScanConfigsCreateArgs {
     /// Path parameter: parent
     pub parent: String,
-    /// Request body.
-    pub body: ScanConfig,
 }
 
-/// GET v1/projects/{projectsId}/scanConfigs
+/// POST v1/projects/{projectsId}/scanConfigs
 /// Creates a new ScanConfig.
 ///
 /// Simplest API - builds and executes the request in one call.
@@ -176,7 +173,2406 @@ pub fn websecurityscanner_projects_scan_configs_create(
     impl StreamIterator<D = Result<ApiResponse<ScanConfig>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder =
-        websecurityscanner_projects_scan_configs_create_builder(client, &args.parent, &args.body)?;
+    let builder = websecurityscanner_projects_scan_configs_create_builder(client, &args.parent)?;
     websecurityscanner_projects_scan_configs_create_execute(builder)
+}
+
+/// DELETE v1/projects/{projectsId}/scanConfigs/{scanConfigsId}
+/// Deletes an existing ScanConfig and its child resources.
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `websecurityscanner_projects_scan_configs_delete_execute()` to send, or `websecurityscanner_projects_scan_configs_delete` for simplest API.
+
+pub fn websecurityscanner_projects_scan_configs_delete_builder(
+    client: &SimpleHttpClient,
+    name: &String,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!(
+        "https://websecurityscanner.googleapis.com/v1/projects/{}/scanConfigs/{scanConfigsId}",
+        name,
+    );
+
+    // Build request
+    let builder = client
+        .delete(&endpoint_url)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// DELETE v1/projects/{projectsId}/scanConfigs/{scanConfigsId}
+/// Deletes an existing ScanConfig and its child resources.
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `websecurityscanner_projects_scan_configs_delete_execute()` or `websecurityscanner_projects_scan_configs_delete`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `websecurityscanner_projects_scan_configs_delete_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn websecurityscanner_projects_scan_configs_delete_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<Empty>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: Empty = serde_json::from_str(&body)
+                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// DELETE v1/projects/{projectsId}/scanConfigs/{scanConfigsId}
+/// Deletes an existing ScanConfig and its child resources.
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `websecurityscanner_projects_scan_configs_delete_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `websecurityscanner_projects_scan_configs_delete_task()`.
+/// For the simplest API, use `websecurityscanner_projects_scan_configs_delete()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `websecurityscanner_projects_scan_configs_delete_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn websecurityscanner_projects_scan_configs_delete_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<Empty>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let task = websecurityscanner_projects_scan_configs_delete_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`websecurityscanner_projects_scan_configs_delete`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct WebsecurityscannerProjectsScanConfigsDeleteArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
+/// DELETE v1/projects/{projectsId}/scanConfigs/{scanConfigsId}
+/// Deletes an existing ScanConfig and its child resources.
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `websecurityscanner_projects_scan_configs_delete_builder()` + `websecurityscanner_projects_scan_configs_delete_execute()`.
+/// For task-level control, use `websecurityscanner_projects_scan_configs_delete_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn websecurityscanner_projects_scan_configs_delete(
+    client: &SimpleHttpClient,
+    args: &WebsecurityscannerProjectsScanConfigsDeleteArgs,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<Empty>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let builder = websecurityscanner_projects_scan_configs_delete_builder(client, &args.name)?;
+    websecurityscanner_projects_scan_configs_delete_execute(builder)
+}
+
+/// GET v1/projects/{projectsId}/scanConfigs/{scanConfigsId}
+/// Gets a ScanConfig.
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `websecurityscanner_projects_scan_configs_get_execute()` to send, or `websecurityscanner_projects_scan_configs_get` for simplest API.
+
+pub fn websecurityscanner_projects_scan_configs_get_builder(
+    client: &SimpleHttpClient,
+    name: &String,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!(
+        "https://websecurityscanner.googleapis.com/v1/projects/{}/scanConfigs/{scanConfigsId}",
+        name,
+    );
+
+    // Build request
+    let builder = client
+        .get(&endpoint_url)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// GET v1/projects/{projectsId}/scanConfigs/{scanConfigsId}
+/// Gets a ScanConfig.
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `websecurityscanner_projects_scan_configs_get_execute()` or `websecurityscanner_projects_scan_configs_get`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `websecurityscanner_projects_scan_configs_get_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn websecurityscanner_projects_scan_configs_get_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<ScanConfig>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: ScanConfig = serde_json::from_str(&body)
+                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// GET v1/projects/{projectsId}/scanConfigs/{scanConfigsId}
+/// Gets a ScanConfig.
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `websecurityscanner_projects_scan_configs_get_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `websecurityscanner_projects_scan_configs_get_task()`.
+/// For the simplest API, use `websecurityscanner_projects_scan_configs_get()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `websecurityscanner_projects_scan_configs_get_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn websecurityscanner_projects_scan_configs_get_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<ScanConfig>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let task = websecurityscanner_projects_scan_configs_get_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`websecurityscanner_projects_scan_configs_get`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct WebsecurityscannerProjectsScanConfigsGetArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
+/// GET v1/projects/{projectsId}/scanConfigs/{scanConfigsId}
+/// Gets a ScanConfig.
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `websecurityscanner_projects_scan_configs_get_builder()` + `websecurityscanner_projects_scan_configs_get_execute()`.
+/// For task-level control, use `websecurityscanner_projects_scan_configs_get_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn websecurityscanner_projects_scan_configs_get(
+    client: &SimpleHttpClient,
+    args: &WebsecurityscannerProjectsScanConfigsGetArgs,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<ScanConfig>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let builder = websecurityscanner_projects_scan_configs_get_builder(client, &args.name)?;
+    websecurityscanner_projects_scan_configs_get_execute(builder)
+}
+
+/// GET v1/projects/{projectsId}/scanConfigs
+/// Lists ScanConfigs under a given project.
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `websecurityscanner_projects_scan_configs_list_execute()` to send, or `websecurityscanner_projects_scan_configs_list` for simplest API.
+
+pub fn websecurityscanner_projects_scan_configs_list_builder(
+    client: &SimpleHttpClient,
+    parent: &String,
+    pageSize: &Option<Option<String>>,
+    pageToken: &Option<Option<String>>,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!(
+        "https://websecurityscanner.googleapis.com/v1/projects/{}/scanConfigs",
+        parent,
+    );
+
+    // Build request
+    let mut query_parts = Vec::new();
+    if let Some(val) = pageSize.as_ref() {
+        query_parts.push(format!("pageSize={}", val));
+    }
+    if let Some(val) = pageToken.as_ref() {
+        query_parts.push(format!("pageToken={}", val));
+    }
+
+    let url_with_query = if query_parts.is_empty() {
+        endpoint_url
+    } else {
+        format!("{}?{}", endpoint_url, query_parts.join("&"))
+    };
+
+    let builder = client
+        .get(&url_with_query)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// GET v1/projects/{projectsId}/scanConfigs
+/// Lists ScanConfigs under a given project.
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `websecurityscanner_projects_scan_configs_list_execute()` or `websecurityscanner_projects_scan_configs_list`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `websecurityscanner_projects_scan_configs_list_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn websecurityscanner_projects_scan_configs_list_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<ListScanConfigsResponse>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: ListScanConfigsResponse = serde_json::from_str(&body)
+                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// GET v1/projects/{projectsId}/scanConfigs
+/// Lists ScanConfigs under a given project.
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `websecurityscanner_projects_scan_configs_list_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `websecurityscanner_projects_scan_configs_list_task()`.
+/// For the simplest API, use `websecurityscanner_projects_scan_configs_list()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `websecurityscanner_projects_scan_configs_list_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn websecurityscanner_projects_scan_configs_list_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<ListScanConfigsResponse>, ApiError>, P = ApiPending>
+        + Send
+        + 'static,
+    ApiError,
+> {
+    let task = websecurityscanner_projects_scan_configs_list_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`websecurityscanner_projects_scan_configs_list`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct WebsecurityscannerProjectsScanConfigsListArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Query parameter: pageSize
+    pub pageSize: Option<Option<String>>,
+    /// Query parameter: pageToken
+    pub pageToken: Option<Option<String>>,
+}
+
+/// GET v1/projects/{projectsId}/scanConfigs
+/// Lists ScanConfigs under a given project.
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `websecurityscanner_projects_scan_configs_list_builder()` + `websecurityscanner_projects_scan_configs_list_execute()`.
+/// For task-level control, use `websecurityscanner_projects_scan_configs_list_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn websecurityscanner_projects_scan_configs_list(
+    client: &SimpleHttpClient,
+    args: &WebsecurityscannerProjectsScanConfigsListArgs,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<ListScanConfigsResponse>, ApiError>, P = ApiPending>
+        + Send
+        + 'static,
+    ApiError,
+> {
+    let builder = websecurityscanner_projects_scan_configs_list_builder(
+        client,
+        &args.parent,
+        &args.pageSize,
+        &args.pageToken,
+    )?;
+    websecurityscanner_projects_scan_configs_list_execute(builder)
+}
+
+/// PATCH v1/projects/{projectsId}/scanConfigs/{scanConfigsId}
+/// Updates a ScanConfig. This method support partial update of a ScanConfig.
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `websecurityscanner_projects_scan_configs_patch_execute()` to send, or `websecurityscanner_projects_scan_configs_patch` for simplest API.
+
+pub fn websecurityscanner_projects_scan_configs_patch_builder(
+    client: &SimpleHttpClient,
+    name: &String,
+    updateMask: &Option<Option<String>>,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!(
+        "https://websecurityscanner.googleapis.com/v1/projects/{}/scanConfigs/{scanConfigsId}",
+        name,
+    );
+
+    // Build request
+    let mut query_parts = Vec::new();
+    if let Some(val) = updateMask.as_ref() {
+        query_parts.push(format!("updateMask={}", val));
+    }
+
+    let url_with_query = if query_parts.is_empty() {
+        endpoint_url
+    } else {
+        format!("{}?{}", endpoint_url, query_parts.join("&"))
+    };
+
+    let builder = client
+        .patch(&url_with_query)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// PATCH v1/projects/{projectsId}/scanConfigs/{scanConfigsId}
+/// Updates a ScanConfig. This method support partial update of a ScanConfig.
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `websecurityscanner_projects_scan_configs_patch_execute()` or `websecurityscanner_projects_scan_configs_patch`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `websecurityscanner_projects_scan_configs_patch_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn websecurityscanner_projects_scan_configs_patch_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<ScanConfig>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: ScanConfig = serde_json::from_str(&body)
+                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// PATCH v1/projects/{projectsId}/scanConfigs/{scanConfigsId}
+/// Updates a ScanConfig. This method support partial update of a ScanConfig.
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `websecurityscanner_projects_scan_configs_patch_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `websecurityscanner_projects_scan_configs_patch_task()`.
+/// For the simplest API, use `websecurityscanner_projects_scan_configs_patch()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `websecurityscanner_projects_scan_configs_patch_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn websecurityscanner_projects_scan_configs_patch_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<ScanConfig>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let task = websecurityscanner_projects_scan_configs_patch_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`websecurityscanner_projects_scan_configs_patch`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct WebsecurityscannerProjectsScanConfigsPatchArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Query parameter: updateMask
+    pub updateMask: Option<Option<String>>,
+}
+
+/// PATCH v1/projects/{projectsId}/scanConfigs/{scanConfigsId}
+/// Updates a ScanConfig. This method support partial update of a ScanConfig.
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `websecurityscanner_projects_scan_configs_patch_builder()` + `websecurityscanner_projects_scan_configs_patch_execute()`.
+/// For task-level control, use `websecurityscanner_projects_scan_configs_patch_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn websecurityscanner_projects_scan_configs_patch(
+    client: &SimpleHttpClient,
+    args: &WebsecurityscannerProjectsScanConfigsPatchArgs,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<ScanConfig>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let builder = websecurityscanner_projects_scan_configs_patch_builder(
+        client,
+        &args.name,
+        &args.updateMask,
+    )?;
+    websecurityscanner_projects_scan_configs_patch_execute(builder)
+}
+
+/// POST v1/projects/{projectsId}/scanConfigs/{scanConfigsId}:start
+/// Start a ScanRun according to the given ScanConfig.
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `websecurityscanner_projects_scan_configs_start_execute()` to send, or `websecurityscanner_projects_scan_configs_start` for simplest API.
+
+pub fn websecurityscanner_projects_scan_configs_start_builder(
+    client: &SimpleHttpClient,
+    name: &String,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!(
+        "https://websecurityscanner.googleapis.com/v1/projects/{}/scanConfigs/{scanConfigsId}:start",
+        name,
+    );
+
+    // Build request
+    let builder = client
+        .post(&endpoint_url)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// POST v1/projects/{projectsId}/scanConfigs/{scanConfigsId}:start
+/// Start a ScanRun according to the given ScanConfig.
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `websecurityscanner_projects_scan_configs_start_execute()` or `websecurityscanner_projects_scan_configs_start`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `websecurityscanner_projects_scan_configs_start_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn websecurityscanner_projects_scan_configs_start_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<ScanRun>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: ScanRun = serde_json::from_str(&body)
+                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// POST v1/projects/{projectsId}/scanConfigs/{scanConfigsId}:start
+/// Start a ScanRun according to the given ScanConfig.
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `websecurityscanner_projects_scan_configs_start_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `websecurityscanner_projects_scan_configs_start_task()`.
+/// For the simplest API, use `websecurityscanner_projects_scan_configs_start()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `websecurityscanner_projects_scan_configs_start_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn websecurityscanner_projects_scan_configs_start_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<ScanRun>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let task = websecurityscanner_projects_scan_configs_start_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`websecurityscanner_projects_scan_configs_start`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct WebsecurityscannerProjectsScanConfigsStartArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
+/// POST v1/projects/{projectsId}/scanConfigs/{scanConfigsId}:start
+/// Start a ScanRun according to the given ScanConfig.
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `websecurityscanner_projects_scan_configs_start_builder()` + `websecurityscanner_projects_scan_configs_start_execute()`.
+/// For task-level control, use `websecurityscanner_projects_scan_configs_start_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn websecurityscanner_projects_scan_configs_start(
+    client: &SimpleHttpClient,
+    args: &WebsecurityscannerProjectsScanConfigsStartArgs,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<ScanRun>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let builder = websecurityscanner_projects_scan_configs_start_builder(client, &args.name)?;
+    websecurityscanner_projects_scan_configs_start_execute(builder)
+}
+
+/// GET v1/projects/{projectsId}/scanConfigs/{scanConfigsId}/scanRuns/{scanRunsId}
+/// Gets a ScanRun.
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `websecurityscanner_projects_scan_configs_scan_runs_get_execute()` to send, or `websecurityscanner_projects_scan_configs_scan_runs_get` for simplest API.
+
+pub fn websecurityscanner_projects_scan_configs_scan_runs_get_builder(
+    client: &SimpleHttpClient,
+    name: &String,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!(
+        "https://websecurityscanner.googleapis.com/v1/projects/{}/scanConfigs/{scanConfigsId}/scanRuns/{scanRunsId}",
+        name,
+    );
+
+    // Build request
+    let builder = client
+        .get(&endpoint_url)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// GET v1/projects/{projectsId}/scanConfigs/{scanConfigsId}/scanRuns/{scanRunsId}
+/// Gets a ScanRun.
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `websecurityscanner_projects_scan_configs_scan_runs_get_execute()` or `websecurityscanner_projects_scan_configs_scan_runs_get`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `websecurityscanner_projects_scan_configs_scan_runs_get_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn websecurityscanner_projects_scan_configs_scan_runs_get_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<ScanRun>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: ScanRun = serde_json::from_str(&body)
+                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// GET v1/projects/{projectsId}/scanConfigs/{scanConfigsId}/scanRuns/{scanRunsId}
+/// Gets a ScanRun.
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `websecurityscanner_projects_scan_configs_scan_runs_get_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `websecurityscanner_projects_scan_configs_scan_runs_get_task()`.
+/// For the simplest API, use `websecurityscanner_projects_scan_configs_scan_runs_get()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `websecurityscanner_projects_scan_configs_scan_runs_get_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn websecurityscanner_projects_scan_configs_scan_runs_get_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<ScanRun>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let task = websecurityscanner_projects_scan_configs_scan_runs_get_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`websecurityscanner_projects_scan_configs_scan_runs_get`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct WebsecurityscannerProjectsScanConfigsScanRunsGetArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
+/// GET v1/projects/{projectsId}/scanConfigs/{scanConfigsId}/scanRuns/{scanRunsId}
+/// Gets a ScanRun.
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `websecurityscanner_projects_scan_configs_scan_runs_get_builder()` + `websecurityscanner_projects_scan_configs_scan_runs_get_execute()`.
+/// For task-level control, use `websecurityscanner_projects_scan_configs_scan_runs_get_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn websecurityscanner_projects_scan_configs_scan_runs_get(
+    client: &SimpleHttpClient,
+    args: &WebsecurityscannerProjectsScanConfigsScanRunsGetArgs,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<ScanRun>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let builder =
+        websecurityscanner_projects_scan_configs_scan_runs_get_builder(client, &args.name)?;
+    websecurityscanner_projects_scan_configs_scan_runs_get_execute(builder)
+}
+
+/// GET v1/projects/{projectsId}/scanConfigs/{scanConfigsId}/scanRuns
+/// Lists ScanRuns under a given ScanConfig, in descending order of ScanRun stop time.
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `websecurityscanner_projects_scan_configs_scan_runs_list_execute()` to send, or `websecurityscanner_projects_scan_configs_scan_runs_list` for simplest API.
+
+pub fn websecurityscanner_projects_scan_configs_scan_runs_list_builder(
+    client: &SimpleHttpClient,
+    parent: &String,
+    pageSize: &Option<Option<String>>,
+    pageToken: &Option<Option<String>>,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!(
+        "https://websecurityscanner.googleapis.com/v1/projects/{}/scanConfigs/{scanConfigsId}/scanRuns",
+        parent,
+    );
+
+    // Build request
+    let mut query_parts = Vec::new();
+    if let Some(val) = pageSize.as_ref() {
+        query_parts.push(format!("pageSize={}", val));
+    }
+    if let Some(val) = pageToken.as_ref() {
+        query_parts.push(format!("pageToken={}", val));
+    }
+
+    let url_with_query = if query_parts.is_empty() {
+        endpoint_url
+    } else {
+        format!("{}?{}", endpoint_url, query_parts.join("&"))
+    };
+
+    let builder = client
+        .get(&url_with_query)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// GET v1/projects/{projectsId}/scanConfigs/{scanConfigsId}/scanRuns
+/// Lists ScanRuns under a given ScanConfig, in descending order of ScanRun stop time.
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `websecurityscanner_projects_scan_configs_scan_runs_list_execute()` or `websecurityscanner_projects_scan_configs_scan_runs_list`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `websecurityscanner_projects_scan_configs_scan_runs_list_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn websecurityscanner_projects_scan_configs_scan_runs_list_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<ListScanRunsResponse>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: ListScanRunsResponse = serde_json::from_str(&body)
+                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// GET v1/projects/{projectsId}/scanConfigs/{scanConfigsId}/scanRuns
+/// Lists ScanRuns under a given ScanConfig, in descending order of ScanRun stop time.
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `websecurityscanner_projects_scan_configs_scan_runs_list_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `websecurityscanner_projects_scan_configs_scan_runs_list_task()`.
+/// For the simplest API, use `websecurityscanner_projects_scan_configs_scan_runs_list()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `websecurityscanner_projects_scan_configs_scan_runs_list_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn websecurityscanner_projects_scan_configs_scan_runs_list_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<ListScanRunsResponse>, ApiError>, P = ApiPending>
+        + Send
+        + 'static,
+    ApiError,
+> {
+    let task = websecurityscanner_projects_scan_configs_scan_runs_list_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`websecurityscanner_projects_scan_configs_scan_runs_list`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct WebsecurityscannerProjectsScanConfigsScanRunsListArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Query parameter: pageSize
+    pub pageSize: Option<Option<String>>,
+    /// Query parameter: pageToken
+    pub pageToken: Option<Option<String>>,
+}
+
+/// GET v1/projects/{projectsId}/scanConfigs/{scanConfigsId}/scanRuns
+/// Lists ScanRuns under a given ScanConfig, in descending order of ScanRun stop time.
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `websecurityscanner_projects_scan_configs_scan_runs_list_builder()` + `websecurityscanner_projects_scan_configs_scan_runs_list_execute()`.
+/// For task-level control, use `websecurityscanner_projects_scan_configs_scan_runs_list_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn websecurityscanner_projects_scan_configs_scan_runs_list(
+    client: &SimpleHttpClient,
+    args: &WebsecurityscannerProjectsScanConfigsScanRunsListArgs,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<ListScanRunsResponse>, ApiError>, P = ApiPending>
+        + Send
+        + 'static,
+    ApiError,
+> {
+    let builder = websecurityscanner_projects_scan_configs_scan_runs_list_builder(
+        client,
+        &args.parent,
+        &args.pageSize,
+        &args.pageToken,
+    )?;
+    websecurityscanner_projects_scan_configs_scan_runs_list_execute(builder)
+}
+
+/// POST v1/projects/{projectsId}/scanConfigs/{scanConfigsId}/scanRuns/{scanRunsId}:stop
+/// Stops a ScanRun. The stopped ScanRun is returned.
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `websecurityscanner_projects_scan_configs_scan_runs_stop_execute()` to send, or `websecurityscanner_projects_scan_configs_scan_runs_stop` for simplest API.
+
+pub fn websecurityscanner_projects_scan_configs_scan_runs_stop_builder(
+    client: &SimpleHttpClient,
+    name: &String,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!(
+        "https://websecurityscanner.googleapis.com/v1/projects/{}/scanConfigs/{scanConfigsId}/scanRuns/{scanRunsId}:stop",
+        name,
+    );
+
+    // Build request
+    let builder = client
+        .post(&endpoint_url)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// POST v1/projects/{projectsId}/scanConfigs/{scanConfigsId}/scanRuns/{scanRunsId}:stop
+/// Stops a ScanRun. The stopped ScanRun is returned.
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `websecurityscanner_projects_scan_configs_scan_runs_stop_execute()` or `websecurityscanner_projects_scan_configs_scan_runs_stop`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `websecurityscanner_projects_scan_configs_scan_runs_stop_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn websecurityscanner_projects_scan_configs_scan_runs_stop_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<ScanRun>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: ScanRun = serde_json::from_str(&body)
+                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// POST v1/projects/{projectsId}/scanConfigs/{scanConfigsId}/scanRuns/{scanRunsId}:stop
+/// Stops a ScanRun. The stopped ScanRun is returned.
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `websecurityscanner_projects_scan_configs_scan_runs_stop_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `websecurityscanner_projects_scan_configs_scan_runs_stop_task()`.
+/// For the simplest API, use `websecurityscanner_projects_scan_configs_scan_runs_stop()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `websecurityscanner_projects_scan_configs_scan_runs_stop_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn websecurityscanner_projects_scan_configs_scan_runs_stop_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<ScanRun>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let task = websecurityscanner_projects_scan_configs_scan_runs_stop_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`websecurityscanner_projects_scan_configs_scan_runs_stop`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct WebsecurityscannerProjectsScanConfigsScanRunsStopArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
+/// POST v1/projects/{projectsId}/scanConfigs/{scanConfigsId}/scanRuns/{scanRunsId}:stop
+/// Stops a ScanRun. The stopped ScanRun is returned.
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `websecurityscanner_projects_scan_configs_scan_runs_stop_builder()` + `websecurityscanner_projects_scan_configs_scan_runs_stop_execute()`.
+/// For task-level control, use `websecurityscanner_projects_scan_configs_scan_runs_stop_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn websecurityscanner_projects_scan_configs_scan_runs_stop(
+    client: &SimpleHttpClient,
+    args: &WebsecurityscannerProjectsScanConfigsScanRunsStopArgs,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<ScanRun>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let builder =
+        websecurityscanner_projects_scan_configs_scan_runs_stop_builder(client, &args.name)?;
+    websecurityscanner_projects_scan_configs_scan_runs_stop_execute(builder)
+}
+
+/// GET v1/projects/{projectsId}/scanConfigs/{scanConfigsId}/scanRuns/{scanRunsId}/crawledUrls
+/// List CrawledUrls under a given ScanRun.
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `websecurityscanner_projects_scan_configs_scan_runs_crawled_urls_list_execute()` to send, or `websecurityscanner_projects_scan_configs_scan_runs_crawled_urls_list` for simplest API.
+
+pub fn websecurityscanner_projects_scan_configs_scan_runs_crawled_urls_list_builder(
+    client: &SimpleHttpClient,
+    parent: &String,
+    pageSize: &Option<Option<String>>,
+    pageToken: &Option<Option<String>>,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!(
+        "https://websecurityscanner.googleapis.com/v1/projects/{}/scanConfigs/{scanConfigsId}/scanRuns/{scanRunsId}/crawledUrls",
+        parent,
+    );
+
+    // Build request
+    let mut query_parts = Vec::new();
+    if let Some(val) = pageSize.as_ref() {
+        query_parts.push(format!("pageSize={}", val));
+    }
+    if let Some(val) = pageToken.as_ref() {
+        query_parts.push(format!("pageToken={}", val));
+    }
+
+    let url_with_query = if query_parts.is_empty() {
+        endpoint_url
+    } else {
+        format!("{}?{}", endpoint_url, query_parts.join("&"))
+    };
+
+    let builder = client
+        .get(&url_with_query)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// GET v1/projects/{projectsId}/scanConfigs/{scanConfigsId}/scanRuns/{scanRunsId}/crawledUrls
+/// List CrawledUrls under a given ScanRun.
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `websecurityscanner_projects_scan_configs_scan_runs_crawled_urls_list_execute()` or `websecurityscanner_projects_scan_configs_scan_runs_crawled_urls_list`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `websecurityscanner_projects_scan_configs_scan_runs_crawled_urls_list_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn websecurityscanner_projects_scan_configs_scan_runs_crawled_urls_list_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<ListCrawledUrlsResponse>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: ListCrawledUrlsResponse = serde_json::from_str(&body)
+                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// GET v1/projects/{projectsId}/scanConfigs/{scanConfigsId}/scanRuns/{scanRunsId}/crawledUrls
+/// List CrawledUrls under a given ScanRun.
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `websecurityscanner_projects_scan_configs_scan_runs_crawled_urls_list_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `websecurityscanner_projects_scan_configs_scan_runs_crawled_urls_list_task()`.
+/// For the simplest API, use `websecurityscanner_projects_scan_configs_scan_runs_crawled_urls_list()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `websecurityscanner_projects_scan_configs_scan_runs_crawled_urls_list_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn websecurityscanner_projects_scan_configs_scan_runs_crawled_urls_list_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<ListCrawledUrlsResponse>, ApiError>, P = ApiPending>
+        + Send
+        + 'static,
+    ApiError,
+> {
+    let task = websecurityscanner_projects_scan_configs_scan_runs_crawled_urls_list_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`websecurityscanner_projects_scan_configs_scan_runs_crawled_urls_list`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct WebsecurityscannerProjectsScanConfigsScanRunsCrawledUrlsListArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Query parameter: pageSize
+    pub pageSize: Option<Option<String>>,
+    /// Query parameter: pageToken
+    pub pageToken: Option<Option<String>>,
+}
+
+/// GET v1/projects/{projectsId}/scanConfigs/{scanConfigsId}/scanRuns/{scanRunsId}/crawledUrls
+/// List CrawledUrls under a given ScanRun.
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `websecurityscanner_projects_scan_configs_scan_runs_crawled_urls_list_builder()` + `websecurityscanner_projects_scan_configs_scan_runs_crawled_urls_list_execute()`.
+/// For task-level control, use `websecurityscanner_projects_scan_configs_scan_runs_crawled_urls_list_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn websecurityscanner_projects_scan_configs_scan_runs_crawled_urls_list(
+    client: &SimpleHttpClient,
+    args: &WebsecurityscannerProjectsScanConfigsScanRunsCrawledUrlsListArgs,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<ListCrawledUrlsResponse>, ApiError>, P = ApiPending>
+        + Send
+        + 'static,
+    ApiError,
+> {
+    let builder = websecurityscanner_projects_scan_configs_scan_runs_crawled_urls_list_builder(
+        client,
+        &args.parent,
+        &args.pageSize,
+        &args.pageToken,
+    )?;
+    websecurityscanner_projects_scan_configs_scan_runs_crawled_urls_list_execute(builder)
+}
+
+/// GET v1/projects/{projectsId}/scanConfigs/{scanConfigsId}/scanRuns/{scanRunsId}/findingTypeStats
+/// List all FindingTypeStats under a given ScanRun.
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `websecurityscanner_projects_scan_configs_scan_runs_finding_type_stats_list_execute()` to send, or `websecurityscanner_projects_scan_configs_scan_runs_finding_type_stats_list` for simplest API.
+
+pub fn websecurityscanner_projects_scan_configs_scan_runs_finding_type_stats_list_builder(
+    client: &SimpleHttpClient,
+    parent: &String,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!(
+        "https://websecurityscanner.googleapis.com/v1/projects/{}/scanConfigs/{scanConfigsId}/scanRuns/{scanRunsId}/findingTypeStats",
+        parent,
+    );
+
+    // Build request
+    let builder = client
+        .get(&endpoint_url)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// GET v1/projects/{projectsId}/scanConfigs/{scanConfigsId}/scanRuns/{scanRunsId}/findingTypeStats
+/// List all FindingTypeStats under a given ScanRun.
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `websecurityscanner_projects_scan_configs_scan_runs_finding_type_stats_list_execute()` or `websecurityscanner_projects_scan_configs_scan_runs_finding_type_stats_list`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `websecurityscanner_projects_scan_configs_scan_runs_finding_type_stats_list_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn websecurityscanner_projects_scan_configs_scan_runs_finding_type_stats_list_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<ListFindingTypeStatsResponse>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: ListFindingTypeStatsResponse = serde_json::from_str(&body)
+                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// GET v1/projects/{projectsId}/scanConfigs/{scanConfigsId}/scanRuns/{scanRunsId}/findingTypeStats
+/// List all FindingTypeStats under a given ScanRun.
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `websecurityscanner_projects_scan_configs_scan_runs_finding_type_stats_list_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `websecurityscanner_projects_scan_configs_scan_runs_finding_type_stats_list_task()`.
+/// For the simplest API, use `websecurityscanner_projects_scan_configs_scan_runs_finding_type_stats_list()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `websecurityscanner_projects_scan_configs_scan_runs_finding_type_stats_list_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn websecurityscanner_projects_scan_configs_scan_runs_finding_type_stats_list_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<
+            D = Result<ApiResponse<ListFindingTypeStatsResponse>, ApiError>,
+            P = ApiPending,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    let task =
+        websecurityscanner_projects_scan_configs_scan_runs_finding_type_stats_list_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`websecurityscanner_projects_scan_configs_scan_runs_finding_type_stats_list`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct WebsecurityscannerProjectsScanConfigsScanRunsFindingTypeStatsListArgs {
+    /// Path parameter: parent
+    pub parent: String,
+}
+
+/// GET v1/projects/{projectsId}/scanConfigs/{scanConfigsId}/scanRuns/{scanRunsId}/findingTypeStats
+/// List all FindingTypeStats under a given ScanRun.
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `websecurityscanner_projects_scan_configs_scan_runs_finding_type_stats_list_builder()` + `websecurityscanner_projects_scan_configs_scan_runs_finding_type_stats_list_execute()`.
+/// For task-level control, use `websecurityscanner_projects_scan_configs_scan_runs_finding_type_stats_list_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn websecurityscanner_projects_scan_configs_scan_runs_finding_type_stats_list(
+    client: &SimpleHttpClient,
+    args: &WebsecurityscannerProjectsScanConfigsScanRunsFindingTypeStatsListArgs,
+) -> Result<
+    impl StreamIterator<
+            D = Result<ApiResponse<ListFindingTypeStatsResponse>, ApiError>,
+            P = ApiPending,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    let builder =
+        websecurityscanner_projects_scan_configs_scan_runs_finding_type_stats_list_builder(
+            client,
+            &args.parent,
+        )?;
+    websecurityscanner_projects_scan_configs_scan_runs_finding_type_stats_list_execute(builder)
+}
+
+/// GET v1/projects/{projectsId}/scanConfigs/{scanConfigsId}/scanRuns/{scanRunsId}/findings/{findingsId}
+/// Gets a Finding.
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `websecurityscanner_projects_scan_configs_scan_runs_findings_get_execute()` to send, or `websecurityscanner_projects_scan_configs_scan_runs_findings_get` for simplest API.
+
+pub fn websecurityscanner_projects_scan_configs_scan_runs_findings_get_builder(
+    client: &SimpleHttpClient,
+    name: &String,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!(
+        "https://websecurityscanner.googleapis.com/v1/projects/{}/scanConfigs/{scanConfigsId}/scanRuns/{scanRunsId}/findings/{findingsId}",
+        name,
+    );
+
+    // Build request
+    let builder = client
+        .get(&endpoint_url)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// GET v1/projects/{projectsId}/scanConfigs/{scanConfigsId}/scanRuns/{scanRunsId}/findings/{findingsId}
+/// Gets a Finding.
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `websecurityscanner_projects_scan_configs_scan_runs_findings_get_execute()` or `websecurityscanner_projects_scan_configs_scan_runs_findings_get`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `websecurityscanner_projects_scan_configs_scan_runs_findings_get_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn websecurityscanner_projects_scan_configs_scan_runs_findings_get_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<Finding>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: Finding = serde_json::from_str(&body)
+                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// GET v1/projects/{projectsId}/scanConfigs/{scanConfigsId}/scanRuns/{scanRunsId}/findings/{findingsId}
+/// Gets a Finding.
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `websecurityscanner_projects_scan_configs_scan_runs_findings_get_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `websecurityscanner_projects_scan_configs_scan_runs_findings_get_task()`.
+/// For the simplest API, use `websecurityscanner_projects_scan_configs_scan_runs_findings_get()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `websecurityscanner_projects_scan_configs_scan_runs_findings_get_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn websecurityscanner_projects_scan_configs_scan_runs_findings_get_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<Finding>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let task = websecurityscanner_projects_scan_configs_scan_runs_findings_get_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`websecurityscanner_projects_scan_configs_scan_runs_findings_get`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct WebsecurityscannerProjectsScanConfigsScanRunsFindingsGetArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
+/// GET v1/projects/{projectsId}/scanConfigs/{scanConfigsId}/scanRuns/{scanRunsId}/findings/{findingsId}
+/// Gets a Finding.
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `websecurityscanner_projects_scan_configs_scan_runs_findings_get_builder()` + `websecurityscanner_projects_scan_configs_scan_runs_findings_get_execute()`.
+/// For task-level control, use `websecurityscanner_projects_scan_configs_scan_runs_findings_get_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn websecurityscanner_projects_scan_configs_scan_runs_findings_get(
+    client: &SimpleHttpClient,
+    args: &WebsecurityscannerProjectsScanConfigsScanRunsFindingsGetArgs,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<Finding>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let builder = websecurityscanner_projects_scan_configs_scan_runs_findings_get_builder(
+        client, &args.name,
+    )?;
+    websecurityscanner_projects_scan_configs_scan_runs_findings_get_execute(builder)
+}
+
+/// GET v1/projects/{projectsId}/scanConfigs/{scanConfigsId}/scanRuns/{scanRunsId}/findings
+/// List Findings under a given ScanRun.
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `websecurityscanner_projects_scan_configs_scan_runs_findings_list_execute()` to send, or `websecurityscanner_projects_scan_configs_scan_runs_findings_list` for simplest API.
+
+pub fn websecurityscanner_projects_scan_configs_scan_runs_findings_list_builder(
+    client: &SimpleHttpClient,
+    parent: &String,
+    filter: &Option<Option<String>>,
+    pageSize: &Option<Option<String>>,
+    pageToken: &Option<Option<String>>,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!(
+        "https://websecurityscanner.googleapis.com/v1/projects/{}/scanConfigs/{scanConfigsId}/scanRuns/{scanRunsId}/findings",
+        parent,
+    );
+
+    // Build request
+    let mut query_parts = Vec::new();
+    if let Some(val) = filter.as_ref() {
+        query_parts.push(format!("filter={}", val));
+    }
+    if let Some(val) = pageSize.as_ref() {
+        query_parts.push(format!("pageSize={}", val));
+    }
+    if let Some(val) = pageToken.as_ref() {
+        query_parts.push(format!("pageToken={}", val));
+    }
+
+    let url_with_query = if query_parts.is_empty() {
+        endpoint_url
+    } else {
+        format!("{}?{}", endpoint_url, query_parts.join("&"))
+    };
+
+    let builder = client
+        .get(&url_with_query)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// GET v1/projects/{projectsId}/scanConfigs/{scanConfigsId}/scanRuns/{scanRunsId}/findings
+/// List Findings under a given ScanRun.
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `websecurityscanner_projects_scan_configs_scan_runs_findings_list_execute()` or `websecurityscanner_projects_scan_configs_scan_runs_findings_list`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `websecurityscanner_projects_scan_configs_scan_runs_findings_list_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn websecurityscanner_projects_scan_configs_scan_runs_findings_list_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<ListFindingsResponse>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: ListFindingsResponse = serde_json::from_str(&body)
+                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// GET v1/projects/{projectsId}/scanConfigs/{scanConfigsId}/scanRuns/{scanRunsId}/findings
+/// List Findings under a given ScanRun.
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `websecurityscanner_projects_scan_configs_scan_runs_findings_list_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `websecurityscanner_projects_scan_configs_scan_runs_findings_list_task()`.
+/// For the simplest API, use `websecurityscanner_projects_scan_configs_scan_runs_findings_list()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `websecurityscanner_projects_scan_configs_scan_runs_findings_list_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn websecurityscanner_projects_scan_configs_scan_runs_findings_list_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<ListFindingsResponse>, ApiError>, P = ApiPending>
+        + Send
+        + 'static,
+    ApiError,
+> {
+    let task = websecurityscanner_projects_scan_configs_scan_runs_findings_list_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`websecurityscanner_projects_scan_configs_scan_runs_findings_list`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct WebsecurityscannerProjectsScanConfigsScanRunsFindingsListArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Query parameter: filter
+    pub filter: Option<Option<String>>,
+    /// Query parameter: pageSize
+    pub pageSize: Option<Option<String>>,
+    /// Query parameter: pageToken
+    pub pageToken: Option<Option<String>>,
+}
+
+/// GET v1/projects/{projectsId}/scanConfigs/{scanConfigsId}/scanRuns/{scanRunsId}/findings
+/// List Findings under a given ScanRun.
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `websecurityscanner_projects_scan_configs_scan_runs_findings_list_builder()` + `websecurityscanner_projects_scan_configs_scan_runs_findings_list_execute()`.
+/// For task-level control, use `websecurityscanner_projects_scan_configs_scan_runs_findings_list_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn websecurityscanner_projects_scan_configs_scan_runs_findings_list(
+    client: &SimpleHttpClient,
+    args: &WebsecurityscannerProjectsScanConfigsScanRunsFindingsListArgs,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<ListFindingsResponse>, ApiError>, P = ApiPending>
+        + Send
+        + 'static,
+    ApiError,
+> {
+    let builder = websecurityscanner_projects_scan_configs_scan_runs_findings_list_builder(
+        client,
+        &args.parent,
+        &args.filter,
+        &args.pageSize,
+        &args.pageToken,
+    )?;
+    websecurityscanner_projects_scan_configs_scan_runs_findings_list_execute(builder)
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for ScanConfig
+// =============================================================================
+
+/// ResourceIdentifier implementation for ScanConfig with WebsecurityscannerProjectsScanConfigsCreateArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<WebsecurityscannerProjectsScanConfigsCreateArgs> for ScanConfig {
+    fn generate_resource_id(
+        &self,
+        input: &WebsecurityscannerProjectsScanConfigsCreateArgs,
+    ) -> String {
+        format!("gcp::websecurityscanner::ScanConfig/{}", input.parent)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::websecurityscanner::ScanConfig"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for Empty
+// =============================================================================
+
+/// ResourceIdentifier implementation for Empty with WebsecurityscannerProjectsScanConfigsDeleteArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<WebsecurityscannerProjectsScanConfigsDeleteArgs> for Empty {
+    fn generate_resource_id(
+        &self,
+        input: &WebsecurityscannerProjectsScanConfigsDeleteArgs,
+    ) -> String {
+        format!("gcp::websecurityscanner::Empty/{}", input.name)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::websecurityscanner::Empty"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for ScanConfig
+// =============================================================================
+
+/// ResourceIdentifier implementation for ScanConfig with WebsecurityscannerProjectsScanConfigsGetArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<WebsecurityscannerProjectsScanConfigsGetArgs> for ScanConfig {
+    fn generate_resource_id(&self, input: &WebsecurityscannerProjectsScanConfigsGetArgs) -> String {
+        format!("gcp::websecurityscanner::ScanConfig/{}", input.name)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::websecurityscanner::ScanConfig"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for ListScanConfigsResponse
+// =============================================================================
+
+/// ResourceIdentifier implementation for ListScanConfigsResponse with WebsecurityscannerProjectsScanConfigsListArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<WebsecurityscannerProjectsScanConfigsListArgs> for ListScanConfigsResponse {
+    fn generate_resource_id(
+        &self,
+        input: &WebsecurityscannerProjectsScanConfigsListArgs,
+    ) -> String {
+        format!(
+            "gcp::websecurityscanner::ListScanConfigsResponse/{}",
+            input.parent
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::websecurityscanner::ListScanConfigsResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for ScanConfig
+// =============================================================================
+
+/// ResourceIdentifier implementation for ScanConfig with WebsecurityscannerProjectsScanConfigsPatchArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<WebsecurityscannerProjectsScanConfigsPatchArgs> for ScanConfig {
+    fn generate_resource_id(
+        &self,
+        input: &WebsecurityscannerProjectsScanConfigsPatchArgs,
+    ) -> String {
+        format!("gcp::websecurityscanner::ScanConfig/{}", input.name)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::websecurityscanner::ScanConfig"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for ScanRun
+// =============================================================================
+
+/// ResourceIdentifier implementation for ScanRun with WebsecurityscannerProjectsScanConfigsStartArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<WebsecurityscannerProjectsScanConfigsStartArgs> for ScanRun {
+    fn generate_resource_id(
+        &self,
+        input: &WebsecurityscannerProjectsScanConfigsStartArgs,
+    ) -> String {
+        format!("gcp::websecurityscanner::ScanRun/{}", input.name)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::websecurityscanner::ScanRun"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for ScanRun
+// =============================================================================
+
+/// ResourceIdentifier implementation for ScanRun with WebsecurityscannerProjectsScanConfigsScanRunsGetArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<WebsecurityscannerProjectsScanConfigsScanRunsGetArgs> for ScanRun {
+    fn generate_resource_id(
+        &self,
+        input: &WebsecurityscannerProjectsScanConfigsScanRunsGetArgs,
+    ) -> String {
+        format!("gcp::websecurityscanner::ScanRun/{}", input.name)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::websecurityscanner::ScanRun"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for ListScanRunsResponse
+// =============================================================================
+
+/// ResourceIdentifier implementation for ListScanRunsResponse with WebsecurityscannerProjectsScanConfigsScanRunsListArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<WebsecurityscannerProjectsScanConfigsScanRunsListArgs>
+    for ListScanRunsResponse
+{
+    fn generate_resource_id(
+        &self,
+        input: &WebsecurityscannerProjectsScanConfigsScanRunsListArgs,
+    ) -> String {
+        format!(
+            "gcp::websecurityscanner::ListScanRunsResponse/{}",
+            input.parent
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::websecurityscanner::ListScanRunsResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for ScanRun
+// =============================================================================
+
+/// ResourceIdentifier implementation for ScanRun with WebsecurityscannerProjectsScanConfigsScanRunsStopArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<WebsecurityscannerProjectsScanConfigsScanRunsStopArgs> for ScanRun {
+    fn generate_resource_id(
+        &self,
+        input: &WebsecurityscannerProjectsScanConfigsScanRunsStopArgs,
+    ) -> String {
+        format!("gcp::websecurityscanner::ScanRun/{}", input.name)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::websecurityscanner::ScanRun"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for ListCrawledUrlsResponse
+// =============================================================================
+
+/// ResourceIdentifier implementation for ListCrawledUrlsResponse with WebsecurityscannerProjectsScanConfigsScanRunsCrawledUrlsListArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<WebsecurityscannerProjectsScanConfigsScanRunsCrawledUrlsListArgs>
+    for ListCrawledUrlsResponse
+{
+    fn generate_resource_id(
+        &self,
+        input: &WebsecurityscannerProjectsScanConfigsScanRunsCrawledUrlsListArgs,
+    ) -> String {
+        format!(
+            "gcp::websecurityscanner::ListCrawledUrlsResponse/{}",
+            input.parent
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::websecurityscanner::ListCrawledUrlsResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for ListFindingTypeStatsResponse
+// =============================================================================
+
+/// ResourceIdentifier implementation for ListFindingTypeStatsResponse with WebsecurityscannerProjectsScanConfigsScanRunsFindingTypeStatsListArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<WebsecurityscannerProjectsScanConfigsScanRunsFindingTypeStatsListArgs>
+    for ListFindingTypeStatsResponse
+{
+    fn generate_resource_id(
+        &self,
+        input: &WebsecurityscannerProjectsScanConfigsScanRunsFindingTypeStatsListArgs,
+    ) -> String {
+        format!(
+            "gcp::websecurityscanner::ListFindingTypeStatsResponse/{}",
+            input.parent
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::websecurityscanner::ListFindingTypeStatsResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for Finding
+// =============================================================================
+
+/// ResourceIdentifier implementation for Finding with WebsecurityscannerProjectsScanConfigsScanRunsFindingsGetArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<WebsecurityscannerProjectsScanConfigsScanRunsFindingsGetArgs> for Finding {
+    fn generate_resource_id(
+        &self,
+        input: &WebsecurityscannerProjectsScanConfigsScanRunsFindingsGetArgs,
+    ) -> String {
+        format!("gcp::websecurityscanner::Finding/{}", input.name)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::websecurityscanner::Finding"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for ListFindingsResponse
+// =============================================================================
+
+/// ResourceIdentifier implementation for ListFindingsResponse with WebsecurityscannerProjectsScanConfigsScanRunsFindingsListArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<WebsecurityscannerProjectsScanConfigsScanRunsFindingsListArgs>
+    for ListFindingsResponse
+{
+    fn generate_resource_id(
+        &self,
+        input: &WebsecurityscannerProjectsScanConfigsScanRunsFindingsListArgs,
+    ) -> String {
+        format!(
+            "gcp::websecurityscanner::ListFindingsResponse/{}",
+            input.parent
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::websecurityscanner::ListFindingsResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
 }

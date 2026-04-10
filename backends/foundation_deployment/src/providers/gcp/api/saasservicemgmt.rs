@@ -12,33 +12,61 @@
 #![cfg(feature = "gcp")]
 
 use crate::providers::gcp::clients::saasservicemgmt::{
+    saasservicemgmt_projects_locations_get_builder, saasservicemgmt_projects_locations_get_task,
+    saasservicemgmt_projects_locations_list_builder, saasservicemgmt_projects_locations_list_task,
     saasservicemgmt_projects_locations_releases_create_builder, saasservicemgmt_projects_locations_releases_create_task,
     saasservicemgmt_projects_locations_releases_delete_builder, saasservicemgmt_projects_locations_releases_delete_task,
+    saasservicemgmt_projects_locations_releases_get_builder, saasservicemgmt_projects_locations_releases_get_task,
+    saasservicemgmt_projects_locations_releases_list_builder, saasservicemgmt_projects_locations_releases_list_task,
     saasservicemgmt_projects_locations_releases_patch_builder, saasservicemgmt_projects_locations_releases_patch_task,
     saasservicemgmt_projects_locations_rollout_kinds_create_builder, saasservicemgmt_projects_locations_rollout_kinds_create_task,
     saasservicemgmt_projects_locations_rollout_kinds_delete_builder, saasservicemgmt_projects_locations_rollout_kinds_delete_task,
+    saasservicemgmt_projects_locations_rollout_kinds_get_builder, saasservicemgmt_projects_locations_rollout_kinds_get_task,
+    saasservicemgmt_projects_locations_rollout_kinds_list_builder, saasservicemgmt_projects_locations_rollout_kinds_list_task,
     saasservicemgmt_projects_locations_rollout_kinds_patch_builder, saasservicemgmt_projects_locations_rollout_kinds_patch_task,
     saasservicemgmt_projects_locations_rollouts_create_builder, saasservicemgmt_projects_locations_rollouts_create_task,
     saasservicemgmt_projects_locations_rollouts_delete_builder, saasservicemgmt_projects_locations_rollouts_delete_task,
+    saasservicemgmt_projects_locations_rollouts_get_builder, saasservicemgmt_projects_locations_rollouts_get_task,
+    saasservicemgmt_projects_locations_rollouts_list_builder, saasservicemgmt_projects_locations_rollouts_list_task,
     saasservicemgmt_projects_locations_rollouts_patch_builder, saasservicemgmt_projects_locations_rollouts_patch_task,
     saasservicemgmt_projects_locations_saas_create_builder, saasservicemgmt_projects_locations_saas_create_task,
     saasservicemgmt_projects_locations_saas_delete_builder, saasservicemgmt_projects_locations_saas_delete_task,
+    saasservicemgmt_projects_locations_saas_get_builder, saasservicemgmt_projects_locations_saas_get_task,
+    saasservicemgmt_projects_locations_saas_list_builder, saasservicemgmt_projects_locations_saas_list_task,
     saasservicemgmt_projects_locations_saas_patch_builder, saasservicemgmt_projects_locations_saas_patch_task,
     saasservicemgmt_projects_locations_tenants_create_builder, saasservicemgmt_projects_locations_tenants_create_task,
     saasservicemgmt_projects_locations_tenants_delete_builder, saasservicemgmt_projects_locations_tenants_delete_task,
+    saasservicemgmt_projects_locations_tenants_get_builder, saasservicemgmt_projects_locations_tenants_get_task,
+    saasservicemgmt_projects_locations_tenants_list_builder, saasservicemgmt_projects_locations_tenants_list_task,
     saasservicemgmt_projects_locations_tenants_patch_builder, saasservicemgmt_projects_locations_tenants_patch_task,
     saasservicemgmt_projects_locations_unit_kinds_create_builder, saasservicemgmt_projects_locations_unit_kinds_create_task,
     saasservicemgmt_projects_locations_unit_kinds_delete_builder, saasservicemgmt_projects_locations_unit_kinds_delete_task,
+    saasservicemgmt_projects_locations_unit_kinds_get_builder, saasservicemgmt_projects_locations_unit_kinds_get_task,
+    saasservicemgmt_projects_locations_unit_kinds_list_builder, saasservicemgmt_projects_locations_unit_kinds_list_task,
     saasservicemgmt_projects_locations_unit_kinds_patch_builder, saasservicemgmt_projects_locations_unit_kinds_patch_task,
     saasservicemgmt_projects_locations_unit_operations_create_builder, saasservicemgmt_projects_locations_unit_operations_create_task,
     saasservicemgmt_projects_locations_unit_operations_delete_builder, saasservicemgmt_projects_locations_unit_operations_delete_task,
+    saasservicemgmt_projects_locations_unit_operations_get_builder, saasservicemgmt_projects_locations_unit_operations_get_task,
+    saasservicemgmt_projects_locations_unit_operations_list_builder, saasservicemgmt_projects_locations_unit_operations_list_task,
     saasservicemgmt_projects_locations_unit_operations_patch_builder, saasservicemgmt_projects_locations_unit_operations_patch_task,
     saasservicemgmt_projects_locations_units_create_builder, saasservicemgmt_projects_locations_units_create_task,
     saasservicemgmt_projects_locations_units_delete_builder, saasservicemgmt_projects_locations_units_delete_task,
+    saasservicemgmt_projects_locations_units_get_builder, saasservicemgmt_projects_locations_units_get_task,
+    saasservicemgmt_projects_locations_units_list_builder, saasservicemgmt_projects_locations_units_list_task,
     saasservicemgmt_projects_locations_units_patch_builder, saasservicemgmt_projects_locations_units_patch_task,
 };
 use crate::providers::gcp::clients::types::{ApiError, ApiPending};
 use crate::providers::gcp::clients::saasservicemgmt::Empty;
+use crate::providers::gcp::clients::saasservicemgmt::GoogleCloudLocationLocation;
+use crate::providers::gcp::clients::saasservicemgmt::ListLocationsResponse;
+use crate::providers::gcp::clients::saasservicemgmt::ListReleasesResponse;
+use crate::providers::gcp::clients::saasservicemgmt::ListRolloutKindsResponse;
+use crate::providers::gcp::clients::saasservicemgmt::ListRolloutsResponse;
+use crate::providers::gcp::clients::saasservicemgmt::ListSaasResponse;
+use crate::providers::gcp::clients::saasservicemgmt::ListTenantsResponse;
+use crate::providers::gcp::clients::saasservicemgmt::ListUnitKindsResponse;
+use crate::providers::gcp::clients::saasservicemgmt::ListUnitOperationsResponse;
+use crate::providers::gcp::clients::saasservicemgmt::ListUnitsResponse;
 use crate::providers::gcp::clients::saasservicemgmt::Release;
 use crate::providers::gcp::clients::saasservicemgmt::Rollout;
 use crate::providers::gcp::clients::saasservicemgmt::RolloutKind;
@@ -47,29 +75,47 @@ use crate::providers::gcp::clients::saasservicemgmt::Tenant;
 use crate::providers::gcp::clients::saasservicemgmt::Unit;
 use crate::providers::gcp::clients::saasservicemgmt::UnitKind;
 use crate::providers::gcp::clients::saasservicemgmt::UnitOperation;
+use crate::providers::gcp::clients::saasservicemgmt::SaasservicemgmtProjectsLocationsGetArgs;
+use crate::providers::gcp::clients::saasservicemgmt::SaasservicemgmtProjectsLocationsListArgs;
 use crate::providers::gcp::clients::saasservicemgmt::SaasservicemgmtProjectsLocationsReleasesCreateArgs;
 use crate::providers::gcp::clients::saasservicemgmt::SaasservicemgmtProjectsLocationsReleasesDeleteArgs;
+use crate::providers::gcp::clients::saasservicemgmt::SaasservicemgmtProjectsLocationsReleasesGetArgs;
+use crate::providers::gcp::clients::saasservicemgmt::SaasservicemgmtProjectsLocationsReleasesListArgs;
 use crate::providers::gcp::clients::saasservicemgmt::SaasservicemgmtProjectsLocationsReleasesPatchArgs;
 use crate::providers::gcp::clients::saasservicemgmt::SaasservicemgmtProjectsLocationsRolloutKindsCreateArgs;
 use crate::providers::gcp::clients::saasservicemgmt::SaasservicemgmtProjectsLocationsRolloutKindsDeleteArgs;
+use crate::providers::gcp::clients::saasservicemgmt::SaasservicemgmtProjectsLocationsRolloutKindsGetArgs;
+use crate::providers::gcp::clients::saasservicemgmt::SaasservicemgmtProjectsLocationsRolloutKindsListArgs;
 use crate::providers::gcp::clients::saasservicemgmt::SaasservicemgmtProjectsLocationsRolloutKindsPatchArgs;
 use crate::providers::gcp::clients::saasservicemgmt::SaasservicemgmtProjectsLocationsRolloutsCreateArgs;
 use crate::providers::gcp::clients::saasservicemgmt::SaasservicemgmtProjectsLocationsRolloutsDeleteArgs;
+use crate::providers::gcp::clients::saasservicemgmt::SaasservicemgmtProjectsLocationsRolloutsGetArgs;
+use crate::providers::gcp::clients::saasservicemgmt::SaasservicemgmtProjectsLocationsRolloutsListArgs;
 use crate::providers::gcp::clients::saasservicemgmt::SaasservicemgmtProjectsLocationsRolloutsPatchArgs;
 use crate::providers::gcp::clients::saasservicemgmt::SaasservicemgmtProjectsLocationsSaasCreateArgs;
 use crate::providers::gcp::clients::saasservicemgmt::SaasservicemgmtProjectsLocationsSaasDeleteArgs;
+use crate::providers::gcp::clients::saasservicemgmt::SaasservicemgmtProjectsLocationsSaasGetArgs;
+use crate::providers::gcp::clients::saasservicemgmt::SaasservicemgmtProjectsLocationsSaasListArgs;
 use crate::providers::gcp::clients::saasservicemgmt::SaasservicemgmtProjectsLocationsSaasPatchArgs;
 use crate::providers::gcp::clients::saasservicemgmt::SaasservicemgmtProjectsLocationsTenantsCreateArgs;
 use crate::providers::gcp::clients::saasservicemgmt::SaasservicemgmtProjectsLocationsTenantsDeleteArgs;
+use crate::providers::gcp::clients::saasservicemgmt::SaasservicemgmtProjectsLocationsTenantsGetArgs;
+use crate::providers::gcp::clients::saasservicemgmt::SaasservicemgmtProjectsLocationsTenantsListArgs;
 use crate::providers::gcp::clients::saasservicemgmt::SaasservicemgmtProjectsLocationsTenantsPatchArgs;
 use crate::providers::gcp::clients::saasservicemgmt::SaasservicemgmtProjectsLocationsUnitKindsCreateArgs;
 use crate::providers::gcp::clients::saasservicemgmt::SaasservicemgmtProjectsLocationsUnitKindsDeleteArgs;
+use crate::providers::gcp::clients::saasservicemgmt::SaasservicemgmtProjectsLocationsUnitKindsGetArgs;
+use crate::providers::gcp::clients::saasservicemgmt::SaasservicemgmtProjectsLocationsUnitKindsListArgs;
 use crate::providers::gcp::clients::saasservicemgmt::SaasservicemgmtProjectsLocationsUnitKindsPatchArgs;
 use crate::providers::gcp::clients::saasservicemgmt::SaasservicemgmtProjectsLocationsUnitOperationsCreateArgs;
 use crate::providers::gcp::clients::saasservicemgmt::SaasservicemgmtProjectsLocationsUnitOperationsDeleteArgs;
+use crate::providers::gcp::clients::saasservicemgmt::SaasservicemgmtProjectsLocationsUnitOperationsGetArgs;
+use crate::providers::gcp::clients::saasservicemgmt::SaasservicemgmtProjectsLocationsUnitOperationsListArgs;
 use crate::providers::gcp::clients::saasservicemgmt::SaasservicemgmtProjectsLocationsUnitOperationsPatchArgs;
 use crate::providers::gcp::clients::saasservicemgmt::SaasservicemgmtProjectsLocationsUnitsCreateArgs;
 use crate::providers::gcp::clients::saasservicemgmt::SaasservicemgmtProjectsLocationsUnitsDeleteArgs;
+use crate::providers::gcp::clients::saasservicemgmt::SaasservicemgmtProjectsLocationsUnitsGetArgs;
+use crate::providers::gcp::clients::saasservicemgmt::SaasservicemgmtProjectsLocationsUnitsListArgs;
 use crate::providers::gcp::clients::saasservicemgmt::SaasservicemgmtProjectsLocationsUnitsPatchArgs;
 use crate::provider_client::{ProviderClient, ProviderError};
 use foundation_core::valtron::{execute, StreamIterator};
@@ -110,6 +156,86 @@ where
             client,
             http_client: Arc::new(http_client),
         }
+    }
+
+    /// Saasservicemgmt projects locations get.
+    ///
+    /// Read-only operation - no state tracking.
+    ///
+    /// # Arguments
+    ///
+    /// * `args` - Request arguments
+    ///
+    /// # Returns
+    ///
+    /// StreamIterator yielding the GoogleCloudLocationLocation result.
+    ///
+    /// # Errors
+    ///
+    /// Returns ProviderError if the API request fails.
+    pub fn saasservicemgmt_projects_locations_get(
+        &self,
+        args: &SaasservicemgmtProjectsLocationsGetArgs,
+    ) -> Result<
+        impl StreamIterator<
+            D = Result<GoogleCloudLocationLocation, ProviderError<ApiError>>,
+            P = crate::providers::gcp::clients::types::ApiPending,
+        > + Send
+        + 'static,
+        ProviderError<ApiError>,
+    > {
+        let builder = saasservicemgmt_projects_locations_get_builder(
+            &self.http_client,
+            &args.name,
+        )
+        .map_err(ProviderError::Api)?;
+
+        let task = saasservicemgmt_projects_locations_get_task(builder)
+            .map_err(ProviderError::Api)?;
+
+        execute(task, None).map_err(|e: String| ProviderError::ExecuteFailed(e.to_string()))
+    }
+
+    /// Saasservicemgmt projects locations list.
+    ///
+    /// Read-only operation - no state tracking.
+    ///
+    /// # Arguments
+    ///
+    /// * `args` - Request arguments
+    ///
+    /// # Returns
+    ///
+    /// StreamIterator yielding the ListLocationsResponse result.
+    ///
+    /// # Errors
+    ///
+    /// Returns ProviderError if the API request fails.
+    pub fn saasservicemgmt_projects_locations_list(
+        &self,
+        args: &SaasservicemgmtProjectsLocationsListArgs,
+    ) -> Result<
+        impl StreamIterator<
+            D = Result<ListLocationsResponse, ProviderError<ApiError>>,
+            P = crate::providers::gcp::clients::types::ApiPending,
+        > + Send
+        + 'static,
+        ProviderError<ApiError>,
+    > {
+        let builder = saasservicemgmt_projects_locations_list_builder(
+            &self.http_client,
+            &args.name,
+            &args.extraLocationTypes,
+            &args.filter,
+            &args.pageSize,
+            &args.pageToken,
+        )
+        .map_err(ProviderError::Api)?;
+
+        let task = saasservicemgmt_projects_locations_list_task(builder)
+            .map_err(ProviderError::Api)?;
+
+        execute(task, None).map_err(|e: String| ProviderError::ExecuteFailed(e.to_string()))
     }
 
     /// Saasservicemgmt projects locations releases create.
@@ -202,6 +328,86 @@ where
         let store_task = StoreStateIdentifierTask::new(task, state_store, args, stage);
 
         execute(store_task, None).map_err(|e: String| ProviderError::ExecuteFailed(e.to_string()))
+    }
+
+    /// Saasservicemgmt projects locations releases get.
+    ///
+    /// Read-only operation - no state tracking.
+    ///
+    /// # Arguments
+    ///
+    /// * `args` - Request arguments
+    ///
+    /// # Returns
+    ///
+    /// StreamIterator yielding the Release result.
+    ///
+    /// # Errors
+    ///
+    /// Returns ProviderError if the API request fails.
+    pub fn saasservicemgmt_projects_locations_releases_get(
+        &self,
+        args: &SaasservicemgmtProjectsLocationsReleasesGetArgs,
+    ) -> Result<
+        impl StreamIterator<
+            D = Result<Release, ProviderError<ApiError>>,
+            P = crate::providers::gcp::clients::types::ApiPending,
+        > + Send
+        + 'static,
+        ProviderError<ApiError>,
+    > {
+        let builder = saasservicemgmt_projects_locations_releases_get_builder(
+            &self.http_client,
+            &args.name,
+        )
+        .map_err(ProviderError::Api)?;
+
+        let task = saasservicemgmt_projects_locations_releases_get_task(builder)
+            .map_err(ProviderError::Api)?;
+
+        execute(task, None).map_err(|e: String| ProviderError::ExecuteFailed(e.to_string()))
+    }
+
+    /// Saasservicemgmt projects locations releases list.
+    ///
+    /// Read-only operation - no state tracking.
+    ///
+    /// # Arguments
+    ///
+    /// * `args` - Request arguments
+    ///
+    /// # Returns
+    ///
+    /// StreamIterator yielding the ListReleasesResponse result.
+    ///
+    /// # Errors
+    ///
+    /// Returns ProviderError if the API request fails.
+    pub fn saasservicemgmt_projects_locations_releases_list(
+        &self,
+        args: &SaasservicemgmtProjectsLocationsReleasesListArgs,
+    ) -> Result<
+        impl StreamIterator<
+            D = Result<ListReleasesResponse, ProviderError<ApiError>>,
+            P = crate::providers::gcp::clients::types::ApiPending,
+        > + Send
+        + 'static,
+        ProviderError<ApiError>,
+    > {
+        let builder = saasservicemgmt_projects_locations_releases_list_builder(
+            &self.http_client,
+            &args.parent,
+            &args.filter,
+            &args.orderBy,
+            &args.pageSize,
+            &args.pageToken,
+        )
+        .map_err(ProviderError::Api)?;
+
+        let task = saasservicemgmt_projects_locations_releases_list_task(builder)
+            .map_err(ProviderError::Api)?;
+
+        execute(task, None).map_err(|e: String| ProviderError::ExecuteFailed(e.to_string()))
     }
 
     /// Saasservicemgmt projects locations releases patch.
@@ -342,6 +548,86 @@ where
         execute(store_task, None).map_err(|e: String| ProviderError::ExecuteFailed(e.to_string()))
     }
 
+    /// Saasservicemgmt projects locations rollout kinds get.
+    ///
+    /// Read-only operation - no state tracking.
+    ///
+    /// # Arguments
+    ///
+    /// * `args` - Request arguments
+    ///
+    /// # Returns
+    ///
+    /// StreamIterator yielding the RolloutKind result.
+    ///
+    /// # Errors
+    ///
+    /// Returns ProviderError if the API request fails.
+    pub fn saasservicemgmt_projects_locations_rollout_kinds_get(
+        &self,
+        args: &SaasservicemgmtProjectsLocationsRolloutKindsGetArgs,
+    ) -> Result<
+        impl StreamIterator<
+            D = Result<RolloutKind, ProviderError<ApiError>>,
+            P = crate::providers::gcp::clients::types::ApiPending,
+        > + Send
+        + 'static,
+        ProviderError<ApiError>,
+    > {
+        let builder = saasservicemgmt_projects_locations_rollout_kinds_get_builder(
+            &self.http_client,
+            &args.name,
+        )
+        .map_err(ProviderError::Api)?;
+
+        let task = saasservicemgmt_projects_locations_rollout_kinds_get_task(builder)
+            .map_err(ProviderError::Api)?;
+
+        execute(task, None).map_err(|e: String| ProviderError::ExecuteFailed(e.to_string()))
+    }
+
+    /// Saasservicemgmt projects locations rollout kinds list.
+    ///
+    /// Read-only operation - no state tracking.
+    ///
+    /// # Arguments
+    ///
+    /// * `args` - Request arguments
+    ///
+    /// # Returns
+    ///
+    /// StreamIterator yielding the ListRolloutKindsResponse result.
+    ///
+    /// # Errors
+    ///
+    /// Returns ProviderError if the API request fails.
+    pub fn saasservicemgmt_projects_locations_rollout_kinds_list(
+        &self,
+        args: &SaasservicemgmtProjectsLocationsRolloutKindsListArgs,
+    ) -> Result<
+        impl StreamIterator<
+            D = Result<ListRolloutKindsResponse, ProviderError<ApiError>>,
+            P = crate::providers::gcp::clients::types::ApiPending,
+        > + Send
+        + 'static,
+        ProviderError<ApiError>,
+    > {
+        let builder = saasservicemgmt_projects_locations_rollout_kinds_list_builder(
+            &self.http_client,
+            &args.parent,
+            &args.filter,
+            &args.orderBy,
+            &args.pageSize,
+            &args.pageToken,
+        )
+        .map_err(ProviderError::Api)?;
+
+        let task = saasservicemgmt_projects_locations_rollout_kinds_list_task(builder)
+            .map_err(ProviderError::Api)?;
+
+        execute(task, None).map_err(|e: String| ProviderError::ExecuteFailed(e.to_string()))
+    }
+
     /// Saasservicemgmt projects locations rollout kinds patch.
     ///
     /// Automatically stores the result in the state store on success.
@@ -478,6 +764,86 @@ where
         let store_task = StoreStateIdentifierTask::new(task, state_store, args, stage);
 
         execute(store_task, None).map_err(|e: String| ProviderError::ExecuteFailed(e.to_string()))
+    }
+
+    /// Saasservicemgmt projects locations rollouts get.
+    ///
+    /// Read-only operation - no state tracking.
+    ///
+    /// # Arguments
+    ///
+    /// * `args` - Request arguments
+    ///
+    /// # Returns
+    ///
+    /// StreamIterator yielding the Rollout result.
+    ///
+    /// # Errors
+    ///
+    /// Returns ProviderError if the API request fails.
+    pub fn saasservicemgmt_projects_locations_rollouts_get(
+        &self,
+        args: &SaasservicemgmtProjectsLocationsRolloutsGetArgs,
+    ) -> Result<
+        impl StreamIterator<
+            D = Result<Rollout, ProviderError<ApiError>>,
+            P = crate::providers::gcp::clients::types::ApiPending,
+        > + Send
+        + 'static,
+        ProviderError<ApiError>,
+    > {
+        let builder = saasservicemgmt_projects_locations_rollouts_get_builder(
+            &self.http_client,
+            &args.name,
+        )
+        .map_err(ProviderError::Api)?;
+
+        let task = saasservicemgmt_projects_locations_rollouts_get_task(builder)
+            .map_err(ProviderError::Api)?;
+
+        execute(task, None).map_err(|e: String| ProviderError::ExecuteFailed(e.to_string()))
+    }
+
+    /// Saasservicemgmt projects locations rollouts list.
+    ///
+    /// Read-only operation - no state tracking.
+    ///
+    /// # Arguments
+    ///
+    /// * `args` - Request arguments
+    ///
+    /// # Returns
+    ///
+    /// StreamIterator yielding the ListRolloutsResponse result.
+    ///
+    /// # Errors
+    ///
+    /// Returns ProviderError if the API request fails.
+    pub fn saasservicemgmt_projects_locations_rollouts_list(
+        &self,
+        args: &SaasservicemgmtProjectsLocationsRolloutsListArgs,
+    ) -> Result<
+        impl StreamIterator<
+            D = Result<ListRolloutsResponse, ProviderError<ApiError>>,
+            P = crate::providers::gcp::clients::types::ApiPending,
+        > + Send
+        + 'static,
+        ProviderError<ApiError>,
+    > {
+        let builder = saasservicemgmt_projects_locations_rollouts_list_builder(
+            &self.http_client,
+            &args.parent,
+            &args.filter,
+            &args.orderBy,
+            &args.pageSize,
+            &args.pageToken,
+        )
+        .map_err(ProviderError::Api)?;
+
+        let task = saasservicemgmt_projects_locations_rollouts_list_task(builder)
+            .map_err(ProviderError::Api)?;
+
+        execute(task, None).map_err(|e: String| ProviderError::ExecuteFailed(e.to_string()))
     }
 
     /// Saasservicemgmt projects locations rollouts patch.
@@ -618,6 +984,86 @@ where
         execute(store_task, None).map_err(|e: String| ProviderError::ExecuteFailed(e.to_string()))
     }
 
+    /// Saasservicemgmt projects locations saas get.
+    ///
+    /// Read-only operation - no state tracking.
+    ///
+    /// # Arguments
+    ///
+    /// * `args` - Request arguments
+    ///
+    /// # Returns
+    ///
+    /// StreamIterator yielding the Saas result.
+    ///
+    /// # Errors
+    ///
+    /// Returns ProviderError if the API request fails.
+    pub fn saasservicemgmt_projects_locations_saas_get(
+        &self,
+        args: &SaasservicemgmtProjectsLocationsSaasGetArgs,
+    ) -> Result<
+        impl StreamIterator<
+            D = Result<Saas, ProviderError<ApiError>>,
+            P = crate::providers::gcp::clients::types::ApiPending,
+        > + Send
+        + 'static,
+        ProviderError<ApiError>,
+    > {
+        let builder = saasservicemgmt_projects_locations_saas_get_builder(
+            &self.http_client,
+            &args.name,
+        )
+        .map_err(ProviderError::Api)?;
+
+        let task = saasservicemgmt_projects_locations_saas_get_task(builder)
+            .map_err(ProviderError::Api)?;
+
+        execute(task, None).map_err(|e: String| ProviderError::ExecuteFailed(e.to_string()))
+    }
+
+    /// Saasservicemgmt projects locations saas list.
+    ///
+    /// Read-only operation - no state tracking.
+    ///
+    /// # Arguments
+    ///
+    /// * `args` - Request arguments
+    ///
+    /// # Returns
+    ///
+    /// StreamIterator yielding the ListSaasResponse result.
+    ///
+    /// # Errors
+    ///
+    /// Returns ProviderError if the API request fails.
+    pub fn saasservicemgmt_projects_locations_saas_list(
+        &self,
+        args: &SaasservicemgmtProjectsLocationsSaasListArgs,
+    ) -> Result<
+        impl StreamIterator<
+            D = Result<ListSaasResponse, ProviderError<ApiError>>,
+            P = crate::providers::gcp::clients::types::ApiPending,
+        > + Send
+        + 'static,
+        ProviderError<ApiError>,
+    > {
+        let builder = saasservicemgmt_projects_locations_saas_list_builder(
+            &self.http_client,
+            &args.parent,
+            &args.filter,
+            &args.orderBy,
+            &args.pageSize,
+            &args.pageToken,
+        )
+        .map_err(ProviderError::Api)?;
+
+        let task = saasservicemgmt_projects_locations_saas_list_task(builder)
+            .map_err(ProviderError::Api)?;
+
+        execute(task, None).map_err(|e: String| ProviderError::ExecuteFailed(e.to_string()))
+    }
+
     /// Saasservicemgmt projects locations saas patch.
     ///
     /// Automatically stores the result in the state store on success.
@@ -754,6 +1200,86 @@ where
         let store_task = StoreStateIdentifierTask::new(task, state_store, args, stage);
 
         execute(store_task, None).map_err(|e: String| ProviderError::ExecuteFailed(e.to_string()))
+    }
+
+    /// Saasservicemgmt projects locations tenants get.
+    ///
+    /// Read-only operation - no state tracking.
+    ///
+    /// # Arguments
+    ///
+    /// * `args` - Request arguments
+    ///
+    /// # Returns
+    ///
+    /// StreamIterator yielding the Tenant result.
+    ///
+    /// # Errors
+    ///
+    /// Returns ProviderError if the API request fails.
+    pub fn saasservicemgmt_projects_locations_tenants_get(
+        &self,
+        args: &SaasservicemgmtProjectsLocationsTenantsGetArgs,
+    ) -> Result<
+        impl StreamIterator<
+            D = Result<Tenant, ProviderError<ApiError>>,
+            P = crate::providers::gcp::clients::types::ApiPending,
+        > + Send
+        + 'static,
+        ProviderError<ApiError>,
+    > {
+        let builder = saasservicemgmt_projects_locations_tenants_get_builder(
+            &self.http_client,
+            &args.name,
+        )
+        .map_err(ProviderError::Api)?;
+
+        let task = saasservicemgmt_projects_locations_tenants_get_task(builder)
+            .map_err(ProviderError::Api)?;
+
+        execute(task, None).map_err(|e: String| ProviderError::ExecuteFailed(e.to_string()))
+    }
+
+    /// Saasservicemgmt projects locations tenants list.
+    ///
+    /// Read-only operation - no state tracking.
+    ///
+    /// # Arguments
+    ///
+    /// * `args` - Request arguments
+    ///
+    /// # Returns
+    ///
+    /// StreamIterator yielding the ListTenantsResponse result.
+    ///
+    /// # Errors
+    ///
+    /// Returns ProviderError if the API request fails.
+    pub fn saasservicemgmt_projects_locations_tenants_list(
+        &self,
+        args: &SaasservicemgmtProjectsLocationsTenantsListArgs,
+    ) -> Result<
+        impl StreamIterator<
+            D = Result<ListTenantsResponse, ProviderError<ApiError>>,
+            P = crate::providers::gcp::clients::types::ApiPending,
+        > + Send
+        + 'static,
+        ProviderError<ApiError>,
+    > {
+        let builder = saasservicemgmt_projects_locations_tenants_list_builder(
+            &self.http_client,
+            &args.parent,
+            &args.filter,
+            &args.orderBy,
+            &args.pageSize,
+            &args.pageToken,
+        )
+        .map_err(ProviderError::Api)?;
+
+        let task = saasservicemgmt_projects_locations_tenants_list_task(builder)
+            .map_err(ProviderError::Api)?;
+
+        execute(task, None).map_err(|e: String| ProviderError::ExecuteFailed(e.to_string()))
     }
 
     /// Saasservicemgmt projects locations tenants patch.
@@ -894,6 +1420,86 @@ where
         execute(store_task, None).map_err(|e: String| ProviderError::ExecuteFailed(e.to_string()))
     }
 
+    /// Saasservicemgmt projects locations unit kinds get.
+    ///
+    /// Read-only operation - no state tracking.
+    ///
+    /// # Arguments
+    ///
+    /// * `args` - Request arguments
+    ///
+    /// # Returns
+    ///
+    /// StreamIterator yielding the UnitKind result.
+    ///
+    /// # Errors
+    ///
+    /// Returns ProviderError if the API request fails.
+    pub fn saasservicemgmt_projects_locations_unit_kinds_get(
+        &self,
+        args: &SaasservicemgmtProjectsLocationsUnitKindsGetArgs,
+    ) -> Result<
+        impl StreamIterator<
+            D = Result<UnitKind, ProviderError<ApiError>>,
+            P = crate::providers::gcp::clients::types::ApiPending,
+        > + Send
+        + 'static,
+        ProviderError<ApiError>,
+    > {
+        let builder = saasservicemgmt_projects_locations_unit_kinds_get_builder(
+            &self.http_client,
+            &args.name,
+        )
+        .map_err(ProviderError::Api)?;
+
+        let task = saasservicemgmt_projects_locations_unit_kinds_get_task(builder)
+            .map_err(ProviderError::Api)?;
+
+        execute(task, None).map_err(|e: String| ProviderError::ExecuteFailed(e.to_string()))
+    }
+
+    /// Saasservicemgmt projects locations unit kinds list.
+    ///
+    /// Read-only operation - no state tracking.
+    ///
+    /// # Arguments
+    ///
+    /// * `args` - Request arguments
+    ///
+    /// # Returns
+    ///
+    /// StreamIterator yielding the ListUnitKindsResponse result.
+    ///
+    /// # Errors
+    ///
+    /// Returns ProviderError if the API request fails.
+    pub fn saasservicemgmt_projects_locations_unit_kinds_list(
+        &self,
+        args: &SaasservicemgmtProjectsLocationsUnitKindsListArgs,
+    ) -> Result<
+        impl StreamIterator<
+            D = Result<ListUnitKindsResponse, ProviderError<ApiError>>,
+            P = crate::providers::gcp::clients::types::ApiPending,
+        > + Send
+        + 'static,
+        ProviderError<ApiError>,
+    > {
+        let builder = saasservicemgmt_projects_locations_unit_kinds_list_builder(
+            &self.http_client,
+            &args.parent,
+            &args.filter,
+            &args.orderBy,
+            &args.pageSize,
+            &args.pageToken,
+        )
+        .map_err(ProviderError::Api)?;
+
+        let task = saasservicemgmt_projects_locations_unit_kinds_list_task(builder)
+            .map_err(ProviderError::Api)?;
+
+        execute(task, None).map_err(|e: String| ProviderError::ExecuteFailed(e.to_string()))
+    }
+
     /// Saasservicemgmt projects locations unit kinds patch.
     ///
     /// Automatically stores the result in the state store on success.
@@ -1032,6 +1638,86 @@ where
         execute(store_task, None).map_err(|e: String| ProviderError::ExecuteFailed(e.to_string()))
     }
 
+    /// Saasservicemgmt projects locations unit operations get.
+    ///
+    /// Read-only operation - no state tracking.
+    ///
+    /// # Arguments
+    ///
+    /// * `args` - Request arguments
+    ///
+    /// # Returns
+    ///
+    /// StreamIterator yielding the UnitOperation result.
+    ///
+    /// # Errors
+    ///
+    /// Returns ProviderError if the API request fails.
+    pub fn saasservicemgmt_projects_locations_unit_operations_get(
+        &self,
+        args: &SaasservicemgmtProjectsLocationsUnitOperationsGetArgs,
+    ) -> Result<
+        impl StreamIterator<
+            D = Result<UnitOperation, ProviderError<ApiError>>,
+            P = crate::providers::gcp::clients::types::ApiPending,
+        > + Send
+        + 'static,
+        ProviderError<ApiError>,
+    > {
+        let builder = saasservicemgmt_projects_locations_unit_operations_get_builder(
+            &self.http_client,
+            &args.name,
+        )
+        .map_err(ProviderError::Api)?;
+
+        let task = saasservicemgmt_projects_locations_unit_operations_get_task(builder)
+            .map_err(ProviderError::Api)?;
+
+        execute(task, None).map_err(|e: String| ProviderError::ExecuteFailed(e.to_string()))
+    }
+
+    /// Saasservicemgmt projects locations unit operations list.
+    ///
+    /// Read-only operation - no state tracking.
+    ///
+    /// # Arguments
+    ///
+    /// * `args` - Request arguments
+    ///
+    /// # Returns
+    ///
+    /// StreamIterator yielding the ListUnitOperationsResponse result.
+    ///
+    /// # Errors
+    ///
+    /// Returns ProviderError if the API request fails.
+    pub fn saasservicemgmt_projects_locations_unit_operations_list(
+        &self,
+        args: &SaasservicemgmtProjectsLocationsUnitOperationsListArgs,
+    ) -> Result<
+        impl StreamIterator<
+            D = Result<ListUnitOperationsResponse, ProviderError<ApiError>>,
+            P = crate::providers::gcp::clients::types::ApiPending,
+        > + Send
+        + 'static,
+        ProviderError<ApiError>,
+    > {
+        let builder = saasservicemgmt_projects_locations_unit_operations_list_builder(
+            &self.http_client,
+            &args.parent,
+            &args.filter,
+            &args.orderBy,
+            &args.pageSize,
+            &args.pageToken,
+        )
+        .map_err(ProviderError::Api)?;
+
+        let task = saasservicemgmt_projects_locations_unit_operations_list_task(builder)
+            .map_err(ProviderError::Api)?;
+
+        execute(task, None).map_err(|e: String| ProviderError::ExecuteFailed(e.to_string()))
+    }
+
     /// Saasservicemgmt projects locations unit operations patch.
     ///
     /// Automatically stores the result in the state store on success.
@@ -1168,6 +1854,86 @@ where
         let store_task = StoreStateIdentifierTask::new(task, state_store, args, stage);
 
         execute(store_task, None).map_err(|e: String| ProviderError::ExecuteFailed(e.to_string()))
+    }
+
+    /// Saasservicemgmt projects locations units get.
+    ///
+    /// Read-only operation - no state tracking.
+    ///
+    /// # Arguments
+    ///
+    /// * `args` - Request arguments
+    ///
+    /// # Returns
+    ///
+    /// StreamIterator yielding the Unit result.
+    ///
+    /// # Errors
+    ///
+    /// Returns ProviderError if the API request fails.
+    pub fn saasservicemgmt_projects_locations_units_get(
+        &self,
+        args: &SaasservicemgmtProjectsLocationsUnitsGetArgs,
+    ) -> Result<
+        impl StreamIterator<
+            D = Result<Unit, ProviderError<ApiError>>,
+            P = crate::providers::gcp::clients::types::ApiPending,
+        > + Send
+        + 'static,
+        ProviderError<ApiError>,
+    > {
+        let builder = saasservicemgmt_projects_locations_units_get_builder(
+            &self.http_client,
+            &args.name,
+        )
+        .map_err(ProviderError::Api)?;
+
+        let task = saasservicemgmt_projects_locations_units_get_task(builder)
+            .map_err(ProviderError::Api)?;
+
+        execute(task, None).map_err(|e: String| ProviderError::ExecuteFailed(e.to_string()))
+    }
+
+    /// Saasservicemgmt projects locations units list.
+    ///
+    /// Read-only operation - no state tracking.
+    ///
+    /// # Arguments
+    ///
+    /// * `args` - Request arguments
+    ///
+    /// # Returns
+    ///
+    /// StreamIterator yielding the ListUnitsResponse result.
+    ///
+    /// # Errors
+    ///
+    /// Returns ProviderError if the API request fails.
+    pub fn saasservicemgmt_projects_locations_units_list(
+        &self,
+        args: &SaasservicemgmtProjectsLocationsUnitsListArgs,
+    ) -> Result<
+        impl StreamIterator<
+            D = Result<ListUnitsResponse, ProviderError<ApiError>>,
+            P = crate::providers::gcp::clients::types::ApiPending,
+        > + Send
+        + 'static,
+        ProviderError<ApiError>,
+    > {
+        let builder = saasservicemgmt_projects_locations_units_list_builder(
+            &self.http_client,
+            &args.parent,
+            &args.filter,
+            &args.orderBy,
+            &args.pageSize,
+            &args.pageToken,
+        )
+        .map_err(ProviderError::Api)?;
+
+        let task = saasservicemgmt_projects_locations_units_list_task(builder)
+            .map_err(ProviderError::Api)?;
+
+        execute(task, None).map_err(|e: String| ProviderError::ExecuteFailed(e.to_string()))
     }
 
     /// Saasservicemgmt projects locations units patch.

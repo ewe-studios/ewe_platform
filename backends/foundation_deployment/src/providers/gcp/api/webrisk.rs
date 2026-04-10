@@ -12,16 +12,31 @@
 #![cfg(feature = "gcp")]
 
 use crate::providers::gcp::clients::webrisk::{
+    webrisk_hashes_search_builder, webrisk_hashes_search_task,
     webrisk_projects_operations_cancel_builder, webrisk_projects_operations_cancel_task,
     webrisk_projects_operations_delete_builder, webrisk_projects_operations_delete_task,
+    webrisk_projects_operations_get_builder, webrisk_projects_operations_get_task,
+    webrisk_projects_operations_list_builder, webrisk_projects_operations_list_task,
     webrisk_projects_submissions_create_builder, webrisk_projects_submissions_create_task,
+    webrisk_threat_lists_compute_diff_builder, webrisk_threat_lists_compute_diff_task,
+    webrisk_uris_search_builder, webrisk_uris_search_task,
 };
 use crate::providers::gcp::clients::types::{ApiError, ApiPending};
+use crate::providers::gcp::clients::webrisk::GoogleCloudWebriskV1ComputeThreatListDiffResponse;
+use crate::providers::gcp::clients::webrisk::GoogleCloudWebriskV1SearchHashesResponse;
+use crate::providers::gcp::clients::webrisk::GoogleCloudWebriskV1SearchUrisResponse;
 use crate::providers::gcp::clients::webrisk::GoogleCloudWebriskV1Submission;
+use crate::providers::gcp::clients::webrisk::GoogleLongrunningListOperationsResponse;
+use crate::providers::gcp::clients::webrisk::GoogleLongrunningOperation;
 use crate::providers::gcp::clients::webrisk::GoogleProtobufEmpty;
+use crate::providers::gcp::clients::webrisk::WebriskHashesSearchArgs;
 use crate::providers::gcp::clients::webrisk::WebriskProjectsOperationsCancelArgs;
 use crate::providers::gcp::clients::webrisk::WebriskProjectsOperationsDeleteArgs;
+use crate::providers::gcp::clients::webrisk::WebriskProjectsOperationsGetArgs;
+use crate::providers::gcp::clients::webrisk::WebriskProjectsOperationsListArgs;
 use crate::providers::gcp::clients::webrisk::WebriskProjectsSubmissionsCreateArgs;
+use crate::providers::gcp::clients::webrisk::WebriskThreatListsComputeDiffArgs;
+use crate::providers::gcp::clients::webrisk::WebriskUrisSearchArgs;
 use crate::provider_client::{ProviderClient, ProviderError};
 use foundation_core::valtron::{execute, StreamIterator};
 use foundation_core::wire::simple_http::client::SimpleHttpClient;
@@ -61,6 +76,45 @@ where
             client,
             http_client: Arc::new(http_client),
         }
+    }
+
+    /// Webrisk hashes search.
+    ///
+    /// Read-only operation - no state tracking.
+    ///
+    /// # Arguments
+    ///
+    /// * `args` - Request arguments
+    ///
+    /// # Returns
+    ///
+    /// StreamIterator yielding the GoogleCloudWebriskV1SearchHashesResponse result.
+    ///
+    /// # Errors
+    ///
+    /// Returns ProviderError if the API request fails.
+    pub fn webrisk_hashes_search(
+        &self,
+        args: &WebriskHashesSearchArgs,
+    ) -> Result<
+        impl StreamIterator<
+            D = Result<GoogleCloudWebriskV1SearchHashesResponse, ProviderError<ApiError>>,
+            P = crate::providers::gcp::clients::types::ApiPending,
+        > + Send
+        + 'static,
+        ProviderError<ApiError>,
+    > {
+        let builder = webrisk_hashes_search_builder(
+            &self.http_client,
+            &args.hashPrefix,
+            &args.threatTypes,
+        )
+        .map_err(ProviderError::Api)?;
+
+        let task = webrisk_hashes_search_task(builder)
+            .map_err(ProviderError::Api)?;
+
+        execute(task, None).map_err(|e: String| ProviderError::ExecuteFailed(e.to_string()))
     }
 
     /// Webrisk projects operations cancel.
@@ -149,6 +203,86 @@ where
         execute(store_task, None).map_err(|e: String| ProviderError::ExecuteFailed(e.to_string()))
     }
 
+    /// Webrisk projects operations get.
+    ///
+    /// Read-only operation - no state tracking.
+    ///
+    /// # Arguments
+    ///
+    /// * `args` - Request arguments
+    ///
+    /// # Returns
+    ///
+    /// StreamIterator yielding the GoogleLongrunningOperation result.
+    ///
+    /// # Errors
+    ///
+    /// Returns ProviderError if the API request fails.
+    pub fn webrisk_projects_operations_get(
+        &self,
+        args: &WebriskProjectsOperationsGetArgs,
+    ) -> Result<
+        impl StreamIterator<
+            D = Result<GoogleLongrunningOperation, ProviderError<ApiError>>,
+            P = crate::providers::gcp::clients::types::ApiPending,
+        > + Send
+        + 'static,
+        ProviderError<ApiError>,
+    > {
+        let builder = webrisk_projects_operations_get_builder(
+            &self.http_client,
+            &args.name,
+        )
+        .map_err(ProviderError::Api)?;
+
+        let task = webrisk_projects_operations_get_task(builder)
+            .map_err(ProviderError::Api)?;
+
+        execute(task, None).map_err(|e: String| ProviderError::ExecuteFailed(e.to_string()))
+    }
+
+    /// Webrisk projects operations list.
+    ///
+    /// Read-only operation - no state tracking.
+    ///
+    /// # Arguments
+    ///
+    /// * `args` - Request arguments
+    ///
+    /// # Returns
+    ///
+    /// StreamIterator yielding the GoogleLongrunningListOperationsResponse result.
+    ///
+    /// # Errors
+    ///
+    /// Returns ProviderError if the API request fails.
+    pub fn webrisk_projects_operations_list(
+        &self,
+        args: &WebriskProjectsOperationsListArgs,
+    ) -> Result<
+        impl StreamIterator<
+            D = Result<GoogleLongrunningListOperationsResponse, ProviderError<ApiError>>,
+            P = crate::providers::gcp::clients::types::ApiPending,
+        > + Send
+        + 'static,
+        ProviderError<ApiError>,
+    > {
+        let builder = webrisk_projects_operations_list_builder(
+            &self.http_client,
+            &args.name,
+            &args.filter,
+            &args.pageSize,
+            &args.pageToken,
+            &args.returnPartialSuccess,
+        )
+        .map_err(ProviderError::Api)?;
+
+        let task = webrisk_projects_operations_list_task(builder)
+            .map_err(ProviderError::Api)?;
+
+        execute(task, None).map_err(|e: String| ProviderError::ExecuteFailed(e.to_string()))
+    }
+
     /// Webrisk projects submissions create.
     ///
     /// Automatically stores the result in the state store on success.
@@ -190,6 +324,87 @@ where
         let store_task = StoreStateIdentifierTask::new(task, state_store, args, stage);
 
         execute(store_task, None).map_err(|e: String| ProviderError::ExecuteFailed(e.to_string()))
+    }
+
+    /// Webrisk threat lists compute diff.
+    ///
+    /// Read-only operation - no state tracking.
+    ///
+    /// # Arguments
+    ///
+    /// * `args` - Request arguments
+    ///
+    /// # Returns
+    ///
+    /// StreamIterator yielding the GoogleCloudWebriskV1ComputeThreatListDiffResponse result.
+    ///
+    /// # Errors
+    ///
+    /// Returns ProviderError if the API request fails.
+    pub fn webrisk_threat_lists_compute_diff(
+        &self,
+        args: &WebriskThreatListsComputeDiffArgs,
+    ) -> Result<
+        impl StreamIterator<
+            D = Result<GoogleCloudWebriskV1ComputeThreatListDiffResponse, ProviderError<ApiError>>,
+            P = crate::providers::gcp::clients::types::ApiPending,
+        > + Send
+        + 'static,
+        ProviderError<ApiError>,
+    > {
+        let builder = webrisk_threat_lists_compute_diff_builder(
+            &self.http_client,
+            &args.constraints.maxDatabaseEntries,
+            &args.constraints.maxDiffEntries,
+            &args.constraints.supportedCompressions,
+            &args.threatType,
+            &args.versionToken,
+        )
+        .map_err(ProviderError::Api)?;
+
+        let task = webrisk_threat_lists_compute_diff_task(builder)
+            .map_err(ProviderError::Api)?;
+
+        execute(task, None).map_err(|e: String| ProviderError::ExecuteFailed(e.to_string()))
+    }
+
+    /// Webrisk uris search.
+    ///
+    /// Read-only operation - no state tracking.
+    ///
+    /// # Arguments
+    ///
+    /// * `args` - Request arguments
+    ///
+    /// # Returns
+    ///
+    /// StreamIterator yielding the GoogleCloudWebriskV1SearchUrisResponse result.
+    ///
+    /// # Errors
+    ///
+    /// Returns ProviderError if the API request fails.
+    pub fn webrisk_uris_search(
+        &self,
+        args: &WebriskUrisSearchArgs,
+    ) -> Result<
+        impl StreamIterator<
+            D = Result<GoogleCloudWebriskV1SearchUrisResponse, ProviderError<ApiError>>,
+            P = crate::providers::gcp::clients::types::ApiPending,
+        > + Send
+        + 'static,
+        ProviderError<ApiError>,
+    > {
+        let builder = webrisk_uris_search_builder(
+            &self.http_client,
+            &args.threatTypes,
+            &args.uri,
+        )
+        .map_err(ProviderError::Api)?;
+
+        let task = webrisk_uris_search_task(builder)
+            .map_err(ProviderError::Api)?;
+
+        execute(task, None).map_err(|e: String| ProviderError::ExecuteFailed(e.to_string()))
     }
 
 }

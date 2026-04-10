@@ -7,7 +7,6 @@
 
 #![cfg(feature = "gcp")]
 
-
 use crate::providers::gcp::clients::types::*;
 use crate::providers::gcp::resources::*;
 use foundation_core::valtron::{
@@ -17,10 +16,3167 @@ use foundation_core::valtron::{
 use foundation_core::wire::simple_http::client::{
     body_reader, ClientRequestBuilder, RequestIntro, SimpleHttpClient, SystemDnsResolver,
 };
+use foundation_db::state::resource_identifier::ResourceIdentifier;
 use foundation_macros::JsonHash;
 use serde::Serialize;
 
-/// GET v1/audienceMembers:ingest
+/// POST v1/accountTypes/{accountTypesId}/accounts/{accountsId}/insights:retrieve
+/// Retrieves marketing data insights for a given user list. This feature is only available to data partners. Authorization Headers: This method supports the following optional headers to define how the API authorizes access for the request: * login-account: (Optional) The resource name of the account where the Google Account of the credentials is a user. If not set, defaults to the account of the request. Format: accountT`ypes/{`loginAccountType`}/accounts/{`loginAccountId`}` * linked-account: (Optional) The resource name of the account with an established product link to the login-account. Format: accountT`ypes/{`linkedAccountType`}/accounts/{`linkedAccountId`}`
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `datamanager_account_types_accounts_insights_retrieve_execute()` to send, or `datamanager_account_types_accounts_insights_retrieve` for simplest API.
+
+pub fn datamanager_account_types_accounts_insights_retrieve_builder(
+    client: &SimpleHttpClient,
+    parent: &String,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!(
+        "https://datamanager.googleapis.com/v1/accountTypes/{}/accounts/{accountsId}/insights:retrieve",
+        parent,
+    );
+
+    // Build request
+    let builder = client
+        .post(&endpoint_url)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// POST v1/accountTypes/{accountTypesId}/accounts/{accountsId}/insights:retrieve
+/// Retrieves marketing data insights for a given user list. This feature is only available to data partners. Authorization Headers: This method supports the following optional headers to define how the API authorizes access for the request: * login-account: (Optional) The resource name of the account where the Google Account of the credentials is a user. If not set, defaults to the account of the request. Format: accountT`ypes/{`loginAccountType`}/accounts/{`loginAccountId`}` * linked-account: (Optional) The resource name of the account with an established product link to the login-account. Format: accountT`ypes/{`linkedAccountType`}/accounts/{`linkedAccountId`}`
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `datamanager_account_types_accounts_insights_retrieve_execute()` or `datamanager_account_types_accounts_insights_retrieve`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `datamanager_account_types_accounts_insights_retrieve_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn datamanager_account_types_accounts_insights_retrieve_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<RetrieveInsightsResponse>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: RetrieveInsightsResponse = serde_json::from_str(&body)
+                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// POST v1/accountTypes/{accountTypesId}/accounts/{accountsId}/insights:retrieve
+/// Retrieves marketing data insights for a given user list. This feature is only available to data partners. Authorization Headers: This method supports the following optional headers to define how the API authorizes access for the request: * login-account: (Optional) The resource name of the account where the Google Account of the credentials is a user. If not set, defaults to the account of the request. Format: accountT`ypes/{`loginAccountType`}/accounts/{`loginAccountId`}` * linked-account: (Optional) The resource name of the account with an established product link to the login-account. Format: accountT`ypes/{`linkedAccountType`}/accounts/{`linkedAccountId`}`
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `datamanager_account_types_accounts_insights_retrieve_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `datamanager_account_types_accounts_insights_retrieve_task()`.
+/// For the simplest API, use `datamanager_account_types_accounts_insights_retrieve()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `datamanager_account_types_accounts_insights_retrieve_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn datamanager_account_types_accounts_insights_retrieve_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<RetrieveInsightsResponse>, ApiError>, P = ApiPending>
+        + Send
+        + 'static,
+    ApiError,
+> {
+    let task = datamanager_account_types_accounts_insights_retrieve_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`datamanager_account_types_accounts_insights_retrieve`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct DatamanagerAccountTypesAccountsInsightsRetrieveArgs {
+    /// Path parameter: parent
+    pub parent: String,
+}
+
+/// POST v1/accountTypes/{accountTypesId}/accounts/{accountsId}/insights:retrieve
+/// Retrieves marketing data insights for a given user list. This feature is only available to data partners. Authorization Headers: This method supports the following optional headers to define how the API authorizes access for the request: * login-account: (Optional) The resource name of the account where the Google Account of the credentials is a user. If not set, defaults to the account of the request. Format: accountT`ypes/{`loginAccountType`}/accounts/{`loginAccountId`}` * linked-account: (Optional) The resource name of the account with an established product link to the login-account. Format: accountT`ypes/{`linkedAccountType`}/accounts/{`linkedAccountId`}`
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `datamanager_account_types_accounts_insights_retrieve_builder()` + `datamanager_account_types_accounts_insights_retrieve_execute()`.
+/// For task-level control, use `datamanager_account_types_accounts_insights_retrieve_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn datamanager_account_types_accounts_insights_retrieve(
+    client: &SimpleHttpClient,
+    args: &DatamanagerAccountTypesAccountsInsightsRetrieveArgs,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<RetrieveInsightsResponse>, ApiError>, P = ApiPending>
+        + Send
+        + 'static,
+    ApiError,
+> {
+    let builder =
+        datamanager_account_types_accounts_insights_retrieve_builder(client, &args.parent)?;
+    datamanager_account_types_accounts_insights_retrieve_execute(builder)
+}
+
+/// POST v1/accountTypes/{accountTypesId}/accounts/{accountsId}/partnerLinks
+/// Creates a partner link for the given account. Authorization Headers: This method supports the following optional headers to define how the API authorizes access for the request: * login-account: (Optional) The resource name of the account where the Google Account of the credentials is a user. If not set, defaults to the account of the request. Format: accountT`ypes/{`loginAccountType`}/accounts/{`loginAccountId`}`
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `datamanager_account_types_accounts_partner_links_create_execute()` to send, or `datamanager_account_types_accounts_partner_links_create` for simplest API.
+
+pub fn datamanager_account_types_accounts_partner_links_create_builder(
+    client: &SimpleHttpClient,
+    parent: &String,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!(
+        "https://datamanager.googleapis.com/v1/accountTypes/{}/accounts/{accountsId}/partnerLinks",
+        parent,
+    );
+
+    // Build request
+    let builder = client
+        .post(&endpoint_url)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// POST v1/accountTypes/{accountTypesId}/accounts/{accountsId}/partnerLinks
+/// Creates a partner link for the given account. Authorization Headers: This method supports the following optional headers to define how the API authorizes access for the request: * login-account: (Optional) The resource name of the account where the Google Account of the credentials is a user. If not set, defaults to the account of the request. Format: accountT`ypes/{`loginAccountType`}/accounts/{`loginAccountId`}`
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `datamanager_account_types_accounts_partner_links_create_execute()` or `datamanager_account_types_accounts_partner_links_create`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `datamanager_account_types_accounts_partner_links_create_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn datamanager_account_types_accounts_partner_links_create_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<PartnerLink>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: PartnerLink = serde_json::from_str(&body)
+                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// POST v1/accountTypes/{accountTypesId}/accounts/{accountsId}/partnerLinks
+/// Creates a partner link for the given account. Authorization Headers: This method supports the following optional headers to define how the API authorizes access for the request: * login-account: (Optional) The resource name of the account where the Google Account of the credentials is a user. If not set, defaults to the account of the request. Format: accountT`ypes/{`loginAccountType`}/accounts/{`loginAccountId`}`
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `datamanager_account_types_accounts_partner_links_create_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `datamanager_account_types_accounts_partner_links_create_task()`.
+/// For the simplest API, use `datamanager_account_types_accounts_partner_links_create()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `datamanager_account_types_accounts_partner_links_create_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn datamanager_account_types_accounts_partner_links_create_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<PartnerLink>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let task = datamanager_account_types_accounts_partner_links_create_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`datamanager_account_types_accounts_partner_links_create`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct DatamanagerAccountTypesAccountsPartnerLinksCreateArgs {
+    /// Path parameter: parent
+    pub parent: String,
+}
+
+/// POST v1/accountTypes/{accountTypesId}/accounts/{accountsId}/partnerLinks
+/// Creates a partner link for the given account. Authorization Headers: This method supports the following optional headers to define how the API authorizes access for the request: * login-account: (Optional) The resource name of the account where the Google Account of the credentials is a user. If not set, defaults to the account of the request. Format: accountT`ypes/{`loginAccountType`}/accounts/{`loginAccountId`}`
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `datamanager_account_types_accounts_partner_links_create_builder()` + `datamanager_account_types_accounts_partner_links_create_execute()`.
+/// For task-level control, use `datamanager_account_types_accounts_partner_links_create_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn datamanager_account_types_accounts_partner_links_create(
+    client: &SimpleHttpClient,
+    args: &DatamanagerAccountTypesAccountsPartnerLinksCreateArgs,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<PartnerLink>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let builder =
+        datamanager_account_types_accounts_partner_links_create_builder(client, &args.parent)?;
+    datamanager_account_types_accounts_partner_links_create_execute(builder)
+}
+
+/// DELETE v1/accountTypes/{accountTypesId}/accounts/{accountsId}/partnerLinks/{partnerLinksId}
+/// Deletes a partner link for the given account. Authorization Headers: This method supports the following optional headers to define how the API authorizes access for the request: * login-account: (Optional) The resource name of the account where the Google Account of the credentials is a user. If not set, defaults to the account of the request. Format: accountT`ypes/{`loginAccountType`}/accounts/{`loginAccountId`}`
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `datamanager_account_types_accounts_partner_links_delete_execute()` to send, or `datamanager_account_types_accounts_partner_links_delete` for simplest API.
+
+pub fn datamanager_account_types_accounts_partner_links_delete_builder(
+    client: &SimpleHttpClient,
+    name: &String,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!(
+        "https://datamanager.googleapis.com/v1/accountTypes/{}/accounts/{accountsId}/partnerLinks/{partnerLinksId}",
+        name,
+    );
+
+    // Build request
+    let builder = client
+        .delete(&endpoint_url)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// DELETE v1/accountTypes/{accountTypesId}/accounts/{accountsId}/partnerLinks/{partnerLinksId}
+/// Deletes a partner link for the given account. Authorization Headers: This method supports the following optional headers to define how the API authorizes access for the request: * login-account: (Optional) The resource name of the account where the Google Account of the credentials is a user. If not set, defaults to the account of the request. Format: accountT`ypes/{`loginAccountType`}/accounts/{`loginAccountId`}`
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `datamanager_account_types_accounts_partner_links_delete_execute()` or `datamanager_account_types_accounts_partner_links_delete`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `datamanager_account_types_accounts_partner_links_delete_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn datamanager_account_types_accounts_partner_links_delete_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<Empty>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: Empty = serde_json::from_str(&body)
+                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// DELETE v1/accountTypes/{accountTypesId}/accounts/{accountsId}/partnerLinks/{partnerLinksId}
+/// Deletes a partner link for the given account. Authorization Headers: This method supports the following optional headers to define how the API authorizes access for the request: * login-account: (Optional) The resource name of the account where the Google Account of the credentials is a user. If not set, defaults to the account of the request. Format: accountT`ypes/{`loginAccountType`}/accounts/{`loginAccountId`}`
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `datamanager_account_types_accounts_partner_links_delete_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `datamanager_account_types_accounts_partner_links_delete_task()`.
+/// For the simplest API, use `datamanager_account_types_accounts_partner_links_delete()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `datamanager_account_types_accounts_partner_links_delete_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn datamanager_account_types_accounts_partner_links_delete_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<Empty>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let task = datamanager_account_types_accounts_partner_links_delete_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`datamanager_account_types_accounts_partner_links_delete`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct DatamanagerAccountTypesAccountsPartnerLinksDeleteArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
+/// DELETE v1/accountTypes/{accountTypesId}/accounts/{accountsId}/partnerLinks/{partnerLinksId}
+/// Deletes a partner link for the given account. Authorization Headers: This method supports the following optional headers to define how the API authorizes access for the request: * login-account: (Optional) The resource name of the account where the Google Account of the credentials is a user. If not set, defaults to the account of the request. Format: accountT`ypes/{`loginAccountType`}/accounts/{`loginAccountId`}`
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `datamanager_account_types_accounts_partner_links_delete_builder()` + `datamanager_account_types_accounts_partner_links_delete_execute()`.
+/// For task-level control, use `datamanager_account_types_accounts_partner_links_delete_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn datamanager_account_types_accounts_partner_links_delete(
+    client: &SimpleHttpClient,
+    args: &DatamanagerAccountTypesAccountsPartnerLinksDeleteArgs,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<Empty>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let builder =
+        datamanager_account_types_accounts_partner_links_delete_builder(client, &args.name)?;
+    datamanager_account_types_accounts_partner_links_delete_execute(builder)
+}
+
+/// GET v1/accountTypes/{accountTypesId}/accounts/{accountsId}/partnerLinks:search
+/// Searches for all partner links to and from a given account. Authorization Headers: This method supports the following optional headers to define how the API authorizes access for the request: * login-account: (Optional) The resource name of the account where the Google Account of the credentials is a user. If not set, defaults to the account of the request. Format: accountT`ypes/{`loginAccountType`}/accounts/{`loginAccountId`}`
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `datamanager_account_types_accounts_partner_links_search_execute()` to send, or `datamanager_account_types_accounts_partner_links_search` for simplest API.
+
+pub fn datamanager_account_types_accounts_partner_links_search_builder(
+    client: &SimpleHttpClient,
+    parent: &String,
+    filter: &Option<Option<String>>,
+    pageSize: &Option<Option<String>>,
+    pageToken: &Option<Option<String>>,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!(
+        "https://datamanager.googleapis.com/v1/accountTypes/{}/accounts/{accountsId}/partnerLinks:search",
+        parent,
+    );
+
+    // Build request
+    let mut query_parts = Vec::new();
+    if let Some(val) = filter.as_ref() {
+        query_parts.push(format!("filter={}", val));
+    }
+    if let Some(val) = pageSize.as_ref() {
+        query_parts.push(format!("pageSize={}", val));
+    }
+    if let Some(val) = pageToken.as_ref() {
+        query_parts.push(format!("pageToken={}", val));
+    }
+
+    let url_with_query = if query_parts.is_empty() {
+        endpoint_url
+    } else {
+        format!("{}?{}", endpoint_url, query_parts.join("&"))
+    };
+
+    let builder = client
+        .get(&url_with_query)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// GET v1/accountTypes/{accountTypesId}/accounts/{accountsId}/partnerLinks:search
+/// Searches for all partner links to and from a given account. Authorization Headers: This method supports the following optional headers to define how the API authorizes access for the request: * login-account: (Optional) The resource name of the account where the Google Account of the credentials is a user. If not set, defaults to the account of the request. Format: accountT`ypes/{`loginAccountType`}/accounts/{`loginAccountId`}`
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `datamanager_account_types_accounts_partner_links_search_execute()` or `datamanager_account_types_accounts_partner_links_search`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `datamanager_account_types_accounts_partner_links_search_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn datamanager_account_types_accounts_partner_links_search_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<SearchPartnerLinksResponse>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: SearchPartnerLinksResponse = serde_json::from_str(&body)
+                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// GET v1/accountTypes/{accountTypesId}/accounts/{accountsId}/partnerLinks:search
+/// Searches for all partner links to and from a given account. Authorization Headers: This method supports the following optional headers to define how the API authorizes access for the request: * login-account: (Optional) The resource name of the account where the Google Account of the credentials is a user. If not set, defaults to the account of the request. Format: accountT`ypes/{`loginAccountType`}/accounts/{`loginAccountId`}`
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `datamanager_account_types_accounts_partner_links_search_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `datamanager_account_types_accounts_partner_links_search_task()`.
+/// For the simplest API, use `datamanager_account_types_accounts_partner_links_search()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `datamanager_account_types_accounts_partner_links_search_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn datamanager_account_types_accounts_partner_links_search_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<
+            D = Result<ApiResponse<SearchPartnerLinksResponse>, ApiError>,
+            P = ApiPending,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    let task = datamanager_account_types_accounts_partner_links_search_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`datamanager_account_types_accounts_partner_links_search`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct DatamanagerAccountTypesAccountsPartnerLinksSearchArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Query parameter: filter
+    pub filter: Option<Option<String>>,
+    /// Query parameter: pageSize
+    pub pageSize: Option<Option<String>>,
+    /// Query parameter: pageToken
+    pub pageToken: Option<Option<String>>,
+}
+
+/// GET v1/accountTypes/{accountTypesId}/accounts/{accountsId}/partnerLinks:search
+/// Searches for all partner links to and from a given account. Authorization Headers: This method supports the following optional headers to define how the API authorizes access for the request: * login-account: (Optional) The resource name of the account where the Google Account of the credentials is a user. If not set, defaults to the account of the request. Format: accountT`ypes/{`loginAccountType`}/accounts/{`loginAccountId`}`
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `datamanager_account_types_accounts_partner_links_search_builder()` + `datamanager_account_types_accounts_partner_links_search_execute()`.
+/// For task-level control, use `datamanager_account_types_accounts_partner_links_search_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn datamanager_account_types_accounts_partner_links_search(
+    client: &SimpleHttpClient,
+    args: &DatamanagerAccountTypesAccountsPartnerLinksSearchArgs,
+) -> Result<
+    impl StreamIterator<
+            D = Result<ApiResponse<SearchPartnerLinksResponse>, ApiError>,
+            P = ApiPending,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    let builder = datamanager_account_types_accounts_partner_links_search_builder(
+        client,
+        &args.parent,
+        &args.filter,
+        &args.pageSize,
+        &args.pageToken,
+    )?;
+    datamanager_account_types_accounts_partner_links_search_execute(builder)
+}
+
+/// POST v1/accountTypes/{accountTypesId}/accounts/{accountsId}/userListDirectLicenses
+/// Creates a user list direct license. This feature is only available to data partners.
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `datamanager_account_types_accounts_user_list_direct_licenses_create_execute()` to send, or `datamanager_account_types_accounts_user_list_direct_licenses_create` for simplest API.
+
+pub fn datamanager_account_types_accounts_user_list_direct_licenses_create_builder(
+    client: &SimpleHttpClient,
+    parent: &String,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!(
+        "https://datamanager.googleapis.com/v1/accountTypes/{}/accounts/{accountsId}/userListDirectLicenses",
+        parent,
+    );
+
+    // Build request
+    let builder = client
+        .post(&endpoint_url)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// POST v1/accountTypes/{accountTypesId}/accounts/{accountsId}/userListDirectLicenses
+/// Creates a user list direct license. This feature is only available to data partners.
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `datamanager_account_types_accounts_user_list_direct_licenses_create_execute()` or `datamanager_account_types_accounts_user_list_direct_licenses_create`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `datamanager_account_types_accounts_user_list_direct_licenses_create_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn datamanager_account_types_accounts_user_list_direct_licenses_create_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<UserListDirectLicense>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: UserListDirectLicense = serde_json::from_str(&body)
+                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// POST v1/accountTypes/{accountTypesId}/accounts/{accountsId}/userListDirectLicenses
+/// Creates a user list direct license. This feature is only available to data partners.
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `datamanager_account_types_accounts_user_list_direct_licenses_create_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `datamanager_account_types_accounts_user_list_direct_licenses_create_task()`.
+/// For the simplest API, use `datamanager_account_types_accounts_user_list_direct_licenses_create()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `datamanager_account_types_accounts_user_list_direct_licenses_create_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn datamanager_account_types_accounts_user_list_direct_licenses_create_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<UserListDirectLicense>, ApiError>, P = ApiPending>
+        + Send
+        + 'static,
+    ApiError,
+> {
+    let task = datamanager_account_types_accounts_user_list_direct_licenses_create_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`datamanager_account_types_accounts_user_list_direct_licenses_create`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct DatamanagerAccountTypesAccountsUserListDirectLicensesCreateArgs {
+    /// Path parameter: parent
+    pub parent: String,
+}
+
+/// POST v1/accountTypes/{accountTypesId}/accounts/{accountsId}/userListDirectLicenses
+/// Creates a user list direct license. This feature is only available to data partners.
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `datamanager_account_types_accounts_user_list_direct_licenses_create_builder()` + `datamanager_account_types_accounts_user_list_direct_licenses_create_execute()`.
+/// For task-level control, use `datamanager_account_types_accounts_user_list_direct_licenses_create_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn datamanager_account_types_accounts_user_list_direct_licenses_create(
+    client: &SimpleHttpClient,
+    args: &DatamanagerAccountTypesAccountsUserListDirectLicensesCreateArgs,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<UserListDirectLicense>, ApiError>, P = ApiPending>
+        + Send
+        + 'static,
+    ApiError,
+> {
+    let builder = datamanager_account_types_accounts_user_list_direct_licenses_create_builder(
+        client,
+        &args.parent,
+    )?;
+    datamanager_account_types_accounts_user_list_direct_licenses_create_execute(builder)
+}
+
+/// GET v1/accountTypes/{accountTypesId}/accounts/{accountsId}/userListDirectLicenses/{userListDirectLicensesId}
+/// Retrieves a user list direct license. This feature is only available to data partners.
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `datamanager_account_types_accounts_user_list_direct_licenses_get_execute()` to send, or `datamanager_account_types_accounts_user_list_direct_licenses_get` for simplest API.
+
+pub fn datamanager_account_types_accounts_user_list_direct_licenses_get_builder(
+    client: &SimpleHttpClient,
+    name: &String,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!(
+        "https://datamanager.googleapis.com/v1/accountTypes/{}/accounts/{accountsId}/userListDirectLicenses/{userListDirectLicensesId}",
+        name,
+    );
+
+    // Build request
+    let builder = client
+        .get(&endpoint_url)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// GET v1/accountTypes/{accountTypesId}/accounts/{accountsId}/userListDirectLicenses/{userListDirectLicensesId}
+/// Retrieves a user list direct license. This feature is only available to data partners.
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `datamanager_account_types_accounts_user_list_direct_licenses_get_execute()` or `datamanager_account_types_accounts_user_list_direct_licenses_get`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `datamanager_account_types_accounts_user_list_direct_licenses_get_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn datamanager_account_types_accounts_user_list_direct_licenses_get_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<UserListDirectLicense>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: UserListDirectLicense = serde_json::from_str(&body)
+                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// GET v1/accountTypes/{accountTypesId}/accounts/{accountsId}/userListDirectLicenses/{userListDirectLicensesId}
+/// Retrieves a user list direct license. This feature is only available to data partners.
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `datamanager_account_types_accounts_user_list_direct_licenses_get_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `datamanager_account_types_accounts_user_list_direct_licenses_get_task()`.
+/// For the simplest API, use `datamanager_account_types_accounts_user_list_direct_licenses_get()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `datamanager_account_types_accounts_user_list_direct_licenses_get_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn datamanager_account_types_accounts_user_list_direct_licenses_get_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<UserListDirectLicense>, ApiError>, P = ApiPending>
+        + Send
+        + 'static,
+    ApiError,
+> {
+    let task = datamanager_account_types_accounts_user_list_direct_licenses_get_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`datamanager_account_types_accounts_user_list_direct_licenses_get`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct DatamanagerAccountTypesAccountsUserListDirectLicensesGetArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
+/// GET v1/accountTypes/{accountTypesId}/accounts/{accountsId}/userListDirectLicenses/{userListDirectLicensesId}
+/// Retrieves a user list direct license. This feature is only available to data partners.
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `datamanager_account_types_accounts_user_list_direct_licenses_get_builder()` + `datamanager_account_types_accounts_user_list_direct_licenses_get_execute()`.
+/// For task-level control, use `datamanager_account_types_accounts_user_list_direct_licenses_get_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn datamanager_account_types_accounts_user_list_direct_licenses_get(
+    client: &SimpleHttpClient,
+    args: &DatamanagerAccountTypesAccountsUserListDirectLicensesGetArgs,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<UserListDirectLicense>, ApiError>, P = ApiPending>
+        + Send
+        + 'static,
+    ApiError,
+> {
+    let builder = datamanager_account_types_accounts_user_list_direct_licenses_get_builder(
+        client, &args.name,
+    )?;
+    datamanager_account_types_accounts_user_list_direct_licenses_get_execute(builder)
+}
+
+/// GET v1/accountTypes/{accountTypesId}/accounts/{accountsId}/userListDirectLicenses
+/// Lists all user list direct licenses owned by the parent account. This feature is only available to data partners.
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `datamanager_account_types_accounts_user_list_direct_licenses_list_execute()` to send, or `datamanager_account_types_accounts_user_list_direct_licenses_list` for simplest API.
+
+pub fn datamanager_account_types_accounts_user_list_direct_licenses_list_builder(
+    client: &SimpleHttpClient,
+    parent: &String,
+    filter: &Option<Option<String>>,
+    pageSize: &Option<Option<String>>,
+    pageToken: &Option<Option<String>>,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!(
+        "https://datamanager.googleapis.com/v1/accountTypes/{}/accounts/{accountsId}/userListDirectLicenses",
+        parent,
+    );
+
+    // Build request
+    let mut query_parts = Vec::new();
+    if let Some(val) = filter.as_ref() {
+        query_parts.push(format!("filter={}", val));
+    }
+    if let Some(val) = pageSize.as_ref() {
+        query_parts.push(format!("pageSize={}", val));
+    }
+    if let Some(val) = pageToken.as_ref() {
+        query_parts.push(format!("pageToken={}", val));
+    }
+
+    let url_with_query = if query_parts.is_empty() {
+        endpoint_url
+    } else {
+        format!("{}?{}", endpoint_url, query_parts.join("&"))
+    };
+
+    let builder = client
+        .get(&url_with_query)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// GET v1/accountTypes/{accountTypesId}/accounts/{accountsId}/userListDirectLicenses
+/// Lists all user list direct licenses owned by the parent account. This feature is only available to data partners.
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `datamanager_account_types_accounts_user_list_direct_licenses_list_execute()` or `datamanager_account_types_accounts_user_list_direct_licenses_list`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `datamanager_account_types_accounts_user_list_direct_licenses_list_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn datamanager_account_types_accounts_user_list_direct_licenses_list_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<ListUserListDirectLicensesResponse>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: ListUserListDirectLicensesResponse = serde_json::from_str(&body)
+                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// GET v1/accountTypes/{accountTypesId}/accounts/{accountsId}/userListDirectLicenses
+/// Lists all user list direct licenses owned by the parent account. This feature is only available to data partners.
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `datamanager_account_types_accounts_user_list_direct_licenses_list_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `datamanager_account_types_accounts_user_list_direct_licenses_list_task()`.
+/// For the simplest API, use `datamanager_account_types_accounts_user_list_direct_licenses_list()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `datamanager_account_types_accounts_user_list_direct_licenses_list_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn datamanager_account_types_accounts_user_list_direct_licenses_list_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<
+            D = Result<ApiResponse<ListUserListDirectLicensesResponse>, ApiError>,
+            P = ApiPending,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    let task = datamanager_account_types_accounts_user_list_direct_licenses_list_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`datamanager_account_types_accounts_user_list_direct_licenses_list`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct DatamanagerAccountTypesAccountsUserListDirectLicensesListArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Query parameter: filter
+    pub filter: Option<Option<String>>,
+    /// Query parameter: pageSize
+    pub pageSize: Option<Option<String>>,
+    /// Query parameter: pageToken
+    pub pageToken: Option<Option<String>>,
+}
+
+/// GET v1/accountTypes/{accountTypesId}/accounts/{accountsId}/userListDirectLicenses
+/// Lists all user list direct licenses owned by the parent account. This feature is only available to data partners.
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `datamanager_account_types_accounts_user_list_direct_licenses_list_builder()` + `datamanager_account_types_accounts_user_list_direct_licenses_list_execute()`.
+/// For task-level control, use `datamanager_account_types_accounts_user_list_direct_licenses_list_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn datamanager_account_types_accounts_user_list_direct_licenses_list(
+    client: &SimpleHttpClient,
+    args: &DatamanagerAccountTypesAccountsUserListDirectLicensesListArgs,
+) -> Result<
+    impl StreamIterator<
+            D = Result<ApiResponse<ListUserListDirectLicensesResponse>, ApiError>,
+            P = ApiPending,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    let builder = datamanager_account_types_accounts_user_list_direct_licenses_list_builder(
+        client,
+        &args.parent,
+        &args.filter,
+        &args.pageSize,
+        &args.pageToken,
+    )?;
+    datamanager_account_types_accounts_user_list_direct_licenses_list_execute(builder)
+}
+
+/// PATCH v1/accountTypes/{accountTypesId}/accounts/{accountsId}/userListDirectLicenses/{userListDirectLicensesId}
+/// Updates a user list direct license. This feature is only available to data partners.
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `datamanager_account_types_accounts_user_list_direct_licenses_patch_execute()` to send, or `datamanager_account_types_accounts_user_list_direct_licenses_patch` for simplest API.
+
+pub fn datamanager_account_types_accounts_user_list_direct_licenses_patch_builder(
+    client: &SimpleHttpClient,
+    name: &String,
+    updateMask: &Option<Option<String>>,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!(
+        "https://datamanager.googleapis.com/v1/accountTypes/{}/accounts/{accountsId}/userListDirectLicenses/{userListDirectLicensesId}",
+        name,
+    );
+
+    // Build request
+    let mut query_parts = Vec::new();
+    if let Some(val) = updateMask.as_ref() {
+        query_parts.push(format!("updateMask={}", val));
+    }
+
+    let url_with_query = if query_parts.is_empty() {
+        endpoint_url
+    } else {
+        format!("{}?{}", endpoint_url, query_parts.join("&"))
+    };
+
+    let builder = client
+        .patch(&url_with_query)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// PATCH v1/accountTypes/{accountTypesId}/accounts/{accountsId}/userListDirectLicenses/{userListDirectLicensesId}
+/// Updates a user list direct license. This feature is only available to data partners.
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `datamanager_account_types_accounts_user_list_direct_licenses_patch_execute()` or `datamanager_account_types_accounts_user_list_direct_licenses_patch`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `datamanager_account_types_accounts_user_list_direct_licenses_patch_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn datamanager_account_types_accounts_user_list_direct_licenses_patch_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<UserListDirectLicense>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: UserListDirectLicense = serde_json::from_str(&body)
+                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// PATCH v1/accountTypes/{accountTypesId}/accounts/{accountsId}/userListDirectLicenses/{userListDirectLicensesId}
+/// Updates a user list direct license. This feature is only available to data partners.
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `datamanager_account_types_accounts_user_list_direct_licenses_patch_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `datamanager_account_types_accounts_user_list_direct_licenses_patch_task()`.
+/// For the simplest API, use `datamanager_account_types_accounts_user_list_direct_licenses_patch()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `datamanager_account_types_accounts_user_list_direct_licenses_patch_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn datamanager_account_types_accounts_user_list_direct_licenses_patch_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<UserListDirectLicense>, ApiError>, P = ApiPending>
+        + Send
+        + 'static,
+    ApiError,
+> {
+    let task = datamanager_account_types_accounts_user_list_direct_licenses_patch_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`datamanager_account_types_accounts_user_list_direct_licenses_patch`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct DatamanagerAccountTypesAccountsUserListDirectLicensesPatchArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Query parameter: updateMask
+    pub updateMask: Option<Option<String>>,
+}
+
+/// PATCH v1/accountTypes/{accountTypesId}/accounts/{accountsId}/userListDirectLicenses/{userListDirectLicensesId}
+/// Updates a user list direct license. This feature is only available to data partners.
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `datamanager_account_types_accounts_user_list_direct_licenses_patch_builder()` + `datamanager_account_types_accounts_user_list_direct_licenses_patch_execute()`.
+/// For task-level control, use `datamanager_account_types_accounts_user_list_direct_licenses_patch_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn datamanager_account_types_accounts_user_list_direct_licenses_patch(
+    client: &SimpleHttpClient,
+    args: &DatamanagerAccountTypesAccountsUserListDirectLicensesPatchArgs,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<UserListDirectLicense>, ApiError>, P = ApiPending>
+        + Send
+        + 'static,
+    ApiError,
+> {
+    let builder = datamanager_account_types_accounts_user_list_direct_licenses_patch_builder(
+        client,
+        &args.name,
+        &args.updateMask,
+    )?;
+    datamanager_account_types_accounts_user_list_direct_licenses_patch_execute(builder)
+}
+
+/// POST v1/accountTypes/{accountTypesId}/accounts/{accountsId}/userListGlobalLicenses
+/// Creates a user list global license. This feature is only available to data partners.
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `datamanager_account_types_accounts_user_list_global_licenses_create_execute()` to send, or `datamanager_account_types_accounts_user_list_global_licenses_create` for simplest API.
+
+pub fn datamanager_account_types_accounts_user_list_global_licenses_create_builder(
+    client: &SimpleHttpClient,
+    parent: &String,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!(
+        "https://datamanager.googleapis.com/v1/accountTypes/{}/accounts/{accountsId}/userListGlobalLicenses",
+        parent,
+    );
+
+    // Build request
+    let builder = client
+        .post(&endpoint_url)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// POST v1/accountTypes/{accountTypesId}/accounts/{accountsId}/userListGlobalLicenses
+/// Creates a user list global license. This feature is only available to data partners.
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `datamanager_account_types_accounts_user_list_global_licenses_create_execute()` or `datamanager_account_types_accounts_user_list_global_licenses_create`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `datamanager_account_types_accounts_user_list_global_licenses_create_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn datamanager_account_types_accounts_user_list_global_licenses_create_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<UserListGlobalLicense>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: UserListGlobalLicense = serde_json::from_str(&body)
+                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// POST v1/accountTypes/{accountTypesId}/accounts/{accountsId}/userListGlobalLicenses
+/// Creates a user list global license. This feature is only available to data partners.
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `datamanager_account_types_accounts_user_list_global_licenses_create_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `datamanager_account_types_accounts_user_list_global_licenses_create_task()`.
+/// For the simplest API, use `datamanager_account_types_accounts_user_list_global_licenses_create()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `datamanager_account_types_accounts_user_list_global_licenses_create_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn datamanager_account_types_accounts_user_list_global_licenses_create_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<UserListGlobalLicense>, ApiError>, P = ApiPending>
+        + Send
+        + 'static,
+    ApiError,
+> {
+    let task = datamanager_account_types_accounts_user_list_global_licenses_create_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`datamanager_account_types_accounts_user_list_global_licenses_create`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct DatamanagerAccountTypesAccountsUserListGlobalLicensesCreateArgs {
+    /// Path parameter: parent
+    pub parent: String,
+}
+
+/// POST v1/accountTypes/{accountTypesId}/accounts/{accountsId}/userListGlobalLicenses
+/// Creates a user list global license. This feature is only available to data partners.
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `datamanager_account_types_accounts_user_list_global_licenses_create_builder()` + `datamanager_account_types_accounts_user_list_global_licenses_create_execute()`.
+/// For task-level control, use `datamanager_account_types_accounts_user_list_global_licenses_create_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn datamanager_account_types_accounts_user_list_global_licenses_create(
+    client: &SimpleHttpClient,
+    args: &DatamanagerAccountTypesAccountsUserListGlobalLicensesCreateArgs,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<UserListGlobalLicense>, ApiError>, P = ApiPending>
+        + Send
+        + 'static,
+    ApiError,
+> {
+    let builder = datamanager_account_types_accounts_user_list_global_licenses_create_builder(
+        client,
+        &args.parent,
+    )?;
+    datamanager_account_types_accounts_user_list_global_licenses_create_execute(builder)
+}
+
+/// GET v1/accountTypes/{accountTypesId}/accounts/{accountsId}/userListGlobalLicenses/{userListGlobalLicensesId}
+/// Retrieves a user list global license. This feature is only available to data partners.
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `datamanager_account_types_accounts_user_list_global_licenses_get_execute()` to send, or `datamanager_account_types_accounts_user_list_global_licenses_get` for simplest API.
+
+pub fn datamanager_account_types_accounts_user_list_global_licenses_get_builder(
+    client: &SimpleHttpClient,
+    name: &String,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!(
+        "https://datamanager.googleapis.com/v1/accountTypes/{}/accounts/{accountsId}/userListGlobalLicenses/{userListGlobalLicensesId}",
+        name,
+    );
+
+    // Build request
+    let builder = client
+        .get(&endpoint_url)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// GET v1/accountTypes/{accountTypesId}/accounts/{accountsId}/userListGlobalLicenses/{userListGlobalLicensesId}
+/// Retrieves a user list global license. This feature is only available to data partners.
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `datamanager_account_types_accounts_user_list_global_licenses_get_execute()` or `datamanager_account_types_accounts_user_list_global_licenses_get`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `datamanager_account_types_accounts_user_list_global_licenses_get_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn datamanager_account_types_accounts_user_list_global_licenses_get_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<UserListGlobalLicense>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: UserListGlobalLicense = serde_json::from_str(&body)
+                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// GET v1/accountTypes/{accountTypesId}/accounts/{accountsId}/userListGlobalLicenses/{userListGlobalLicensesId}
+/// Retrieves a user list global license. This feature is only available to data partners.
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `datamanager_account_types_accounts_user_list_global_licenses_get_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `datamanager_account_types_accounts_user_list_global_licenses_get_task()`.
+/// For the simplest API, use `datamanager_account_types_accounts_user_list_global_licenses_get()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `datamanager_account_types_accounts_user_list_global_licenses_get_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn datamanager_account_types_accounts_user_list_global_licenses_get_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<UserListGlobalLicense>, ApiError>, P = ApiPending>
+        + Send
+        + 'static,
+    ApiError,
+> {
+    let task = datamanager_account_types_accounts_user_list_global_licenses_get_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`datamanager_account_types_accounts_user_list_global_licenses_get`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct DatamanagerAccountTypesAccountsUserListGlobalLicensesGetArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
+/// GET v1/accountTypes/{accountTypesId}/accounts/{accountsId}/userListGlobalLicenses/{userListGlobalLicensesId}
+/// Retrieves a user list global license. This feature is only available to data partners.
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `datamanager_account_types_accounts_user_list_global_licenses_get_builder()` + `datamanager_account_types_accounts_user_list_global_licenses_get_execute()`.
+/// For task-level control, use `datamanager_account_types_accounts_user_list_global_licenses_get_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn datamanager_account_types_accounts_user_list_global_licenses_get(
+    client: &SimpleHttpClient,
+    args: &DatamanagerAccountTypesAccountsUserListGlobalLicensesGetArgs,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<UserListGlobalLicense>, ApiError>, P = ApiPending>
+        + Send
+        + 'static,
+    ApiError,
+> {
+    let builder = datamanager_account_types_accounts_user_list_global_licenses_get_builder(
+        client, &args.name,
+    )?;
+    datamanager_account_types_accounts_user_list_global_licenses_get_execute(builder)
+}
+
+/// GET v1/accountTypes/{accountTypesId}/accounts/{accountsId}/userListGlobalLicenses
+/// Lists all user list global licenses owned by the parent account. This feature is only available to data partners.
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `datamanager_account_types_accounts_user_list_global_licenses_list_execute()` to send, or `datamanager_account_types_accounts_user_list_global_licenses_list` for simplest API.
+
+pub fn datamanager_account_types_accounts_user_list_global_licenses_list_builder(
+    client: &SimpleHttpClient,
+    parent: &String,
+    filter: &Option<Option<String>>,
+    pageSize: &Option<Option<String>>,
+    pageToken: &Option<Option<String>>,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!(
+        "https://datamanager.googleapis.com/v1/accountTypes/{}/accounts/{accountsId}/userListGlobalLicenses",
+        parent,
+    );
+
+    // Build request
+    let mut query_parts = Vec::new();
+    if let Some(val) = filter.as_ref() {
+        query_parts.push(format!("filter={}", val));
+    }
+    if let Some(val) = pageSize.as_ref() {
+        query_parts.push(format!("pageSize={}", val));
+    }
+    if let Some(val) = pageToken.as_ref() {
+        query_parts.push(format!("pageToken={}", val));
+    }
+
+    let url_with_query = if query_parts.is_empty() {
+        endpoint_url
+    } else {
+        format!("{}?{}", endpoint_url, query_parts.join("&"))
+    };
+
+    let builder = client
+        .get(&url_with_query)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// GET v1/accountTypes/{accountTypesId}/accounts/{accountsId}/userListGlobalLicenses
+/// Lists all user list global licenses owned by the parent account. This feature is only available to data partners.
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `datamanager_account_types_accounts_user_list_global_licenses_list_execute()` or `datamanager_account_types_accounts_user_list_global_licenses_list`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `datamanager_account_types_accounts_user_list_global_licenses_list_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn datamanager_account_types_accounts_user_list_global_licenses_list_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<ListUserListGlobalLicensesResponse>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: ListUserListGlobalLicensesResponse = serde_json::from_str(&body)
+                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// GET v1/accountTypes/{accountTypesId}/accounts/{accountsId}/userListGlobalLicenses
+/// Lists all user list global licenses owned by the parent account. This feature is only available to data partners.
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `datamanager_account_types_accounts_user_list_global_licenses_list_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `datamanager_account_types_accounts_user_list_global_licenses_list_task()`.
+/// For the simplest API, use `datamanager_account_types_accounts_user_list_global_licenses_list()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `datamanager_account_types_accounts_user_list_global_licenses_list_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn datamanager_account_types_accounts_user_list_global_licenses_list_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<
+            D = Result<ApiResponse<ListUserListGlobalLicensesResponse>, ApiError>,
+            P = ApiPending,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    let task = datamanager_account_types_accounts_user_list_global_licenses_list_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`datamanager_account_types_accounts_user_list_global_licenses_list`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct DatamanagerAccountTypesAccountsUserListGlobalLicensesListArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Query parameter: filter
+    pub filter: Option<Option<String>>,
+    /// Query parameter: pageSize
+    pub pageSize: Option<Option<String>>,
+    /// Query parameter: pageToken
+    pub pageToken: Option<Option<String>>,
+}
+
+/// GET v1/accountTypes/{accountTypesId}/accounts/{accountsId}/userListGlobalLicenses
+/// Lists all user list global licenses owned by the parent account. This feature is only available to data partners.
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `datamanager_account_types_accounts_user_list_global_licenses_list_builder()` + `datamanager_account_types_accounts_user_list_global_licenses_list_execute()`.
+/// For task-level control, use `datamanager_account_types_accounts_user_list_global_licenses_list_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn datamanager_account_types_accounts_user_list_global_licenses_list(
+    client: &SimpleHttpClient,
+    args: &DatamanagerAccountTypesAccountsUserListGlobalLicensesListArgs,
+) -> Result<
+    impl StreamIterator<
+            D = Result<ApiResponse<ListUserListGlobalLicensesResponse>, ApiError>,
+            P = ApiPending,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    let builder = datamanager_account_types_accounts_user_list_global_licenses_list_builder(
+        client,
+        &args.parent,
+        &args.filter,
+        &args.pageSize,
+        &args.pageToken,
+    )?;
+    datamanager_account_types_accounts_user_list_global_licenses_list_execute(builder)
+}
+
+/// PATCH v1/accountTypes/{accountTypesId}/accounts/{accountsId}/userListGlobalLicenses/{userListGlobalLicensesId}
+/// Updates a user list global license. This feature is only available to data partners.
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `datamanager_account_types_accounts_user_list_global_licenses_patch_execute()` to send, or `datamanager_account_types_accounts_user_list_global_licenses_patch` for simplest API.
+
+pub fn datamanager_account_types_accounts_user_list_global_licenses_patch_builder(
+    client: &SimpleHttpClient,
+    name: &String,
+    updateMask: &Option<Option<String>>,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!(
+        "https://datamanager.googleapis.com/v1/accountTypes/{}/accounts/{accountsId}/userListGlobalLicenses/{userListGlobalLicensesId}",
+        name,
+    );
+
+    // Build request
+    let mut query_parts = Vec::new();
+    if let Some(val) = updateMask.as_ref() {
+        query_parts.push(format!("updateMask={}", val));
+    }
+
+    let url_with_query = if query_parts.is_empty() {
+        endpoint_url
+    } else {
+        format!("{}?{}", endpoint_url, query_parts.join("&"))
+    };
+
+    let builder = client
+        .patch(&url_with_query)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// PATCH v1/accountTypes/{accountTypesId}/accounts/{accountsId}/userListGlobalLicenses/{userListGlobalLicensesId}
+/// Updates a user list global license. This feature is only available to data partners.
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `datamanager_account_types_accounts_user_list_global_licenses_patch_execute()` or `datamanager_account_types_accounts_user_list_global_licenses_patch`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `datamanager_account_types_accounts_user_list_global_licenses_patch_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn datamanager_account_types_accounts_user_list_global_licenses_patch_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<UserListGlobalLicense>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: UserListGlobalLicense = serde_json::from_str(&body)
+                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// PATCH v1/accountTypes/{accountTypesId}/accounts/{accountsId}/userListGlobalLicenses/{userListGlobalLicensesId}
+/// Updates a user list global license. This feature is only available to data partners.
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `datamanager_account_types_accounts_user_list_global_licenses_patch_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `datamanager_account_types_accounts_user_list_global_licenses_patch_task()`.
+/// For the simplest API, use `datamanager_account_types_accounts_user_list_global_licenses_patch()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `datamanager_account_types_accounts_user_list_global_licenses_patch_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn datamanager_account_types_accounts_user_list_global_licenses_patch_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<UserListGlobalLicense>, ApiError>, P = ApiPending>
+        + Send
+        + 'static,
+    ApiError,
+> {
+    let task = datamanager_account_types_accounts_user_list_global_licenses_patch_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`datamanager_account_types_accounts_user_list_global_licenses_patch`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct DatamanagerAccountTypesAccountsUserListGlobalLicensesPatchArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Query parameter: updateMask
+    pub updateMask: Option<Option<String>>,
+}
+
+/// PATCH v1/accountTypes/{accountTypesId}/accounts/{accountsId}/userListGlobalLicenses/{userListGlobalLicensesId}
+/// Updates a user list global license. This feature is only available to data partners.
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `datamanager_account_types_accounts_user_list_global_licenses_patch_builder()` + `datamanager_account_types_accounts_user_list_global_licenses_patch_execute()`.
+/// For task-level control, use `datamanager_account_types_accounts_user_list_global_licenses_patch_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn datamanager_account_types_accounts_user_list_global_licenses_patch(
+    client: &SimpleHttpClient,
+    args: &DatamanagerAccountTypesAccountsUserListGlobalLicensesPatchArgs,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<UserListGlobalLicense>, ApiError>, P = ApiPending>
+        + Send
+        + 'static,
+    ApiError,
+> {
+    let builder = datamanager_account_types_accounts_user_list_global_licenses_patch_builder(
+        client,
+        &args.name,
+        &args.updateMask,
+    )?;
+    datamanager_account_types_accounts_user_list_global_licenses_patch_execute(builder)
+}
+
+/// GET v1/accountTypes/{accountTypesId}/accounts/{accountsId}/userListGlobalLicenses/{userListGlobalLicensesId}/userListGlobalLicenseCustomerInfos
+/// Lists all customer info for a user list global license. This feature is only available to data partners.
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `datamanager_account_types_accounts_user_list_global_licenses_user_list_global_license_customer_infos_list_execute()` to send, or `datamanager_account_types_accounts_user_list_global_licenses_user_list_global_license_customer_infos_list` for simplest API.
+
+pub fn datamanager_account_types_accounts_user_list_global_licenses_user_list_global_license_customer_infos_list_builder(
+    client: &SimpleHttpClient,
+    parent: &String,
+    filter: &Option<Option<String>>,
+    pageSize: &Option<Option<String>>,
+    pageToken: &Option<Option<String>>,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!(
+        "https://datamanager.googleapis.com/v1/accountTypes/{}/accounts/{accountsId}/userListGlobalLicenses/{userListGlobalLicensesId}/userListGlobalLicenseCustomerInfos",
+        parent,
+    );
+
+    // Build request
+    let mut query_parts = Vec::new();
+    if let Some(val) = filter.as_ref() {
+        query_parts.push(format!("filter={}", val));
+    }
+    if let Some(val) = pageSize.as_ref() {
+        query_parts.push(format!("pageSize={}", val));
+    }
+    if let Some(val) = pageToken.as_ref() {
+        query_parts.push(format!("pageToken={}", val));
+    }
+
+    let url_with_query = if query_parts.is_empty() {
+        endpoint_url
+    } else {
+        format!("{}?{}", endpoint_url, query_parts.join("&"))
+    };
+
+    let builder = client
+        .get(&url_with_query)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// GET v1/accountTypes/{accountTypesId}/accounts/{accountsId}/userListGlobalLicenses/{userListGlobalLicensesId}/userListGlobalLicenseCustomerInfos
+/// Lists all customer info for a user list global license. This feature is only available to data partners.
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `datamanager_account_types_accounts_user_list_global_licenses_user_list_global_license_customer_infos_list_execute()` or `datamanager_account_types_accounts_user_list_global_licenses_user_list_global_license_customer_infos_list`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `datamanager_account_types_accounts_user_list_global_licenses_user_list_global_license_customer_infos_list_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn datamanager_account_types_accounts_user_list_global_licenses_user_list_global_license_customer_infos_list_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<ListUserListGlobalLicenseCustomerInfosResponse>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: ListUserListGlobalLicenseCustomerInfosResponse =
+                    serde_json::from_str(&body)
+                        .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// GET v1/accountTypes/{accountTypesId}/accounts/{accountsId}/userListGlobalLicenses/{userListGlobalLicensesId}/userListGlobalLicenseCustomerInfos
+/// Lists all customer info for a user list global license. This feature is only available to data partners.
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `datamanager_account_types_accounts_user_list_global_licenses_user_list_global_license_customer_infos_list_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `datamanager_account_types_accounts_user_list_global_licenses_user_list_global_license_customer_infos_list_task()`.
+/// For the simplest API, use `datamanager_account_types_accounts_user_list_global_licenses_user_list_global_license_customer_infos_list()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `datamanager_account_types_accounts_user_list_global_licenses_user_list_global_license_customer_infos_list_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn datamanager_account_types_accounts_user_list_global_licenses_user_list_global_license_customer_infos_list_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<
+            D = Result<ApiResponse<ListUserListGlobalLicenseCustomerInfosResponse>, ApiError>,
+            P = ApiPending,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    let task = datamanager_account_types_accounts_user_list_global_licenses_user_list_global_license_customer_infos_list_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`datamanager_account_types_accounts_user_list_global_licenses_user_list_global_license_customer_infos_list`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct DatamanagerAccountTypesAccountsUserListGlobalLicensesUserListGlobalLicenseCustomerInfosListArgs
+{
+    /// Path parameter: parent
+    pub parent: String,
+    /// Query parameter: filter
+    pub filter: Option<Option<String>>,
+    /// Query parameter: pageSize
+    pub pageSize: Option<Option<String>>,
+    /// Query parameter: pageToken
+    pub pageToken: Option<Option<String>>,
+}
+
+/// GET v1/accountTypes/{accountTypesId}/accounts/{accountsId}/userListGlobalLicenses/{userListGlobalLicensesId}/userListGlobalLicenseCustomerInfos
+/// Lists all customer info for a user list global license. This feature is only available to data partners.
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `datamanager_account_types_accounts_user_list_global_licenses_user_list_global_license_customer_infos_list_builder()` + `datamanager_account_types_accounts_user_list_global_licenses_user_list_global_license_customer_infos_list_execute()`.
+/// For task-level control, use `datamanager_account_types_accounts_user_list_global_licenses_user_list_global_license_customer_infos_list_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn datamanager_account_types_accounts_user_list_global_licenses_user_list_global_license_customer_infos_list(
+    client: &SimpleHttpClient,
+    args: &DatamanagerAccountTypesAccountsUserListGlobalLicensesUserListGlobalLicenseCustomerInfosListArgs,
+) -> Result<
+    impl StreamIterator<
+            D = Result<ApiResponse<ListUserListGlobalLicenseCustomerInfosResponse>, ApiError>,
+            P = ApiPending,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    let builder = datamanager_account_types_accounts_user_list_global_licenses_user_list_global_license_customer_infos_list_builder(client, &args.parent, &args.filter, &args.pageSize, &args.pageToken)?;
+    datamanager_account_types_accounts_user_list_global_licenses_user_list_global_license_customer_infos_list_execute(builder)
+}
+
+/// POST v1/accountTypes/{accountTypesId}/accounts/{accountsId}/userLists
+/// Creates a UserList. Authorization Headers: This method supports the following optional headers to define how the API authorizes access for the request: * login-account: (Optional) The resource name of the account where the Google Account of the credentials is a user. If not set, defaults to the account of the request. Format: accountT`ypes/{`loginAccountType`}/accounts/{`loginAccountId`}` * linked-account: (Optional) The resource name of the account with an established product link to the login-account. Format: accountT`ypes/{`linkedAccountType`}/accounts/{`linkedAccountId`}`
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `datamanager_account_types_accounts_user_lists_create_execute()` to send, or `datamanager_account_types_accounts_user_lists_create` for simplest API.
+
+pub fn datamanager_account_types_accounts_user_lists_create_builder(
+    client: &SimpleHttpClient,
+    parent: &String,
+    validateOnly: &Option<Option<String>>,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!(
+        "https://datamanager.googleapis.com/v1/accountTypes/{}/accounts/{accountsId}/userLists",
+        parent,
+    );
+
+    // Build request
+    let mut query_parts = Vec::new();
+    if let Some(val) = validateOnly.as_ref() {
+        query_parts.push(format!("validateOnly={}", val));
+    }
+
+    let url_with_query = if query_parts.is_empty() {
+        endpoint_url
+    } else {
+        format!("{}?{}", endpoint_url, query_parts.join("&"))
+    };
+
+    let builder = client
+        .post(&url_with_query)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// POST v1/accountTypes/{accountTypesId}/accounts/{accountsId}/userLists
+/// Creates a UserList. Authorization Headers: This method supports the following optional headers to define how the API authorizes access for the request: * login-account: (Optional) The resource name of the account where the Google Account of the credentials is a user. If not set, defaults to the account of the request. Format: accountT`ypes/{`loginAccountType`}/accounts/{`loginAccountId`}` * linked-account: (Optional) The resource name of the account with an established product link to the login-account. Format: accountT`ypes/{`linkedAccountType`}/accounts/{`linkedAccountId`}`
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `datamanager_account_types_accounts_user_lists_create_execute()` or `datamanager_account_types_accounts_user_lists_create`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `datamanager_account_types_accounts_user_lists_create_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn datamanager_account_types_accounts_user_lists_create_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<UserList>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: UserList = serde_json::from_str(&body)
+                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// POST v1/accountTypes/{accountTypesId}/accounts/{accountsId}/userLists
+/// Creates a UserList. Authorization Headers: This method supports the following optional headers to define how the API authorizes access for the request: * login-account: (Optional) The resource name of the account where the Google Account of the credentials is a user. If not set, defaults to the account of the request. Format: accountT`ypes/{`loginAccountType`}/accounts/{`loginAccountId`}` * linked-account: (Optional) The resource name of the account with an established product link to the login-account. Format: accountT`ypes/{`linkedAccountType`}/accounts/{`linkedAccountId`}`
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `datamanager_account_types_accounts_user_lists_create_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `datamanager_account_types_accounts_user_lists_create_task()`.
+/// For the simplest API, use `datamanager_account_types_accounts_user_lists_create()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `datamanager_account_types_accounts_user_lists_create_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn datamanager_account_types_accounts_user_lists_create_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<UserList>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let task = datamanager_account_types_accounts_user_lists_create_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`datamanager_account_types_accounts_user_lists_create`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct DatamanagerAccountTypesAccountsUserListsCreateArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Query parameter: validateOnly
+    pub validateOnly: Option<Option<String>>,
+}
+
+/// POST v1/accountTypes/{accountTypesId}/accounts/{accountsId}/userLists
+/// Creates a UserList. Authorization Headers: This method supports the following optional headers to define how the API authorizes access for the request: * login-account: (Optional) The resource name of the account where the Google Account of the credentials is a user. If not set, defaults to the account of the request. Format: accountT`ypes/{`loginAccountType`}/accounts/{`loginAccountId`}` * linked-account: (Optional) The resource name of the account with an established product link to the login-account. Format: accountT`ypes/{`linkedAccountType`}/accounts/{`linkedAccountId`}`
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `datamanager_account_types_accounts_user_lists_create_builder()` + `datamanager_account_types_accounts_user_lists_create_execute()`.
+/// For task-level control, use `datamanager_account_types_accounts_user_lists_create_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn datamanager_account_types_accounts_user_lists_create(
+    client: &SimpleHttpClient,
+    args: &DatamanagerAccountTypesAccountsUserListsCreateArgs,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<UserList>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let builder = datamanager_account_types_accounts_user_lists_create_builder(
+        client,
+        &args.parent,
+        &args.validateOnly,
+    )?;
+    datamanager_account_types_accounts_user_lists_create_execute(builder)
+}
+
+/// DELETE v1/accountTypes/{accountTypesId}/accounts/{accountsId}/userLists/{userListsId}
+/// Deletes a UserList. Authorization Headers: This method supports the following optional headers to define how the API authorizes access for the request: * login-account: (Optional) The resource name of the account where the Google Account of the credentials is a user. If not set, defaults to the account of the request. Format: accountT`ypes/{`loginAccountType`}/accounts/{`loginAccountId`}` * linked-account: (Optional) The resource name of the account with an established product link to the login-account. Format: accountT`ypes/{`linkedAccountType`}/accounts/{`linkedAccountId`}`
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `datamanager_account_types_accounts_user_lists_delete_execute()` to send, or `datamanager_account_types_accounts_user_lists_delete` for simplest API.
+
+pub fn datamanager_account_types_accounts_user_lists_delete_builder(
+    client: &SimpleHttpClient,
+    name: &String,
+    validateOnly: &Option<Option<String>>,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!(
+        "https://datamanager.googleapis.com/v1/accountTypes/{}/accounts/{accountsId}/userLists/{userListsId}",
+        name,
+    );
+
+    // Build request
+    let mut query_parts = Vec::new();
+    if let Some(val) = validateOnly.as_ref() {
+        query_parts.push(format!("validateOnly={}", val));
+    }
+
+    let url_with_query = if query_parts.is_empty() {
+        endpoint_url
+    } else {
+        format!("{}?{}", endpoint_url, query_parts.join("&"))
+    };
+
+    let builder = client
+        .delete(&url_with_query)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// DELETE v1/accountTypes/{accountTypesId}/accounts/{accountsId}/userLists/{userListsId}
+/// Deletes a UserList. Authorization Headers: This method supports the following optional headers to define how the API authorizes access for the request: * login-account: (Optional) The resource name of the account where the Google Account of the credentials is a user. If not set, defaults to the account of the request. Format: accountT`ypes/{`loginAccountType`}/accounts/{`loginAccountId`}` * linked-account: (Optional) The resource name of the account with an established product link to the login-account. Format: accountT`ypes/{`linkedAccountType`}/accounts/{`linkedAccountId`}`
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `datamanager_account_types_accounts_user_lists_delete_execute()` or `datamanager_account_types_accounts_user_lists_delete`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `datamanager_account_types_accounts_user_lists_delete_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn datamanager_account_types_accounts_user_lists_delete_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<Empty>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: Empty = serde_json::from_str(&body)
+                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// DELETE v1/accountTypes/{accountTypesId}/accounts/{accountsId}/userLists/{userListsId}
+/// Deletes a UserList. Authorization Headers: This method supports the following optional headers to define how the API authorizes access for the request: * login-account: (Optional) The resource name of the account where the Google Account of the credentials is a user. If not set, defaults to the account of the request. Format: accountT`ypes/{`loginAccountType`}/accounts/{`loginAccountId`}` * linked-account: (Optional) The resource name of the account with an established product link to the login-account. Format: accountT`ypes/{`linkedAccountType`}/accounts/{`linkedAccountId`}`
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `datamanager_account_types_accounts_user_lists_delete_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `datamanager_account_types_accounts_user_lists_delete_task()`.
+/// For the simplest API, use `datamanager_account_types_accounts_user_lists_delete()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `datamanager_account_types_accounts_user_lists_delete_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn datamanager_account_types_accounts_user_lists_delete_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<Empty>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let task = datamanager_account_types_accounts_user_lists_delete_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`datamanager_account_types_accounts_user_lists_delete`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct DatamanagerAccountTypesAccountsUserListsDeleteArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Query parameter: validateOnly
+    pub validateOnly: Option<Option<String>>,
+}
+
+/// DELETE v1/accountTypes/{accountTypesId}/accounts/{accountsId}/userLists/{userListsId}
+/// Deletes a UserList. Authorization Headers: This method supports the following optional headers to define how the API authorizes access for the request: * login-account: (Optional) The resource name of the account where the Google Account of the credentials is a user. If not set, defaults to the account of the request. Format: accountT`ypes/{`loginAccountType`}/accounts/{`loginAccountId`}` * linked-account: (Optional) The resource name of the account with an established product link to the login-account. Format: accountT`ypes/{`linkedAccountType`}/accounts/{`linkedAccountId`}`
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `datamanager_account_types_accounts_user_lists_delete_builder()` + `datamanager_account_types_accounts_user_lists_delete_execute()`.
+/// For task-level control, use `datamanager_account_types_accounts_user_lists_delete_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn datamanager_account_types_accounts_user_lists_delete(
+    client: &SimpleHttpClient,
+    args: &DatamanagerAccountTypesAccountsUserListsDeleteArgs,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<Empty>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let builder = datamanager_account_types_accounts_user_lists_delete_builder(
+        client,
+        &args.name,
+        &args.validateOnly,
+    )?;
+    datamanager_account_types_accounts_user_lists_delete_execute(builder)
+}
+
+/// GET v1/accountTypes/{accountTypesId}/accounts/{accountsId}/userLists/{userListsId}
+/// Gets a UserList. Authorization Headers: This method supports the following optional headers to define how the API authorizes access for the request: * login-account: (Optional) The resource name of the account where the Google Account of the credentials is a user. If not set, defaults to the account of the request. Format: accountT`ypes/{`loginAccountType`}/accounts/{`loginAccountId`}` * linked-account: (Optional) The resource name of the account with an established product link to the login-account. Format: accountT`ypes/{`linkedAccountType`}/accounts/{`linkedAccountId`}`
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `datamanager_account_types_accounts_user_lists_get_execute()` to send, or `datamanager_account_types_accounts_user_lists_get` for simplest API.
+
+pub fn datamanager_account_types_accounts_user_lists_get_builder(
+    client: &SimpleHttpClient,
+    name: &String,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!(
+        "https://datamanager.googleapis.com/v1/accountTypes/{}/accounts/{accountsId}/userLists/{userListsId}",
+        name,
+    );
+
+    // Build request
+    let builder = client
+        .get(&endpoint_url)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// GET v1/accountTypes/{accountTypesId}/accounts/{accountsId}/userLists/{userListsId}
+/// Gets a UserList. Authorization Headers: This method supports the following optional headers to define how the API authorizes access for the request: * login-account: (Optional) The resource name of the account where the Google Account of the credentials is a user. If not set, defaults to the account of the request. Format: accountT`ypes/{`loginAccountType`}/accounts/{`loginAccountId`}` * linked-account: (Optional) The resource name of the account with an established product link to the login-account. Format: accountT`ypes/{`linkedAccountType`}/accounts/{`linkedAccountId`}`
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `datamanager_account_types_accounts_user_lists_get_execute()` or `datamanager_account_types_accounts_user_lists_get`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `datamanager_account_types_accounts_user_lists_get_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn datamanager_account_types_accounts_user_lists_get_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<UserList>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: UserList = serde_json::from_str(&body)
+                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// GET v1/accountTypes/{accountTypesId}/accounts/{accountsId}/userLists/{userListsId}
+/// Gets a UserList. Authorization Headers: This method supports the following optional headers to define how the API authorizes access for the request: * login-account: (Optional) The resource name of the account where the Google Account of the credentials is a user. If not set, defaults to the account of the request. Format: accountT`ypes/{`loginAccountType`}/accounts/{`loginAccountId`}` * linked-account: (Optional) The resource name of the account with an established product link to the login-account. Format: accountT`ypes/{`linkedAccountType`}/accounts/{`linkedAccountId`}`
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `datamanager_account_types_accounts_user_lists_get_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `datamanager_account_types_accounts_user_lists_get_task()`.
+/// For the simplest API, use `datamanager_account_types_accounts_user_lists_get()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `datamanager_account_types_accounts_user_lists_get_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn datamanager_account_types_accounts_user_lists_get_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<UserList>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let task = datamanager_account_types_accounts_user_lists_get_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`datamanager_account_types_accounts_user_lists_get`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct DatamanagerAccountTypesAccountsUserListsGetArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
+/// GET v1/accountTypes/{accountTypesId}/accounts/{accountsId}/userLists/{userListsId}
+/// Gets a UserList. Authorization Headers: This method supports the following optional headers to define how the API authorizes access for the request: * login-account: (Optional) The resource name of the account where the Google Account of the credentials is a user. If not set, defaults to the account of the request. Format: accountT`ypes/{`loginAccountType`}/accounts/{`loginAccountId`}` * linked-account: (Optional) The resource name of the account with an established product link to the login-account. Format: accountT`ypes/{`linkedAccountType`}/accounts/{`linkedAccountId`}`
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `datamanager_account_types_accounts_user_lists_get_builder()` + `datamanager_account_types_accounts_user_lists_get_execute()`.
+/// For task-level control, use `datamanager_account_types_accounts_user_lists_get_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn datamanager_account_types_accounts_user_lists_get(
+    client: &SimpleHttpClient,
+    args: &DatamanagerAccountTypesAccountsUserListsGetArgs,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<UserList>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let builder = datamanager_account_types_accounts_user_lists_get_builder(client, &args.name)?;
+    datamanager_account_types_accounts_user_lists_get_execute(builder)
+}
+
+/// GET v1/accountTypes/{accountTypesId}/accounts/{accountsId}/userLists
+/// Lists UserLists. Authorization Headers: This method supports the following optional headers to define how the API authorizes access for the request: * login-account: (Optional) The resource name of the account where the Google Account of the credentials is a user. If not set, defaults to the account of the request. Format: accountT`ypes/{`loginAccountType`}/accounts/{`loginAccountId`}` * linked-account: (Optional) The resource name of the account with an established product link to the login-account. Format: accountT`ypes/{`linkedAccountType`}/accounts/{`linkedAccountId`}`
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `datamanager_account_types_accounts_user_lists_list_execute()` to send, or `datamanager_account_types_accounts_user_lists_list` for simplest API.
+
+pub fn datamanager_account_types_accounts_user_lists_list_builder(
+    client: &SimpleHttpClient,
+    parent: &String,
+    filter: &Option<Option<String>>,
+    pageSize: &Option<Option<String>>,
+    pageToken: &Option<Option<String>>,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!(
+        "https://datamanager.googleapis.com/v1/accountTypes/{}/accounts/{accountsId}/userLists",
+        parent,
+    );
+
+    // Build request
+    let mut query_parts = Vec::new();
+    if let Some(val) = filter.as_ref() {
+        query_parts.push(format!("filter={}", val));
+    }
+    if let Some(val) = pageSize.as_ref() {
+        query_parts.push(format!("pageSize={}", val));
+    }
+    if let Some(val) = pageToken.as_ref() {
+        query_parts.push(format!("pageToken={}", val));
+    }
+
+    let url_with_query = if query_parts.is_empty() {
+        endpoint_url
+    } else {
+        format!("{}?{}", endpoint_url, query_parts.join("&"))
+    };
+
+    let builder = client
+        .get(&url_with_query)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// GET v1/accountTypes/{accountTypesId}/accounts/{accountsId}/userLists
+/// Lists UserLists. Authorization Headers: This method supports the following optional headers to define how the API authorizes access for the request: * login-account: (Optional) The resource name of the account where the Google Account of the credentials is a user. If not set, defaults to the account of the request. Format: accountT`ypes/{`loginAccountType`}/accounts/{`loginAccountId`}` * linked-account: (Optional) The resource name of the account with an established product link to the login-account. Format: accountT`ypes/{`linkedAccountType`}/accounts/{`linkedAccountId`}`
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `datamanager_account_types_accounts_user_lists_list_execute()` or `datamanager_account_types_accounts_user_lists_list`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `datamanager_account_types_accounts_user_lists_list_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn datamanager_account_types_accounts_user_lists_list_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<ListUserListsResponse>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: ListUserListsResponse = serde_json::from_str(&body)
+                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// GET v1/accountTypes/{accountTypesId}/accounts/{accountsId}/userLists
+/// Lists UserLists. Authorization Headers: This method supports the following optional headers to define how the API authorizes access for the request: * login-account: (Optional) The resource name of the account where the Google Account of the credentials is a user. If not set, defaults to the account of the request. Format: accountT`ypes/{`loginAccountType`}/accounts/{`loginAccountId`}` * linked-account: (Optional) The resource name of the account with an established product link to the login-account. Format: accountT`ypes/{`linkedAccountType`}/accounts/{`linkedAccountId`}`
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `datamanager_account_types_accounts_user_lists_list_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `datamanager_account_types_accounts_user_lists_list_task()`.
+/// For the simplest API, use `datamanager_account_types_accounts_user_lists_list()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `datamanager_account_types_accounts_user_lists_list_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn datamanager_account_types_accounts_user_lists_list_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<ListUserListsResponse>, ApiError>, P = ApiPending>
+        + Send
+        + 'static,
+    ApiError,
+> {
+    let task = datamanager_account_types_accounts_user_lists_list_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`datamanager_account_types_accounts_user_lists_list`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct DatamanagerAccountTypesAccountsUserListsListArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Query parameter: filter
+    pub filter: Option<Option<String>>,
+    /// Query parameter: pageSize
+    pub pageSize: Option<Option<String>>,
+    /// Query parameter: pageToken
+    pub pageToken: Option<Option<String>>,
+}
+
+/// GET v1/accountTypes/{accountTypesId}/accounts/{accountsId}/userLists
+/// Lists UserLists. Authorization Headers: This method supports the following optional headers to define how the API authorizes access for the request: * login-account: (Optional) The resource name of the account where the Google Account of the credentials is a user. If not set, defaults to the account of the request. Format: accountT`ypes/{`loginAccountType`}/accounts/{`loginAccountId`}` * linked-account: (Optional) The resource name of the account with an established product link to the login-account. Format: accountT`ypes/{`linkedAccountType`}/accounts/{`linkedAccountId`}`
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `datamanager_account_types_accounts_user_lists_list_builder()` + `datamanager_account_types_accounts_user_lists_list_execute()`.
+/// For task-level control, use `datamanager_account_types_accounts_user_lists_list_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn datamanager_account_types_accounts_user_lists_list(
+    client: &SimpleHttpClient,
+    args: &DatamanagerAccountTypesAccountsUserListsListArgs,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<ListUserListsResponse>, ApiError>, P = ApiPending>
+        + Send
+        + 'static,
+    ApiError,
+> {
+    let builder = datamanager_account_types_accounts_user_lists_list_builder(
+        client,
+        &args.parent,
+        &args.filter,
+        &args.pageSize,
+        &args.pageToken,
+    )?;
+    datamanager_account_types_accounts_user_lists_list_execute(builder)
+}
+
+/// PATCH v1/accountTypes/{accountTypesId}/accounts/{accountsId}/userLists/{userListsId}
+/// Updates a UserList. Authorization Headers: This method supports the following optional headers to define how the API authorizes access for the request: * login-account: (Optional) The resource name of the account where the Google Account of the credentials is a user. If not set, defaults to the account of the request. Format: accountT`ypes/{`loginAccountType`}/accounts/{`loginAccountId`}` * linked-account: (Optional) The resource name of the account with an established product link to the login-account. Format: accountT`ypes/{`linkedAccountType`}/accounts/{`linkedAccountId`}`
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `datamanager_account_types_accounts_user_lists_patch_execute()` to send, or `datamanager_account_types_accounts_user_lists_patch` for simplest API.
+
+pub fn datamanager_account_types_accounts_user_lists_patch_builder(
+    client: &SimpleHttpClient,
+    name: &String,
+    updateMask: &Option<Option<String>>,
+    validateOnly: &Option<Option<String>>,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!(
+        "https://datamanager.googleapis.com/v1/accountTypes/{}/accounts/{accountsId}/userLists/{userListsId}",
+        name,
+    );
+
+    // Build request
+    let mut query_parts = Vec::new();
+    if let Some(val) = updateMask.as_ref() {
+        query_parts.push(format!("updateMask={}", val));
+    }
+    if let Some(val) = validateOnly.as_ref() {
+        query_parts.push(format!("validateOnly={}", val));
+    }
+
+    let url_with_query = if query_parts.is_empty() {
+        endpoint_url
+    } else {
+        format!("{}?{}", endpoint_url, query_parts.join("&"))
+    };
+
+    let builder = client
+        .patch(&url_with_query)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// PATCH v1/accountTypes/{accountTypesId}/accounts/{accountsId}/userLists/{userListsId}
+/// Updates a UserList. Authorization Headers: This method supports the following optional headers to define how the API authorizes access for the request: * login-account: (Optional) The resource name of the account where the Google Account of the credentials is a user. If not set, defaults to the account of the request. Format: accountT`ypes/{`loginAccountType`}/accounts/{`loginAccountId`}` * linked-account: (Optional) The resource name of the account with an established product link to the login-account. Format: accountT`ypes/{`linkedAccountType`}/accounts/{`linkedAccountId`}`
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `datamanager_account_types_accounts_user_lists_patch_execute()` or `datamanager_account_types_accounts_user_lists_patch`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `datamanager_account_types_accounts_user_lists_patch_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn datamanager_account_types_accounts_user_lists_patch_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<UserList>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: UserList = serde_json::from_str(&body)
+                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// PATCH v1/accountTypes/{accountTypesId}/accounts/{accountsId}/userLists/{userListsId}
+/// Updates a UserList. Authorization Headers: This method supports the following optional headers to define how the API authorizes access for the request: * login-account: (Optional) The resource name of the account where the Google Account of the credentials is a user. If not set, defaults to the account of the request. Format: accountT`ypes/{`loginAccountType`}/accounts/{`loginAccountId`}` * linked-account: (Optional) The resource name of the account with an established product link to the login-account. Format: accountT`ypes/{`linkedAccountType`}/accounts/{`linkedAccountId`}`
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `datamanager_account_types_accounts_user_lists_patch_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `datamanager_account_types_accounts_user_lists_patch_task()`.
+/// For the simplest API, use `datamanager_account_types_accounts_user_lists_patch()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `datamanager_account_types_accounts_user_lists_patch_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn datamanager_account_types_accounts_user_lists_patch_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<UserList>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let task = datamanager_account_types_accounts_user_lists_patch_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`datamanager_account_types_accounts_user_lists_patch`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct DatamanagerAccountTypesAccountsUserListsPatchArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Query parameter: updateMask
+    pub updateMask: Option<Option<String>>,
+    /// Query parameter: validateOnly
+    pub validateOnly: Option<Option<String>>,
+}
+
+/// PATCH v1/accountTypes/{accountTypesId}/accounts/{accountsId}/userLists/{userListsId}
+/// Updates a UserList. Authorization Headers: This method supports the following optional headers to define how the API authorizes access for the request: * login-account: (Optional) The resource name of the account where the Google Account of the credentials is a user. If not set, defaults to the account of the request. Format: accountT`ypes/{`loginAccountType`}/accounts/{`loginAccountId`}` * linked-account: (Optional) The resource name of the account with an established product link to the login-account. Format: accountT`ypes/{`linkedAccountType`}/accounts/{`linkedAccountId`}`
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `datamanager_account_types_accounts_user_lists_patch_builder()` + `datamanager_account_types_accounts_user_lists_patch_execute()`.
+/// For task-level control, use `datamanager_account_types_accounts_user_lists_patch_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn datamanager_account_types_accounts_user_lists_patch(
+    client: &SimpleHttpClient,
+    args: &DatamanagerAccountTypesAccountsUserListsPatchArgs,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<UserList>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let builder = datamanager_account_types_accounts_user_lists_patch_builder(
+        client,
+        &args.name,
+        &args.updateMask,
+        &args.validateOnly,
+    )?;
+    datamanager_account_types_accounts_user_lists_patch_execute(builder)
+}
+
+/// POST v1/audienceMembers:ingest
 /// Uploads a list of AudienceMember resources to the provided Destination.
 ///
 /// Returns `ClientRequestBuilder` for customization.
@@ -28,22 +3184,19 @@ use serde::Serialize;
 
 pub fn datamanager_audience_members_ingest_builder(
     client: &SimpleHttpClient,
-    body: &IngestAudienceMembersRequest,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!("https://datamanager.googleapis.com/v1/audienceMembers:ingest",);
 
     // Build request
     let builder = client
-        .get(&endpoint_url)
+        .post(&endpoint_url)
         .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
 
-    builder
-        .body_json(body)
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+    Ok(builder)
 }
 
-/// GET v1/audienceMembers:ingest
+/// POST v1/audienceMembers:ingest
 /// Uploads a list of AudienceMember resources to the provided Destination.
 ///
 /// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
@@ -117,7 +3270,7 @@ pub fn datamanager_audience_members_ingest_task(
         .map_pending(|_| ApiPending::Sending))
 }
 
-/// GET v1/audienceMembers:ingest
+/// POST v1/audienceMembers:ingest
 /// Uploads a list of AudienceMember resources to the provided Destination.
 ///
 /// Takes a `ClientRequestBuilder`, builds and executes the request,
@@ -151,14 +3304,7 @@ pub fn datamanager_audience_members_ingest_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
-/// Arguments for [`datamanager_audience_members_ingest`].
-#[derive(Debug, Clone, Serialize, JsonHash)]
-pub struct DatamanagerAudienceMembersIngestArgs {
-    /// Request body.
-    pub body: IngestAudienceMembersRequest,
-}
-
-/// GET v1/audienceMembers:ingest
+/// POST v1/audienceMembers:ingest
 /// Uploads a list of AudienceMember resources to the provided Destination.
 ///
 /// Simplest API - builds and executes the request in one call.
@@ -171,7 +3317,6 @@ pub struct DatamanagerAudienceMembersIngestArgs {
 
 pub fn datamanager_audience_members_ingest(
     client: &SimpleHttpClient,
-    args: &DatamanagerAudienceMembersIngestArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<IngestAudienceMembersResponse>, ApiError>,
@@ -180,11 +3325,11 @@ pub fn datamanager_audience_members_ingest(
         + 'static,
     ApiError,
 > {
-    let builder = datamanager_audience_members_ingest_builder(client, &args.body)?;
+    let builder = datamanager_audience_members_ingest_builder(client)?;
     datamanager_audience_members_ingest_execute(builder)
 }
 
-/// GET v1/audienceMembers:remove
+/// POST v1/audienceMembers:remove
 /// Removes a list of AudienceMember resources from the provided Destination.
 ///
 /// Returns `ClientRequestBuilder` for customization.
@@ -192,22 +3337,19 @@ pub fn datamanager_audience_members_ingest(
 
 pub fn datamanager_audience_members_remove_builder(
     client: &SimpleHttpClient,
-    body: &RemoveAudienceMembersRequest,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!("https://datamanager.googleapis.com/v1/audienceMembers:remove",);
 
     // Build request
     let builder = client
-        .get(&endpoint_url)
+        .post(&endpoint_url)
         .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
 
-    builder
-        .body_json(body)
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+    Ok(builder)
 }
 
-/// GET v1/audienceMembers:remove
+/// POST v1/audienceMembers:remove
 /// Removes a list of AudienceMember resources from the provided Destination.
 ///
 /// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
@@ -281,7 +3423,7 @@ pub fn datamanager_audience_members_remove_task(
         .map_pending(|_| ApiPending::Sending))
 }
 
-/// GET v1/audienceMembers:remove
+/// POST v1/audienceMembers:remove
 /// Removes a list of AudienceMember resources from the provided Destination.
 ///
 /// Takes a `ClientRequestBuilder`, builds and executes the request,
@@ -315,14 +3457,7 @@ pub fn datamanager_audience_members_remove_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
-/// Arguments for [`datamanager_audience_members_remove`].
-#[derive(Debug, Clone, Serialize, JsonHash)]
-pub struct DatamanagerAudienceMembersRemoveArgs {
-    /// Request body.
-    pub body: RemoveAudienceMembersRequest,
-}
-
-/// GET v1/audienceMembers:remove
+/// POST v1/audienceMembers:remove
 /// Removes a list of AudienceMember resources from the provided Destination.
 ///
 /// Simplest API - builds and executes the request in one call.
@@ -335,7 +3470,6 @@ pub struct DatamanagerAudienceMembersRemoveArgs {
 
 pub fn datamanager_audience_members_remove(
     client: &SimpleHttpClient,
-    args: &DatamanagerAudienceMembersRemoveArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<RemoveAudienceMembersResponse>, ApiError>,
@@ -344,11 +3478,11 @@ pub fn datamanager_audience_members_remove(
         + 'static,
     ApiError,
 > {
-    let builder = datamanager_audience_members_remove_builder(client, &args.body)?;
+    let builder = datamanager_audience_members_remove_builder(client)?;
     datamanager_audience_members_remove_execute(builder)
 }
 
-/// GET v1/events:ingest
+/// POST v1/events:ingest
 /// Uploads a list of Event resources from the provided Destination.
 ///
 /// Returns `ClientRequestBuilder` for customization.
@@ -356,22 +3490,19 @@ pub fn datamanager_audience_members_remove(
 
 pub fn datamanager_events_ingest_builder(
     client: &SimpleHttpClient,
-    body: &IngestEventsRequest,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!("https://datamanager.googleapis.com/v1/events:ingest",);
 
     // Build request
     let builder = client
-        .get(&endpoint_url)
+        .post(&endpoint_url)
         .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
 
-    builder
-        .body_json(body)
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+    Ok(builder)
 }
 
-/// GET v1/events:ingest
+/// POST v1/events:ingest
 /// Uploads a list of Event resources from the provided Destination.
 ///
 /// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
@@ -445,7 +3576,7 @@ pub fn datamanager_events_ingest_task(
         .map_pending(|_| ApiPending::Sending))
 }
 
-/// GET v1/events:ingest
+/// POST v1/events:ingest
 /// Uploads a list of Event resources from the provided Destination.
 ///
 /// Takes a `ClientRequestBuilder`, builds and executes the request,
@@ -477,14 +3608,7 @@ pub fn datamanager_events_ingest_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
-/// Arguments for [`datamanager_events_ingest`].
-#[derive(Debug, Clone, Serialize, JsonHash)]
-pub struct DatamanagerEventsIngestArgs {
-    /// Request body.
-    pub body: IngestEventsRequest,
-}
-
-/// GET v1/events:ingest
+/// POST v1/events:ingest
 /// Uploads a list of Event resources from the provided Destination.
 ///
 /// Simplest API - builds and executes the request in one call.
@@ -497,14 +3621,13 @@ pub struct DatamanagerEventsIngestArgs {
 
 pub fn datamanager_events_ingest(
     client: &SimpleHttpClient,
-    args: &DatamanagerEventsIngestArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<IngestEventsResponse>, ApiError>, P = ApiPending>
         + Send
         + 'static,
     ApiError,
 > {
-    let builder = datamanager_events_ingest_builder(client, &args.body)?;
+    let builder = datamanager_events_ingest_builder(client)?;
     datamanager_events_ingest_execute(builder)
 }
 
@@ -516,7 +3639,7 @@ pub fn datamanager_events_ingest(
 
 pub fn datamanager_request_status_retrieve_builder(
     client: &SimpleHttpClient,
-    requestId: &Option<String>,
+    requestId: &Option<Option<String>>,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!("https://datamanager.googleapis.com/v1/requestStatus:retrieve",);
@@ -652,7 +3775,7 @@ pub fn datamanager_request_status_retrieve_execute(
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct DatamanagerRequestStatusRetrieveArgs {
     /// Query parameter: requestId
-    pub requestId: Option<String>,
+    pub requestId: Option<Option<String>>,
 }
 
 /// GET v1/requestStatus:retrieve
@@ -679,4 +3802,595 @@ pub fn datamanager_request_status_retrieve(
 > {
     let builder = datamanager_request_status_retrieve_builder(client, &args.requestId)?;
     datamanager_request_status_retrieve_execute(builder)
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for RetrieveInsightsResponse
+// =============================================================================
+
+/// ResourceIdentifier implementation for RetrieveInsightsResponse with DatamanagerAccountTypesAccountsInsightsRetrieveArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<DatamanagerAccountTypesAccountsInsightsRetrieveArgs>
+    for RetrieveInsightsResponse
+{
+    fn generate_resource_id(
+        &self,
+        input: &DatamanagerAccountTypesAccountsInsightsRetrieveArgs,
+    ) -> String {
+        format!(
+            "gcp::datamanager::RetrieveInsightsResponse/{}",
+            input.parent
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::datamanager::RetrieveInsightsResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for PartnerLink
+// =============================================================================
+
+/// ResourceIdentifier implementation for PartnerLink with DatamanagerAccountTypesAccountsPartnerLinksCreateArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<DatamanagerAccountTypesAccountsPartnerLinksCreateArgs> for PartnerLink {
+    fn generate_resource_id(
+        &self,
+        input: &DatamanagerAccountTypesAccountsPartnerLinksCreateArgs,
+    ) -> String {
+        format!("gcp::datamanager::PartnerLink/{}", input.parent)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::datamanager::PartnerLink"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for Empty
+// =============================================================================
+
+/// ResourceIdentifier implementation for Empty with DatamanagerAccountTypesAccountsPartnerLinksDeleteArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<DatamanagerAccountTypesAccountsPartnerLinksDeleteArgs> for Empty {
+    fn generate_resource_id(
+        &self,
+        input: &DatamanagerAccountTypesAccountsPartnerLinksDeleteArgs,
+    ) -> String {
+        format!("gcp::datamanager::Empty/{}", input.name)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::datamanager::Empty"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for SearchPartnerLinksResponse
+// =============================================================================
+
+/// ResourceIdentifier implementation for SearchPartnerLinksResponse with DatamanagerAccountTypesAccountsPartnerLinksSearchArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<DatamanagerAccountTypesAccountsPartnerLinksSearchArgs>
+    for SearchPartnerLinksResponse
+{
+    fn generate_resource_id(
+        &self,
+        input: &DatamanagerAccountTypesAccountsPartnerLinksSearchArgs,
+    ) -> String {
+        format!(
+            "gcp::datamanager::SearchPartnerLinksResponse/{}",
+            input.parent
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::datamanager::SearchPartnerLinksResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for UserListDirectLicense
+// =============================================================================
+
+/// ResourceIdentifier implementation for UserListDirectLicense with DatamanagerAccountTypesAccountsUserListDirectLicensesCreateArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<DatamanagerAccountTypesAccountsUserListDirectLicensesCreateArgs>
+    for UserListDirectLicense
+{
+    fn generate_resource_id(
+        &self,
+        input: &DatamanagerAccountTypesAccountsUserListDirectLicensesCreateArgs,
+    ) -> String {
+        format!("gcp::datamanager::UserListDirectLicense/{}", input.parent)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::datamanager::UserListDirectLicense"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for UserListDirectLicense
+// =============================================================================
+
+/// ResourceIdentifier implementation for UserListDirectLicense with DatamanagerAccountTypesAccountsUserListDirectLicensesGetArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<DatamanagerAccountTypesAccountsUserListDirectLicensesGetArgs>
+    for UserListDirectLicense
+{
+    fn generate_resource_id(
+        &self,
+        input: &DatamanagerAccountTypesAccountsUserListDirectLicensesGetArgs,
+    ) -> String {
+        format!("gcp::datamanager::UserListDirectLicense/{}", input.name)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::datamanager::UserListDirectLicense"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for ListUserListDirectLicensesResponse
+// =============================================================================
+
+/// ResourceIdentifier implementation for ListUserListDirectLicensesResponse with DatamanagerAccountTypesAccountsUserListDirectLicensesListArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<DatamanagerAccountTypesAccountsUserListDirectLicensesListArgs>
+    for ListUserListDirectLicensesResponse
+{
+    fn generate_resource_id(
+        &self,
+        input: &DatamanagerAccountTypesAccountsUserListDirectLicensesListArgs,
+    ) -> String {
+        format!(
+            "gcp::datamanager::ListUserListDirectLicensesResponse/{}",
+            input.parent
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::datamanager::ListUserListDirectLicensesResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for UserListDirectLicense
+// =============================================================================
+
+/// ResourceIdentifier implementation for UserListDirectLicense with DatamanagerAccountTypesAccountsUserListDirectLicensesPatchArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<DatamanagerAccountTypesAccountsUserListDirectLicensesPatchArgs>
+    for UserListDirectLicense
+{
+    fn generate_resource_id(
+        &self,
+        input: &DatamanagerAccountTypesAccountsUserListDirectLicensesPatchArgs,
+    ) -> String {
+        format!("gcp::datamanager::UserListDirectLicense/{}", input.name)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::datamanager::UserListDirectLicense"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for UserListGlobalLicense
+// =============================================================================
+
+/// ResourceIdentifier implementation for UserListGlobalLicense with DatamanagerAccountTypesAccountsUserListGlobalLicensesCreateArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<DatamanagerAccountTypesAccountsUserListGlobalLicensesCreateArgs>
+    for UserListGlobalLicense
+{
+    fn generate_resource_id(
+        &self,
+        input: &DatamanagerAccountTypesAccountsUserListGlobalLicensesCreateArgs,
+    ) -> String {
+        format!("gcp::datamanager::UserListGlobalLicense/{}", input.parent)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::datamanager::UserListGlobalLicense"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for UserListGlobalLicense
+// =============================================================================
+
+/// ResourceIdentifier implementation for UserListGlobalLicense with DatamanagerAccountTypesAccountsUserListGlobalLicensesGetArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<DatamanagerAccountTypesAccountsUserListGlobalLicensesGetArgs>
+    for UserListGlobalLicense
+{
+    fn generate_resource_id(
+        &self,
+        input: &DatamanagerAccountTypesAccountsUserListGlobalLicensesGetArgs,
+    ) -> String {
+        format!("gcp::datamanager::UserListGlobalLicense/{}", input.name)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::datamanager::UserListGlobalLicense"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for ListUserListGlobalLicensesResponse
+// =============================================================================
+
+/// ResourceIdentifier implementation for ListUserListGlobalLicensesResponse with DatamanagerAccountTypesAccountsUserListGlobalLicensesListArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<DatamanagerAccountTypesAccountsUserListGlobalLicensesListArgs>
+    for ListUserListGlobalLicensesResponse
+{
+    fn generate_resource_id(
+        &self,
+        input: &DatamanagerAccountTypesAccountsUserListGlobalLicensesListArgs,
+    ) -> String {
+        format!(
+            "gcp::datamanager::ListUserListGlobalLicensesResponse/{}",
+            input.parent
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::datamanager::ListUserListGlobalLicensesResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for UserListGlobalLicense
+// =============================================================================
+
+/// ResourceIdentifier implementation for UserListGlobalLicense with DatamanagerAccountTypesAccountsUserListGlobalLicensesPatchArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<DatamanagerAccountTypesAccountsUserListGlobalLicensesPatchArgs>
+    for UserListGlobalLicense
+{
+    fn generate_resource_id(
+        &self,
+        input: &DatamanagerAccountTypesAccountsUserListGlobalLicensesPatchArgs,
+    ) -> String {
+        format!("gcp::datamanager::UserListGlobalLicense/{}", input.name)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::datamanager::UserListGlobalLicense"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for ListUserListGlobalLicenseCustomerInfosResponse
+// =============================================================================
+
+/// ResourceIdentifier implementation for ListUserListGlobalLicenseCustomerInfosResponse with DatamanagerAccountTypesAccountsUserListGlobalLicensesUserListGlobalLicenseCustomerInfosListArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<DatamanagerAccountTypesAccountsUserListGlobalLicensesUserListGlobalLicenseCustomerInfosListArgs> for ListUserListGlobalLicenseCustomerInfosResponse {
+    fn generate_resource_id(&self, input: &DatamanagerAccountTypesAccountsUserListGlobalLicensesUserListGlobalLicenseCustomerInfosListArgs) -> String {
+        format!("gcp::datamanager::ListUserListGlobalLicenseCustomerInfosResponse/{}", input.parent)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::datamanager::ListUserListGlobalLicenseCustomerInfosResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for UserList
+// =============================================================================
+
+/// ResourceIdentifier implementation for UserList with DatamanagerAccountTypesAccountsUserListsCreateArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<DatamanagerAccountTypesAccountsUserListsCreateArgs> for UserList {
+    fn generate_resource_id(
+        &self,
+        input: &DatamanagerAccountTypesAccountsUserListsCreateArgs,
+    ) -> String {
+        format!("gcp::datamanager::UserList/{}", input.parent)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::datamanager::UserList"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for Empty
+// =============================================================================
+
+/// ResourceIdentifier implementation for Empty with DatamanagerAccountTypesAccountsUserListsDeleteArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<DatamanagerAccountTypesAccountsUserListsDeleteArgs> for Empty {
+    fn generate_resource_id(
+        &self,
+        input: &DatamanagerAccountTypesAccountsUserListsDeleteArgs,
+    ) -> String {
+        format!("gcp::datamanager::Empty/{}", input.name)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::datamanager::Empty"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for UserList
+// =============================================================================
+
+/// ResourceIdentifier implementation for UserList with DatamanagerAccountTypesAccountsUserListsGetArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<DatamanagerAccountTypesAccountsUserListsGetArgs> for UserList {
+    fn generate_resource_id(
+        &self,
+        input: &DatamanagerAccountTypesAccountsUserListsGetArgs,
+    ) -> String {
+        format!("gcp::datamanager::UserList/{}", input.name)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::datamanager::UserList"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for ListUserListsResponse
+// =============================================================================
+
+/// ResourceIdentifier implementation for ListUserListsResponse with DatamanagerAccountTypesAccountsUserListsListArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<DatamanagerAccountTypesAccountsUserListsListArgs>
+    for ListUserListsResponse
+{
+    fn generate_resource_id(
+        &self,
+        input: &DatamanagerAccountTypesAccountsUserListsListArgs,
+    ) -> String {
+        format!("gcp::datamanager::ListUserListsResponse/{}", input.parent)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::datamanager::ListUserListsResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for UserList
+// =============================================================================
+
+/// ResourceIdentifier implementation for UserList with DatamanagerAccountTypesAccountsUserListsPatchArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<DatamanagerAccountTypesAccountsUserListsPatchArgs> for UserList {
+    fn generate_resource_id(
+        &self,
+        input: &DatamanagerAccountTypesAccountsUserListsPatchArgs,
+    ) -> String {
+        format!("gcp::datamanager::UserList/{}", input.name)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::datamanager::UserList"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for IngestAudienceMembersResponse
+// =============================================================================
+
+/// ResourceIdentifier implementation for IngestAudienceMembersResponse with DatamanagerAudienceMembersIngestArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<DatamanagerAudienceMembersIngestArgs> for IngestAudienceMembersResponse {
+    fn generate_resource_id(&self, input: &DatamanagerAudienceMembersIngestArgs) -> String {
+        "gcp::datamanager::IngestAudienceMembersResponse".to_string()
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::datamanager::IngestAudienceMembersResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for RemoveAudienceMembersResponse
+// =============================================================================
+
+/// ResourceIdentifier implementation for RemoveAudienceMembersResponse with DatamanagerAudienceMembersRemoveArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<DatamanagerAudienceMembersRemoveArgs> for RemoveAudienceMembersResponse {
+    fn generate_resource_id(&self, input: &DatamanagerAudienceMembersRemoveArgs) -> String {
+        "gcp::datamanager::RemoveAudienceMembersResponse".to_string()
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::datamanager::RemoveAudienceMembersResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for IngestEventsResponse
+// =============================================================================
+
+/// ResourceIdentifier implementation for IngestEventsResponse with DatamanagerEventsIngestArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<DatamanagerEventsIngestArgs> for IngestEventsResponse {
+    fn generate_resource_id(&self, input: &DatamanagerEventsIngestArgs) -> String {
+        "gcp::datamanager::IngestEventsResponse".to_string()
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::datamanager::IngestEventsResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for RetrieveRequestStatusResponse
+// =============================================================================
+
+/// ResourceIdentifier implementation for RetrieveRequestStatusResponse with DatamanagerRequestStatusRetrieveArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<DatamanagerRequestStatusRetrieveArgs> for RetrieveRequestStatusResponse {
+    fn generate_resource_id(&self, input: &DatamanagerRequestStatusRetrieveArgs) -> String {
+        "gcp::datamanager::RetrieveRequestStatusResponse".to_string()
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::datamanager::RetrieveRequestStatusResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
 }

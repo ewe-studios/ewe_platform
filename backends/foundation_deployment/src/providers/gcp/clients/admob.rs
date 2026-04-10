@@ -7,7 +7,6 @@
 
 #![cfg(feature = "gcp")]
 
-
 use crate::providers::gcp::clients::types::*;
 use crate::providers::gcp::resources::*;
 use foundation_core::valtron::{
@@ -17,6 +16,7 @@ use foundation_core::valtron::{
 use foundation_core::wire::simple_http::client::{
     body_reader, ClientRequestBuilder, RequestIntro, SimpleHttpClient, SystemDnsResolver,
 };
+use foundation_db::state::resource_identifier::ResourceIdentifier;
 use foundation_macros::JsonHash;
 use serde::Serialize;
 
@@ -31,7 +31,7 @@ pub fn admob_accounts_get_builder(
     name: &String,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
-    let endpoint_url = format!("https://admob.googleapis.com/v1/accounts/{}",);
+    let endpoint_url = format!("https://admob.googleapis.com/v1/accounts/{}", name,);
 
     // Build request
     let builder = client
@@ -186,8 +186,8 @@ pub fn admob_accounts_get(
 
 pub fn admob_accounts_list_builder(
     client: &SimpleHttpClient,
-    pageSize: &Option<i32>,
-    pageToken: &Option<String>,
+    pageSize: &Option<Option<String>>,
+    pageToken: &Option<Option<String>>,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!("https://admob.googleapis.com/v1/accounts",);
@@ -326,9 +326,9 @@ pub fn admob_accounts_list_execute(
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct AdmobAccountsListArgs {
     /// Query parameter: pageSize
-    pub pageSize: Option<i32>,
+    pub pageSize: Option<Option<String>>,
     /// Query parameter: pageToken
-    pub pageToken: Option<String>,
+    pub pageToken: Option<Option<String>>,
 }
 
 /// GET v1/accounts
@@ -366,11 +366,14 @@ pub fn admob_accounts_list(
 pub fn admob_accounts_ad_units_list_builder(
     client: &SimpleHttpClient,
     parent: &String,
-    pageSize: &Option<i32>,
-    pageToken: &Option<String>,
+    pageSize: &Option<Option<String>>,
+    pageToken: &Option<Option<String>>,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
-    let endpoint_url = format!("https://admob.googleapis.com/v1/accounts/{}/adUnits",);
+    let endpoint_url = format!(
+        "https://admob.googleapis.com/v1/accounts/{}/adUnits",
+        parent,
+    );
 
     // Build request
     let mut query_parts = Vec::new();
@@ -506,9 +509,9 @@ pub struct AdmobAccountsAdUnitsListArgs {
     /// Path parameter: parent
     pub parent: String,
     /// Query parameter: pageSize
-    pub pageSize: Option<i32>,
+    pub pageSize: Option<Option<String>>,
     /// Query parameter: pageToken
-    pub pageToken: Option<String>,
+    pub pageToken: Option<Option<String>>,
 }
 
 /// GET v1/accounts/{accountsId}/adUnits
@@ -549,11 +552,11 @@ pub fn admob_accounts_ad_units_list(
 pub fn admob_accounts_apps_list_builder(
     client: &SimpleHttpClient,
     parent: &String,
-    pageSize: &Option<i32>,
-    pageToken: &Option<String>,
+    pageSize: &Option<Option<String>>,
+    pageToken: &Option<Option<String>>,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
-    let endpoint_url = format!("https://admob.googleapis.com/v1/accounts/{}/apps",);
+    let endpoint_url = format!("https://admob.googleapis.com/v1/accounts/{}/apps", parent,);
 
     // Build request
     let mut query_parts = Vec::new();
@@ -689,9 +692,9 @@ pub struct AdmobAccountsAppsListArgs {
     /// Path parameter: parent
     pub parent: String,
     /// Query parameter: pageSize
-    pub pageSize: Option<i32>,
+    pub pageSize: Option<Option<String>>,
     /// Query parameter: pageToken
-    pub pageToken: Option<String>,
+    pub pageToken: Option<Option<String>>,
 }
 
 /// GET v1/accounts/{accountsId}/apps
@@ -719,7 +722,7 @@ pub fn admob_accounts_apps_list(
     admob_accounts_apps_list_execute(builder)
 }
 
-/// GET v1/accounts/{accountsId}/mediationReport:generate
+/// POST v1/accounts/{accountsId}/mediationReport:generate
 /// Generates an AdMob Mediation report based on the provided report specification. Returns result of a server-side streaming RPC. The result is returned in a sequence of responses.
 ///
 /// Returns `ClientRequestBuilder` for customization.
@@ -728,23 +731,22 @@ pub fn admob_accounts_apps_list(
 pub fn admob_accounts_mediation_report_generate_builder(
     client: &SimpleHttpClient,
     parent: &String,
-    body: &GenerateMediationReportRequest,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
-    let endpoint_url =
-        format!("https://admob.googleapis.com/v1/accounts/{}/mediationReport:generate",);
+    let endpoint_url = format!(
+        "https://admob.googleapis.com/v1/accounts/{}/mediationReport:generate",
+        parent,
+    );
 
     // Build request
     let builder = client
-        .get(&endpoint_url)
+        .post(&endpoint_url)
         .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
 
-    builder
-        .body_json(body)
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+    Ok(builder)
 }
 
-/// GET v1/accounts/{accountsId}/mediationReport:generate
+/// POST v1/accounts/{accountsId}/mediationReport:generate
 /// Generates an AdMob Mediation report based on the provided report specification. Returns result of a server-side streaming RPC. The result is returned in a sequence of responses.
 ///
 /// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
@@ -818,7 +820,7 @@ pub fn admob_accounts_mediation_report_generate_task(
         .map_pending(|_| ApiPending::Sending))
 }
 
-/// GET v1/accounts/{accountsId}/mediationReport:generate
+/// POST v1/accounts/{accountsId}/mediationReport:generate
 /// Generates an AdMob Mediation report based on the provided report specification. Returns result of a server-side streaming RPC. The result is returned in a sequence of responses.
 ///
 /// Takes a `ClientRequestBuilder`, builds and executes the request,
@@ -857,11 +859,9 @@ pub fn admob_accounts_mediation_report_generate_execute(
 pub struct AdmobAccountsMediationReportGenerateArgs {
     /// Path parameter: parent
     pub parent: String,
-    /// Request body.
-    pub body: GenerateMediationReportRequest,
 }
 
-/// GET v1/accounts/{accountsId}/mediationReport:generate
+/// POST v1/accounts/{accountsId}/mediationReport:generate
 /// Generates an AdMob Mediation report based on the provided report specification. Returns result of a server-side streaming RPC. The result is returned in a sequence of responses.
 ///
 /// Simplest API - builds and executes the request in one call.
@@ -883,12 +883,11 @@ pub fn admob_accounts_mediation_report_generate(
         + 'static,
     ApiError,
 > {
-    let builder =
-        admob_accounts_mediation_report_generate_builder(client, &args.parent, &args.body)?;
+    let builder = admob_accounts_mediation_report_generate_builder(client, &args.parent)?;
     admob_accounts_mediation_report_generate_execute(builder)
 }
 
-/// GET v1/accounts/{accountsId}/networkReport:generate
+/// POST v1/accounts/{accountsId}/networkReport:generate
 /// Generates an AdMob Network report based on the provided report specification. Returns result of a server-side streaming RPC. The result is returned in a sequence of responses.
 ///
 /// Returns `ClientRequestBuilder` for customization.
@@ -897,23 +896,22 @@ pub fn admob_accounts_mediation_report_generate(
 pub fn admob_accounts_network_report_generate_builder(
     client: &SimpleHttpClient,
     parent: &String,
-    body: &GenerateNetworkReportRequest,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
-    let endpoint_url =
-        format!("https://admob.googleapis.com/v1/accounts/{}/networkReport:generate",);
+    let endpoint_url = format!(
+        "https://admob.googleapis.com/v1/accounts/{}/networkReport:generate",
+        parent,
+    );
 
     // Build request
     let builder = client
-        .get(&endpoint_url)
+        .post(&endpoint_url)
         .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
 
-    builder
-        .body_json(body)
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+    Ok(builder)
 }
 
-/// GET v1/accounts/{accountsId}/networkReport:generate
+/// POST v1/accounts/{accountsId}/networkReport:generate
 /// Generates an AdMob Network report based on the provided report specification. Returns result of a server-side streaming RPC. The result is returned in a sequence of responses.
 ///
 /// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
@@ -987,7 +985,7 @@ pub fn admob_accounts_network_report_generate_task(
         .map_pending(|_| ApiPending::Sending))
 }
 
-/// GET v1/accounts/{accountsId}/networkReport:generate
+/// POST v1/accounts/{accountsId}/networkReport:generate
 /// Generates an AdMob Network report based on the provided report specification. Returns result of a server-side streaming RPC. The result is returned in a sequence of responses.
 ///
 /// Takes a `ClientRequestBuilder`, builds and executes the request,
@@ -1026,11 +1024,9 @@ pub fn admob_accounts_network_report_generate_execute(
 pub struct AdmobAccountsNetworkReportGenerateArgs {
     /// Path parameter: parent
     pub parent: String,
-    /// Request body.
-    pub body: GenerateNetworkReportRequest,
 }
 
-/// GET v1/accounts/{accountsId}/networkReport:generate
+/// POST v1/accounts/{accountsId}/networkReport:generate
 /// Generates an AdMob Network report based on the provided report specification. Returns result of a server-side streaming RPC. The result is returned in a sequence of responses.
 ///
 /// Simplest API - builds and executes the request in one call.
@@ -1052,6 +1048,149 @@ pub fn admob_accounts_network_report_generate(
         + 'static,
     ApiError,
 > {
-    let builder = admob_accounts_network_report_generate_builder(client, &args.parent, &args.body)?;
+    let builder = admob_accounts_network_report_generate_builder(client, &args.parent)?;
     admob_accounts_network_report_generate_execute(builder)
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for PublisherAccount
+// =============================================================================
+
+/// ResourceIdentifier implementation for PublisherAccount with AdmobAccountsGetArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<AdmobAccountsGetArgs> for PublisherAccount {
+    fn generate_resource_id(&self, input: &AdmobAccountsGetArgs) -> String {
+        format!("gcp::admob::PublisherAccount/{}", input.name)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::admob::PublisherAccount"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for ListPublisherAccountsResponse
+// =============================================================================
+
+/// ResourceIdentifier implementation for ListPublisherAccountsResponse with AdmobAccountsListArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<AdmobAccountsListArgs> for ListPublisherAccountsResponse {
+    fn generate_resource_id(&self, input: &AdmobAccountsListArgs) -> String {
+        "gcp::admob::ListPublisherAccountsResponse".to_string()
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::admob::ListPublisherAccountsResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for ListAdUnitsResponse
+// =============================================================================
+
+/// ResourceIdentifier implementation for ListAdUnitsResponse with AdmobAccountsAdUnitsListArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<AdmobAccountsAdUnitsListArgs> for ListAdUnitsResponse {
+    fn generate_resource_id(&self, input: &AdmobAccountsAdUnitsListArgs) -> String {
+        format!("gcp::admob::ListAdUnitsResponse/{}", input.parent)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::admob::ListAdUnitsResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for ListAppsResponse
+// =============================================================================
+
+/// ResourceIdentifier implementation for ListAppsResponse with AdmobAccountsAppsListArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<AdmobAccountsAppsListArgs> for ListAppsResponse {
+    fn generate_resource_id(&self, input: &AdmobAccountsAppsListArgs) -> String {
+        format!("gcp::admob::ListAppsResponse/{}", input.parent)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::admob::ListAppsResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for GenerateMediationReportResponse
+// =============================================================================
+
+/// ResourceIdentifier implementation for GenerateMediationReportResponse with AdmobAccountsMediationReportGenerateArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<AdmobAccountsMediationReportGenerateArgs>
+    for GenerateMediationReportResponse
+{
+    fn generate_resource_id(&self, input: &AdmobAccountsMediationReportGenerateArgs) -> String {
+        format!(
+            "gcp::admob::GenerateMediationReportResponse/{}",
+            input.parent
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::admob::GenerateMediationReportResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for GenerateNetworkReportResponse
+// =============================================================================
+
+/// ResourceIdentifier implementation for GenerateNetworkReportResponse with AdmobAccountsNetworkReportGenerateArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<AdmobAccountsNetworkReportGenerateArgs> for GenerateNetworkReportResponse {
+    fn generate_resource_id(&self, input: &AdmobAccountsNetworkReportGenerateArgs) -> String {
+        format!("gcp::admob::GenerateNetworkReportResponse/{}", input.parent)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::admob::GenerateNetworkReportResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
 }

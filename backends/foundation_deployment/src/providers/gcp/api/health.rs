@@ -12,25 +12,41 @@
 #![cfg(feature = "gcp")]
 
 use crate::providers::gcp::clients::health::{
+    health_users_get_identity_builder, health_users_get_identity_task,
+    health_users_get_profile_builder, health_users_get_profile_task,
+    health_users_get_settings_builder, health_users_get_settings_task,
     health_users_update_profile_builder, health_users_update_profile_task,
     health_users_update_settings_builder, health_users_update_settings_task,
     health_users_data_types_data_points_batch_delete_builder, health_users_data_types_data_points_batch_delete_task,
     health_users_data_types_data_points_create_builder, health_users_data_types_data_points_create_task,
     health_users_data_types_data_points_daily_roll_up_builder, health_users_data_types_data_points_daily_roll_up_task,
+    health_users_data_types_data_points_export_exercise_tcx_builder, health_users_data_types_data_points_export_exercise_tcx_task,
+    health_users_data_types_data_points_list_builder, health_users_data_types_data_points_list_task,
     health_users_data_types_data_points_patch_builder, health_users_data_types_data_points_patch_task,
+    health_users_data_types_data_points_reconcile_builder, health_users_data_types_data_points_reconcile_task,
     health_users_data_types_data_points_roll_up_builder, health_users_data_types_data_points_roll_up_task,
 };
 use crate::providers::gcp::clients::types::{ApiError, ApiPending};
 use crate::providers::gcp::clients::health::DailyRollUpDataPointsResponse;
+use crate::providers::gcp::clients::health::ExportExerciseTcxResponse;
+use crate::providers::gcp::clients::health::Identity;
+use crate::providers::gcp::clients::health::ListDataPointsResponse;
 use crate::providers::gcp::clients::health::Operation;
 use crate::providers::gcp::clients::health::Profile;
+use crate::providers::gcp::clients::health::ReconcileDataPointsResponse;
 use crate::providers::gcp::clients::health::RollUpDataPointsResponse;
 use crate::providers::gcp::clients::health::Settings;
 use crate::providers::gcp::clients::health::HealthUsersDataTypesDataPointsBatchDeleteArgs;
 use crate::providers::gcp::clients::health::HealthUsersDataTypesDataPointsCreateArgs;
 use crate::providers::gcp::clients::health::HealthUsersDataTypesDataPointsDailyRollUpArgs;
+use crate::providers::gcp::clients::health::HealthUsersDataTypesDataPointsExportExerciseTcxArgs;
+use crate::providers::gcp::clients::health::HealthUsersDataTypesDataPointsListArgs;
 use crate::providers::gcp::clients::health::HealthUsersDataTypesDataPointsPatchArgs;
+use crate::providers::gcp::clients::health::HealthUsersDataTypesDataPointsReconcileArgs;
 use crate::providers::gcp::clients::health::HealthUsersDataTypesDataPointsRollUpArgs;
+use crate::providers::gcp::clients::health::HealthUsersGetIdentityArgs;
+use crate::providers::gcp::clients::health::HealthUsersGetProfileArgs;
+use crate::providers::gcp::clients::health::HealthUsersGetSettingsArgs;
 use crate::providers::gcp::clients::health::HealthUsersUpdateProfileArgs;
 use crate::providers::gcp::clients::health::HealthUsersUpdateSettingsArgs;
 use crate::provider_client::{ProviderClient, ProviderError};
@@ -72,6 +88,120 @@ where
             client,
             http_client: Arc::new(http_client),
         }
+    }
+
+    /// Health users get identity.
+    ///
+    /// Read-only operation - no state tracking.
+    ///
+    /// # Arguments
+    ///
+    /// * `args` - Request arguments
+    ///
+    /// # Returns
+    ///
+    /// StreamIterator yielding the Identity result.
+    ///
+    /// # Errors
+    ///
+    /// Returns ProviderError if the API request fails.
+    pub fn health_users_get_identity(
+        &self,
+        args: &HealthUsersGetIdentityArgs,
+    ) -> Result<
+        impl StreamIterator<
+            D = Result<Identity, ProviderError<ApiError>>,
+            P = crate::providers::gcp::clients::types::ApiPending,
+        > + Send
+        + 'static,
+        ProviderError<ApiError>,
+    > {
+        let builder = health_users_get_identity_builder(
+            &self.http_client,
+            &args.name,
+        )
+        .map_err(ProviderError::Api)?;
+
+        let task = health_users_get_identity_task(builder)
+            .map_err(ProviderError::Api)?;
+
+        execute(task, None).map_err(|e: String| ProviderError::ExecuteFailed(e.to_string()))
+    }
+
+    /// Health users get profile.
+    ///
+    /// Read-only operation - no state tracking.
+    ///
+    /// # Arguments
+    ///
+    /// * `args` - Request arguments
+    ///
+    /// # Returns
+    ///
+    /// StreamIterator yielding the Profile result.
+    ///
+    /// # Errors
+    ///
+    /// Returns ProviderError if the API request fails.
+    pub fn health_users_get_profile(
+        &self,
+        args: &HealthUsersGetProfileArgs,
+    ) -> Result<
+        impl StreamIterator<
+            D = Result<Profile, ProviderError<ApiError>>,
+            P = crate::providers::gcp::clients::types::ApiPending,
+        > + Send
+        + 'static,
+        ProviderError<ApiError>,
+    > {
+        let builder = health_users_get_profile_builder(
+            &self.http_client,
+            &args.name,
+        )
+        .map_err(ProviderError::Api)?;
+
+        let task = health_users_get_profile_task(builder)
+            .map_err(ProviderError::Api)?;
+
+        execute(task, None).map_err(|e: String| ProviderError::ExecuteFailed(e.to_string()))
+    }
+
+    /// Health users get settings.
+    ///
+    /// Read-only operation - no state tracking.
+    ///
+    /// # Arguments
+    ///
+    /// * `args` - Request arguments
+    ///
+    /// # Returns
+    ///
+    /// StreamIterator yielding the Settings result.
+    ///
+    /// # Errors
+    ///
+    /// Returns ProviderError if the API request fails.
+    pub fn health_users_get_settings(
+        &self,
+        args: &HealthUsersGetSettingsArgs,
+    ) -> Result<
+        impl StreamIterator<
+            D = Result<Settings, ProviderError<ApiError>>,
+            P = crate::providers::gcp::clients::types::ApiPending,
+        > + Send
+        + 'static,
+        ProviderError<ApiError>,
+    > {
+        let builder = health_users_get_settings_builder(
+            &self.http_client,
+            &args.name,
+        )
+        .map_err(ProviderError::Api)?;
+
+        let task = health_users_get_settings_task(builder)
+            .map_err(ProviderError::Api)?;
+
+        execute(task, None).map_err(|e: String| ProviderError::ExecuteFailed(e.to_string()))
     }
 
     /// Health users update profile.
@@ -291,6 +421,91 @@ where
         execute(store_task, None).map_err(|e: String| ProviderError::ExecuteFailed(e.to_string()))
     }
 
+    /// Health users data types data points export exercise tcx.
+    ///
+    /// Automatically stores the result in the state store on success.
+    ///
+    /// # Arguments
+    ///
+    /// * `args` - Request arguments
+    ///
+    /// # Returns
+    ///
+    /// StreamIterator yielding the ExportExerciseTcxResponse result.
+    ///
+    /// # Errors
+    ///
+    /// Returns ProviderError if the API request or state storage fails.
+    pub fn health_users_data_types_data_points_export_exercise_tcx(
+        &self,
+        args: &HealthUsersDataTypesDataPointsExportExerciseTcxArgs,
+    ) -> Result<
+        impl StreamIterator<
+            D = Result<ExportExerciseTcxResponse, ProviderError<ApiError>>,
+            P = crate::providers::gcp::clients::types::ApiPending,
+        > + Send
+        + 'static,
+        ProviderError<ApiError>,
+    > {
+        let builder = health_users_data_types_data_points_export_exercise_tcx_builder(
+            &self.http_client,
+            &args.name,
+            &args.partialData,
+        )
+        .map_err(ProviderError::Api)?;
+
+        let task = health_users_data_types_data_points_export_exercise_tcx_task(builder)
+            .map_err(ProviderError::Api)?;
+
+        let state_store = self.client.state_store.clone();
+        let stage = Some(self.client.stage.clone());
+
+        let store_task = StoreStateIdentifierTask::new(task, state_store, args, stage);
+
+        execute(store_task, None).map_err(|e: String| ProviderError::ExecuteFailed(e.to_string()))
+    }
+
+    /// Health users data types data points list.
+    ///
+    /// Read-only operation - no state tracking.
+    ///
+    /// # Arguments
+    ///
+    /// * `args` - Request arguments
+    ///
+    /// # Returns
+    ///
+    /// StreamIterator yielding the ListDataPointsResponse result.
+    ///
+    /// # Errors
+    ///
+    /// Returns ProviderError if the API request fails.
+    pub fn health_users_data_types_data_points_list(
+        &self,
+        args: &HealthUsersDataTypesDataPointsListArgs,
+    ) -> Result<
+        impl StreamIterator<
+            D = Result<ListDataPointsResponse, ProviderError<ApiError>>,
+            P = crate::providers::gcp::clients::types::ApiPending,
+        > + Send
+        + 'static,
+        ProviderError<ApiError>,
+    > {
+        let builder = health_users_data_types_data_points_list_builder(
+            &self.http_client,
+            &args.parent,
+            &args.filter,
+            &args.pageSize,
+            &args.pageToken,
+        )
+        .map_err(ProviderError::Api)?;
+
+        let task = health_users_data_types_data_points_list_task(builder)
+            .map_err(ProviderError::Api)?;
+
+        execute(task, None).map_err(|e: String| ProviderError::ExecuteFailed(e.to_string()))
+    }
+
     /// Health users data types data points patch.
     ///
     /// Automatically stores the result in the state store on success.
@@ -320,7 +535,6 @@ where
         let builder = health_users_data_types_data_points_patch_builder(
             &self.http_client,
             &args.name,
-            &args.updateMask,
         )
         .map_err(ProviderError::Api)?;
 
@@ -333,6 +547,48 @@ where
         let store_task = StoreStateIdentifierTask::new(task, state_store, args, stage);
 
         execute(store_task, None).map_err(|e: String| ProviderError::ExecuteFailed(e.to_string()))
+    }
+
+    /// Health users data types data points reconcile.
+    ///
+    /// Read-only operation - no state tracking.
+    ///
+    /// # Arguments
+    ///
+    /// * `args` - Request arguments
+    ///
+    /// # Returns
+    ///
+    /// StreamIterator yielding the ReconcileDataPointsResponse result.
+    ///
+    /// # Errors
+    ///
+    /// Returns ProviderError if the API request fails.
+    pub fn health_users_data_types_data_points_reconcile(
+        &self,
+        args: &HealthUsersDataTypesDataPointsReconcileArgs,
+    ) -> Result<
+        impl StreamIterator<
+            D = Result<ReconcileDataPointsResponse, ProviderError<ApiError>>,
+            P = crate::providers::gcp::clients::types::ApiPending,
+        > + Send
+        + 'static,
+        ProviderError<ApiError>,
+    > {
+        let builder = health_users_data_types_data_points_reconcile_builder(
+            &self.http_client,
+            &args.parent,
+            &args.dataSourceFamily,
+            &args.filter,
+            &args.pageSize,
+            &args.pageToken,
+        )
+        .map_err(ProviderError::Api)?;
+
+        let task = health_users_data_types_data_points_reconcile_task(builder)
+            .map_err(ProviderError::Api)?;
+
+        execute(task, None).map_err(|e: String| ProviderError::ExecuteFailed(e.to_string()))
     }
 
     /// Health users data types data points roll up.

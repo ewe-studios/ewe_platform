@@ -13,23 +13,34 @@
 
 use crate::providers::gcp::clients::cloudcommerceprocurement::{
     cloudcommerceprocurement_providers_accounts_approve_builder, cloudcommerceprocurement_providers_accounts_approve_task,
+    cloudcommerceprocurement_providers_accounts_get_builder, cloudcommerceprocurement_providers_accounts_get_task,
+    cloudcommerceprocurement_providers_accounts_list_builder, cloudcommerceprocurement_providers_accounts_list_task,
     cloudcommerceprocurement_providers_accounts_reject_builder, cloudcommerceprocurement_providers_accounts_reject_task,
     cloudcommerceprocurement_providers_accounts_reset_builder, cloudcommerceprocurement_providers_accounts_reset_task,
     cloudcommerceprocurement_providers_entitlements_approve_builder, cloudcommerceprocurement_providers_entitlements_approve_task,
     cloudcommerceprocurement_providers_entitlements_approve_plan_change_builder, cloudcommerceprocurement_providers_entitlements_approve_plan_change_task,
+    cloudcommerceprocurement_providers_entitlements_get_builder, cloudcommerceprocurement_providers_entitlements_get_task,
+    cloudcommerceprocurement_providers_entitlements_list_builder, cloudcommerceprocurement_providers_entitlements_list_task,
     cloudcommerceprocurement_providers_entitlements_patch_builder, cloudcommerceprocurement_providers_entitlements_patch_task,
     cloudcommerceprocurement_providers_entitlements_reject_builder, cloudcommerceprocurement_providers_entitlements_reject_task,
     cloudcommerceprocurement_providers_entitlements_reject_plan_change_builder, cloudcommerceprocurement_providers_entitlements_reject_plan_change_task,
     cloudcommerceprocurement_providers_entitlements_suspend_builder, cloudcommerceprocurement_providers_entitlements_suspend_task,
 };
 use crate::providers::gcp::clients::types::{ApiError, ApiPending};
+use crate::providers::gcp::clients::cloudcommerceprocurement::Account;
 use crate::providers::gcp::clients::cloudcommerceprocurement::Empty;
 use crate::providers::gcp::clients::cloudcommerceprocurement::Entitlement;
+use crate::providers::gcp::clients::cloudcommerceprocurement::ListAccountsResponse;
+use crate::providers::gcp::clients::cloudcommerceprocurement::ListEntitlementsResponse;
 use crate::providers::gcp::clients::cloudcommerceprocurement::CloudcommerceprocurementProvidersAccountsApproveArgs;
+use crate::providers::gcp::clients::cloudcommerceprocurement::CloudcommerceprocurementProvidersAccountsGetArgs;
+use crate::providers::gcp::clients::cloudcommerceprocurement::CloudcommerceprocurementProvidersAccountsListArgs;
 use crate::providers::gcp::clients::cloudcommerceprocurement::CloudcommerceprocurementProvidersAccountsRejectArgs;
 use crate::providers::gcp::clients::cloudcommerceprocurement::CloudcommerceprocurementProvidersAccountsResetArgs;
 use crate::providers::gcp::clients::cloudcommerceprocurement::CloudcommerceprocurementProvidersEntitlementsApproveArgs;
 use crate::providers::gcp::clients::cloudcommerceprocurement::CloudcommerceprocurementProvidersEntitlementsApprovePlanChangeArgs;
+use crate::providers::gcp::clients::cloudcommerceprocurement::CloudcommerceprocurementProvidersEntitlementsGetArgs;
+use crate::providers::gcp::clients::cloudcommerceprocurement::CloudcommerceprocurementProvidersEntitlementsListArgs;
 use crate::providers::gcp::clients::cloudcommerceprocurement::CloudcommerceprocurementProvidersEntitlementsPatchArgs;
 use crate::providers::gcp::clients::cloudcommerceprocurement::CloudcommerceprocurementProvidersEntitlementsRejectArgs;
 use crate::providers::gcp::clients::cloudcommerceprocurement::CloudcommerceprocurementProvidersEntitlementsRejectPlanChangeArgs;
@@ -116,6 +127,85 @@ where
         let store_task = StoreStateIdentifierTask::new(task, state_store, args, stage);
 
         execute(store_task, None).map_err(|e: String| ProviderError::ExecuteFailed(e.to_string()))
+    }
+
+    /// Cloudcommerceprocurement providers accounts get.
+    ///
+    /// Read-only operation - no state tracking.
+    ///
+    /// # Arguments
+    ///
+    /// * `args` - Request arguments
+    ///
+    /// # Returns
+    ///
+    /// StreamIterator yielding the Account result.
+    ///
+    /// # Errors
+    ///
+    /// Returns ProviderError if the API request fails.
+    pub fn cloudcommerceprocurement_providers_accounts_get(
+        &self,
+        args: &CloudcommerceprocurementProvidersAccountsGetArgs,
+    ) -> Result<
+        impl StreamIterator<
+            D = Result<Account, ProviderError<ApiError>>,
+            P = crate::providers::gcp::clients::types::ApiPending,
+        > + Send
+        + 'static,
+        ProviderError<ApiError>,
+    > {
+        let builder = cloudcommerceprocurement_providers_accounts_get_builder(
+            &self.http_client,
+            &args.name,
+            &args.view,
+        )
+        .map_err(ProviderError::Api)?;
+
+        let task = cloudcommerceprocurement_providers_accounts_get_task(builder)
+            .map_err(ProviderError::Api)?;
+
+        execute(task, None).map_err(|e: String| ProviderError::ExecuteFailed(e.to_string()))
+    }
+
+    /// Cloudcommerceprocurement providers accounts list.
+    ///
+    /// Read-only operation - no state tracking.
+    ///
+    /// # Arguments
+    ///
+    /// * `args` - Request arguments
+    ///
+    /// # Returns
+    ///
+    /// StreamIterator yielding the ListAccountsResponse result.
+    ///
+    /// # Errors
+    ///
+    /// Returns ProviderError if the API request fails.
+    pub fn cloudcommerceprocurement_providers_accounts_list(
+        &self,
+        args: &CloudcommerceprocurementProvidersAccountsListArgs,
+    ) -> Result<
+        impl StreamIterator<
+            D = Result<ListAccountsResponse, ProviderError<ApiError>>,
+            P = crate::providers::gcp::clients::types::ApiPending,
+        > + Send
+        + 'static,
+        ProviderError<ApiError>,
+    > {
+        let builder = cloudcommerceprocurement_providers_accounts_list_builder(
+            &self.http_client,
+            &args.parent,
+            &args.pageSize,
+            &args.pageToken,
+        )
+        .map_err(ProviderError::Api)?;
+
+        let task = cloudcommerceprocurement_providers_accounts_list_task(builder)
+            .map_err(ProviderError::Api)?;
+
+        execute(task, None).map_err(|e: String| ProviderError::ExecuteFailed(e.to_string()))
     }
 
     /// Cloudcommerceprocurement providers accounts reject.
@@ -288,6 +378,85 @@ where
         let store_task = StoreStateIdentifierTask::new(task, state_store, args, stage);
 
         execute(store_task, None).map_err(|e: String| ProviderError::ExecuteFailed(e.to_string()))
+    }
+
+    /// Cloudcommerceprocurement providers entitlements get.
+    ///
+    /// Read-only operation - no state tracking.
+    ///
+    /// # Arguments
+    ///
+    /// * `args` - Request arguments
+    ///
+    /// # Returns
+    ///
+    /// StreamIterator yielding the Entitlement result.
+    ///
+    /// # Errors
+    ///
+    /// Returns ProviderError if the API request fails.
+    pub fn cloudcommerceprocurement_providers_entitlements_get(
+        &self,
+        args: &CloudcommerceprocurementProvidersEntitlementsGetArgs,
+    ) -> Result<
+        impl StreamIterator<
+            D = Result<Entitlement, ProviderError<ApiError>>,
+            P = crate::providers::gcp::clients::types::ApiPending,
+        > + Send
+        + 'static,
+        ProviderError<ApiError>,
+    > {
+        let builder = cloudcommerceprocurement_providers_entitlements_get_builder(
+            &self.http_client,
+            &args.name,
+        )
+        .map_err(ProviderError::Api)?;
+
+        let task = cloudcommerceprocurement_providers_entitlements_get_task(builder)
+            .map_err(ProviderError::Api)?;
+
+        execute(task, None).map_err(|e: String| ProviderError::ExecuteFailed(e.to_string()))
+    }
+
+    /// Cloudcommerceprocurement providers entitlements list.
+    ///
+    /// Read-only operation - no state tracking.
+    ///
+    /// # Arguments
+    ///
+    /// * `args` - Request arguments
+    ///
+    /// # Returns
+    ///
+    /// StreamIterator yielding the ListEntitlementsResponse result.
+    ///
+    /// # Errors
+    ///
+    /// Returns ProviderError if the API request fails.
+    pub fn cloudcommerceprocurement_providers_entitlements_list(
+        &self,
+        args: &CloudcommerceprocurementProvidersEntitlementsListArgs,
+    ) -> Result<
+        impl StreamIterator<
+            D = Result<ListEntitlementsResponse, ProviderError<ApiError>>,
+            P = crate::providers::gcp::clients::types::ApiPending,
+        > + Send
+        + 'static,
+        ProviderError<ApiError>,
+    > {
+        let builder = cloudcommerceprocurement_providers_entitlements_list_builder(
+            &self.http_client,
+            &args.parent,
+            &args.filter,
+            &args.pageSize,
+            &args.pageToken,
+        )
+        .map_err(ProviderError::Api)?;
+
+        let task = cloudcommerceprocurement_providers_entitlements_list_task(builder)
+            .map_err(ProviderError::Api)?;
+
+        execute(task, None).map_err(|e: String| ProviderError::ExecuteFailed(e.to_string()))
     }
 
     /// Cloudcommerceprocurement providers entitlements patch.

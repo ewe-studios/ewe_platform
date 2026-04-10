@@ -7,7 +7,6 @@
 
 #![cfg(feature = "gcp")]
 
-
 use crate::providers::gcp::clients::types::*;
 use crate::providers::gcp::resources::*;
 use foundation_core::valtron::{
@@ -17,10 +16,11 @@ use foundation_core::valtron::{
 use foundation_core::wire::simple_http::client::{
     body_reader, ClientRequestBuilder, RequestIntro, SimpleHttpClient, SystemDnsResolver,
 };
+use foundation_db::state::resource_identifier::ResourceIdentifier;
 use foundation_macros::JsonHash;
 use serde::Serialize;
 
-/// GET v1/projects/{projectsId}:test
+/// POST v1/projects/{projectsId}:test
 /// Test Source for syntactic and semantic correctness. Issues present, if any, will be returned to the caller with a description, severity, and source location. The test method may be executed with Source or a Ruleset name. Passing Source is useful for unit testing new rules. Passing a Ruleset name is useful for regression testing an existing rule. The following is an example of Source that permits users to upload images to a bucket bearing their user id and matching the correct metadata: _*Example*_ // Users are allowed to subscribe and unsubscribe to the blog. service firebase.storage { match /`users/{`userId`}/images/{`imageName`}` { allow write: if `userId` == request.auth.uid && (`imageName`.matches('*.png$') || `imageName`.matches('*.jpg$')) && resource.`mimeType`.matches('^image/') } }
 ///
 /// Returns `ClientRequestBuilder` for customization.
@@ -29,22 +29,22 @@ use serde::Serialize;
 pub fn firebaserules_projects_test_builder(
     client: &SimpleHttpClient,
     name: &String,
-    body: &TestRulesetRequest,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
-    let endpoint_url = format!("https://firebaserules.googleapis.com/v1/projects/{}:test",);
+    let endpoint_url = format!(
+        "https://firebaserules.googleapis.com/v1/projects/{}:test",
+        name,
+    );
 
     // Build request
     let builder = client
-        .get(&endpoint_url)
+        .post(&endpoint_url)
         .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
 
-    builder
-        .body_json(body)
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+    Ok(builder)
 }
 
-/// GET v1/projects/{projectsId}:test
+/// POST v1/projects/{projectsId}:test
 /// Test Source for syntactic and semantic correctness. Issues present, if any, will be returned to the caller with a description, severity, and source location. The test method may be executed with Source or a Ruleset name. Passing Source is useful for unit testing new rules. Passing a Ruleset name is useful for regression testing an existing rule. The following is an example of Source that permits users to upload images to a bucket bearing their user id and matching the correct metadata: _*Example*_ // Users are allowed to subscribe and unsubscribe to the blog. service firebase.storage { match /`users/{`userId`}/images/{`imageName`}` { allow write: if `userId` == request.auth.uid && (`imageName`.matches('*.png$') || `imageName`.matches('*.jpg$')) && resource.`mimeType`.matches('^image/') } }
 ///
 /// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
@@ -118,7 +118,7 @@ pub fn firebaserules_projects_test_task(
         .map_pending(|_| ApiPending::Sending))
 }
 
-/// GET v1/projects/{projectsId}:test
+/// POST v1/projects/{projectsId}:test
 /// Test Source for syntactic and semantic correctness. Issues present, if any, will be returned to the caller with a description, severity, and source location. The test method may be executed with Source or a Ruleset name. Passing Source is useful for unit testing new rules. Passing a Ruleset name is useful for regression testing an existing rule. The following is an example of Source that permits users to upload images to a bucket bearing their user id and matching the correct metadata: _*Example*_ // Users are allowed to subscribe and unsubscribe to the blog. service firebase.storage { match /`users/{`userId`}/images/{`imageName`}` { allow write: if `userId` == request.auth.uid && (`imageName`.matches('*.png$') || `imageName`.matches('*.jpg$')) && resource.`mimeType`.matches('^image/') } }
 ///
 /// Takes a `ClientRequestBuilder`, builds and executes the request,
@@ -155,11 +155,9 @@ pub fn firebaserules_projects_test_execute(
 pub struct FirebaserulesProjectsTestArgs {
     /// Path parameter: name
     pub name: String,
-    /// Request body.
-    pub body: TestRulesetRequest,
 }
 
-/// GET v1/projects/{projectsId}:test
+/// POST v1/projects/{projectsId}:test
 /// Test Source for syntactic and semantic correctness. Issues present, if any, will be returned to the caller with a description, severity, and source location. The test method may be executed with Source or a Ruleset name. Passing Source is useful for unit testing new rules. Passing a Ruleset name is useful for regression testing an existing rule. The following is an example of Source that permits users to upload images to a bucket bearing their user id and matching the correct metadata: _*Example*_ // Users are allowed to subscribe and unsubscribe to the blog. service firebase.storage { match /`users/{`userId`}/images/{`imageName`}` { allow write: if `userId` == request.auth.uid && (`imageName`.matches('*.png$') || `imageName`.matches('*.jpg$')) && resource.`mimeType`.matches('^image/') } }
 ///
 /// Simplest API - builds and executes the request in one call.
@@ -179,11 +177,11 @@ pub fn firebaserules_projects_test(
         + 'static,
     ApiError,
 > {
-    let builder = firebaserules_projects_test_builder(client, &args.name, &args.body)?;
+    let builder = firebaserules_projects_test_builder(client, &args.name)?;
     firebaserules_projects_test_execute(builder)
 }
 
-/// GET v1/projects/{projectsId}/releases
+/// POST v1/projects/{projectsId}/releases
 /// Create a Release. Release names should reflect the developer's deployment practices. For example, the release name may include the environment name, application name, application version, or any other name meaningful to the developer. Once a Release refers to a Ruleset, the rules can be enforced by Firebase Rules-enabled services. More than one Release may be 'live' concurrently. Consider the following three Release names for `projects/foo` and the Ruleset to which they refer. Release Name -&gt; Ruleset Name * `projects/foo/releases/prod` -&gt; `projects/foo/rulesets/uuid123` * `projects/foo/releases/prod/beta` -&gt; `projects/foo/rulesets/uuid123` * `projects/foo/releases/prod/v23` -&gt; `projects/foo/rulesets/uuid456` The relationships reflect a Ruleset rollout in progress. The prod and `prod/beta` releases refer to the same Ruleset. However, `prod/v23` refers to a new Ruleset. The Ruleset reference for a Release may be updated using the UpdateRelease method.
 ///
 /// Returns `ClientRequestBuilder` for customization.
@@ -192,22 +190,22 @@ pub fn firebaserules_projects_test(
 pub fn firebaserules_projects_releases_create_builder(
     client: &SimpleHttpClient,
     name: &String,
-    body: &Release,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
-    let endpoint_url = format!("https://firebaserules.googleapis.com/v1/projects/{}/releases",);
+    let endpoint_url = format!(
+        "https://firebaserules.googleapis.com/v1/projects/{}/releases",
+        name,
+    );
 
     // Build request
     let builder = client
-        .get(&endpoint_url)
+        .post(&endpoint_url)
         .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
 
-    builder
-        .body_json(body)
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+    Ok(builder)
 }
 
-/// GET v1/projects/{projectsId}/releases
+/// POST v1/projects/{projectsId}/releases
 /// Create a Release. Release names should reflect the developer's deployment practices. For example, the release name may include the environment name, application name, application version, or any other name meaningful to the developer. Once a Release refers to a Ruleset, the rules can be enforced by Firebase Rules-enabled services. More than one Release may be 'live' concurrently. Consider the following three Release names for `projects/foo` and the Ruleset to which they refer. Release Name -&gt; Ruleset Name * `projects/foo/releases/prod` -&gt; `projects/foo/rulesets/uuid123` * `projects/foo/releases/prod/beta` -&gt; `projects/foo/rulesets/uuid123` * `projects/foo/releases/prod/v23` -&gt; `projects/foo/rulesets/uuid456` The relationships reflect a Ruleset rollout in progress. The prod and `prod/beta` releases refer to the same Ruleset. However, `prod/v23` refers to a new Ruleset. The Ruleset reference for a Release may be updated using the UpdateRelease method.
 ///
 /// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
@@ -281,7 +279,7 @@ pub fn firebaserules_projects_releases_create_task(
         .map_pending(|_| ApiPending::Sending))
 }
 
-/// GET v1/projects/{projectsId}/releases
+/// POST v1/projects/{projectsId}/releases
 /// Create a Release. Release names should reflect the developer's deployment practices. For example, the release name may include the environment name, application name, application version, or any other name meaningful to the developer. Once a Release refers to a Ruleset, the rules can be enforced by Firebase Rules-enabled services. More than one Release may be 'live' concurrently. Consider the following three Release names for `projects/foo` and the Ruleset to which they refer. Release Name -&gt; Ruleset Name * `projects/foo/releases/prod` -&gt; `projects/foo/rulesets/uuid123` * `projects/foo/releases/prod/beta` -&gt; `projects/foo/rulesets/uuid123` * `projects/foo/releases/prod/v23` -&gt; `projects/foo/rulesets/uuid456` The relationships reflect a Ruleset rollout in progress. The prod and `prod/beta` releases refer to the same Ruleset. However, `prod/v23` refers to a new Ruleset. The Ruleset reference for a Release may be updated using the UpdateRelease method.
 ///
 /// Takes a `ClientRequestBuilder`, builds and executes the request,
@@ -316,11 +314,9 @@ pub fn firebaserules_projects_releases_create_execute(
 pub struct FirebaserulesProjectsReleasesCreateArgs {
     /// Path parameter: name
     pub name: String,
-    /// Request body.
-    pub body: Release,
 }
 
-/// GET v1/projects/{projectsId}/releases
+/// POST v1/projects/{projectsId}/releases
 /// Create a Release. Release names should reflect the developer's deployment practices. For example, the release name may include the environment name, application name, application version, or any other name meaningful to the developer. Once a Release refers to a Ruleset, the rules can be enforced by Firebase Rules-enabled services. More than one Release may be 'live' concurrently. Consider the following three Release names for `projects/foo` and the Ruleset to which they refer. Release Name -&gt; Ruleset Name * `projects/foo/releases/prod` -&gt; `projects/foo/rulesets/uuid123` * `projects/foo/releases/prod/beta` -&gt; `projects/foo/rulesets/uuid123` * `projects/foo/releases/prod/v23` -&gt; `projects/foo/rulesets/uuid456` The relationships reflect a Ruleset rollout in progress. The prod and `prod/beta` releases refer to the same Ruleset. However, `prod/v23` refers to a new Ruleset. The Ruleset reference for a Release may be updated using the UpdateRelease method.
 ///
 /// Simplest API - builds and executes the request in one call.
@@ -338,11 +334,858 @@ pub fn firebaserules_projects_releases_create(
     impl StreamIterator<D = Result<ApiResponse<Release>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = firebaserules_projects_releases_create_builder(client, &args.name, &args.body)?;
+    let builder = firebaserules_projects_releases_create_builder(client, &args.name)?;
     firebaserules_projects_releases_create_execute(builder)
 }
 
-/// GET v1/projects/{projectsId}/rulesets
+/// DELETE v1/projects/{projectsId}/releases/{releasesId}
+/// Delete a Release by resource name.
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `firebaserules_projects_releases_delete_execute()` to send, or `firebaserules_projects_releases_delete` for simplest API.
+
+pub fn firebaserules_projects_releases_delete_builder(
+    client: &SimpleHttpClient,
+    name: &String,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!(
+        "https://firebaserules.googleapis.com/v1/projects/{}/releases/{releasesId}",
+        name,
+    );
+
+    // Build request
+    let builder = client
+        .delete(&endpoint_url)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// DELETE v1/projects/{projectsId}/releases/{releasesId}
+/// Delete a Release by resource name.
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `firebaserules_projects_releases_delete_execute()` or `firebaserules_projects_releases_delete`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `firebaserules_projects_releases_delete_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn firebaserules_projects_releases_delete_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<Empty>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: Empty = serde_json::from_str(&body)
+                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// DELETE v1/projects/{projectsId}/releases/{releasesId}
+/// Delete a Release by resource name.
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `firebaserules_projects_releases_delete_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `firebaserules_projects_releases_delete_task()`.
+/// For the simplest API, use `firebaserules_projects_releases_delete()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `firebaserules_projects_releases_delete_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn firebaserules_projects_releases_delete_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<Empty>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let task = firebaserules_projects_releases_delete_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`firebaserules_projects_releases_delete`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct FirebaserulesProjectsReleasesDeleteArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
+/// DELETE v1/projects/{projectsId}/releases/{releasesId}
+/// Delete a Release by resource name.
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `firebaserules_projects_releases_delete_builder()` + `firebaserules_projects_releases_delete_execute()`.
+/// For task-level control, use `firebaserules_projects_releases_delete_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn firebaserules_projects_releases_delete(
+    client: &SimpleHttpClient,
+    args: &FirebaserulesProjectsReleasesDeleteArgs,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<Empty>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let builder = firebaserules_projects_releases_delete_builder(client, &args.name)?;
+    firebaserules_projects_releases_delete_execute(builder)
+}
+
+/// GET v1/projects/{projectsId}/releases/{releasesId}
+/// Get a Release by name.
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `firebaserules_projects_releases_get_execute()` to send, or `firebaserules_projects_releases_get` for simplest API.
+
+pub fn firebaserules_projects_releases_get_builder(
+    client: &SimpleHttpClient,
+    name: &String,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!(
+        "https://firebaserules.googleapis.com/v1/projects/{}/releases/{releasesId}",
+        name,
+    );
+
+    // Build request
+    let builder = client
+        .get(&endpoint_url)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// GET v1/projects/{projectsId}/releases/{releasesId}
+/// Get a Release by name.
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `firebaserules_projects_releases_get_execute()` or `firebaserules_projects_releases_get`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `firebaserules_projects_releases_get_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn firebaserules_projects_releases_get_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<Release>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: Release = serde_json::from_str(&body)
+                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// GET v1/projects/{projectsId}/releases/{releasesId}
+/// Get a Release by name.
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `firebaserules_projects_releases_get_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `firebaserules_projects_releases_get_task()`.
+/// For the simplest API, use `firebaserules_projects_releases_get()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `firebaserules_projects_releases_get_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn firebaserules_projects_releases_get_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<Release>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let task = firebaserules_projects_releases_get_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`firebaserules_projects_releases_get`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct FirebaserulesProjectsReleasesGetArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
+/// GET v1/projects/{projectsId}/releases/{releasesId}
+/// Get a Release by name.
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `firebaserules_projects_releases_get_builder()` + `firebaserules_projects_releases_get_execute()`.
+/// For task-level control, use `firebaserules_projects_releases_get_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn firebaserules_projects_releases_get(
+    client: &SimpleHttpClient,
+    args: &FirebaserulesProjectsReleasesGetArgs,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<Release>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let builder = firebaserules_projects_releases_get_builder(client, &args.name)?;
+    firebaserules_projects_releases_get_execute(builder)
+}
+
+/// GET v1/projects/{projectsId}/releases/{releasesId}:getExecutable
+/// Get the Release executable to use when enforcing rules.
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `firebaserules_projects_releases_get_executable_execute()` to send, or `firebaserules_projects_releases_get_executable` for simplest API.
+
+pub fn firebaserules_projects_releases_get_executable_builder(
+    client: &SimpleHttpClient,
+    name: &String,
+    executableVersion: &Option<Option<String>>,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!(
+        "https://firebaserules.googleapis.com/v1/projects/{}/releases/{releasesId}:getExecutable",
+        name,
+    );
+
+    // Build request
+    let mut query_parts = Vec::new();
+    if let Some(val) = executableVersion.as_ref() {
+        query_parts.push(format!("executableVersion={}", val));
+    }
+
+    let url_with_query = if query_parts.is_empty() {
+        endpoint_url
+    } else {
+        format!("{}?{}", endpoint_url, query_parts.join("&"))
+    };
+
+    let builder = client
+        .get(&url_with_query)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// GET v1/projects/{projectsId}/releases/{releasesId}:getExecutable
+/// Get the Release executable to use when enforcing rules.
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `firebaserules_projects_releases_get_executable_execute()` or `firebaserules_projects_releases_get_executable`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `firebaserules_projects_releases_get_executable_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn firebaserules_projects_releases_get_executable_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<GetReleaseExecutableResponse>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: GetReleaseExecutableResponse = serde_json::from_str(&body)
+                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// GET v1/projects/{projectsId}/releases/{releasesId}:getExecutable
+/// Get the Release executable to use when enforcing rules.
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `firebaserules_projects_releases_get_executable_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `firebaserules_projects_releases_get_executable_task()`.
+/// For the simplest API, use `firebaserules_projects_releases_get_executable()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `firebaserules_projects_releases_get_executable_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn firebaserules_projects_releases_get_executable_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<
+            D = Result<ApiResponse<GetReleaseExecutableResponse>, ApiError>,
+            P = ApiPending,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    let task = firebaserules_projects_releases_get_executable_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`firebaserules_projects_releases_get_executable`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct FirebaserulesProjectsReleasesGetExecutableArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Query parameter: executableVersion
+    pub executableVersion: Option<Option<String>>,
+}
+
+/// GET v1/projects/{projectsId}/releases/{releasesId}:getExecutable
+/// Get the Release executable to use when enforcing rules.
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `firebaserules_projects_releases_get_executable_builder()` + `firebaserules_projects_releases_get_executable_execute()`.
+/// For task-level control, use `firebaserules_projects_releases_get_executable_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn firebaserules_projects_releases_get_executable(
+    client: &SimpleHttpClient,
+    args: &FirebaserulesProjectsReleasesGetExecutableArgs,
+) -> Result<
+    impl StreamIterator<
+            D = Result<ApiResponse<GetReleaseExecutableResponse>, ApiError>,
+            P = ApiPending,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    let builder = firebaserules_projects_releases_get_executable_builder(
+        client,
+        &args.name,
+        &args.executableVersion,
+    )?;
+    firebaserules_projects_releases_get_executable_execute(builder)
+}
+
+/// GET v1/projects/{projectsId}/releases
+/// List the Release values for a project. This list may optionally be filtered by Release name, Ruleset name, TestSuite name, or any combination thereof.
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `firebaserules_projects_releases_list_execute()` to send, or `firebaserules_projects_releases_list` for simplest API.
+
+pub fn firebaserules_projects_releases_list_builder(
+    client: &SimpleHttpClient,
+    name: &String,
+    filter: &Option<Option<String>>,
+    pageSize: &Option<Option<String>>,
+    pageToken: &Option<Option<String>>,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!(
+        "https://firebaserules.googleapis.com/v1/projects/{}/releases",
+        name,
+    );
+
+    // Build request
+    let mut query_parts = Vec::new();
+    if let Some(val) = filter.as_ref() {
+        query_parts.push(format!("filter={}", val));
+    }
+    if let Some(val) = pageSize.as_ref() {
+        query_parts.push(format!("pageSize={}", val));
+    }
+    if let Some(val) = pageToken.as_ref() {
+        query_parts.push(format!("pageToken={}", val));
+    }
+
+    let url_with_query = if query_parts.is_empty() {
+        endpoint_url
+    } else {
+        format!("{}?{}", endpoint_url, query_parts.join("&"))
+    };
+
+    let builder = client
+        .get(&url_with_query)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// GET v1/projects/{projectsId}/releases
+/// List the Release values for a project. This list may optionally be filtered by Release name, Ruleset name, TestSuite name, or any combination thereof.
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `firebaserules_projects_releases_list_execute()` or `firebaserules_projects_releases_list`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `firebaserules_projects_releases_list_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn firebaserules_projects_releases_list_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<ListReleasesResponse>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: ListReleasesResponse = serde_json::from_str(&body)
+                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// GET v1/projects/{projectsId}/releases
+/// List the Release values for a project. This list may optionally be filtered by Release name, Ruleset name, TestSuite name, or any combination thereof.
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `firebaserules_projects_releases_list_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `firebaserules_projects_releases_list_task()`.
+/// For the simplest API, use `firebaserules_projects_releases_list()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `firebaserules_projects_releases_list_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn firebaserules_projects_releases_list_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<ListReleasesResponse>, ApiError>, P = ApiPending>
+        + Send
+        + 'static,
+    ApiError,
+> {
+    let task = firebaserules_projects_releases_list_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`firebaserules_projects_releases_list`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct FirebaserulesProjectsReleasesListArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Query parameter: filter
+    pub filter: Option<Option<String>>,
+    /// Query parameter: pageSize
+    pub pageSize: Option<Option<String>>,
+    /// Query parameter: pageToken
+    pub pageToken: Option<Option<String>>,
+}
+
+/// GET v1/projects/{projectsId}/releases
+/// List the Release values for a project. This list may optionally be filtered by Release name, Ruleset name, TestSuite name, or any combination thereof.
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `firebaserules_projects_releases_list_builder()` + `firebaserules_projects_releases_list_execute()`.
+/// For task-level control, use `firebaserules_projects_releases_list_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn firebaserules_projects_releases_list(
+    client: &SimpleHttpClient,
+    args: &FirebaserulesProjectsReleasesListArgs,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<ListReleasesResponse>, ApiError>, P = ApiPending>
+        + Send
+        + 'static,
+    ApiError,
+> {
+    let builder = firebaserules_projects_releases_list_builder(
+        client,
+        &args.name,
+        &args.filter,
+        &args.pageSize,
+        &args.pageToken,
+    )?;
+    firebaserules_projects_releases_list_execute(builder)
+}
+
+/// PATCH v1/projects/{projectsId}/releases/{releasesId}
+/// Update a Release via PATCH. Only updates to ruleset_name will be honored. Release rename is not supported. To create a Release use the CreateRelease method.
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `firebaserules_projects_releases_patch_execute()` to send, or `firebaserules_projects_releases_patch` for simplest API.
+
+pub fn firebaserules_projects_releases_patch_builder(
+    client: &SimpleHttpClient,
+    name: &String,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!(
+        "https://firebaserules.googleapis.com/v1/projects/{}/releases/{releasesId}",
+        name,
+    );
+
+    // Build request
+    let builder = client
+        .patch(&endpoint_url)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// PATCH v1/projects/{projectsId}/releases/{releasesId}
+/// Update a Release via PATCH. Only updates to ruleset_name will be honored. Release rename is not supported. To create a Release use the CreateRelease method.
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `firebaserules_projects_releases_patch_execute()` or `firebaserules_projects_releases_patch`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `firebaserules_projects_releases_patch_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn firebaserules_projects_releases_patch_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<Release>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: Release = serde_json::from_str(&body)
+                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// PATCH v1/projects/{projectsId}/releases/{releasesId}
+/// Update a Release via PATCH. Only updates to ruleset_name will be honored. Release rename is not supported. To create a Release use the CreateRelease method.
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `firebaserules_projects_releases_patch_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `firebaserules_projects_releases_patch_task()`.
+/// For the simplest API, use `firebaserules_projects_releases_patch()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `firebaserules_projects_releases_patch_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn firebaserules_projects_releases_patch_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<Release>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let task = firebaserules_projects_releases_patch_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`firebaserules_projects_releases_patch`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct FirebaserulesProjectsReleasesPatchArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
+/// PATCH v1/projects/{projectsId}/releases/{releasesId}
+/// Update a Release via PATCH. Only updates to ruleset_name will be honored. Release rename is not supported. To create a Release use the CreateRelease method.
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `firebaserules_projects_releases_patch_builder()` + `firebaserules_projects_releases_patch_execute()`.
+/// For task-level control, use `firebaserules_projects_releases_patch_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn firebaserules_projects_releases_patch(
+    client: &SimpleHttpClient,
+    args: &FirebaserulesProjectsReleasesPatchArgs,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<Release>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let builder = firebaserules_projects_releases_patch_builder(client, &args.name)?;
+    firebaserules_projects_releases_patch_execute(builder)
+}
+
+/// POST v1/projects/{projectsId}/rulesets
 /// Create a Ruleset from Source. The Ruleset is given a unique generated name which is returned to the caller. Source containing syntactic or semantics errors will result in an error response indicating the first error encountered. For a detailed view of Source issues, use TestRuleset.
 ///
 /// Returns `ClientRequestBuilder` for customization.
@@ -351,22 +1194,22 @@ pub fn firebaserules_projects_releases_create(
 pub fn firebaserules_projects_rulesets_create_builder(
     client: &SimpleHttpClient,
     name: &String,
-    body: &Ruleset,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
-    let endpoint_url = format!("https://firebaserules.googleapis.com/v1/projects/{}/rulesets",);
+    let endpoint_url = format!(
+        "https://firebaserules.googleapis.com/v1/projects/{}/rulesets",
+        name,
+    );
 
     // Build request
     let builder = client
-        .get(&endpoint_url)
+        .post(&endpoint_url)
         .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
 
-    builder
-        .body_json(body)
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+    Ok(builder)
 }
 
-/// GET v1/projects/{projectsId}/rulesets
+/// POST v1/projects/{projectsId}/rulesets
 /// Create a Ruleset from Source. The Ruleset is given a unique generated name which is returned to the caller. Source containing syntactic or semantics errors will result in an error response indicating the first error encountered. For a detailed view of Source issues, use TestRuleset.
 ///
 /// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
@@ -440,7 +1283,7 @@ pub fn firebaserules_projects_rulesets_create_task(
         .map_pending(|_| ApiPending::Sending))
 }
 
-/// GET v1/projects/{projectsId}/rulesets
+/// POST v1/projects/{projectsId}/rulesets
 /// Create a Ruleset from Source. The Ruleset is given a unique generated name which is returned to the caller. Source containing syntactic or semantics errors will result in an error response indicating the first error encountered. For a detailed view of Source issues, use TestRuleset.
 ///
 /// Takes a `ClientRequestBuilder`, builds and executes the request,
@@ -475,11 +1318,9 @@ pub fn firebaserules_projects_rulesets_create_execute(
 pub struct FirebaserulesProjectsRulesetsCreateArgs {
     /// Path parameter: name
     pub name: String,
-    /// Request body.
-    pub body: Ruleset,
 }
 
-/// GET v1/projects/{projectsId}/rulesets
+/// POST v1/projects/{projectsId}/rulesets
 /// Create a Ruleset from Source. The Ruleset is given a unique generated name which is returned to the caller. Source containing syntactic or semantics errors will result in an error response indicating the first error encountered. For a detailed view of Source issues, use TestRuleset.
 ///
 /// Simplest API - builds and executes the request in one call.
@@ -497,6 +1338,774 @@ pub fn firebaserules_projects_rulesets_create(
     impl StreamIterator<D = Result<ApiResponse<Ruleset>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = firebaserules_projects_rulesets_create_builder(client, &args.name, &args.body)?;
+    let builder = firebaserules_projects_rulesets_create_builder(client, &args.name)?;
     firebaserules_projects_rulesets_create_execute(builder)
+}
+
+/// DELETE v1/projects/{projectsId}/rulesets/{rulesetsId}
+/// Delete a Ruleset by resource name. If the Ruleset is referenced by a Release the operation will fail.
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `firebaserules_projects_rulesets_delete_execute()` to send, or `firebaserules_projects_rulesets_delete` for simplest API.
+
+pub fn firebaserules_projects_rulesets_delete_builder(
+    client: &SimpleHttpClient,
+    name: &String,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!(
+        "https://firebaserules.googleapis.com/v1/projects/{}/rulesets/{rulesetsId}",
+        name,
+    );
+
+    // Build request
+    let builder = client
+        .delete(&endpoint_url)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// DELETE v1/projects/{projectsId}/rulesets/{rulesetsId}
+/// Delete a Ruleset by resource name. If the Ruleset is referenced by a Release the operation will fail.
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `firebaserules_projects_rulesets_delete_execute()` or `firebaserules_projects_rulesets_delete`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `firebaserules_projects_rulesets_delete_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn firebaserules_projects_rulesets_delete_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<Empty>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: Empty = serde_json::from_str(&body)
+                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// DELETE v1/projects/{projectsId}/rulesets/{rulesetsId}
+/// Delete a Ruleset by resource name. If the Ruleset is referenced by a Release the operation will fail.
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `firebaserules_projects_rulesets_delete_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `firebaserules_projects_rulesets_delete_task()`.
+/// For the simplest API, use `firebaserules_projects_rulesets_delete()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `firebaserules_projects_rulesets_delete_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn firebaserules_projects_rulesets_delete_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<Empty>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let task = firebaserules_projects_rulesets_delete_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`firebaserules_projects_rulesets_delete`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct FirebaserulesProjectsRulesetsDeleteArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
+/// DELETE v1/projects/{projectsId}/rulesets/{rulesetsId}
+/// Delete a Ruleset by resource name. If the Ruleset is referenced by a Release the operation will fail.
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `firebaserules_projects_rulesets_delete_builder()` + `firebaserules_projects_rulesets_delete_execute()`.
+/// For task-level control, use `firebaserules_projects_rulesets_delete_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn firebaserules_projects_rulesets_delete(
+    client: &SimpleHttpClient,
+    args: &FirebaserulesProjectsRulesetsDeleteArgs,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<Empty>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let builder = firebaserules_projects_rulesets_delete_builder(client, &args.name)?;
+    firebaserules_projects_rulesets_delete_execute(builder)
+}
+
+/// GET v1/projects/{projectsId}/rulesets/{rulesetsId}
+/// Get a Ruleset by name including the full Source contents.
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `firebaserules_projects_rulesets_get_execute()` to send, or `firebaserules_projects_rulesets_get` for simplest API.
+
+pub fn firebaserules_projects_rulesets_get_builder(
+    client: &SimpleHttpClient,
+    name: &String,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!(
+        "https://firebaserules.googleapis.com/v1/projects/{}/rulesets/{rulesetsId}",
+        name,
+    );
+
+    // Build request
+    let builder = client
+        .get(&endpoint_url)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// GET v1/projects/{projectsId}/rulesets/{rulesetsId}
+/// Get a Ruleset by name including the full Source contents.
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `firebaserules_projects_rulesets_get_execute()` or `firebaserules_projects_rulesets_get`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `firebaserules_projects_rulesets_get_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn firebaserules_projects_rulesets_get_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<Ruleset>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: Ruleset = serde_json::from_str(&body)
+                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// GET v1/projects/{projectsId}/rulesets/{rulesetsId}
+/// Get a Ruleset by name including the full Source contents.
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `firebaserules_projects_rulesets_get_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `firebaserules_projects_rulesets_get_task()`.
+/// For the simplest API, use `firebaserules_projects_rulesets_get()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `firebaserules_projects_rulesets_get_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn firebaserules_projects_rulesets_get_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<Ruleset>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let task = firebaserules_projects_rulesets_get_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`firebaserules_projects_rulesets_get`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct FirebaserulesProjectsRulesetsGetArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
+/// GET v1/projects/{projectsId}/rulesets/{rulesetsId}
+/// Get a Ruleset by name including the full Source contents.
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `firebaserules_projects_rulesets_get_builder()` + `firebaserules_projects_rulesets_get_execute()`.
+/// For task-level control, use `firebaserules_projects_rulesets_get_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn firebaserules_projects_rulesets_get(
+    client: &SimpleHttpClient,
+    args: &FirebaserulesProjectsRulesetsGetArgs,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<Ruleset>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let builder = firebaserules_projects_rulesets_get_builder(client, &args.name)?;
+    firebaserules_projects_rulesets_get_execute(builder)
+}
+
+/// GET v1/projects/{projectsId}/rulesets
+/// List Ruleset metadata only and optionally filter the results by Ruleset name. The full Source contents of a Ruleset may be retrieved with GetRuleset.
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `firebaserules_projects_rulesets_list_execute()` to send, or `firebaserules_projects_rulesets_list` for simplest API.
+
+pub fn firebaserules_projects_rulesets_list_builder(
+    client: &SimpleHttpClient,
+    name: &String,
+    filter: &Option<Option<String>>,
+    pageSize: &Option<Option<String>>,
+    pageToken: &Option<Option<String>>,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!(
+        "https://firebaserules.googleapis.com/v1/projects/{}/rulesets",
+        name,
+    );
+
+    // Build request
+    let mut query_parts = Vec::new();
+    if let Some(val) = filter.as_ref() {
+        query_parts.push(format!("filter={}", val));
+    }
+    if let Some(val) = pageSize.as_ref() {
+        query_parts.push(format!("pageSize={}", val));
+    }
+    if let Some(val) = pageToken.as_ref() {
+        query_parts.push(format!("pageToken={}", val));
+    }
+
+    let url_with_query = if query_parts.is_empty() {
+        endpoint_url
+    } else {
+        format!("{}?{}", endpoint_url, query_parts.join("&"))
+    };
+
+    let builder = client
+        .get(&url_with_query)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// GET v1/projects/{projectsId}/rulesets
+/// List Ruleset metadata only and optionally filter the results by Ruleset name. The full Source contents of a Ruleset may be retrieved with GetRuleset.
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `firebaserules_projects_rulesets_list_execute()` or `firebaserules_projects_rulesets_list`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `firebaserules_projects_rulesets_list_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn firebaserules_projects_rulesets_list_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<ListRulesetsResponse>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: ListRulesetsResponse = serde_json::from_str(&body)
+                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// GET v1/projects/{projectsId}/rulesets
+/// List Ruleset metadata only and optionally filter the results by Ruleset name. The full Source contents of a Ruleset may be retrieved with GetRuleset.
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `firebaserules_projects_rulesets_list_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `firebaserules_projects_rulesets_list_task()`.
+/// For the simplest API, use `firebaserules_projects_rulesets_list()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `firebaserules_projects_rulesets_list_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn firebaserules_projects_rulesets_list_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<ListRulesetsResponse>, ApiError>, P = ApiPending>
+        + Send
+        + 'static,
+    ApiError,
+> {
+    let task = firebaserules_projects_rulesets_list_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`firebaserules_projects_rulesets_list`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct FirebaserulesProjectsRulesetsListArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Query parameter: filter
+    pub filter: Option<Option<String>>,
+    /// Query parameter: pageSize
+    pub pageSize: Option<Option<String>>,
+    /// Query parameter: pageToken
+    pub pageToken: Option<Option<String>>,
+}
+
+/// GET v1/projects/{projectsId}/rulesets
+/// List Ruleset metadata only and optionally filter the results by Ruleset name. The full Source contents of a Ruleset may be retrieved with GetRuleset.
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `firebaserules_projects_rulesets_list_builder()` + `firebaserules_projects_rulesets_list_execute()`.
+/// For task-level control, use `firebaserules_projects_rulesets_list_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn firebaserules_projects_rulesets_list(
+    client: &SimpleHttpClient,
+    args: &FirebaserulesProjectsRulesetsListArgs,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<ListRulesetsResponse>, ApiError>, P = ApiPending>
+        + Send
+        + 'static,
+    ApiError,
+> {
+    let builder = firebaserules_projects_rulesets_list_builder(
+        client,
+        &args.name,
+        &args.filter,
+        &args.pageSize,
+        &args.pageToken,
+    )?;
+    firebaserules_projects_rulesets_list_execute(builder)
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for TestRulesetResponse
+// =============================================================================
+
+/// ResourceIdentifier implementation for TestRulesetResponse with FirebaserulesProjectsTestArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<FirebaserulesProjectsTestArgs> for TestRulesetResponse {
+    fn generate_resource_id(&self, input: &FirebaserulesProjectsTestArgs) -> String {
+        format!("gcp::firebaserules::TestRulesetResponse/{}", input.name)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::firebaserules::TestRulesetResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for Release
+// =============================================================================
+
+/// ResourceIdentifier implementation for Release with FirebaserulesProjectsReleasesCreateArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<FirebaserulesProjectsReleasesCreateArgs> for Release {
+    fn generate_resource_id(&self, input: &FirebaserulesProjectsReleasesCreateArgs) -> String {
+        format!("gcp::firebaserules::Release/{}", input.name)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::firebaserules::Release"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for Empty
+// =============================================================================
+
+/// ResourceIdentifier implementation for Empty with FirebaserulesProjectsReleasesDeleteArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<FirebaserulesProjectsReleasesDeleteArgs> for Empty {
+    fn generate_resource_id(&self, input: &FirebaserulesProjectsReleasesDeleteArgs) -> String {
+        format!("gcp::firebaserules::Empty/{}", input.name)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::firebaserules::Empty"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for Release
+// =============================================================================
+
+/// ResourceIdentifier implementation for Release with FirebaserulesProjectsReleasesGetArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<FirebaserulesProjectsReleasesGetArgs> for Release {
+    fn generate_resource_id(&self, input: &FirebaserulesProjectsReleasesGetArgs) -> String {
+        format!("gcp::firebaserules::Release/{}", input.name)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::firebaserules::Release"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for GetReleaseExecutableResponse
+// =============================================================================
+
+/// ResourceIdentifier implementation for GetReleaseExecutableResponse with FirebaserulesProjectsReleasesGetExecutableArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<FirebaserulesProjectsReleasesGetExecutableArgs>
+    for GetReleaseExecutableResponse
+{
+    fn generate_resource_id(
+        &self,
+        input: &FirebaserulesProjectsReleasesGetExecutableArgs,
+    ) -> String {
+        format!(
+            "gcp::firebaserules::GetReleaseExecutableResponse/{}",
+            input.name
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::firebaserules::GetReleaseExecutableResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for ListReleasesResponse
+// =============================================================================
+
+/// ResourceIdentifier implementation for ListReleasesResponse with FirebaserulesProjectsReleasesListArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<FirebaserulesProjectsReleasesListArgs> for ListReleasesResponse {
+    fn generate_resource_id(&self, input: &FirebaserulesProjectsReleasesListArgs) -> String {
+        format!("gcp::firebaserules::ListReleasesResponse/{}", input.name)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::firebaserules::ListReleasesResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for Release
+// =============================================================================
+
+/// ResourceIdentifier implementation for Release with FirebaserulesProjectsReleasesPatchArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<FirebaserulesProjectsReleasesPatchArgs> for Release {
+    fn generate_resource_id(&self, input: &FirebaserulesProjectsReleasesPatchArgs) -> String {
+        format!("gcp::firebaserules::Release/{}", input.name)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::firebaserules::Release"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for Ruleset
+// =============================================================================
+
+/// ResourceIdentifier implementation for Ruleset with FirebaserulesProjectsRulesetsCreateArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<FirebaserulesProjectsRulesetsCreateArgs> for Ruleset {
+    fn generate_resource_id(&self, input: &FirebaserulesProjectsRulesetsCreateArgs) -> String {
+        format!("gcp::firebaserules::Ruleset/{}", input.name)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::firebaserules::Ruleset"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for Empty
+// =============================================================================
+
+/// ResourceIdentifier implementation for Empty with FirebaserulesProjectsRulesetsDeleteArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<FirebaserulesProjectsRulesetsDeleteArgs> for Empty {
+    fn generate_resource_id(&self, input: &FirebaserulesProjectsRulesetsDeleteArgs) -> String {
+        format!("gcp::firebaserules::Empty/{}", input.name)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::firebaserules::Empty"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for Ruleset
+// =============================================================================
+
+/// ResourceIdentifier implementation for Ruleset with FirebaserulesProjectsRulesetsGetArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<FirebaserulesProjectsRulesetsGetArgs> for Ruleset {
+    fn generate_resource_id(&self, input: &FirebaserulesProjectsRulesetsGetArgs) -> String {
+        format!("gcp::firebaserules::Ruleset/{}", input.name)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::firebaserules::Ruleset"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for ListRulesetsResponse
+// =============================================================================
+
+/// ResourceIdentifier implementation for ListRulesetsResponse with FirebaserulesProjectsRulesetsListArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<FirebaserulesProjectsRulesetsListArgs> for ListRulesetsResponse {
+    fn generate_resource_id(&self, input: &FirebaserulesProjectsRulesetsListArgs) -> String {
+        format!("gcp::firebaserules::ListRulesetsResponse/{}", input.name)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::firebaserules::ListRulesetsResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
 }

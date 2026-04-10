@@ -7,7 +7,6 @@
 
 #![cfg(feature = "gcp")]
 
-
 use crate::providers::gcp::clients::types::*;
 use crate::providers::gcp::resources::*;
 use foundation_core::valtron::{
@@ -17,10 +16,11 @@ use foundation_core::valtron::{
 use foundation_core::wire::simple_http::client::{
     body_reader, ClientRequestBuilder, RequestIntro, SimpleHttpClient, SystemDnsResolver,
 };
+use foundation_db::state::resource_identifier::ResourceIdentifier;
 use foundation_macros::JsonHash;
 use serde::Serialize;
 
-/// GET groups/v1/groups/{groupId}/archive
+/// POST groups/v1/groups/{groupId}/archive
 /// Inserts a new mail into the archive of the Google group.
 ///
 /// Returns `ClientRequestBuilder` for customization.
@@ -38,13 +38,13 @@ pub fn groupsmigration_archive_insert_builder(
 
     // Build request
     let builder = client
-        .get(&endpoint_url)
+        .post(&endpoint_url)
         .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
 
     Ok(builder)
 }
 
-/// GET groups/v1/groups/{groupId}/archive
+/// POST groups/v1/groups/{groupId}/archive
 /// Inserts a new mail into the archive of the Google group.
 ///
 /// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
@@ -118,7 +118,7 @@ pub fn groupsmigration_archive_insert_task(
         .map_pending(|_| ApiPending::Sending))
 }
 
-/// GET groups/v1/groups/{groupId}/archive
+/// POST groups/v1/groups/{groupId}/archive
 /// Inserts a new mail into the archive of the Google group.
 ///
 /// Takes a `ClientRequestBuilder`, builds and executes the request,
@@ -155,7 +155,7 @@ pub struct GroupsmigrationArchiveInsertArgs {
     pub groupId: String,
 }
 
-/// GET groups/v1/groups/{groupId}/archive
+/// POST groups/v1/groups/{groupId}/archive
 /// Inserts a new mail into the archive of the Google group.
 ///
 /// Simplest API - builds and executes the request in one call.
@@ -175,4 +175,27 @@ pub fn groupsmigration_archive_insert(
 > {
     let builder = groupsmigration_archive_insert_builder(client, &args.groupId)?;
     groupsmigration_archive_insert_execute(builder)
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for Groups
+// =============================================================================
+
+/// ResourceIdentifier implementation for Groups with GroupsmigrationArchiveInsertArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<GroupsmigrationArchiveInsertArgs> for Groups {
+    fn generate_resource_id(&self, input: &GroupsmigrationArchiveInsertArgs) -> String {
+        format!("gcp::groupsmigration::Groups/{}", input.groupId)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::groupsmigration::Groups"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
 }

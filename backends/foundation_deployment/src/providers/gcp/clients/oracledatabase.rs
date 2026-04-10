@@ -7,7 +7,6 @@
 
 #![cfg(feature = "gcp")]
 
-
 use crate::providers::gcp::clients::types::*;
 use crate::providers::gcp::resources::*;
 use foundation_core::valtron::{
@@ -17,8 +16,166 @@ use foundation_core::valtron::{
 use foundation_core::wire::simple_http::client::{
     body_reader, ClientRequestBuilder, RequestIntro, SimpleHttpClient, SystemDnsResolver,
 };
+use foundation_db::state::resource_identifier::ResourceIdentifier;
 use foundation_macros::JsonHash;
 use serde::Serialize;
+
+/// GET v1/projects/{projectsId}/locations/{locationsId}
+/// Gets information about a location.
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `oracledatabase_projects_locations_get_execute()` to send, or `oracledatabase_projects_locations_get` for simplest API.
+
+pub fn oracledatabase_projects_locations_get_builder(
+    client: &SimpleHttpClient,
+    name: &String,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!(
+        "https://oracledatabase.googleapis.com/v1/projects/{}/locations/{locationsId}",
+        name,
+    );
+
+    // Build request
+    let builder = client
+        .get(&endpoint_url)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// GET v1/projects/{projectsId}/locations/{locationsId}
+/// Gets information about a location.
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `oracledatabase_projects_locations_get_execute()` or `oracledatabase_projects_locations_get`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `oracledatabase_projects_locations_get_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn oracledatabase_projects_locations_get_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<Location>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: Location = serde_json::from_str(&body)
+                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// GET v1/projects/{projectsId}/locations/{locationsId}
+/// Gets information about a location.
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `oracledatabase_projects_locations_get_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `oracledatabase_projects_locations_get_task()`.
+/// For the simplest API, use `oracledatabase_projects_locations_get()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `oracledatabase_projects_locations_get_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn oracledatabase_projects_locations_get_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<Location>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let task = oracledatabase_projects_locations_get_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`oracledatabase_projects_locations_get`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct OracledatabaseProjectsLocationsGetArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
+/// GET v1/projects/{projectsId}/locations/{locationsId}
+/// Gets information about a location.
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `oracledatabase_projects_locations_get_builder()` + `oracledatabase_projects_locations_get_execute()`.
+/// For task-level control, use `oracledatabase_projects_locations_get_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn oracledatabase_projects_locations_get(
+    client: &SimpleHttpClient,
+    args: &OracledatabaseProjectsLocationsGetArgs,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<Location>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let builder = oracledatabase_projects_locations_get_builder(client, &args.name)?;
+    oracledatabase_projects_locations_get_execute(builder)
+}
 
 /// GET v1/projects/{projectsId}/locations
 /// Lists information about the supported locations for this service. This method lists locations based on the resource scope provided in the [ListLocationsRequest.name] field: * **Global locations**: If name is empty, the method lists the public locations available to all projects. * **Project-specific locations**: If name follows the format `projects/{project}`, the method lists locations visible to that specific project. This includes public, private, or other project-specific locations enabled for the project. For `gRPC` and client library implementations, the resource name is passed as the name field. For direct service calls, the resource name is incorporated into the request path based on the specific service implementation and version.
@@ -29,13 +186,16 @@ use serde::Serialize;
 pub fn oracledatabase_projects_locations_list_builder(
     client: &SimpleHttpClient,
     name: &String,
-    extraLocationTypes: &Option<String>,
-    filter: &Option<String>,
-    pageSize: &Option<i32>,
-    pageToken: &Option<String>,
+    extraLocationTypes: &Option<Option<String>>,
+    filter: &Option<Option<String>>,
+    pageSize: &Option<Option<String>>,
+    pageToken: &Option<Option<String>>,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
-    let endpoint_url = format!("https://oracledatabase.googleapis.com/v1/projects/{}/locations",);
+    let endpoint_url = format!(
+        "https://oracledatabase.googleapis.com/v1/projects/{}/locations",
+        name,
+    );
 
     // Build request
     let mut query_parts = Vec::new();
@@ -177,13 +337,13 @@ pub struct OracledatabaseProjectsLocationsListArgs {
     /// Path parameter: name
     pub name: String,
     /// Query parameter: extraLocationTypes
-    pub extraLocationTypes: Option<String>,
+    pub extraLocationTypes: Option<Option<String>>,
     /// Query parameter: filter
-    pub filter: Option<String>,
+    pub filter: Option<Option<String>>,
     /// Query parameter: pageSize
-    pub pageSize: Option<i32>,
+    pub pageSize: Option<Option<String>>,
     /// Query parameter: pageToken
-    pub pageToken: Option<String>,
+    pub pageToken: Option<Option<String>>,
 }
 
 /// GET v1/projects/{projectsId}/locations
@@ -215,4 +375,13138 @@ pub fn oracledatabase_projects_locations_list(
         &args.pageToken,
     )?;
     oracledatabase_projects_locations_list_execute(builder)
+}
+
+/// GET v1/projects/{projectsId}/locations/{locationsId}/autonomousDatabaseBackups
+/// Lists the long-term and automatic backups of an Autonomous Database.
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `oracledatabase_projects_locations_autonomous_database_backups_list_execute()` to send, or `oracledatabase_projects_locations_autonomous_database_backups_list` for simplest API.
+
+pub fn oracledatabase_projects_locations_autonomous_database_backups_list_builder(
+    client: &SimpleHttpClient,
+    parent: &String,
+    filter: &Option<Option<String>>,
+    pageSize: &Option<Option<String>>,
+    pageToken: &Option<Option<String>>,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!(
+        "https://oracledatabase.googleapis.com/v1/projects/{}/locations/{locationsId}/autonomousDatabaseBackups",
+        parent,
+    );
+
+    // Build request
+    let mut query_parts = Vec::new();
+    if let Some(val) = filter.as_ref() {
+        query_parts.push(format!("filter={}", val));
+    }
+    if let Some(val) = pageSize.as_ref() {
+        query_parts.push(format!("pageSize={}", val));
+    }
+    if let Some(val) = pageToken.as_ref() {
+        query_parts.push(format!("pageToken={}", val));
+    }
+
+    let url_with_query = if query_parts.is_empty() {
+        endpoint_url
+    } else {
+        format!("{}?{}", endpoint_url, query_parts.join("&"))
+    };
+
+    let builder = client
+        .get(&url_with_query)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// GET v1/projects/{projectsId}/locations/{locationsId}/autonomousDatabaseBackups
+/// Lists the long-term and automatic backups of an Autonomous Database.
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `oracledatabase_projects_locations_autonomous_database_backups_list_execute()` or `oracledatabase_projects_locations_autonomous_database_backups_list`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `oracledatabase_projects_locations_autonomous_database_backups_list_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn oracledatabase_projects_locations_autonomous_database_backups_list_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<ListAutonomousDatabaseBackupsResponse>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: ListAutonomousDatabaseBackupsResponse = serde_json::from_str(&body)
+                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// GET v1/projects/{projectsId}/locations/{locationsId}/autonomousDatabaseBackups
+/// Lists the long-term and automatic backups of an Autonomous Database.
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `oracledatabase_projects_locations_autonomous_database_backups_list_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `oracledatabase_projects_locations_autonomous_database_backups_list_task()`.
+/// For the simplest API, use `oracledatabase_projects_locations_autonomous_database_backups_list()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `oracledatabase_projects_locations_autonomous_database_backups_list_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn oracledatabase_projects_locations_autonomous_database_backups_list_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<
+            D = Result<ApiResponse<ListAutonomousDatabaseBackupsResponse>, ApiError>,
+            P = ApiPending,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    let task = oracledatabase_projects_locations_autonomous_database_backups_list_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`oracledatabase_projects_locations_autonomous_database_backups_list`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct OracledatabaseProjectsLocationsAutonomousDatabaseBackupsListArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Query parameter: filter
+    pub filter: Option<Option<String>>,
+    /// Query parameter: pageSize
+    pub pageSize: Option<Option<String>>,
+    /// Query parameter: pageToken
+    pub pageToken: Option<Option<String>>,
+}
+
+/// GET v1/projects/{projectsId}/locations/{locationsId}/autonomousDatabaseBackups
+/// Lists the long-term and automatic backups of an Autonomous Database.
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `oracledatabase_projects_locations_autonomous_database_backups_list_builder()` + `oracledatabase_projects_locations_autonomous_database_backups_list_execute()`.
+/// For task-level control, use `oracledatabase_projects_locations_autonomous_database_backups_list_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn oracledatabase_projects_locations_autonomous_database_backups_list(
+    client: &SimpleHttpClient,
+    args: &OracledatabaseProjectsLocationsAutonomousDatabaseBackupsListArgs,
+) -> Result<
+    impl StreamIterator<
+            D = Result<ApiResponse<ListAutonomousDatabaseBackupsResponse>, ApiError>,
+            P = ApiPending,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    let builder = oracledatabase_projects_locations_autonomous_database_backups_list_builder(
+        client,
+        &args.parent,
+        &args.filter,
+        &args.pageSize,
+        &args.pageToken,
+    )?;
+    oracledatabase_projects_locations_autonomous_database_backups_list_execute(builder)
+}
+
+/// GET v1/projects/{projectsId}/locations/{locationsId}/autonomousDatabaseCharacterSets
+/// Lists Autonomous Database Character Sets in a given project and location.
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `oracledatabase_projects_locations_autonomous_database_character_sets_list_execute()` to send, or `oracledatabase_projects_locations_autonomous_database_character_sets_list` for simplest API.
+
+pub fn oracledatabase_projects_locations_autonomous_database_character_sets_list_builder(
+    client: &SimpleHttpClient,
+    parent: &String,
+    filter: &Option<Option<String>>,
+    pageSize: &Option<Option<String>>,
+    pageToken: &Option<Option<String>>,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!(
+        "https://oracledatabase.googleapis.com/v1/projects/{}/locations/{locationsId}/autonomousDatabaseCharacterSets",
+        parent,
+    );
+
+    // Build request
+    let mut query_parts = Vec::new();
+    if let Some(val) = filter.as_ref() {
+        query_parts.push(format!("filter={}", val));
+    }
+    if let Some(val) = pageSize.as_ref() {
+        query_parts.push(format!("pageSize={}", val));
+    }
+    if let Some(val) = pageToken.as_ref() {
+        query_parts.push(format!("pageToken={}", val));
+    }
+
+    let url_with_query = if query_parts.is_empty() {
+        endpoint_url
+    } else {
+        format!("{}?{}", endpoint_url, query_parts.join("&"))
+    };
+
+    let builder = client
+        .get(&url_with_query)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// GET v1/projects/{projectsId}/locations/{locationsId}/autonomousDatabaseCharacterSets
+/// Lists Autonomous Database Character Sets in a given project and location.
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `oracledatabase_projects_locations_autonomous_database_character_sets_list_execute()` or `oracledatabase_projects_locations_autonomous_database_character_sets_list`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `oracledatabase_projects_locations_autonomous_database_character_sets_list_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn oracledatabase_projects_locations_autonomous_database_character_sets_list_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<ListAutonomousDatabaseCharacterSetsResponse>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: ListAutonomousDatabaseCharacterSetsResponse =
+                    serde_json::from_str(&body)
+                        .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// GET v1/projects/{projectsId}/locations/{locationsId}/autonomousDatabaseCharacterSets
+/// Lists Autonomous Database Character Sets in a given project and location.
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `oracledatabase_projects_locations_autonomous_database_character_sets_list_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `oracledatabase_projects_locations_autonomous_database_character_sets_list_task()`.
+/// For the simplest API, use `oracledatabase_projects_locations_autonomous_database_character_sets_list()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `oracledatabase_projects_locations_autonomous_database_character_sets_list_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn oracledatabase_projects_locations_autonomous_database_character_sets_list_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<
+            D = Result<ApiResponse<ListAutonomousDatabaseCharacterSetsResponse>, ApiError>,
+            P = ApiPending,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    let task =
+        oracledatabase_projects_locations_autonomous_database_character_sets_list_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`oracledatabase_projects_locations_autonomous_database_character_sets_list`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct OracledatabaseProjectsLocationsAutonomousDatabaseCharacterSetsListArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Query parameter: filter
+    pub filter: Option<Option<String>>,
+    /// Query parameter: pageSize
+    pub pageSize: Option<Option<String>>,
+    /// Query parameter: pageToken
+    pub pageToken: Option<Option<String>>,
+}
+
+/// GET v1/projects/{projectsId}/locations/{locationsId}/autonomousDatabaseCharacterSets
+/// Lists Autonomous Database Character Sets in a given project and location.
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `oracledatabase_projects_locations_autonomous_database_character_sets_list_builder()` + `oracledatabase_projects_locations_autonomous_database_character_sets_list_execute()`.
+/// For task-level control, use `oracledatabase_projects_locations_autonomous_database_character_sets_list_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn oracledatabase_projects_locations_autonomous_database_character_sets_list(
+    client: &SimpleHttpClient,
+    args: &OracledatabaseProjectsLocationsAutonomousDatabaseCharacterSetsListArgs,
+) -> Result<
+    impl StreamIterator<
+            D = Result<ApiResponse<ListAutonomousDatabaseCharacterSetsResponse>, ApiError>,
+            P = ApiPending,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    let builder =
+        oracledatabase_projects_locations_autonomous_database_character_sets_list_builder(
+            client,
+            &args.parent,
+            &args.filter,
+            &args.pageSize,
+            &args.pageToken,
+        )?;
+    oracledatabase_projects_locations_autonomous_database_character_sets_list_execute(builder)
+}
+
+/// POST v1/projects/{projectsId}/locations/{locationsId}/autonomousDatabases
+/// Creates a new Autonomous Database in a given project and location.
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `oracledatabase_projects_locations_autonomous_databases_create_execute()` to send, or `oracledatabase_projects_locations_autonomous_databases_create` for simplest API.
+
+pub fn oracledatabase_projects_locations_autonomous_databases_create_builder(
+    client: &SimpleHttpClient,
+    parent: &String,
+    autonomousDatabaseId: &Option<Option<String>>,
+    requestId: &Option<Option<String>>,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!(
+        "https://oracledatabase.googleapis.com/v1/projects/{}/locations/{locationsId}/autonomousDatabases",
+        parent,
+    );
+
+    // Build request
+    let mut query_parts = Vec::new();
+    if let Some(val) = autonomousDatabaseId.as_ref() {
+        query_parts.push(format!("autonomousDatabaseId={}", val));
+    }
+    if let Some(val) = requestId.as_ref() {
+        query_parts.push(format!("requestId={}", val));
+    }
+
+    let url_with_query = if query_parts.is_empty() {
+        endpoint_url
+    } else {
+        format!("{}?{}", endpoint_url, query_parts.join("&"))
+    };
+
+    let builder = client
+        .post(&url_with_query)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// POST v1/projects/{projectsId}/locations/{locationsId}/autonomousDatabases
+/// Creates a new Autonomous Database in a given project and location.
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `oracledatabase_projects_locations_autonomous_databases_create_execute()` or `oracledatabase_projects_locations_autonomous_databases_create`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `oracledatabase_projects_locations_autonomous_databases_create_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn oracledatabase_projects_locations_autonomous_databases_create_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<Operation>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: Operation = serde_json::from_str(&body)
+                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// POST v1/projects/{projectsId}/locations/{locationsId}/autonomousDatabases
+/// Creates a new Autonomous Database in a given project and location.
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `oracledatabase_projects_locations_autonomous_databases_create_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `oracledatabase_projects_locations_autonomous_databases_create_task()`.
+/// For the simplest API, use `oracledatabase_projects_locations_autonomous_databases_create()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `oracledatabase_projects_locations_autonomous_databases_create_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn oracledatabase_projects_locations_autonomous_databases_create_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<Operation>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let task = oracledatabase_projects_locations_autonomous_databases_create_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`oracledatabase_projects_locations_autonomous_databases_create`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct OracledatabaseProjectsLocationsAutonomousDatabasesCreateArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Query parameter: autonomousDatabaseId
+    pub autonomousDatabaseId: Option<Option<String>>,
+    /// Query parameter: requestId
+    pub requestId: Option<Option<String>>,
+}
+
+/// POST v1/projects/{projectsId}/locations/{locationsId}/autonomousDatabases
+/// Creates a new Autonomous Database in a given project and location.
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `oracledatabase_projects_locations_autonomous_databases_create_builder()` + `oracledatabase_projects_locations_autonomous_databases_create_execute()`.
+/// For task-level control, use `oracledatabase_projects_locations_autonomous_databases_create_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn oracledatabase_projects_locations_autonomous_databases_create(
+    client: &SimpleHttpClient,
+    args: &OracledatabaseProjectsLocationsAutonomousDatabasesCreateArgs,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<Operation>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let builder = oracledatabase_projects_locations_autonomous_databases_create_builder(
+        client,
+        &args.parent,
+        &args.autonomousDatabaseId,
+        &args.requestId,
+    )?;
+    oracledatabase_projects_locations_autonomous_databases_create_execute(builder)
+}
+
+/// DELETE v1/projects/{projectsId}/locations/{locationsId}/autonomousDatabases/{autonomousDatabasesId}
+/// Deletes a single Autonomous Database.
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `oracledatabase_projects_locations_autonomous_databases_delete_execute()` to send, or `oracledatabase_projects_locations_autonomous_databases_delete` for simplest API.
+
+pub fn oracledatabase_projects_locations_autonomous_databases_delete_builder(
+    client: &SimpleHttpClient,
+    name: &String,
+    requestId: &Option<Option<String>>,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!(
+        "https://oracledatabase.googleapis.com/v1/projects/{}/locations/{locationsId}/autonomousDatabases/{autonomousDatabasesId}",
+        name,
+    );
+
+    // Build request
+    let mut query_parts = Vec::new();
+    if let Some(val) = requestId.as_ref() {
+        query_parts.push(format!("requestId={}", val));
+    }
+
+    let url_with_query = if query_parts.is_empty() {
+        endpoint_url
+    } else {
+        format!("{}?{}", endpoint_url, query_parts.join("&"))
+    };
+
+    let builder = client
+        .delete(&url_with_query)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// DELETE v1/projects/{projectsId}/locations/{locationsId}/autonomousDatabases/{autonomousDatabasesId}
+/// Deletes a single Autonomous Database.
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `oracledatabase_projects_locations_autonomous_databases_delete_execute()` or `oracledatabase_projects_locations_autonomous_databases_delete`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `oracledatabase_projects_locations_autonomous_databases_delete_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn oracledatabase_projects_locations_autonomous_databases_delete_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<Operation>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: Operation = serde_json::from_str(&body)
+                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// DELETE v1/projects/{projectsId}/locations/{locationsId}/autonomousDatabases/{autonomousDatabasesId}
+/// Deletes a single Autonomous Database.
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `oracledatabase_projects_locations_autonomous_databases_delete_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `oracledatabase_projects_locations_autonomous_databases_delete_task()`.
+/// For the simplest API, use `oracledatabase_projects_locations_autonomous_databases_delete()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `oracledatabase_projects_locations_autonomous_databases_delete_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn oracledatabase_projects_locations_autonomous_databases_delete_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<Operation>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let task = oracledatabase_projects_locations_autonomous_databases_delete_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`oracledatabase_projects_locations_autonomous_databases_delete`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct OracledatabaseProjectsLocationsAutonomousDatabasesDeleteArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Query parameter: requestId
+    pub requestId: Option<Option<String>>,
+}
+
+/// DELETE v1/projects/{projectsId}/locations/{locationsId}/autonomousDatabases/{autonomousDatabasesId}
+/// Deletes a single Autonomous Database.
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `oracledatabase_projects_locations_autonomous_databases_delete_builder()` + `oracledatabase_projects_locations_autonomous_databases_delete_execute()`.
+/// For task-level control, use `oracledatabase_projects_locations_autonomous_databases_delete_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn oracledatabase_projects_locations_autonomous_databases_delete(
+    client: &SimpleHttpClient,
+    args: &OracledatabaseProjectsLocationsAutonomousDatabasesDeleteArgs,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<Operation>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let builder = oracledatabase_projects_locations_autonomous_databases_delete_builder(
+        client,
+        &args.name,
+        &args.requestId,
+    )?;
+    oracledatabase_projects_locations_autonomous_databases_delete_execute(builder)
+}
+
+/// POST v1/projects/{projectsId}/locations/{locationsId}/autonomousDatabases/{autonomousDatabasesId}:failover
+/// Initiates a failover to target autonomous database from the associated primary database.
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `oracledatabase_projects_locations_autonomous_databases_failover_execute()` to send, or `oracledatabase_projects_locations_autonomous_databases_failover` for simplest API.
+
+pub fn oracledatabase_projects_locations_autonomous_databases_failover_builder(
+    client: &SimpleHttpClient,
+    name: &String,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!(
+        "https://oracledatabase.googleapis.com/v1/projects/{}/locations/{locationsId}/autonomousDatabases/{autonomousDatabasesId}:failover",
+        name,
+    );
+
+    // Build request
+    let builder = client
+        .post(&endpoint_url)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// POST v1/projects/{projectsId}/locations/{locationsId}/autonomousDatabases/{autonomousDatabasesId}:failover
+/// Initiates a failover to target autonomous database from the associated primary database.
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `oracledatabase_projects_locations_autonomous_databases_failover_execute()` or `oracledatabase_projects_locations_autonomous_databases_failover`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `oracledatabase_projects_locations_autonomous_databases_failover_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn oracledatabase_projects_locations_autonomous_databases_failover_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<Operation>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: Operation = serde_json::from_str(&body)
+                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// POST v1/projects/{projectsId}/locations/{locationsId}/autonomousDatabases/{autonomousDatabasesId}:failover
+/// Initiates a failover to target autonomous database from the associated primary database.
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `oracledatabase_projects_locations_autonomous_databases_failover_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `oracledatabase_projects_locations_autonomous_databases_failover_task()`.
+/// For the simplest API, use `oracledatabase_projects_locations_autonomous_databases_failover()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `oracledatabase_projects_locations_autonomous_databases_failover_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn oracledatabase_projects_locations_autonomous_databases_failover_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<Operation>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let task = oracledatabase_projects_locations_autonomous_databases_failover_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`oracledatabase_projects_locations_autonomous_databases_failover`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct OracledatabaseProjectsLocationsAutonomousDatabasesFailoverArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
+/// POST v1/projects/{projectsId}/locations/{locationsId}/autonomousDatabases/{autonomousDatabasesId}:failover
+/// Initiates a failover to target autonomous database from the associated primary database.
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `oracledatabase_projects_locations_autonomous_databases_failover_builder()` + `oracledatabase_projects_locations_autonomous_databases_failover_execute()`.
+/// For task-level control, use `oracledatabase_projects_locations_autonomous_databases_failover_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn oracledatabase_projects_locations_autonomous_databases_failover(
+    client: &SimpleHttpClient,
+    args: &OracledatabaseProjectsLocationsAutonomousDatabasesFailoverArgs,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<Operation>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let builder = oracledatabase_projects_locations_autonomous_databases_failover_builder(
+        client, &args.name,
+    )?;
+    oracledatabase_projects_locations_autonomous_databases_failover_execute(builder)
+}
+
+/// POST v1/projects/{projectsId}/locations/{locationsId}/autonomousDatabases/{autonomousDatabasesId}:generateWallet
+/// Generates a wallet for an Autonomous Database.
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `oracledatabase_projects_locations_autonomous_databases_generate_wallet_execute()` to send, or `oracledatabase_projects_locations_autonomous_databases_generate_wallet` for simplest API.
+
+pub fn oracledatabase_projects_locations_autonomous_databases_generate_wallet_builder(
+    client: &SimpleHttpClient,
+    name: &String,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!(
+        "https://oracledatabase.googleapis.com/v1/projects/{}/locations/{locationsId}/autonomousDatabases/{autonomousDatabasesId}:generateWallet",
+        name,
+    );
+
+    // Build request
+    let builder = client
+        .post(&endpoint_url)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// POST v1/projects/{projectsId}/locations/{locationsId}/autonomousDatabases/{autonomousDatabasesId}:generateWallet
+/// Generates a wallet for an Autonomous Database.
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `oracledatabase_projects_locations_autonomous_databases_generate_wallet_execute()` or `oracledatabase_projects_locations_autonomous_databases_generate_wallet`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `oracledatabase_projects_locations_autonomous_databases_generate_wallet_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn oracledatabase_projects_locations_autonomous_databases_generate_wallet_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<GenerateAutonomousDatabaseWalletResponse>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: GenerateAutonomousDatabaseWalletResponse = serde_json::from_str(&body)
+                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// POST v1/projects/{projectsId}/locations/{locationsId}/autonomousDatabases/{autonomousDatabasesId}:generateWallet
+/// Generates a wallet for an Autonomous Database.
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `oracledatabase_projects_locations_autonomous_databases_generate_wallet_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `oracledatabase_projects_locations_autonomous_databases_generate_wallet_task()`.
+/// For the simplest API, use `oracledatabase_projects_locations_autonomous_databases_generate_wallet()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `oracledatabase_projects_locations_autonomous_databases_generate_wallet_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn oracledatabase_projects_locations_autonomous_databases_generate_wallet_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<
+            D = Result<ApiResponse<GenerateAutonomousDatabaseWalletResponse>, ApiError>,
+            P = ApiPending,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    let task =
+        oracledatabase_projects_locations_autonomous_databases_generate_wallet_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`oracledatabase_projects_locations_autonomous_databases_generate_wallet`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct OracledatabaseProjectsLocationsAutonomousDatabasesGenerateWalletArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
+/// POST v1/projects/{projectsId}/locations/{locationsId}/autonomousDatabases/{autonomousDatabasesId}:generateWallet
+/// Generates a wallet for an Autonomous Database.
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `oracledatabase_projects_locations_autonomous_databases_generate_wallet_builder()` + `oracledatabase_projects_locations_autonomous_databases_generate_wallet_execute()`.
+/// For task-level control, use `oracledatabase_projects_locations_autonomous_databases_generate_wallet_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn oracledatabase_projects_locations_autonomous_databases_generate_wallet(
+    client: &SimpleHttpClient,
+    args: &OracledatabaseProjectsLocationsAutonomousDatabasesGenerateWalletArgs,
+) -> Result<
+    impl StreamIterator<
+            D = Result<ApiResponse<GenerateAutonomousDatabaseWalletResponse>, ApiError>,
+            P = ApiPending,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    let builder = oracledatabase_projects_locations_autonomous_databases_generate_wallet_builder(
+        client, &args.name,
+    )?;
+    oracledatabase_projects_locations_autonomous_databases_generate_wallet_execute(builder)
+}
+
+/// GET v1/projects/{projectsId}/locations/{locationsId}/autonomousDatabases/{autonomousDatabasesId}
+/// Gets the details of a single Autonomous Database.
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `oracledatabase_projects_locations_autonomous_databases_get_execute()` to send, or `oracledatabase_projects_locations_autonomous_databases_get` for simplest API.
+
+pub fn oracledatabase_projects_locations_autonomous_databases_get_builder(
+    client: &SimpleHttpClient,
+    name: &String,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!(
+        "https://oracledatabase.googleapis.com/v1/projects/{}/locations/{locationsId}/autonomousDatabases/{autonomousDatabasesId}",
+        name,
+    );
+
+    // Build request
+    let builder = client
+        .get(&endpoint_url)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// GET v1/projects/{projectsId}/locations/{locationsId}/autonomousDatabases/{autonomousDatabasesId}
+/// Gets the details of a single Autonomous Database.
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `oracledatabase_projects_locations_autonomous_databases_get_execute()` or `oracledatabase_projects_locations_autonomous_databases_get`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `oracledatabase_projects_locations_autonomous_databases_get_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn oracledatabase_projects_locations_autonomous_databases_get_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<AutonomousDatabase>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: AutonomousDatabase = serde_json::from_str(&body)
+                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// GET v1/projects/{projectsId}/locations/{locationsId}/autonomousDatabases/{autonomousDatabasesId}
+/// Gets the details of a single Autonomous Database.
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `oracledatabase_projects_locations_autonomous_databases_get_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `oracledatabase_projects_locations_autonomous_databases_get_task()`.
+/// For the simplest API, use `oracledatabase_projects_locations_autonomous_databases_get()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `oracledatabase_projects_locations_autonomous_databases_get_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn oracledatabase_projects_locations_autonomous_databases_get_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<AutonomousDatabase>, ApiError>, P = ApiPending>
+        + Send
+        + 'static,
+    ApiError,
+> {
+    let task = oracledatabase_projects_locations_autonomous_databases_get_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`oracledatabase_projects_locations_autonomous_databases_get`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct OracledatabaseProjectsLocationsAutonomousDatabasesGetArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
+/// GET v1/projects/{projectsId}/locations/{locationsId}/autonomousDatabases/{autonomousDatabasesId}
+/// Gets the details of a single Autonomous Database.
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `oracledatabase_projects_locations_autonomous_databases_get_builder()` + `oracledatabase_projects_locations_autonomous_databases_get_execute()`.
+/// For task-level control, use `oracledatabase_projects_locations_autonomous_databases_get_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn oracledatabase_projects_locations_autonomous_databases_get(
+    client: &SimpleHttpClient,
+    args: &OracledatabaseProjectsLocationsAutonomousDatabasesGetArgs,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<AutonomousDatabase>, ApiError>, P = ApiPending>
+        + Send
+        + 'static,
+    ApiError,
+> {
+    let builder =
+        oracledatabase_projects_locations_autonomous_databases_get_builder(client, &args.name)?;
+    oracledatabase_projects_locations_autonomous_databases_get_execute(builder)
+}
+
+/// GET v1/projects/{projectsId}/locations/{locationsId}/autonomousDatabases
+/// Lists the Autonomous Databases in a given project and location.
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `oracledatabase_projects_locations_autonomous_databases_list_execute()` to send, or `oracledatabase_projects_locations_autonomous_databases_list` for simplest API.
+
+pub fn oracledatabase_projects_locations_autonomous_databases_list_builder(
+    client: &SimpleHttpClient,
+    parent: &String,
+    filter: &Option<Option<String>>,
+    orderBy: &Option<Option<String>>,
+    pageSize: &Option<Option<String>>,
+    pageToken: &Option<Option<String>>,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!(
+        "https://oracledatabase.googleapis.com/v1/projects/{}/locations/{locationsId}/autonomousDatabases",
+        parent,
+    );
+
+    // Build request
+    let mut query_parts = Vec::new();
+    if let Some(val) = filter.as_ref() {
+        query_parts.push(format!("filter={}", val));
+    }
+    if let Some(val) = orderBy.as_ref() {
+        query_parts.push(format!("orderBy={}", val));
+    }
+    if let Some(val) = pageSize.as_ref() {
+        query_parts.push(format!("pageSize={}", val));
+    }
+    if let Some(val) = pageToken.as_ref() {
+        query_parts.push(format!("pageToken={}", val));
+    }
+
+    let url_with_query = if query_parts.is_empty() {
+        endpoint_url
+    } else {
+        format!("{}?{}", endpoint_url, query_parts.join("&"))
+    };
+
+    let builder = client
+        .get(&url_with_query)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// GET v1/projects/{projectsId}/locations/{locationsId}/autonomousDatabases
+/// Lists the Autonomous Databases in a given project and location.
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `oracledatabase_projects_locations_autonomous_databases_list_execute()` or `oracledatabase_projects_locations_autonomous_databases_list`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `oracledatabase_projects_locations_autonomous_databases_list_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn oracledatabase_projects_locations_autonomous_databases_list_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<ListAutonomousDatabasesResponse>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: ListAutonomousDatabasesResponse = serde_json::from_str(&body)
+                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// GET v1/projects/{projectsId}/locations/{locationsId}/autonomousDatabases
+/// Lists the Autonomous Databases in a given project and location.
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `oracledatabase_projects_locations_autonomous_databases_list_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `oracledatabase_projects_locations_autonomous_databases_list_task()`.
+/// For the simplest API, use `oracledatabase_projects_locations_autonomous_databases_list()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `oracledatabase_projects_locations_autonomous_databases_list_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn oracledatabase_projects_locations_autonomous_databases_list_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<
+            D = Result<ApiResponse<ListAutonomousDatabasesResponse>, ApiError>,
+            P = ApiPending,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    let task = oracledatabase_projects_locations_autonomous_databases_list_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`oracledatabase_projects_locations_autonomous_databases_list`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct OracledatabaseProjectsLocationsAutonomousDatabasesListArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Query parameter: filter
+    pub filter: Option<Option<String>>,
+    /// Query parameter: orderBy
+    pub orderBy: Option<Option<String>>,
+    /// Query parameter: pageSize
+    pub pageSize: Option<Option<String>>,
+    /// Query parameter: pageToken
+    pub pageToken: Option<Option<String>>,
+}
+
+/// GET v1/projects/{projectsId}/locations/{locationsId}/autonomousDatabases
+/// Lists the Autonomous Databases in a given project and location.
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `oracledatabase_projects_locations_autonomous_databases_list_builder()` + `oracledatabase_projects_locations_autonomous_databases_list_execute()`.
+/// For task-level control, use `oracledatabase_projects_locations_autonomous_databases_list_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn oracledatabase_projects_locations_autonomous_databases_list(
+    client: &SimpleHttpClient,
+    args: &OracledatabaseProjectsLocationsAutonomousDatabasesListArgs,
+) -> Result<
+    impl StreamIterator<
+            D = Result<ApiResponse<ListAutonomousDatabasesResponse>, ApiError>,
+            P = ApiPending,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    let builder = oracledatabase_projects_locations_autonomous_databases_list_builder(
+        client,
+        &args.parent,
+        &args.filter,
+        &args.orderBy,
+        &args.pageSize,
+        &args.pageToken,
+    )?;
+    oracledatabase_projects_locations_autonomous_databases_list_execute(builder)
+}
+
+/// PATCH v1/projects/{projectsId}/locations/{locationsId}/autonomousDatabases/{autonomousDatabasesId}
+/// Updates the parameters of a single Autonomous Database.
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `oracledatabase_projects_locations_autonomous_databases_patch_execute()` to send, or `oracledatabase_projects_locations_autonomous_databases_patch` for simplest API.
+
+pub fn oracledatabase_projects_locations_autonomous_databases_patch_builder(
+    client: &SimpleHttpClient,
+    name: &String,
+    requestId: &Option<Option<String>>,
+    updateMask: &Option<Option<String>>,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!(
+        "https://oracledatabase.googleapis.com/v1/projects/{}/locations/{locationsId}/autonomousDatabases/{autonomousDatabasesId}",
+        name,
+    );
+
+    // Build request
+    let mut query_parts = Vec::new();
+    if let Some(val) = requestId.as_ref() {
+        query_parts.push(format!("requestId={}", val));
+    }
+    if let Some(val) = updateMask.as_ref() {
+        query_parts.push(format!("updateMask={}", val));
+    }
+
+    let url_with_query = if query_parts.is_empty() {
+        endpoint_url
+    } else {
+        format!("{}?{}", endpoint_url, query_parts.join("&"))
+    };
+
+    let builder = client
+        .patch(&url_with_query)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// PATCH v1/projects/{projectsId}/locations/{locationsId}/autonomousDatabases/{autonomousDatabasesId}
+/// Updates the parameters of a single Autonomous Database.
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `oracledatabase_projects_locations_autonomous_databases_patch_execute()` or `oracledatabase_projects_locations_autonomous_databases_patch`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `oracledatabase_projects_locations_autonomous_databases_patch_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn oracledatabase_projects_locations_autonomous_databases_patch_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<Operation>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: Operation = serde_json::from_str(&body)
+                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// PATCH v1/projects/{projectsId}/locations/{locationsId}/autonomousDatabases/{autonomousDatabasesId}
+/// Updates the parameters of a single Autonomous Database.
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `oracledatabase_projects_locations_autonomous_databases_patch_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `oracledatabase_projects_locations_autonomous_databases_patch_task()`.
+/// For the simplest API, use `oracledatabase_projects_locations_autonomous_databases_patch()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `oracledatabase_projects_locations_autonomous_databases_patch_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn oracledatabase_projects_locations_autonomous_databases_patch_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<Operation>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let task = oracledatabase_projects_locations_autonomous_databases_patch_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`oracledatabase_projects_locations_autonomous_databases_patch`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct OracledatabaseProjectsLocationsAutonomousDatabasesPatchArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Query parameter: requestId
+    pub requestId: Option<Option<String>>,
+    /// Query parameter: updateMask
+    pub updateMask: Option<Option<String>>,
+}
+
+/// PATCH v1/projects/{projectsId}/locations/{locationsId}/autonomousDatabases/{autonomousDatabasesId}
+/// Updates the parameters of a single Autonomous Database.
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `oracledatabase_projects_locations_autonomous_databases_patch_builder()` + `oracledatabase_projects_locations_autonomous_databases_patch_execute()`.
+/// For task-level control, use `oracledatabase_projects_locations_autonomous_databases_patch_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn oracledatabase_projects_locations_autonomous_databases_patch(
+    client: &SimpleHttpClient,
+    args: &OracledatabaseProjectsLocationsAutonomousDatabasesPatchArgs,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<Operation>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let builder = oracledatabase_projects_locations_autonomous_databases_patch_builder(
+        client,
+        &args.name,
+        &args.requestId,
+        &args.updateMask,
+    )?;
+    oracledatabase_projects_locations_autonomous_databases_patch_execute(builder)
+}
+
+/// POST v1/projects/{projectsId}/locations/{locationsId}/autonomousDatabases/{autonomousDatabasesId}:restart
+/// Restarts an Autonomous Database.
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `oracledatabase_projects_locations_autonomous_databases_restart_execute()` to send, or `oracledatabase_projects_locations_autonomous_databases_restart` for simplest API.
+
+pub fn oracledatabase_projects_locations_autonomous_databases_restart_builder(
+    client: &SimpleHttpClient,
+    name: &String,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!(
+        "https://oracledatabase.googleapis.com/v1/projects/{}/locations/{locationsId}/autonomousDatabases/{autonomousDatabasesId}:restart",
+        name,
+    );
+
+    // Build request
+    let builder = client
+        .post(&endpoint_url)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// POST v1/projects/{projectsId}/locations/{locationsId}/autonomousDatabases/{autonomousDatabasesId}:restart
+/// Restarts an Autonomous Database.
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `oracledatabase_projects_locations_autonomous_databases_restart_execute()` or `oracledatabase_projects_locations_autonomous_databases_restart`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `oracledatabase_projects_locations_autonomous_databases_restart_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn oracledatabase_projects_locations_autonomous_databases_restart_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<Operation>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: Operation = serde_json::from_str(&body)
+                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// POST v1/projects/{projectsId}/locations/{locationsId}/autonomousDatabases/{autonomousDatabasesId}:restart
+/// Restarts an Autonomous Database.
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `oracledatabase_projects_locations_autonomous_databases_restart_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `oracledatabase_projects_locations_autonomous_databases_restart_task()`.
+/// For the simplest API, use `oracledatabase_projects_locations_autonomous_databases_restart()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `oracledatabase_projects_locations_autonomous_databases_restart_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn oracledatabase_projects_locations_autonomous_databases_restart_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<Operation>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let task = oracledatabase_projects_locations_autonomous_databases_restart_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`oracledatabase_projects_locations_autonomous_databases_restart`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct OracledatabaseProjectsLocationsAutonomousDatabasesRestartArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
+/// POST v1/projects/{projectsId}/locations/{locationsId}/autonomousDatabases/{autonomousDatabasesId}:restart
+/// Restarts an Autonomous Database.
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `oracledatabase_projects_locations_autonomous_databases_restart_builder()` + `oracledatabase_projects_locations_autonomous_databases_restart_execute()`.
+/// For task-level control, use `oracledatabase_projects_locations_autonomous_databases_restart_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn oracledatabase_projects_locations_autonomous_databases_restart(
+    client: &SimpleHttpClient,
+    args: &OracledatabaseProjectsLocationsAutonomousDatabasesRestartArgs,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<Operation>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let builder =
+        oracledatabase_projects_locations_autonomous_databases_restart_builder(client, &args.name)?;
+    oracledatabase_projects_locations_autonomous_databases_restart_execute(builder)
+}
+
+/// POST v1/projects/{projectsId}/locations/{locationsId}/autonomousDatabases/{autonomousDatabasesId}:restore
+/// Restores a single Autonomous Database.
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `oracledatabase_projects_locations_autonomous_databases_restore_execute()` to send, or `oracledatabase_projects_locations_autonomous_databases_restore` for simplest API.
+
+pub fn oracledatabase_projects_locations_autonomous_databases_restore_builder(
+    client: &SimpleHttpClient,
+    name: &String,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!(
+        "https://oracledatabase.googleapis.com/v1/projects/{}/locations/{locationsId}/autonomousDatabases/{autonomousDatabasesId}:restore",
+        name,
+    );
+
+    // Build request
+    let builder = client
+        .post(&endpoint_url)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// POST v1/projects/{projectsId}/locations/{locationsId}/autonomousDatabases/{autonomousDatabasesId}:restore
+/// Restores a single Autonomous Database.
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `oracledatabase_projects_locations_autonomous_databases_restore_execute()` or `oracledatabase_projects_locations_autonomous_databases_restore`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `oracledatabase_projects_locations_autonomous_databases_restore_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn oracledatabase_projects_locations_autonomous_databases_restore_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<Operation>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: Operation = serde_json::from_str(&body)
+                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// POST v1/projects/{projectsId}/locations/{locationsId}/autonomousDatabases/{autonomousDatabasesId}:restore
+/// Restores a single Autonomous Database.
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `oracledatabase_projects_locations_autonomous_databases_restore_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `oracledatabase_projects_locations_autonomous_databases_restore_task()`.
+/// For the simplest API, use `oracledatabase_projects_locations_autonomous_databases_restore()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `oracledatabase_projects_locations_autonomous_databases_restore_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn oracledatabase_projects_locations_autonomous_databases_restore_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<Operation>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let task = oracledatabase_projects_locations_autonomous_databases_restore_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`oracledatabase_projects_locations_autonomous_databases_restore`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct OracledatabaseProjectsLocationsAutonomousDatabasesRestoreArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
+/// POST v1/projects/{projectsId}/locations/{locationsId}/autonomousDatabases/{autonomousDatabasesId}:restore
+/// Restores a single Autonomous Database.
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `oracledatabase_projects_locations_autonomous_databases_restore_builder()` + `oracledatabase_projects_locations_autonomous_databases_restore_execute()`.
+/// For task-level control, use `oracledatabase_projects_locations_autonomous_databases_restore_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn oracledatabase_projects_locations_autonomous_databases_restore(
+    client: &SimpleHttpClient,
+    args: &OracledatabaseProjectsLocationsAutonomousDatabasesRestoreArgs,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<Operation>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let builder =
+        oracledatabase_projects_locations_autonomous_databases_restore_builder(client, &args.name)?;
+    oracledatabase_projects_locations_autonomous_databases_restore_execute(builder)
+}
+
+/// POST v1/projects/{projectsId}/locations/{locationsId}/autonomousDatabases/{autonomousDatabasesId}:start
+/// Starts an Autonomous Database.
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `oracledatabase_projects_locations_autonomous_databases_start_execute()` to send, or `oracledatabase_projects_locations_autonomous_databases_start` for simplest API.
+
+pub fn oracledatabase_projects_locations_autonomous_databases_start_builder(
+    client: &SimpleHttpClient,
+    name: &String,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!(
+        "https://oracledatabase.googleapis.com/v1/projects/{}/locations/{locationsId}/autonomousDatabases/{autonomousDatabasesId}:start",
+        name,
+    );
+
+    // Build request
+    let builder = client
+        .post(&endpoint_url)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// POST v1/projects/{projectsId}/locations/{locationsId}/autonomousDatabases/{autonomousDatabasesId}:start
+/// Starts an Autonomous Database.
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `oracledatabase_projects_locations_autonomous_databases_start_execute()` or `oracledatabase_projects_locations_autonomous_databases_start`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `oracledatabase_projects_locations_autonomous_databases_start_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn oracledatabase_projects_locations_autonomous_databases_start_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<Operation>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: Operation = serde_json::from_str(&body)
+                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// POST v1/projects/{projectsId}/locations/{locationsId}/autonomousDatabases/{autonomousDatabasesId}:start
+/// Starts an Autonomous Database.
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `oracledatabase_projects_locations_autonomous_databases_start_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `oracledatabase_projects_locations_autonomous_databases_start_task()`.
+/// For the simplest API, use `oracledatabase_projects_locations_autonomous_databases_start()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `oracledatabase_projects_locations_autonomous_databases_start_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn oracledatabase_projects_locations_autonomous_databases_start_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<Operation>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let task = oracledatabase_projects_locations_autonomous_databases_start_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`oracledatabase_projects_locations_autonomous_databases_start`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct OracledatabaseProjectsLocationsAutonomousDatabasesStartArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
+/// POST v1/projects/{projectsId}/locations/{locationsId}/autonomousDatabases/{autonomousDatabasesId}:start
+/// Starts an Autonomous Database.
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `oracledatabase_projects_locations_autonomous_databases_start_builder()` + `oracledatabase_projects_locations_autonomous_databases_start_execute()`.
+/// For task-level control, use `oracledatabase_projects_locations_autonomous_databases_start_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn oracledatabase_projects_locations_autonomous_databases_start(
+    client: &SimpleHttpClient,
+    args: &OracledatabaseProjectsLocationsAutonomousDatabasesStartArgs,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<Operation>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let builder =
+        oracledatabase_projects_locations_autonomous_databases_start_builder(client, &args.name)?;
+    oracledatabase_projects_locations_autonomous_databases_start_execute(builder)
+}
+
+/// POST v1/projects/{projectsId}/locations/{locationsId}/autonomousDatabases/{autonomousDatabasesId}:stop
+/// Stops an Autonomous Database.
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `oracledatabase_projects_locations_autonomous_databases_stop_execute()` to send, or `oracledatabase_projects_locations_autonomous_databases_stop` for simplest API.
+
+pub fn oracledatabase_projects_locations_autonomous_databases_stop_builder(
+    client: &SimpleHttpClient,
+    name: &String,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!(
+        "https://oracledatabase.googleapis.com/v1/projects/{}/locations/{locationsId}/autonomousDatabases/{autonomousDatabasesId}:stop",
+        name,
+    );
+
+    // Build request
+    let builder = client
+        .post(&endpoint_url)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// POST v1/projects/{projectsId}/locations/{locationsId}/autonomousDatabases/{autonomousDatabasesId}:stop
+/// Stops an Autonomous Database.
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `oracledatabase_projects_locations_autonomous_databases_stop_execute()` or `oracledatabase_projects_locations_autonomous_databases_stop`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `oracledatabase_projects_locations_autonomous_databases_stop_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn oracledatabase_projects_locations_autonomous_databases_stop_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<Operation>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: Operation = serde_json::from_str(&body)
+                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// POST v1/projects/{projectsId}/locations/{locationsId}/autonomousDatabases/{autonomousDatabasesId}:stop
+/// Stops an Autonomous Database.
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `oracledatabase_projects_locations_autonomous_databases_stop_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `oracledatabase_projects_locations_autonomous_databases_stop_task()`.
+/// For the simplest API, use `oracledatabase_projects_locations_autonomous_databases_stop()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `oracledatabase_projects_locations_autonomous_databases_stop_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn oracledatabase_projects_locations_autonomous_databases_stop_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<Operation>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let task = oracledatabase_projects_locations_autonomous_databases_stop_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`oracledatabase_projects_locations_autonomous_databases_stop`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct OracledatabaseProjectsLocationsAutonomousDatabasesStopArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
+/// POST v1/projects/{projectsId}/locations/{locationsId}/autonomousDatabases/{autonomousDatabasesId}:stop
+/// Stops an Autonomous Database.
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `oracledatabase_projects_locations_autonomous_databases_stop_builder()` + `oracledatabase_projects_locations_autonomous_databases_stop_execute()`.
+/// For task-level control, use `oracledatabase_projects_locations_autonomous_databases_stop_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn oracledatabase_projects_locations_autonomous_databases_stop(
+    client: &SimpleHttpClient,
+    args: &OracledatabaseProjectsLocationsAutonomousDatabasesStopArgs,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<Operation>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let builder =
+        oracledatabase_projects_locations_autonomous_databases_stop_builder(client, &args.name)?;
+    oracledatabase_projects_locations_autonomous_databases_stop_execute(builder)
+}
+
+/// POST v1/projects/{projectsId}/locations/{locationsId}/autonomousDatabases/{autonomousDatabasesId}:switchover
+/// Initiates a switchover of specified autonomous database to the associated peer database.
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `oracledatabase_projects_locations_autonomous_databases_switchover_execute()` to send, or `oracledatabase_projects_locations_autonomous_databases_switchover` for simplest API.
+
+pub fn oracledatabase_projects_locations_autonomous_databases_switchover_builder(
+    client: &SimpleHttpClient,
+    name: &String,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!(
+        "https://oracledatabase.googleapis.com/v1/projects/{}/locations/{locationsId}/autonomousDatabases/{autonomousDatabasesId}:switchover",
+        name,
+    );
+
+    // Build request
+    let builder = client
+        .post(&endpoint_url)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// POST v1/projects/{projectsId}/locations/{locationsId}/autonomousDatabases/{autonomousDatabasesId}:switchover
+/// Initiates a switchover of specified autonomous database to the associated peer database.
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `oracledatabase_projects_locations_autonomous_databases_switchover_execute()` or `oracledatabase_projects_locations_autonomous_databases_switchover`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `oracledatabase_projects_locations_autonomous_databases_switchover_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn oracledatabase_projects_locations_autonomous_databases_switchover_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<Operation>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: Operation = serde_json::from_str(&body)
+                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// POST v1/projects/{projectsId}/locations/{locationsId}/autonomousDatabases/{autonomousDatabasesId}:switchover
+/// Initiates a switchover of specified autonomous database to the associated peer database.
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `oracledatabase_projects_locations_autonomous_databases_switchover_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `oracledatabase_projects_locations_autonomous_databases_switchover_task()`.
+/// For the simplest API, use `oracledatabase_projects_locations_autonomous_databases_switchover()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `oracledatabase_projects_locations_autonomous_databases_switchover_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn oracledatabase_projects_locations_autonomous_databases_switchover_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<Operation>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let task = oracledatabase_projects_locations_autonomous_databases_switchover_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`oracledatabase_projects_locations_autonomous_databases_switchover`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct OracledatabaseProjectsLocationsAutonomousDatabasesSwitchoverArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
+/// POST v1/projects/{projectsId}/locations/{locationsId}/autonomousDatabases/{autonomousDatabasesId}:switchover
+/// Initiates a switchover of specified autonomous database to the associated peer database.
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `oracledatabase_projects_locations_autonomous_databases_switchover_builder()` + `oracledatabase_projects_locations_autonomous_databases_switchover_execute()`.
+/// For task-level control, use `oracledatabase_projects_locations_autonomous_databases_switchover_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn oracledatabase_projects_locations_autonomous_databases_switchover(
+    client: &SimpleHttpClient,
+    args: &OracledatabaseProjectsLocationsAutonomousDatabasesSwitchoverArgs,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<Operation>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let builder = oracledatabase_projects_locations_autonomous_databases_switchover_builder(
+        client, &args.name,
+    )?;
+    oracledatabase_projects_locations_autonomous_databases_switchover_execute(builder)
+}
+
+/// GET v1/projects/{projectsId}/locations/{locationsId}/autonomousDbVersions
+/// Lists all the available Autonomous Database versions for a project and location.
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `oracledatabase_projects_locations_autonomous_db_versions_list_execute()` to send, or `oracledatabase_projects_locations_autonomous_db_versions_list` for simplest API.
+
+pub fn oracledatabase_projects_locations_autonomous_db_versions_list_builder(
+    client: &SimpleHttpClient,
+    parent: &String,
+    pageSize: &Option<Option<String>>,
+    pageToken: &Option<Option<String>>,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!(
+        "https://oracledatabase.googleapis.com/v1/projects/{}/locations/{locationsId}/autonomousDbVersions",
+        parent,
+    );
+
+    // Build request
+    let mut query_parts = Vec::new();
+    if let Some(val) = pageSize.as_ref() {
+        query_parts.push(format!("pageSize={}", val));
+    }
+    if let Some(val) = pageToken.as_ref() {
+        query_parts.push(format!("pageToken={}", val));
+    }
+
+    let url_with_query = if query_parts.is_empty() {
+        endpoint_url
+    } else {
+        format!("{}?{}", endpoint_url, query_parts.join("&"))
+    };
+
+    let builder = client
+        .get(&url_with_query)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// GET v1/projects/{projectsId}/locations/{locationsId}/autonomousDbVersions
+/// Lists all the available Autonomous Database versions for a project and location.
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `oracledatabase_projects_locations_autonomous_db_versions_list_execute()` or `oracledatabase_projects_locations_autonomous_db_versions_list`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `oracledatabase_projects_locations_autonomous_db_versions_list_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn oracledatabase_projects_locations_autonomous_db_versions_list_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<ListAutonomousDbVersionsResponse>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: ListAutonomousDbVersionsResponse = serde_json::from_str(&body)
+                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// GET v1/projects/{projectsId}/locations/{locationsId}/autonomousDbVersions
+/// Lists all the available Autonomous Database versions for a project and location.
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `oracledatabase_projects_locations_autonomous_db_versions_list_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `oracledatabase_projects_locations_autonomous_db_versions_list_task()`.
+/// For the simplest API, use `oracledatabase_projects_locations_autonomous_db_versions_list()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `oracledatabase_projects_locations_autonomous_db_versions_list_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn oracledatabase_projects_locations_autonomous_db_versions_list_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<
+            D = Result<ApiResponse<ListAutonomousDbVersionsResponse>, ApiError>,
+            P = ApiPending,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    let task = oracledatabase_projects_locations_autonomous_db_versions_list_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`oracledatabase_projects_locations_autonomous_db_versions_list`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct OracledatabaseProjectsLocationsAutonomousDbVersionsListArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Query parameter: pageSize
+    pub pageSize: Option<Option<String>>,
+    /// Query parameter: pageToken
+    pub pageToken: Option<Option<String>>,
+}
+
+/// GET v1/projects/{projectsId}/locations/{locationsId}/autonomousDbVersions
+/// Lists all the available Autonomous Database versions for a project and location.
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `oracledatabase_projects_locations_autonomous_db_versions_list_builder()` + `oracledatabase_projects_locations_autonomous_db_versions_list_execute()`.
+/// For task-level control, use `oracledatabase_projects_locations_autonomous_db_versions_list_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn oracledatabase_projects_locations_autonomous_db_versions_list(
+    client: &SimpleHttpClient,
+    args: &OracledatabaseProjectsLocationsAutonomousDbVersionsListArgs,
+) -> Result<
+    impl StreamIterator<
+            D = Result<ApiResponse<ListAutonomousDbVersionsResponse>, ApiError>,
+            P = ApiPending,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    let builder = oracledatabase_projects_locations_autonomous_db_versions_list_builder(
+        client,
+        &args.parent,
+        &args.pageSize,
+        &args.pageToken,
+    )?;
+    oracledatabase_projects_locations_autonomous_db_versions_list_execute(builder)
+}
+
+/// POST v1/projects/{projectsId}/locations/{locationsId}/cloudExadataInfrastructures
+/// Creates a new Exadata Infrastructure in a given project and location.
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `oracledatabase_projects_locations_cloud_exadata_infrastructures_create_execute()` to send, or `oracledatabase_projects_locations_cloud_exadata_infrastructures_create` for simplest API.
+
+pub fn oracledatabase_projects_locations_cloud_exadata_infrastructures_create_builder(
+    client: &SimpleHttpClient,
+    parent: &String,
+    cloudExadataInfrastructureId: &Option<Option<String>>,
+    requestId: &Option<Option<String>>,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!(
+        "https://oracledatabase.googleapis.com/v1/projects/{}/locations/{locationsId}/cloudExadataInfrastructures",
+        parent,
+    );
+
+    // Build request
+    let mut query_parts = Vec::new();
+    if let Some(val) = cloudExadataInfrastructureId.as_ref() {
+        query_parts.push(format!("cloudExadataInfrastructureId={}", val));
+    }
+    if let Some(val) = requestId.as_ref() {
+        query_parts.push(format!("requestId={}", val));
+    }
+
+    let url_with_query = if query_parts.is_empty() {
+        endpoint_url
+    } else {
+        format!("{}?{}", endpoint_url, query_parts.join("&"))
+    };
+
+    let builder = client
+        .post(&url_with_query)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// POST v1/projects/{projectsId}/locations/{locationsId}/cloudExadataInfrastructures
+/// Creates a new Exadata Infrastructure in a given project and location.
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `oracledatabase_projects_locations_cloud_exadata_infrastructures_create_execute()` or `oracledatabase_projects_locations_cloud_exadata_infrastructures_create`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `oracledatabase_projects_locations_cloud_exadata_infrastructures_create_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn oracledatabase_projects_locations_cloud_exadata_infrastructures_create_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<Operation>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: Operation = serde_json::from_str(&body)
+                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// POST v1/projects/{projectsId}/locations/{locationsId}/cloudExadataInfrastructures
+/// Creates a new Exadata Infrastructure in a given project and location.
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `oracledatabase_projects_locations_cloud_exadata_infrastructures_create_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `oracledatabase_projects_locations_cloud_exadata_infrastructures_create_task()`.
+/// For the simplest API, use `oracledatabase_projects_locations_cloud_exadata_infrastructures_create()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `oracledatabase_projects_locations_cloud_exadata_infrastructures_create_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn oracledatabase_projects_locations_cloud_exadata_infrastructures_create_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<Operation>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let task =
+        oracledatabase_projects_locations_cloud_exadata_infrastructures_create_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`oracledatabase_projects_locations_cloud_exadata_infrastructures_create`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct OracledatabaseProjectsLocationsCloudExadataInfrastructuresCreateArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Query parameter: cloudExadataInfrastructureId
+    pub cloudExadataInfrastructureId: Option<Option<String>>,
+    /// Query parameter: requestId
+    pub requestId: Option<Option<String>>,
+}
+
+/// POST v1/projects/{projectsId}/locations/{locationsId}/cloudExadataInfrastructures
+/// Creates a new Exadata Infrastructure in a given project and location.
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `oracledatabase_projects_locations_cloud_exadata_infrastructures_create_builder()` + `oracledatabase_projects_locations_cloud_exadata_infrastructures_create_execute()`.
+/// For task-level control, use `oracledatabase_projects_locations_cloud_exadata_infrastructures_create_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn oracledatabase_projects_locations_cloud_exadata_infrastructures_create(
+    client: &SimpleHttpClient,
+    args: &OracledatabaseProjectsLocationsCloudExadataInfrastructuresCreateArgs,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<Operation>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let builder = oracledatabase_projects_locations_cloud_exadata_infrastructures_create_builder(
+        client,
+        &args.parent,
+        &args.cloudExadataInfrastructureId,
+        &args.requestId,
+    )?;
+    oracledatabase_projects_locations_cloud_exadata_infrastructures_create_execute(builder)
+}
+
+/// DELETE v1/projects/{projectsId}/locations/{locationsId}/cloudExadataInfrastructures/{cloudExadataInfrastructuresId}
+/// Deletes a single Exadata Infrastructure.
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `oracledatabase_projects_locations_cloud_exadata_infrastructures_delete_execute()` to send, or `oracledatabase_projects_locations_cloud_exadata_infrastructures_delete` for simplest API.
+
+pub fn oracledatabase_projects_locations_cloud_exadata_infrastructures_delete_builder(
+    client: &SimpleHttpClient,
+    name: &String,
+    force: &Option<Option<String>>,
+    requestId: &Option<Option<String>>,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!(
+        "https://oracledatabase.googleapis.com/v1/projects/{}/locations/{locationsId}/cloudExadataInfrastructures/{cloudExadataInfrastructuresId}",
+        name,
+    );
+
+    // Build request
+    let mut query_parts = Vec::new();
+    if let Some(val) = force.as_ref() {
+        query_parts.push(format!("force={}", val));
+    }
+    if let Some(val) = requestId.as_ref() {
+        query_parts.push(format!("requestId={}", val));
+    }
+
+    let url_with_query = if query_parts.is_empty() {
+        endpoint_url
+    } else {
+        format!("{}?{}", endpoint_url, query_parts.join("&"))
+    };
+
+    let builder = client
+        .delete(&url_with_query)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// DELETE v1/projects/{projectsId}/locations/{locationsId}/cloudExadataInfrastructures/{cloudExadataInfrastructuresId}
+/// Deletes a single Exadata Infrastructure.
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `oracledatabase_projects_locations_cloud_exadata_infrastructures_delete_execute()` or `oracledatabase_projects_locations_cloud_exadata_infrastructures_delete`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `oracledatabase_projects_locations_cloud_exadata_infrastructures_delete_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn oracledatabase_projects_locations_cloud_exadata_infrastructures_delete_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<Operation>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: Operation = serde_json::from_str(&body)
+                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// DELETE v1/projects/{projectsId}/locations/{locationsId}/cloudExadataInfrastructures/{cloudExadataInfrastructuresId}
+/// Deletes a single Exadata Infrastructure.
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `oracledatabase_projects_locations_cloud_exadata_infrastructures_delete_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `oracledatabase_projects_locations_cloud_exadata_infrastructures_delete_task()`.
+/// For the simplest API, use `oracledatabase_projects_locations_cloud_exadata_infrastructures_delete()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `oracledatabase_projects_locations_cloud_exadata_infrastructures_delete_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn oracledatabase_projects_locations_cloud_exadata_infrastructures_delete_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<Operation>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let task =
+        oracledatabase_projects_locations_cloud_exadata_infrastructures_delete_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`oracledatabase_projects_locations_cloud_exadata_infrastructures_delete`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct OracledatabaseProjectsLocationsCloudExadataInfrastructuresDeleteArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Query parameter: force
+    pub force: Option<Option<String>>,
+    /// Query parameter: requestId
+    pub requestId: Option<Option<String>>,
+}
+
+/// DELETE v1/projects/{projectsId}/locations/{locationsId}/cloudExadataInfrastructures/{cloudExadataInfrastructuresId}
+/// Deletes a single Exadata Infrastructure.
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `oracledatabase_projects_locations_cloud_exadata_infrastructures_delete_builder()` + `oracledatabase_projects_locations_cloud_exadata_infrastructures_delete_execute()`.
+/// For task-level control, use `oracledatabase_projects_locations_cloud_exadata_infrastructures_delete_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn oracledatabase_projects_locations_cloud_exadata_infrastructures_delete(
+    client: &SimpleHttpClient,
+    args: &OracledatabaseProjectsLocationsCloudExadataInfrastructuresDeleteArgs,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<Operation>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let builder = oracledatabase_projects_locations_cloud_exadata_infrastructures_delete_builder(
+        client,
+        &args.name,
+        &args.force,
+        &args.requestId,
+    )?;
+    oracledatabase_projects_locations_cloud_exadata_infrastructures_delete_execute(builder)
+}
+
+/// GET v1/projects/{projectsId}/locations/{locationsId}/cloudExadataInfrastructures/{cloudExadataInfrastructuresId}
+/// Gets details of a single Exadata Infrastructure.
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `oracledatabase_projects_locations_cloud_exadata_infrastructures_get_execute()` to send, or `oracledatabase_projects_locations_cloud_exadata_infrastructures_get` for simplest API.
+
+pub fn oracledatabase_projects_locations_cloud_exadata_infrastructures_get_builder(
+    client: &SimpleHttpClient,
+    name: &String,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!(
+        "https://oracledatabase.googleapis.com/v1/projects/{}/locations/{locationsId}/cloudExadataInfrastructures/{cloudExadataInfrastructuresId}",
+        name,
+    );
+
+    // Build request
+    let builder = client
+        .get(&endpoint_url)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// GET v1/projects/{projectsId}/locations/{locationsId}/cloudExadataInfrastructures/{cloudExadataInfrastructuresId}
+/// Gets details of a single Exadata Infrastructure.
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `oracledatabase_projects_locations_cloud_exadata_infrastructures_get_execute()` or `oracledatabase_projects_locations_cloud_exadata_infrastructures_get`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `oracledatabase_projects_locations_cloud_exadata_infrastructures_get_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn oracledatabase_projects_locations_cloud_exadata_infrastructures_get_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<CloudExadataInfrastructure>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: CloudExadataInfrastructure = serde_json::from_str(&body)
+                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// GET v1/projects/{projectsId}/locations/{locationsId}/cloudExadataInfrastructures/{cloudExadataInfrastructuresId}
+/// Gets details of a single Exadata Infrastructure.
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `oracledatabase_projects_locations_cloud_exadata_infrastructures_get_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `oracledatabase_projects_locations_cloud_exadata_infrastructures_get_task()`.
+/// For the simplest API, use `oracledatabase_projects_locations_cloud_exadata_infrastructures_get()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `oracledatabase_projects_locations_cloud_exadata_infrastructures_get_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn oracledatabase_projects_locations_cloud_exadata_infrastructures_get_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<
+            D = Result<ApiResponse<CloudExadataInfrastructure>, ApiError>,
+            P = ApiPending,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    let task = oracledatabase_projects_locations_cloud_exadata_infrastructures_get_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`oracledatabase_projects_locations_cloud_exadata_infrastructures_get`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct OracledatabaseProjectsLocationsCloudExadataInfrastructuresGetArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
+/// GET v1/projects/{projectsId}/locations/{locationsId}/cloudExadataInfrastructures/{cloudExadataInfrastructuresId}
+/// Gets details of a single Exadata Infrastructure.
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `oracledatabase_projects_locations_cloud_exadata_infrastructures_get_builder()` + `oracledatabase_projects_locations_cloud_exadata_infrastructures_get_execute()`.
+/// For task-level control, use `oracledatabase_projects_locations_cloud_exadata_infrastructures_get_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn oracledatabase_projects_locations_cloud_exadata_infrastructures_get(
+    client: &SimpleHttpClient,
+    args: &OracledatabaseProjectsLocationsCloudExadataInfrastructuresGetArgs,
+) -> Result<
+    impl StreamIterator<
+            D = Result<ApiResponse<CloudExadataInfrastructure>, ApiError>,
+            P = ApiPending,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    let builder = oracledatabase_projects_locations_cloud_exadata_infrastructures_get_builder(
+        client, &args.name,
+    )?;
+    oracledatabase_projects_locations_cloud_exadata_infrastructures_get_execute(builder)
+}
+
+/// GET v1/projects/{projectsId}/locations/{locationsId}/cloudExadataInfrastructures
+/// Lists Exadata Infrastructures in a given project and location.
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `oracledatabase_projects_locations_cloud_exadata_infrastructures_list_execute()` to send, or `oracledatabase_projects_locations_cloud_exadata_infrastructures_list` for simplest API.
+
+pub fn oracledatabase_projects_locations_cloud_exadata_infrastructures_list_builder(
+    client: &SimpleHttpClient,
+    parent: &String,
+    filter: &Option<Option<String>>,
+    orderBy: &Option<Option<String>>,
+    pageSize: &Option<Option<String>>,
+    pageToken: &Option<Option<String>>,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!(
+        "https://oracledatabase.googleapis.com/v1/projects/{}/locations/{locationsId}/cloudExadataInfrastructures",
+        parent,
+    );
+
+    // Build request
+    let mut query_parts = Vec::new();
+    if let Some(val) = filter.as_ref() {
+        query_parts.push(format!("filter={}", val));
+    }
+    if let Some(val) = orderBy.as_ref() {
+        query_parts.push(format!("orderBy={}", val));
+    }
+    if let Some(val) = pageSize.as_ref() {
+        query_parts.push(format!("pageSize={}", val));
+    }
+    if let Some(val) = pageToken.as_ref() {
+        query_parts.push(format!("pageToken={}", val));
+    }
+
+    let url_with_query = if query_parts.is_empty() {
+        endpoint_url
+    } else {
+        format!("{}?{}", endpoint_url, query_parts.join("&"))
+    };
+
+    let builder = client
+        .get(&url_with_query)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// GET v1/projects/{projectsId}/locations/{locationsId}/cloudExadataInfrastructures
+/// Lists Exadata Infrastructures in a given project and location.
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `oracledatabase_projects_locations_cloud_exadata_infrastructures_list_execute()` or `oracledatabase_projects_locations_cloud_exadata_infrastructures_list`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `oracledatabase_projects_locations_cloud_exadata_infrastructures_list_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn oracledatabase_projects_locations_cloud_exadata_infrastructures_list_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<ListCloudExadataInfrastructuresResponse>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: ListCloudExadataInfrastructuresResponse =
+                    serde_json::from_str(&body)
+                        .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// GET v1/projects/{projectsId}/locations/{locationsId}/cloudExadataInfrastructures
+/// Lists Exadata Infrastructures in a given project and location.
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `oracledatabase_projects_locations_cloud_exadata_infrastructures_list_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `oracledatabase_projects_locations_cloud_exadata_infrastructures_list_task()`.
+/// For the simplest API, use `oracledatabase_projects_locations_cloud_exadata_infrastructures_list()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `oracledatabase_projects_locations_cloud_exadata_infrastructures_list_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn oracledatabase_projects_locations_cloud_exadata_infrastructures_list_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<
+            D = Result<ApiResponse<ListCloudExadataInfrastructuresResponse>, ApiError>,
+            P = ApiPending,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    let task = oracledatabase_projects_locations_cloud_exadata_infrastructures_list_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`oracledatabase_projects_locations_cloud_exadata_infrastructures_list`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct OracledatabaseProjectsLocationsCloudExadataInfrastructuresListArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Query parameter: filter
+    pub filter: Option<Option<String>>,
+    /// Query parameter: orderBy
+    pub orderBy: Option<Option<String>>,
+    /// Query parameter: pageSize
+    pub pageSize: Option<Option<String>>,
+    /// Query parameter: pageToken
+    pub pageToken: Option<Option<String>>,
+}
+
+/// GET v1/projects/{projectsId}/locations/{locationsId}/cloudExadataInfrastructures
+/// Lists Exadata Infrastructures in a given project and location.
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `oracledatabase_projects_locations_cloud_exadata_infrastructures_list_builder()` + `oracledatabase_projects_locations_cloud_exadata_infrastructures_list_execute()`.
+/// For task-level control, use `oracledatabase_projects_locations_cloud_exadata_infrastructures_list_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn oracledatabase_projects_locations_cloud_exadata_infrastructures_list(
+    client: &SimpleHttpClient,
+    args: &OracledatabaseProjectsLocationsCloudExadataInfrastructuresListArgs,
+) -> Result<
+    impl StreamIterator<
+            D = Result<ApiResponse<ListCloudExadataInfrastructuresResponse>, ApiError>,
+            P = ApiPending,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    let builder = oracledatabase_projects_locations_cloud_exadata_infrastructures_list_builder(
+        client,
+        &args.parent,
+        &args.filter,
+        &args.orderBy,
+        &args.pageSize,
+        &args.pageToken,
+    )?;
+    oracledatabase_projects_locations_cloud_exadata_infrastructures_list_execute(builder)
+}
+
+/// GET v1/projects/{projectsId}/locations/{locationsId}/cloudExadataInfrastructures/{cloudExadataInfrastructuresId}/dbServers
+/// Lists the database servers of an Exadata Infrastructure instance.
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `oracledatabase_projects_locations_cloud_exadata_infrastructures_db_servers_list_execute()` to send, or `oracledatabase_projects_locations_cloud_exadata_infrastructures_db_servers_list` for simplest API.
+
+pub fn oracledatabase_projects_locations_cloud_exadata_infrastructures_db_servers_list_builder(
+    client: &SimpleHttpClient,
+    parent: &String,
+    pageSize: &Option<Option<String>>,
+    pageToken: &Option<Option<String>>,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!(
+        "https://oracledatabase.googleapis.com/v1/projects/{}/locations/{locationsId}/cloudExadataInfrastructures/{cloudExadataInfrastructuresId}/dbServers",
+        parent,
+    );
+
+    // Build request
+    let mut query_parts = Vec::new();
+    if let Some(val) = pageSize.as_ref() {
+        query_parts.push(format!("pageSize={}", val));
+    }
+    if let Some(val) = pageToken.as_ref() {
+        query_parts.push(format!("pageToken={}", val));
+    }
+
+    let url_with_query = if query_parts.is_empty() {
+        endpoint_url
+    } else {
+        format!("{}?{}", endpoint_url, query_parts.join("&"))
+    };
+
+    let builder = client
+        .get(&url_with_query)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// GET v1/projects/{projectsId}/locations/{locationsId}/cloudExadataInfrastructures/{cloudExadataInfrastructuresId}/dbServers
+/// Lists the database servers of an Exadata Infrastructure instance.
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `oracledatabase_projects_locations_cloud_exadata_infrastructures_db_servers_list_execute()` or `oracledatabase_projects_locations_cloud_exadata_infrastructures_db_servers_list`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `oracledatabase_projects_locations_cloud_exadata_infrastructures_db_servers_list_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn oracledatabase_projects_locations_cloud_exadata_infrastructures_db_servers_list_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<ListDbServersResponse>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: ListDbServersResponse = serde_json::from_str(&body)
+                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// GET v1/projects/{projectsId}/locations/{locationsId}/cloudExadataInfrastructures/{cloudExadataInfrastructuresId}/dbServers
+/// Lists the database servers of an Exadata Infrastructure instance.
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `oracledatabase_projects_locations_cloud_exadata_infrastructures_db_servers_list_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `oracledatabase_projects_locations_cloud_exadata_infrastructures_db_servers_list_task()`.
+/// For the simplest API, use `oracledatabase_projects_locations_cloud_exadata_infrastructures_db_servers_list()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `oracledatabase_projects_locations_cloud_exadata_infrastructures_db_servers_list_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn oracledatabase_projects_locations_cloud_exadata_infrastructures_db_servers_list_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<ListDbServersResponse>, ApiError>, P = ApiPending>
+        + Send
+        + 'static,
+    ApiError,
+> {
+    let task =
+        oracledatabase_projects_locations_cloud_exadata_infrastructures_db_servers_list_task(
+            builder,
+        )?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`oracledatabase_projects_locations_cloud_exadata_infrastructures_db_servers_list`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct OracledatabaseProjectsLocationsCloudExadataInfrastructuresDbServersListArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Query parameter: pageSize
+    pub pageSize: Option<Option<String>>,
+    /// Query parameter: pageToken
+    pub pageToken: Option<Option<String>>,
+}
+
+/// GET v1/projects/{projectsId}/locations/{locationsId}/cloudExadataInfrastructures/{cloudExadataInfrastructuresId}/dbServers
+/// Lists the database servers of an Exadata Infrastructure instance.
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `oracledatabase_projects_locations_cloud_exadata_infrastructures_db_servers_list_builder()` + `oracledatabase_projects_locations_cloud_exadata_infrastructures_db_servers_list_execute()`.
+/// For task-level control, use `oracledatabase_projects_locations_cloud_exadata_infrastructures_db_servers_list_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn oracledatabase_projects_locations_cloud_exadata_infrastructures_db_servers_list(
+    client: &SimpleHttpClient,
+    args: &OracledatabaseProjectsLocationsCloudExadataInfrastructuresDbServersListArgs,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<ListDbServersResponse>, ApiError>, P = ApiPending>
+        + Send
+        + 'static,
+    ApiError,
+> {
+    let builder =
+        oracledatabase_projects_locations_cloud_exadata_infrastructures_db_servers_list_builder(
+            client,
+            &args.parent,
+            &args.pageSize,
+            &args.pageToken,
+        )?;
+    oracledatabase_projects_locations_cloud_exadata_infrastructures_db_servers_list_execute(builder)
+}
+
+/// POST v1/projects/{projectsId}/locations/{locationsId}/cloudVmClusters
+/// Creates a new VM Cluster in a given project and location.
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `oracledatabase_projects_locations_cloud_vm_clusters_create_execute()` to send, or `oracledatabase_projects_locations_cloud_vm_clusters_create` for simplest API.
+
+pub fn oracledatabase_projects_locations_cloud_vm_clusters_create_builder(
+    client: &SimpleHttpClient,
+    parent: &String,
+    cloudVmClusterId: &Option<Option<String>>,
+    requestId: &Option<Option<String>>,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!(
+        "https://oracledatabase.googleapis.com/v1/projects/{}/locations/{locationsId}/cloudVmClusters",
+        parent,
+    );
+
+    // Build request
+    let mut query_parts = Vec::new();
+    if let Some(val) = cloudVmClusterId.as_ref() {
+        query_parts.push(format!("cloudVmClusterId={}", val));
+    }
+    if let Some(val) = requestId.as_ref() {
+        query_parts.push(format!("requestId={}", val));
+    }
+
+    let url_with_query = if query_parts.is_empty() {
+        endpoint_url
+    } else {
+        format!("{}?{}", endpoint_url, query_parts.join("&"))
+    };
+
+    let builder = client
+        .post(&url_with_query)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// POST v1/projects/{projectsId}/locations/{locationsId}/cloudVmClusters
+/// Creates a new VM Cluster in a given project and location.
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `oracledatabase_projects_locations_cloud_vm_clusters_create_execute()` or `oracledatabase_projects_locations_cloud_vm_clusters_create`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `oracledatabase_projects_locations_cloud_vm_clusters_create_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn oracledatabase_projects_locations_cloud_vm_clusters_create_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<Operation>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: Operation = serde_json::from_str(&body)
+                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// POST v1/projects/{projectsId}/locations/{locationsId}/cloudVmClusters
+/// Creates a new VM Cluster in a given project and location.
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `oracledatabase_projects_locations_cloud_vm_clusters_create_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `oracledatabase_projects_locations_cloud_vm_clusters_create_task()`.
+/// For the simplest API, use `oracledatabase_projects_locations_cloud_vm_clusters_create()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `oracledatabase_projects_locations_cloud_vm_clusters_create_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn oracledatabase_projects_locations_cloud_vm_clusters_create_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<Operation>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let task = oracledatabase_projects_locations_cloud_vm_clusters_create_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`oracledatabase_projects_locations_cloud_vm_clusters_create`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct OracledatabaseProjectsLocationsCloudVmClustersCreateArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Query parameter: cloudVmClusterId
+    pub cloudVmClusterId: Option<Option<String>>,
+    /// Query parameter: requestId
+    pub requestId: Option<Option<String>>,
+}
+
+/// POST v1/projects/{projectsId}/locations/{locationsId}/cloudVmClusters
+/// Creates a new VM Cluster in a given project and location.
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `oracledatabase_projects_locations_cloud_vm_clusters_create_builder()` + `oracledatabase_projects_locations_cloud_vm_clusters_create_execute()`.
+/// For task-level control, use `oracledatabase_projects_locations_cloud_vm_clusters_create_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn oracledatabase_projects_locations_cloud_vm_clusters_create(
+    client: &SimpleHttpClient,
+    args: &OracledatabaseProjectsLocationsCloudVmClustersCreateArgs,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<Operation>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let builder = oracledatabase_projects_locations_cloud_vm_clusters_create_builder(
+        client,
+        &args.parent,
+        &args.cloudVmClusterId,
+        &args.requestId,
+    )?;
+    oracledatabase_projects_locations_cloud_vm_clusters_create_execute(builder)
+}
+
+/// DELETE v1/projects/{projectsId}/locations/{locationsId}/cloudVmClusters/{cloudVmClustersId}
+/// Deletes a single VM Cluster.
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `oracledatabase_projects_locations_cloud_vm_clusters_delete_execute()` to send, or `oracledatabase_projects_locations_cloud_vm_clusters_delete` for simplest API.
+
+pub fn oracledatabase_projects_locations_cloud_vm_clusters_delete_builder(
+    client: &SimpleHttpClient,
+    name: &String,
+    force: &Option<Option<String>>,
+    requestId: &Option<Option<String>>,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!(
+        "https://oracledatabase.googleapis.com/v1/projects/{}/locations/{locationsId}/cloudVmClusters/{cloudVmClustersId}",
+        name,
+    );
+
+    // Build request
+    let mut query_parts = Vec::new();
+    if let Some(val) = force.as_ref() {
+        query_parts.push(format!("force={}", val));
+    }
+    if let Some(val) = requestId.as_ref() {
+        query_parts.push(format!("requestId={}", val));
+    }
+
+    let url_with_query = if query_parts.is_empty() {
+        endpoint_url
+    } else {
+        format!("{}?{}", endpoint_url, query_parts.join("&"))
+    };
+
+    let builder = client
+        .delete(&url_with_query)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// DELETE v1/projects/{projectsId}/locations/{locationsId}/cloudVmClusters/{cloudVmClustersId}
+/// Deletes a single VM Cluster.
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `oracledatabase_projects_locations_cloud_vm_clusters_delete_execute()` or `oracledatabase_projects_locations_cloud_vm_clusters_delete`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `oracledatabase_projects_locations_cloud_vm_clusters_delete_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn oracledatabase_projects_locations_cloud_vm_clusters_delete_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<Operation>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: Operation = serde_json::from_str(&body)
+                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// DELETE v1/projects/{projectsId}/locations/{locationsId}/cloudVmClusters/{cloudVmClustersId}
+/// Deletes a single VM Cluster.
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `oracledatabase_projects_locations_cloud_vm_clusters_delete_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `oracledatabase_projects_locations_cloud_vm_clusters_delete_task()`.
+/// For the simplest API, use `oracledatabase_projects_locations_cloud_vm_clusters_delete()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `oracledatabase_projects_locations_cloud_vm_clusters_delete_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn oracledatabase_projects_locations_cloud_vm_clusters_delete_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<Operation>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let task = oracledatabase_projects_locations_cloud_vm_clusters_delete_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`oracledatabase_projects_locations_cloud_vm_clusters_delete`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct OracledatabaseProjectsLocationsCloudVmClustersDeleteArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Query parameter: force
+    pub force: Option<Option<String>>,
+    /// Query parameter: requestId
+    pub requestId: Option<Option<String>>,
+}
+
+/// DELETE v1/projects/{projectsId}/locations/{locationsId}/cloudVmClusters/{cloudVmClustersId}
+/// Deletes a single VM Cluster.
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `oracledatabase_projects_locations_cloud_vm_clusters_delete_builder()` + `oracledatabase_projects_locations_cloud_vm_clusters_delete_execute()`.
+/// For task-level control, use `oracledatabase_projects_locations_cloud_vm_clusters_delete_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn oracledatabase_projects_locations_cloud_vm_clusters_delete(
+    client: &SimpleHttpClient,
+    args: &OracledatabaseProjectsLocationsCloudVmClustersDeleteArgs,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<Operation>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let builder = oracledatabase_projects_locations_cloud_vm_clusters_delete_builder(
+        client,
+        &args.name,
+        &args.force,
+        &args.requestId,
+    )?;
+    oracledatabase_projects_locations_cloud_vm_clusters_delete_execute(builder)
+}
+
+/// GET v1/projects/{projectsId}/locations/{locationsId}/cloudVmClusters/{cloudVmClustersId}
+/// Gets details of a single VM Cluster.
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `oracledatabase_projects_locations_cloud_vm_clusters_get_execute()` to send, or `oracledatabase_projects_locations_cloud_vm_clusters_get` for simplest API.
+
+pub fn oracledatabase_projects_locations_cloud_vm_clusters_get_builder(
+    client: &SimpleHttpClient,
+    name: &String,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!(
+        "https://oracledatabase.googleapis.com/v1/projects/{}/locations/{locationsId}/cloudVmClusters/{cloudVmClustersId}",
+        name,
+    );
+
+    // Build request
+    let builder = client
+        .get(&endpoint_url)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// GET v1/projects/{projectsId}/locations/{locationsId}/cloudVmClusters/{cloudVmClustersId}
+/// Gets details of a single VM Cluster.
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `oracledatabase_projects_locations_cloud_vm_clusters_get_execute()` or `oracledatabase_projects_locations_cloud_vm_clusters_get`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `oracledatabase_projects_locations_cloud_vm_clusters_get_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn oracledatabase_projects_locations_cloud_vm_clusters_get_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<CloudVmCluster>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: CloudVmCluster = serde_json::from_str(&body)
+                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// GET v1/projects/{projectsId}/locations/{locationsId}/cloudVmClusters/{cloudVmClustersId}
+/// Gets details of a single VM Cluster.
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `oracledatabase_projects_locations_cloud_vm_clusters_get_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `oracledatabase_projects_locations_cloud_vm_clusters_get_task()`.
+/// For the simplest API, use `oracledatabase_projects_locations_cloud_vm_clusters_get()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `oracledatabase_projects_locations_cloud_vm_clusters_get_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn oracledatabase_projects_locations_cloud_vm_clusters_get_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<CloudVmCluster>, ApiError>, P = ApiPending>
+        + Send
+        + 'static,
+    ApiError,
+> {
+    let task = oracledatabase_projects_locations_cloud_vm_clusters_get_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`oracledatabase_projects_locations_cloud_vm_clusters_get`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct OracledatabaseProjectsLocationsCloudVmClustersGetArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
+/// GET v1/projects/{projectsId}/locations/{locationsId}/cloudVmClusters/{cloudVmClustersId}
+/// Gets details of a single VM Cluster.
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `oracledatabase_projects_locations_cloud_vm_clusters_get_builder()` + `oracledatabase_projects_locations_cloud_vm_clusters_get_execute()`.
+/// For task-level control, use `oracledatabase_projects_locations_cloud_vm_clusters_get_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn oracledatabase_projects_locations_cloud_vm_clusters_get(
+    client: &SimpleHttpClient,
+    args: &OracledatabaseProjectsLocationsCloudVmClustersGetArgs,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<CloudVmCluster>, ApiError>, P = ApiPending>
+        + Send
+        + 'static,
+    ApiError,
+> {
+    let builder =
+        oracledatabase_projects_locations_cloud_vm_clusters_get_builder(client, &args.name)?;
+    oracledatabase_projects_locations_cloud_vm_clusters_get_execute(builder)
+}
+
+/// GET v1/projects/{projectsId}/locations/{locationsId}/cloudVmClusters
+/// Lists the VM Clusters in a given project and location.
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `oracledatabase_projects_locations_cloud_vm_clusters_list_execute()` to send, or `oracledatabase_projects_locations_cloud_vm_clusters_list` for simplest API.
+
+pub fn oracledatabase_projects_locations_cloud_vm_clusters_list_builder(
+    client: &SimpleHttpClient,
+    parent: &String,
+    filter: &Option<Option<String>>,
+    pageSize: &Option<Option<String>>,
+    pageToken: &Option<Option<String>>,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!(
+        "https://oracledatabase.googleapis.com/v1/projects/{}/locations/{locationsId}/cloudVmClusters",
+        parent,
+    );
+
+    // Build request
+    let mut query_parts = Vec::new();
+    if let Some(val) = filter.as_ref() {
+        query_parts.push(format!("filter={}", val));
+    }
+    if let Some(val) = pageSize.as_ref() {
+        query_parts.push(format!("pageSize={}", val));
+    }
+    if let Some(val) = pageToken.as_ref() {
+        query_parts.push(format!("pageToken={}", val));
+    }
+
+    let url_with_query = if query_parts.is_empty() {
+        endpoint_url
+    } else {
+        format!("{}?{}", endpoint_url, query_parts.join("&"))
+    };
+
+    let builder = client
+        .get(&url_with_query)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// GET v1/projects/{projectsId}/locations/{locationsId}/cloudVmClusters
+/// Lists the VM Clusters in a given project and location.
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `oracledatabase_projects_locations_cloud_vm_clusters_list_execute()` or `oracledatabase_projects_locations_cloud_vm_clusters_list`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `oracledatabase_projects_locations_cloud_vm_clusters_list_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn oracledatabase_projects_locations_cloud_vm_clusters_list_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<ListCloudVmClustersResponse>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: ListCloudVmClustersResponse = serde_json::from_str(&body)
+                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// GET v1/projects/{projectsId}/locations/{locationsId}/cloudVmClusters
+/// Lists the VM Clusters in a given project and location.
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `oracledatabase_projects_locations_cloud_vm_clusters_list_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `oracledatabase_projects_locations_cloud_vm_clusters_list_task()`.
+/// For the simplest API, use `oracledatabase_projects_locations_cloud_vm_clusters_list()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `oracledatabase_projects_locations_cloud_vm_clusters_list_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn oracledatabase_projects_locations_cloud_vm_clusters_list_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<
+            D = Result<ApiResponse<ListCloudVmClustersResponse>, ApiError>,
+            P = ApiPending,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    let task = oracledatabase_projects_locations_cloud_vm_clusters_list_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`oracledatabase_projects_locations_cloud_vm_clusters_list`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct OracledatabaseProjectsLocationsCloudVmClustersListArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Query parameter: filter
+    pub filter: Option<Option<String>>,
+    /// Query parameter: pageSize
+    pub pageSize: Option<Option<String>>,
+    /// Query parameter: pageToken
+    pub pageToken: Option<Option<String>>,
+}
+
+/// GET v1/projects/{projectsId}/locations/{locationsId}/cloudVmClusters
+/// Lists the VM Clusters in a given project and location.
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `oracledatabase_projects_locations_cloud_vm_clusters_list_builder()` + `oracledatabase_projects_locations_cloud_vm_clusters_list_execute()`.
+/// For task-level control, use `oracledatabase_projects_locations_cloud_vm_clusters_list_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn oracledatabase_projects_locations_cloud_vm_clusters_list(
+    client: &SimpleHttpClient,
+    args: &OracledatabaseProjectsLocationsCloudVmClustersListArgs,
+) -> Result<
+    impl StreamIterator<
+            D = Result<ApiResponse<ListCloudVmClustersResponse>, ApiError>,
+            P = ApiPending,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    let builder = oracledatabase_projects_locations_cloud_vm_clusters_list_builder(
+        client,
+        &args.parent,
+        &args.filter,
+        &args.pageSize,
+        &args.pageToken,
+    )?;
+    oracledatabase_projects_locations_cloud_vm_clusters_list_execute(builder)
+}
+
+/// GET v1/projects/{projectsId}/locations/{locationsId}/cloudVmClusters/{cloudVmClustersId}/dbNodes
+/// Lists the database nodes of a VM Cluster.
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `oracledatabase_projects_locations_cloud_vm_clusters_db_nodes_list_execute()` to send, or `oracledatabase_projects_locations_cloud_vm_clusters_db_nodes_list` for simplest API.
+
+pub fn oracledatabase_projects_locations_cloud_vm_clusters_db_nodes_list_builder(
+    client: &SimpleHttpClient,
+    parent: &String,
+    pageSize: &Option<Option<String>>,
+    pageToken: &Option<Option<String>>,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!(
+        "https://oracledatabase.googleapis.com/v1/projects/{}/locations/{locationsId}/cloudVmClusters/{cloudVmClustersId}/dbNodes",
+        parent,
+    );
+
+    // Build request
+    let mut query_parts = Vec::new();
+    if let Some(val) = pageSize.as_ref() {
+        query_parts.push(format!("pageSize={}", val));
+    }
+    if let Some(val) = pageToken.as_ref() {
+        query_parts.push(format!("pageToken={}", val));
+    }
+
+    let url_with_query = if query_parts.is_empty() {
+        endpoint_url
+    } else {
+        format!("{}?{}", endpoint_url, query_parts.join("&"))
+    };
+
+    let builder = client
+        .get(&url_with_query)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// GET v1/projects/{projectsId}/locations/{locationsId}/cloudVmClusters/{cloudVmClustersId}/dbNodes
+/// Lists the database nodes of a VM Cluster.
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `oracledatabase_projects_locations_cloud_vm_clusters_db_nodes_list_execute()` or `oracledatabase_projects_locations_cloud_vm_clusters_db_nodes_list`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `oracledatabase_projects_locations_cloud_vm_clusters_db_nodes_list_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn oracledatabase_projects_locations_cloud_vm_clusters_db_nodes_list_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<ListDbNodesResponse>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: ListDbNodesResponse = serde_json::from_str(&body)
+                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// GET v1/projects/{projectsId}/locations/{locationsId}/cloudVmClusters/{cloudVmClustersId}/dbNodes
+/// Lists the database nodes of a VM Cluster.
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `oracledatabase_projects_locations_cloud_vm_clusters_db_nodes_list_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `oracledatabase_projects_locations_cloud_vm_clusters_db_nodes_list_task()`.
+/// For the simplest API, use `oracledatabase_projects_locations_cloud_vm_clusters_db_nodes_list()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `oracledatabase_projects_locations_cloud_vm_clusters_db_nodes_list_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn oracledatabase_projects_locations_cloud_vm_clusters_db_nodes_list_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<ListDbNodesResponse>, ApiError>, P = ApiPending>
+        + Send
+        + 'static,
+    ApiError,
+> {
+    let task = oracledatabase_projects_locations_cloud_vm_clusters_db_nodes_list_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`oracledatabase_projects_locations_cloud_vm_clusters_db_nodes_list`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct OracledatabaseProjectsLocationsCloudVmClustersDbNodesListArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Query parameter: pageSize
+    pub pageSize: Option<Option<String>>,
+    /// Query parameter: pageToken
+    pub pageToken: Option<Option<String>>,
+}
+
+/// GET v1/projects/{projectsId}/locations/{locationsId}/cloudVmClusters/{cloudVmClustersId}/dbNodes
+/// Lists the database nodes of a VM Cluster.
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `oracledatabase_projects_locations_cloud_vm_clusters_db_nodes_list_builder()` + `oracledatabase_projects_locations_cloud_vm_clusters_db_nodes_list_execute()`.
+/// For task-level control, use `oracledatabase_projects_locations_cloud_vm_clusters_db_nodes_list_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn oracledatabase_projects_locations_cloud_vm_clusters_db_nodes_list(
+    client: &SimpleHttpClient,
+    args: &OracledatabaseProjectsLocationsCloudVmClustersDbNodesListArgs,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<ListDbNodesResponse>, ApiError>, P = ApiPending>
+        + Send
+        + 'static,
+    ApiError,
+> {
+    let builder = oracledatabase_projects_locations_cloud_vm_clusters_db_nodes_list_builder(
+        client,
+        &args.parent,
+        &args.pageSize,
+        &args.pageToken,
+    )?;
+    oracledatabase_projects_locations_cloud_vm_clusters_db_nodes_list_execute(builder)
+}
+
+/// GET v1/projects/{projectsId}/locations/{locationsId}/databaseCharacterSets
+/// List DatabaseCharacterSets for the given project and location.
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `oracledatabase_projects_locations_database_character_sets_list_execute()` to send, or `oracledatabase_projects_locations_database_character_sets_list` for simplest API.
+
+pub fn oracledatabase_projects_locations_database_character_sets_list_builder(
+    client: &SimpleHttpClient,
+    parent: &String,
+    filter: &Option<Option<String>>,
+    pageSize: &Option<Option<String>>,
+    pageToken: &Option<Option<String>>,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!(
+        "https://oracledatabase.googleapis.com/v1/projects/{}/locations/{locationsId}/databaseCharacterSets",
+        parent,
+    );
+
+    // Build request
+    let mut query_parts = Vec::new();
+    if let Some(val) = filter.as_ref() {
+        query_parts.push(format!("filter={}", val));
+    }
+    if let Some(val) = pageSize.as_ref() {
+        query_parts.push(format!("pageSize={}", val));
+    }
+    if let Some(val) = pageToken.as_ref() {
+        query_parts.push(format!("pageToken={}", val));
+    }
+
+    let url_with_query = if query_parts.is_empty() {
+        endpoint_url
+    } else {
+        format!("{}?{}", endpoint_url, query_parts.join("&"))
+    };
+
+    let builder = client
+        .get(&url_with_query)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// GET v1/projects/{projectsId}/locations/{locationsId}/databaseCharacterSets
+/// List DatabaseCharacterSets for the given project and location.
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `oracledatabase_projects_locations_database_character_sets_list_execute()` or `oracledatabase_projects_locations_database_character_sets_list`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `oracledatabase_projects_locations_database_character_sets_list_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn oracledatabase_projects_locations_database_character_sets_list_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<ListDatabaseCharacterSetsResponse>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: ListDatabaseCharacterSetsResponse = serde_json::from_str(&body)
+                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// GET v1/projects/{projectsId}/locations/{locationsId}/databaseCharacterSets
+/// List DatabaseCharacterSets for the given project and location.
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `oracledatabase_projects_locations_database_character_sets_list_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `oracledatabase_projects_locations_database_character_sets_list_task()`.
+/// For the simplest API, use `oracledatabase_projects_locations_database_character_sets_list()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `oracledatabase_projects_locations_database_character_sets_list_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn oracledatabase_projects_locations_database_character_sets_list_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<
+            D = Result<ApiResponse<ListDatabaseCharacterSetsResponse>, ApiError>,
+            P = ApiPending,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    let task = oracledatabase_projects_locations_database_character_sets_list_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`oracledatabase_projects_locations_database_character_sets_list`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct OracledatabaseProjectsLocationsDatabaseCharacterSetsListArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Query parameter: filter
+    pub filter: Option<Option<String>>,
+    /// Query parameter: pageSize
+    pub pageSize: Option<Option<String>>,
+    /// Query parameter: pageToken
+    pub pageToken: Option<Option<String>>,
+}
+
+/// GET v1/projects/{projectsId}/locations/{locationsId}/databaseCharacterSets
+/// List DatabaseCharacterSets for the given project and location.
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `oracledatabase_projects_locations_database_character_sets_list_builder()` + `oracledatabase_projects_locations_database_character_sets_list_execute()`.
+/// For task-level control, use `oracledatabase_projects_locations_database_character_sets_list_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn oracledatabase_projects_locations_database_character_sets_list(
+    client: &SimpleHttpClient,
+    args: &OracledatabaseProjectsLocationsDatabaseCharacterSetsListArgs,
+) -> Result<
+    impl StreamIterator<
+            D = Result<ApiResponse<ListDatabaseCharacterSetsResponse>, ApiError>,
+            P = ApiPending,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    let builder = oracledatabase_projects_locations_database_character_sets_list_builder(
+        client,
+        &args.parent,
+        &args.filter,
+        &args.pageSize,
+        &args.pageToken,
+    )?;
+    oracledatabase_projects_locations_database_character_sets_list_execute(builder)
+}
+
+/// GET v1/projects/{projectsId}/locations/{locationsId}/databases/{databasesId}
+/// Gets details of a single Database.
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `oracledatabase_projects_locations_databases_get_execute()` to send, or `oracledatabase_projects_locations_databases_get` for simplest API.
+
+pub fn oracledatabase_projects_locations_databases_get_builder(
+    client: &SimpleHttpClient,
+    name: &String,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!(
+        "https://oracledatabase.googleapis.com/v1/projects/{}/locations/{locationsId}/databases/{databasesId}",
+        name,
+    );
+
+    // Build request
+    let builder = client
+        .get(&endpoint_url)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// GET v1/projects/{projectsId}/locations/{locationsId}/databases/{databasesId}
+/// Gets details of a single Database.
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `oracledatabase_projects_locations_databases_get_execute()` or `oracledatabase_projects_locations_databases_get`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `oracledatabase_projects_locations_databases_get_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn oracledatabase_projects_locations_databases_get_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<Database>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: Database = serde_json::from_str(&body)
+                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// GET v1/projects/{projectsId}/locations/{locationsId}/databases/{databasesId}
+/// Gets details of a single Database.
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `oracledatabase_projects_locations_databases_get_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `oracledatabase_projects_locations_databases_get_task()`.
+/// For the simplest API, use `oracledatabase_projects_locations_databases_get()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `oracledatabase_projects_locations_databases_get_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn oracledatabase_projects_locations_databases_get_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<Database>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let task = oracledatabase_projects_locations_databases_get_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`oracledatabase_projects_locations_databases_get`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct OracledatabaseProjectsLocationsDatabasesGetArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
+/// GET v1/projects/{projectsId}/locations/{locationsId}/databases/{databasesId}
+/// Gets details of a single Database.
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `oracledatabase_projects_locations_databases_get_builder()` + `oracledatabase_projects_locations_databases_get_execute()`.
+/// For task-level control, use `oracledatabase_projects_locations_databases_get_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn oracledatabase_projects_locations_databases_get(
+    client: &SimpleHttpClient,
+    args: &OracledatabaseProjectsLocationsDatabasesGetArgs,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<Database>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let builder = oracledatabase_projects_locations_databases_get_builder(client, &args.name)?;
+    oracledatabase_projects_locations_databases_get_execute(builder)
+}
+
+/// GET v1/projects/{projectsId}/locations/{locationsId}/databases
+/// Lists all the Databases for the given project, location and DbSystem.
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `oracledatabase_projects_locations_databases_list_execute()` to send, or `oracledatabase_projects_locations_databases_list` for simplest API.
+
+pub fn oracledatabase_projects_locations_databases_list_builder(
+    client: &SimpleHttpClient,
+    parent: &String,
+    filter: &Option<Option<String>>,
+    pageSize: &Option<Option<String>>,
+    pageToken: &Option<Option<String>>,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!(
+        "https://oracledatabase.googleapis.com/v1/projects/{}/locations/{locationsId}/databases",
+        parent,
+    );
+
+    // Build request
+    let mut query_parts = Vec::new();
+    if let Some(val) = filter.as_ref() {
+        query_parts.push(format!("filter={}", val));
+    }
+    if let Some(val) = pageSize.as_ref() {
+        query_parts.push(format!("pageSize={}", val));
+    }
+    if let Some(val) = pageToken.as_ref() {
+        query_parts.push(format!("pageToken={}", val));
+    }
+
+    let url_with_query = if query_parts.is_empty() {
+        endpoint_url
+    } else {
+        format!("{}?{}", endpoint_url, query_parts.join("&"))
+    };
+
+    let builder = client
+        .get(&url_with_query)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// GET v1/projects/{projectsId}/locations/{locationsId}/databases
+/// Lists all the Databases for the given project, location and DbSystem.
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `oracledatabase_projects_locations_databases_list_execute()` or `oracledatabase_projects_locations_databases_list`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `oracledatabase_projects_locations_databases_list_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn oracledatabase_projects_locations_databases_list_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<ListDatabasesResponse>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: ListDatabasesResponse = serde_json::from_str(&body)
+                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// GET v1/projects/{projectsId}/locations/{locationsId}/databases
+/// Lists all the Databases for the given project, location and DbSystem.
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `oracledatabase_projects_locations_databases_list_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `oracledatabase_projects_locations_databases_list_task()`.
+/// For the simplest API, use `oracledatabase_projects_locations_databases_list()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `oracledatabase_projects_locations_databases_list_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn oracledatabase_projects_locations_databases_list_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<ListDatabasesResponse>, ApiError>, P = ApiPending>
+        + Send
+        + 'static,
+    ApiError,
+> {
+    let task = oracledatabase_projects_locations_databases_list_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`oracledatabase_projects_locations_databases_list`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct OracledatabaseProjectsLocationsDatabasesListArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Query parameter: filter
+    pub filter: Option<Option<String>>,
+    /// Query parameter: pageSize
+    pub pageSize: Option<Option<String>>,
+    /// Query parameter: pageToken
+    pub pageToken: Option<Option<String>>,
+}
+
+/// GET v1/projects/{projectsId}/locations/{locationsId}/databases
+/// Lists all the Databases for the given project, location and DbSystem.
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `oracledatabase_projects_locations_databases_list_builder()` + `oracledatabase_projects_locations_databases_list_execute()`.
+/// For task-level control, use `oracledatabase_projects_locations_databases_list_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn oracledatabase_projects_locations_databases_list(
+    client: &SimpleHttpClient,
+    args: &OracledatabaseProjectsLocationsDatabasesListArgs,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<ListDatabasesResponse>, ApiError>, P = ApiPending>
+        + Send
+        + 'static,
+    ApiError,
+> {
+    let builder = oracledatabase_projects_locations_databases_list_builder(
+        client,
+        &args.parent,
+        &args.filter,
+        &args.pageSize,
+        &args.pageToken,
+    )?;
+    oracledatabase_projects_locations_databases_list_execute(builder)
+}
+
+/// GET v1/projects/{projectsId}/locations/{locationsId}/dbSystemInitialStorageSizes
+/// Lists all the DbSystemInitialStorageSizes for the given project and location.
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `oracledatabase_projects_locations_db_system_initial_storage_sizes_list_execute()` to send, or `oracledatabase_projects_locations_db_system_initial_storage_sizes_list` for simplest API.
+
+pub fn oracledatabase_projects_locations_db_system_initial_storage_sizes_list_builder(
+    client: &SimpleHttpClient,
+    parent: &String,
+    pageSize: &Option<Option<String>>,
+    pageToken: &Option<Option<String>>,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!(
+        "https://oracledatabase.googleapis.com/v1/projects/{}/locations/{locationsId}/dbSystemInitialStorageSizes",
+        parent,
+    );
+
+    // Build request
+    let mut query_parts = Vec::new();
+    if let Some(val) = pageSize.as_ref() {
+        query_parts.push(format!("pageSize={}", val));
+    }
+    if let Some(val) = pageToken.as_ref() {
+        query_parts.push(format!("pageToken={}", val));
+    }
+
+    let url_with_query = if query_parts.is_empty() {
+        endpoint_url
+    } else {
+        format!("{}?{}", endpoint_url, query_parts.join("&"))
+    };
+
+    let builder = client
+        .get(&url_with_query)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// GET v1/projects/{projectsId}/locations/{locationsId}/dbSystemInitialStorageSizes
+/// Lists all the DbSystemInitialStorageSizes for the given project and location.
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `oracledatabase_projects_locations_db_system_initial_storage_sizes_list_execute()` or `oracledatabase_projects_locations_db_system_initial_storage_sizes_list`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `oracledatabase_projects_locations_db_system_initial_storage_sizes_list_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn oracledatabase_projects_locations_db_system_initial_storage_sizes_list_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<ListDbSystemInitialStorageSizesResponse>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: ListDbSystemInitialStorageSizesResponse =
+                    serde_json::from_str(&body)
+                        .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// GET v1/projects/{projectsId}/locations/{locationsId}/dbSystemInitialStorageSizes
+/// Lists all the DbSystemInitialStorageSizes for the given project and location.
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `oracledatabase_projects_locations_db_system_initial_storage_sizes_list_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `oracledatabase_projects_locations_db_system_initial_storage_sizes_list_task()`.
+/// For the simplest API, use `oracledatabase_projects_locations_db_system_initial_storage_sizes_list()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `oracledatabase_projects_locations_db_system_initial_storage_sizes_list_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn oracledatabase_projects_locations_db_system_initial_storage_sizes_list_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<
+            D = Result<ApiResponse<ListDbSystemInitialStorageSizesResponse>, ApiError>,
+            P = ApiPending,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    let task =
+        oracledatabase_projects_locations_db_system_initial_storage_sizes_list_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`oracledatabase_projects_locations_db_system_initial_storage_sizes_list`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct OracledatabaseProjectsLocationsDbSystemInitialStorageSizesListArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Query parameter: pageSize
+    pub pageSize: Option<Option<String>>,
+    /// Query parameter: pageToken
+    pub pageToken: Option<Option<String>>,
+}
+
+/// GET v1/projects/{projectsId}/locations/{locationsId}/dbSystemInitialStorageSizes
+/// Lists all the DbSystemInitialStorageSizes for the given project and location.
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `oracledatabase_projects_locations_db_system_initial_storage_sizes_list_builder()` + `oracledatabase_projects_locations_db_system_initial_storage_sizes_list_execute()`.
+/// For task-level control, use `oracledatabase_projects_locations_db_system_initial_storage_sizes_list_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn oracledatabase_projects_locations_db_system_initial_storage_sizes_list(
+    client: &SimpleHttpClient,
+    args: &OracledatabaseProjectsLocationsDbSystemInitialStorageSizesListArgs,
+) -> Result<
+    impl StreamIterator<
+            D = Result<ApiResponse<ListDbSystemInitialStorageSizesResponse>, ApiError>,
+            P = ApiPending,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    let builder = oracledatabase_projects_locations_db_system_initial_storage_sizes_list_builder(
+        client,
+        &args.parent,
+        &args.pageSize,
+        &args.pageToken,
+    )?;
+    oracledatabase_projects_locations_db_system_initial_storage_sizes_list_execute(builder)
+}
+
+/// GET v1/projects/{projectsId}/locations/{locationsId}/dbSystemShapes
+/// Lists the database system shapes available for the project and location.
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `oracledatabase_projects_locations_db_system_shapes_list_execute()` to send, or `oracledatabase_projects_locations_db_system_shapes_list` for simplest API.
+
+pub fn oracledatabase_projects_locations_db_system_shapes_list_builder(
+    client: &SimpleHttpClient,
+    parent: &String,
+    filter: &Option<Option<String>>,
+    pageSize: &Option<Option<String>>,
+    pageToken: &Option<Option<String>>,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!(
+        "https://oracledatabase.googleapis.com/v1/projects/{}/locations/{locationsId}/dbSystemShapes",
+        parent,
+    );
+
+    // Build request
+    let mut query_parts = Vec::new();
+    if let Some(val) = filter.as_ref() {
+        query_parts.push(format!("filter={}", val));
+    }
+    if let Some(val) = pageSize.as_ref() {
+        query_parts.push(format!("pageSize={}", val));
+    }
+    if let Some(val) = pageToken.as_ref() {
+        query_parts.push(format!("pageToken={}", val));
+    }
+
+    let url_with_query = if query_parts.is_empty() {
+        endpoint_url
+    } else {
+        format!("{}?{}", endpoint_url, query_parts.join("&"))
+    };
+
+    let builder = client
+        .get(&url_with_query)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// GET v1/projects/{projectsId}/locations/{locationsId}/dbSystemShapes
+/// Lists the database system shapes available for the project and location.
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `oracledatabase_projects_locations_db_system_shapes_list_execute()` or `oracledatabase_projects_locations_db_system_shapes_list`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `oracledatabase_projects_locations_db_system_shapes_list_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn oracledatabase_projects_locations_db_system_shapes_list_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<ListDbSystemShapesResponse>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: ListDbSystemShapesResponse = serde_json::from_str(&body)
+                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// GET v1/projects/{projectsId}/locations/{locationsId}/dbSystemShapes
+/// Lists the database system shapes available for the project and location.
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `oracledatabase_projects_locations_db_system_shapes_list_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `oracledatabase_projects_locations_db_system_shapes_list_task()`.
+/// For the simplest API, use `oracledatabase_projects_locations_db_system_shapes_list()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `oracledatabase_projects_locations_db_system_shapes_list_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn oracledatabase_projects_locations_db_system_shapes_list_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<
+            D = Result<ApiResponse<ListDbSystemShapesResponse>, ApiError>,
+            P = ApiPending,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    let task = oracledatabase_projects_locations_db_system_shapes_list_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`oracledatabase_projects_locations_db_system_shapes_list`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct OracledatabaseProjectsLocationsDbSystemShapesListArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Query parameter: filter
+    pub filter: Option<Option<String>>,
+    /// Query parameter: pageSize
+    pub pageSize: Option<Option<String>>,
+    /// Query parameter: pageToken
+    pub pageToken: Option<Option<String>>,
+}
+
+/// GET v1/projects/{projectsId}/locations/{locationsId}/dbSystemShapes
+/// Lists the database system shapes available for the project and location.
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `oracledatabase_projects_locations_db_system_shapes_list_builder()` + `oracledatabase_projects_locations_db_system_shapes_list_execute()`.
+/// For task-level control, use `oracledatabase_projects_locations_db_system_shapes_list_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn oracledatabase_projects_locations_db_system_shapes_list(
+    client: &SimpleHttpClient,
+    args: &OracledatabaseProjectsLocationsDbSystemShapesListArgs,
+) -> Result<
+    impl StreamIterator<
+            D = Result<ApiResponse<ListDbSystemShapesResponse>, ApiError>,
+            P = ApiPending,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    let builder = oracledatabase_projects_locations_db_system_shapes_list_builder(
+        client,
+        &args.parent,
+        &args.filter,
+        &args.pageSize,
+        &args.pageToken,
+    )?;
+    oracledatabase_projects_locations_db_system_shapes_list_execute(builder)
+}
+
+/// POST v1/projects/{projectsId}/locations/{locationsId}/dbSystems
+/// Creates a new DbSystem in a given project and location.
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `oracledatabase_projects_locations_db_systems_create_execute()` to send, or `oracledatabase_projects_locations_db_systems_create` for simplest API.
+
+pub fn oracledatabase_projects_locations_db_systems_create_builder(
+    client: &SimpleHttpClient,
+    parent: &String,
+    dbSystemId: &Option<Option<String>>,
+    requestId: &Option<Option<String>>,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!(
+        "https://oracledatabase.googleapis.com/v1/projects/{}/locations/{locationsId}/dbSystems",
+        parent,
+    );
+
+    // Build request
+    let mut query_parts = Vec::new();
+    if let Some(val) = dbSystemId.as_ref() {
+        query_parts.push(format!("dbSystemId={}", val));
+    }
+    if let Some(val) = requestId.as_ref() {
+        query_parts.push(format!("requestId={}", val));
+    }
+
+    let url_with_query = if query_parts.is_empty() {
+        endpoint_url
+    } else {
+        format!("{}?{}", endpoint_url, query_parts.join("&"))
+    };
+
+    let builder = client
+        .post(&url_with_query)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// POST v1/projects/{projectsId}/locations/{locationsId}/dbSystems
+/// Creates a new DbSystem in a given project and location.
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `oracledatabase_projects_locations_db_systems_create_execute()` or `oracledatabase_projects_locations_db_systems_create`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `oracledatabase_projects_locations_db_systems_create_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn oracledatabase_projects_locations_db_systems_create_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<Operation>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: Operation = serde_json::from_str(&body)
+                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// POST v1/projects/{projectsId}/locations/{locationsId}/dbSystems
+/// Creates a new DbSystem in a given project and location.
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `oracledatabase_projects_locations_db_systems_create_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `oracledatabase_projects_locations_db_systems_create_task()`.
+/// For the simplest API, use `oracledatabase_projects_locations_db_systems_create()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `oracledatabase_projects_locations_db_systems_create_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn oracledatabase_projects_locations_db_systems_create_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<Operation>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let task = oracledatabase_projects_locations_db_systems_create_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`oracledatabase_projects_locations_db_systems_create`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct OracledatabaseProjectsLocationsDbSystemsCreateArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Query parameter: dbSystemId
+    pub dbSystemId: Option<Option<String>>,
+    /// Query parameter: requestId
+    pub requestId: Option<Option<String>>,
+}
+
+/// POST v1/projects/{projectsId}/locations/{locationsId}/dbSystems
+/// Creates a new DbSystem in a given project and location.
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `oracledatabase_projects_locations_db_systems_create_builder()` + `oracledatabase_projects_locations_db_systems_create_execute()`.
+/// For task-level control, use `oracledatabase_projects_locations_db_systems_create_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn oracledatabase_projects_locations_db_systems_create(
+    client: &SimpleHttpClient,
+    args: &OracledatabaseProjectsLocationsDbSystemsCreateArgs,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<Operation>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let builder = oracledatabase_projects_locations_db_systems_create_builder(
+        client,
+        &args.parent,
+        &args.dbSystemId,
+        &args.requestId,
+    )?;
+    oracledatabase_projects_locations_db_systems_create_execute(builder)
+}
+
+/// DELETE v1/projects/{projectsId}/locations/{locationsId}/dbSystems/{dbSystemsId}
+/// Deletes a single DbSystem.
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `oracledatabase_projects_locations_db_systems_delete_execute()` to send, or `oracledatabase_projects_locations_db_systems_delete` for simplest API.
+
+pub fn oracledatabase_projects_locations_db_systems_delete_builder(
+    client: &SimpleHttpClient,
+    name: &String,
+    requestId: &Option<Option<String>>,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!(
+        "https://oracledatabase.googleapis.com/v1/projects/{}/locations/{locationsId}/dbSystems/{dbSystemsId}",
+        name,
+    );
+
+    // Build request
+    let mut query_parts = Vec::new();
+    if let Some(val) = requestId.as_ref() {
+        query_parts.push(format!("requestId={}", val));
+    }
+
+    let url_with_query = if query_parts.is_empty() {
+        endpoint_url
+    } else {
+        format!("{}?{}", endpoint_url, query_parts.join("&"))
+    };
+
+    let builder = client
+        .delete(&url_with_query)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// DELETE v1/projects/{projectsId}/locations/{locationsId}/dbSystems/{dbSystemsId}
+/// Deletes a single DbSystem.
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `oracledatabase_projects_locations_db_systems_delete_execute()` or `oracledatabase_projects_locations_db_systems_delete`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `oracledatabase_projects_locations_db_systems_delete_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn oracledatabase_projects_locations_db_systems_delete_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<Operation>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: Operation = serde_json::from_str(&body)
+                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// DELETE v1/projects/{projectsId}/locations/{locationsId}/dbSystems/{dbSystemsId}
+/// Deletes a single DbSystem.
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `oracledatabase_projects_locations_db_systems_delete_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `oracledatabase_projects_locations_db_systems_delete_task()`.
+/// For the simplest API, use `oracledatabase_projects_locations_db_systems_delete()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `oracledatabase_projects_locations_db_systems_delete_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn oracledatabase_projects_locations_db_systems_delete_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<Operation>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let task = oracledatabase_projects_locations_db_systems_delete_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`oracledatabase_projects_locations_db_systems_delete`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct OracledatabaseProjectsLocationsDbSystemsDeleteArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Query parameter: requestId
+    pub requestId: Option<Option<String>>,
+}
+
+/// DELETE v1/projects/{projectsId}/locations/{locationsId}/dbSystems/{dbSystemsId}
+/// Deletes a single DbSystem.
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `oracledatabase_projects_locations_db_systems_delete_builder()` + `oracledatabase_projects_locations_db_systems_delete_execute()`.
+/// For task-level control, use `oracledatabase_projects_locations_db_systems_delete_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn oracledatabase_projects_locations_db_systems_delete(
+    client: &SimpleHttpClient,
+    args: &OracledatabaseProjectsLocationsDbSystemsDeleteArgs,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<Operation>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let builder = oracledatabase_projects_locations_db_systems_delete_builder(
+        client,
+        &args.name,
+        &args.requestId,
+    )?;
+    oracledatabase_projects_locations_db_systems_delete_execute(builder)
+}
+
+/// GET v1/projects/{projectsId}/locations/{locationsId}/dbSystems/{dbSystemsId}
+/// Gets details of a single DbSystem.
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `oracledatabase_projects_locations_db_systems_get_execute()` to send, or `oracledatabase_projects_locations_db_systems_get` for simplest API.
+
+pub fn oracledatabase_projects_locations_db_systems_get_builder(
+    client: &SimpleHttpClient,
+    name: &String,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!(
+        "https://oracledatabase.googleapis.com/v1/projects/{}/locations/{locationsId}/dbSystems/{dbSystemsId}",
+        name,
+    );
+
+    // Build request
+    let builder = client
+        .get(&endpoint_url)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// GET v1/projects/{projectsId}/locations/{locationsId}/dbSystems/{dbSystemsId}
+/// Gets details of a single DbSystem.
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `oracledatabase_projects_locations_db_systems_get_execute()` or `oracledatabase_projects_locations_db_systems_get`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `oracledatabase_projects_locations_db_systems_get_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn oracledatabase_projects_locations_db_systems_get_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<DbSystem>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: DbSystem = serde_json::from_str(&body)
+                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// GET v1/projects/{projectsId}/locations/{locationsId}/dbSystems/{dbSystemsId}
+/// Gets details of a single DbSystem.
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `oracledatabase_projects_locations_db_systems_get_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `oracledatabase_projects_locations_db_systems_get_task()`.
+/// For the simplest API, use `oracledatabase_projects_locations_db_systems_get()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `oracledatabase_projects_locations_db_systems_get_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn oracledatabase_projects_locations_db_systems_get_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<DbSystem>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let task = oracledatabase_projects_locations_db_systems_get_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`oracledatabase_projects_locations_db_systems_get`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct OracledatabaseProjectsLocationsDbSystemsGetArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
+/// GET v1/projects/{projectsId}/locations/{locationsId}/dbSystems/{dbSystemsId}
+/// Gets details of a single DbSystem.
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `oracledatabase_projects_locations_db_systems_get_builder()` + `oracledatabase_projects_locations_db_systems_get_execute()`.
+/// For task-level control, use `oracledatabase_projects_locations_db_systems_get_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn oracledatabase_projects_locations_db_systems_get(
+    client: &SimpleHttpClient,
+    args: &OracledatabaseProjectsLocationsDbSystemsGetArgs,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<DbSystem>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let builder = oracledatabase_projects_locations_db_systems_get_builder(client, &args.name)?;
+    oracledatabase_projects_locations_db_systems_get_execute(builder)
+}
+
+/// GET v1/projects/{projectsId}/locations/{locationsId}/dbSystems
+/// Lists all the DbSystems for the given project and location.
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `oracledatabase_projects_locations_db_systems_list_execute()` to send, or `oracledatabase_projects_locations_db_systems_list` for simplest API.
+
+pub fn oracledatabase_projects_locations_db_systems_list_builder(
+    client: &SimpleHttpClient,
+    parent: &String,
+    filter: &Option<Option<String>>,
+    orderBy: &Option<Option<String>>,
+    pageSize: &Option<Option<String>>,
+    pageToken: &Option<Option<String>>,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!(
+        "https://oracledatabase.googleapis.com/v1/projects/{}/locations/{locationsId}/dbSystems",
+        parent,
+    );
+
+    // Build request
+    let mut query_parts = Vec::new();
+    if let Some(val) = filter.as_ref() {
+        query_parts.push(format!("filter={}", val));
+    }
+    if let Some(val) = orderBy.as_ref() {
+        query_parts.push(format!("orderBy={}", val));
+    }
+    if let Some(val) = pageSize.as_ref() {
+        query_parts.push(format!("pageSize={}", val));
+    }
+    if let Some(val) = pageToken.as_ref() {
+        query_parts.push(format!("pageToken={}", val));
+    }
+
+    let url_with_query = if query_parts.is_empty() {
+        endpoint_url
+    } else {
+        format!("{}?{}", endpoint_url, query_parts.join("&"))
+    };
+
+    let builder = client
+        .get(&url_with_query)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// GET v1/projects/{projectsId}/locations/{locationsId}/dbSystems
+/// Lists all the DbSystems for the given project and location.
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `oracledatabase_projects_locations_db_systems_list_execute()` or `oracledatabase_projects_locations_db_systems_list`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `oracledatabase_projects_locations_db_systems_list_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn oracledatabase_projects_locations_db_systems_list_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<ListDbSystemsResponse>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: ListDbSystemsResponse = serde_json::from_str(&body)
+                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// GET v1/projects/{projectsId}/locations/{locationsId}/dbSystems
+/// Lists all the DbSystems for the given project and location.
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `oracledatabase_projects_locations_db_systems_list_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `oracledatabase_projects_locations_db_systems_list_task()`.
+/// For the simplest API, use `oracledatabase_projects_locations_db_systems_list()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `oracledatabase_projects_locations_db_systems_list_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn oracledatabase_projects_locations_db_systems_list_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<ListDbSystemsResponse>, ApiError>, P = ApiPending>
+        + Send
+        + 'static,
+    ApiError,
+> {
+    let task = oracledatabase_projects_locations_db_systems_list_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`oracledatabase_projects_locations_db_systems_list`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct OracledatabaseProjectsLocationsDbSystemsListArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Query parameter: filter
+    pub filter: Option<Option<String>>,
+    /// Query parameter: orderBy
+    pub orderBy: Option<Option<String>>,
+    /// Query parameter: pageSize
+    pub pageSize: Option<Option<String>>,
+    /// Query parameter: pageToken
+    pub pageToken: Option<Option<String>>,
+}
+
+/// GET v1/projects/{projectsId}/locations/{locationsId}/dbSystems
+/// Lists all the DbSystems for the given project and location.
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `oracledatabase_projects_locations_db_systems_list_builder()` + `oracledatabase_projects_locations_db_systems_list_execute()`.
+/// For task-level control, use `oracledatabase_projects_locations_db_systems_list_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn oracledatabase_projects_locations_db_systems_list(
+    client: &SimpleHttpClient,
+    args: &OracledatabaseProjectsLocationsDbSystemsListArgs,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<ListDbSystemsResponse>, ApiError>, P = ApiPending>
+        + Send
+        + 'static,
+    ApiError,
+> {
+    let builder = oracledatabase_projects_locations_db_systems_list_builder(
+        client,
+        &args.parent,
+        &args.filter,
+        &args.orderBy,
+        &args.pageSize,
+        &args.pageToken,
+    )?;
+    oracledatabase_projects_locations_db_systems_list_execute(builder)
+}
+
+/// GET v1/projects/{projectsId}/locations/{locationsId}/dbVersions
+/// List DbVersions for the given project and location.
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `oracledatabase_projects_locations_db_versions_list_execute()` to send, or `oracledatabase_projects_locations_db_versions_list` for simplest API.
+
+pub fn oracledatabase_projects_locations_db_versions_list_builder(
+    client: &SimpleHttpClient,
+    parent: &String,
+    filter: &Option<Option<String>>,
+    pageSize: &Option<Option<String>>,
+    pageToken: &Option<Option<String>>,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!(
+        "https://oracledatabase.googleapis.com/v1/projects/{}/locations/{locationsId}/dbVersions",
+        parent,
+    );
+
+    // Build request
+    let mut query_parts = Vec::new();
+    if let Some(val) = filter.as_ref() {
+        query_parts.push(format!("filter={}", val));
+    }
+    if let Some(val) = pageSize.as_ref() {
+        query_parts.push(format!("pageSize={}", val));
+    }
+    if let Some(val) = pageToken.as_ref() {
+        query_parts.push(format!("pageToken={}", val));
+    }
+
+    let url_with_query = if query_parts.is_empty() {
+        endpoint_url
+    } else {
+        format!("{}?{}", endpoint_url, query_parts.join("&"))
+    };
+
+    let builder = client
+        .get(&url_with_query)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// GET v1/projects/{projectsId}/locations/{locationsId}/dbVersions
+/// List DbVersions for the given project and location.
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `oracledatabase_projects_locations_db_versions_list_execute()` or `oracledatabase_projects_locations_db_versions_list`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `oracledatabase_projects_locations_db_versions_list_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn oracledatabase_projects_locations_db_versions_list_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<ListDbVersionsResponse>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: ListDbVersionsResponse = serde_json::from_str(&body)
+                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// GET v1/projects/{projectsId}/locations/{locationsId}/dbVersions
+/// List DbVersions for the given project and location.
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `oracledatabase_projects_locations_db_versions_list_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `oracledatabase_projects_locations_db_versions_list_task()`.
+/// For the simplest API, use `oracledatabase_projects_locations_db_versions_list()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `oracledatabase_projects_locations_db_versions_list_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn oracledatabase_projects_locations_db_versions_list_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<ListDbVersionsResponse>, ApiError>, P = ApiPending>
+        + Send
+        + 'static,
+    ApiError,
+> {
+    let task = oracledatabase_projects_locations_db_versions_list_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`oracledatabase_projects_locations_db_versions_list`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct OracledatabaseProjectsLocationsDbVersionsListArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Query parameter: filter
+    pub filter: Option<Option<String>>,
+    /// Query parameter: pageSize
+    pub pageSize: Option<Option<String>>,
+    /// Query parameter: pageToken
+    pub pageToken: Option<Option<String>>,
+}
+
+/// GET v1/projects/{projectsId}/locations/{locationsId}/dbVersions
+/// List DbVersions for the given project and location.
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `oracledatabase_projects_locations_db_versions_list_builder()` + `oracledatabase_projects_locations_db_versions_list_execute()`.
+/// For task-level control, use `oracledatabase_projects_locations_db_versions_list_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn oracledatabase_projects_locations_db_versions_list(
+    client: &SimpleHttpClient,
+    args: &OracledatabaseProjectsLocationsDbVersionsListArgs,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<ListDbVersionsResponse>, ApiError>, P = ApiPending>
+        + Send
+        + 'static,
+    ApiError,
+> {
+    let builder = oracledatabase_projects_locations_db_versions_list_builder(
+        client,
+        &args.parent,
+        &args.filter,
+        &args.pageSize,
+        &args.pageToken,
+    )?;
+    oracledatabase_projects_locations_db_versions_list_execute(builder)
+}
+
+/// GET v1/projects/{projectsId}/locations/{locationsId}/entitlements
+/// Lists the entitlements in a given project.
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `oracledatabase_projects_locations_entitlements_list_execute()` to send, or `oracledatabase_projects_locations_entitlements_list` for simplest API.
+
+pub fn oracledatabase_projects_locations_entitlements_list_builder(
+    client: &SimpleHttpClient,
+    parent: &String,
+    pageSize: &Option<Option<String>>,
+    pageToken: &Option<Option<String>>,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!(
+        "https://oracledatabase.googleapis.com/v1/projects/{}/locations/{locationsId}/entitlements",
+        parent,
+    );
+
+    // Build request
+    let mut query_parts = Vec::new();
+    if let Some(val) = pageSize.as_ref() {
+        query_parts.push(format!("pageSize={}", val));
+    }
+    if let Some(val) = pageToken.as_ref() {
+        query_parts.push(format!("pageToken={}", val));
+    }
+
+    let url_with_query = if query_parts.is_empty() {
+        endpoint_url
+    } else {
+        format!("{}?{}", endpoint_url, query_parts.join("&"))
+    };
+
+    let builder = client
+        .get(&url_with_query)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// GET v1/projects/{projectsId}/locations/{locationsId}/entitlements
+/// Lists the entitlements in a given project.
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `oracledatabase_projects_locations_entitlements_list_execute()` or `oracledatabase_projects_locations_entitlements_list`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `oracledatabase_projects_locations_entitlements_list_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn oracledatabase_projects_locations_entitlements_list_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<ListEntitlementsResponse>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: ListEntitlementsResponse = serde_json::from_str(&body)
+                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// GET v1/projects/{projectsId}/locations/{locationsId}/entitlements
+/// Lists the entitlements in a given project.
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `oracledatabase_projects_locations_entitlements_list_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `oracledatabase_projects_locations_entitlements_list_task()`.
+/// For the simplest API, use `oracledatabase_projects_locations_entitlements_list()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `oracledatabase_projects_locations_entitlements_list_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn oracledatabase_projects_locations_entitlements_list_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<ListEntitlementsResponse>, ApiError>, P = ApiPending>
+        + Send
+        + 'static,
+    ApiError,
+> {
+    let task = oracledatabase_projects_locations_entitlements_list_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`oracledatabase_projects_locations_entitlements_list`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct OracledatabaseProjectsLocationsEntitlementsListArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Query parameter: pageSize
+    pub pageSize: Option<Option<String>>,
+    /// Query parameter: pageToken
+    pub pageToken: Option<Option<String>>,
+}
+
+/// GET v1/projects/{projectsId}/locations/{locationsId}/entitlements
+/// Lists the entitlements in a given project.
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `oracledatabase_projects_locations_entitlements_list_builder()` + `oracledatabase_projects_locations_entitlements_list_execute()`.
+/// For task-level control, use `oracledatabase_projects_locations_entitlements_list_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn oracledatabase_projects_locations_entitlements_list(
+    client: &SimpleHttpClient,
+    args: &OracledatabaseProjectsLocationsEntitlementsListArgs,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<ListEntitlementsResponse>, ApiError>, P = ApiPending>
+        + Send
+        + 'static,
+    ApiError,
+> {
+    let builder = oracledatabase_projects_locations_entitlements_list_builder(
+        client,
+        &args.parent,
+        &args.pageSize,
+        &args.pageToken,
+    )?;
+    oracledatabase_projects_locations_entitlements_list_execute(builder)
+}
+
+/// POST v1/projects/{projectsId}/locations/{locationsId}/exadbVmClusters
+/// Creates a new Exadb (Exascale) VM Cluster resource.
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `oracledatabase_projects_locations_exadb_vm_clusters_create_execute()` to send, or `oracledatabase_projects_locations_exadb_vm_clusters_create` for simplest API.
+
+pub fn oracledatabase_projects_locations_exadb_vm_clusters_create_builder(
+    client: &SimpleHttpClient,
+    parent: &String,
+    exadbVmClusterId: &Option<Option<String>>,
+    requestId: &Option<Option<String>>,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!(
+        "https://oracledatabase.googleapis.com/v1/projects/{}/locations/{locationsId}/exadbVmClusters",
+        parent,
+    );
+
+    // Build request
+    let mut query_parts = Vec::new();
+    if let Some(val) = exadbVmClusterId.as_ref() {
+        query_parts.push(format!("exadbVmClusterId={}", val));
+    }
+    if let Some(val) = requestId.as_ref() {
+        query_parts.push(format!("requestId={}", val));
+    }
+
+    let url_with_query = if query_parts.is_empty() {
+        endpoint_url
+    } else {
+        format!("{}?{}", endpoint_url, query_parts.join("&"))
+    };
+
+    let builder = client
+        .post(&url_with_query)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// POST v1/projects/{projectsId}/locations/{locationsId}/exadbVmClusters
+/// Creates a new Exadb (Exascale) VM Cluster resource.
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `oracledatabase_projects_locations_exadb_vm_clusters_create_execute()` or `oracledatabase_projects_locations_exadb_vm_clusters_create`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `oracledatabase_projects_locations_exadb_vm_clusters_create_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn oracledatabase_projects_locations_exadb_vm_clusters_create_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<Operation>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: Operation = serde_json::from_str(&body)
+                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// POST v1/projects/{projectsId}/locations/{locationsId}/exadbVmClusters
+/// Creates a new Exadb (Exascale) VM Cluster resource.
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `oracledatabase_projects_locations_exadb_vm_clusters_create_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `oracledatabase_projects_locations_exadb_vm_clusters_create_task()`.
+/// For the simplest API, use `oracledatabase_projects_locations_exadb_vm_clusters_create()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `oracledatabase_projects_locations_exadb_vm_clusters_create_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn oracledatabase_projects_locations_exadb_vm_clusters_create_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<Operation>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let task = oracledatabase_projects_locations_exadb_vm_clusters_create_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`oracledatabase_projects_locations_exadb_vm_clusters_create`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct OracledatabaseProjectsLocationsExadbVmClustersCreateArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Query parameter: exadbVmClusterId
+    pub exadbVmClusterId: Option<Option<String>>,
+    /// Query parameter: requestId
+    pub requestId: Option<Option<String>>,
+}
+
+/// POST v1/projects/{projectsId}/locations/{locationsId}/exadbVmClusters
+/// Creates a new Exadb (Exascale) VM Cluster resource.
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `oracledatabase_projects_locations_exadb_vm_clusters_create_builder()` + `oracledatabase_projects_locations_exadb_vm_clusters_create_execute()`.
+/// For task-level control, use `oracledatabase_projects_locations_exadb_vm_clusters_create_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn oracledatabase_projects_locations_exadb_vm_clusters_create(
+    client: &SimpleHttpClient,
+    args: &OracledatabaseProjectsLocationsExadbVmClustersCreateArgs,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<Operation>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let builder = oracledatabase_projects_locations_exadb_vm_clusters_create_builder(
+        client,
+        &args.parent,
+        &args.exadbVmClusterId,
+        &args.requestId,
+    )?;
+    oracledatabase_projects_locations_exadb_vm_clusters_create_execute(builder)
+}
+
+/// DELETE v1/projects/{projectsId}/locations/{locationsId}/exadbVmClusters/{exadbVmClustersId}
+/// Deletes a single Exadb (Exascale) VM Cluster.
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `oracledatabase_projects_locations_exadb_vm_clusters_delete_execute()` to send, or `oracledatabase_projects_locations_exadb_vm_clusters_delete` for simplest API.
+
+pub fn oracledatabase_projects_locations_exadb_vm_clusters_delete_builder(
+    client: &SimpleHttpClient,
+    name: &String,
+    requestId: &Option<Option<String>>,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!(
+        "https://oracledatabase.googleapis.com/v1/projects/{}/locations/{locationsId}/exadbVmClusters/{exadbVmClustersId}",
+        name,
+    );
+
+    // Build request
+    let mut query_parts = Vec::new();
+    if let Some(val) = requestId.as_ref() {
+        query_parts.push(format!("requestId={}", val));
+    }
+
+    let url_with_query = if query_parts.is_empty() {
+        endpoint_url
+    } else {
+        format!("{}?{}", endpoint_url, query_parts.join("&"))
+    };
+
+    let builder = client
+        .delete(&url_with_query)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// DELETE v1/projects/{projectsId}/locations/{locationsId}/exadbVmClusters/{exadbVmClustersId}
+/// Deletes a single Exadb (Exascale) VM Cluster.
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `oracledatabase_projects_locations_exadb_vm_clusters_delete_execute()` or `oracledatabase_projects_locations_exadb_vm_clusters_delete`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `oracledatabase_projects_locations_exadb_vm_clusters_delete_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn oracledatabase_projects_locations_exadb_vm_clusters_delete_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<Operation>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: Operation = serde_json::from_str(&body)
+                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// DELETE v1/projects/{projectsId}/locations/{locationsId}/exadbVmClusters/{exadbVmClustersId}
+/// Deletes a single Exadb (Exascale) VM Cluster.
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `oracledatabase_projects_locations_exadb_vm_clusters_delete_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `oracledatabase_projects_locations_exadb_vm_clusters_delete_task()`.
+/// For the simplest API, use `oracledatabase_projects_locations_exadb_vm_clusters_delete()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `oracledatabase_projects_locations_exadb_vm_clusters_delete_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn oracledatabase_projects_locations_exadb_vm_clusters_delete_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<Operation>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let task = oracledatabase_projects_locations_exadb_vm_clusters_delete_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`oracledatabase_projects_locations_exadb_vm_clusters_delete`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct OracledatabaseProjectsLocationsExadbVmClustersDeleteArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Query parameter: requestId
+    pub requestId: Option<Option<String>>,
+}
+
+/// DELETE v1/projects/{projectsId}/locations/{locationsId}/exadbVmClusters/{exadbVmClustersId}
+/// Deletes a single Exadb (Exascale) VM Cluster.
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `oracledatabase_projects_locations_exadb_vm_clusters_delete_builder()` + `oracledatabase_projects_locations_exadb_vm_clusters_delete_execute()`.
+/// For task-level control, use `oracledatabase_projects_locations_exadb_vm_clusters_delete_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn oracledatabase_projects_locations_exadb_vm_clusters_delete(
+    client: &SimpleHttpClient,
+    args: &OracledatabaseProjectsLocationsExadbVmClustersDeleteArgs,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<Operation>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let builder = oracledatabase_projects_locations_exadb_vm_clusters_delete_builder(
+        client,
+        &args.name,
+        &args.requestId,
+    )?;
+    oracledatabase_projects_locations_exadb_vm_clusters_delete_execute(builder)
+}
+
+/// GET v1/projects/{projectsId}/locations/{locationsId}/exadbVmClusters/{exadbVmClustersId}
+/// Gets details of a single Exadb (Exascale) VM Cluster.
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `oracledatabase_projects_locations_exadb_vm_clusters_get_execute()` to send, or `oracledatabase_projects_locations_exadb_vm_clusters_get` for simplest API.
+
+pub fn oracledatabase_projects_locations_exadb_vm_clusters_get_builder(
+    client: &SimpleHttpClient,
+    name: &String,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!(
+        "https://oracledatabase.googleapis.com/v1/projects/{}/locations/{locationsId}/exadbVmClusters/{exadbVmClustersId}",
+        name,
+    );
+
+    // Build request
+    let builder = client
+        .get(&endpoint_url)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// GET v1/projects/{projectsId}/locations/{locationsId}/exadbVmClusters/{exadbVmClustersId}
+/// Gets details of a single Exadb (Exascale) VM Cluster.
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `oracledatabase_projects_locations_exadb_vm_clusters_get_execute()` or `oracledatabase_projects_locations_exadb_vm_clusters_get`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `oracledatabase_projects_locations_exadb_vm_clusters_get_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn oracledatabase_projects_locations_exadb_vm_clusters_get_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<ExadbVmCluster>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: ExadbVmCluster = serde_json::from_str(&body)
+                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// GET v1/projects/{projectsId}/locations/{locationsId}/exadbVmClusters/{exadbVmClustersId}
+/// Gets details of a single Exadb (Exascale) VM Cluster.
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `oracledatabase_projects_locations_exadb_vm_clusters_get_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `oracledatabase_projects_locations_exadb_vm_clusters_get_task()`.
+/// For the simplest API, use `oracledatabase_projects_locations_exadb_vm_clusters_get()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `oracledatabase_projects_locations_exadb_vm_clusters_get_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn oracledatabase_projects_locations_exadb_vm_clusters_get_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<ExadbVmCluster>, ApiError>, P = ApiPending>
+        + Send
+        + 'static,
+    ApiError,
+> {
+    let task = oracledatabase_projects_locations_exadb_vm_clusters_get_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`oracledatabase_projects_locations_exadb_vm_clusters_get`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct OracledatabaseProjectsLocationsExadbVmClustersGetArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
+/// GET v1/projects/{projectsId}/locations/{locationsId}/exadbVmClusters/{exadbVmClustersId}
+/// Gets details of a single Exadb (Exascale) VM Cluster.
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `oracledatabase_projects_locations_exadb_vm_clusters_get_builder()` + `oracledatabase_projects_locations_exadb_vm_clusters_get_execute()`.
+/// For task-level control, use `oracledatabase_projects_locations_exadb_vm_clusters_get_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn oracledatabase_projects_locations_exadb_vm_clusters_get(
+    client: &SimpleHttpClient,
+    args: &OracledatabaseProjectsLocationsExadbVmClustersGetArgs,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<ExadbVmCluster>, ApiError>, P = ApiPending>
+        + Send
+        + 'static,
+    ApiError,
+> {
+    let builder =
+        oracledatabase_projects_locations_exadb_vm_clusters_get_builder(client, &args.name)?;
+    oracledatabase_projects_locations_exadb_vm_clusters_get_execute(builder)
+}
+
+/// GET v1/projects/{projectsId}/locations/{locationsId}/exadbVmClusters
+/// Lists all the Exadb (Exascale) VM Clusters for the given project and location.
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `oracledatabase_projects_locations_exadb_vm_clusters_list_execute()` to send, or `oracledatabase_projects_locations_exadb_vm_clusters_list` for simplest API.
+
+pub fn oracledatabase_projects_locations_exadb_vm_clusters_list_builder(
+    client: &SimpleHttpClient,
+    parent: &String,
+    filter: &Option<Option<String>>,
+    orderBy: &Option<Option<String>>,
+    pageSize: &Option<Option<String>>,
+    pageToken: &Option<Option<String>>,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!(
+        "https://oracledatabase.googleapis.com/v1/projects/{}/locations/{locationsId}/exadbVmClusters",
+        parent,
+    );
+
+    // Build request
+    let mut query_parts = Vec::new();
+    if let Some(val) = filter.as_ref() {
+        query_parts.push(format!("filter={}", val));
+    }
+    if let Some(val) = orderBy.as_ref() {
+        query_parts.push(format!("orderBy={}", val));
+    }
+    if let Some(val) = pageSize.as_ref() {
+        query_parts.push(format!("pageSize={}", val));
+    }
+    if let Some(val) = pageToken.as_ref() {
+        query_parts.push(format!("pageToken={}", val));
+    }
+
+    let url_with_query = if query_parts.is_empty() {
+        endpoint_url
+    } else {
+        format!("{}?{}", endpoint_url, query_parts.join("&"))
+    };
+
+    let builder = client
+        .get(&url_with_query)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// GET v1/projects/{projectsId}/locations/{locationsId}/exadbVmClusters
+/// Lists all the Exadb (Exascale) VM Clusters for the given project and location.
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `oracledatabase_projects_locations_exadb_vm_clusters_list_execute()` or `oracledatabase_projects_locations_exadb_vm_clusters_list`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `oracledatabase_projects_locations_exadb_vm_clusters_list_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn oracledatabase_projects_locations_exadb_vm_clusters_list_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<ListExadbVmClustersResponse>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: ListExadbVmClustersResponse = serde_json::from_str(&body)
+                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// GET v1/projects/{projectsId}/locations/{locationsId}/exadbVmClusters
+/// Lists all the Exadb (Exascale) VM Clusters for the given project and location.
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `oracledatabase_projects_locations_exadb_vm_clusters_list_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `oracledatabase_projects_locations_exadb_vm_clusters_list_task()`.
+/// For the simplest API, use `oracledatabase_projects_locations_exadb_vm_clusters_list()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `oracledatabase_projects_locations_exadb_vm_clusters_list_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn oracledatabase_projects_locations_exadb_vm_clusters_list_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<
+            D = Result<ApiResponse<ListExadbVmClustersResponse>, ApiError>,
+            P = ApiPending,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    let task = oracledatabase_projects_locations_exadb_vm_clusters_list_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`oracledatabase_projects_locations_exadb_vm_clusters_list`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct OracledatabaseProjectsLocationsExadbVmClustersListArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Query parameter: filter
+    pub filter: Option<Option<String>>,
+    /// Query parameter: orderBy
+    pub orderBy: Option<Option<String>>,
+    /// Query parameter: pageSize
+    pub pageSize: Option<Option<String>>,
+    /// Query parameter: pageToken
+    pub pageToken: Option<Option<String>>,
+}
+
+/// GET v1/projects/{projectsId}/locations/{locationsId}/exadbVmClusters
+/// Lists all the Exadb (Exascale) VM Clusters for the given project and location.
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `oracledatabase_projects_locations_exadb_vm_clusters_list_builder()` + `oracledatabase_projects_locations_exadb_vm_clusters_list_execute()`.
+/// For task-level control, use `oracledatabase_projects_locations_exadb_vm_clusters_list_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn oracledatabase_projects_locations_exadb_vm_clusters_list(
+    client: &SimpleHttpClient,
+    args: &OracledatabaseProjectsLocationsExadbVmClustersListArgs,
+) -> Result<
+    impl StreamIterator<
+            D = Result<ApiResponse<ListExadbVmClustersResponse>, ApiError>,
+            P = ApiPending,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    let builder = oracledatabase_projects_locations_exadb_vm_clusters_list_builder(
+        client,
+        &args.parent,
+        &args.filter,
+        &args.orderBy,
+        &args.pageSize,
+        &args.pageToken,
+    )?;
+    oracledatabase_projects_locations_exadb_vm_clusters_list_execute(builder)
+}
+
+/// PATCH v1/projects/{projectsId}/locations/{locationsId}/exadbVmClusters/{exadbVmClustersId}
+/// Updates a single Exadb (Exascale) VM Cluster. To add virtual machines to existing exadb vm cluster, only pass the node count.
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `oracledatabase_projects_locations_exadb_vm_clusters_patch_execute()` to send, or `oracledatabase_projects_locations_exadb_vm_clusters_patch` for simplest API.
+
+pub fn oracledatabase_projects_locations_exadb_vm_clusters_patch_builder(
+    client: &SimpleHttpClient,
+    name: &String,
+    requestId: &Option<Option<String>>,
+    updateMask: &Option<Option<String>>,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!(
+        "https://oracledatabase.googleapis.com/v1/projects/{}/locations/{locationsId}/exadbVmClusters/{exadbVmClustersId}",
+        name,
+    );
+
+    // Build request
+    let mut query_parts = Vec::new();
+    if let Some(val) = requestId.as_ref() {
+        query_parts.push(format!("requestId={}", val));
+    }
+    if let Some(val) = updateMask.as_ref() {
+        query_parts.push(format!("updateMask={}", val));
+    }
+
+    let url_with_query = if query_parts.is_empty() {
+        endpoint_url
+    } else {
+        format!("{}?{}", endpoint_url, query_parts.join("&"))
+    };
+
+    let builder = client
+        .patch(&url_with_query)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// PATCH v1/projects/{projectsId}/locations/{locationsId}/exadbVmClusters/{exadbVmClustersId}
+/// Updates a single Exadb (Exascale) VM Cluster. To add virtual machines to existing exadb vm cluster, only pass the node count.
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `oracledatabase_projects_locations_exadb_vm_clusters_patch_execute()` or `oracledatabase_projects_locations_exadb_vm_clusters_patch`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `oracledatabase_projects_locations_exadb_vm_clusters_patch_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn oracledatabase_projects_locations_exadb_vm_clusters_patch_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<Operation>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: Operation = serde_json::from_str(&body)
+                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// PATCH v1/projects/{projectsId}/locations/{locationsId}/exadbVmClusters/{exadbVmClustersId}
+/// Updates a single Exadb (Exascale) VM Cluster. To add virtual machines to existing exadb vm cluster, only pass the node count.
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `oracledatabase_projects_locations_exadb_vm_clusters_patch_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `oracledatabase_projects_locations_exadb_vm_clusters_patch_task()`.
+/// For the simplest API, use `oracledatabase_projects_locations_exadb_vm_clusters_patch()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `oracledatabase_projects_locations_exadb_vm_clusters_patch_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn oracledatabase_projects_locations_exadb_vm_clusters_patch_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<Operation>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let task = oracledatabase_projects_locations_exadb_vm_clusters_patch_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`oracledatabase_projects_locations_exadb_vm_clusters_patch`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct OracledatabaseProjectsLocationsExadbVmClustersPatchArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Query parameter: requestId
+    pub requestId: Option<Option<String>>,
+    /// Query parameter: updateMask
+    pub updateMask: Option<Option<String>>,
+}
+
+/// PATCH v1/projects/{projectsId}/locations/{locationsId}/exadbVmClusters/{exadbVmClustersId}
+/// Updates a single Exadb (Exascale) VM Cluster. To add virtual machines to existing exadb vm cluster, only pass the node count.
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `oracledatabase_projects_locations_exadb_vm_clusters_patch_builder()` + `oracledatabase_projects_locations_exadb_vm_clusters_patch_execute()`.
+/// For task-level control, use `oracledatabase_projects_locations_exadb_vm_clusters_patch_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn oracledatabase_projects_locations_exadb_vm_clusters_patch(
+    client: &SimpleHttpClient,
+    args: &OracledatabaseProjectsLocationsExadbVmClustersPatchArgs,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<Operation>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let builder = oracledatabase_projects_locations_exadb_vm_clusters_patch_builder(
+        client,
+        &args.name,
+        &args.requestId,
+        &args.updateMask,
+    )?;
+    oracledatabase_projects_locations_exadb_vm_clusters_patch_execute(builder)
+}
+
+/// POST v1/projects/{projectsId}/locations/{locationsId}/exadbVmClusters/{exadbVmClustersId}:removeVirtualMachine
+/// Removes virtual machines from an existing exadb vm cluster.
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `oracledatabase_projects_locations_exadb_vm_clusters_remove_virtual_machine_execute()` to send, or `oracledatabase_projects_locations_exadb_vm_clusters_remove_virtual_machine` for simplest API.
+
+pub fn oracledatabase_projects_locations_exadb_vm_clusters_remove_virtual_machine_builder(
+    client: &SimpleHttpClient,
+    name: &String,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!(
+        "https://oracledatabase.googleapis.com/v1/projects/{}/locations/{locationsId}/exadbVmClusters/{exadbVmClustersId}:removeVirtualMachine",
+        name,
+    );
+
+    // Build request
+    let builder = client
+        .post(&endpoint_url)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// POST v1/projects/{projectsId}/locations/{locationsId}/exadbVmClusters/{exadbVmClustersId}:removeVirtualMachine
+/// Removes virtual machines from an existing exadb vm cluster.
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `oracledatabase_projects_locations_exadb_vm_clusters_remove_virtual_machine_execute()` or `oracledatabase_projects_locations_exadb_vm_clusters_remove_virtual_machine`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `oracledatabase_projects_locations_exadb_vm_clusters_remove_virtual_machine_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn oracledatabase_projects_locations_exadb_vm_clusters_remove_virtual_machine_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<Operation>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: Operation = serde_json::from_str(&body)
+                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// POST v1/projects/{projectsId}/locations/{locationsId}/exadbVmClusters/{exadbVmClustersId}:removeVirtualMachine
+/// Removes virtual machines from an existing exadb vm cluster.
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `oracledatabase_projects_locations_exadb_vm_clusters_remove_virtual_machine_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `oracledatabase_projects_locations_exadb_vm_clusters_remove_virtual_machine_task()`.
+/// For the simplest API, use `oracledatabase_projects_locations_exadb_vm_clusters_remove_virtual_machine()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `oracledatabase_projects_locations_exadb_vm_clusters_remove_virtual_machine_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn oracledatabase_projects_locations_exadb_vm_clusters_remove_virtual_machine_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<Operation>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let task =
+        oracledatabase_projects_locations_exadb_vm_clusters_remove_virtual_machine_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`oracledatabase_projects_locations_exadb_vm_clusters_remove_virtual_machine`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct OracledatabaseProjectsLocationsExadbVmClustersRemoveVirtualMachineArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
+/// POST v1/projects/{projectsId}/locations/{locationsId}/exadbVmClusters/{exadbVmClustersId}:removeVirtualMachine
+/// Removes virtual machines from an existing exadb vm cluster.
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `oracledatabase_projects_locations_exadb_vm_clusters_remove_virtual_machine_builder()` + `oracledatabase_projects_locations_exadb_vm_clusters_remove_virtual_machine_execute()`.
+/// For task-level control, use `oracledatabase_projects_locations_exadb_vm_clusters_remove_virtual_machine_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn oracledatabase_projects_locations_exadb_vm_clusters_remove_virtual_machine(
+    client: &SimpleHttpClient,
+    args: &OracledatabaseProjectsLocationsExadbVmClustersRemoveVirtualMachineArgs,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<Operation>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let builder =
+        oracledatabase_projects_locations_exadb_vm_clusters_remove_virtual_machine_builder(
+            client, &args.name,
+        )?;
+    oracledatabase_projects_locations_exadb_vm_clusters_remove_virtual_machine_execute(builder)
+}
+
+/// GET v1/projects/{projectsId}/locations/{locationsId}/exadbVmClusters/{exadbVmClustersId}/dbNodes
+/// Lists the database nodes of a VM Cluster.
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `oracledatabase_projects_locations_exadb_vm_clusters_db_nodes_list_execute()` to send, or `oracledatabase_projects_locations_exadb_vm_clusters_db_nodes_list` for simplest API.
+
+pub fn oracledatabase_projects_locations_exadb_vm_clusters_db_nodes_list_builder(
+    client: &SimpleHttpClient,
+    parent: &String,
+    pageSize: &Option<Option<String>>,
+    pageToken: &Option<Option<String>>,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!(
+        "https://oracledatabase.googleapis.com/v1/projects/{}/locations/{locationsId}/exadbVmClusters/{exadbVmClustersId}/dbNodes",
+        parent,
+    );
+
+    // Build request
+    let mut query_parts = Vec::new();
+    if let Some(val) = pageSize.as_ref() {
+        query_parts.push(format!("pageSize={}", val));
+    }
+    if let Some(val) = pageToken.as_ref() {
+        query_parts.push(format!("pageToken={}", val));
+    }
+
+    let url_with_query = if query_parts.is_empty() {
+        endpoint_url
+    } else {
+        format!("{}?{}", endpoint_url, query_parts.join("&"))
+    };
+
+    let builder = client
+        .get(&url_with_query)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// GET v1/projects/{projectsId}/locations/{locationsId}/exadbVmClusters/{exadbVmClustersId}/dbNodes
+/// Lists the database nodes of a VM Cluster.
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `oracledatabase_projects_locations_exadb_vm_clusters_db_nodes_list_execute()` or `oracledatabase_projects_locations_exadb_vm_clusters_db_nodes_list`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `oracledatabase_projects_locations_exadb_vm_clusters_db_nodes_list_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn oracledatabase_projects_locations_exadb_vm_clusters_db_nodes_list_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<ListDbNodesResponse>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: ListDbNodesResponse = serde_json::from_str(&body)
+                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// GET v1/projects/{projectsId}/locations/{locationsId}/exadbVmClusters/{exadbVmClustersId}/dbNodes
+/// Lists the database nodes of a VM Cluster.
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `oracledatabase_projects_locations_exadb_vm_clusters_db_nodes_list_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `oracledatabase_projects_locations_exadb_vm_clusters_db_nodes_list_task()`.
+/// For the simplest API, use `oracledatabase_projects_locations_exadb_vm_clusters_db_nodes_list()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `oracledatabase_projects_locations_exadb_vm_clusters_db_nodes_list_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn oracledatabase_projects_locations_exadb_vm_clusters_db_nodes_list_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<ListDbNodesResponse>, ApiError>, P = ApiPending>
+        + Send
+        + 'static,
+    ApiError,
+> {
+    let task = oracledatabase_projects_locations_exadb_vm_clusters_db_nodes_list_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`oracledatabase_projects_locations_exadb_vm_clusters_db_nodes_list`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct OracledatabaseProjectsLocationsExadbVmClustersDbNodesListArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Query parameter: pageSize
+    pub pageSize: Option<Option<String>>,
+    /// Query parameter: pageToken
+    pub pageToken: Option<Option<String>>,
+}
+
+/// GET v1/projects/{projectsId}/locations/{locationsId}/exadbVmClusters/{exadbVmClustersId}/dbNodes
+/// Lists the database nodes of a VM Cluster.
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `oracledatabase_projects_locations_exadb_vm_clusters_db_nodes_list_builder()` + `oracledatabase_projects_locations_exadb_vm_clusters_db_nodes_list_execute()`.
+/// For task-level control, use `oracledatabase_projects_locations_exadb_vm_clusters_db_nodes_list_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn oracledatabase_projects_locations_exadb_vm_clusters_db_nodes_list(
+    client: &SimpleHttpClient,
+    args: &OracledatabaseProjectsLocationsExadbVmClustersDbNodesListArgs,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<ListDbNodesResponse>, ApiError>, P = ApiPending>
+        + Send
+        + 'static,
+    ApiError,
+> {
+    let builder = oracledatabase_projects_locations_exadb_vm_clusters_db_nodes_list_builder(
+        client,
+        &args.parent,
+        &args.pageSize,
+        &args.pageToken,
+    )?;
+    oracledatabase_projects_locations_exadb_vm_clusters_db_nodes_list_execute(builder)
+}
+
+/// POST v1/projects/{projectsId}/locations/{locationsId}/exascaleDbStorageVaults
+/// Creates a new ExascaleDB Storage Vault resource.
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `oracledatabase_projects_locations_exascale_db_storage_vaults_create_execute()` to send, or `oracledatabase_projects_locations_exascale_db_storage_vaults_create` for simplest API.
+
+pub fn oracledatabase_projects_locations_exascale_db_storage_vaults_create_builder(
+    client: &SimpleHttpClient,
+    parent: &String,
+    exascaleDbStorageVaultId: &Option<Option<String>>,
+    requestId: &Option<Option<String>>,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!(
+        "https://oracledatabase.googleapis.com/v1/projects/{}/locations/{locationsId}/exascaleDbStorageVaults",
+        parent,
+    );
+
+    // Build request
+    let mut query_parts = Vec::new();
+    if let Some(val) = exascaleDbStorageVaultId.as_ref() {
+        query_parts.push(format!("exascaleDbStorageVaultId={}", val));
+    }
+    if let Some(val) = requestId.as_ref() {
+        query_parts.push(format!("requestId={}", val));
+    }
+
+    let url_with_query = if query_parts.is_empty() {
+        endpoint_url
+    } else {
+        format!("{}?{}", endpoint_url, query_parts.join("&"))
+    };
+
+    let builder = client
+        .post(&url_with_query)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// POST v1/projects/{projectsId}/locations/{locationsId}/exascaleDbStorageVaults
+/// Creates a new ExascaleDB Storage Vault resource.
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `oracledatabase_projects_locations_exascale_db_storage_vaults_create_execute()` or `oracledatabase_projects_locations_exascale_db_storage_vaults_create`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `oracledatabase_projects_locations_exascale_db_storage_vaults_create_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn oracledatabase_projects_locations_exascale_db_storage_vaults_create_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<Operation>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: Operation = serde_json::from_str(&body)
+                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// POST v1/projects/{projectsId}/locations/{locationsId}/exascaleDbStorageVaults
+/// Creates a new ExascaleDB Storage Vault resource.
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `oracledatabase_projects_locations_exascale_db_storage_vaults_create_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `oracledatabase_projects_locations_exascale_db_storage_vaults_create_task()`.
+/// For the simplest API, use `oracledatabase_projects_locations_exascale_db_storage_vaults_create()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `oracledatabase_projects_locations_exascale_db_storage_vaults_create_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn oracledatabase_projects_locations_exascale_db_storage_vaults_create_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<Operation>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let task = oracledatabase_projects_locations_exascale_db_storage_vaults_create_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`oracledatabase_projects_locations_exascale_db_storage_vaults_create`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct OracledatabaseProjectsLocationsExascaleDbStorageVaultsCreateArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Query parameter: exascaleDbStorageVaultId
+    pub exascaleDbStorageVaultId: Option<Option<String>>,
+    /// Query parameter: requestId
+    pub requestId: Option<Option<String>>,
+}
+
+/// POST v1/projects/{projectsId}/locations/{locationsId}/exascaleDbStorageVaults
+/// Creates a new ExascaleDB Storage Vault resource.
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `oracledatabase_projects_locations_exascale_db_storage_vaults_create_builder()` + `oracledatabase_projects_locations_exascale_db_storage_vaults_create_execute()`.
+/// For task-level control, use `oracledatabase_projects_locations_exascale_db_storage_vaults_create_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn oracledatabase_projects_locations_exascale_db_storage_vaults_create(
+    client: &SimpleHttpClient,
+    args: &OracledatabaseProjectsLocationsExascaleDbStorageVaultsCreateArgs,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<Operation>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let builder = oracledatabase_projects_locations_exascale_db_storage_vaults_create_builder(
+        client,
+        &args.parent,
+        &args.exascaleDbStorageVaultId,
+        &args.requestId,
+    )?;
+    oracledatabase_projects_locations_exascale_db_storage_vaults_create_execute(builder)
+}
+
+/// DELETE v1/projects/{projectsId}/locations/{locationsId}/exascaleDbStorageVaults/{exascaleDbStorageVaultsId}
+/// Deletes a single ExascaleDB Storage Vault.
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `oracledatabase_projects_locations_exascale_db_storage_vaults_delete_execute()` to send, or `oracledatabase_projects_locations_exascale_db_storage_vaults_delete` for simplest API.
+
+pub fn oracledatabase_projects_locations_exascale_db_storage_vaults_delete_builder(
+    client: &SimpleHttpClient,
+    name: &String,
+    requestId: &Option<Option<String>>,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!(
+        "https://oracledatabase.googleapis.com/v1/projects/{}/locations/{locationsId}/exascaleDbStorageVaults/{exascaleDbStorageVaultsId}",
+        name,
+    );
+
+    // Build request
+    let mut query_parts = Vec::new();
+    if let Some(val) = requestId.as_ref() {
+        query_parts.push(format!("requestId={}", val));
+    }
+
+    let url_with_query = if query_parts.is_empty() {
+        endpoint_url
+    } else {
+        format!("{}?{}", endpoint_url, query_parts.join("&"))
+    };
+
+    let builder = client
+        .delete(&url_with_query)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// DELETE v1/projects/{projectsId}/locations/{locationsId}/exascaleDbStorageVaults/{exascaleDbStorageVaultsId}
+/// Deletes a single ExascaleDB Storage Vault.
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `oracledatabase_projects_locations_exascale_db_storage_vaults_delete_execute()` or `oracledatabase_projects_locations_exascale_db_storage_vaults_delete`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `oracledatabase_projects_locations_exascale_db_storage_vaults_delete_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn oracledatabase_projects_locations_exascale_db_storage_vaults_delete_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<Operation>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: Operation = serde_json::from_str(&body)
+                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// DELETE v1/projects/{projectsId}/locations/{locationsId}/exascaleDbStorageVaults/{exascaleDbStorageVaultsId}
+/// Deletes a single ExascaleDB Storage Vault.
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `oracledatabase_projects_locations_exascale_db_storage_vaults_delete_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `oracledatabase_projects_locations_exascale_db_storage_vaults_delete_task()`.
+/// For the simplest API, use `oracledatabase_projects_locations_exascale_db_storage_vaults_delete()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `oracledatabase_projects_locations_exascale_db_storage_vaults_delete_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn oracledatabase_projects_locations_exascale_db_storage_vaults_delete_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<Operation>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let task = oracledatabase_projects_locations_exascale_db_storage_vaults_delete_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`oracledatabase_projects_locations_exascale_db_storage_vaults_delete`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct OracledatabaseProjectsLocationsExascaleDbStorageVaultsDeleteArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Query parameter: requestId
+    pub requestId: Option<Option<String>>,
+}
+
+/// DELETE v1/projects/{projectsId}/locations/{locationsId}/exascaleDbStorageVaults/{exascaleDbStorageVaultsId}
+/// Deletes a single ExascaleDB Storage Vault.
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `oracledatabase_projects_locations_exascale_db_storage_vaults_delete_builder()` + `oracledatabase_projects_locations_exascale_db_storage_vaults_delete_execute()`.
+/// For task-level control, use `oracledatabase_projects_locations_exascale_db_storage_vaults_delete_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn oracledatabase_projects_locations_exascale_db_storage_vaults_delete(
+    client: &SimpleHttpClient,
+    args: &OracledatabaseProjectsLocationsExascaleDbStorageVaultsDeleteArgs,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<Operation>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let builder = oracledatabase_projects_locations_exascale_db_storage_vaults_delete_builder(
+        client,
+        &args.name,
+        &args.requestId,
+    )?;
+    oracledatabase_projects_locations_exascale_db_storage_vaults_delete_execute(builder)
+}
+
+/// GET v1/projects/{projectsId}/locations/{locationsId}/exascaleDbStorageVaults/{exascaleDbStorageVaultsId}
+/// Gets details of a single ExascaleDB Storage Vault.
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `oracledatabase_projects_locations_exascale_db_storage_vaults_get_execute()` to send, or `oracledatabase_projects_locations_exascale_db_storage_vaults_get` for simplest API.
+
+pub fn oracledatabase_projects_locations_exascale_db_storage_vaults_get_builder(
+    client: &SimpleHttpClient,
+    name: &String,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!(
+        "https://oracledatabase.googleapis.com/v1/projects/{}/locations/{locationsId}/exascaleDbStorageVaults/{exascaleDbStorageVaultsId}",
+        name,
+    );
+
+    // Build request
+    let builder = client
+        .get(&endpoint_url)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// GET v1/projects/{projectsId}/locations/{locationsId}/exascaleDbStorageVaults/{exascaleDbStorageVaultsId}
+/// Gets details of a single ExascaleDB Storage Vault.
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `oracledatabase_projects_locations_exascale_db_storage_vaults_get_execute()` or `oracledatabase_projects_locations_exascale_db_storage_vaults_get`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `oracledatabase_projects_locations_exascale_db_storage_vaults_get_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn oracledatabase_projects_locations_exascale_db_storage_vaults_get_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<ExascaleDbStorageVault>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: ExascaleDbStorageVault = serde_json::from_str(&body)
+                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// GET v1/projects/{projectsId}/locations/{locationsId}/exascaleDbStorageVaults/{exascaleDbStorageVaultsId}
+/// Gets details of a single ExascaleDB Storage Vault.
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `oracledatabase_projects_locations_exascale_db_storage_vaults_get_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `oracledatabase_projects_locations_exascale_db_storage_vaults_get_task()`.
+/// For the simplest API, use `oracledatabase_projects_locations_exascale_db_storage_vaults_get()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `oracledatabase_projects_locations_exascale_db_storage_vaults_get_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn oracledatabase_projects_locations_exascale_db_storage_vaults_get_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<ExascaleDbStorageVault>, ApiError>, P = ApiPending>
+        + Send
+        + 'static,
+    ApiError,
+> {
+    let task = oracledatabase_projects_locations_exascale_db_storage_vaults_get_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`oracledatabase_projects_locations_exascale_db_storage_vaults_get`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct OracledatabaseProjectsLocationsExascaleDbStorageVaultsGetArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
+/// GET v1/projects/{projectsId}/locations/{locationsId}/exascaleDbStorageVaults/{exascaleDbStorageVaultsId}
+/// Gets details of a single ExascaleDB Storage Vault.
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `oracledatabase_projects_locations_exascale_db_storage_vaults_get_builder()` + `oracledatabase_projects_locations_exascale_db_storage_vaults_get_execute()`.
+/// For task-level control, use `oracledatabase_projects_locations_exascale_db_storage_vaults_get_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn oracledatabase_projects_locations_exascale_db_storage_vaults_get(
+    client: &SimpleHttpClient,
+    args: &OracledatabaseProjectsLocationsExascaleDbStorageVaultsGetArgs,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<ExascaleDbStorageVault>, ApiError>, P = ApiPending>
+        + Send
+        + 'static,
+    ApiError,
+> {
+    let builder = oracledatabase_projects_locations_exascale_db_storage_vaults_get_builder(
+        client, &args.name,
+    )?;
+    oracledatabase_projects_locations_exascale_db_storage_vaults_get_execute(builder)
+}
+
+/// GET v1/projects/{projectsId}/locations/{locationsId}/exascaleDbStorageVaults
+/// Lists all the ExascaleDB Storage Vaults for the given project and location.
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `oracledatabase_projects_locations_exascale_db_storage_vaults_list_execute()` to send, or `oracledatabase_projects_locations_exascale_db_storage_vaults_list` for simplest API.
+
+pub fn oracledatabase_projects_locations_exascale_db_storage_vaults_list_builder(
+    client: &SimpleHttpClient,
+    parent: &String,
+    filter: &Option<Option<String>>,
+    orderBy: &Option<Option<String>>,
+    pageSize: &Option<Option<String>>,
+    pageToken: &Option<Option<String>>,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!(
+        "https://oracledatabase.googleapis.com/v1/projects/{}/locations/{locationsId}/exascaleDbStorageVaults",
+        parent,
+    );
+
+    // Build request
+    let mut query_parts = Vec::new();
+    if let Some(val) = filter.as_ref() {
+        query_parts.push(format!("filter={}", val));
+    }
+    if let Some(val) = orderBy.as_ref() {
+        query_parts.push(format!("orderBy={}", val));
+    }
+    if let Some(val) = pageSize.as_ref() {
+        query_parts.push(format!("pageSize={}", val));
+    }
+    if let Some(val) = pageToken.as_ref() {
+        query_parts.push(format!("pageToken={}", val));
+    }
+
+    let url_with_query = if query_parts.is_empty() {
+        endpoint_url
+    } else {
+        format!("{}?{}", endpoint_url, query_parts.join("&"))
+    };
+
+    let builder = client
+        .get(&url_with_query)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// GET v1/projects/{projectsId}/locations/{locationsId}/exascaleDbStorageVaults
+/// Lists all the ExascaleDB Storage Vaults for the given project and location.
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `oracledatabase_projects_locations_exascale_db_storage_vaults_list_execute()` or `oracledatabase_projects_locations_exascale_db_storage_vaults_list`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `oracledatabase_projects_locations_exascale_db_storage_vaults_list_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn oracledatabase_projects_locations_exascale_db_storage_vaults_list_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<ListExascaleDbStorageVaultsResponse>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: ListExascaleDbStorageVaultsResponse = serde_json::from_str(&body)
+                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// GET v1/projects/{projectsId}/locations/{locationsId}/exascaleDbStorageVaults
+/// Lists all the ExascaleDB Storage Vaults for the given project and location.
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `oracledatabase_projects_locations_exascale_db_storage_vaults_list_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `oracledatabase_projects_locations_exascale_db_storage_vaults_list_task()`.
+/// For the simplest API, use `oracledatabase_projects_locations_exascale_db_storage_vaults_list()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `oracledatabase_projects_locations_exascale_db_storage_vaults_list_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn oracledatabase_projects_locations_exascale_db_storage_vaults_list_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<
+            D = Result<ApiResponse<ListExascaleDbStorageVaultsResponse>, ApiError>,
+            P = ApiPending,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    let task = oracledatabase_projects_locations_exascale_db_storage_vaults_list_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`oracledatabase_projects_locations_exascale_db_storage_vaults_list`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct OracledatabaseProjectsLocationsExascaleDbStorageVaultsListArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Query parameter: filter
+    pub filter: Option<Option<String>>,
+    /// Query parameter: orderBy
+    pub orderBy: Option<Option<String>>,
+    /// Query parameter: pageSize
+    pub pageSize: Option<Option<String>>,
+    /// Query parameter: pageToken
+    pub pageToken: Option<Option<String>>,
+}
+
+/// GET v1/projects/{projectsId}/locations/{locationsId}/exascaleDbStorageVaults
+/// Lists all the ExascaleDB Storage Vaults for the given project and location.
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `oracledatabase_projects_locations_exascale_db_storage_vaults_list_builder()` + `oracledatabase_projects_locations_exascale_db_storage_vaults_list_execute()`.
+/// For task-level control, use `oracledatabase_projects_locations_exascale_db_storage_vaults_list_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn oracledatabase_projects_locations_exascale_db_storage_vaults_list(
+    client: &SimpleHttpClient,
+    args: &OracledatabaseProjectsLocationsExascaleDbStorageVaultsListArgs,
+) -> Result<
+    impl StreamIterator<
+            D = Result<ApiResponse<ListExascaleDbStorageVaultsResponse>, ApiError>,
+            P = ApiPending,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    let builder = oracledatabase_projects_locations_exascale_db_storage_vaults_list_builder(
+        client,
+        &args.parent,
+        &args.filter,
+        &args.orderBy,
+        &args.pageSize,
+        &args.pageToken,
+    )?;
+    oracledatabase_projects_locations_exascale_db_storage_vaults_list_execute(builder)
+}
+
+/// GET v1/projects/{projectsId}/locations/{locationsId}/giVersions
+/// Lists all the valid Oracle Grid Infrastructure (GI) versions for the given project and location.
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `oracledatabase_projects_locations_gi_versions_list_execute()` to send, or `oracledatabase_projects_locations_gi_versions_list` for simplest API.
+
+pub fn oracledatabase_projects_locations_gi_versions_list_builder(
+    client: &SimpleHttpClient,
+    parent: &String,
+    filter: &Option<Option<String>>,
+    pageSize: &Option<Option<String>>,
+    pageToken: &Option<Option<String>>,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!(
+        "https://oracledatabase.googleapis.com/v1/projects/{}/locations/{locationsId}/giVersions",
+        parent,
+    );
+
+    // Build request
+    let mut query_parts = Vec::new();
+    if let Some(val) = filter.as_ref() {
+        query_parts.push(format!("filter={}", val));
+    }
+    if let Some(val) = pageSize.as_ref() {
+        query_parts.push(format!("pageSize={}", val));
+    }
+    if let Some(val) = pageToken.as_ref() {
+        query_parts.push(format!("pageToken={}", val));
+    }
+
+    let url_with_query = if query_parts.is_empty() {
+        endpoint_url
+    } else {
+        format!("{}?{}", endpoint_url, query_parts.join("&"))
+    };
+
+    let builder = client
+        .get(&url_with_query)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// GET v1/projects/{projectsId}/locations/{locationsId}/giVersions
+/// Lists all the valid Oracle Grid Infrastructure (GI) versions for the given project and location.
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `oracledatabase_projects_locations_gi_versions_list_execute()` or `oracledatabase_projects_locations_gi_versions_list`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `oracledatabase_projects_locations_gi_versions_list_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn oracledatabase_projects_locations_gi_versions_list_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<ListGiVersionsResponse>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: ListGiVersionsResponse = serde_json::from_str(&body)
+                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// GET v1/projects/{projectsId}/locations/{locationsId}/giVersions
+/// Lists all the valid Oracle Grid Infrastructure (GI) versions for the given project and location.
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `oracledatabase_projects_locations_gi_versions_list_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `oracledatabase_projects_locations_gi_versions_list_task()`.
+/// For the simplest API, use `oracledatabase_projects_locations_gi_versions_list()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `oracledatabase_projects_locations_gi_versions_list_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn oracledatabase_projects_locations_gi_versions_list_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<ListGiVersionsResponse>, ApiError>, P = ApiPending>
+        + Send
+        + 'static,
+    ApiError,
+> {
+    let task = oracledatabase_projects_locations_gi_versions_list_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`oracledatabase_projects_locations_gi_versions_list`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct OracledatabaseProjectsLocationsGiVersionsListArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Query parameter: filter
+    pub filter: Option<Option<String>>,
+    /// Query parameter: pageSize
+    pub pageSize: Option<Option<String>>,
+    /// Query parameter: pageToken
+    pub pageToken: Option<Option<String>>,
+}
+
+/// GET v1/projects/{projectsId}/locations/{locationsId}/giVersions
+/// Lists all the valid Oracle Grid Infrastructure (GI) versions for the given project and location.
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `oracledatabase_projects_locations_gi_versions_list_builder()` + `oracledatabase_projects_locations_gi_versions_list_execute()`.
+/// For task-level control, use `oracledatabase_projects_locations_gi_versions_list_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn oracledatabase_projects_locations_gi_versions_list(
+    client: &SimpleHttpClient,
+    args: &OracledatabaseProjectsLocationsGiVersionsListArgs,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<ListGiVersionsResponse>, ApiError>, P = ApiPending>
+        + Send
+        + 'static,
+    ApiError,
+> {
+    let builder = oracledatabase_projects_locations_gi_versions_list_builder(
+        client,
+        &args.parent,
+        &args.filter,
+        &args.pageSize,
+        &args.pageToken,
+    )?;
+    oracledatabase_projects_locations_gi_versions_list_execute(builder)
+}
+
+/// GET v1/projects/{projectsId}/locations/{locationsId}/giVersions/{giVersionsId}/minorVersions
+/// Lists all the valid minor versions for the given project, location, gi version and shape family.
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `oracledatabase_projects_locations_gi_versions_minor_versions_list_execute()` to send, or `oracledatabase_projects_locations_gi_versions_minor_versions_list` for simplest API.
+
+pub fn oracledatabase_projects_locations_gi_versions_minor_versions_list_builder(
+    client: &SimpleHttpClient,
+    parent: &String,
+    filter: &Option<Option<String>>,
+    pageSize: &Option<Option<String>>,
+    pageToken: &Option<Option<String>>,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!(
+        "https://oracledatabase.googleapis.com/v1/projects/{}/locations/{locationsId}/giVersions/{giVersionsId}/minorVersions",
+        parent,
+    );
+
+    // Build request
+    let mut query_parts = Vec::new();
+    if let Some(val) = filter.as_ref() {
+        query_parts.push(format!("filter={}", val));
+    }
+    if let Some(val) = pageSize.as_ref() {
+        query_parts.push(format!("pageSize={}", val));
+    }
+    if let Some(val) = pageToken.as_ref() {
+        query_parts.push(format!("pageToken={}", val));
+    }
+
+    let url_with_query = if query_parts.is_empty() {
+        endpoint_url
+    } else {
+        format!("{}?{}", endpoint_url, query_parts.join("&"))
+    };
+
+    let builder = client
+        .get(&url_with_query)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// GET v1/projects/{projectsId}/locations/{locationsId}/giVersions/{giVersionsId}/minorVersions
+/// Lists all the valid minor versions for the given project, location, gi version and shape family.
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `oracledatabase_projects_locations_gi_versions_minor_versions_list_execute()` or `oracledatabase_projects_locations_gi_versions_minor_versions_list`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `oracledatabase_projects_locations_gi_versions_minor_versions_list_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn oracledatabase_projects_locations_gi_versions_minor_versions_list_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<ListMinorVersionsResponse>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: ListMinorVersionsResponse = serde_json::from_str(&body)
+                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// GET v1/projects/{projectsId}/locations/{locationsId}/giVersions/{giVersionsId}/minorVersions
+/// Lists all the valid minor versions for the given project, location, gi version and shape family.
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `oracledatabase_projects_locations_gi_versions_minor_versions_list_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `oracledatabase_projects_locations_gi_versions_minor_versions_list_task()`.
+/// For the simplest API, use `oracledatabase_projects_locations_gi_versions_minor_versions_list()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `oracledatabase_projects_locations_gi_versions_minor_versions_list_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn oracledatabase_projects_locations_gi_versions_minor_versions_list_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<ListMinorVersionsResponse>, ApiError>, P = ApiPending>
+        + Send
+        + 'static,
+    ApiError,
+> {
+    let task = oracledatabase_projects_locations_gi_versions_minor_versions_list_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`oracledatabase_projects_locations_gi_versions_minor_versions_list`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct OracledatabaseProjectsLocationsGiVersionsMinorVersionsListArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Query parameter: filter
+    pub filter: Option<Option<String>>,
+    /// Query parameter: pageSize
+    pub pageSize: Option<Option<String>>,
+    /// Query parameter: pageToken
+    pub pageToken: Option<Option<String>>,
+}
+
+/// GET v1/projects/{projectsId}/locations/{locationsId}/giVersions/{giVersionsId}/minorVersions
+/// Lists all the valid minor versions for the given project, location, gi version and shape family.
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `oracledatabase_projects_locations_gi_versions_minor_versions_list_builder()` + `oracledatabase_projects_locations_gi_versions_minor_versions_list_execute()`.
+/// For task-level control, use `oracledatabase_projects_locations_gi_versions_minor_versions_list_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn oracledatabase_projects_locations_gi_versions_minor_versions_list(
+    client: &SimpleHttpClient,
+    args: &OracledatabaseProjectsLocationsGiVersionsMinorVersionsListArgs,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<ListMinorVersionsResponse>, ApiError>, P = ApiPending>
+        + Send
+        + 'static,
+    ApiError,
+> {
+    let builder = oracledatabase_projects_locations_gi_versions_minor_versions_list_builder(
+        client,
+        &args.parent,
+        &args.filter,
+        &args.pageSize,
+        &args.pageToken,
+    )?;
+    oracledatabase_projects_locations_gi_versions_minor_versions_list_execute(builder)
+}
+
+/// POST v1/projects/{projectsId}/locations/{locationsId}/odbNetworks
+/// Creates a new ODB Network in a given project and location.
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `oracledatabase_projects_locations_odb_networks_create_execute()` to send, or `oracledatabase_projects_locations_odb_networks_create` for simplest API.
+
+pub fn oracledatabase_projects_locations_odb_networks_create_builder(
+    client: &SimpleHttpClient,
+    parent: &String,
+    odbNetworkId: &Option<Option<String>>,
+    requestId: &Option<Option<String>>,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!(
+        "https://oracledatabase.googleapis.com/v1/projects/{}/locations/{locationsId}/odbNetworks",
+        parent,
+    );
+
+    // Build request
+    let mut query_parts = Vec::new();
+    if let Some(val) = odbNetworkId.as_ref() {
+        query_parts.push(format!("odbNetworkId={}", val));
+    }
+    if let Some(val) = requestId.as_ref() {
+        query_parts.push(format!("requestId={}", val));
+    }
+
+    let url_with_query = if query_parts.is_empty() {
+        endpoint_url
+    } else {
+        format!("{}?{}", endpoint_url, query_parts.join("&"))
+    };
+
+    let builder = client
+        .post(&url_with_query)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// POST v1/projects/{projectsId}/locations/{locationsId}/odbNetworks
+/// Creates a new ODB Network in a given project and location.
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `oracledatabase_projects_locations_odb_networks_create_execute()` or `oracledatabase_projects_locations_odb_networks_create`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `oracledatabase_projects_locations_odb_networks_create_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn oracledatabase_projects_locations_odb_networks_create_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<Operation>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: Operation = serde_json::from_str(&body)
+                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// POST v1/projects/{projectsId}/locations/{locationsId}/odbNetworks
+/// Creates a new ODB Network in a given project and location.
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `oracledatabase_projects_locations_odb_networks_create_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `oracledatabase_projects_locations_odb_networks_create_task()`.
+/// For the simplest API, use `oracledatabase_projects_locations_odb_networks_create()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `oracledatabase_projects_locations_odb_networks_create_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn oracledatabase_projects_locations_odb_networks_create_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<Operation>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let task = oracledatabase_projects_locations_odb_networks_create_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`oracledatabase_projects_locations_odb_networks_create`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct OracledatabaseProjectsLocationsOdbNetworksCreateArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Query parameter: odbNetworkId
+    pub odbNetworkId: Option<Option<String>>,
+    /// Query parameter: requestId
+    pub requestId: Option<Option<String>>,
+}
+
+/// POST v1/projects/{projectsId}/locations/{locationsId}/odbNetworks
+/// Creates a new ODB Network in a given project and location.
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `oracledatabase_projects_locations_odb_networks_create_builder()` + `oracledatabase_projects_locations_odb_networks_create_execute()`.
+/// For task-level control, use `oracledatabase_projects_locations_odb_networks_create_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn oracledatabase_projects_locations_odb_networks_create(
+    client: &SimpleHttpClient,
+    args: &OracledatabaseProjectsLocationsOdbNetworksCreateArgs,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<Operation>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let builder = oracledatabase_projects_locations_odb_networks_create_builder(
+        client,
+        &args.parent,
+        &args.odbNetworkId,
+        &args.requestId,
+    )?;
+    oracledatabase_projects_locations_odb_networks_create_execute(builder)
+}
+
+/// DELETE v1/projects/{projectsId}/locations/{locationsId}/odbNetworks/{odbNetworksId}
+/// Deletes a single ODB Network.
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `oracledatabase_projects_locations_odb_networks_delete_execute()` to send, or `oracledatabase_projects_locations_odb_networks_delete` for simplest API.
+
+pub fn oracledatabase_projects_locations_odb_networks_delete_builder(
+    client: &SimpleHttpClient,
+    name: &String,
+    requestId: &Option<Option<String>>,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!(
+        "https://oracledatabase.googleapis.com/v1/projects/{}/locations/{locationsId}/odbNetworks/{odbNetworksId}",
+        name,
+    );
+
+    // Build request
+    let mut query_parts = Vec::new();
+    if let Some(val) = requestId.as_ref() {
+        query_parts.push(format!("requestId={}", val));
+    }
+
+    let url_with_query = if query_parts.is_empty() {
+        endpoint_url
+    } else {
+        format!("{}?{}", endpoint_url, query_parts.join("&"))
+    };
+
+    let builder = client
+        .delete(&url_with_query)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// DELETE v1/projects/{projectsId}/locations/{locationsId}/odbNetworks/{odbNetworksId}
+/// Deletes a single ODB Network.
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `oracledatabase_projects_locations_odb_networks_delete_execute()` or `oracledatabase_projects_locations_odb_networks_delete`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `oracledatabase_projects_locations_odb_networks_delete_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn oracledatabase_projects_locations_odb_networks_delete_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<Operation>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: Operation = serde_json::from_str(&body)
+                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// DELETE v1/projects/{projectsId}/locations/{locationsId}/odbNetworks/{odbNetworksId}
+/// Deletes a single ODB Network.
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `oracledatabase_projects_locations_odb_networks_delete_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `oracledatabase_projects_locations_odb_networks_delete_task()`.
+/// For the simplest API, use `oracledatabase_projects_locations_odb_networks_delete()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `oracledatabase_projects_locations_odb_networks_delete_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn oracledatabase_projects_locations_odb_networks_delete_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<Operation>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let task = oracledatabase_projects_locations_odb_networks_delete_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`oracledatabase_projects_locations_odb_networks_delete`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct OracledatabaseProjectsLocationsOdbNetworksDeleteArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Query parameter: requestId
+    pub requestId: Option<Option<String>>,
+}
+
+/// DELETE v1/projects/{projectsId}/locations/{locationsId}/odbNetworks/{odbNetworksId}
+/// Deletes a single ODB Network.
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `oracledatabase_projects_locations_odb_networks_delete_builder()` + `oracledatabase_projects_locations_odb_networks_delete_execute()`.
+/// For task-level control, use `oracledatabase_projects_locations_odb_networks_delete_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn oracledatabase_projects_locations_odb_networks_delete(
+    client: &SimpleHttpClient,
+    args: &OracledatabaseProjectsLocationsOdbNetworksDeleteArgs,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<Operation>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let builder = oracledatabase_projects_locations_odb_networks_delete_builder(
+        client,
+        &args.name,
+        &args.requestId,
+    )?;
+    oracledatabase_projects_locations_odb_networks_delete_execute(builder)
+}
+
+/// GET v1/projects/{projectsId}/locations/{locationsId}/odbNetworks/{odbNetworksId}
+/// Gets details of a single ODB Network.
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `oracledatabase_projects_locations_odb_networks_get_execute()` to send, or `oracledatabase_projects_locations_odb_networks_get` for simplest API.
+
+pub fn oracledatabase_projects_locations_odb_networks_get_builder(
+    client: &SimpleHttpClient,
+    name: &String,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!(
+        "https://oracledatabase.googleapis.com/v1/projects/{}/locations/{locationsId}/odbNetworks/{odbNetworksId}",
+        name,
+    );
+
+    // Build request
+    let builder = client
+        .get(&endpoint_url)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// GET v1/projects/{projectsId}/locations/{locationsId}/odbNetworks/{odbNetworksId}
+/// Gets details of a single ODB Network.
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `oracledatabase_projects_locations_odb_networks_get_execute()` or `oracledatabase_projects_locations_odb_networks_get`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `oracledatabase_projects_locations_odb_networks_get_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn oracledatabase_projects_locations_odb_networks_get_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<OdbNetwork>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: OdbNetwork = serde_json::from_str(&body)
+                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// GET v1/projects/{projectsId}/locations/{locationsId}/odbNetworks/{odbNetworksId}
+/// Gets details of a single ODB Network.
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `oracledatabase_projects_locations_odb_networks_get_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `oracledatabase_projects_locations_odb_networks_get_task()`.
+/// For the simplest API, use `oracledatabase_projects_locations_odb_networks_get()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `oracledatabase_projects_locations_odb_networks_get_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn oracledatabase_projects_locations_odb_networks_get_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<OdbNetwork>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let task = oracledatabase_projects_locations_odb_networks_get_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`oracledatabase_projects_locations_odb_networks_get`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct OracledatabaseProjectsLocationsOdbNetworksGetArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
+/// GET v1/projects/{projectsId}/locations/{locationsId}/odbNetworks/{odbNetworksId}
+/// Gets details of a single ODB Network.
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `oracledatabase_projects_locations_odb_networks_get_builder()` + `oracledatabase_projects_locations_odb_networks_get_execute()`.
+/// For task-level control, use `oracledatabase_projects_locations_odb_networks_get_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn oracledatabase_projects_locations_odb_networks_get(
+    client: &SimpleHttpClient,
+    args: &OracledatabaseProjectsLocationsOdbNetworksGetArgs,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<OdbNetwork>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let builder = oracledatabase_projects_locations_odb_networks_get_builder(client, &args.name)?;
+    oracledatabase_projects_locations_odb_networks_get_execute(builder)
+}
+
+/// GET v1/projects/{projectsId}/locations/{locationsId}/odbNetworks
+/// Lists the ODB Networks in a given project and location.
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `oracledatabase_projects_locations_odb_networks_list_execute()` to send, or `oracledatabase_projects_locations_odb_networks_list` for simplest API.
+
+pub fn oracledatabase_projects_locations_odb_networks_list_builder(
+    client: &SimpleHttpClient,
+    parent: &String,
+    filter: &Option<Option<String>>,
+    orderBy: &Option<Option<String>>,
+    pageSize: &Option<Option<String>>,
+    pageToken: &Option<Option<String>>,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!(
+        "https://oracledatabase.googleapis.com/v1/projects/{}/locations/{locationsId}/odbNetworks",
+        parent,
+    );
+
+    // Build request
+    let mut query_parts = Vec::new();
+    if let Some(val) = filter.as_ref() {
+        query_parts.push(format!("filter={}", val));
+    }
+    if let Some(val) = orderBy.as_ref() {
+        query_parts.push(format!("orderBy={}", val));
+    }
+    if let Some(val) = pageSize.as_ref() {
+        query_parts.push(format!("pageSize={}", val));
+    }
+    if let Some(val) = pageToken.as_ref() {
+        query_parts.push(format!("pageToken={}", val));
+    }
+
+    let url_with_query = if query_parts.is_empty() {
+        endpoint_url
+    } else {
+        format!("{}?{}", endpoint_url, query_parts.join("&"))
+    };
+
+    let builder = client
+        .get(&url_with_query)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// GET v1/projects/{projectsId}/locations/{locationsId}/odbNetworks
+/// Lists the ODB Networks in a given project and location.
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `oracledatabase_projects_locations_odb_networks_list_execute()` or `oracledatabase_projects_locations_odb_networks_list`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `oracledatabase_projects_locations_odb_networks_list_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn oracledatabase_projects_locations_odb_networks_list_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<ListOdbNetworksResponse>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: ListOdbNetworksResponse = serde_json::from_str(&body)
+                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// GET v1/projects/{projectsId}/locations/{locationsId}/odbNetworks
+/// Lists the ODB Networks in a given project and location.
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `oracledatabase_projects_locations_odb_networks_list_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `oracledatabase_projects_locations_odb_networks_list_task()`.
+/// For the simplest API, use `oracledatabase_projects_locations_odb_networks_list()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `oracledatabase_projects_locations_odb_networks_list_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn oracledatabase_projects_locations_odb_networks_list_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<ListOdbNetworksResponse>, ApiError>, P = ApiPending>
+        + Send
+        + 'static,
+    ApiError,
+> {
+    let task = oracledatabase_projects_locations_odb_networks_list_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`oracledatabase_projects_locations_odb_networks_list`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct OracledatabaseProjectsLocationsOdbNetworksListArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Query parameter: filter
+    pub filter: Option<Option<String>>,
+    /// Query parameter: orderBy
+    pub orderBy: Option<Option<String>>,
+    /// Query parameter: pageSize
+    pub pageSize: Option<Option<String>>,
+    /// Query parameter: pageToken
+    pub pageToken: Option<Option<String>>,
+}
+
+/// GET v1/projects/{projectsId}/locations/{locationsId}/odbNetworks
+/// Lists the ODB Networks in a given project and location.
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `oracledatabase_projects_locations_odb_networks_list_builder()` + `oracledatabase_projects_locations_odb_networks_list_execute()`.
+/// For task-level control, use `oracledatabase_projects_locations_odb_networks_list_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn oracledatabase_projects_locations_odb_networks_list(
+    client: &SimpleHttpClient,
+    args: &OracledatabaseProjectsLocationsOdbNetworksListArgs,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<ListOdbNetworksResponse>, ApiError>, P = ApiPending>
+        + Send
+        + 'static,
+    ApiError,
+> {
+    let builder = oracledatabase_projects_locations_odb_networks_list_builder(
+        client,
+        &args.parent,
+        &args.filter,
+        &args.orderBy,
+        &args.pageSize,
+        &args.pageToken,
+    )?;
+    oracledatabase_projects_locations_odb_networks_list_execute(builder)
+}
+
+/// POST v1/projects/{projectsId}/locations/{locationsId}/odbNetworks/{odbNetworksId}/odbSubnets
+/// Creates a new ODB Subnet in a given ODB Network.
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `oracledatabase_projects_locations_odb_networks_odb_subnets_create_execute()` to send, or `oracledatabase_projects_locations_odb_networks_odb_subnets_create` for simplest API.
+
+pub fn oracledatabase_projects_locations_odb_networks_odb_subnets_create_builder(
+    client: &SimpleHttpClient,
+    parent: &String,
+    odbSubnetId: &Option<Option<String>>,
+    requestId: &Option<Option<String>>,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!(
+        "https://oracledatabase.googleapis.com/v1/projects/{}/locations/{locationsId}/odbNetworks/{odbNetworksId}/odbSubnets",
+        parent,
+    );
+
+    // Build request
+    let mut query_parts = Vec::new();
+    if let Some(val) = odbSubnetId.as_ref() {
+        query_parts.push(format!("odbSubnetId={}", val));
+    }
+    if let Some(val) = requestId.as_ref() {
+        query_parts.push(format!("requestId={}", val));
+    }
+
+    let url_with_query = if query_parts.is_empty() {
+        endpoint_url
+    } else {
+        format!("{}?{}", endpoint_url, query_parts.join("&"))
+    };
+
+    let builder = client
+        .post(&url_with_query)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// POST v1/projects/{projectsId}/locations/{locationsId}/odbNetworks/{odbNetworksId}/odbSubnets
+/// Creates a new ODB Subnet in a given ODB Network.
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `oracledatabase_projects_locations_odb_networks_odb_subnets_create_execute()` or `oracledatabase_projects_locations_odb_networks_odb_subnets_create`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `oracledatabase_projects_locations_odb_networks_odb_subnets_create_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn oracledatabase_projects_locations_odb_networks_odb_subnets_create_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<Operation>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: Operation = serde_json::from_str(&body)
+                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// POST v1/projects/{projectsId}/locations/{locationsId}/odbNetworks/{odbNetworksId}/odbSubnets
+/// Creates a new ODB Subnet in a given ODB Network.
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `oracledatabase_projects_locations_odb_networks_odb_subnets_create_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `oracledatabase_projects_locations_odb_networks_odb_subnets_create_task()`.
+/// For the simplest API, use `oracledatabase_projects_locations_odb_networks_odb_subnets_create()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `oracledatabase_projects_locations_odb_networks_odb_subnets_create_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn oracledatabase_projects_locations_odb_networks_odb_subnets_create_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<Operation>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let task = oracledatabase_projects_locations_odb_networks_odb_subnets_create_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`oracledatabase_projects_locations_odb_networks_odb_subnets_create`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct OracledatabaseProjectsLocationsOdbNetworksOdbSubnetsCreateArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Query parameter: odbSubnetId
+    pub odbSubnetId: Option<Option<String>>,
+    /// Query parameter: requestId
+    pub requestId: Option<Option<String>>,
+}
+
+/// POST v1/projects/{projectsId}/locations/{locationsId}/odbNetworks/{odbNetworksId}/odbSubnets
+/// Creates a new ODB Subnet in a given ODB Network.
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `oracledatabase_projects_locations_odb_networks_odb_subnets_create_builder()` + `oracledatabase_projects_locations_odb_networks_odb_subnets_create_execute()`.
+/// For task-level control, use `oracledatabase_projects_locations_odb_networks_odb_subnets_create_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn oracledatabase_projects_locations_odb_networks_odb_subnets_create(
+    client: &SimpleHttpClient,
+    args: &OracledatabaseProjectsLocationsOdbNetworksOdbSubnetsCreateArgs,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<Operation>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let builder = oracledatabase_projects_locations_odb_networks_odb_subnets_create_builder(
+        client,
+        &args.parent,
+        &args.odbSubnetId,
+        &args.requestId,
+    )?;
+    oracledatabase_projects_locations_odb_networks_odb_subnets_create_execute(builder)
+}
+
+/// DELETE v1/projects/{projectsId}/locations/{locationsId}/odbNetworks/{odbNetworksId}/odbSubnets/{odbSubnetsId}
+/// Deletes a single ODB Subnet.
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `oracledatabase_projects_locations_odb_networks_odb_subnets_delete_execute()` to send, or `oracledatabase_projects_locations_odb_networks_odb_subnets_delete` for simplest API.
+
+pub fn oracledatabase_projects_locations_odb_networks_odb_subnets_delete_builder(
+    client: &SimpleHttpClient,
+    name: &String,
+    requestId: &Option<Option<String>>,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!(
+        "https://oracledatabase.googleapis.com/v1/projects/{}/locations/{locationsId}/odbNetworks/{odbNetworksId}/odbSubnets/{odbSubnetsId}",
+        name,
+    );
+
+    // Build request
+    let mut query_parts = Vec::new();
+    if let Some(val) = requestId.as_ref() {
+        query_parts.push(format!("requestId={}", val));
+    }
+
+    let url_with_query = if query_parts.is_empty() {
+        endpoint_url
+    } else {
+        format!("{}?{}", endpoint_url, query_parts.join("&"))
+    };
+
+    let builder = client
+        .delete(&url_with_query)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// DELETE v1/projects/{projectsId}/locations/{locationsId}/odbNetworks/{odbNetworksId}/odbSubnets/{odbSubnetsId}
+/// Deletes a single ODB Subnet.
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `oracledatabase_projects_locations_odb_networks_odb_subnets_delete_execute()` or `oracledatabase_projects_locations_odb_networks_odb_subnets_delete`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `oracledatabase_projects_locations_odb_networks_odb_subnets_delete_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn oracledatabase_projects_locations_odb_networks_odb_subnets_delete_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<Operation>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: Operation = serde_json::from_str(&body)
+                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// DELETE v1/projects/{projectsId}/locations/{locationsId}/odbNetworks/{odbNetworksId}/odbSubnets/{odbSubnetsId}
+/// Deletes a single ODB Subnet.
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `oracledatabase_projects_locations_odb_networks_odb_subnets_delete_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `oracledatabase_projects_locations_odb_networks_odb_subnets_delete_task()`.
+/// For the simplest API, use `oracledatabase_projects_locations_odb_networks_odb_subnets_delete()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `oracledatabase_projects_locations_odb_networks_odb_subnets_delete_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn oracledatabase_projects_locations_odb_networks_odb_subnets_delete_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<Operation>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let task = oracledatabase_projects_locations_odb_networks_odb_subnets_delete_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`oracledatabase_projects_locations_odb_networks_odb_subnets_delete`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct OracledatabaseProjectsLocationsOdbNetworksOdbSubnetsDeleteArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Query parameter: requestId
+    pub requestId: Option<Option<String>>,
+}
+
+/// DELETE v1/projects/{projectsId}/locations/{locationsId}/odbNetworks/{odbNetworksId}/odbSubnets/{odbSubnetsId}
+/// Deletes a single ODB Subnet.
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `oracledatabase_projects_locations_odb_networks_odb_subnets_delete_builder()` + `oracledatabase_projects_locations_odb_networks_odb_subnets_delete_execute()`.
+/// For task-level control, use `oracledatabase_projects_locations_odb_networks_odb_subnets_delete_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn oracledatabase_projects_locations_odb_networks_odb_subnets_delete(
+    client: &SimpleHttpClient,
+    args: &OracledatabaseProjectsLocationsOdbNetworksOdbSubnetsDeleteArgs,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<Operation>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let builder = oracledatabase_projects_locations_odb_networks_odb_subnets_delete_builder(
+        client,
+        &args.name,
+        &args.requestId,
+    )?;
+    oracledatabase_projects_locations_odb_networks_odb_subnets_delete_execute(builder)
+}
+
+/// GET v1/projects/{projectsId}/locations/{locationsId}/odbNetworks/{odbNetworksId}/odbSubnets/{odbSubnetsId}
+/// Gets details of a single ODB Subnet.
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `oracledatabase_projects_locations_odb_networks_odb_subnets_get_execute()` to send, or `oracledatabase_projects_locations_odb_networks_odb_subnets_get` for simplest API.
+
+pub fn oracledatabase_projects_locations_odb_networks_odb_subnets_get_builder(
+    client: &SimpleHttpClient,
+    name: &String,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!(
+        "https://oracledatabase.googleapis.com/v1/projects/{}/locations/{locationsId}/odbNetworks/{odbNetworksId}/odbSubnets/{odbSubnetsId}",
+        name,
+    );
+
+    // Build request
+    let builder = client
+        .get(&endpoint_url)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// GET v1/projects/{projectsId}/locations/{locationsId}/odbNetworks/{odbNetworksId}/odbSubnets/{odbSubnetsId}
+/// Gets details of a single ODB Subnet.
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `oracledatabase_projects_locations_odb_networks_odb_subnets_get_execute()` or `oracledatabase_projects_locations_odb_networks_odb_subnets_get`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `oracledatabase_projects_locations_odb_networks_odb_subnets_get_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn oracledatabase_projects_locations_odb_networks_odb_subnets_get_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<OdbSubnet>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: OdbSubnet = serde_json::from_str(&body)
+                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// GET v1/projects/{projectsId}/locations/{locationsId}/odbNetworks/{odbNetworksId}/odbSubnets/{odbSubnetsId}
+/// Gets details of a single ODB Subnet.
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `oracledatabase_projects_locations_odb_networks_odb_subnets_get_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `oracledatabase_projects_locations_odb_networks_odb_subnets_get_task()`.
+/// For the simplest API, use `oracledatabase_projects_locations_odb_networks_odb_subnets_get()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `oracledatabase_projects_locations_odb_networks_odb_subnets_get_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn oracledatabase_projects_locations_odb_networks_odb_subnets_get_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<OdbSubnet>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let task = oracledatabase_projects_locations_odb_networks_odb_subnets_get_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`oracledatabase_projects_locations_odb_networks_odb_subnets_get`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct OracledatabaseProjectsLocationsOdbNetworksOdbSubnetsGetArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
+/// GET v1/projects/{projectsId}/locations/{locationsId}/odbNetworks/{odbNetworksId}/odbSubnets/{odbSubnetsId}
+/// Gets details of a single ODB Subnet.
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `oracledatabase_projects_locations_odb_networks_odb_subnets_get_builder()` + `oracledatabase_projects_locations_odb_networks_odb_subnets_get_execute()`.
+/// For task-level control, use `oracledatabase_projects_locations_odb_networks_odb_subnets_get_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn oracledatabase_projects_locations_odb_networks_odb_subnets_get(
+    client: &SimpleHttpClient,
+    args: &OracledatabaseProjectsLocationsOdbNetworksOdbSubnetsGetArgs,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<OdbSubnet>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let builder =
+        oracledatabase_projects_locations_odb_networks_odb_subnets_get_builder(client, &args.name)?;
+    oracledatabase_projects_locations_odb_networks_odb_subnets_get_execute(builder)
+}
+
+/// GET v1/projects/{projectsId}/locations/{locationsId}/odbNetworks/{odbNetworksId}/odbSubnets
+/// Lists all the ODB Subnets in a given ODB Network.
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `oracledatabase_projects_locations_odb_networks_odb_subnets_list_execute()` to send, or `oracledatabase_projects_locations_odb_networks_odb_subnets_list` for simplest API.
+
+pub fn oracledatabase_projects_locations_odb_networks_odb_subnets_list_builder(
+    client: &SimpleHttpClient,
+    parent: &String,
+    filter: &Option<Option<String>>,
+    orderBy: &Option<Option<String>>,
+    pageSize: &Option<Option<String>>,
+    pageToken: &Option<Option<String>>,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!(
+        "https://oracledatabase.googleapis.com/v1/projects/{}/locations/{locationsId}/odbNetworks/{odbNetworksId}/odbSubnets",
+        parent,
+    );
+
+    // Build request
+    let mut query_parts = Vec::new();
+    if let Some(val) = filter.as_ref() {
+        query_parts.push(format!("filter={}", val));
+    }
+    if let Some(val) = orderBy.as_ref() {
+        query_parts.push(format!("orderBy={}", val));
+    }
+    if let Some(val) = pageSize.as_ref() {
+        query_parts.push(format!("pageSize={}", val));
+    }
+    if let Some(val) = pageToken.as_ref() {
+        query_parts.push(format!("pageToken={}", val));
+    }
+
+    let url_with_query = if query_parts.is_empty() {
+        endpoint_url
+    } else {
+        format!("{}?{}", endpoint_url, query_parts.join("&"))
+    };
+
+    let builder = client
+        .get(&url_with_query)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// GET v1/projects/{projectsId}/locations/{locationsId}/odbNetworks/{odbNetworksId}/odbSubnets
+/// Lists all the ODB Subnets in a given ODB Network.
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `oracledatabase_projects_locations_odb_networks_odb_subnets_list_execute()` or `oracledatabase_projects_locations_odb_networks_odb_subnets_list`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `oracledatabase_projects_locations_odb_networks_odb_subnets_list_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn oracledatabase_projects_locations_odb_networks_odb_subnets_list_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<ListOdbSubnetsResponse>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: ListOdbSubnetsResponse = serde_json::from_str(&body)
+                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// GET v1/projects/{projectsId}/locations/{locationsId}/odbNetworks/{odbNetworksId}/odbSubnets
+/// Lists all the ODB Subnets in a given ODB Network.
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `oracledatabase_projects_locations_odb_networks_odb_subnets_list_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `oracledatabase_projects_locations_odb_networks_odb_subnets_list_task()`.
+/// For the simplest API, use `oracledatabase_projects_locations_odb_networks_odb_subnets_list()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `oracledatabase_projects_locations_odb_networks_odb_subnets_list_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn oracledatabase_projects_locations_odb_networks_odb_subnets_list_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<ListOdbSubnetsResponse>, ApiError>, P = ApiPending>
+        + Send
+        + 'static,
+    ApiError,
+> {
+    let task = oracledatabase_projects_locations_odb_networks_odb_subnets_list_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`oracledatabase_projects_locations_odb_networks_odb_subnets_list`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct OracledatabaseProjectsLocationsOdbNetworksOdbSubnetsListArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Query parameter: filter
+    pub filter: Option<Option<String>>,
+    /// Query parameter: orderBy
+    pub orderBy: Option<Option<String>>,
+    /// Query parameter: pageSize
+    pub pageSize: Option<Option<String>>,
+    /// Query parameter: pageToken
+    pub pageToken: Option<Option<String>>,
+}
+
+/// GET v1/projects/{projectsId}/locations/{locationsId}/odbNetworks/{odbNetworksId}/odbSubnets
+/// Lists all the ODB Subnets in a given ODB Network.
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `oracledatabase_projects_locations_odb_networks_odb_subnets_list_builder()` + `oracledatabase_projects_locations_odb_networks_odb_subnets_list_execute()`.
+/// For task-level control, use `oracledatabase_projects_locations_odb_networks_odb_subnets_list_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn oracledatabase_projects_locations_odb_networks_odb_subnets_list(
+    client: &SimpleHttpClient,
+    args: &OracledatabaseProjectsLocationsOdbNetworksOdbSubnetsListArgs,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<ListOdbSubnetsResponse>, ApiError>, P = ApiPending>
+        + Send
+        + 'static,
+    ApiError,
+> {
+    let builder = oracledatabase_projects_locations_odb_networks_odb_subnets_list_builder(
+        client,
+        &args.parent,
+        &args.filter,
+        &args.orderBy,
+        &args.pageSize,
+        &args.pageToken,
+    )?;
+    oracledatabase_projects_locations_odb_networks_odb_subnets_list_execute(builder)
+}
+
+/// POST v1/projects/{projectsId}/locations/{locationsId}/operations/{operationsId}:cancel
+/// Starts asynchronous cancellation on a long-running operation. The server makes a best effort to cancel the operation, but success is not guaranteed. If the server doesn't support this method, it returns google.rpc.Code.UNIMPLEMENTED. Clients can use Operations.GetOperation or other methods to check whether the cancellation succeeded or whether the operation completed despite cancellation. On successful cancellation, the operation is not deleted; instead, it becomes an operation with an Operation.error value with a google.rpc.Status.code of 1, corresponding to Code.CANCELLED.
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `oracledatabase_projects_locations_operations_cancel_execute()` to send, or `oracledatabase_projects_locations_operations_cancel` for simplest API.
+
+pub fn oracledatabase_projects_locations_operations_cancel_builder(
+    client: &SimpleHttpClient,
+    name: &String,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!(
+        "https://oracledatabase.googleapis.com/v1/projects/{}/locations/{locationsId}/operations/{operationsId}:cancel",
+        name,
+    );
+
+    // Build request
+    let builder = client
+        .post(&endpoint_url)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// POST v1/projects/{projectsId}/locations/{locationsId}/operations/{operationsId}:cancel
+/// Starts asynchronous cancellation on a long-running operation. The server makes a best effort to cancel the operation, but success is not guaranteed. If the server doesn't support this method, it returns google.rpc.Code.UNIMPLEMENTED. Clients can use Operations.GetOperation or other methods to check whether the cancellation succeeded or whether the operation completed despite cancellation. On successful cancellation, the operation is not deleted; instead, it becomes an operation with an Operation.error value with a google.rpc.Status.code of 1, corresponding to Code.CANCELLED.
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `oracledatabase_projects_locations_operations_cancel_execute()` or `oracledatabase_projects_locations_operations_cancel`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `oracledatabase_projects_locations_operations_cancel_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn oracledatabase_projects_locations_operations_cancel_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<Empty>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: Empty = serde_json::from_str(&body)
+                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// POST v1/projects/{projectsId}/locations/{locationsId}/operations/{operationsId}:cancel
+/// Starts asynchronous cancellation on a long-running operation. The server makes a best effort to cancel the operation, but success is not guaranteed. If the server doesn't support this method, it returns google.rpc.Code.UNIMPLEMENTED. Clients can use Operations.GetOperation or other methods to check whether the cancellation succeeded or whether the operation completed despite cancellation. On successful cancellation, the operation is not deleted; instead, it becomes an operation with an Operation.error value with a google.rpc.Status.code of 1, corresponding to Code.CANCELLED.
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `oracledatabase_projects_locations_operations_cancel_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `oracledatabase_projects_locations_operations_cancel_task()`.
+/// For the simplest API, use `oracledatabase_projects_locations_operations_cancel()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `oracledatabase_projects_locations_operations_cancel_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn oracledatabase_projects_locations_operations_cancel_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<Empty>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let task = oracledatabase_projects_locations_operations_cancel_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`oracledatabase_projects_locations_operations_cancel`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct OracledatabaseProjectsLocationsOperationsCancelArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
+/// POST v1/projects/{projectsId}/locations/{locationsId}/operations/{operationsId}:cancel
+/// Starts asynchronous cancellation on a long-running operation. The server makes a best effort to cancel the operation, but success is not guaranteed. If the server doesn't support this method, it returns google.rpc.Code.UNIMPLEMENTED. Clients can use Operations.GetOperation or other methods to check whether the cancellation succeeded or whether the operation completed despite cancellation. On successful cancellation, the operation is not deleted; instead, it becomes an operation with an Operation.error value with a google.rpc.Status.code of 1, corresponding to Code.CANCELLED.
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `oracledatabase_projects_locations_operations_cancel_builder()` + `oracledatabase_projects_locations_operations_cancel_execute()`.
+/// For task-level control, use `oracledatabase_projects_locations_operations_cancel_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn oracledatabase_projects_locations_operations_cancel(
+    client: &SimpleHttpClient,
+    args: &OracledatabaseProjectsLocationsOperationsCancelArgs,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<Empty>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let builder = oracledatabase_projects_locations_operations_cancel_builder(client, &args.name)?;
+    oracledatabase_projects_locations_operations_cancel_execute(builder)
+}
+
+/// DELETE v1/projects/{projectsId}/locations/{locationsId}/operations/{operationsId}
+/// Deletes a long-running operation. This method indicates that the client is no longer interested in the operation result. It does not cancel the operation. If the server doesn't support this method, it returns google.rpc.Code.UNIMPLEMENTED.
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `oracledatabase_projects_locations_operations_delete_execute()` to send, or `oracledatabase_projects_locations_operations_delete` for simplest API.
+
+pub fn oracledatabase_projects_locations_operations_delete_builder(
+    client: &SimpleHttpClient,
+    name: &String,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!(
+        "https://oracledatabase.googleapis.com/v1/projects/{}/locations/{locationsId}/operations/{operationsId}",
+        name,
+    );
+
+    // Build request
+    let builder = client
+        .delete(&endpoint_url)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// DELETE v1/projects/{projectsId}/locations/{locationsId}/operations/{operationsId}
+/// Deletes a long-running operation. This method indicates that the client is no longer interested in the operation result. It does not cancel the operation. If the server doesn't support this method, it returns google.rpc.Code.UNIMPLEMENTED.
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `oracledatabase_projects_locations_operations_delete_execute()` or `oracledatabase_projects_locations_operations_delete`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `oracledatabase_projects_locations_operations_delete_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn oracledatabase_projects_locations_operations_delete_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<Empty>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: Empty = serde_json::from_str(&body)
+                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// DELETE v1/projects/{projectsId}/locations/{locationsId}/operations/{operationsId}
+/// Deletes a long-running operation. This method indicates that the client is no longer interested in the operation result. It does not cancel the operation. If the server doesn't support this method, it returns google.rpc.Code.UNIMPLEMENTED.
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `oracledatabase_projects_locations_operations_delete_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `oracledatabase_projects_locations_operations_delete_task()`.
+/// For the simplest API, use `oracledatabase_projects_locations_operations_delete()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `oracledatabase_projects_locations_operations_delete_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn oracledatabase_projects_locations_operations_delete_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<Empty>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let task = oracledatabase_projects_locations_operations_delete_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`oracledatabase_projects_locations_operations_delete`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct OracledatabaseProjectsLocationsOperationsDeleteArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
+/// DELETE v1/projects/{projectsId}/locations/{locationsId}/operations/{operationsId}
+/// Deletes a long-running operation. This method indicates that the client is no longer interested in the operation result. It does not cancel the operation. If the server doesn't support this method, it returns google.rpc.Code.UNIMPLEMENTED.
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `oracledatabase_projects_locations_operations_delete_builder()` + `oracledatabase_projects_locations_operations_delete_execute()`.
+/// For task-level control, use `oracledatabase_projects_locations_operations_delete_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn oracledatabase_projects_locations_operations_delete(
+    client: &SimpleHttpClient,
+    args: &OracledatabaseProjectsLocationsOperationsDeleteArgs,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<Empty>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let builder = oracledatabase_projects_locations_operations_delete_builder(client, &args.name)?;
+    oracledatabase_projects_locations_operations_delete_execute(builder)
+}
+
+/// GET v1/projects/{projectsId}/locations/{locationsId}/operations/{operationsId}
+/// Gets the latest state of a long-running operation. Clients can use this method to poll the operation result at intervals as recommended by the API service.
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `oracledatabase_projects_locations_operations_get_execute()` to send, or `oracledatabase_projects_locations_operations_get` for simplest API.
+
+pub fn oracledatabase_projects_locations_operations_get_builder(
+    client: &SimpleHttpClient,
+    name: &String,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!(
+        "https://oracledatabase.googleapis.com/v1/projects/{}/locations/{locationsId}/operations/{operationsId}",
+        name,
+    );
+
+    // Build request
+    let builder = client
+        .get(&endpoint_url)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// GET v1/projects/{projectsId}/locations/{locationsId}/operations/{operationsId}
+/// Gets the latest state of a long-running operation. Clients can use this method to poll the operation result at intervals as recommended by the API service.
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `oracledatabase_projects_locations_operations_get_execute()` or `oracledatabase_projects_locations_operations_get`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `oracledatabase_projects_locations_operations_get_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn oracledatabase_projects_locations_operations_get_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<Operation>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: Operation = serde_json::from_str(&body)
+                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// GET v1/projects/{projectsId}/locations/{locationsId}/operations/{operationsId}
+/// Gets the latest state of a long-running operation. Clients can use this method to poll the operation result at intervals as recommended by the API service.
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `oracledatabase_projects_locations_operations_get_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `oracledatabase_projects_locations_operations_get_task()`.
+/// For the simplest API, use `oracledatabase_projects_locations_operations_get()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `oracledatabase_projects_locations_operations_get_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn oracledatabase_projects_locations_operations_get_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<Operation>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let task = oracledatabase_projects_locations_operations_get_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`oracledatabase_projects_locations_operations_get`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct OracledatabaseProjectsLocationsOperationsGetArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
+/// GET v1/projects/{projectsId}/locations/{locationsId}/operations/{operationsId}
+/// Gets the latest state of a long-running operation. Clients can use this method to poll the operation result at intervals as recommended by the API service.
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `oracledatabase_projects_locations_operations_get_builder()` + `oracledatabase_projects_locations_operations_get_execute()`.
+/// For task-level control, use `oracledatabase_projects_locations_operations_get_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn oracledatabase_projects_locations_operations_get(
+    client: &SimpleHttpClient,
+    args: &OracledatabaseProjectsLocationsOperationsGetArgs,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<Operation>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let builder = oracledatabase_projects_locations_operations_get_builder(client, &args.name)?;
+    oracledatabase_projects_locations_operations_get_execute(builder)
+}
+
+/// GET v1/projects/{projectsId}/locations/{locationsId}/operations
+/// Lists operations that match the specified filter in the request. If the server doesn't support this method, it returns UNIMPLEMENTED.
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `oracledatabase_projects_locations_operations_list_execute()` to send, or `oracledatabase_projects_locations_operations_list` for simplest API.
+
+pub fn oracledatabase_projects_locations_operations_list_builder(
+    client: &SimpleHttpClient,
+    name: &String,
+    filter: &Option<Option<String>>,
+    pageSize: &Option<Option<String>>,
+    pageToken: &Option<Option<String>>,
+    returnPartialSuccess: &Option<Option<String>>,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!(
+        "https://oracledatabase.googleapis.com/v1/projects/{}/locations/{locationsId}/operations",
+        name,
+    );
+
+    // Build request
+    let mut query_parts = Vec::new();
+    if let Some(val) = filter.as_ref() {
+        query_parts.push(format!("filter={}", val));
+    }
+    if let Some(val) = pageSize.as_ref() {
+        query_parts.push(format!("pageSize={}", val));
+    }
+    if let Some(val) = pageToken.as_ref() {
+        query_parts.push(format!("pageToken={}", val));
+    }
+    if let Some(val) = returnPartialSuccess.as_ref() {
+        query_parts.push(format!("returnPartialSuccess={}", val));
+    }
+
+    let url_with_query = if query_parts.is_empty() {
+        endpoint_url
+    } else {
+        format!("{}?{}", endpoint_url, query_parts.join("&"))
+    };
+
+    let builder = client
+        .get(&url_with_query)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// GET v1/projects/{projectsId}/locations/{locationsId}/operations
+/// Lists operations that match the specified filter in the request. If the server doesn't support this method, it returns UNIMPLEMENTED.
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `oracledatabase_projects_locations_operations_list_execute()` or `oracledatabase_projects_locations_operations_list`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `oracledatabase_projects_locations_operations_list_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn oracledatabase_projects_locations_operations_list_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<ListOperationsResponse>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: ListOperationsResponse = serde_json::from_str(&body)
+                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// GET v1/projects/{projectsId}/locations/{locationsId}/operations
+/// Lists operations that match the specified filter in the request. If the server doesn't support this method, it returns UNIMPLEMENTED.
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `oracledatabase_projects_locations_operations_list_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `oracledatabase_projects_locations_operations_list_task()`.
+/// For the simplest API, use `oracledatabase_projects_locations_operations_list()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `oracledatabase_projects_locations_operations_list_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn oracledatabase_projects_locations_operations_list_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<ListOperationsResponse>, ApiError>, P = ApiPending>
+        + Send
+        + 'static,
+    ApiError,
+> {
+    let task = oracledatabase_projects_locations_operations_list_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`oracledatabase_projects_locations_operations_list`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct OracledatabaseProjectsLocationsOperationsListArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Query parameter: filter
+    pub filter: Option<Option<String>>,
+    /// Query parameter: pageSize
+    pub pageSize: Option<Option<String>>,
+    /// Query parameter: pageToken
+    pub pageToken: Option<Option<String>>,
+    /// Query parameter: returnPartialSuccess
+    pub returnPartialSuccess: Option<Option<String>>,
+}
+
+/// GET v1/projects/{projectsId}/locations/{locationsId}/operations
+/// Lists operations that match the specified filter in the request. If the server doesn't support this method, it returns UNIMPLEMENTED.
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `oracledatabase_projects_locations_operations_list_builder()` + `oracledatabase_projects_locations_operations_list_execute()`.
+/// For task-level control, use `oracledatabase_projects_locations_operations_list_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn oracledatabase_projects_locations_operations_list(
+    client: &SimpleHttpClient,
+    args: &OracledatabaseProjectsLocationsOperationsListArgs,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<ListOperationsResponse>, ApiError>, P = ApiPending>
+        + Send
+        + 'static,
+    ApiError,
+> {
+    let builder = oracledatabase_projects_locations_operations_list_builder(
+        client,
+        &args.name,
+        &args.filter,
+        &args.pageSize,
+        &args.pageToken,
+        &args.returnPartialSuccess,
+    )?;
+    oracledatabase_projects_locations_operations_list_execute(builder)
+}
+
+/// GET v1/projects/{projectsId}/locations/{locationsId}/pluggableDatabases/{pluggableDatabasesId}
+/// Gets details of a single PluggableDatabase.
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `oracledatabase_projects_locations_pluggable_databases_get_execute()` to send, or `oracledatabase_projects_locations_pluggable_databases_get` for simplest API.
+
+pub fn oracledatabase_projects_locations_pluggable_databases_get_builder(
+    client: &SimpleHttpClient,
+    name: &String,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!(
+        "https://oracledatabase.googleapis.com/v1/projects/{}/locations/{locationsId}/pluggableDatabases/{pluggableDatabasesId}",
+        name,
+    );
+
+    // Build request
+    let builder = client
+        .get(&endpoint_url)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// GET v1/projects/{projectsId}/locations/{locationsId}/pluggableDatabases/{pluggableDatabasesId}
+/// Gets details of a single PluggableDatabase.
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `oracledatabase_projects_locations_pluggable_databases_get_execute()` or `oracledatabase_projects_locations_pluggable_databases_get`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `oracledatabase_projects_locations_pluggable_databases_get_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn oracledatabase_projects_locations_pluggable_databases_get_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<PluggableDatabase>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: PluggableDatabase = serde_json::from_str(&body)
+                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// GET v1/projects/{projectsId}/locations/{locationsId}/pluggableDatabases/{pluggableDatabasesId}
+/// Gets details of a single PluggableDatabase.
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `oracledatabase_projects_locations_pluggable_databases_get_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `oracledatabase_projects_locations_pluggable_databases_get_task()`.
+/// For the simplest API, use `oracledatabase_projects_locations_pluggable_databases_get()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `oracledatabase_projects_locations_pluggable_databases_get_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn oracledatabase_projects_locations_pluggable_databases_get_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<PluggableDatabase>, ApiError>, P = ApiPending>
+        + Send
+        + 'static,
+    ApiError,
+> {
+    let task = oracledatabase_projects_locations_pluggable_databases_get_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`oracledatabase_projects_locations_pluggable_databases_get`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct OracledatabaseProjectsLocationsPluggableDatabasesGetArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
+/// GET v1/projects/{projectsId}/locations/{locationsId}/pluggableDatabases/{pluggableDatabasesId}
+/// Gets details of a single PluggableDatabase.
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `oracledatabase_projects_locations_pluggable_databases_get_builder()` + `oracledatabase_projects_locations_pluggable_databases_get_execute()`.
+/// For task-level control, use `oracledatabase_projects_locations_pluggable_databases_get_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn oracledatabase_projects_locations_pluggable_databases_get(
+    client: &SimpleHttpClient,
+    args: &OracledatabaseProjectsLocationsPluggableDatabasesGetArgs,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<PluggableDatabase>, ApiError>, P = ApiPending>
+        + Send
+        + 'static,
+    ApiError,
+> {
+    let builder =
+        oracledatabase_projects_locations_pluggable_databases_get_builder(client, &args.name)?;
+    oracledatabase_projects_locations_pluggable_databases_get_execute(builder)
+}
+
+/// GET v1/projects/{projectsId}/locations/{locationsId}/pluggableDatabases
+/// Lists all the PluggableDatabases for the given project, location and Container Database.
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `oracledatabase_projects_locations_pluggable_databases_list_execute()` to send, or `oracledatabase_projects_locations_pluggable_databases_list` for simplest API.
+
+pub fn oracledatabase_projects_locations_pluggable_databases_list_builder(
+    client: &SimpleHttpClient,
+    parent: &String,
+    filter: &Option<Option<String>>,
+    pageSize: &Option<Option<String>>,
+    pageToken: &Option<Option<String>>,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!(
+        "https://oracledatabase.googleapis.com/v1/projects/{}/locations/{locationsId}/pluggableDatabases",
+        parent,
+    );
+
+    // Build request
+    let mut query_parts = Vec::new();
+    if let Some(val) = filter.as_ref() {
+        query_parts.push(format!("filter={}", val));
+    }
+    if let Some(val) = pageSize.as_ref() {
+        query_parts.push(format!("pageSize={}", val));
+    }
+    if let Some(val) = pageToken.as_ref() {
+        query_parts.push(format!("pageToken={}", val));
+    }
+
+    let url_with_query = if query_parts.is_empty() {
+        endpoint_url
+    } else {
+        format!("{}?{}", endpoint_url, query_parts.join("&"))
+    };
+
+    let builder = client
+        .get(&url_with_query)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// GET v1/projects/{projectsId}/locations/{locationsId}/pluggableDatabases
+/// Lists all the PluggableDatabases for the given project, location and Container Database.
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `oracledatabase_projects_locations_pluggable_databases_list_execute()` or `oracledatabase_projects_locations_pluggable_databases_list`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `oracledatabase_projects_locations_pluggable_databases_list_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn oracledatabase_projects_locations_pluggable_databases_list_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<ListPluggableDatabasesResponse>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: ListPluggableDatabasesResponse = serde_json::from_str(&body)
+                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// GET v1/projects/{projectsId}/locations/{locationsId}/pluggableDatabases
+/// Lists all the PluggableDatabases for the given project, location and Container Database.
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `oracledatabase_projects_locations_pluggable_databases_list_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `oracledatabase_projects_locations_pluggable_databases_list_task()`.
+/// For the simplest API, use `oracledatabase_projects_locations_pluggable_databases_list()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `oracledatabase_projects_locations_pluggable_databases_list_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn oracledatabase_projects_locations_pluggable_databases_list_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<
+            D = Result<ApiResponse<ListPluggableDatabasesResponse>, ApiError>,
+            P = ApiPending,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    let task = oracledatabase_projects_locations_pluggable_databases_list_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`oracledatabase_projects_locations_pluggable_databases_list`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct OracledatabaseProjectsLocationsPluggableDatabasesListArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Query parameter: filter
+    pub filter: Option<Option<String>>,
+    /// Query parameter: pageSize
+    pub pageSize: Option<Option<String>>,
+    /// Query parameter: pageToken
+    pub pageToken: Option<Option<String>>,
+}
+
+/// GET v1/projects/{projectsId}/locations/{locationsId}/pluggableDatabases
+/// Lists all the PluggableDatabases for the given project, location and Container Database.
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `oracledatabase_projects_locations_pluggable_databases_list_builder()` + `oracledatabase_projects_locations_pluggable_databases_list_execute()`.
+/// For task-level control, use `oracledatabase_projects_locations_pluggable_databases_list_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn oracledatabase_projects_locations_pluggable_databases_list(
+    client: &SimpleHttpClient,
+    args: &OracledatabaseProjectsLocationsPluggableDatabasesListArgs,
+) -> Result<
+    impl StreamIterator<
+            D = Result<ApiResponse<ListPluggableDatabasesResponse>, ApiError>,
+            P = ApiPending,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    let builder = oracledatabase_projects_locations_pluggable_databases_list_builder(
+        client,
+        &args.parent,
+        &args.filter,
+        &args.pageSize,
+        &args.pageToken,
+    )?;
+    oracledatabase_projects_locations_pluggable_databases_list_execute(builder)
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for Location
+// =============================================================================
+
+/// ResourceIdentifier implementation for Location with OracledatabaseProjectsLocationsGetArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<OracledatabaseProjectsLocationsGetArgs> for Location {
+    fn generate_resource_id(&self, input: &OracledatabaseProjectsLocationsGetArgs) -> String {
+        format!("gcp::oracledatabase::Location/{}", input.name)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::oracledatabase::Location"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for ListLocationsResponse
+// =============================================================================
+
+/// ResourceIdentifier implementation for ListLocationsResponse with OracledatabaseProjectsLocationsListArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<OracledatabaseProjectsLocationsListArgs> for ListLocationsResponse {
+    fn generate_resource_id(&self, input: &OracledatabaseProjectsLocationsListArgs) -> String {
+        format!("gcp::oracledatabase::ListLocationsResponse/{}", input.name)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::oracledatabase::ListLocationsResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for ListAutonomousDatabaseBackupsResponse
+// =============================================================================
+
+/// ResourceIdentifier implementation for ListAutonomousDatabaseBackupsResponse with OracledatabaseProjectsLocationsAutonomousDatabaseBackupsListArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<OracledatabaseProjectsLocationsAutonomousDatabaseBackupsListArgs>
+    for ListAutonomousDatabaseBackupsResponse
+{
+    fn generate_resource_id(
+        &self,
+        input: &OracledatabaseProjectsLocationsAutonomousDatabaseBackupsListArgs,
+    ) -> String {
+        format!(
+            "gcp::oracledatabase::ListAutonomousDatabaseBackupsResponse/{}",
+            input.parent
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::oracledatabase::ListAutonomousDatabaseBackupsResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for ListAutonomousDatabaseCharacterSetsResponse
+// =============================================================================
+
+/// ResourceIdentifier implementation for ListAutonomousDatabaseCharacterSetsResponse with OracledatabaseProjectsLocationsAutonomousDatabaseCharacterSetsListArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<OracledatabaseProjectsLocationsAutonomousDatabaseCharacterSetsListArgs>
+    for ListAutonomousDatabaseCharacterSetsResponse
+{
+    fn generate_resource_id(
+        &self,
+        input: &OracledatabaseProjectsLocationsAutonomousDatabaseCharacterSetsListArgs,
+    ) -> String {
+        format!(
+            "gcp::oracledatabase::ListAutonomousDatabaseCharacterSetsResponse/{}",
+            input.parent
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::oracledatabase::ListAutonomousDatabaseCharacterSetsResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for Operation
+// =============================================================================
+
+/// ResourceIdentifier implementation for Operation with OracledatabaseProjectsLocationsAutonomousDatabasesCreateArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<OracledatabaseProjectsLocationsAutonomousDatabasesCreateArgs>
+    for Operation
+{
+    fn generate_resource_id(
+        &self,
+        input: &OracledatabaseProjectsLocationsAutonomousDatabasesCreateArgs,
+    ) -> String {
+        format!("gcp::oracledatabase::Operation/{}", input.parent)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::oracledatabase::Operation"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for Operation
+// =============================================================================
+
+/// ResourceIdentifier implementation for Operation with OracledatabaseProjectsLocationsAutonomousDatabasesDeleteArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<OracledatabaseProjectsLocationsAutonomousDatabasesDeleteArgs>
+    for Operation
+{
+    fn generate_resource_id(
+        &self,
+        input: &OracledatabaseProjectsLocationsAutonomousDatabasesDeleteArgs,
+    ) -> String {
+        format!("gcp::oracledatabase::Operation/{}", input.name)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::oracledatabase::Operation"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for Operation
+// =============================================================================
+
+/// ResourceIdentifier implementation for Operation with OracledatabaseProjectsLocationsAutonomousDatabasesFailoverArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<OracledatabaseProjectsLocationsAutonomousDatabasesFailoverArgs>
+    for Operation
+{
+    fn generate_resource_id(
+        &self,
+        input: &OracledatabaseProjectsLocationsAutonomousDatabasesFailoverArgs,
+    ) -> String {
+        format!("gcp::oracledatabase::Operation/{}", input.name)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::oracledatabase::Operation"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for GenerateAutonomousDatabaseWalletResponse
+// =============================================================================
+
+/// ResourceIdentifier implementation for GenerateAutonomousDatabaseWalletResponse with OracledatabaseProjectsLocationsAutonomousDatabasesGenerateWalletArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<OracledatabaseProjectsLocationsAutonomousDatabasesGenerateWalletArgs>
+    for GenerateAutonomousDatabaseWalletResponse
+{
+    fn generate_resource_id(
+        &self,
+        input: &OracledatabaseProjectsLocationsAutonomousDatabasesGenerateWalletArgs,
+    ) -> String {
+        format!(
+            "gcp::oracledatabase::GenerateAutonomousDatabaseWalletResponse/{}",
+            input.name
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::oracledatabase::GenerateAutonomousDatabaseWalletResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for AutonomousDatabase
+// =============================================================================
+
+/// ResourceIdentifier implementation for AutonomousDatabase with OracledatabaseProjectsLocationsAutonomousDatabasesGetArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<OracledatabaseProjectsLocationsAutonomousDatabasesGetArgs>
+    for AutonomousDatabase
+{
+    fn generate_resource_id(
+        &self,
+        input: &OracledatabaseProjectsLocationsAutonomousDatabasesGetArgs,
+    ) -> String {
+        format!("gcp::oracledatabase::AutonomousDatabase/{}", input.name)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::oracledatabase::AutonomousDatabase"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for ListAutonomousDatabasesResponse
+// =============================================================================
+
+/// ResourceIdentifier implementation for ListAutonomousDatabasesResponse with OracledatabaseProjectsLocationsAutonomousDatabasesListArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<OracledatabaseProjectsLocationsAutonomousDatabasesListArgs>
+    for ListAutonomousDatabasesResponse
+{
+    fn generate_resource_id(
+        &self,
+        input: &OracledatabaseProjectsLocationsAutonomousDatabasesListArgs,
+    ) -> String {
+        format!(
+            "gcp::oracledatabase::ListAutonomousDatabasesResponse/{}",
+            input.parent
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::oracledatabase::ListAutonomousDatabasesResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for Operation
+// =============================================================================
+
+/// ResourceIdentifier implementation for Operation with OracledatabaseProjectsLocationsAutonomousDatabasesPatchArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<OracledatabaseProjectsLocationsAutonomousDatabasesPatchArgs> for Operation {
+    fn generate_resource_id(
+        &self,
+        input: &OracledatabaseProjectsLocationsAutonomousDatabasesPatchArgs,
+    ) -> String {
+        format!("gcp::oracledatabase::Operation/{}", input.name)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::oracledatabase::Operation"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for Operation
+// =============================================================================
+
+/// ResourceIdentifier implementation for Operation with OracledatabaseProjectsLocationsAutonomousDatabasesRestartArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<OracledatabaseProjectsLocationsAutonomousDatabasesRestartArgs>
+    for Operation
+{
+    fn generate_resource_id(
+        &self,
+        input: &OracledatabaseProjectsLocationsAutonomousDatabasesRestartArgs,
+    ) -> String {
+        format!("gcp::oracledatabase::Operation/{}", input.name)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::oracledatabase::Operation"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for Operation
+// =============================================================================
+
+/// ResourceIdentifier implementation for Operation with OracledatabaseProjectsLocationsAutonomousDatabasesRestoreArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<OracledatabaseProjectsLocationsAutonomousDatabasesRestoreArgs>
+    for Operation
+{
+    fn generate_resource_id(
+        &self,
+        input: &OracledatabaseProjectsLocationsAutonomousDatabasesRestoreArgs,
+    ) -> String {
+        format!("gcp::oracledatabase::Operation/{}", input.name)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::oracledatabase::Operation"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for Operation
+// =============================================================================
+
+/// ResourceIdentifier implementation for Operation with OracledatabaseProjectsLocationsAutonomousDatabasesStartArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<OracledatabaseProjectsLocationsAutonomousDatabasesStartArgs> for Operation {
+    fn generate_resource_id(
+        &self,
+        input: &OracledatabaseProjectsLocationsAutonomousDatabasesStartArgs,
+    ) -> String {
+        format!("gcp::oracledatabase::Operation/{}", input.name)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::oracledatabase::Operation"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for Operation
+// =============================================================================
+
+/// ResourceIdentifier implementation for Operation with OracledatabaseProjectsLocationsAutonomousDatabasesStopArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<OracledatabaseProjectsLocationsAutonomousDatabasesStopArgs> for Operation {
+    fn generate_resource_id(
+        &self,
+        input: &OracledatabaseProjectsLocationsAutonomousDatabasesStopArgs,
+    ) -> String {
+        format!("gcp::oracledatabase::Operation/{}", input.name)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::oracledatabase::Operation"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for Operation
+// =============================================================================
+
+/// ResourceIdentifier implementation for Operation with OracledatabaseProjectsLocationsAutonomousDatabasesSwitchoverArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<OracledatabaseProjectsLocationsAutonomousDatabasesSwitchoverArgs>
+    for Operation
+{
+    fn generate_resource_id(
+        &self,
+        input: &OracledatabaseProjectsLocationsAutonomousDatabasesSwitchoverArgs,
+    ) -> String {
+        format!("gcp::oracledatabase::Operation/{}", input.name)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::oracledatabase::Operation"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for ListAutonomousDbVersionsResponse
+// =============================================================================
+
+/// ResourceIdentifier implementation for ListAutonomousDbVersionsResponse with OracledatabaseProjectsLocationsAutonomousDbVersionsListArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<OracledatabaseProjectsLocationsAutonomousDbVersionsListArgs>
+    for ListAutonomousDbVersionsResponse
+{
+    fn generate_resource_id(
+        &self,
+        input: &OracledatabaseProjectsLocationsAutonomousDbVersionsListArgs,
+    ) -> String {
+        format!(
+            "gcp::oracledatabase::ListAutonomousDbVersionsResponse/{}",
+            input.parent
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::oracledatabase::ListAutonomousDbVersionsResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for Operation
+// =============================================================================
+
+/// ResourceIdentifier implementation for Operation with OracledatabaseProjectsLocationsCloudExadataInfrastructuresCreateArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<OracledatabaseProjectsLocationsCloudExadataInfrastructuresCreateArgs>
+    for Operation
+{
+    fn generate_resource_id(
+        &self,
+        input: &OracledatabaseProjectsLocationsCloudExadataInfrastructuresCreateArgs,
+    ) -> String {
+        format!("gcp::oracledatabase::Operation/{}", input.parent)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::oracledatabase::Operation"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for Operation
+// =============================================================================
+
+/// ResourceIdentifier implementation for Operation with OracledatabaseProjectsLocationsCloudExadataInfrastructuresDeleteArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<OracledatabaseProjectsLocationsCloudExadataInfrastructuresDeleteArgs>
+    for Operation
+{
+    fn generate_resource_id(
+        &self,
+        input: &OracledatabaseProjectsLocationsCloudExadataInfrastructuresDeleteArgs,
+    ) -> String {
+        format!("gcp::oracledatabase::Operation/{}", input.name)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::oracledatabase::Operation"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for CloudExadataInfrastructure
+// =============================================================================
+
+/// ResourceIdentifier implementation for CloudExadataInfrastructure with OracledatabaseProjectsLocationsCloudExadataInfrastructuresGetArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<OracledatabaseProjectsLocationsCloudExadataInfrastructuresGetArgs>
+    for CloudExadataInfrastructure
+{
+    fn generate_resource_id(
+        &self,
+        input: &OracledatabaseProjectsLocationsCloudExadataInfrastructuresGetArgs,
+    ) -> String {
+        format!(
+            "gcp::oracledatabase::CloudExadataInfrastructure/{}",
+            input.name
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::oracledatabase::CloudExadataInfrastructure"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for ListCloudExadataInfrastructuresResponse
+// =============================================================================
+
+/// ResourceIdentifier implementation for ListCloudExadataInfrastructuresResponse with OracledatabaseProjectsLocationsCloudExadataInfrastructuresListArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<OracledatabaseProjectsLocationsCloudExadataInfrastructuresListArgs>
+    for ListCloudExadataInfrastructuresResponse
+{
+    fn generate_resource_id(
+        &self,
+        input: &OracledatabaseProjectsLocationsCloudExadataInfrastructuresListArgs,
+    ) -> String {
+        format!(
+            "gcp::oracledatabase::ListCloudExadataInfrastructuresResponse/{}",
+            input.parent
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::oracledatabase::ListCloudExadataInfrastructuresResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for ListDbServersResponse
+// =============================================================================
+
+/// ResourceIdentifier implementation for ListDbServersResponse with OracledatabaseProjectsLocationsCloudExadataInfrastructuresDbServersListArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<OracledatabaseProjectsLocationsCloudExadataInfrastructuresDbServersListArgs>
+    for ListDbServersResponse
+{
+    fn generate_resource_id(
+        &self,
+        input: &OracledatabaseProjectsLocationsCloudExadataInfrastructuresDbServersListArgs,
+    ) -> String {
+        format!(
+            "gcp::oracledatabase::ListDbServersResponse/{}",
+            input.parent
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::oracledatabase::ListDbServersResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for Operation
+// =============================================================================
+
+/// ResourceIdentifier implementation for Operation with OracledatabaseProjectsLocationsCloudVmClustersCreateArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<OracledatabaseProjectsLocationsCloudVmClustersCreateArgs> for Operation {
+    fn generate_resource_id(
+        &self,
+        input: &OracledatabaseProjectsLocationsCloudVmClustersCreateArgs,
+    ) -> String {
+        format!("gcp::oracledatabase::Operation/{}", input.parent)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::oracledatabase::Operation"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for Operation
+// =============================================================================
+
+/// ResourceIdentifier implementation for Operation with OracledatabaseProjectsLocationsCloudVmClustersDeleteArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<OracledatabaseProjectsLocationsCloudVmClustersDeleteArgs> for Operation {
+    fn generate_resource_id(
+        &self,
+        input: &OracledatabaseProjectsLocationsCloudVmClustersDeleteArgs,
+    ) -> String {
+        format!("gcp::oracledatabase::Operation/{}", input.name)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::oracledatabase::Operation"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for CloudVmCluster
+// =============================================================================
+
+/// ResourceIdentifier implementation for CloudVmCluster with OracledatabaseProjectsLocationsCloudVmClustersGetArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<OracledatabaseProjectsLocationsCloudVmClustersGetArgs> for CloudVmCluster {
+    fn generate_resource_id(
+        &self,
+        input: &OracledatabaseProjectsLocationsCloudVmClustersGetArgs,
+    ) -> String {
+        format!("gcp::oracledatabase::CloudVmCluster/{}", input.name)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::oracledatabase::CloudVmCluster"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for ListCloudVmClustersResponse
+// =============================================================================
+
+/// ResourceIdentifier implementation for ListCloudVmClustersResponse with OracledatabaseProjectsLocationsCloudVmClustersListArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<OracledatabaseProjectsLocationsCloudVmClustersListArgs>
+    for ListCloudVmClustersResponse
+{
+    fn generate_resource_id(
+        &self,
+        input: &OracledatabaseProjectsLocationsCloudVmClustersListArgs,
+    ) -> String {
+        format!(
+            "gcp::oracledatabase::ListCloudVmClustersResponse/{}",
+            input.parent
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::oracledatabase::ListCloudVmClustersResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for ListDbNodesResponse
+// =============================================================================
+
+/// ResourceIdentifier implementation for ListDbNodesResponse with OracledatabaseProjectsLocationsCloudVmClustersDbNodesListArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<OracledatabaseProjectsLocationsCloudVmClustersDbNodesListArgs>
+    for ListDbNodesResponse
+{
+    fn generate_resource_id(
+        &self,
+        input: &OracledatabaseProjectsLocationsCloudVmClustersDbNodesListArgs,
+    ) -> String {
+        format!("gcp::oracledatabase::ListDbNodesResponse/{}", input.parent)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::oracledatabase::ListDbNodesResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for ListDatabaseCharacterSetsResponse
+// =============================================================================
+
+/// ResourceIdentifier implementation for ListDatabaseCharacterSetsResponse with OracledatabaseProjectsLocationsDatabaseCharacterSetsListArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<OracledatabaseProjectsLocationsDatabaseCharacterSetsListArgs>
+    for ListDatabaseCharacterSetsResponse
+{
+    fn generate_resource_id(
+        &self,
+        input: &OracledatabaseProjectsLocationsDatabaseCharacterSetsListArgs,
+    ) -> String {
+        format!(
+            "gcp::oracledatabase::ListDatabaseCharacterSetsResponse/{}",
+            input.parent
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::oracledatabase::ListDatabaseCharacterSetsResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for Database
+// =============================================================================
+
+/// ResourceIdentifier implementation for Database with OracledatabaseProjectsLocationsDatabasesGetArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<OracledatabaseProjectsLocationsDatabasesGetArgs> for Database {
+    fn generate_resource_id(
+        &self,
+        input: &OracledatabaseProjectsLocationsDatabasesGetArgs,
+    ) -> String {
+        format!("gcp::oracledatabase::Database/{}", input.name)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::oracledatabase::Database"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for ListDatabasesResponse
+// =============================================================================
+
+/// ResourceIdentifier implementation for ListDatabasesResponse with OracledatabaseProjectsLocationsDatabasesListArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<OracledatabaseProjectsLocationsDatabasesListArgs>
+    for ListDatabasesResponse
+{
+    fn generate_resource_id(
+        &self,
+        input: &OracledatabaseProjectsLocationsDatabasesListArgs,
+    ) -> String {
+        format!(
+            "gcp::oracledatabase::ListDatabasesResponse/{}",
+            input.parent
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::oracledatabase::ListDatabasesResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for ListDbSystemInitialStorageSizesResponse
+// =============================================================================
+
+/// ResourceIdentifier implementation for ListDbSystemInitialStorageSizesResponse with OracledatabaseProjectsLocationsDbSystemInitialStorageSizesListArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<OracledatabaseProjectsLocationsDbSystemInitialStorageSizesListArgs>
+    for ListDbSystemInitialStorageSizesResponse
+{
+    fn generate_resource_id(
+        &self,
+        input: &OracledatabaseProjectsLocationsDbSystemInitialStorageSizesListArgs,
+    ) -> String {
+        format!(
+            "gcp::oracledatabase::ListDbSystemInitialStorageSizesResponse/{}",
+            input.parent
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::oracledatabase::ListDbSystemInitialStorageSizesResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for ListDbSystemShapesResponse
+// =============================================================================
+
+/// ResourceIdentifier implementation for ListDbSystemShapesResponse with OracledatabaseProjectsLocationsDbSystemShapesListArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<OracledatabaseProjectsLocationsDbSystemShapesListArgs>
+    for ListDbSystemShapesResponse
+{
+    fn generate_resource_id(
+        &self,
+        input: &OracledatabaseProjectsLocationsDbSystemShapesListArgs,
+    ) -> String {
+        format!(
+            "gcp::oracledatabase::ListDbSystemShapesResponse/{}",
+            input.parent
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::oracledatabase::ListDbSystemShapesResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for Operation
+// =============================================================================
+
+/// ResourceIdentifier implementation for Operation with OracledatabaseProjectsLocationsDbSystemsCreateArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<OracledatabaseProjectsLocationsDbSystemsCreateArgs> for Operation {
+    fn generate_resource_id(
+        &self,
+        input: &OracledatabaseProjectsLocationsDbSystemsCreateArgs,
+    ) -> String {
+        format!("gcp::oracledatabase::Operation/{}", input.parent)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::oracledatabase::Operation"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for Operation
+// =============================================================================
+
+/// ResourceIdentifier implementation for Operation with OracledatabaseProjectsLocationsDbSystemsDeleteArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<OracledatabaseProjectsLocationsDbSystemsDeleteArgs> for Operation {
+    fn generate_resource_id(
+        &self,
+        input: &OracledatabaseProjectsLocationsDbSystemsDeleteArgs,
+    ) -> String {
+        format!("gcp::oracledatabase::Operation/{}", input.name)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::oracledatabase::Operation"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for DbSystem
+// =============================================================================
+
+/// ResourceIdentifier implementation for DbSystem with OracledatabaseProjectsLocationsDbSystemsGetArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<OracledatabaseProjectsLocationsDbSystemsGetArgs> for DbSystem {
+    fn generate_resource_id(
+        &self,
+        input: &OracledatabaseProjectsLocationsDbSystemsGetArgs,
+    ) -> String {
+        format!("gcp::oracledatabase::DbSystem/{}", input.name)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::oracledatabase::DbSystem"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for ListDbSystemsResponse
+// =============================================================================
+
+/// ResourceIdentifier implementation for ListDbSystemsResponse with OracledatabaseProjectsLocationsDbSystemsListArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<OracledatabaseProjectsLocationsDbSystemsListArgs>
+    for ListDbSystemsResponse
+{
+    fn generate_resource_id(
+        &self,
+        input: &OracledatabaseProjectsLocationsDbSystemsListArgs,
+    ) -> String {
+        format!(
+            "gcp::oracledatabase::ListDbSystemsResponse/{}",
+            input.parent
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::oracledatabase::ListDbSystemsResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for ListDbVersionsResponse
+// =============================================================================
+
+/// ResourceIdentifier implementation for ListDbVersionsResponse with OracledatabaseProjectsLocationsDbVersionsListArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<OracledatabaseProjectsLocationsDbVersionsListArgs>
+    for ListDbVersionsResponse
+{
+    fn generate_resource_id(
+        &self,
+        input: &OracledatabaseProjectsLocationsDbVersionsListArgs,
+    ) -> String {
+        format!(
+            "gcp::oracledatabase::ListDbVersionsResponse/{}",
+            input.parent
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::oracledatabase::ListDbVersionsResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for ListEntitlementsResponse
+// =============================================================================
+
+/// ResourceIdentifier implementation for ListEntitlementsResponse with OracledatabaseProjectsLocationsEntitlementsListArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<OracledatabaseProjectsLocationsEntitlementsListArgs>
+    for ListEntitlementsResponse
+{
+    fn generate_resource_id(
+        &self,
+        input: &OracledatabaseProjectsLocationsEntitlementsListArgs,
+    ) -> String {
+        format!(
+            "gcp::oracledatabase::ListEntitlementsResponse/{}",
+            input.parent
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::oracledatabase::ListEntitlementsResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for Operation
+// =============================================================================
+
+/// ResourceIdentifier implementation for Operation with OracledatabaseProjectsLocationsExadbVmClustersCreateArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<OracledatabaseProjectsLocationsExadbVmClustersCreateArgs> for Operation {
+    fn generate_resource_id(
+        &self,
+        input: &OracledatabaseProjectsLocationsExadbVmClustersCreateArgs,
+    ) -> String {
+        format!("gcp::oracledatabase::Operation/{}", input.parent)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::oracledatabase::Operation"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for Operation
+// =============================================================================
+
+/// ResourceIdentifier implementation for Operation with OracledatabaseProjectsLocationsExadbVmClustersDeleteArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<OracledatabaseProjectsLocationsExadbVmClustersDeleteArgs> for Operation {
+    fn generate_resource_id(
+        &self,
+        input: &OracledatabaseProjectsLocationsExadbVmClustersDeleteArgs,
+    ) -> String {
+        format!("gcp::oracledatabase::Operation/{}", input.name)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::oracledatabase::Operation"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for ExadbVmCluster
+// =============================================================================
+
+/// ResourceIdentifier implementation for ExadbVmCluster with OracledatabaseProjectsLocationsExadbVmClustersGetArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<OracledatabaseProjectsLocationsExadbVmClustersGetArgs> for ExadbVmCluster {
+    fn generate_resource_id(
+        &self,
+        input: &OracledatabaseProjectsLocationsExadbVmClustersGetArgs,
+    ) -> String {
+        format!("gcp::oracledatabase::ExadbVmCluster/{}", input.name)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::oracledatabase::ExadbVmCluster"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for ListExadbVmClustersResponse
+// =============================================================================
+
+/// ResourceIdentifier implementation for ListExadbVmClustersResponse with OracledatabaseProjectsLocationsExadbVmClustersListArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<OracledatabaseProjectsLocationsExadbVmClustersListArgs>
+    for ListExadbVmClustersResponse
+{
+    fn generate_resource_id(
+        &self,
+        input: &OracledatabaseProjectsLocationsExadbVmClustersListArgs,
+    ) -> String {
+        format!(
+            "gcp::oracledatabase::ListExadbVmClustersResponse/{}",
+            input.parent
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::oracledatabase::ListExadbVmClustersResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for Operation
+// =============================================================================
+
+/// ResourceIdentifier implementation for Operation with OracledatabaseProjectsLocationsExadbVmClustersPatchArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<OracledatabaseProjectsLocationsExadbVmClustersPatchArgs> for Operation {
+    fn generate_resource_id(
+        &self,
+        input: &OracledatabaseProjectsLocationsExadbVmClustersPatchArgs,
+    ) -> String {
+        format!("gcp::oracledatabase::Operation/{}", input.name)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::oracledatabase::Operation"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for Operation
+// =============================================================================
+
+/// ResourceIdentifier implementation for Operation with OracledatabaseProjectsLocationsExadbVmClustersRemoveVirtualMachineArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<OracledatabaseProjectsLocationsExadbVmClustersRemoveVirtualMachineArgs>
+    for Operation
+{
+    fn generate_resource_id(
+        &self,
+        input: &OracledatabaseProjectsLocationsExadbVmClustersRemoveVirtualMachineArgs,
+    ) -> String {
+        format!("gcp::oracledatabase::Operation/{}", input.name)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::oracledatabase::Operation"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for ListDbNodesResponse
+// =============================================================================
+
+/// ResourceIdentifier implementation for ListDbNodesResponse with OracledatabaseProjectsLocationsExadbVmClustersDbNodesListArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<OracledatabaseProjectsLocationsExadbVmClustersDbNodesListArgs>
+    for ListDbNodesResponse
+{
+    fn generate_resource_id(
+        &self,
+        input: &OracledatabaseProjectsLocationsExadbVmClustersDbNodesListArgs,
+    ) -> String {
+        format!("gcp::oracledatabase::ListDbNodesResponse/{}", input.parent)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::oracledatabase::ListDbNodesResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for Operation
+// =============================================================================
+
+/// ResourceIdentifier implementation for Operation with OracledatabaseProjectsLocationsExascaleDbStorageVaultsCreateArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<OracledatabaseProjectsLocationsExascaleDbStorageVaultsCreateArgs>
+    for Operation
+{
+    fn generate_resource_id(
+        &self,
+        input: &OracledatabaseProjectsLocationsExascaleDbStorageVaultsCreateArgs,
+    ) -> String {
+        format!("gcp::oracledatabase::Operation/{}", input.parent)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::oracledatabase::Operation"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for Operation
+// =============================================================================
+
+/// ResourceIdentifier implementation for Operation with OracledatabaseProjectsLocationsExascaleDbStorageVaultsDeleteArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<OracledatabaseProjectsLocationsExascaleDbStorageVaultsDeleteArgs>
+    for Operation
+{
+    fn generate_resource_id(
+        &self,
+        input: &OracledatabaseProjectsLocationsExascaleDbStorageVaultsDeleteArgs,
+    ) -> String {
+        format!("gcp::oracledatabase::Operation/{}", input.name)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::oracledatabase::Operation"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for ExascaleDbStorageVault
+// =============================================================================
+
+/// ResourceIdentifier implementation for ExascaleDbStorageVault with OracledatabaseProjectsLocationsExascaleDbStorageVaultsGetArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<OracledatabaseProjectsLocationsExascaleDbStorageVaultsGetArgs>
+    for ExascaleDbStorageVault
+{
+    fn generate_resource_id(
+        &self,
+        input: &OracledatabaseProjectsLocationsExascaleDbStorageVaultsGetArgs,
+    ) -> String {
+        format!("gcp::oracledatabase::ExascaleDbStorageVault/{}", input.name)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::oracledatabase::ExascaleDbStorageVault"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for ListExascaleDbStorageVaultsResponse
+// =============================================================================
+
+/// ResourceIdentifier implementation for ListExascaleDbStorageVaultsResponse with OracledatabaseProjectsLocationsExascaleDbStorageVaultsListArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<OracledatabaseProjectsLocationsExascaleDbStorageVaultsListArgs>
+    for ListExascaleDbStorageVaultsResponse
+{
+    fn generate_resource_id(
+        &self,
+        input: &OracledatabaseProjectsLocationsExascaleDbStorageVaultsListArgs,
+    ) -> String {
+        format!(
+            "gcp::oracledatabase::ListExascaleDbStorageVaultsResponse/{}",
+            input.parent
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::oracledatabase::ListExascaleDbStorageVaultsResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for ListGiVersionsResponse
+// =============================================================================
+
+/// ResourceIdentifier implementation for ListGiVersionsResponse with OracledatabaseProjectsLocationsGiVersionsListArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<OracledatabaseProjectsLocationsGiVersionsListArgs>
+    for ListGiVersionsResponse
+{
+    fn generate_resource_id(
+        &self,
+        input: &OracledatabaseProjectsLocationsGiVersionsListArgs,
+    ) -> String {
+        format!(
+            "gcp::oracledatabase::ListGiVersionsResponse/{}",
+            input.parent
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::oracledatabase::ListGiVersionsResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for ListMinorVersionsResponse
+// =============================================================================
+
+/// ResourceIdentifier implementation for ListMinorVersionsResponse with OracledatabaseProjectsLocationsGiVersionsMinorVersionsListArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<OracledatabaseProjectsLocationsGiVersionsMinorVersionsListArgs>
+    for ListMinorVersionsResponse
+{
+    fn generate_resource_id(
+        &self,
+        input: &OracledatabaseProjectsLocationsGiVersionsMinorVersionsListArgs,
+    ) -> String {
+        format!(
+            "gcp::oracledatabase::ListMinorVersionsResponse/{}",
+            input.parent
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::oracledatabase::ListMinorVersionsResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for Operation
+// =============================================================================
+
+/// ResourceIdentifier implementation for Operation with OracledatabaseProjectsLocationsOdbNetworksCreateArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<OracledatabaseProjectsLocationsOdbNetworksCreateArgs> for Operation {
+    fn generate_resource_id(
+        &self,
+        input: &OracledatabaseProjectsLocationsOdbNetworksCreateArgs,
+    ) -> String {
+        format!("gcp::oracledatabase::Operation/{}", input.parent)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::oracledatabase::Operation"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for Operation
+// =============================================================================
+
+/// ResourceIdentifier implementation for Operation with OracledatabaseProjectsLocationsOdbNetworksDeleteArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<OracledatabaseProjectsLocationsOdbNetworksDeleteArgs> for Operation {
+    fn generate_resource_id(
+        &self,
+        input: &OracledatabaseProjectsLocationsOdbNetworksDeleteArgs,
+    ) -> String {
+        format!("gcp::oracledatabase::Operation/{}", input.name)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::oracledatabase::Operation"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for OdbNetwork
+// =============================================================================
+
+/// ResourceIdentifier implementation for OdbNetwork with OracledatabaseProjectsLocationsOdbNetworksGetArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<OracledatabaseProjectsLocationsOdbNetworksGetArgs> for OdbNetwork {
+    fn generate_resource_id(
+        &self,
+        input: &OracledatabaseProjectsLocationsOdbNetworksGetArgs,
+    ) -> String {
+        format!("gcp::oracledatabase::OdbNetwork/{}", input.name)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::oracledatabase::OdbNetwork"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for ListOdbNetworksResponse
+// =============================================================================
+
+/// ResourceIdentifier implementation for ListOdbNetworksResponse with OracledatabaseProjectsLocationsOdbNetworksListArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<OracledatabaseProjectsLocationsOdbNetworksListArgs>
+    for ListOdbNetworksResponse
+{
+    fn generate_resource_id(
+        &self,
+        input: &OracledatabaseProjectsLocationsOdbNetworksListArgs,
+    ) -> String {
+        format!(
+            "gcp::oracledatabase::ListOdbNetworksResponse/{}",
+            input.parent
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::oracledatabase::ListOdbNetworksResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for Operation
+// =============================================================================
+
+/// ResourceIdentifier implementation for Operation with OracledatabaseProjectsLocationsOdbNetworksOdbSubnetsCreateArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<OracledatabaseProjectsLocationsOdbNetworksOdbSubnetsCreateArgs>
+    for Operation
+{
+    fn generate_resource_id(
+        &self,
+        input: &OracledatabaseProjectsLocationsOdbNetworksOdbSubnetsCreateArgs,
+    ) -> String {
+        format!("gcp::oracledatabase::Operation/{}", input.parent)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::oracledatabase::Operation"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for Operation
+// =============================================================================
+
+/// ResourceIdentifier implementation for Operation with OracledatabaseProjectsLocationsOdbNetworksOdbSubnetsDeleteArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<OracledatabaseProjectsLocationsOdbNetworksOdbSubnetsDeleteArgs>
+    for Operation
+{
+    fn generate_resource_id(
+        &self,
+        input: &OracledatabaseProjectsLocationsOdbNetworksOdbSubnetsDeleteArgs,
+    ) -> String {
+        format!("gcp::oracledatabase::Operation/{}", input.name)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::oracledatabase::Operation"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for OdbSubnet
+// =============================================================================
+
+/// ResourceIdentifier implementation for OdbSubnet with OracledatabaseProjectsLocationsOdbNetworksOdbSubnetsGetArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<OracledatabaseProjectsLocationsOdbNetworksOdbSubnetsGetArgs> for OdbSubnet {
+    fn generate_resource_id(
+        &self,
+        input: &OracledatabaseProjectsLocationsOdbNetworksOdbSubnetsGetArgs,
+    ) -> String {
+        format!("gcp::oracledatabase::OdbSubnet/{}", input.name)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::oracledatabase::OdbSubnet"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for ListOdbSubnetsResponse
+// =============================================================================
+
+/// ResourceIdentifier implementation for ListOdbSubnetsResponse with OracledatabaseProjectsLocationsOdbNetworksOdbSubnetsListArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<OracledatabaseProjectsLocationsOdbNetworksOdbSubnetsListArgs>
+    for ListOdbSubnetsResponse
+{
+    fn generate_resource_id(
+        &self,
+        input: &OracledatabaseProjectsLocationsOdbNetworksOdbSubnetsListArgs,
+    ) -> String {
+        format!(
+            "gcp::oracledatabase::ListOdbSubnetsResponse/{}",
+            input.parent
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::oracledatabase::ListOdbSubnetsResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for Empty
+// =============================================================================
+
+/// ResourceIdentifier implementation for Empty with OracledatabaseProjectsLocationsOperationsCancelArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<OracledatabaseProjectsLocationsOperationsCancelArgs> for Empty {
+    fn generate_resource_id(
+        &self,
+        input: &OracledatabaseProjectsLocationsOperationsCancelArgs,
+    ) -> String {
+        format!("gcp::oracledatabase::Empty/{}", input.name)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::oracledatabase::Empty"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for Empty
+// =============================================================================
+
+/// ResourceIdentifier implementation for Empty with OracledatabaseProjectsLocationsOperationsDeleteArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<OracledatabaseProjectsLocationsOperationsDeleteArgs> for Empty {
+    fn generate_resource_id(
+        &self,
+        input: &OracledatabaseProjectsLocationsOperationsDeleteArgs,
+    ) -> String {
+        format!("gcp::oracledatabase::Empty/{}", input.name)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::oracledatabase::Empty"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for Operation
+// =============================================================================
+
+/// ResourceIdentifier implementation for Operation with OracledatabaseProjectsLocationsOperationsGetArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<OracledatabaseProjectsLocationsOperationsGetArgs> for Operation {
+    fn generate_resource_id(
+        &self,
+        input: &OracledatabaseProjectsLocationsOperationsGetArgs,
+    ) -> String {
+        format!("gcp::oracledatabase::Operation/{}", input.name)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::oracledatabase::Operation"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for ListOperationsResponse
+// =============================================================================
+
+/// ResourceIdentifier implementation for ListOperationsResponse with OracledatabaseProjectsLocationsOperationsListArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<OracledatabaseProjectsLocationsOperationsListArgs>
+    for ListOperationsResponse
+{
+    fn generate_resource_id(
+        &self,
+        input: &OracledatabaseProjectsLocationsOperationsListArgs,
+    ) -> String {
+        format!("gcp::oracledatabase::ListOperationsResponse/{}", input.name)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::oracledatabase::ListOperationsResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for PluggableDatabase
+// =============================================================================
+
+/// ResourceIdentifier implementation for PluggableDatabase with OracledatabaseProjectsLocationsPluggableDatabasesGetArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<OracledatabaseProjectsLocationsPluggableDatabasesGetArgs>
+    for PluggableDatabase
+{
+    fn generate_resource_id(
+        &self,
+        input: &OracledatabaseProjectsLocationsPluggableDatabasesGetArgs,
+    ) -> String {
+        format!("gcp::oracledatabase::PluggableDatabase/{}", input.name)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::oracledatabase::PluggableDatabase"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for ListPluggableDatabasesResponse
+// =============================================================================
+
+/// ResourceIdentifier implementation for ListPluggableDatabasesResponse with OracledatabaseProjectsLocationsPluggableDatabasesListArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<OracledatabaseProjectsLocationsPluggableDatabasesListArgs>
+    for ListPluggableDatabasesResponse
+{
+    fn generate_resource_id(
+        &self,
+        input: &OracledatabaseProjectsLocationsPluggableDatabasesListArgs,
+    ) -> String {
+        format!(
+            "gcp::oracledatabase::ListPluggableDatabasesResponse/{}",
+            input.parent
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::oracledatabase::ListPluggableDatabasesResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
 }

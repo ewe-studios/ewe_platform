@@ -7,7 +7,6 @@
 
 #![cfg(feature = "gcp")]
 
-
 use crate::providers::gcp::clients::types::*;
 use crate::providers::gcp::resources::*;
 use foundation_core::valtron::{
@@ -17,8 +16,323 @@ use foundation_core::valtron::{
 use foundation_core::wire::simple_http::client::{
     body_reader, ClientRequestBuilder, RequestIntro, SimpleHttpClient, SystemDnsResolver,
 };
+use foundation_db::state::resource_identifier::ResourceIdentifier;
 use foundation_macros::JsonHash;
 use serde::Serialize;
+
+/// GET v2/projects/{projectsId}/locations/{locationsId}
+/// Gets information about a location.
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `cloudtasks_projects_locations_get_execute()` to send, or `cloudtasks_projects_locations_get` for simplest API.
+
+pub fn cloudtasks_projects_locations_get_builder(
+    client: &SimpleHttpClient,
+    name: &String,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!(
+        "https://cloudtasks.googleapis.com/v2/projects/{}/locations/{locationsId}",
+        name,
+    );
+
+    // Build request
+    let builder = client
+        .get(&endpoint_url)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// GET v2/projects/{projectsId}/locations/{locationsId}
+/// Gets information about a location.
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `cloudtasks_projects_locations_get_execute()` or `cloudtasks_projects_locations_get`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `cloudtasks_projects_locations_get_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn cloudtasks_projects_locations_get_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<Location>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: Location = serde_json::from_str(&body)
+                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// GET v2/projects/{projectsId}/locations/{locationsId}
+/// Gets information about a location.
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `cloudtasks_projects_locations_get_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `cloudtasks_projects_locations_get_task()`.
+/// For the simplest API, use `cloudtasks_projects_locations_get()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `cloudtasks_projects_locations_get_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn cloudtasks_projects_locations_get_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<Location>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let task = cloudtasks_projects_locations_get_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`cloudtasks_projects_locations_get`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct CloudtasksProjectsLocationsGetArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
+/// GET v2/projects/{projectsId}/locations/{locationsId}
+/// Gets information about a location.
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `cloudtasks_projects_locations_get_builder()` + `cloudtasks_projects_locations_get_execute()`.
+/// For task-level control, use `cloudtasks_projects_locations_get_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn cloudtasks_projects_locations_get(
+    client: &SimpleHttpClient,
+    args: &CloudtasksProjectsLocationsGetArgs,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<Location>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let builder = cloudtasks_projects_locations_get_builder(client, &args.name)?;
+    cloudtasks_projects_locations_get_execute(builder)
+}
+
+/// GET v2/projects/{projectsId}/locations/{locationsId}/cmekConfig
+/// Gets the CMEK config. Gets the Customer Managed Encryption Key configured with the Cloud Tasks lcoation. By default there is no kms_key configured.
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `cloudtasks_projects_locations_get_cmek_config_execute()` to send, or `cloudtasks_projects_locations_get_cmek_config` for simplest API.
+
+pub fn cloudtasks_projects_locations_get_cmek_config_builder(
+    client: &SimpleHttpClient,
+    name: &String,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!(
+        "https://cloudtasks.googleapis.com/v2/projects/{}/locations/{locationsId}/cmekConfig",
+        name,
+    );
+
+    // Build request
+    let builder = client
+        .get(&endpoint_url)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// GET v2/projects/{projectsId}/locations/{locationsId}/cmekConfig
+/// Gets the CMEK config. Gets the Customer Managed Encryption Key configured with the Cloud Tasks lcoation. By default there is no kms_key configured.
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `cloudtasks_projects_locations_get_cmek_config_execute()` or `cloudtasks_projects_locations_get_cmek_config`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `cloudtasks_projects_locations_get_cmek_config_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn cloudtasks_projects_locations_get_cmek_config_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<CmekConfig>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: CmekConfig = serde_json::from_str(&body)
+                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// GET v2/projects/{projectsId}/locations/{locationsId}/cmekConfig
+/// Gets the CMEK config. Gets the Customer Managed Encryption Key configured with the Cloud Tasks lcoation. By default there is no kms_key configured.
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `cloudtasks_projects_locations_get_cmek_config_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `cloudtasks_projects_locations_get_cmek_config_task()`.
+/// For the simplest API, use `cloudtasks_projects_locations_get_cmek_config()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `cloudtasks_projects_locations_get_cmek_config_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn cloudtasks_projects_locations_get_cmek_config_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<CmekConfig>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let task = cloudtasks_projects_locations_get_cmek_config_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`cloudtasks_projects_locations_get_cmek_config`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct CloudtasksProjectsLocationsGetCmekConfigArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
+/// GET v2/projects/{projectsId}/locations/{locationsId}/cmekConfig
+/// Gets the CMEK config. Gets the Customer Managed Encryption Key configured with the Cloud Tasks lcoation. By default there is no kms_key configured.
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `cloudtasks_projects_locations_get_cmek_config_builder()` + `cloudtasks_projects_locations_get_cmek_config_execute()`.
+/// For task-level control, use `cloudtasks_projects_locations_get_cmek_config_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn cloudtasks_projects_locations_get_cmek_config(
+    client: &SimpleHttpClient,
+    args: &CloudtasksProjectsLocationsGetCmekConfigArgs,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<CmekConfig>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let builder = cloudtasks_projects_locations_get_cmek_config_builder(client, &args.name)?;
+    cloudtasks_projects_locations_get_cmek_config_execute(builder)
+}
 
 /// GET v2/projects/{projectsId}/locations
 /// Lists information about the supported locations for this service. This method lists locations based on the resource scope provided in the [ListLocationsRequest.name] field: * **Global locations**: If name is empty, the method lists the public locations available to all projects. * **Project-specific locations**: If name follows the format `projects/{project}`, the method lists locations visible to that specific project. This includes public, private, or other project-specific locations enabled for the project. For `gRPC` and client library implementations, the resource name is passed as the name field. For direct service calls, the resource name is incorporated into the request path based on the specific service implementation and version.
@@ -29,13 +343,16 @@ use serde::Serialize;
 pub fn cloudtasks_projects_locations_list_builder(
     client: &SimpleHttpClient,
     name: &String,
-    extraLocationTypes: &Option<String>,
-    filter: &Option<String>,
-    pageSize: &Option<i32>,
-    pageToken: &Option<String>,
+    extraLocationTypes: &Option<Option<String>>,
+    filter: &Option<Option<String>>,
+    pageSize: &Option<Option<String>>,
+    pageToken: &Option<Option<String>>,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
-    let endpoint_url = format!("https://cloudtasks.googleapis.com/v2/projects/{}/locations",);
+    let endpoint_url = format!(
+        "https://cloudtasks.googleapis.com/v2/projects/{}/locations",
+        name,
+    );
 
     // Build request
     let mut query_parts = Vec::new();
@@ -177,13 +494,13 @@ pub struct CloudtasksProjectsLocationsListArgs {
     /// Path parameter: name
     pub name: String,
     /// Query parameter: extraLocationTypes
-    pub extraLocationTypes: Option<String>,
+    pub extraLocationTypes: Option<Option<String>>,
     /// Query parameter: filter
-    pub filter: Option<String>,
+    pub filter: Option<Option<String>>,
     /// Query parameter: pageSize
-    pub pageSize: Option<i32>,
+    pub pageSize: Option<Option<String>>,
     /// Query parameter: pageToken
-    pub pageToken: Option<String>,
+    pub pageToken: Option<Option<String>>,
 }
 
 /// GET v2/projects/{projectsId}/locations
@@ -215,4 +532,3497 @@ pub fn cloudtasks_projects_locations_list(
         &args.pageToken,
     )?;
     cloudtasks_projects_locations_list_execute(builder)
+}
+
+/// PATCH v2/projects/{projectsId}/locations/{locationsId}/cmekConfig
+/// Creates or Updates a CMEK config. Updates the Customer Managed Encryption Key associated with the Cloud Tasks location (Creates if the key does not already exist). All new tasks created in the location will be encrypted at-rest with the KMS-key provided in the config.
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `cloudtasks_projects_locations_update_cmek_config_execute()` to send, or `cloudtasks_projects_locations_update_cmek_config` for simplest API.
+
+pub fn cloudtasks_projects_locations_update_cmek_config_builder(
+    client: &SimpleHttpClient,
+    name: &String,
+    updateMask: &Option<Option<String>>,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!(
+        "https://cloudtasks.googleapis.com/v2/projects/{}/locations/{locationsId}/cmekConfig",
+        name,
+    );
+
+    // Build request
+    let mut query_parts = Vec::new();
+    if let Some(val) = updateMask.as_ref() {
+        query_parts.push(format!("updateMask={}", val));
+    }
+
+    let url_with_query = if query_parts.is_empty() {
+        endpoint_url
+    } else {
+        format!("{}?{}", endpoint_url, query_parts.join("&"))
+    };
+
+    let builder = client
+        .patch(&url_with_query)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// PATCH v2/projects/{projectsId}/locations/{locationsId}/cmekConfig
+/// Creates or Updates a CMEK config. Updates the Customer Managed Encryption Key associated with the Cloud Tasks location (Creates if the key does not already exist). All new tasks created in the location will be encrypted at-rest with the KMS-key provided in the config.
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `cloudtasks_projects_locations_update_cmek_config_execute()` or `cloudtasks_projects_locations_update_cmek_config`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `cloudtasks_projects_locations_update_cmek_config_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn cloudtasks_projects_locations_update_cmek_config_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<CmekConfig>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: CmekConfig = serde_json::from_str(&body)
+                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// PATCH v2/projects/{projectsId}/locations/{locationsId}/cmekConfig
+/// Creates or Updates a CMEK config. Updates the Customer Managed Encryption Key associated with the Cloud Tasks location (Creates if the key does not already exist). All new tasks created in the location will be encrypted at-rest with the KMS-key provided in the config.
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `cloudtasks_projects_locations_update_cmek_config_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `cloudtasks_projects_locations_update_cmek_config_task()`.
+/// For the simplest API, use `cloudtasks_projects_locations_update_cmek_config()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `cloudtasks_projects_locations_update_cmek_config_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn cloudtasks_projects_locations_update_cmek_config_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<CmekConfig>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let task = cloudtasks_projects_locations_update_cmek_config_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`cloudtasks_projects_locations_update_cmek_config`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct CloudtasksProjectsLocationsUpdateCmekConfigArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Query parameter: updateMask
+    pub updateMask: Option<Option<String>>,
+}
+
+/// PATCH v2/projects/{projectsId}/locations/{locationsId}/cmekConfig
+/// Creates or Updates a CMEK config. Updates the Customer Managed Encryption Key associated with the Cloud Tasks location (Creates if the key does not already exist). All new tasks created in the location will be encrypted at-rest with the KMS-key provided in the config.
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `cloudtasks_projects_locations_update_cmek_config_builder()` + `cloudtasks_projects_locations_update_cmek_config_execute()`.
+/// For task-level control, use `cloudtasks_projects_locations_update_cmek_config_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn cloudtasks_projects_locations_update_cmek_config(
+    client: &SimpleHttpClient,
+    args: &CloudtasksProjectsLocationsUpdateCmekConfigArgs,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<CmekConfig>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let builder = cloudtasks_projects_locations_update_cmek_config_builder(
+        client,
+        &args.name,
+        &args.updateMask,
+    )?;
+    cloudtasks_projects_locations_update_cmek_config_execute(builder)
+}
+
+/// POST v2/projects/{projectsId}/locations/{locationsId}/queues
+/// Creates a queue. Queues created with this method allow tasks to live for a maximum of 31 days. After a task is 31 days old, the task will be deleted regardless of whether it was dispatched or not. WARNING: Using this method may have unintended side effects if you are using an App Engine queue.yaml or queue.xml file to manage your queues. Read [Overview of Queue Management and queue.yaml](<https://cloud.google.`com/tasks/docs/queue-yaml`>) before using this method.
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `cloudtasks_projects_locations_queues_create_execute()` to send, or `cloudtasks_projects_locations_queues_create` for simplest API.
+
+pub fn cloudtasks_projects_locations_queues_create_builder(
+    client: &SimpleHttpClient,
+    parent: &String,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!(
+        "https://cloudtasks.googleapis.com/v2/projects/{}/locations/{locationsId}/queues",
+        parent,
+    );
+
+    // Build request
+    let builder = client
+        .post(&endpoint_url)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// POST v2/projects/{projectsId}/locations/{locationsId}/queues
+/// Creates a queue. Queues created with this method allow tasks to live for a maximum of 31 days. After a task is 31 days old, the task will be deleted regardless of whether it was dispatched or not. WARNING: Using this method may have unintended side effects if you are using an App Engine queue.yaml or queue.xml file to manage your queues. Read [Overview of Queue Management and queue.yaml](<https://cloud.google.`com/tasks/docs/queue-yaml`>) before using this method.
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `cloudtasks_projects_locations_queues_create_execute()` or `cloudtasks_projects_locations_queues_create`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `cloudtasks_projects_locations_queues_create_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn cloudtasks_projects_locations_queues_create_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<Queue>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: Queue = serde_json::from_str(&body)
+                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// POST v2/projects/{projectsId}/locations/{locationsId}/queues
+/// Creates a queue. Queues created with this method allow tasks to live for a maximum of 31 days. After a task is 31 days old, the task will be deleted regardless of whether it was dispatched or not. WARNING: Using this method may have unintended side effects if you are using an App Engine queue.yaml or queue.xml file to manage your queues. Read [Overview of Queue Management and queue.yaml](<https://cloud.google.`com/tasks/docs/queue-yaml`>) before using this method.
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `cloudtasks_projects_locations_queues_create_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `cloudtasks_projects_locations_queues_create_task()`.
+/// For the simplest API, use `cloudtasks_projects_locations_queues_create()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `cloudtasks_projects_locations_queues_create_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn cloudtasks_projects_locations_queues_create_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<Queue>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let task = cloudtasks_projects_locations_queues_create_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`cloudtasks_projects_locations_queues_create`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct CloudtasksProjectsLocationsQueuesCreateArgs {
+    /// Path parameter: parent
+    pub parent: String,
+}
+
+/// POST v2/projects/{projectsId}/locations/{locationsId}/queues
+/// Creates a queue. Queues created with this method allow tasks to live for a maximum of 31 days. After a task is 31 days old, the task will be deleted regardless of whether it was dispatched or not. WARNING: Using this method may have unintended side effects if you are using an App Engine queue.yaml or queue.xml file to manage your queues. Read [Overview of Queue Management and queue.yaml](<https://cloud.google.`com/tasks/docs/queue-yaml`>) before using this method.
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `cloudtasks_projects_locations_queues_create_builder()` + `cloudtasks_projects_locations_queues_create_execute()`.
+/// For task-level control, use `cloudtasks_projects_locations_queues_create_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn cloudtasks_projects_locations_queues_create(
+    client: &SimpleHttpClient,
+    args: &CloudtasksProjectsLocationsQueuesCreateArgs,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<Queue>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let builder = cloudtasks_projects_locations_queues_create_builder(client, &args.parent)?;
+    cloudtasks_projects_locations_queues_create_execute(builder)
+}
+
+/// DELETE v2/projects/{projectsId}/locations/{locationsId}/queues/{queuesId}
+/// Deletes a queue. This command will delete the queue even if it has tasks in it. Note: If you delete a queue, you may be prevented from creating a new queue with the same name as the deleted queue for a tombstone window of up to 3 days. During this window, the CreateQueue operation may appear to recreate the queue, but this can be misleading. If you attempt to create a queue with the same name as one that is in the tombstone window, run GetQueue to confirm that the queue creation was successful. If GetQueue returns 200 response code, your queue was successfully created with the name of the previously deleted queue. Otherwise, your queue did not successfully recreate. WARNING: Using this method may have unintended side effects if you are using an App Engine queue.yaml or queue.xml file to manage your queues. Read [Overview of Queue Management and queue.yaml](<https://cloud.google.`com/tasks/docs/queue-yaml`>) before using this method.
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `cloudtasks_projects_locations_queues_delete_execute()` to send, or `cloudtasks_projects_locations_queues_delete` for simplest API.
+
+pub fn cloudtasks_projects_locations_queues_delete_builder(
+    client: &SimpleHttpClient,
+    name: &String,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!(
+        "https://cloudtasks.googleapis.com/v2/projects/{}/locations/{locationsId}/queues/{queuesId}",
+        name,
+    );
+
+    // Build request
+    let builder = client
+        .delete(&endpoint_url)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// DELETE v2/projects/{projectsId}/locations/{locationsId}/queues/{queuesId}
+/// Deletes a queue. This command will delete the queue even if it has tasks in it. Note: If you delete a queue, you may be prevented from creating a new queue with the same name as the deleted queue for a tombstone window of up to 3 days. During this window, the CreateQueue operation may appear to recreate the queue, but this can be misleading. If you attempt to create a queue with the same name as one that is in the tombstone window, run GetQueue to confirm that the queue creation was successful. If GetQueue returns 200 response code, your queue was successfully created with the name of the previously deleted queue. Otherwise, your queue did not successfully recreate. WARNING: Using this method may have unintended side effects if you are using an App Engine queue.yaml or queue.xml file to manage your queues. Read [Overview of Queue Management and queue.yaml](<https://cloud.google.`com/tasks/docs/queue-yaml`>) before using this method.
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `cloudtasks_projects_locations_queues_delete_execute()` or `cloudtasks_projects_locations_queues_delete`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `cloudtasks_projects_locations_queues_delete_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn cloudtasks_projects_locations_queues_delete_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<Empty>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: Empty = serde_json::from_str(&body)
+                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// DELETE v2/projects/{projectsId}/locations/{locationsId}/queues/{queuesId}
+/// Deletes a queue. This command will delete the queue even if it has tasks in it. Note: If you delete a queue, you may be prevented from creating a new queue with the same name as the deleted queue for a tombstone window of up to 3 days. During this window, the CreateQueue operation may appear to recreate the queue, but this can be misleading. If you attempt to create a queue with the same name as one that is in the tombstone window, run GetQueue to confirm that the queue creation was successful. If GetQueue returns 200 response code, your queue was successfully created with the name of the previously deleted queue. Otherwise, your queue did not successfully recreate. WARNING: Using this method may have unintended side effects if you are using an App Engine queue.yaml or queue.xml file to manage your queues. Read [Overview of Queue Management and queue.yaml](<https://cloud.google.`com/tasks/docs/queue-yaml`>) before using this method.
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `cloudtasks_projects_locations_queues_delete_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `cloudtasks_projects_locations_queues_delete_task()`.
+/// For the simplest API, use `cloudtasks_projects_locations_queues_delete()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `cloudtasks_projects_locations_queues_delete_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn cloudtasks_projects_locations_queues_delete_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<Empty>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let task = cloudtasks_projects_locations_queues_delete_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`cloudtasks_projects_locations_queues_delete`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct CloudtasksProjectsLocationsQueuesDeleteArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
+/// DELETE v2/projects/{projectsId}/locations/{locationsId}/queues/{queuesId}
+/// Deletes a queue. This command will delete the queue even if it has tasks in it. Note: If you delete a queue, you may be prevented from creating a new queue with the same name as the deleted queue for a tombstone window of up to 3 days. During this window, the CreateQueue operation may appear to recreate the queue, but this can be misleading. If you attempt to create a queue with the same name as one that is in the tombstone window, run GetQueue to confirm that the queue creation was successful. If GetQueue returns 200 response code, your queue was successfully created with the name of the previously deleted queue. Otherwise, your queue did not successfully recreate. WARNING: Using this method may have unintended side effects if you are using an App Engine queue.yaml or queue.xml file to manage your queues. Read [Overview of Queue Management and queue.yaml](<https://cloud.google.`com/tasks/docs/queue-yaml`>) before using this method.
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `cloudtasks_projects_locations_queues_delete_builder()` + `cloudtasks_projects_locations_queues_delete_execute()`.
+/// For task-level control, use `cloudtasks_projects_locations_queues_delete_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn cloudtasks_projects_locations_queues_delete(
+    client: &SimpleHttpClient,
+    args: &CloudtasksProjectsLocationsQueuesDeleteArgs,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<Empty>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let builder = cloudtasks_projects_locations_queues_delete_builder(client, &args.name)?;
+    cloudtasks_projects_locations_queues_delete_execute(builder)
+}
+
+/// GET v2/projects/{projectsId}/locations/{locationsId}/queues/{queuesId}
+/// Gets a queue.
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `cloudtasks_projects_locations_queues_get_execute()` to send, or `cloudtasks_projects_locations_queues_get` for simplest API.
+
+pub fn cloudtasks_projects_locations_queues_get_builder(
+    client: &SimpleHttpClient,
+    name: &String,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!(
+        "https://cloudtasks.googleapis.com/v2/projects/{}/locations/{locationsId}/queues/{queuesId}",
+        name,
+    );
+
+    // Build request
+    let builder = client
+        .get(&endpoint_url)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// GET v2/projects/{projectsId}/locations/{locationsId}/queues/{queuesId}
+/// Gets a queue.
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `cloudtasks_projects_locations_queues_get_execute()` or `cloudtasks_projects_locations_queues_get`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `cloudtasks_projects_locations_queues_get_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn cloudtasks_projects_locations_queues_get_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<Queue>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: Queue = serde_json::from_str(&body)
+                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// GET v2/projects/{projectsId}/locations/{locationsId}/queues/{queuesId}
+/// Gets a queue.
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `cloudtasks_projects_locations_queues_get_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `cloudtasks_projects_locations_queues_get_task()`.
+/// For the simplest API, use `cloudtasks_projects_locations_queues_get()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `cloudtasks_projects_locations_queues_get_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn cloudtasks_projects_locations_queues_get_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<Queue>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let task = cloudtasks_projects_locations_queues_get_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`cloudtasks_projects_locations_queues_get`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct CloudtasksProjectsLocationsQueuesGetArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
+/// GET v2/projects/{projectsId}/locations/{locationsId}/queues/{queuesId}
+/// Gets a queue.
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `cloudtasks_projects_locations_queues_get_builder()` + `cloudtasks_projects_locations_queues_get_execute()`.
+/// For task-level control, use `cloudtasks_projects_locations_queues_get_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn cloudtasks_projects_locations_queues_get(
+    client: &SimpleHttpClient,
+    args: &CloudtasksProjectsLocationsQueuesGetArgs,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<Queue>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let builder = cloudtasks_projects_locations_queues_get_builder(client, &args.name)?;
+    cloudtasks_projects_locations_queues_get_execute(builder)
+}
+
+/// POST v2/projects/{projectsId}/locations/{locationsId}/queues/{queuesId}:getIamPolicy
+/// Gets the access control policy for a Queue. Returns an empty policy if the resource exists and does not have a policy set. Authorization requires the following [Google IAM](<https://cloud.google.`com/iam`>) permission on the specified resource parent: * cloudtasks.queues.`getIamPolicy`
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `cloudtasks_projects_locations_queues_get_iam_policy_execute()` to send, or `cloudtasks_projects_locations_queues_get_iam_policy` for simplest API.
+
+pub fn cloudtasks_projects_locations_queues_get_iam_policy_builder(
+    client: &SimpleHttpClient,
+    resource: &String,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!(
+        "https://cloudtasks.googleapis.com/v2/projects/{}/locations/{locationsId}/queues/{queuesId}:getIamPolicy",
+        resource,
+    );
+
+    // Build request
+    let builder = client
+        .post(&endpoint_url)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// POST v2/projects/{projectsId}/locations/{locationsId}/queues/{queuesId}:getIamPolicy
+/// Gets the access control policy for a Queue. Returns an empty policy if the resource exists and does not have a policy set. Authorization requires the following [Google IAM](<https://cloud.google.`com/iam`>) permission on the specified resource parent: * cloudtasks.queues.`getIamPolicy`
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `cloudtasks_projects_locations_queues_get_iam_policy_execute()` or `cloudtasks_projects_locations_queues_get_iam_policy`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `cloudtasks_projects_locations_queues_get_iam_policy_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn cloudtasks_projects_locations_queues_get_iam_policy_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<Policy>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: Policy = serde_json::from_str(&body)
+                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// POST v2/projects/{projectsId}/locations/{locationsId}/queues/{queuesId}:getIamPolicy
+/// Gets the access control policy for a Queue. Returns an empty policy if the resource exists and does not have a policy set. Authorization requires the following [Google IAM](<https://cloud.google.`com/iam`>) permission on the specified resource parent: * cloudtasks.queues.`getIamPolicy`
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `cloudtasks_projects_locations_queues_get_iam_policy_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `cloudtasks_projects_locations_queues_get_iam_policy_task()`.
+/// For the simplest API, use `cloudtasks_projects_locations_queues_get_iam_policy()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `cloudtasks_projects_locations_queues_get_iam_policy_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn cloudtasks_projects_locations_queues_get_iam_policy_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<Policy>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let task = cloudtasks_projects_locations_queues_get_iam_policy_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`cloudtasks_projects_locations_queues_get_iam_policy`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct CloudtasksProjectsLocationsQueuesGetIamPolicyArgs {
+    /// Path parameter: resource
+    pub resource: String,
+}
+
+/// POST v2/projects/{projectsId}/locations/{locationsId}/queues/{queuesId}:getIamPolicy
+/// Gets the access control policy for a Queue. Returns an empty policy if the resource exists and does not have a policy set. Authorization requires the following [Google IAM](<https://cloud.google.`com/iam`>) permission on the specified resource parent: * cloudtasks.queues.`getIamPolicy`
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `cloudtasks_projects_locations_queues_get_iam_policy_builder()` + `cloudtasks_projects_locations_queues_get_iam_policy_execute()`.
+/// For task-level control, use `cloudtasks_projects_locations_queues_get_iam_policy_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn cloudtasks_projects_locations_queues_get_iam_policy(
+    client: &SimpleHttpClient,
+    args: &CloudtasksProjectsLocationsQueuesGetIamPolicyArgs,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<Policy>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let builder =
+        cloudtasks_projects_locations_queues_get_iam_policy_builder(client, &args.resource)?;
+    cloudtasks_projects_locations_queues_get_iam_policy_execute(builder)
+}
+
+/// GET v2/projects/{projectsId}/locations/{locationsId}/queues
+/// Lists queues. Queues are returned in lexicographical order.
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `cloudtasks_projects_locations_queues_list_execute()` to send, or `cloudtasks_projects_locations_queues_list` for simplest API.
+
+pub fn cloudtasks_projects_locations_queues_list_builder(
+    client: &SimpleHttpClient,
+    parent: &String,
+    filter: &Option<Option<String>>,
+    pageSize: &Option<Option<String>>,
+    pageToken: &Option<Option<String>>,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!(
+        "https://cloudtasks.googleapis.com/v2/projects/{}/locations/{locationsId}/queues",
+        parent,
+    );
+
+    // Build request
+    let mut query_parts = Vec::new();
+    if let Some(val) = filter.as_ref() {
+        query_parts.push(format!("filter={}", val));
+    }
+    if let Some(val) = pageSize.as_ref() {
+        query_parts.push(format!("pageSize={}", val));
+    }
+    if let Some(val) = pageToken.as_ref() {
+        query_parts.push(format!("pageToken={}", val));
+    }
+
+    let url_with_query = if query_parts.is_empty() {
+        endpoint_url
+    } else {
+        format!("{}?{}", endpoint_url, query_parts.join("&"))
+    };
+
+    let builder = client
+        .get(&url_with_query)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// GET v2/projects/{projectsId}/locations/{locationsId}/queues
+/// Lists queues. Queues are returned in lexicographical order.
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `cloudtasks_projects_locations_queues_list_execute()` or `cloudtasks_projects_locations_queues_list`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `cloudtasks_projects_locations_queues_list_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn cloudtasks_projects_locations_queues_list_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<ListQueuesResponse>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: ListQueuesResponse = serde_json::from_str(&body)
+                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// GET v2/projects/{projectsId}/locations/{locationsId}/queues
+/// Lists queues. Queues are returned in lexicographical order.
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `cloudtasks_projects_locations_queues_list_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `cloudtasks_projects_locations_queues_list_task()`.
+/// For the simplest API, use `cloudtasks_projects_locations_queues_list()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `cloudtasks_projects_locations_queues_list_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn cloudtasks_projects_locations_queues_list_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<ListQueuesResponse>, ApiError>, P = ApiPending>
+        + Send
+        + 'static,
+    ApiError,
+> {
+    let task = cloudtasks_projects_locations_queues_list_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`cloudtasks_projects_locations_queues_list`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct CloudtasksProjectsLocationsQueuesListArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Query parameter: filter
+    pub filter: Option<Option<String>>,
+    /// Query parameter: pageSize
+    pub pageSize: Option<Option<String>>,
+    /// Query parameter: pageToken
+    pub pageToken: Option<Option<String>>,
+}
+
+/// GET v2/projects/{projectsId}/locations/{locationsId}/queues
+/// Lists queues. Queues are returned in lexicographical order.
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `cloudtasks_projects_locations_queues_list_builder()` + `cloudtasks_projects_locations_queues_list_execute()`.
+/// For task-level control, use `cloudtasks_projects_locations_queues_list_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn cloudtasks_projects_locations_queues_list(
+    client: &SimpleHttpClient,
+    args: &CloudtasksProjectsLocationsQueuesListArgs,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<ListQueuesResponse>, ApiError>, P = ApiPending>
+        + Send
+        + 'static,
+    ApiError,
+> {
+    let builder = cloudtasks_projects_locations_queues_list_builder(
+        client,
+        &args.parent,
+        &args.filter,
+        &args.pageSize,
+        &args.pageToken,
+    )?;
+    cloudtasks_projects_locations_queues_list_execute(builder)
+}
+
+/// PATCH v2/projects/{projectsId}/locations/{locationsId}/queues/{queuesId}
+/// Updates a queue. This method creates the queue if it does not exist and updates the queue if it does exist. Queues created with this method allow tasks to live for a maximum of 31 days. After a task is 31 days old, the task will be deleted regardless of whether it was dispatched or not. WARNING: Using this method may have unintended side effects if you are using an App Engine queue.yaml or queue.xml file to manage your queues. Read [Overview of Queue Management and queue.yaml](<https://cloud.google.`com/tasks/docs/queue-yaml`>) before using this method.
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `cloudtasks_projects_locations_queues_patch_execute()` to send, or `cloudtasks_projects_locations_queues_patch` for simplest API.
+
+pub fn cloudtasks_projects_locations_queues_patch_builder(
+    client: &SimpleHttpClient,
+    name: &String,
+    updateMask: &Option<Option<String>>,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!(
+        "https://cloudtasks.googleapis.com/v2/projects/{}/locations/{locationsId}/queues/{queuesId}",
+        name,
+    );
+
+    // Build request
+    let mut query_parts = Vec::new();
+    if let Some(val) = updateMask.as_ref() {
+        query_parts.push(format!("updateMask={}", val));
+    }
+
+    let url_with_query = if query_parts.is_empty() {
+        endpoint_url
+    } else {
+        format!("{}?{}", endpoint_url, query_parts.join("&"))
+    };
+
+    let builder = client
+        .patch(&url_with_query)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// PATCH v2/projects/{projectsId}/locations/{locationsId}/queues/{queuesId}
+/// Updates a queue. This method creates the queue if it does not exist and updates the queue if it does exist. Queues created with this method allow tasks to live for a maximum of 31 days. After a task is 31 days old, the task will be deleted regardless of whether it was dispatched or not. WARNING: Using this method may have unintended side effects if you are using an App Engine queue.yaml or queue.xml file to manage your queues. Read [Overview of Queue Management and queue.yaml](<https://cloud.google.`com/tasks/docs/queue-yaml`>) before using this method.
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `cloudtasks_projects_locations_queues_patch_execute()` or `cloudtasks_projects_locations_queues_patch`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `cloudtasks_projects_locations_queues_patch_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn cloudtasks_projects_locations_queues_patch_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<Queue>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: Queue = serde_json::from_str(&body)
+                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// PATCH v2/projects/{projectsId}/locations/{locationsId}/queues/{queuesId}
+/// Updates a queue. This method creates the queue if it does not exist and updates the queue if it does exist. Queues created with this method allow tasks to live for a maximum of 31 days. After a task is 31 days old, the task will be deleted regardless of whether it was dispatched or not. WARNING: Using this method may have unintended side effects if you are using an App Engine queue.yaml or queue.xml file to manage your queues. Read [Overview of Queue Management and queue.yaml](<https://cloud.google.`com/tasks/docs/queue-yaml`>) before using this method.
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `cloudtasks_projects_locations_queues_patch_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `cloudtasks_projects_locations_queues_patch_task()`.
+/// For the simplest API, use `cloudtasks_projects_locations_queues_patch()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `cloudtasks_projects_locations_queues_patch_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn cloudtasks_projects_locations_queues_patch_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<Queue>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let task = cloudtasks_projects_locations_queues_patch_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`cloudtasks_projects_locations_queues_patch`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct CloudtasksProjectsLocationsQueuesPatchArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Query parameter: updateMask
+    pub updateMask: Option<Option<String>>,
+}
+
+/// PATCH v2/projects/{projectsId}/locations/{locationsId}/queues/{queuesId}
+/// Updates a queue. This method creates the queue if it does not exist and updates the queue if it does exist. Queues created with this method allow tasks to live for a maximum of 31 days. After a task is 31 days old, the task will be deleted regardless of whether it was dispatched or not. WARNING: Using this method may have unintended side effects if you are using an App Engine queue.yaml or queue.xml file to manage your queues. Read [Overview of Queue Management and queue.yaml](<https://cloud.google.`com/tasks/docs/queue-yaml`>) before using this method.
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `cloudtasks_projects_locations_queues_patch_builder()` + `cloudtasks_projects_locations_queues_patch_execute()`.
+/// For task-level control, use `cloudtasks_projects_locations_queues_patch_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn cloudtasks_projects_locations_queues_patch(
+    client: &SimpleHttpClient,
+    args: &CloudtasksProjectsLocationsQueuesPatchArgs,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<Queue>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let builder =
+        cloudtasks_projects_locations_queues_patch_builder(client, &args.name, &args.updateMask)?;
+    cloudtasks_projects_locations_queues_patch_execute(builder)
+}
+
+/// POST v2/projects/{projectsId}/locations/{locationsId}/queues/{queuesId}:pause
+/// Pauses the queue. If a queue is paused then the system will stop dispatching tasks until the queue is resumed via ResumeQueue. Tasks can still be added when the queue is paused. A queue is paused if its state is PAUSED.
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `cloudtasks_projects_locations_queues_pause_execute()` to send, or `cloudtasks_projects_locations_queues_pause` for simplest API.
+
+pub fn cloudtasks_projects_locations_queues_pause_builder(
+    client: &SimpleHttpClient,
+    name: &String,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!(
+        "https://cloudtasks.googleapis.com/v2/projects/{}/locations/{locationsId}/queues/{queuesId}:pause",
+        name,
+    );
+
+    // Build request
+    let builder = client
+        .post(&endpoint_url)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// POST v2/projects/{projectsId}/locations/{locationsId}/queues/{queuesId}:pause
+/// Pauses the queue. If a queue is paused then the system will stop dispatching tasks until the queue is resumed via ResumeQueue. Tasks can still be added when the queue is paused. A queue is paused if its state is PAUSED.
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `cloudtasks_projects_locations_queues_pause_execute()` or `cloudtasks_projects_locations_queues_pause`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `cloudtasks_projects_locations_queues_pause_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn cloudtasks_projects_locations_queues_pause_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<Queue>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: Queue = serde_json::from_str(&body)
+                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// POST v2/projects/{projectsId}/locations/{locationsId}/queues/{queuesId}:pause
+/// Pauses the queue. If a queue is paused then the system will stop dispatching tasks until the queue is resumed via ResumeQueue. Tasks can still be added when the queue is paused. A queue is paused if its state is PAUSED.
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `cloudtasks_projects_locations_queues_pause_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `cloudtasks_projects_locations_queues_pause_task()`.
+/// For the simplest API, use `cloudtasks_projects_locations_queues_pause()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `cloudtasks_projects_locations_queues_pause_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn cloudtasks_projects_locations_queues_pause_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<Queue>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let task = cloudtasks_projects_locations_queues_pause_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`cloudtasks_projects_locations_queues_pause`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct CloudtasksProjectsLocationsQueuesPauseArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
+/// POST v2/projects/{projectsId}/locations/{locationsId}/queues/{queuesId}:pause
+/// Pauses the queue. If a queue is paused then the system will stop dispatching tasks until the queue is resumed via ResumeQueue. Tasks can still be added when the queue is paused. A queue is paused if its state is PAUSED.
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `cloudtasks_projects_locations_queues_pause_builder()` + `cloudtasks_projects_locations_queues_pause_execute()`.
+/// For task-level control, use `cloudtasks_projects_locations_queues_pause_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn cloudtasks_projects_locations_queues_pause(
+    client: &SimpleHttpClient,
+    args: &CloudtasksProjectsLocationsQueuesPauseArgs,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<Queue>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let builder = cloudtasks_projects_locations_queues_pause_builder(client, &args.name)?;
+    cloudtasks_projects_locations_queues_pause_execute(builder)
+}
+
+/// POST v2/projects/{projectsId}/locations/{locationsId}/queues/{queuesId}:purge
+/// Purges a queue by deleting all of its tasks. All tasks created before this method is called are permanently deleted. Purge operations can take up to one minute to take effect. Tasks might be dispatched before the purge takes effect. A purge is irreversible.
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `cloudtasks_projects_locations_queues_purge_execute()` to send, or `cloudtasks_projects_locations_queues_purge` for simplest API.
+
+pub fn cloudtasks_projects_locations_queues_purge_builder(
+    client: &SimpleHttpClient,
+    name: &String,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!(
+        "https://cloudtasks.googleapis.com/v2/projects/{}/locations/{locationsId}/queues/{queuesId}:purge",
+        name,
+    );
+
+    // Build request
+    let builder = client
+        .post(&endpoint_url)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// POST v2/projects/{projectsId}/locations/{locationsId}/queues/{queuesId}:purge
+/// Purges a queue by deleting all of its tasks. All tasks created before this method is called are permanently deleted. Purge operations can take up to one minute to take effect. Tasks might be dispatched before the purge takes effect. A purge is irreversible.
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `cloudtasks_projects_locations_queues_purge_execute()` or `cloudtasks_projects_locations_queues_purge`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `cloudtasks_projects_locations_queues_purge_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn cloudtasks_projects_locations_queues_purge_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<Queue>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: Queue = serde_json::from_str(&body)
+                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// POST v2/projects/{projectsId}/locations/{locationsId}/queues/{queuesId}:purge
+/// Purges a queue by deleting all of its tasks. All tasks created before this method is called are permanently deleted. Purge operations can take up to one minute to take effect. Tasks might be dispatched before the purge takes effect. A purge is irreversible.
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `cloudtasks_projects_locations_queues_purge_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `cloudtasks_projects_locations_queues_purge_task()`.
+/// For the simplest API, use `cloudtasks_projects_locations_queues_purge()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `cloudtasks_projects_locations_queues_purge_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn cloudtasks_projects_locations_queues_purge_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<Queue>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let task = cloudtasks_projects_locations_queues_purge_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`cloudtasks_projects_locations_queues_purge`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct CloudtasksProjectsLocationsQueuesPurgeArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
+/// POST v2/projects/{projectsId}/locations/{locationsId}/queues/{queuesId}:purge
+/// Purges a queue by deleting all of its tasks. All tasks created before this method is called are permanently deleted. Purge operations can take up to one minute to take effect. Tasks might be dispatched before the purge takes effect. A purge is irreversible.
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `cloudtasks_projects_locations_queues_purge_builder()` + `cloudtasks_projects_locations_queues_purge_execute()`.
+/// For task-level control, use `cloudtasks_projects_locations_queues_purge_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn cloudtasks_projects_locations_queues_purge(
+    client: &SimpleHttpClient,
+    args: &CloudtasksProjectsLocationsQueuesPurgeArgs,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<Queue>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let builder = cloudtasks_projects_locations_queues_purge_builder(client, &args.name)?;
+    cloudtasks_projects_locations_queues_purge_execute(builder)
+}
+
+/// POST v2/projects/{projectsId}/locations/{locationsId}/queues/{queuesId}:resume
+/// Resume a queue. This method resumes a queue after it has been PAUSED or DISABLED. The state of a queue is stored in the queue's state; after calling this method it will be set to RUNNING. WARNING: Resuming many high-QPS queues at the same time can lead to target overloading. If you are resuming high-QPS queues, follow the 500/50/5 pattern described in [Managing Cloud Tasks Scaling Risks](<https://cloud.google.`com/tasks/docs/manage-cloud-task-scaling`>).
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `cloudtasks_projects_locations_queues_resume_execute()` to send, or `cloudtasks_projects_locations_queues_resume` for simplest API.
+
+pub fn cloudtasks_projects_locations_queues_resume_builder(
+    client: &SimpleHttpClient,
+    name: &String,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!(
+        "https://cloudtasks.googleapis.com/v2/projects/{}/locations/{locationsId}/queues/{queuesId}:resume",
+        name,
+    );
+
+    // Build request
+    let builder = client
+        .post(&endpoint_url)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// POST v2/projects/{projectsId}/locations/{locationsId}/queues/{queuesId}:resume
+/// Resume a queue. This method resumes a queue after it has been PAUSED or DISABLED. The state of a queue is stored in the queue's state; after calling this method it will be set to RUNNING. WARNING: Resuming many high-QPS queues at the same time can lead to target overloading. If you are resuming high-QPS queues, follow the 500/50/5 pattern described in [Managing Cloud Tasks Scaling Risks](<https://cloud.google.`com/tasks/docs/manage-cloud-task-scaling`>).
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `cloudtasks_projects_locations_queues_resume_execute()` or `cloudtasks_projects_locations_queues_resume`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `cloudtasks_projects_locations_queues_resume_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn cloudtasks_projects_locations_queues_resume_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<Queue>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: Queue = serde_json::from_str(&body)
+                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// POST v2/projects/{projectsId}/locations/{locationsId}/queues/{queuesId}:resume
+/// Resume a queue. This method resumes a queue after it has been PAUSED or DISABLED. The state of a queue is stored in the queue's state; after calling this method it will be set to RUNNING. WARNING: Resuming many high-QPS queues at the same time can lead to target overloading. If you are resuming high-QPS queues, follow the 500/50/5 pattern described in [Managing Cloud Tasks Scaling Risks](<https://cloud.google.`com/tasks/docs/manage-cloud-task-scaling`>).
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `cloudtasks_projects_locations_queues_resume_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `cloudtasks_projects_locations_queues_resume_task()`.
+/// For the simplest API, use `cloudtasks_projects_locations_queues_resume()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `cloudtasks_projects_locations_queues_resume_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn cloudtasks_projects_locations_queues_resume_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<Queue>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let task = cloudtasks_projects_locations_queues_resume_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`cloudtasks_projects_locations_queues_resume`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct CloudtasksProjectsLocationsQueuesResumeArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
+/// POST v2/projects/{projectsId}/locations/{locationsId}/queues/{queuesId}:resume
+/// Resume a queue. This method resumes a queue after it has been PAUSED or DISABLED. The state of a queue is stored in the queue's state; after calling this method it will be set to RUNNING. WARNING: Resuming many high-QPS queues at the same time can lead to target overloading. If you are resuming high-QPS queues, follow the 500/50/5 pattern described in [Managing Cloud Tasks Scaling Risks](<https://cloud.google.`com/tasks/docs/manage-cloud-task-scaling`>).
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `cloudtasks_projects_locations_queues_resume_builder()` + `cloudtasks_projects_locations_queues_resume_execute()`.
+/// For task-level control, use `cloudtasks_projects_locations_queues_resume_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn cloudtasks_projects_locations_queues_resume(
+    client: &SimpleHttpClient,
+    args: &CloudtasksProjectsLocationsQueuesResumeArgs,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<Queue>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let builder = cloudtasks_projects_locations_queues_resume_builder(client, &args.name)?;
+    cloudtasks_projects_locations_queues_resume_execute(builder)
+}
+
+/// POST v2/projects/{projectsId}/locations/{locationsId}/queues/{queuesId}:setIamPolicy
+/// Sets the access control policy for a Queue. Replaces any existing policy. Note: The Cloud Console does not check queue-level IAM permissions yet. Project-level permissions are required to use the Cloud Console. Authorization requires the following [Google IAM](<https://cloud.google.`com/iam`>) permission on the specified resource parent: * cloudtasks.queues.`setIamPolicy`
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `cloudtasks_projects_locations_queues_set_iam_policy_execute()` to send, or `cloudtasks_projects_locations_queues_set_iam_policy` for simplest API.
+
+pub fn cloudtasks_projects_locations_queues_set_iam_policy_builder(
+    client: &SimpleHttpClient,
+    resource: &String,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!(
+        "https://cloudtasks.googleapis.com/v2/projects/{}/locations/{locationsId}/queues/{queuesId}:setIamPolicy",
+        resource,
+    );
+
+    // Build request
+    let builder = client
+        .post(&endpoint_url)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// POST v2/projects/{projectsId}/locations/{locationsId}/queues/{queuesId}:setIamPolicy
+/// Sets the access control policy for a Queue. Replaces any existing policy. Note: The Cloud Console does not check queue-level IAM permissions yet. Project-level permissions are required to use the Cloud Console. Authorization requires the following [Google IAM](<https://cloud.google.`com/iam`>) permission on the specified resource parent: * cloudtasks.queues.`setIamPolicy`
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `cloudtasks_projects_locations_queues_set_iam_policy_execute()` or `cloudtasks_projects_locations_queues_set_iam_policy`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `cloudtasks_projects_locations_queues_set_iam_policy_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn cloudtasks_projects_locations_queues_set_iam_policy_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<Policy>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: Policy = serde_json::from_str(&body)
+                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// POST v2/projects/{projectsId}/locations/{locationsId}/queues/{queuesId}:setIamPolicy
+/// Sets the access control policy for a Queue. Replaces any existing policy. Note: The Cloud Console does not check queue-level IAM permissions yet. Project-level permissions are required to use the Cloud Console. Authorization requires the following [Google IAM](<https://cloud.google.`com/iam`>) permission on the specified resource parent: * cloudtasks.queues.`setIamPolicy`
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `cloudtasks_projects_locations_queues_set_iam_policy_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `cloudtasks_projects_locations_queues_set_iam_policy_task()`.
+/// For the simplest API, use `cloudtasks_projects_locations_queues_set_iam_policy()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `cloudtasks_projects_locations_queues_set_iam_policy_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn cloudtasks_projects_locations_queues_set_iam_policy_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<Policy>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let task = cloudtasks_projects_locations_queues_set_iam_policy_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`cloudtasks_projects_locations_queues_set_iam_policy`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct CloudtasksProjectsLocationsQueuesSetIamPolicyArgs {
+    /// Path parameter: resource
+    pub resource: String,
+}
+
+/// POST v2/projects/{projectsId}/locations/{locationsId}/queues/{queuesId}:setIamPolicy
+/// Sets the access control policy for a Queue. Replaces any existing policy. Note: The Cloud Console does not check queue-level IAM permissions yet. Project-level permissions are required to use the Cloud Console. Authorization requires the following [Google IAM](<https://cloud.google.`com/iam`>) permission on the specified resource parent: * cloudtasks.queues.`setIamPolicy`
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `cloudtasks_projects_locations_queues_set_iam_policy_builder()` + `cloudtasks_projects_locations_queues_set_iam_policy_execute()`.
+/// For task-level control, use `cloudtasks_projects_locations_queues_set_iam_policy_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn cloudtasks_projects_locations_queues_set_iam_policy(
+    client: &SimpleHttpClient,
+    args: &CloudtasksProjectsLocationsQueuesSetIamPolicyArgs,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<Policy>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let builder =
+        cloudtasks_projects_locations_queues_set_iam_policy_builder(client, &args.resource)?;
+    cloudtasks_projects_locations_queues_set_iam_policy_execute(builder)
+}
+
+/// POST v2/projects/{projectsId}/locations/{locationsId}/queues/{queuesId}:testIamPermissions
+/// Returns permissions that a caller has on a Queue. If the resource does not exist, this will return an empty set of permissions, not a NOT_FOUND error. Note: This operation is designed to be used for building permission-aware UIs and command-line tools, not for authorization checking. This operation may "fail open" without warning.
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `cloudtasks_projects_locations_queues_test_iam_permissions_execute()` to send, or `cloudtasks_projects_locations_queues_test_iam_permissions` for simplest API.
+
+pub fn cloudtasks_projects_locations_queues_test_iam_permissions_builder(
+    client: &SimpleHttpClient,
+    resource: &String,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!(
+        "https://cloudtasks.googleapis.com/v2/projects/{}/locations/{locationsId}/queues/{queuesId}:testIamPermissions",
+        resource,
+    );
+
+    // Build request
+    let builder = client
+        .post(&endpoint_url)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// POST v2/projects/{projectsId}/locations/{locationsId}/queues/{queuesId}:testIamPermissions
+/// Returns permissions that a caller has on a Queue. If the resource does not exist, this will return an empty set of permissions, not a NOT_FOUND error. Note: This operation is designed to be used for building permission-aware UIs and command-line tools, not for authorization checking. This operation may "fail open" without warning.
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `cloudtasks_projects_locations_queues_test_iam_permissions_execute()` or `cloudtasks_projects_locations_queues_test_iam_permissions`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `cloudtasks_projects_locations_queues_test_iam_permissions_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn cloudtasks_projects_locations_queues_test_iam_permissions_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<TestIamPermissionsResponse>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: TestIamPermissionsResponse = serde_json::from_str(&body)
+                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// POST v2/projects/{projectsId}/locations/{locationsId}/queues/{queuesId}:testIamPermissions
+/// Returns permissions that a caller has on a Queue. If the resource does not exist, this will return an empty set of permissions, not a NOT_FOUND error. Note: This operation is designed to be used for building permission-aware UIs and command-line tools, not for authorization checking. This operation may "fail open" without warning.
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `cloudtasks_projects_locations_queues_test_iam_permissions_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `cloudtasks_projects_locations_queues_test_iam_permissions_task()`.
+/// For the simplest API, use `cloudtasks_projects_locations_queues_test_iam_permissions()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `cloudtasks_projects_locations_queues_test_iam_permissions_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn cloudtasks_projects_locations_queues_test_iam_permissions_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<
+            D = Result<ApiResponse<TestIamPermissionsResponse>, ApiError>,
+            P = ApiPending,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    let task = cloudtasks_projects_locations_queues_test_iam_permissions_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`cloudtasks_projects_locations_queues_test_iam_permissions`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct CloudtasksProjectsLocationsQueuesTestIamPermissionsArgs {
+    /// Path parameter: resource
+    pub resource: String,
+}
+
+/// POST v2/projects/{projectsId}/locations/{locationsId}/queues/{queuesId}:testIamPermissions
+/// Returns permissions that a caller has on a Queue. If the resource does not exist, this will return an empty set of permissions, not a NOT_FOUND error. Note: This operation is designed to be used for building permission-aware UIs and command-line tools, not for authorization checking. This operation may "fail open" without warning.
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `cloudtasks_projects_locations_queues_test_iam_permissions_builder()` + `cloudtasks_projects_locations_queues_test_iam_permissions_execute()`.
+/// For task-level control, use `cloudtasks_projects_locations_queues_test_iam_permissions_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn cloudtasks_projects_locations_queues_test_iam_permissions(
+    client: &SimpleHttpClient,
+    args: &CloudtasksProjectsLocationsQueuesTestIamPermissionsArgs,
+) -> Result<
+    impl StreamIterator<
+            D = Result<ApiResponse<TestIamPermissionsResponse>, ApiError>,
+            P = ApiPending,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    let builder =
+        cloudtasks_projects_locations_queues_test_iam_permissions_builder(client, &args.resource)?;
+    cloudtasks_projects_locations_queues_test_iam_permissions_execute(builder)
+}
+
+/// POST v2/projects/{projectsId}/locations/{locationsId}/queues/{queuesId}/tasks/{taskId}:buffer
+/// Creates and buffers a new task without the need to explicitly define a Task message. The queue must have HTTP target. To create the task with a custom ID, use the following format and set TASK_ID to your desired ID: `projects/PROJECT_ID/locations/LOCATION_ID/queues/QUEUE_ID/tasks/TASK_ID`:buffer To create the task with an automatically generated ID, use the following format: `projects/PROJECT_ID/locations/LOCATION_ID/queues/QUEUE_ID/tasks`:buffer.
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `cloudtasks_projects_locations_queues_tasks_buffer_execute()` to send, or `cloudtasks_projects_locations_queues_tasks_buffer` for simplest API.
+
+pub fn cloudtasks_projects_locations_queues_tasks_buffer_builder(
+    client: &SimpleHttpClient,
+    queue: &String,
+    taskId: &String,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!(
+        "https://cloudtasks.googleapis.com/v2/projects/{}/locations/{}/queues/{queuesId}/tasks/{taskId}:buffer",
+        queue,
+        taskId,
+    );
+
+    // Build request
+    let builder = client
+        .post(&endpoint_url)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// POST v2/projects/{projectsId}/locations/{locationsId}/queues/{queuesId}/tasks/{taskId}:buffer
+/// Creates and buffers a new task without the need to explicitly define a Task message. The queue must have HTTP target. To create the task with a custom ID, use the following format and set TASK_ID to your desired ID: `projects/PROJECT_ID/locations/LOCATION_ID/queues/QUEUE_ID/tasks/TASK_ID`:buffer To create the task with an automatically generated ID, use the following format: `projects/PROJECT_ID/locations/LOCATION_ID/queues/QUEUE_ID/tasks`:buffer.
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `cloudtasks_projects_locations_queues_tasks_buffer_execute()` or `cloudtasks_projects_locations_queues_tasks_buffer`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `cloudtasks_projects_locations_queues_tasks_buffer_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn cloudtasks_projects_locations_queues_tasks_buffer_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<BufferTaskResponse>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: BufferTaskResponse = serde_json::from_str(&body)
+                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// POST v2/projects/{projectsId}/locations/{locationsId}/queues/{queuesId}/tasks/{taskId}:buffer
+/// Creates and buffers a new task without the need to explicitly define a Task message. The queue must have HTTP target. To create the task with a custom ID, use the following format and set TASK_ID to your desired ID: `projects/PROJECT_ID/locations/LOCATION_ID/queues/QUEUE_ID/tasks/TASK_ID`:buffer To create the task with an automatically generated ID, use the following format: `projects/PROJECT_ID/locations/LOCATION_ID/queues/QUEUE_ID/tasks`:buffer.
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `cloudtasks_projects_locations_queues_tasks_buffer_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `cloudtasks_projects_locations_queues_tasks_buffer_task()`.
+/// For the simplest API, use `cloudtasks_projects_locations_queues_tasks_buffer()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `cloudtasks_projects_locations_queues_tasks_buffer_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn cloudtasks_projects_locations_queues_tasks_buffer_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<BufferTaskResponse>, ApiError>, P = ApiPending>
+        + Send
+        + 'static,
+    ApiError,
+> {
+    let task = cloudtasks_projects_locations_queues_tasks_buffer_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`cloudtasks_projects_locations_queues_tasks_buffer`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct CloudtasksProjectsLocationsQueuesTasksBufferArgs {
+    /// Path parameter: queue
+    pub queue: String,
+    /// Path parameter: taskId
+    pub taskId: String,
+}
+
+/// POST v2/projects/{projectsId}/locations/{locationsId}/queues/{queuesId}/tasks/{taskId}:buffer
+/// Creates and buffers a new task without the need to explicitly define a Task message. The queue must have HTTP target. To create the task with a custom ID, use the following format and set TASK_ID to your desired ID: `projects/PROJECT_ID/locations/LOCATION_ID/queues/QUEUE_ID/tasks/TASK_ID`:buffer To create the task with an automatically generated ID, use the following format: `projects/PROJECT_ID/locations/LOCATION_ID/queues/QUEUE_ID/tasks`:buffer.
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `cloudtasks_projects_locations_queues_tasks_buffer_builder()` + `cloudtasks_projects_locations_queues_tasks_buffer_execute()`.
+/// For task-level control, use `cloudtasks_projects_locations_queues_tasks_buffer_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn cloudtasks_projects_locations_queues_tasks_buffer(
+    client: &SimpleHttpClient,
+    args: &CloudtasksProjectsLocationsQueuesTasksBufferArgs,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<BufferTaskResponse>, ApiError>, P = ApiPending>
+        + Send
+        + 'static,
+    ApiError,
+> {
+    let builder = cloudtasks_projects_locations_queues_tasks_buffer_builder(
+        client,
+        &args.queue,
+        &args.taskId,
+    )?;
+    cloudtasks_projects_locations_queues_tasks_buffer_execute(builder)
+}
+
+/// POST v2/projects/{projectsId}/locations/{locationsId}/queues/{queuesId}/tasks
+/// Creates a task and adds it to a queue. Tasks cannot be updated after creation; there is no UpdateTask command. * The maximum task size is 100KB.
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `cloudtasks_projects_locations_queues_tasks_create_execute()` to send, or `cloudtasks_projects_locations_queues_tasks_create` for simplest API.
+
+pub fn cloudtasks_projects_locations_queues_tasks_create_builder(
+    client: &SimpleHttpClient,
+    parent: &String,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!(
+        "https://cloudtasks.googleapis.com/v2/projects/{}/locations/{locationsId}/queues/{queuesId}/tasks",
+        parent,
+    );
+
+    // Build request
+    let builder = client
+        .post(&endpoint_url)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// POST v2/projects/{projectsId}/locations/{locationsId}/queues/{queuesId}/tasks
+/// Creates a task and adds it to a queue. Tasks cannot be updated after creation; there is no UpdateTask command. * The maximum task size is 100KB.
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `cloudtasks_projects_locations_queues_tasks_create_execute()` or `cloudtasks_projects_locations_queues_tasks_create`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `cloudtasks_projects_locations_queues_tasks_create_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn cloudtasks_projects_locations_queues_tasks_create_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<Task>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: Task = serde_json::from_str(&body)
+                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// POST v2/projects/{projectsId}/locations/{locationsId}/queues/{queuesId}/tasks
+/// Creates a task and adds it to a queue. Tasks cannot be updated after creation; there is no UpdateTask command. * The maximum task size is 100KB.
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `cloudtasks_projects_locations_queues_tasks_create_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `cloudtasks_projects_locations_queues_tasks_create_task()`.
+/// For the simplest API, use `cloudtasks_projects_locations_queues_tasks_create()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `cloudtasks_projects_locations_queues_tasks_create_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn cloudtasks_projects_locations_queues_tasks_create_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<Task>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let task = cloudtasks_projects_locations_queues_tasks_create_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`cloudtasks_projects_locations_queues_tasks_create`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct CloudtasksProjectsLocationsQueuesTasksCreateArgs {
+    /// Path parameter: parent
+    pub parent: String,
+}
+
+/// POST v2/projects/{projectsId}/locations/{locationsId}/queues/{queuesId}/tasks
+/// Creates a task and adds it to a queue. Tasks cannot be updated after creation; there is no UpdateTask command. * The maximum task size is 100KB.
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `cloudtasks_projects_locations_queues_tasks_create_builder()` + `cloudtasks_projects_locations_queues_tasks_create_execute()`.
+/// For task-level control, use `cloudtasks_projects_locations_queues_tasks_create_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn cloudtasks_projects_locations_queues_tasks_create(
+    client: &SimpleHttpClient,
+    args: &CloudtasksProjectsLocationsQueuesTasksCreateArgs,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<Task>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let builder = cloudtasks_projects_locations_queues_tasks_create_builder(client, &args.parent)?;
+    cloudtasks_projects_locations_queues_tasks_create_execute(builder)
+}
+
+/// DELETE v2/projects/{projectsId}/locations/{locationsId}/queues/{queuesId}/tasks/{tasksId}
+/// Deletes a task. A task can be deleted if it is scheduled or dispatched. A task cannot be deleted if it has executed successfully or permanently failed.
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `cloudtasks_projects_locations_queues_tasks_delete_execute()` to send, or `cloudtasks_projects_locations_queues_tasks_delete` for simplest API.
+
+pub fn cloudtasks_projects_locations_queues_tasks_delete_builder(
+    client: &SimpleHttpClient,
+    name: &String,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!(
+        "https://cloudtasks.googleapis.com/v2/projects/{}/locations/{locationsId}/queues/{queuesId}/tasks/{tasksId}",
+        name,
+    );
+
+    // Build request
+    let builder = client
+        .delete(&endpoint_url)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// DELETE v2/projects/{projectsId}/locations/{locationsId}/queues/{queuesId}/tasks/{tasksId}
+/// Deletes a task. A task can be deleted if it is scheduled or dispatched. A task cannot be deleted if it has executed successfully or permanently failed.
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `cloudtasks_projects_locations_queues_tasks_delete_execute()` or `cloudtasks_projects_locations_queues_tasks_delete`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `cloudtasks_projects_locations_queues_tasks_delete_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn cloudtasks_projects_locations_queues_tasks_delete_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<Empty>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: Empty = serde_json::from_str(&body)
+                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// DELETE v2/projects/{projectsId}/locations/{locationsId}/queues/{queuesId}/tasks/{tasksId}
+/// Deletes a task. A task can be deleted if it is scheduled or dispatched. A task cannot be deleted if it has executed successfully or permanently failed.
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `cloudtasks_projects_locations_queues_tasks_delete_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `cloudtasks_projects_locations_queues_tasks_delete_task()`.
+/// For the simplest API, use `cloudtasks_projects_locations_queues_tasks_delete()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `cloudtasks_projects_locations_queues_tasks_delete_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn cloudtasks_projects_locations_queues_tasks_delete_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<Empty>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let task = cloudtasks_projects_locations_queues_tasks_delete_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`cloudtasks_projects_locations_queues_tasks_delete`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct CloudtasksProjectsLocationsQueuesTasksDeleteArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
+/// DELETE v2/projects/{projectsId}/locations/{locationsId}/queues/{queuesId}/tasks/{tasksId}
+/// Deletes a task. A task can be deleted if it is scheduled or dispatched. A task cannot be deleted if it has executed successfully or permanently failed.
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `cloudtasks_projects_locations_queues_tasks_delete_builder()` + `cloudtasks_projects_locations_queues_tasks_delete_execute()`.
+/// For task-level control, use `cloudtasks_projects_locations_queues_tasks_delete_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn cloudtasks_projects_locations_queues_tasks_delete(
+    client: &SimpleHttpClient,
+    args: &CloudtasksProjectsLocationsQueuesTasksDeleteArgs,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<Empty>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let builder = cloudtasks_projects_locations_queues_tasks_delete_builder(client, &args.name)?;
+    cloudtasks_projects_locations_queues_tasks_delete_execute(builder)
+}
+
+/// GET v2/projects/{projectsId}/locations/{locationsId}/queues/{queuesId}/tasks/{tasksId}
+/// Gets a task. After a task is successfully executed or has exhausted its retry attempts, the task is deleted. A GetTask request for a deleted task returns a NOT_FOUND error.
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `cloudtasks_projects_locations_queues_tasks_get_execute()` to send, or `cloudtasks_projects_locations_queues_tasks_get` for simplest API.
+
+pub fn cloudtasks_projects_locations_queues_tasks_get_builder(
+    client: &SimpleHttpClient,
+    name: &String,
+    responseView: &Option<Option<String>>,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!(
+        "https://cloudtasks.googleapis.com/v2/projects/{}/locations/{locationsId}/queues/{queuesId}/tasks/{tasksId}",
+        name,
+    );
+
+    // Build request
+    let mut query_parts = Vec::new();
+    if let Some(val) = responseView.as_ref() {
+        query_parts.push(format!("responseView={}", val));
+    }
+
+    let url_with_query = if query_parts.is_empty() {
+        endpoint_url
+    } else {
+        format!("{}?{}", endpoint_url, query_parts.join("&"))
+    };
+
+    let builder = client
+        .get(&url_with_query)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// GET v2/projects/{projectsId}/locations/{locationsId}/queues/{queuesId}/tasks/{tasksId}
+/// Gets a task. After a task is successfully executed or has exhausted its retry attempts, the task is deleted. A GetTask request for a deleted task returns a NOT_FOUND error.
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `cloudtasks_projects_locations_queues_tasks_get_execute()` or `cloudtasks_projects_locations_queues_tasks_get`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `cloudtasks_projects_locations_queues_tasks_get_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn cloudtasks_projects_locations_queues_tasks_get_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<Task>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: Task = serde_json::from_str(&body)
+                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// GET v2/projects/{projectsId}/locations/{locationsId}/queues/{queuesId}/tasks/{tasksId}
+/// Gets a task. After a task is successfully executed or has exhausted its retry attempts, the task is deleted. A GetTask request for a deleted task returns a NOT_FOUND error.
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `cloudtasks_projects_locations_queues_tasks_get_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `cloudtasks_projects_locations_queues_tasks_get_task()`.
+/// For the simplest API, use `cloudtasks_projects_locations_queues_tasks_get()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `cloudtasks_projects_locations_queues_tasks_get_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn cloudtasks_projects_locations_queues_tasks_get_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<Task>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let task = cloudtasks_projects_locations_queues_tasks_get_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`cloudtasks_projects_locations_queues_tasks_get`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct CloudtasksProjectsLocationsQueuesTasksGetArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Query parameter: responseView
+    pub responseView: Option<Option<String>>,
+}
+
+/// GET v2/projects/{projectsId}/locations/{locationsId}/queues/{queuesId}/tasks/{tasksId}
+/// Gets a task. After a task is successfully executed or has exhausted its retry attempts, the task is deleted. A GetTask request for a deleted task returns a NOT_FOUND error.
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `cloudtasks_projects_locations_queues_tasks_get_builder()` + `cloudtasks_projects_locations_queues_tasks_get_execute()`.
+/// For task-level control, use `cloudtasks_projects_locations_queues_tasks_get_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn cloudtasks_projects_locations_queues_tasks_get(
+    client: &SimpleHttpClient,
+    args: &CloudtasksProjectsLocationsQueuesTasksGetArgs,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<Task>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let builder = cloudtasks_projects_locations_queues_tasks_get_builder(
+        client,
+        &args.name,
+        &args.responseView,
+    )?;
+    cloudtasks_projects_locations_queues_tasks_get_execute(builder)
+}
+
+/// GET v2/projects/{projectsId}/locations/{locationsId}/queues/{queuesId}/tasks
+/// Lists the tasks in a queue. By default, only the BASIC view is retrieved due to performance considerations; response_view controls the subset of information which is returned. The tasks may be returned in any order. The ordering may change at any time.
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `cloudtasks_projects_locations_queues_tasks_list_execute()` to send, or `cloudtasks_projects_locations_queues_tasks_list` for simplest API.
+
+pub fn cloudtasks_projects_locations_queues_tasks_list_builder(
+    client: &SimpleHttpClient,
+    parent: &String,
+    pageSize: &Option<Option<String>>,
+    pageToken: &Option<Option<String>>,
+    responseView: &Option<Option<String>>,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!(
+        "https://cloudtasks.googleapis.com/v2/projects/{}/locations/{locationsId}/queues/{queuesId}/tasks",
+        parent,
+    );
+
+    // Build request
+    let mut query_parts = Vec::new();
+    if let Some(val) = pageSize.as_ref() {
+        query_parts.push(format!("pageSize={}", val));
+    }
+    if let Some(val) = pageToken.as_ref() {
+        query_parts.push(format!("pageToken={}", val));
+    }
+    if let Some(val) = responseView.as_ref() {
+        query_parts.push(format!("responseView={}", val));
+    }
+
+    let url_with_query = if query_parts.is_empty() {
+        endpoint_url
+    } else {
+        format!("{}?{}", endpoint_url, query_parts.join("&"))
+    };
+
+    let builder = client
+        .get(&url_with_query)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// GET v2/projects/{projectsId}/locations/{locationsId}/queues/{queuesId}/tasks
+/// Lists the tasks in a queue. By default, only the BASIC view is retrieved due to performance considerations; response_view controls the subset of information which is returned. The tasks may be returned in any order. The ordering may change at any time.
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `cloudtasks_projects_locations_queues_tasks_list_execute()` or `cloudtasks_projects_locations_queues_tasks_list`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `cloudtasks_projects_locations_queues_tasks_list_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn cloudtasks_projects_locations_queues_tasks_list_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<ListTasksResponse>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: ListTasksResponse = serde_json::from_str(&body)
+                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// GET v2/projects/{projectsId}/locations/{locationsId}/queues/{queuesId}/tasks
+/// Lists the tasks in a queue. By default, only the BASIC view is retrieved due to performance considerations; response_view controls the subset of information which is returned. The tasks may be returned in any order. The ordering may change at any time.
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `cloudtasks_projects_locations_queues_tasks_list_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `cloudtasks_projects_locations_queues_tasks_list_task()`.
+/// For the simplest API, use `cloudtasks_projects_locations_queues_tasks_list()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `cloudtasks_projects_locations_queues_tasks_list_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn cloudtasks_projects_locations_queues_tasks_list_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<ListTasksResponse>, ApiError>, P = ApiPending>
+        + Send
+        + 'static,
+    ApiError,
+> {
+    let task = cloudtasks_projects_locations_queues_tasks_list_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`cloudtasks_projects_locations_queues_tasks_list`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct CloudtasksProjectsLocationsQueuesTasksListArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Query parameter: pageSize
+    pub pageSize: Option<Option<String>>,
+    /// Query parameter: pageToken
+    pub pageToken: Option<Option<String>>,
+    /// Query parameter: responseView
+    pub responseView: Option<Option<String>>,
+}
+
+/// GET v2/projects/{projectsId}/locations/{locationsId}/queues/{queuesId}/tasks
+/// Lists the tasks in a queue. By default, only the BASIC view is retrieved due to performance considerations; response_view controls the subset of information which is returned. The tasks may be returned in any order. The ordering may change at any time.
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `cloudtasks_projects_locations_queues_tasks_list_builder()` + `cloudtasks_projects_locations_queues_tasks_list_execute()`.
+/// For task-level control, use `cloudtasks_projects_locations_queues_tasks_list_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn cloudtasks_projects_locations_queues_tasks_list(
+    client: &SimpleHttpClient,
+    args: &CloudtasksProjectsLocationsQueuesTasksListArgs,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<ListTasksResponse>, ApiError>, P = ApiPending>
+        + Send
+        + 'static,
+    ApiError,
+> {
+    let builder = cloudtasks_projects_locations_queues_tasks_list_builder(
+        client,
+        &args.parent,
+        &args.pageSize,
+        &args.pageToken,
+        &args.responseView,
+    )?;
+    cloudtasks_projects_locations_queues_tasks_list_execute(builder)
+}
+
+/// POST v2/projects/{projectsId}/locations/{locationsId}/queues/{queuesId}/tasks/{tasksId}:run
+/// Forces a task to run now. When this method is called, Cloud Tasks will dispatch the task, even if the task is already running, the queue has reached its RateLimits or is PAUSED. This command is meant to be used for manual debugging. For example, RunTask can be used to retry a failed task after a fix has been made or to manually force a task to be dispatched now. If Cloud Tasks receives a successful response from the task's target, then the task will be deleted; otherwise the task's schedule_time will be reset to the time that RunTask was called plus the retry delay specified in the queue's RetryConfig. RunTask returns NOT_FOUND when it is called on a task that has already succeeded or permanently failed.
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `cloudtasks_projects_locations_queues_tasks_run_execute()` to send, or `cloudtasks_projects_locations_queues_tasks_run` for simplest API.
+
+pub fn cloudtasks_projects_locations_queues_tasks_run_builder(
+    client: &SimpleHttpClient,
+    name: &String,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!(
+        "https://cloudtasks.googleapis.com/v2/projects/{}/locations/{locationsId}/queues/{queuesId}/tasks/{tasksId}:run",
+        name,
+    );
+
+    // Build request
+    let builder = client
+        .post(&endpoint_url)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// POST v2/projects/{projectsId}/locations/{locationsId}/queues/{queuesId}/tasks/{tasksId}:run
+/// Forces a task to run now. When this method is called, Cloud Tasks will dispatch the task, even if the task is already running, the queue has reached its RateLimits or is PAUSED. This command is meant to be used for manual debugging. For example, RunTask can be used to retry a failed task after a fix has been made or to manually force a task to be dispatched now. If Cloud Tasks receives a successful response from the task's target, then the task will be deleted; otherwise the task's schedule_time will be reset to the time that RunTask was called plus the retry delay specified in the queue's RetryConfig. RunTask returns NOT_FOUND when it is called on a task that has already succeeded or permanently failed.
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `cloudtasks_projects_locations_queues_tasks_run_execute()` or `cloudtasks_projects_locations_queues_tasks_run`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `cloudtasks_projects_locations_queues_tasks_run_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn cloudtasks_projects_locations_queues_tasks_run_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<Task>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: Task = serde_json::from_str(&body)
+                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// POST v2/projects/{projectsId}/locations/{locationsId}/queues/{queuesId}/tasks/{tasksId}:run
+/// Forces a task to run now. When this method is called, Cloud Tasks will dispatch the task, even if the task is already running, the queue has reached its RateLimits or is PAUSED. This command is meant to be used for manual debugging. For example, RunTask can be used to retry a failed task after a fix has been made or to manually force a task to be dispatched now. If Cloud Tasks receives a successful response from the task's target, then the task will be deleted; otherwise the task's schedule_time will be reset to the time that RunTask was called plus the retry delay specified in the queue's RetryConfig. RunTask returns NOT_FOUND when it is called on a task that has already succeeded or permanently failed.
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `cloudtasks_projects_locations_queues_tasks_run_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `cloudtasks_projects_locations_queues_tasks_run_task()`.
+/// For the simplest API, use `cloudtasks_projects_locations_queues_tasks_run()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `cloudtasks_projects_locations_queues_tasks_run_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn cloudtasks_projects_locations_queues_tasks_run_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<Task>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let task = cloudtasks_projects_locations_queues_tasks_run_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`cloudtasks_projects_locations_queues_tasks_run`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct CloudtasksProjectsLocationsQueuesTasksRunArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
+/// POST v2/projects/{projectsId}/locations/{locationsId}/queues/{queuesId}/tasks/{tasksId}:run
+/// Forces a task to run now. When this method is called, Cloud Tasks will dispatch the task, even if the task is already running, the queue has reached its RateLimits or is PAUSED. This command is meant to be used for manual debugging. For example, RunTask can be used to retry a failed task after a fix has been made or to manually force a task to be dispatched now. If Cloud Tasks receives a successful response from the task's target, then the task will be deleted; otherwise the task's schedule_time will be reset to the time that RunTask was called plus the retry delay specified in the queue's RetryConfig. RunTask returns NOT_FOUND when it is called on a task that has already succeeded or permanently failed.
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `cloudtasks_projects_locations_queues_tasks_run_builder()` + `cloudtasks_projects_locations_queues_tasks_run_execute()`.
+/// For task-level control, use `cloudtasks_projects_locations_queues_tasks_run_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn cloudtasks_projects_locations_queues_tasks_run(
+    client: &SimpleHttpClient,
+    args: &CloudtasksProjectsLocationsQueuesTasksRunArgs,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<Task>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let builder = cloudtasks_projects_locations_queues_tasks_run_builder(client, &args.name)?;
+    cloudtasks_projects_locations_queues_tasks_run_execute(builder)
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for Location
+// =============================================================================
+
+/// ResourceIdentifier implementation for Location with CloudtasksProjectsLocationsGetArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<CloudtasksProjectsLocationsGetArgs> for Location {
+    fn generate_resource_id(&self, input: &CloudtasksProjectsLocationsGetArgs) -> String {
+        format!("gcp::cloudtasks::Location/{}", input.name)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::cloudtasks::Location"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for CmekConfig
+// =============================================================================
+
+/// ResourceIdentifier implementation for CmekConfig with CloudtasksProjectsLocationsGetCmekConfigArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<CloudtasksProjectsLocationsGetCmekConfigArgs> for CmekConfig {
+    fn generate_resource_id(&self, input: &CloudtasksProjectsLocationsGetCmekConfigArgs) -> String {
+        format!("gcp::cloudtasks::CmekConfig/{}", input.name)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::cloudtasks::CmekConfig"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for ListLocationsResponse
+// =============================================================================
+
+/// ResourceIdentifier implementation for ListLocationsResponse with CloudtasksProjectsLocationsListArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<CloudtasksProjectsLocationsListArgs> for ListLocationsResponse {
+    fn generate_resource_id(&self, input: &CloudtasksProjectsLocationsListArgs) -> String {
+        format!("gcp::cloudtasks::ListLocationsResponse/{}", input.name)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::cloudtasks::ListLocationsResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for CmekConfig
+// =============================================================================
+
+/// ResourceIdentifier implementation for CmekConfig with CloudtasksProjectsLocationsUpdateCmekConfigArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<CloudtasksProjectsLocationsUpdateCmekConfigArgs> for CmekConfig {
+    fn generate_resource_id(
+        &self,
+        input: &CloudtasksProjectsLocationsUpdateCmekConfigArgs,
+    ) -> String {
+        format!("gcp::cloudtasks::CmekConfig/{}", input.name)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::cloudtasks::CmekConfig"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for Queue
+// =============================================================================
+
+/// ResourceIdentifier implementation for Queue with CloudtasksProjectsLocationsQueuesCreateArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<CloudtasksProjectsLocationsQueuesCreateArgs> for Queue {
+    fn generate_resource_id(&self, input: &CloudtasksProjectsLocationsQueuesCreateArgs) -> String {
+        format!("gcp::cloudtasks::Queue/{}", input.parent)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::cloudtasks::Queue"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for Empty
+// =============================================================================
+
+/// ResourceIdentifier implementation for Empty with CloudtasksProjectsLocationsQueuesDeleteArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<CloudtasksProjectsLocationsQueuesDeleteArgs> for Empty {
+    fn generate_resource_id(&self, input: &CloudtasksProjectsLocationsQueuesDeleteArgs) -> String {
+        format!("gcp::cloudtasks::Empty/{}", input.name)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::cloudtasks::Empty"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for Queue
+// =============================================================================
+
+/// ResourceIdentifier implementation for Queue with CloudtasksProjectsLocationsQueuesGetArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<CloudtasksProjectsLocationsQueuesGetArgs> for Queue {
+    fn generate_resource_id(&self, input: &CloudtasksProjectsLocationsQueuesGetArgs) -> String {
+        format!("gcp::cloudtasks::Queue/{}", input.name)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::cloudtasks::Queue"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for Policy
+// =============================================================================
+
+/// ResourceIdentifier implementation for Policy with CloudtasksProjectsLocationsQueuesGetIamPolicyArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<CloudtasksProjectsLocationsQueuesGetIamPolicyArgs> for Policy {
+    fn generate_resource_id(
+        &self,
+        input: &CloudtasksProjectsLocationsQueuesGetIamPolicyArgs,
+    ) -> String {
+        format!("gcp::cloudtasks::Policy/{}", input.resource)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::cloudtasks::Policy"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for ListQueuesResponse
+// =============================================================================
+
+/// ResourceIdentifier implementation for ListQueuesResponse with CloudtasksProjectsLocationsQueuesListArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<CloudtasksProjectsLocationsQueuesListArgs> for ListQueuesResponse {
+    fn generate_resource_id(&self, input: &CloudtasksProjectsLocationsQueuesListArgs) -> String {
+        format!("gcp::cloudtasks::ListQueuesResponse/{}", input.parent)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::cloudtasks::ListQueuesResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for Queue
+// =============================================================================
+
+/// ResourceIdentifier implementation for Queue with CloudtasksProjectsLocationsQueuesPatchArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<CloudtasksProjectsLocationsQueuesPatchArgs> for Queue {
+    fn generate_resource_id(&self, input: &CloudtasksProjectsLocationsQueuesPatchArgs) -> String {
+        format!("gcp::cloudtasks::Queue/{}", input.name)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::cloudtasks::Queue"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for Queue
+// =============================================================================
+
+/// ResourceIdentifier implementation for Queue with CloudtasksProjectsLocationsQueuesPauseArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<CloudtasksProjectsLocationsQueuesPauseArgs> for Queue {
+    fn generate_resource_id(&self, input: &CloudtasksProjectsLocationsQueuesPauseArgs) -> String {
+        format!("gcp::cloudtasks::Queue/{}", input.name)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::cloudtasks::Queue"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for Queue
+// =============================================================================
+
+/// ResourceIdentifier implementation for Queue with CloudtasksProjectsLocationsQueuesPurgeArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<CloudtasksProjectsLocationsQueuesPurgeArgs> for Queue {
+    fn generate_resource_id(&self, input: &CloudtasksProjectsLocationsQueuesPurgeArgs) -> String {
+        format!("gcp::cloudtasks::Queue/{}", input.name)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::cloudtasks::Queue"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for Queue
+// =============================================================================
+
+/// ResourceIdentifier implementation for Queue with CloudtasksProjectsLocationsQueuesResumeArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<CloudtasksProjectsLocationsQueuesResumeArgs> for Queue {
+    fn generate_resource_id(&self, input: &CloudtasksProjectsLocationsQueuesResumeArgs) -> String {
+        format!("gcp::cloudtasks::Queue/{}", input.name)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::cloudtasks::Queue"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for Policy
+// =============================================================================
+
+/// ResourceIdentifier implementation for Policy with CloudtasksProjectsLocationsQueuesSetIamPolicyArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<CloudtasksProjectsLocationsQueuesSetIamPolicyArgs> for Policy {
+    fn generate_resource_id(
+        &self,
+        input: &CloudtasksProjectsLocationsQueuesSetIamPolicyArgs,
+    ) -> String {
+        format!("gcp::cloudtasks::Policy/{}", input.resource)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::cloudtasks::Policy"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for TestIamPermissionsResponse
+// =============================================================================
+
+/// ResourceIdentifier implementation for TestIamPermissionsResponse with CloudtasksProjectsLocationsQueuesTestIamPermissionsArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<CloudtasksProjectsLocationsQueuesTestIamPermissionsArgs>
+    for TestIamPermissionsResponse
+{
+    fn generate_resource_id(
+        &self,
+        input: &CloudtasksProjectsLocationsQueuesTestIamPermissionsArgs,
+    ) -> String {
+        format!(
+            "gcp::cloudtasks::TestIamPermissionsResponse/{}",
+            input.resource
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::cloudtasks::TestIamPermissionsResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for BufferTaskResponse
+// =============================================================================
+
+/// ResourceIdentifier implementation for BufferTaskResponse with CloudtasksProjectsLocationsQueuesTasksBufferArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<CloudtasksProjectsLocationsQueuesTasksBufferArgs> for BufferTaskResponse {
+    fn generate_resource_id(
+        &self,
+        input: &CloudtasksProjectsLocationsQueuesTasksBufferArgs,
+    ) -> String {
+        format!(
+            "gcp::cloudtasks::BufferTaskResponse/{}/{}",
+            input.queue, input.taskId
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::cloudtasks::BufferTaskResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for Task
+// =============================================================================
+
+/// ResourceIdentifier implementation for Task with CloudtasksProjectsLocationsQueuesTasksCreateArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<CloudtasksProjectsLocationsQueuesTasksCreateArgs> for Task {
+    fn generate_resource_id(
+        &self,
+        input: &CloudtasksProjectsLocationsQueuesTasksCreateArgs,
+    ) -> String {
+        format!("gcp::cloudtasks::Task/{}", input.parent)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::cloudtasks::Task"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for Empty
+// =============================================================================
+
+/// ResourceIdentifier implementation for Empty with CloudtasksProjectsLocationsQueuesTasksDeleteArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<CloudtasksProjectsLocationsQueuesTasksDeleteArgs> for Empty {
+    fn generate_resource_id(
+        &self,
+        input: &CloudtasksProjectsLocationsQueuesTasksDeleteArgs,
+    ) -> String {
+        format!("gcp::cloudtasks::Empty/{}", input.name)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::cloudtasks::Empty"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for Task
+// =============================================================================
+
+/// ResourceIdentifier implementation for Task with CloudtasksProjectsLocationsQueuesTasksGetArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<CloudtasksProjectsLocationsQueuesTasksGetArgs> for Task {
+    fn generate_resource_id(
+        &self,
+        input: &CloudtasksProjectsLocationsQueuesTasksGetArgs,
+    ) -> String {
+        format!("gcp::cloudtasks::Task/{}", input.name)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::cloudtasks::Task"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for ListTasksResponse
+// =============================================================================
+
+/// ResourceIdentifier implementation for ListTasksResponse with CloudtasksProjectsLocationsQueuesTasksListArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<CloudtasksProjectsLocationsQueuesTasksListArgs> for ListTasksResponse {
+    fn generate_resource_id(
+        &self,
+        input: &CloudtasksProjectsLocationsQueuesTasksListArgs,
+    ) -> String {
+        format!("gcp::cloudtasks::ListTasksResponse/{}", input.parent)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::cloudtasks::ListTasksResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for Task
+// =============================================================================
+
+/// ResourceIdentifier implementation for Task with CloudtasksProjectsLocationsQueuesTasksRunArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<CloudtasksProjectsLocationsQueuesTasksRunArgs> for Task {
+    fn generate_resource_id(
+        &self,
+        input: &CloudtasksProjectsLocationsQueuesTasksRunArgs,
+    ) -> String {
+        format!("gcp::cloudtasks::Task/{}", input.name)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::cloudtasks::Task"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
 }

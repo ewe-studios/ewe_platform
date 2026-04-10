@@ -7,7 +7,6 @@
 
 #![cfg(feature = "gcp")]
 
-
 use crate::providers::gcp::clients::types::*;
 use crate::providers::gcp::resources::*;
 use foundation_core::valtron::{
@@ -17,10 +16,11 @@ use foundation_core::valtron::{
 use foundation_core::wire::simple_http::client::{
     body_reader, ClientRequestBuilder, RequestIntro, SimpleHttpClient, SystemDnsResolver,
 };
+use foundation_db::state::resource_identifier::ResourceIdentifier;
 use foundation_macros::JsonHash;
 use serde::Serialize;
 
-/// GET v4/spreadsheets/{spreadsheetId}:batchUpdate
+/// POST v4/spreadsheets/{spreadsheetId}:batchUpdate
 /// Applies one or more updates to the spreadsheet. Each request is validated before being applied. If any request is not valid then the entire request will fail and nothing will be applied. Some requests have replies to give you some information about how they are applied. The replies will mirror the requests. For example, if you applied 4 updates and the 3rd one had a reply, then the response will have 2 empty replies, the actual reply, and another empty reply, in that order. Due to the collaborative nature of spreadsheets, it is not guaranteed that the spreadsheet will reflect exactly your changes after this completes, however it is guaranteed that the updates in the request will be applied together atomically. Your changes may be altered with respect to collaborator changes. If there are no collaborators, the spreadsheet should reflect your changes.
 ///
 /// Returns `ClientRequestBuilder` for customization.
@@ -29,7 +29,6 @@ use serde::Serialize;
 pub fn sheets_spreadsheets_batch_update_builder(
     client: &SimpleHttpClient,
     spreadsheetId: &String,
-    body: &BatchUpdateSpreadsheetRequest,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
@@ -39,15 +38,13 @@ pub fn sheets_spreadsheets_batch_update_builder(
 
     // Build request
     let builder = client
-        .get(&endpoint_url)
+        .post(&endpoint_url)
         .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
 
-    builder
-        .body_json(body)
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+    Ok(builder)
 }
 
-/// GET v4/spreadsheets/{spreadsheetId}:batchUpdate
+/// POST v4/spreadsheets/{spreadsheetId}:batchUpdate
 /// Applies one or more updates to the spreadsheet. Each request is validated before being applied. If any request is not valid then the entire request will fail and nothing will be applied. Some requests have replies to give you some information about how they are applied. The replies will mirror the requests. For example, if you applied 4 updates and the 3rd one had a reply, then the response will have 2 empty replies, the actual reply, and another empty reply, in that order. Due to the collaborative nature of spreadsheets, it is not guaranteed that the spreadsheet will reflect exactly your changes after this completes, however it is guaranteed that the updates in the request will be applied together atomically. Your changes may be altered with respect to collaborator changes. If there are no collaborators, the spreadsheet should reflect your changes.
 ///
 /// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
@@ -121,7 +118,7 @@ pub fn sheets_spreadsheets_batch_update_task(
         .map_pending(|_| ApiPending::Sending))
 }
 
-/// GET v4/spreadsheets/{spreadsheetId}:batchUpdate
+/// POST v4/spreadsheets/{spreadsheetId}:batchUpdate
 /// Applies one or more updates to the spreadsheet. Each request is validated before being applied. If any request is not valid then the entire request will fail and nothing will be applied. Some requests have replies to give you some information about how they are applied. The replies will mirror the requests. For example, if you applied 4 updates and the 3rd one had a reply, then the response will have 2 empty replies, the actual reply, and another empty reply, in that order. Due to the collaborative nature of spreadsheets, it is not guaranteed that the spreadsheet will reflect exactly your changes after this completes, however it is guaranteed that the updates in the request will be applied together atomically. Your changes may be altered with respect to collaborator changes. If there are no collaborators, the spreadsheet should reflect your changes.
 ///
 /// Takes a `ClientRequestBuilder`, builds and executes the request,
@@ -160,11 +157,9 @@ pub fn sheets_spreadsheets_batch_update_execute(
 pub struct SheetsSpreadsheetsBatchUpdateArgs {
     /// Path parameter: spreadsheetId
     pub spreadsheetId: String,
-    /// Request body.
-    pub body: BatchUpdateSpreadsheetRequest,
 }
 
-/// GET v4/spreadsheets/{spreadsheetId}:batchUpdate
+/// POST v4/spreadsheets/{spreadsheetId}:batchUpdate
 /// Applies one or more updates to the spreadsheet. Each request is validated before being applied. If any request is not valid then the entire request will fail and nothing will be applied. Some requests have replies to give you some information about how they are applied. The replies will mirror the requests. For example, if you applied 4 updates and the 3rd one had a reply, then the response will have 2 empty replies, the actual reply, and another empty reply, in that order. Due to the collaborative nature of spreadsheets, it is not guaranteed that the spreadsheet will reflect exactly your changes after this completes, however it is guaranteed that the updates in the request will be applied together atomically. Your changes may be altered with respect to collaborator changes. If there are no collaborators, the spreadsheet should reflect your changes.
 ///
 /// Simplest API - builds and executes the request in one call.
@@ -186,12 +181,11 @@ pub fn sheets_spreadsheets_batch_update(
         + 'static,
     ApiError,
 > {
-    let builder =
-        sheets_spreadsheets_batch_update_builder(client, &args.spreadsheetId, &args.body)?;
+    let builder = sheets_spreadsheets_batch_update_builder(client, &args.spreadsheetId)?;
     sheets_spreadsheets_batch_update_execute(builder)
 }
 
-/// GET v4/spreadsheets
+/// POST v4/spreadsheets
 /// Creates a spreadsheet, returning the newly created spreadsheet.
 ///
 /// Returns `ClientRequestBuilder` for customization.
@@ -199,22 +193,19 @@ pub fn sheets_spreadsheets_batch_update(
 
 pub fn sheets_spreadsheets_create_builder(
     client: &SimpleHttpClient,
-    body: &Spreadsheet,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!("https://sheets.googleapis.com/v4/spreadsheets",);
 
     // Build request
     let builder = client
-        .get(&endpoint_url)
+        .post(&endpoint_url)
         .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
 
-    builder
-        .body_json(body)
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+    Ok(builder)
 }
 
-/// GET v4/spreadsheets
+/// POST v4/spreadsheets
 /// Creates a spreadsheet, returning the newly created spreadsheet.
 ///
 /// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
@@ -288,7 +279,7 @@ pub fn sheets_spreadsheets_create_task(
         .map_pending(|_| ApiPending::Sending))
 }
 
-/// GET v4/spreadsheets
+/// POST v4/spreadsheets
 /// Creates a spreadsheet, returning the newly created spreadsheet.
 ///
 /// Takes a `ClientRequestBuilder`, builds and executes the request,
@@ -318,14 +309,7 @@ pub fn sheets_spreadsheets_create_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
-/// Arguments for [`sheets_spreadsheets_create`].
-#[derive(Debug, Clone, Serialize, JsonHash)]
-pub struct SheetsSpreadsheetsCreateArgs {
-    /// Request body.
-    pub body: Spreadsheet,
-}
-
-/// GET v4/spreadsheets
+/// POST v4/spreadsheets
 /// Creates a spreadsheet, returning the newly created spreadsheet.
 ///
 /// Simplest API - builds and executes the request in one call.
@@ -338,12 +322,11 @@ pub struct SheetsSpreadsheetsCreateArgs {
 
 pub fn sheets_spreadsheets_create(
     client: &SimpleHttpClient,
-    args: &SheetsSpreadsheetsCreateArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Spreadsheet>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = sheets_spreadsheets_create_builder(client, &args.body)?;
+    let builder = sheets_spreadsheets_create_builder(client)?;
     sheets_spreadsheets_create_execute(builder)
 }
 
@@ -356,9 +339,9 @@ pub fn sheets_spreadsheets_create(
 pub fn sheets_spreadsheets_get_builder(
     client: &SimpleHttpClient,
     spreadsheetId: &String,
-    excludeTablesInBandedRanges: &Option<bool>,
-    includeGridData: &Option<bool>,
-    ranges: &Option<String>,
+    excludeTablesInBandedRanges: &Option<Option<String>>,
+    includeGridData: &Option<Option<String>>,
+    ranges: &Option<Option<String>>,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
@@ -501,11 +484,11 @@ pub struct SheetsSpreadsheetsGetArgs {
     /// Path parameter: spreadsheetId
     pub spreadsheetId: String,
     /// Query parameter: excludeTablesInBandedRanges
-    pub excludeTablesInBandedRanges: Option<bool>,
+    pub excludeTablesInBandedRanges: Option<Option<String>>,
     /// Query parameter: includeGridData
-    pub includeGridData: Option<bool>,
+    pub includeGridData: Option<Option<String>>,
     /// Query parameter: ranges
-    pub ranges: Option<String>,
+    pub ranges: Option<Option<String>>,
 }
 
 /// GET v4/spreadsheets/{spreadsheetId}
@@ -536,7 +519,7 @@ pub fn sheets_spreadsheets_get(
     sheets_spreadsheets_get_execute(builder)
 }
 
-/// GET v4/spreadsheets/{spreadsheetId}:getByDataFilter
+/// POST v4/spreadsheets/{spreadsheetId}:getByDataFilter
 /// Returns the spreadsheet at the given ID. The caller must specify the spreadsheet ID. For more information, see [Read, write, and search metadata](<https://developers.google.`com/workspace/sheets/api/guides/metadata`>). This method differs from GetSpreadsheet in that it allows selecting which subsets of spreadsheet data to return by specifying a `dataFilters` parameter. Multiple DataFilters can be specified. Specifying one or more data filters returns the portions of the spreadsheet that intersect ranges matched by any of the filters. By default, data within grids is not returned. You can include grid data in one of two ways: * Specify a [field mask](<https://developers.google.`com/workspace/sheets/api/guides/field-masks`>) listing your desired fields using the fields URL parameter in HTTP. * Set the `includeGridData` parameter to `true`. If a field mask is set, the `includeGridData` parameter is ignored. For large spreadsheets, as a best practice, retrieve only the specific spreadsheet fields that you want.
 ///
 /// Returns `ClientRequestBuilder` for customization.
@@ -545,7 +528,6 @@ pub fn sheets_spreadsheets_get(
 pub fn sheets_spreadsheets_get_by_data_filter_builder(
     client: &SimpleHttpClient,
     spreadsheetId: &String,
-    body: &GetSpreadsheetByDataFilterRequest,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
@@ -555,15 +537,13 @@ pub fn sheets_spreadsheets_get_by_data_filter_builder(
 
     // Build request
     let builder = client
-        .get(&endpoint_url)
+        .post(&endpoint_url)
         .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
 
-    builder
-        .body_json(body)
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+    Ok(builder)
 }
 
-/// GET v4/spreadsheets/{spreadsheetId}:getByDataFilter
+/// POST v4/spreadsheets/{spreadsheetId}:getByDataFilter
 /// Returns the spreadsheet at the given ID. The caller must specify the spreadsheet ID. For more information, see [Read, write, and search metadata](<https://developers.google.`com/workspace/sheets/api/guides/metadata`>). This method differs from GetSpreadsheet in that it allows selecting which subsets of spreadsheet data to return by specifying a `dataFilters` parameter. Multiple DataFilters can be specified. Specifying one or more data filters returns the portions of the spreadsheet that intersect ranges matched by any of the filters. By default, data within grids is not returned. You can include grid data in one of two ways: * Specify a [field mask](<https://developers.google.`com/workspace/sheets/api/guides/field-masks`>) listing your desired fields using the fields URL parameter in HTTP. * Set the `includeGridData` parameter to `true`. If a field mask is set, the `includeGridData` parameter is ignored. For large spreadsheets, as a best practice, retrieve only the specific spreadsheet fields that you want.
 ///
 /// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
@@ -637,7 +617,7 @@ pub fn sheets_spreadsheets_get_by_data_filter_task(
         .map_pending(|_| ApiPending::Sending))
 }
 
-/// GET v4/spreadsheets/{spreadsheetId}:getByDataFilter
+/// POST v4/spreadsheets/{spreadsheetId}:getByDataFilter
 /// Returns the spreadsheet at the given ID. The caller must specify the spreadsheet ID. For more information, see [Read, write, and search metadata](<https://developers.google.`com/workspace/sheets/api/guides/metadata`>). This method differs from GetSpreadsheet in that it allows selecting which subsets of spreadsheet data to return by specifying a `dataFilters` parameter. Multiple DataFilters can be specified. Specifying one or more data filters returns the portions of the spreadsheet that intersect ranges matched by any of the filters. By default, data within grids is not returned. You can include grid data in one of two ways: * Specify a [field mask](<https://developers.google.`com/workspace/sheets/api/guides/field-masks`>) listing your desired fields using the fields URL parameter in HTTP. * Set the `includeGridData` parameter to `true`. If a field mask is set, the `includeGridData` parameter is ignored. For large spreadsheets, as a best practice, retrieve only the specific spreadsheet fields that you want.
 ///
 /// Takes a `ClientRequestBuilder`, builds and executes the request,
@@ -672,11 +652,9 @@ pub fn sheets_spreadsheets_get_by_data_filter_execute(
 pub struct SheetsSpreadsheetsGetByDataFilterArgs {
     /// Path parameter: spreadsheetId
     pub spreadsheetId: String,
-    /// Request body.
-    pub body: GetSpreadsheetByDataFilterRequest,
 }
 
-/// GET v4/spreadsheets/{spreadsheetId}:getByDataFilter
+/// POST v4/spreadsheets/{spreadsheetId}:getByDataFilter
 /// Returns the spreadsheet at the given ID. The caller must specify the spreadsheet ID. For more information, see [Read, write, and search metadata](<https://developers.google.`com/workspace/sheets/api/guides/metadata`>). This method differs from GetSpreadsheet in that it allows selecting which subsets of spreadsheet data to return by specifying a `dataFilters` parameter. Multiple DataFilters can be specified. Specifying one or more data filters returns the portions of the spreadsheet that intersect ranges matched by any of the filters. By default, data within grids is not returned. You can include grid data in one of two ways: * Specify a [field mask](<https://developers.google.`com/workspace/sheets/api/guides/field-masks`>) listing your desired fields using the fields URL parameter in HTTP. * Set the `includeGridData` parameter to `true`. If a field mask is set, the `includeGridData` parameter is ignored. For large spreadsheets, as a best practice, retrieve only the specific spreadsheet fields that you want.
 ///
 /// Simplest API - builds and executes the request in one call.
@@ -694,8 +672,7 @@ pub fn sheets_spreadsheets_get_by_data_filter(
     impl StreamIterator<D = Result<ApiResponse<Spreadsheet>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder =
-        sheets_spreadsheets_get_by_data_filter_builder(client, &args.spreadsheetId, &args.body)?;
+    let builder = sheets_spreadsheets_get_by_data_filter_builder(client, &args.spreadsheetId)?;
     sheets_spreadsheets_get_by_data_filter_execute(builder)
 }
 
@@ -708,7 +685,7 @@ pub fn sheets_spreadsheets_get_by_data_filter(
 pub fn sheets_spreadsheets_developer_metadata_get_builder(
     client: &SimpleHttpClient,
     spreadsheetId: &String,
-    metadataId: &i32,
+    metadataId: &String,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
@@ -836,7 +813,7 @@ pub struct SheetsSpreadsheetsDeveloperMetadataGetArgs {
     /// Path parameter: spreadsheetId
     pub spreadsheetId: String,
     /// Path parameter: metadataId
-    pub metadataId: i32,
+    pub metadataId: String,
 }
 
 /// GET v4/spreadsheets/{spreadsheetId}/developerMetadata/{metadataId}
@@ -867,7 +844,7 @@ pub fn sheets_spreadsheets_developer_metadata_get(
     sheets_spreadsheets_developer_metadata_get_execute(builder)
 }
 
-/// GET v4/spreadsheets/{spreadsheetId}/developerMetadata:search
+/// POST v4/spreadsheets/{spreadsheetId}/developerMetadata:search
 /// Returns all developer metadata matching the specified DataFilter. For more information, see [Read, write, and search metadata](<https://developers.google.`com/workspace/sheets/api/guides/metadata`>). If the provided DataFilter represents a DeveloperMetadataLookup object, this will return all DeveloperMetadata entries selected by it. If the DataFilter represents a location in a spreadsheet, this will return all developer metadata associated with locations intersecting that region.
 ///
 /// Returns `ClientRequestBuilder` for customization.
@@ -876,7 +853,6 @@ pub fn sheets_spreadsheets_developer_metadata_get(
 pub fn sheets_spreadsheets_developer_metadata_search_builder(
     client: &SimpleHttpClient,
     spreadsheetId: &String,
-    body: &SearchDeveloperMetadataRequest,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
@@ -886,15 +862,13 @@ pub fn sheets_spreadsheets_developer_metadata_search_builder(
 
     // Build request
     let builder = client
-        .get(&endpoint_url)
+        .post(&endpoint_url)
         .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
 
-    builder
-        .body_json(body)
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+    Ok(builder)
 }
 
-/// GET v4/spreadsheets/{spreadsheetId}/developerMetadata:search
+/// POST v4/spreadsheets/{spreadsheetId}/developerMetadata:search
 /// Returns all developer metadata matching the specified DataFilter. For more information, see [Read, write, and search metadata](<https://developers.google.`com/workspace/sheets/api/guides/metadata`>). If the provided DataFilter represents a DeveloperMetadataLookup object, this will return all DeveloperMetadata entries selected by it. If the DataFilter represents a location in a spreadsheet, this will return all developer metadata associated with locations intersecting that region.
 ///
 /// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
@@ -968,7 +942,7 @@ pub fn sheets_spreadsheets_developer_metadata_search_task(
         .map_pending(|_| ApiPending::Sending))
 }
 
-/// GET v4/spreadsheets/{spreadsheetId}/developerMetadata:search
+/// POST v4/spreadsheets/{spreadsheetId}/developerMetadata:search
 /// Returns all developer metadata matching the specified DataFilter. For more information, see [Read, write, and search metadata](<https://developers.google.`com/workspace/sheets/api/guides/metadata`>). If the provided DataFilter represents a DeveloperMetadataLookup object, this will return all DeveloperMetadata entries selected by it. If the DataFilter represents a location in a spreadsheet, this will return all developer metadata associated with locations intersecting that region.
 ///
 /// Takes a `ClientRequestBuilder`, builds and executes the request,
@@ -1007,11 +981,9 @@ pub fn sheets_spreadsheets_developer_metadata_search_execute(
 pub struct SheetsSpreadsheetsDeveloperMetadataSearchArgs {
     /// Path parameter: spreadsheetId
     pub spreadsheetId: String,
-    /// Request body.
-    pub body: SearchDeveloperMetadataRequest,
 }
 
-/// GET v4/spreadsheets/{spreadsheetId}/developerMetadata:search
+/// POST v4/spreadsheets/{spreadsheetId}/developerMetadata:search
 /// Returns all developer metadata matching the specified DataFilter. For more information, see [Read, write, and search metadata](<https://developers.google.`com/workspace/sheets/api/guides/metadata`>). If the provided DataFilter represents a DeveloperMetadataLookup object, this will return all DeveloperMetadata entries selected by it. If the DataFilter represents a location in a spreadsheet, this will return all developer metadata associated with locations intersecting that region.
 ///
 /// Simplest API - builds and executes the request in one call.
@@ -1033,15 +1005,12 @@ pub fn sheets_spreadsheets_developer_metadata_search(
         + 'static,
     ApiError,
 > {
-    let builder = sheets_spreadsheets_developer_metadata_search_builder(
-        client,
-        &args.spreadsheetId,
-        &args.body,
-    )?;
+    let builder =
+        sheets_spreadsheets_developer_metadata_search_builder(client, &args.spreadsheetId)?;
     sheets_spreadsheets_developer_metadata_search_execute(builder)
 }
 
-/// GET v4/spreadsheets/{spreadsheetId}/sheets/{sheetId}:copyTo
+/// POST v4/spreadsheets/{spreadsheetId}/sheets/{sheetId}:copyTo
 /// Copies a single sheet from a spreadsheet to another spreadsheet. Returns the properties of the newly created sheet.
 ///
 /// Returns `ClientRequestBuilder` for customization.
@@ -1050,8 +1019,7 @@ pub fn sheets_spreadsheets_developer_metadata_search(
 pub fn sheets_spreadsheets_sheets_copy_to_builder(
     client: &SimpleHttpClient,
     spreadsheetId: &String,
-    sheetId: &i32,
-    body: &CopySheetToAnotherSpreadsheetRequest,
+    sheetId: &String,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
@@ -1061,15 +1029,13 @@ pub fn sheets_spreadsheets_sheets_copy_to_builder(
 
     // Build request
     let builder = client
-        .get(&endpoint_url)
+        .post(&endpoint_url)
         .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
 
-    builder
-        .body_json(body)
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+    Ok(builder)
 }
 
-/// GET v4/spreadsheets/{spreadsheetId}/sheets/{sheetId}:copyTo
+/// POST v4/spreadsheets/{spreadsheetId}/sheets/{sheetId}:copyTo
 /// Copies a single sheet from a spreadsheet to another spreadsheet. Returns the properties of the newly created sheet.
 ///
 /// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
@@ -1143,7 +1109,7 @@ pub fn sheets_spreadsheets_sheets_copy_to_task(
         .map_pending(|_| ApiPending::Sending))
 }
 
-/// GET v4/spreadsheets/{spreadsheetId}/sheets/{sheetId}:copyTo
+/// POST v4/spreadsheets/{spreadsheetId}/sheets/{sheetId}:copyTo
 /// Copies a single sheet from a spreadsheet to another spreadsheet. Returns the properties of the newly created sheet.
 ///
 /// Takes a `ClientRequestBuilder`, builds and executes the request,
@@ -1181,12 +1147,10 @@ pub struct SheetsSpreadsheetsSheetsCopyToArgs {
     /// Path parameter: spreadsheetId
     pub spreadsheetId: String,
     /// Path parameter: sheetId
-    pub sheetId: i32,
-    /// Request body.
-    pub body: CopySheetToAnotherSpreadsheetRequest,
+    pub sheetId: String,
 }
 
-/// GET v4/spreadsheets/{spreadsheetId}/sheets/{sheetId}:copyTo
+/// POST v4/spreadsheets/{spreadsheetId}/sheets/{sheetId}:copyTo
 /// Copies a single sheet from a spreadsheet to another spreadsheet. Returns the properties of the newly created sheet.
 ///
 /// Simplest API - builds and executes the request in one call.
@@ -1206,16 +1170,12 @@ pub fn sheets_spreadsheets_sheets_copy_to(
         + 'static,
     ApiError,
 > {
-    let builder = sheets_spreadsheets_sheets_copy_to_builder(
-        client,
-        &args.spreadsheetId,
-        &args.sheetId,
-        &args.body,
-    )?;
+    let builder =
+        sheets_spreadsheets_sheets_copy_to_builder(client, &args.spreadsheetId, &args.sheetId)?;
     sheets_spreadsheets_sheets_copy_to_execute(builder)
 }
 
-/// GET v4/spreadsheets/{spreadsheetId}/values/{range}:append
+/// POST v4/spreadsheets/{spreadsheetId}/values/{range}:append
 /// Appends values to a spreadsheet. The input range is used to search for existing data and find a "table" within that range. Values will be appended to the next row of the table, starting with the first column of the table. See the [guide](<https://developers.google.`com/workspace/sheets/api/guides/values`#appending_values>) and [sample code](<https://developers.google.`com/workspace/sheets/api/samples/writing`#append_values>) for specific details of how tables are detected and data is appended. The caller must specify the spreadsheet ID, range, and a `valueInputOption`. The `valueInputOption` only controls how the input data will be added to the sheet (column-wise or row-wise), it does not influence what cell the data starts being written to.
 ///
 /// Returns `ClientRequestBuilder` for customization.
@@ -1225,12 +1185,11 @@ pub fn sheets_spreadsheets_values_append_builder(
     client: &SimpleHttpClient,
     spreadsheetId: &String,
     range: &String,
-    includeValuesInResponse: &Option<bool>,
-    insertDataOption: &Option<String>,
-    responseDateTimeRenderOption: &Option<String>,
-    responseValueRenderOption: &Option<String>,
-    valueInputOption: &Option<String>,
-    body: &ValueRange,
+    includeValuesInResponse: &Option<Option<String>>,
+    insertDataOption: &Option<Option<String>>,
+    responseDateTimeRenderOption: &Option<Option<String>>,
+    responseValueRenderOption: &Option<Option<String>>,
+    valueInputOption: &Option<Option<String>>,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
@@ -1263,15 +1222,13 @@ pub fn sheets_spreadsheets_values_append_builder(
     };
 
     let builder = client
-        .get(&url_with_query)
+        .post(&url_with_query)
         .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
 
-    builder
-        .body_json(body)
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+    Ok(builder)
 }
 
-/// GET v4/spreadsheets/{spreadsheetId}/values/{range}:append
+/// POST v4/spreadsheets/{spreadsheetId}/values/{range}:append
 /// Appends values to a spreadsheet. The input range is used to search for existing data and find a "table" within that range. Values will be appended to the next row of the table, starting with the first column of the table. See the [guide](<https://developers.google.`com/workspace/sheets/api/guides/values`#appending_values>) and [sample code](<https://developers.google.`com/workspace/sheets/api/samples/writing`#append_values>) for specific details of how tables are detected and data is appended. The caller must specify the spreadsheet ID, range, and a `valueInputOption`. The `valueInputOption` only controls how the input data will be added to the sheet (column-wise or row-wise), it does not influence what cell the data starts being written to.
 ///
 /// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
@@ -1345,7 +1302,7 @@ pub fn sheets_spreadsheets_values_append_task(
         .map_pending(|_| ApiPending::Sending))
 }
 
-/// GET v4/spreadsheets/{spreadsheetId}/values/{range}:append
+/// POST v4/spreadsheets/{spreadsheetId}/values/{range}:append
 /// Appends values to a spreadsheet. The input range is used to search for existing data and find a "table" within that range. Values will be appended to the next row of the table, starting with the first column of the table. See the [guide](<https://developers.google.`com/workspace/sheets/api/guides/values`#appending_values>) and [sample code](<https://developers.google.`com/workspace/sheets/api/samples/writing`#append_values>) for specific details of how tables are detected and data is appended. The caller must specify the spreadsheet ID, range, and a `valueInputOption`. The `valueInputOption` only controls how the input data will be added to the sheet (column-wise or row-wise), it does not influence what cell the data starts being written to.
 ///
 /// Takes a `ClientRequestBuilder`, builds and executes the request,
@@ -1385,20 +1342,18 @@ pub struct SheetsSpreadsheetsValuesAppendArgs {
     /// Path parameter: range
     pub range: String,
     /// Query parameter: includeValuesInResponse
-    pub includeValuesInResponse: Option<bool>,
+    pub includeValuesInResponse: Option<Option<String>>,
     /// Query parameter: insertDataOption
-    pub insertDataOption: Option<String>,
+    pub insertDataOption: Option<Option<String>>,
     /// Query parameter: responseDateTimeRenderOption
-    pub responseDateTimeRenderOption: Option<String>,
+    pub responseDateTimeRenderOption: Option<Option<String>>,
     /// Query parameter: responseValueRenderOption
-    pub responseValueRenderOption: Option<String>,
+    pub responseValueRenderOption: Option<Option<String>>,
     /// Query parameter: valueInputOption
-    pub valueInputOption: Option<String>,
-    /// Request body.
-    pub body: ValueRange,
+    pub valueInputOption: Option<Option<String>>,
 }
 
-/// GET v4/spreadsheets/{spreadsheetId}/values/{range}:append
+/// POST v4/spreadsheets/{spreadsheetId}/values/{range}:append
 /// Appends values to a spreadsheet. The input range is used to search for existing data and find a "table" within that range. Values will be appended to the next row of the table, starting with the first column of the table. See the [guide](<https://developers.google.`com/workspace/sheets/api/guides/values`#appending_values>) and [sample code](<https://developers.google.`com/workspace/sheets/api/samples/writing`#append_values>) for specific details of how tables are detected and data is appended. The caller must specify the spreadsheet ID, range, and a `valueInputOption`. The `valueInputOption` only controls how the input data will be added to the sheet (column-wise or row-wise), it does not influence what cell the data starts being written to.
 ///
 /// Simplest API - builds and executes the request in one call.
@@ -1427,12 +1382,11 @@ pub fn sheets_spreadsheets_values_append(
         &args.responseDateTimeRenderOption,
         &args.responseValueRenderOption,
         &args.valueInputOption,
-        &args.body,
     )?;
     sheets_spreadsheets_values_append_execute(builder)
 }
 
-/// GET v4/spreadsheets/{spreadsheetId}/values:batchClear
+/// POST v4/spreadsheets/{spreadsheetId}/values:batchClear
 /// Clears one or more ranges of values from a spreadsheet. The caller must specify the spreadsheet ID and one or more ranges. Only values are cleared -- all other properties of the cell (such as formatting and data validation) are kept.
 ///
 /// Returns `ClientRequestBuilder` for customization.
@@ -1441,7 +1395,6 @@ pub fn sheets_spreadsheets_values_append(
 pub fn sheets_spreadsheets_values_batch_clear_builder(
     client: &SimpleHttpClient,
     spreadsheetId: &String,
-    body: &BatchClearValuesRequest,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
@@ -1451,15 +1404,13 @@ pub fn sheets_spreadsheets_values_batch_clear_builder(
 
     // Build request
     let builder = client
-        .get(&endpoint_url)
+        .post(&endpoint_url)
         .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
 
-    builder
-        .body_json(body)
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+    Ok(builder)
 }
 
-/// GET v4/spreadsheets/{spreadsheetId}/values:batchClear
+/// POST v4/spreadsheets/{spreadsheetId}/values:batchClear
 /// Clears one or more ranges of values from a spreadsheet. The caller must specify the spreadsheet ID and one or more ranges. Only values are cleared -- all other properties of the cell (such as formatting and data validation) are kept.
 ///
 /// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
@@ -1533,7 +1484,7 @@ pub fn sheets_spreadsheets_values_batch_clear_task(
         .map_pending(|_| ApiPending::Sending))
 }
 
-/// GET v4/spreadsheets/{spreadsheetId}/values:batchClear
+/// POST v4/spreadsheets/{spreadsheetId}/values:batchClear
 /// Clears one or more ranges of values from a spreadsheet. The caller must specify the spreadsheet ID and one or more ranges. Only values are cleared -- all other properties of the cell (such as formatting and data validation) are kept.
 ///
 /// Takes a `ClientRequestBuilder`, builds and executes the request,
@@ -1570,11 +1521,9 @@ pub fn sheets_spreadsheets_values_batch_clear_execute(
 pub struct SheetsSpreadsheetsValuesBatchClearArgs {
     /// Path parameter: spreadsheetId
     pub spreadsheetId: String,
-    /// Request body.
-    pub body: BatchClearValuesRequest,
 }
 
-/// GET v4/spreadsheets/{spreadsheetId}/values:batchClear
+/// POST v4/spreadsheets/{spreadsheetId}/values:batchClear
 /// Clears one or more ranges of values from a spreadsheet. The caller must specify the spreadsheet ID and one or more ranges. Only values are cleared -- all other properties of the cell (such as formatting and data validation) are kept.
 ///
 /// Simplest API - builds and executes the request in one call.
@@ -1594,12 +1543,11 @@ pub fn sheets_spreadsheets_values_batch_clear(
         + 'static,
     ApiError,
 > {
-    let builder =
-        sheets_spreadsheets_values_batch_clear_builder(client, &args.spreadsheetId, &args.body)?;
+    let builder = sheets_spreadsheets_values_batch_clear_builder(client, &args.spreadsheetId)?;
     sheets_spreadsheets_values_batch_clear_execute(builder)
 }
 
-/// GET v4/spreadsheets/{spreadsheetId}/values:batchClearByDataFilter
+/// POST v4/spreadsheets/{spreadsheetId}/values:batchClearByDataFilter
 /// Clears one or more ranges of values from a spreadsheet. For more information, see [Read, write, and search metadata](<https://developers.google.`com/workspace/sheets/api/guides/metadata`>). The caller must specify the spreadsheet ID and one or more DataFilters. Ranges matching any of the specified data filters will be cleared. Only values are cleared -- all other properties of the cell (such as formatting, data validation, etc.) are kept.
 ///
 /// Returns `ClientRequestBuilder` for customization.
@@ -1608,7 +1556,6 @@ pub fn sheets_spreadsheets_values_batch_clear(
 pub fn sheets_spreadsheets_values_batch_clear_by_data_filter_builder(
     client: &SimpleHttpClient,
     spreadsheetId: &String,
-    body: &BatchClearValuesByDataFilterRequest,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
@@ -1618,15 +1565,13 @@ pub fn sheets_spreadsheets_values_batch_clear_by_data_filter_builder(
 
     // Build request
     let builder = client
-        .get(&endpoint_url)
+        .post(&endpoint_url)
         .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
 
-    builder
-        .body_json(body)
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+    Ok(builder)
 }
 
-/// GET v4/spreadsheets/{spreadsheetId}/values:batchClearByDataFilter
+/// POST v4/spreadsheets/{spreadsheetId}/values:batchClearByDataFilter
 /// Clears one or more ranges of values from a spreadsheet. For more information, see [Read, write, and search metadata](<https://developers.google.`com/workspace/sheets/api/guides/metadata`>). The caller must specify the spreadsheet ID and one or more DataFilters. Ranges matching any of the specified data filters will be cleared. Only values are cleared -- all other properties of the cell (such as formatting, data validation, etc.) are kept.
 ///
 /// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
@@ -1700,7 +1645,7 @@ pub fn sheets_spreadsheets_values_batch_clear_by_data_filter_task(
         .map_pending(|_| ApiPending::Sending))
 }
 
-/// GET v4/spreadsheets/{spreadsheetId}/values:batchClearByDataFilter
+/// POST v4/spreadsheets/{spreadsheetId}/values:batchClearByDataFilter
 /// Clears one or more ranges of values from a spreadsheet. For more information, see [Read, write, and search metadata](<https://developers.google.`com/workspace/sheets/api/guides/metadata`>). The caller must specify the spreadsheet ID and one or more DataFilters. Ranges matching any of the specified data filters will be cleared. Only values are cleared -- all other properties of the cell (such as formatting, data validation, etc.) are kept.
 ///
 /// Takes a `ClientRequestBuilder`, builds and executes the request,
@@ -1739,11 +1684,9 @@ pub fn sheets_spreadsheets_values_batch_clear_by_data_filter_execute(
 pub struct SheetsSpreadsheetsValuesBatchClearByDataFilterArgs {
     /// Path parameter: spreadsheetId
     pub spreadsheetId: String,
-    /// Request body.
-    pub body: BatchClearValuesByDataFilterRequest,
 }
 
-/// GET v4/spreadsheets/{spreadsheetId}/values:batchClearByDataFilter
+/// POST v4/spreadsheets/{spreadsheetId}/values:batchClearByDataFilter
 /// Clears one or more ranges of values from a spreadsheet. For more information, see [Read, write, and search metadata](<https://developers.google.`com/workspace/sheets/api/guides/metadata`>). The caller must specify the spreadsheet ID and one or more DataFilters. Ranges matching any of the specified data filters will be cleared. Only values are cleared -- all other properties of the cell (such as formatting, data validation, etc.) are kept.
 ///
 /// Simplest API - builds and executes the request in one call.
@@ -1765,11 +1708,8 @@ pub fn sheets_spreadsheets_values_batch_clear_by_data_filter(
         + 'static,
     ApiError,
 > {
-    let builder = sheets_spreadsheets_values_batch_clear_by_data_filter_builder(
-        client,
-        &args.spreadsheetId,
-        &args.body,
-    )?;
+    let builder =
+        sheets_spreadsheets_values_batch_clear_by_data_filter_builder(client, &args.spreadsheetId)?;
     sheets_spreadsheets_values_batch_clear_by_data_filter_execute(builder)
 }
 
@@ -1782,10 +1722,10 @@ pub fn sheets_spreadsheets_values_batch_clear_by_data_filter(
 pub fn sheets_spreadsheets_values_batch_get_builder(
     client: &SimpleHttpClient,
     spreadsheetId: &String,
-    dateTimeRenderOption: &Option<String>,
-    majorDimension: &Option<String>,
-    ranges: &Option<String>,
-    valueRenderOption: &Option<String>,
+    dateTimeRenderOption: &Option<Option<String>>,
+    majorDimension: &Option<Option<String>>,
+    ranges: &Option<Option<String>>,
+    valueRenderOption: &Option<Option<String>>,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
@@ -1933,13 +1873,13 @@ pub struct SheetsSpreadsheetsValuesBatchGetArgs {
     /// Path parameter: spreadsheetId
     pub spreadsheetId: String,
     /// Query parameter: dateTimeRenderOption
-    pub dateTimeRenderOption: Option<String>,
+    pub dateTimeRenderOption: Option<Option<String>>,
     /// Query parameter: majorDimension
-    pub majorDimension: Option<String>,
+    pub majorDimension: Option<Option<String>>,
     /// Query parameter: ranges
-    pub ranges: Option<String>,
+    pub ranges: Option<Option<String>>,
     /// Query parameter: valueRenderOption
-    pub valueRenderOption: Option<String>,
+    pub valueRenderOption: Option<Option<String>>,
 }
 
 /// GET v4/spreadsheets/{spreadsheetId}/values:batchGet
@@ -1973,7 +1913,7 @@ pub fn sheets_spreadsheets_values_batch_get(
     sheets_spreadsheets_values_batch_get_execute(builder)
 }
 
-/// GET v4/spreadsheets/{spreadsheetId}/values:batchGetByDataFilter
+/// POST v4/spreadsheets/{spreadsheetId}/values:batchGetByDataFilter
 /// Returns one or more ranges of values that match the specified data filters. For more information, see [Read, write, and search metadata](<https://developers.google.`com/workspace/sheets/api/guides/metadata`>). The caller must specify the spreadsheet ID and one or more DataFilters. Ranges that match any of the data filters in the request will be returned.
 ///
 /// Returns `ClientRequestBuilder` for customization.
@@ -1982,7 +1922,6 @@ pub fn sheets_spreadsheets_values_batch_get(
 pub fn sheets_spreadsheets_values_batch_get_by_data_filter_builder(
     client: &SimpleHttpClient,
     spreadsheetId: &String,
-    body: &BatchGetValuesByDataFilterRequest,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
@@ -1992,15 +1931,13 @@ pub fn sheets_spreadsheets_values_batch_get_by_data_filter_builder(
 
     // Build request
     let builder = client
-        .get(&endpoint_url)
+        .post(&endpoint_url)
         .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
 
-    builder
-        .body_json(body)
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+    Ok(builder)
 }
 
-/// GET v4/spreadsheets/{spreadsheetId}/values:batchGetByDataFilter
+/// POST v4/spreadsheets/{spreadsheetId}/values:batchGetByDataFilter
 /// Returns one or more ranges of values that match the specified data filters. For more information, see [Read, write, and search metadata](<https://developers.google.`com/workspace/sheets/api/guides/metadata`>). The caller must specify the spreadsheet ID and one or more DataFilters. Ranges that match any of the data filters in the request will be returned.
 ///
 /// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
@@ -2074,7 +2011,7 @@ pub fn sheets_spreadsheets_values_batch_get_by_data_filter_task(
         .map_pending(|_| ApiPending::Sending))
 }
 
-/// GET v4/spreadsheets/{spreadsheetId}/values:batchGetByDataFilter
+/// POST v4/spreadsheets/{spreadsheetId}/values:batchGetByDataFilter
 /// Returns one or more ranges of values that match the specified data filters. For more information, see [Read, write, and search metadata](<https://developers.google.`com/workspace/sheets/api/guides/metadata`>). The caller must specify the spreadsheet ID and one or more DataFilters. Ranges that match any of the data filters in the request will be returned.
 ///
 /// Takes a `ClientRequestBuilder`, builds and executes the request,
@@ -2113,11 +2050,9 @@ pub fn sheets_spreadsheets_values_batch_get_by_data_filter_execute(
 pub struct SheetsSpreadsheetsValuesBatchGetByDataFilterArgs {
     /// Path parameter: spreadsheetId
     pub spreadsheetId: String,
-    /// Request body.
-    pub body: BatchGetValuesByDataFilterRequest,
 }
 
-/// GET v4/spreadsheets/{spreadsheetId}/values:batchGetByDataFilter
+/// POST v4/spreadsheets/{spreadsheetId}/values:batchGetByDataFilter
 /// Returns one or more ranges of values that match the specified data filters. For more information, see [Read, write, and search metadata](<https://developers.google.`com/workspace/sheets/api/guides/metadata`>). The caller must specify the spreadsheet ID and one or more DataFilters. Ranges that match any of the data filters in the request will be returned.
 ///
 /// Simplest API - builds and executes the request in one call.
@@ -2139,15 +2074,12 @@ pub fn sheets_spreadsheets_values_batch_get_by_data_filter(
         + 'static,
     ApiError,
 > {
-    let builder = sheets_spreadsheets_values_batch_get_by_data_filter_builder(
-        client,
-        &args.spreadsheetId,
-        &args.body,
-    )?;
+    let builder =
+        sheets_spreadsheets_values_batch_get_by_data_filter_builder(client, &args.spreadsheetId)?;
     sheets_spreadsheets_values_batch_get_by_data_filter_execute(builder)
 }
 
-/// GET v4/spreadsheets/{spreadsheetId}/values:batchUpdate
+/// POST v4/spreadsheets/{spreadsheetId}/values:batchUpdate
 /// Sets values in one or more ranges of a spreadsheet. The caller must specify the spreadsheet ID, a `valueInputOption`, and one or more ValueRanges.
 ///
 /// Returns `ClientRequestBuilder` for customization.
@@ -2156,7 +2088,6 @@ pub fn sheets_spreadsheets_values_batch_get_by_data_filter(
 pub fn sheets_spreadsheets_values_batch_update_builder(
     client: &SimpleHttpClient,
     spreadsheetId: &String,
-    body: &BatchUpdateValuesRequest,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
@@ -2166,15 +2097,13 @@ pub fn sheets_spreadsheets_values_batch_update_builder(
 
     // Build request
     let builder = client
-        .get(&endpoint_url)
+        .post(&endpoint_url)
         .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
 
-    builder
-        .body_json(body)
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+    Ok(builder)
 }
 
-/// GET v4/spreadsheets/{spreadsheetId}/values:batchUpdate
+/// POST v4/spreadsheets/{spreadsheetId}/values:batchUpdate
 /// Sets values in one or more ranges of a spreadsheet. The caller must specify the spreadsheet ID, a `valueInputOption`, and one or more ValueRanges.
 ///
 /// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
@@ -2248,7 +2177,7 @@ pub fn sheets_spreadsheets_values_batch_update_task(
         .map_pending(|_| ApiPending::Sending))
 }
 
-/// GET v4/spreadsheets/{spreadsheetId}/values:batchUpdate
+/// POST v4/spreadsheets/{spreadsheetId}/values:batchUpdate
 /// Sets values in one or more ranges of a spreadsheet. The caller must specify the spreadsheet ID, a `valueInputOption`, and one or more ValueRanges.
 ///
 /// Takes a `ClientRequestBuilder`, builds and executes the request,
@@ -2285,11 +2214,9 @@ pub fn sheets_spreadsheets_values_batch_update_execute(
 pub struct SheetsSpreadsheetsValuesBatchUpdateArgs {
     /// Path parameter: spreadsheetId
     pub spreadsheetId: String,
-    /// Request body.
-    pub body: BatchUpdateValuesRequest,
 }
 
-/// GET v4/spreadsheets/{spreadsheetId}/values:batchUpdate
+/// POST v4/spreadsheets/{spreadsheetId}/values:batchUpdate
 /// Sets values in one or more ranges of a spreadsheet. The caller must specify the spreadsheet ID, a `valueInputOption`, and one or more ValueRanges.
 ///
 /// Simplest API - builds and executes the request in one call.
@@ -2309,12 +2236,11 @@ pub fn sheets_spreadsheets_values_batch_update(
         + 'static,
     ApiError,
 > {
-    let builder =
-        sheets_spreadsheets_values_batch_update_builder(client, &args.spreadsheetId, &args.body)?;
+    let builder = sheets_spreadsheets_values_batch_update_builder(client, &args.spreadsheetId)?;
     sheets_spreadsheets_values_batch_update_execute(builder)
 }
 
-/// GET v4/spreadsheets/{spreadsheetId}/values:batchUpdateByDataFilter
+/// POST v4/spreadsheets/{spreadsheetId}/values:batchUpdateByDataFilter
 /// Sets values in one or more ranges of a spreadsheet. For more information, see [Read, write, and search metadata](<https://developers.google.`com/workspace/sheets/api/guides/metadata`>). The caller must specify the spreadsheet ID, a `valueInputOption`, and one or more DataFilterValueRanges.
 ///
 /// Returns `ClientRequestBuilder` for customization.
@@ -2323,7 +2249,6 @@ pub fn sheets_spreadsheets_values_batch_update(
 pub fn sheets_spreadsheets_values_batch_update_by_data_filter_builder(
     client: &SimpleHttpClient,
     spreadsheetId: &String,
-    body: &BatchUpdateValuesByDataFilterRequest,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
@@ -2333,15 +2258,13 @@ pub fn sheets_spreadsheets_values_batch_update_by_data_filter_builder(
 
     // Build request
     let builder = client
-        .get(&endpoint_url)
+        .post(&endpoint_url)
         .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
 
-    builder
-        .body_json(body)
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+    Ok(builder)
 }
 
-/// GET v4/spreadsheets/{spreadsheetId}/values:batchUpdateByDataFilter
+/// POST v4/spreadsheets/{spreadsheetId}/values:batchUpdateByDataFilter
 /// Sets values in one or more ranges of a spreadsheet. For more information, see [Read, write, and search metadata](<https://developers.google.`com/workspace/sheets/api/guides/metadata`>). The caller must specify the spreadsheet ID, a `valueInputOption`, and one or more DataFilterValueRanges.
 ///
 /// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
@@ -2415,7 +2338,7 @@ pub fn sheets_spreadsheets_values_batch_update_by_data_filter_task(
         .map_pending(|_| ApiPending::Sending))
 }
 
-/// GET v4/spreadsheets/{spreadsheetId}/values:batchUpdateByDataFilter
+/// POST v4/spreadsheets/{spreadsheetId}/values:batchUpdateByDataFilter
 /// Sets values in one or more ranges of a spreadsheet. For more information, see [Read, write, and search metadata](<https://developers.google.`com/workspace/sheets/api/guides/metadata`>). The caller must specify the spreadsheet ID, a `valueInputOption`, and one or more DataFilterValueRanges.
 ///
 /// Takes a `ClientRequestBuilder`, builds and executes the request,
@@ -2454,11 +2377,9 @@ pub fn sheets_spreadsheets_values_batch_update_by_data_filter_execute(
 pub struct SheetsSpreadsheetsValuesBatchUpdateByDataFilterArgs {
     /// Path parameter: spreadsheetId
     pub spreadsheetId: String,
-    /// Request body.
-    pub body: BatchUpdateValuesByDataFilterRequest,
 }
 
-/// GET v4/spreadsheets/{spreadsheetId}/values:batchUpdateByDataFilter
+/// POST v4/spreadsheets/{spreadsheetId}/values:batchUpdateByDataFilter
 /// Sets values in one or more ranges of a spreadsheet. For more information, see [Read, write, and search metadata](<https://developers.google.`com/workspace/sheets/api/guides/metadata`>). The caller must specify the spreadsheet ID, a `valueInputOption`, and one or more DataFilterValueRanges.
 ///
 /// Simplest API - builds and executes the request in one call.
@@ -2483,12 +2404,11 @@ pub fn sheets_spreadsheets_values_batch_update_by_data_filter(
     let builder = sheets_spreadsheets_values_batch_update_by_data_filter_builder(
         client,
         &args.spreadsheetId,
-        &args.body,
     )?;
     sheets_spreadsheets_values_batch_update_by_data_filter_execute(builder)
 }
 
-/// GET v4/spreadsheets/{spreadsheetId}/values/{range}:clear
+/// POST v4/spreadsheets/{spreadsheetId}/values/{range}:clear
 /// Clears values from a spreadsheet. The caller must specify the spreadsheet ID and range. Only values are cleared -- all other properties of the cell (such as formatting, data validation, etc..) are kept.
 ///
 /// Returns `ClientRequestBuilder` for customization.
@@ -2498,7 +2418,6 @@ pub fn sheets_spreadsheets_values_clear_builder(
     client: &SimpleHttpClient,
     spreadsheetId: &String,
     range: &String,
-    body: &ClearValuesRequest,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
@@ -2508,15 +2427,13 @@ pub fn sheets_spreadsheets_values_clear_builder(
 
     // Build request
     let builder = client
-        .get(&endpoint_url)
+        .post(&endpoint_url)
         .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
 
-    builder
-        .body_json(body)
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+    Ok(builder)
 }
 
-/// GET v4/spreadsheets/{spreadsheetId}/values/{range}:clear
+/// POST v4/spreadsheets/{spreadsheetId}/values/{range}:clear
 /// Clears values from a spreadsheet. The caller must specify the spreadsheet ID and range. Only values are cleared -- all other properties of the cell (such as formatting, data validation, etc..) are kept.
 ///
 /// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
@@ -2590,7 +2507,7 @@ pub fn sheets_spreadsheets_values_clear_task(
         .map_pending(|_| ApiPending::Sending))
 }
 
-/// GET v4/spreadsheets/{spreadsheetId}/values/{range}:clear
+/// POST v4/spreadsheets/{spreadsheetId}/values/{range}:clear
 /// Clears values from a spreadsheet. The caller must specify the spreadsheet ID and range. Only values are cleared -- all other properties of the cell (such as formatting, data validation, etc..) are kept.
 ///
 /// Takes a `ClientRequestBuilder`, builds and executes the request,
@@ -2629,11 +2546,9 @@ pub struct SheetsSpreadsheetsValuesClearArgs {
     pub spreadsheetId: String,
     /// Path parameter: range
     pub range: String,
-    /// Request body.
-    pub body: ClearValuesRequest,
 }
 
-/// GET v4/spreadsheets/{spreadsheetId}/values/{range}:clear
+/// POST v4/spreadsheets/{spreadsheetId}/values/{range}:clear
 /// Clears values from a spreadsheet. The caller must specify the spreadsheet ID and range. Only values are cleared -- all other properties of the cell (such as formatting, data validation, etc..) are kept.
 ///
 /// Simplest API - builds and executes the request in one call.
@@ -2653,12 +2568,8 @@ pub fn sheets_spreadsheets_values_clear(
         + 'static,
     ApiError,
 > {
-    let builder = sheets_spreadsheets_values_clear_builder(
-        client,
-        &args.spreadsheetId,
-        &args.range,
-        &args.body,
-    )?;
+    let builder =
+        sheets_spreadsheets_values_clear_builder(client, &args.spreadsheetId, &args.range)?;
     sheets_spreadsheets_values_clear_execute(builder)
 }
 
@@ -2672,9 +2583,9 @@ pub fn sheets_spreadsheets_values_get_builder(
     client: &SimpleHttpClient,
     spreadsheetId: &String,
     range: &String,
-    dateTimeRenderOption: &Option<String>,
-    majorDimension: &Option<String>,
-    valueRenderOption: &Option<String>,
+    dateTimeRenderOption: &Option<Option<String>>,
+    majorDimension: &Option<Option<String>>,
+    valueRenderOption: &Option<Option<String>>,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
@@ -2819,11 +2730,11 @@ pub struct SheetsSpreadsheetsValuesGetArgs {
     /// Path parameter: range
     pub range: String,
     /// Query parameter: dateTimeRenderOption
-    pub dateTimeRenderOption: Option<String>,
+    pub dateTimeRenderOption: Option<Option<String>>,
     /// Query parameter: majorDimension
-    pub majorDimension: Option<String>,
+    pub majorDimension: Option<Option<String>>,
     /// Query parameter: valueRenderOption
-    pub valueRenderOption: Option<String>,
+    pub valueRenderOption: Option<Option<String>>,
 }
 
 /// GET v4/spreadsheets/{spreadsheetId}/values/{range}
@@ -2853,4 +2764,661 @@ pub fn sheets_spreadsheets_values_get(
         &args.valueRenderOption,
     )?;
     sheets_spreadsheets_values_get_execute(builder)
+}
+
+/// PUT v4/spreadsheets/{spreadsheetId}/values/{range}
+/// Sets values in a range of a spreadsheet. The caller must specify the spreadsheet ID, range, and a `valueInputOption`.
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `sheets_spreadsheets_values_update_execute()` to send, or `sheets_spreadsheets_values_update` for simplest API.
+
+pub fn sheets_spreadsheets_values_update_builder(
+    client: &SimpleHttpClient,
+    spreadsheetId: &String,
+    range: &String,
+    includeValuesInResponse: &Option<Option<String>>,
+    responseDateTimeRenderOption: &Option<Option<String>>,
+    responseValueRenderOption: &Option<Option<String>>,
+    valueInputOption: &Option<Option<String>>,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!(
+        "https://sheets.googleapis.com/v4/spreadsheets/{}/values/{}",
+        spreadsheetId, range,
+    );
+
+    // Build request
+    let mut query_parts = Vec::new();
+    if let Some(val) = includeValuesInResponse.as_ref() {
+        query_parts.push(format!("includeValuesInResponse={}", val));
+    }
+    if let Some(val) = responseDateTimeRenderOption.as_ref() {
+        query_parts.push(format!("responseDateTimeRenderOption={}", val));
+    }
+    if let Some(val) = responseValueRenderOption.as_ref() {
+        query_parts.push(format!("responseValueRenderOption={}", val));
+    }
+    if let Some(val) = valueInputOption.as_ref() {
+        query_parts.push(format!("valueInputOption={}", val));
+    }
+
+    let url_with_query = if query_parts.is_empty() {
+        endpoint_url
+    } else {
+        format!("{}?{}", endpoint_url, query_parts.join("&"))
+    };
+
+    let builder = client
+        .put(&url_with_query)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// PUT v4/spreadsheets/{spreadsheetId}/values/{range}
+/// Sets values in a range of a spreadsheet. The caller must specify the spreadsheet ID, range, and a `valueInputOption`.
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `sheets_spreadsheets_values_update_execute()` or `sheets_spreadsheets_values_update`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `sheets_spreadsheets_values_update_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn sheets_spreadsheets_values_update_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<UpdateValuesResponse>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: UpdateValuesResponse = serde_json::from_str(&body)
+                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// PUT v4/spreadsheets/{spreadsheetId}/values/{range}
+/// Sets values in a range of a spreadsheet. The caller must specify the spreadsheet ID, range, and a `valueInputOption`.
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `sheets_spreadsheets_values_update_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `sheets_spreadsheets_values_update_task()`.
+/// For the simplest API, use `sheets_spreadsheets_values_update()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `sheets_spreadsheets_values_update_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn sheets_spreadsheets_values_update_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<UpdateValuesResponse>, ApiError>, P = ApiPending>
+        + Send
+        + 'static,
+    ApiError,
+> {
+    let task = sheets_spreadsheets_values_update_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`sheets_spreadsheets_values_update`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct SheetsSpreadsheetsValuesUpdateArgs {
+    /// Path parameter: spreadsheetId
+    pub spreadsheetId: String,
+    /// Path parameter: range
+    pub range: String,
+    /// Query parameter: includeValuesInResponse
+    pub includeValuesInResponse: Option<Option<String>>,
+    /// Query parameter: responseDateTimeRenderOption
+    pub responseDateTimeRenderOption: Option<Option<String>>,
+    /// Query parameter: responseValueRenderOption
+    pub responseValueRenderOption: Option<Option<String>>,
+    /// Query parameter: valueInputOption
+    pub valueInputOption: Option<Option<String>>,
+}
+
+/// PUT v4/spreadsheets/{spreadsheetId}/values/{range}
+/// Sets values in a range of a spreadsheet. The caller must specify the spreadsheet ID, range, and a `valueInputOption`.
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `sheets_spreadsheets_values_update_builder()` + `sheets_spreadsheets_values_update_execute()`.
+/// For task-level control, use `sheets_spreadsheets_values_update_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn sheets_spreadsheets_values_update(
+    client: &SimpleHttpClient,
+    args: &SheetsSpreadsheetsValuesUpdateArgs,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<UpdateValuesResponse>, ApiError>, P = ApiPending>
+        + Send
+        + 'static,
+    ApiError,
+> {
+    let builder = sheets_spreadsheets_values_update_builder(
+        client,
+        &args.spreadsheetId,
+        &args.range,
+        &args.includeValuesInResponse,
+        &args.responseDateTimeRenderOption,
+        &args.responseValueRenderOption,
+        &args.valueInputOption,
+    )?;
+    sheets_spreadsheets_values_update_execute(builder)
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for BatchUpdateSpreadsheetResponse
+// =============================================================================
+
+/// ResourceIdentifier implementation for BatchUpdateSpreadsheetResponse with SheetsSpreadsheetsBatchUpdateArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<SheetsSpreadsheetsBatchUpdateArgs> for BatchUpdateSpreadsheetResponse {
+    fn generate_resource_id(&self, input: &SheetsSpreadsheetsBatchUpdateArgs) -> String {
+        format!(
+            "gcp::sheets::BatchUpdateSpreadsheetResponse/{}",
+            input.spreadsheetId
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::sheets::BatchUpdateSpreadsheetResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for Spreadsheet
+// =============================================================================
+
+/// ResourceIdentifier implementation for Spreadsheet with SheetsSpreadsheetsCreateArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<SheetsSpreadsheetsCreateArgs> for Spreadsheet {
+    fn generate_resource_id(&self, input: &SheetsSpreadsheetsCreateArgs) -> String {
+        "gcp::sheets::Spreadsheet".to_string()
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::sheets::Spreadsheet"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for Spreadsheet
+// =============================================================================
+
+/// ResourceIdentifier implementation for Spreadsheet with SheetsSpreadsheetsGetArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<SheetsSpreadsheetsGetArgs> for Spreadsheet {
+    fn generate_resource_id(&self, input: &SheetsSpreadsheetsGetArgs) -> String {
+        format!("gcp::sheets::Spreadsheet/{}", input.spreadsheetId)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::sheets::Spreadsheet"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for Spreadsheet
+// =============================================================================
+
+/// ResourceIdentifier implementation for Spreadsheet with SheetsSpreadsheetsGetByDataFilterArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<SheetsSpreadsheetsGetByDataFilterArgs> for Spreadsheet {
+    fn generate_resource_id(&self, input: &SheetsSpreadsheetsGetByDataFilterArgs) -> String {
+        format!("gcp::sheets::Spreadsheet/{}", input.spreadsheetId)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::sheets::Spreadsheet"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for DeveloperMetadata
+// =============================================================================
+
+/// ResourceIdentifier implementation for DeveloperMetadata with SheetsSpreadsheetsDeveloperMetadataGetArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<SheetsSpreadsheetsDeveloperMetadataGetArgs> for DeveloperMetadata {
+    fn generate_resource_id(&self, input: &SheetsSpreadsheetsDeveloperMetadataGetArgs) -> String {
+        format!(
+            "gcp::sheets::DeveloperMetadata/{}/{}",
+            input.spreadsheetId, input.metadataId
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::sheets::DeveloperMetadata"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for SearchDeveloperMetadataResponse
+// =============================================================================
+
+/// ResourceIdentifier implementation for SearchDeveloperMetadataResponse with SheetsSpreadsheetsDeveloperMetadataSearchArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<SheetsSpreadsheetsDeveloperMetadataSearchArgs>
+    for SearchDeveloperMetadataResponse
+{
+    fn generate_resource_id(
+        &self,
+        input: &SheetsSpreadsheetsDeveloperMetadataSearchArgs,
+    ) -> String {
+        format!(
+            "gcp::sheets::SearchDeveloperMetadataResponse/{}",
+            input.spreadsheetId
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::sheets::SearchDeveloperMetadataResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for SheetProperties
+// =============================================================================
+
+/// ResourceIdentifier implementation for SheetProperties with SheetsSpreadsheetsSheetsCopyToArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<SheetsSpreadsheetsSheetsCopyToArgs> for SheetProperties {
+    fn generate_resource_id(&self, input: &SheetsSpreadsheetsSheetsCopyToArgs) -> String {
+        format!(
+            "gcp::sheets::SheetProperties/{}/{}",
+            input.spreadsheetId, input.sheetId
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::sheets::SheetProperties"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for AppendValuesResponse
+// =============================================================================
+
+/// ResourceIdentifier implementation for AppendValuesResponse with SheetsSpreadsheetsValuesAppendArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<SheetsSpreadsheetsValuesAppendArgs> for AppendValuesResponse {
+    fn generate_resource_id(&self, input: &SheetsSpreadsheetsValuesAppendArgs) -> String {
+        format!(
+            "gcp::sheets::AppendValuesResponse/{}/{}",
+            input.spreadsheetId, input.range
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::sheets::AppendValuesResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for BatchClearValuesResponse
+// =============================================================================
+
+/// ResourceIdentifier implementation for BatchClearValuesResponse with SheetsSpreadsheetsValuesBatchClearArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<SheetsSpreadsheetsValuesBatchClearArgs> for BatchClearValuesResponse {
+    fn generate_resource_id(&self, input: &SheetsSpreadsheetsValuesBatchClearArgs) -> String {
+        format!(
+            "gcp::sheets::BatchClearValuesResponse/{}",
+            input.spreadsheetId
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::sheets::BatchClearValuesResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for BatchClearValuesByDataFilterResponse
+// =============================================================================
+
+/// ResourceIdentifier implementation for BatchClearValuesByDataFilterResponse with SheetsSpreadsheetsValuesBatchClearByDataFilterArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<SheetsSpreadsheetsValuesBatchClearByDataFilterArgs>
+    for BatchClearValuesByDataFilterResponse
+{
+    fn generate_resource_id(
+        &self,
+        input: &SheetsSpreadsheetsValuesBatchClearByDataFilterArgs,
+    ) -> String {
+        format!(
+            "gcp::sheets::BatchClearValuesByDataFilterResponse/{}",
+            input.spreadsheetId
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::sheets::BatchClearValuesByDataFilterResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for BatchGetValuesResponse
+// =============================================================================
+
+/// ResourceIdentifier implementation for BatchGetValuesResponse with SheetsSpreadsheetsValuesBatchGetArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<SheetsSpreadsheetsValuesBatchGetArgs> for BatchGetValuesResponse {
+    fn generate_resource_id(&self, input: &SheetsSpreadsheetsValuesBatchGetArgs) -> String {
+        format!(
+            "gcp::sheets::BatchGetValuesResponse/{}",
+            input.spreadsheetId
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::sheets::BatchGetValuesResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for BatchGetValuesByDataFilterResponse
+// =============================================================================
+
+/// ResourceIdentifier implementation for BatchGetValuesByDataFilterResponse with SheetsSpreadsheetsValuesBatchGetByDataFilterArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<SheetsSpreadsheetsValuesBatchGetByDataFilterArgs>
+    for BatchGetValuesByDataFilterResponse
+{
+    fn generate_resource_id(
+        &self,
+        input: &SheetsSpreadsheetsValuesBatchGetByDataFilterArgs,
+    ) -> String {
+        format!(
+            "gcp::sheets::BatchGetValuesByDataFilterResponse/{}",
+            input.spreadsheetId
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::sheets::BatchGetValuesByDataFilterResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for BatchUpdateValuesResponse
+// =============================================================================
+
+/// ResourceIdentifier implementation for BatchUpdateValuesResponse with SheetsSpreadsheetsValuesBatchUpdateArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<SheetsSpreadsheetsValuesBatchUpdateArgs> for BatchUpdateValuesResponse {
+    fn generate_resource_id(&self, input: &SheetsSpreadsheetsValuesBatchUpdateArgs) -> String {
+        format!(
+            "gcp::sheets::BatchUpdateValuesResponse/{}",
+            input.spreadsheetId
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::sheets::BatchUpdateValuesResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for BatchUpdateValuesByDataFilterResponse
+// =============================================================================
+
+/// ResourceIdentifier implementation for BatchUpdateValuesByDataFilterResponse with SheetsSpreadsheetsValuesBatchUpdateByDataFilterArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<SheetsSpreadsheetsValuesBatchUpdateByDataFilterArgs>
+    for BatchUpdateValuesByDataFilterResponse
+{
+    fn generate_resource_id(
+        &self,
+        input: &SheetsSpreadsheetsValuesBatchUpdateByDataFilterArgs,
+    ) -> String {
+        format!(
+            "gcp::sheets::BatchUpdateValuesByDataFilterResponse/{}",
+            input.spreadsheetId
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::sheets::BatchUpdateValuesByDataFilterResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for ClearValuesResponse
+// =============================================================================
+
+/// ResourceIdentifier implementation for ClearValuesResponse with SheetsSpreadsheetsValuesClearArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<SheetsSpreadsheetsValuesClearArgs> for ClearValuesResponse {
+    fn generate_resource_id(&self, input: &SheetsSpreadsheetsValuesClearArgs) -> String {
+        format!(
+            "gcp::sheets::ClearValuesResponse/{}/{}",
+            input.spreadsheetId, input.range
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::sheets::ClearValuesResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for ValueRange
+// =============================================================================
+
+/// ResourceIdentifier implementation for ValueRange with SheetsSpreadsheetsValuesGetArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<SheetsSpreadsheetsValuesGetArgs> for ValueRange {
+    fn generate_resource_id(&self, input: &SheetsSpreadsheetsValuesGetArgs) -> String {
+        format!(
+            "gcp::sheets::ValueRange/{}/{}",
+            input.spreadsheetId, input.range
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::sheets::ValueRange"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for UpdateValuesResponse
+// =============================================================================
+
+/// ResourceIdentifier implementation for UpdateValuesResponse with SheetsSpreadsheetsValuesUpdateArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<SheetsSpreadsheetsValuesUpdateArgs> for UpdateValuesResponse {
+    fn generate_resource_id(&self, input: &SheetsSpreadsheetsValuesUpdateArgs) -> String {
+        format!(
+            "gcp::sheets::UpdateValuesResponse/{}/{}",
+            input.spreadsheetId, input.range
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::sheets::UpdateValuesResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
 }

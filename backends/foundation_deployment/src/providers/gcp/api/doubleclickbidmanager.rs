@@ -14,13 +14,23 @@
 use crate::providers::gcp::clients::doubleclickbidmanager::{
     doubleclickbidmanager_queries_create_builder, doubleclickbidmanager_queries_create_task,
     doubleclickbidmanager_queries_delete_builder, doubleclickbidmanager_queries_delete_task,
+    doubleclickbidmanager_queries_get_builder, doubleclickbidmanager_queries_get_task,
+    doubleclickbidmanager_queries_list_builder, doubleclickbidmanager_queries_list_task,
     doubleclickbidmanager_queries_run_builder, doubleclickbidmanager_queries_run_task,
+    doubleclickbidmanager_queries_reports_get_builder, doubleclickbidmanager_queries_reports_get_task,
+    doubleclickbidmanager_queries_reports_list_builder, doubleclickbidmanager_queries_reports_list_task,
 };
 use crate::providers::gcp::clients::types::{ApiError, ApiPending};
+use crate::providers::gcp::clients::doubleclickbidmanager::ListQueriesResponse;
+use crate::providers::gcp::clients::doubleclickbidmanager::ListReportsResponse;
 use crate::providers::gcp::clients::doubleclickbidmanager::Query;
 use crate::providers::gcp::clients::doubleclickbidmanager::Report;
 use crate::providers::gcp::clients::doubleclickbidmanager::DoubleclickbidmanagerQueriesCreateArgs;
 use crate::providers::gcp::clients::doubleclickbidmanager::DoubleclickbidmanagerQueriesDeleteArgs;
+use crate::providers::gcp::clients::doubleclickbidmanager::DoubleclickbidmanagerQueriesGetArgs;
+use crate::providers::gcp::clients::doubleclickbidmanager::DoubleclickbidmanagerQueriesListArgs;
+use crate::providers::gcp::clients::doubleclickbidmanager::DoubleclickbidmanagerQueriesReportsGetArgs;
+use crate::providers::gcp::clients::doubleclickbidmanager::DoubleclickbidmanagerQueriesReportsListArgs;
 use crate::providers::gcp::clients::doubleclickbidmanager::DoubleclickbidmanagerQueriesRunArgs;
 use crate::provider_client::{ProviderClient, ProviderError};
 use foundation_core::valtron::{execute, StreamIterator};
@@ -148,6 +158,84 @@ where
         execute(store_task, None).map_err(|e: String| ProviderError::ExecuteFailed(e.to_string()))
     }
 
+    /// Doubleclickbidmanager queries get.
+    ///
+    /// Read-only operation - no state tracking.
+    ///
+    /// # Arguments
+    ///
+    /// * `args` - Request arguments
+    ///
+    /// # Returns
+    ///
+    /// StreamIterator yielding the Query result.
+    ///
+    /// # Errors
+    ///
+    /// Returns ProviderError if the API request fails.
+    pub fn doubleclickbidmanager_queries_get(
+        &self,
+        args: &DoubleclickbidmanagerQueriesGetArgs,
+    ) -> Result<
+        impl StreamIterator<
+            D = Result<Query, ProviderError<ApiError>>,
+            P = crate::providers::gcp::clients::types::ApiPending,
+        > + Send
+        + 'static,
+        ProviderError<ApiError>,
+    > {
+        let builder = doubleclickbidmanager_queries_get_builder(
+            &self.http_client,
+            &args.queryId,
+        )
+        .map_err(ProviderError::Api)?;
+
+        let task = doubleclickbidmanager_queries_get_task(builder)
+            .map_err(ProviderError::Api)?;
+
+        execute(task, None).map_err(|e: String| ProviderError::ExecuteFailed(e.to_string()))
+    }
+
+    /// Doubleclickbidmanager queries list.
+    ///
+    /// Read-only operation - no state tracking.
+    ///
+    /// # Arguments
+    ///
+    /// * `args` - Request arguments
+    ///
+    /// # Returns
+    ///
+    /// StreamIterator yielding the ListQueriesResponse result.
+    ///
+    /// # Errors
+    ///
+    /// Returns ProviderError if the API request fails.
+    pub fn doubleclickbidmanager_queries_list(
+        &self,
+        args: &DoubleclickbidmanagerQueriesListArgs,
+    ) -> Result<
+        impl StreamIterator<
+            D = Result<ListQueriesResponse, ProviderError<ApiError>>,
+            P = crate::providers::gcp::clients::types::ApiPending,
+        > + Send
+        + 'static,
+        ProviderError<ApiError>,
+    > {
+        let builder = doubleclickbidmanager_queries_list_builder(
+            &self.http_client,
+            &args.orderBy,
+            &args.pageSize,
+            &args.pageToken,
+        )
+        .map_err(ProviderError::Api)?;
+
+        let task = doubleclickbidmanager_queries_list_task(builder)
+            .map_err(ProviderError::Api)?;
+
+        execute(task, None).map_err(|e: String| ProviderError::ExecuteFailed(e.to_string()))
+    }
+
     /// Doubleclickbidmanager queries run.
     ///
     /// Automatically stores the result in the state store on success.
@@ -190,6 +278,86 @@ where
         let store_task = StoreStateIdentifierTask::new(task, state_store, args, stage);
 
         execute(store_task, None).map_err(|e: String| ProviderError::ExecuteFailed(e.to_string()))
+    }
+
+    /// Doubleclickbidmanager queries reports get.
+    ///
+    /// Read-only operation - no state tracking.
+    ///
+    /// # Arguments
+    ///
+    /// * `args` - Request arguments
+    ///
+    /// # Returns
+    ///
+    /// StreamIterator yielding the Report result.
+    ///
+    /// # Errors
+    ///
+    /// Returns ProviderError if the API request fails.
+    pub fn doubleclickbidmanager_queries_reports_get(
+        &self,
+        args: &DoubleclickbidmanagerQueriesReportsGetArgs,
+    ) -> Result<
+        impl StreamIterator<
+            D = Result<Report, ProviderError<ApiError>>,
+            P = crate::providers::gcp::clients::types::ApiPending,
+        > + Send
+        + 'static,
+        ProviderError<ApiError>,
+    > {
+        let builder = doubleclickbidmanager_queries_reports_get_builder(
+            &self.http_client,
+            &args.queryId,
+            &args.reportId,
+        )
+        .map_err(ProviderError::Api)?;
+
+        let task = doubleclickbidmanager_queries_reports_get_task(builder)
+            .map_err(ProviderError::Api)?;
+
+        execute(task, None).map_err(|e: String| ProviderError::ExecuteFailed(e.to_string()))
+    }
+
+    /// Doubleclickbidmanager queries reports list.
+    ///
+    /// Read-only operation - no state tracking.
+    ///
+    /// # Arguments
+    ///
+    /// * `args` - Request arguments
+    ///
+    /// # Returns
+    ///
+    /// StreamIterator yielding the ListReportsResponse result.
+    ///
+    /// # Errors
+    ///
+    /// Returns ProviderError if the API request fails.
+    pub fn doubleclickbidmanager_queries_reports_list(
+        &self,
+        args: &DoubleclickbidmanagerQueriesReportsListArgs,
+    ) -> Result<
+        impl StreamIterator<
+            D = Result<ListReportsResponse, ProviderError<ApiError>>,
+            P = crate::providers::gcp::clients::types::ApiPending,
+        > + Send
+        + 'static,
+        ProviderError<ApiError>,
+    > {
+        let builder = doubleclickbidmanager_queries_reports_list_builder(
+            &self.http_client,
+            &args.queryId,
+            &args.orderBy,
+            &args.pageSize,
+            &args.pageToken,
+        )
+        .map_err(ProviderError::Api)?;
+
+        let task = doubleclickbidmanager_queries_reports_list_task(builder)
+            .map_err(ProviderError::Api)?;
+
+        execute(task, None).map_err(|e: String| ProviderError::ExecuteFailed(e.to_string()))
     }
 
 }

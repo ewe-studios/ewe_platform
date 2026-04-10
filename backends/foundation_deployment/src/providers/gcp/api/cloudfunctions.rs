@@ -12,6 +12,7 @@
 #![cfg(feature = "gcp")]
 
 use crate::providers::gcp::clients::cloudfunctions::{
+    cloudfunctions_projects_locations_list_builder, cloudfunctions_projects_locations_list_task,
     cloudfunctions_projects_locations_functions_abort_function_upgrade_builder, cloudfunctions_projects_locations_functions_abort_function_upgrade_task,
     cloudfunctions_projects_locations_functions_commit_function_upgrade_builder, cloudfunctions_projects_locations_functions_commit_function_upgrade_task,
     cloudfunctions_projects_locations_functions_commit_function_upgrade_as_gen2_builder, cloudfunctions_projects_locations_functions_commit_function_upgrade_as_gen2_task,
@@ -20,16 +21,27 @@ use crate::providers::gcp::clients::cloudfunctions::{
     cloudfunctions_projects_locations_functions_detach_function_builder, cloudfunctions_projects_locations_functions_detach_function_task,
     cloudfunctions_projects_locations_functions_generate_download_url_builder, cloudfunctions_projects_locations_functions_generate_download_url_task,
     cloudfunctions_projects_locations_functions_generate_upload_url_builder, cloudfunctions_projects_locations_functions_generate_upload_url_task,
+    cloudfunctions_projects_locations_functions_get_builder, cloudfunctions_projects_locations_functions_get_task,
+    cloudfunctions_projects_locations_functions_get_iam_policy_builder, cloudfunctions_projects_locations_functions_get_iam_policy_task,
+    cloudfunctions_projects_locations_functions_list_builder, cloudfunctions_projects_locations_functions_list_task,
     cloudfunctions_projects_locations_functions_patch_builder, cloudfunctions_projects_locations_functions_patch_task,
     cloudfunctions_projects_locations_functions_redirect_function_upgrade_traffic_builder, cloudfunctions_projects_locations_functions_redirect_function_upgrade_traffic_task,
     cloudfunctions_projects_locations_functions_rollback_function_upgrade_traffic_builder, cloudfunctions_projects_locations_functions_rollback_function_upgrade_traffic_task,
     cloudfunctions_projects_locations_functions_set_iam_policy_builder, cloudfunctions_projects_locations_functions_set_iam_policy_task,
     cloudfunctions_projects_locations_functions_setup_function_upgrade_config_builder, cloudfunctions_projects_locations_functions_setup_function_upgrade_config_task,
     cloudfunctions_projects_locations_functions_test_iam_permissions_builder, cloudfunctions_projects_locations_functions_test_iam_permissions_task,
+    cloudfunctions_projects_locations_operations_get_builder, cloudfunctions_projects_locations_operations_get_task,
+    cloudfunctions_projects_locations_operations_list_builder, cloudfunctions_projects_locations_operations_list_task,
+    cloudfunctions_projects_locations_runtimes_list_builder, cloudfunctions_projects_locations_runtimes_list_task,
 };
 use crate::providers::gcp::clients::types::{ApiError, ApiPending};
+use crate::providers::gcp::clients::cloudfunctions::Function;
 use crate::providers::gcp::clients::cloudfunctions::GenerateDownloadUrlResponse;
 use crate::providers::gcp::clients::cloudfunctions::GenerateUploadUrlResponse;
+use crate::providers::gcp::clients::cloudfunctions::ListFunctionsResponse;
+use crate::providers::gcp::clients::cloudfunctions::ListLocationsResponse;
+use crate::providers::gcp::clients::cloudfunctions::ListOperationsResponse;
+use crate::providers::gcp::clients::cloudfunctions::ListRuntimesResponse;
 use crate::providers::gcp::clients::cloudfunctions::Operation;
 use crate::providers::gcp::clients::cloudfunctions::Policy;
 use crate::providers::gcp::clients::cloudfunctions::TestIamPermissionsResponse;
@@ -41,12 +53,19 @@ use crate::providers::gcp::clients::cloudfunctions::CloudfunctionsProjectsLocati
 use crate::providers::gcp::clients::cloudfunctions::CloudfunctionsProjectsLocationsFunctionsDetachFunctionArgs;
 use crate::providers::gcp::clients::cloudfunctions::CloudfunctionsProjectsLocationsFunctionsGenerateDownloadUrlArgs;
 use crate::providers::gcp::clients::cloudfunctions::CloudfunctionsProjectsLocationsFunctionsGenerateUploadUrlArgs;
+use crate::providers::gcp::clients::cloudfunctions::CloudfunctionsProjectsLocationsFunctionsGetArgs;
+use crate::providers::gcp::clients::cloudfunctions::CloudfunctionsProjectsLocationsFunctionsGetIamPolicyArgs;
+use crate::providers::gcp::clients::cloudfunctions::CloudfunctionsProjectsLocationsFunctionsListArgs;
 use crate::providers::gcp::clients::cloudfunctions::CloudfunctionsProjectsLocationsFunctionsPatchArgs;
 use crate::providers::gcp::clients::cloudfunctions::CloudfunctionsProjectsLocationsFunctionsRedirectFunctionUpgradeTrafficArgs;
 use crate::providers::gcp::clients::cloudfunctions::CloudfunctionsProjectsLocationsFunctionsRollbackFunctionUpgradeTrafficArgs;
 use crate::providers::gcp::clients::cloudfunctions::CloudfunctionsProjectsLocationsFunctionsSetIamPolicyArgs;
 use crate::providers::gcp::clients::cloudfunctions::CloudfunctionsProjectsLocationsFunctionsSetupFunctionUpgradeConfigArgs;
 use crate::providers::gcp::clients::cloudfunctions::CloudfunctionsProjectsLocationsFunctionsTestIamPermissionsArgs;
+use crate::providers::gcp::clients::cloudfunctions::CloudfunctionsProjectsLocationsListArgs;
+use crate::providers::gcp::clients::cloudfunctions::CloudfunctionsProjectsLocationsOperationsGetArgs;
+use crate::providers::gcp::clients::cloudfunctions::CloudfunctionsProjectsLocationsOperationsListArgs;
+use crate::providers::gcp::clients::cloudfunctions::CloudfunctionsProjectsLocationsRuntimesListArgs;
 use crate::provider_client::{ProviderClient, ProviderError};
 use foundation_core::valtron::{execute, StreamIterator};
 use foundation_core::wire::simple_http::client::SimpleHttpClient;
@@ -86,6 +105,48 @@ where
             client,
             http_client: Arc::new(http_client),
         }
+    }
+
+    /// Cloudfunctions projects locations list.
+    ///
+    /// Read-only operation - no state tracking.
+    ///
+    /// # Arguments
+    ///
+    /// * `args` - Request arguments
+    ///
+    /// # Returns
+    ///
+    /// StreamIterator yielding the ListLocationsResponse result.
+    ///
+    /// # Errors
+    ///
+    /// Returns ProviderError if the API request fails.
+    pub fn cloudfunctions_projects_locations_list(
+        &self,
+        args: &CloudfunctionsProjectsLocationsListArgs,
+    ) -> Result<
+        impl StreamIterator<
+            D = Result<ListLocationsResponse, ProviderError<ApiError>>,
+            P = crate::providers::gcp::clients::types::ApiPending,
+        > + Send
+        + 'static,
+        ProviderError<ApiError>,
+    > {
+        let builder = cloudfunctions_projects_locations_list_builder(
+            &self.http_client,
+            &args.name,
+            &args.extraLocationTypes,
+            &args.filter,
+            &args.pageSize,
+            &args.pageToken,
+        )
+        .map_err(ProviderError::Api)?;
+
+        let task = cloudfunctions_projects_locations_list_task(builder)
+            .map_err(ProviderError::Api)?;
+
+        execute(task, None).map_err(|e: String| ProviderError::ExecuteFailed(e.to_string()))
     }
 
     /// Cloudfunctions projects locations functions abort function upgrade.
@@ -433,6 +494,126 @@ where
         execute(store_task, None).map_err(|e: String| ProviderError::ExecuteFailed(e.to_string()))
     }
 
+    /// Cloudfunctions projects locations functions get.
+    ///
+    /// Read-only operation - no state tracking.
+    ///
+    /// # Arguments
+    ///
+    /// * `args` - Request arguments
+    ///
+    /// # Returns
+    ///
+    /// StreamIterator yielding the Function result.
+    ///
+    /// # Errors
+    ///
+    /// Returns ProviderError if the API request fails.
+    pub fn cloudfunctions_projects_locations_functions_get(
+        &self,
+        args: &CloudfunctionsProjectsLocationsFunctionsGetArgs,
+    ) -> Result<
+        impl StreamIterator<
+            D = Result<Function, ProviderError<ApiError>>,
+            P = crate::providers::gcp::clients::types::ApiPending,
+        > + Send
+        + 'static,
+        ProviderError<ApiError>,
+    > {
+        let builder = cloudfunctions_projects_locations_functions_get_builder(
+            &self.http_client,
+            &args.name,
+            &args.revision,
+        )
+        .map_err(ProviderError::Api)?;
+
+        let task = cloudfunctions_projects_locations_functions_get_task(builder)
+            .map_err(ProviderError::Api)?;
+
+        execute(task, None).map_err(|e: String| ProviderError::ExecuteFailed(e.to_string()))
+    }
+
+    /// Cloudfunctions projects locations functions get iam policy.
+    ///
+    /// Read-only operation - no state tracking.
+    ///
+    /// # Arguments
+    ///
+    /// * `args` - Request arguments
+    ///
+    /// # Returns
+    ///
+    /// StreamIterator yielding the Policy result.
+    ///
+    /// # Errors
+    ///
+    /// Returns ProviderError if the API request fails.
+    pub fn cloudfunctions_projects_locations_functions_get_iam_policy(
+        &self,
+        args: &CloudfunctionsProjectsLocationsFunctionsGetIamPolicyArgs,
+    ) -> Result<
+        impl StreamIterator<
+            D = Result<Policy, ProviderError<ApiError>>,
+            P = crate::providers::gcp::clients::types::ApiPending,
+        > + Send
+        + 'static,
+        ProviderError<ApiError>,
+    > {
+        let builder = cloudfunctions_projects_locations_functions_get_iam_policy_builder(
+            &self.http_client,
+            &args.resource,
+            &args.options.requestedPolicyVersion,
+        )
+        .map_err(ProviderError::Api)?;
+
+        let task = cloudfunctions_projects_locations_functions_get_iam_policy_task(builder)
+            .map_err(ProviderError::Api)?;
+
+        execute(task, None).map_err(|e: String| ProviderError::ExecuteFailed(e.to_string()))
+    }
+
+    /// Cloudfunctions projects locations functions list.
+    ///
+    /// Read-only operation - no state tracking.
+    ///
+    /// # Arguments
+    ///
+    /// * `args` - Request arguments
+    ///
+    /// # Returns
+    ///
+    /// StreamIterator yielding the ListFunctionsResponse result.
+    ///
+    /// # Errors
+    ///
+    /// Returns ProviderError if the API request fails.
+    pub fn cloudfunctions_projects_locations_functions_list(
+        &self,
+        args: &CloudfunctionsProjectsLocationsFunctionsListArgs,
+    ) -> Result<
+        impl StreamIterator<
+            D = Result<ListFunctionsResponse, ProviderError<ApiError>>,
+            P = crate::providers::gcp::clients::types::ApiPending,
+        > + Send
+        + 'static,
+        ProviderError<ApiError>,
+    > {
+        let builder = cloudfunctions_projects_locations_functions_list_builder(
+            &self.http_client,
+            &args.parent,
+            &args.filter,
+            &args.orderBy,
+            &args.pageSize,
+            &args.pageToken,
+        )
+        .map_err(ProviderError::Api)?;
+
+        let task = cloudfunctions_projects_locations_functions_list_task(builder)
+            .map_err(ProviderError::Api)?;
+
+        execute(task, None).map_err(|e: String| ProviderError::ExecuteFailed(e.to_string()))
+    }
+
     /// Cloudfunctions projects locations functions patch.
     ///
     /// Automatically stores the result in the state store on success.
@@ -651,7 +832,7 @@ where
 
     /// Cloudfunctions projects locations functions test iam permissions.
     ///
-    /// Automatically stores the result in the state store on success.
+    /// Read-only operation - no state tracking.
     ///
     /// # Arguments
     ///
@@ -663,7 +844,7 @@ where
     ///
     /// # Errors
     ///
-    /// Returns ProviderError if the API request or state storage fails.
+    /// Returns ProviderError if the API request fails.
     pub fn cloudfunctions_projects_locations_functions_test_iam_permissions(
         &self,
         args: &CloudfunctionsProjectsLocationsFunctionsTestIamPermissionsArgs,
@@ -684,12 +865,126 @@ where
         let task = cloudfunctions_projects_locations_functions_test_iam_permissions_task(builder)
             .map_err(ProviderError::Api)?;
 
-        let state_store = self.client.state_store.clone();
-        let stage = Some(self.client.stage.clone());
+        execute(task, None).map_err(|e: String| ProviderError::ExecuteFailed(e.to_string()))
+    }
 
-        let store_task = StoreStateIdentifierTask::new(task, state_store, args, stage);
+    /// Cloudfunctions projects locations operations get.
+    ///
+    /// Read-only operation - no state tracking.
+    ///
+    /// # Arguments
+    ///
+    /// * `args` - Request arguments
+    ///
+    /// # Returns
+    ///
+    /// StreamIterator yielding the Operation result.
+    ///
+    /// # Errors
+    ///
+    /// Returns ProviderError if the API request fails.
+    pub fn cloudfunctions_projects_locations_operations_get(
+        &self,
+        args: &CloudfunctionsProjectsLocationsOperationsGetArgs,
+    ) -> Result<
+        impl StreamIterator<
+            D = Result<Operation, ProviderError<ApiError>>,
+            P = crate::providers::gcp::clients::types::ApiPending,
+        > + Send
+        + 'static,
+        ProviderError<ApiError>,
+    > {
+        let builder = cloudfunctions_projects_locations_operations_get_builder(
+            &self.http_client,
+            &args.name,
+        )
+        .map_err(ProviderError::Api)?;
 
-        execute(store_task, None).map_err(|e: String| ProviderError::ExecuteFailed(e.to_string()))
+        let task = cloudfunctions_projects_locations_operations_get_task(builder)
+            .map_err(ProviderError::Api)?;
+
+        execute(task, None).map_err(|e: String| ProviderError::ExecuteFailed(e.to_string()))
+    }
+
+    /// Cloudfunctions projects locations operations list.
+    ///
+    /// Read-only operation - no state tracking.
+    ///
+    /// # Arguments
+    ///
+    /// * `args` - Request arguments
+    ///
+    /// # Returns
+    ///
+    /// StreamIterator yielding the ListOperationsResponse result.
+    ///
+    /// # Errors
+    ///
+    /// Returns ProviderError if the API request fails.
+    pub fn cloudfunctions_projects_locations_operations_list(
+        &self,
+        args: &CloudfunctionsProjectsLocationsOperationsListArgs,
+    ) -> Result<
+        impl StreamIterator<
+            D = Result<ListOperationsResponse, ProviderError<ApiError>>,
+            P = crate::providers::gcp::clients::types::ApiPending,
+        > + Send
+        + 'static,
+        ProviderError<ApiError>,
+    > {
+        let builder = cloudfunctions_projects_locations_operations_list_builder(
+            &self.http_client,
+            &args.name,
+            &args.filter,
+            &args.pageSize,
+            &args.pageToken,
+            &args.returnPartialSuccess,
+        )
+        .map_err(ProviderError::Api)?;
+
+        let task = cloudfunctions_projects_locations_operations_list_task(builder)
+            .map_err(ProviderError::Api)?;
+
+        execute(task, None).map_err(|e: String| ProviderError::ExecuteFailed(e.to_string()))
+    }
+
+    /// Cloudfunctions projects locations runtimes list.
+    ///
+    /// Read-only operation - no state tracking.
+    ///
+    /// # Arguments
+    ///
+    /// * `args` - Request arguments
+    ///
+    /// # Returns
+    ///
+    /// StreamIterator yielding the ListRuntimesResponse result.
+    ///
+    /// # Errors
+    ///
+    /// Returns ProviderError if the API request fails.
+    pub fn cloudfunctions_projects_locations_runtimes_list(
+        &self,
+        args: &CloudfunctionsProjectsLocationsRuntimesListArgs,
+    ) -> Result<
+        impl StreamIterator<
+            D = Result<ListRuntimesResponse, ProviderError<ApiError>>,
+            P = crate::providers::gcp::clients::types::ApiPending,
+        > + Send
+        + 'static,
+        ProviderError<ApiError>,
+    > {
+        let builder = cloudfunctions_projects_locations_runtimes_list_builder(
+            &self.http_client,
+            &args.parent,
+            &args.filter,
+        )
+        .map_err(ProviderError::Api)?;
+
+        let task = cloudfunctions_projects_locations_runtimes_list_task(builder)
+            .map_err(ProviderError::Api)?;
+
+        execute(task, None).map_err(|e: String| ProviderError::ExecuteFailed(e.to_string()))
     }
 
 }

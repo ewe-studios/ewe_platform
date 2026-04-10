@@ -7,7 +7,6 @@
 
 #![cfg(feature = "gcp")]
 
-
 use crate::providers::gcp::clients::types::*;
 use crate::providers::gcp::resources::*;
 use foundation_core::valtron::{
@@ -17,8 +16,166 @@ use foundation_core::valtron::{
 use foundation_core::wire::simple_http::client::{
     body_reader, ClientRequestBuilder, RequestIntro, SimpleHttpClient, SystemDnsResolver,
 };
+use foundation_db::state::resource_identifier::ResourceIdentifier;
 use foundation_macros::JsonHash;
 use serde::Serialize;
+
+/// GET v1/projects/{projectsId}/locations/{locationsId}
+/// Gets information about a location.
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `networkservices_projects_locations_get_execute()` to send, or `networkservices_projects_locations_get` for simplest API.
+
+pub fn networkservices_projects_locations_get_builder(
+    client: &SimpleHttpClient,
+    name: &String,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!(
+        "https://networkservices.googleapis.com/v1/projects/{}/locations/{locationsId}",
+        name,
+    );
+
+    // Build request
+    let builder = client
+        .get(&endpoint_url)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// GET v1/projects/{projectsId}/locations/{locationsId}
+/// Gets information about a location.
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `networkservices_projects_locations_get_execute()` or `networkservices_projects_locations_get`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `networkservices_projects_locations_get_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn networkservices_projects_locations_get_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<Location>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: Location = serde_json::from_str(&body)
+                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// GET v1/projects/{projectsId}/locations/{locationsId}
+/// Gets information about a location.
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `networkservices_projects_locations_get_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `networkservices_projects_locations_get_task()`.
+/// For the simplest API, use `networkservices_projects_locations_get()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `networkservices_projects_locations_get_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn networkservices_projects_locations_get_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<Location>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let task = networkservices_projects_locations_get_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`networkservices_projects_locations_get`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct NetworkservicesProjectsLocationsGetArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
+/// GET v1/projects/{projectsId}/locations/{locationsId}
+/// Gets information about a location.
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `networkservices_projects_locations_get_builder()` + `networkservices_projects_locations_get_execute()`.
+/// For task-level control, use `networkservices_projects_locations_get_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn networkservices_projects_locations_get(
+    client: &SimpleHttpClient,
+    args: &NetworkservicesProjectsLocationsGetArgs,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<Location>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let builder = networkservices_projects_locations_get_builder(client, &args.name)?;
+    networkservices_projects_locations_get_execute(builder)
+}
 
 /// GET v1/projects/{projectsId}/locations
 /// Lists information about the supported locations for this service. This method lists locations based on the resource scope provided in the [ListLocationsRequest.name] field: * **Global locations**: If name is empty, the method lists the public locations available to all projects. * **Project-specific locations**: If name follows the format `projects/{project}`, the method lists locations visible to that specific project. This includes public, private, or other project-specific locations enabled for the project. For `gRPC` and client library implementations, the resource name is passed as the name field. For direct service calls, the resource name is incorporated into the request path based on the specific service implementation and version.
@@ -29,13 +186,16 @@ use serde::Serialize;
 pub fn networkservices_projects_locations_list_builder(
     client: &SimpleHttpClient,
     name: &String,
-    extraLocationTypes: &Option<String>,
-    filter: &Option<String>,
-    pageSize: &Option<i32>,
-    pageToken: &Option<String>,
+    extraLocationTypes: &Option<Option<String>>,
+    filter: &Option<Option<String>>,
+    pageSize: &Option<Option<String>>,
+    pageToken: &Option<Option<String>>,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
-    let endpoint_url = format!("https://networkservices.googleapis.com/v1/projects/{}/locations",);
+    let endpoint_url = format!(
+        "https://networkservices.googleapis.com/v1/projects/{}/locations",
+        name,
+    );
 
     // Build request
     let mut query_parts = Vec::new();
@@ -177,13 +337,13 @@ pub struct NetworkservicesProjectsLocationsListArgs {
     /// Path parameter: name
     pub name: String,
     /// Query parameter: extraLocationTypes
-    pub extraLocationTypes: Option<String>,
+    pub extraLocationTypes: Option<Option<String>>,
     /// Query parameter: filter
-    pub filter: Option<String>,
+    pub filter: Option<Option<String>>,
     /// Query parameter: pageSize
-    pub pageSize: Option<i32>,
+    pub pageSize: Option<Option<String>>,
     /// Query parameter: pageToken
-    pub pageToken: Option<String>,
+    pub pageToken: Option<Option<String>>,
 }
 
 /// GET v1/projects/{projectsId}/locations
@@ -215,4 +375,18337 @@ pub fn networkservices_projects_locations_list(
         &args.pageToken,
     )?;
     networkservices_projects_locations_list_execute(builder)
+}
+
+/// POST v1/projects/{projectsId}/locations/{locationsId}/authzExtensions
+/// Creates a new AuthzExtension resource in a given project and location.
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `networkservices_projects_locations_authz_extensions_create_execute()` to send, or `networkservices_projects_locations_authz_extensions_create` for simplest API.
+
+pub fn networkservices_projects_locations_authz_extensions_create_builder(
+    client: &SimpleHttpClient,
+    parent: &String,
+    authzExtensionId: &Option<Option<String>>,
+    requestId: &Option<Option<String>>,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!(
+        "https://networkservices.googleapis.com/v1/projects/{}/locations/{locationsId}/authzExtensions",
+        parent,
+    );
+
+    // Build request
+    let mut query_parts = Vec::new();
+    if let Some(val) = authzExtensionId.as_ref() {
+        query_parts.push(format!("authzExtensionId={}", val));
+    }
+    if let Some(val) = requestId.as_ref() {
+        query_parts.push(format!("requestId={}", val));
+    }
+
+    let url_with_query = if query_parts.is_empty() {
+        endpoint_url
+    } else {
+        format!("{}?{}", endpoint_url, query_parts.join("&"))
+    };
+
+    let builder = client
+        .post(&url_with_query)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// POST v1/projects/{projectsId}/locations/{locationsId}/authzExtensions
+/// Creates a new AuthzExtension resource in a given project and location.
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `networkservices_projects_locations_authz_extensions_create_execute()` or `networkservices_projects_locations_authz_extensions_create`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `networkservices_projects_locations_authz_extensions_create_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn networkservices_projects_locations_authz_extensions_create_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<Operation>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: Operation = serde_json::from_str(&body)
+                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// POST v1/projects/{projectsId}/locations/{locationsId}/authzExtensions
+/// Creates a new AuthzExtension resource in a given project and location.
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `networkservices_projects_locations_authz_extensions_create_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `networkservices_projects_locations_authz_extensions_create_task()`.
+/// For the simplest API, use `networkservices_projects_locations_authz_extensions_create()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `networkservices_projects_locations_authz_extensions_create_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn networkservices_projects_locations_authz_extensions_create_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<Operation>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let task = networkservices_projects_locations_authz_extensions_create_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`networkservices_projects_locations_authz_extensions_create`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct NetworkservicesProjectsLocationsAuthzExtensionsCreateArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Query parameter: authzExtensionId
+    pub authzExtensionId: Option<Option<String>>,
+    /// Query parameter: requestId
+    pub requestId: Option<Option<String>>,
+}
+
+/// POST v1/projects/{projectsId}/locations/{locationsId}/authzExtensions
+/// Creates a new AuthzExtension resource in a given project and location.
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `networkservices_projects_locations_authz_extensions_create_builder()` + `networkservices_projects_locations_authz_extensions_create_execute()`.
+/// For task-level control, use `networkservices_projects_locations_authz_extensions_create_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn networkservices_projects_locations_authz_extensions_create(
+    client: &SimpleHttpClient,
+    args: &NetworkservicesProjectsLocationsAuthzExtensionsCreateArgs,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<Operation>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let builder = networkservices_projects_locations_authz_extensions_create_builder(
+        client,
+        &args.parent,
+        &args.authzExtensionId,
+        &args.requestId,
+    )?;
+    networkservices_projects_locations_authz_extensions_create_execute(builder)
+}
+
+/// DELETE v1/projects/{projectsId}/locations/{locationsId}/authzExtensions/{authzExtensionsId}
+/// Deletes the specified AuthzExtension resource.
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `networkservices_projects_locations_authz_extensions_delete_execute()` to send, or `networkservices_projects_locations_authz_extensions_delete` for simplest API.
+
+pub fn networkservices_projects_locations_authz_extensions_delete_builder(
+    client: &SimpleHttpClient,
+    name: &String,
+    requestId: &Option<Option<String>>,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!(
+        "https://networkservices.googleapis.com/v1/projects/{}/locations/{locationsId}/authzExtensions/{authzExtensionsId}",
+        name,
+    );
+
+    // Build request
+    let mut query_parts = Vec::new();
+    if let Some(val) = requestId.as_ref() {
+        query_parts.push(format!("requestId={}", val));
+    }
+
+    let url_with_query = if query_parts.is_empty() {
+        endpoint_url
+    } else {
+        format!("{}?{}", endpoint_url, query_parts.join("&"))
+    };
+
+    let builder = client
+        .delete(&url_with_query)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// DELETE v1/projects/{projectsId}/locations/{locationsId}/authzExtensions/{authzExtensionsId}
+/// Deletes the specified AuthzExtension resource.
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `networkservices_projects_locations_authz_extensions_delete_execute()` or `networkservices_projects_locations_authz_extensions_delete`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `networkservices_projects_locations_authz_extensions_delete_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn networkservices_projects_locations_authz_extensions_delete_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<Operation>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: Operation = serde_json::from_str(&body)
+                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// DELETE v1/projects/{projectsId}/locations/{locationsId}/authzExtensions/{authzExtensionsId}
+/// Deletes the specified AuthzExtension resource.
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `networkservices_projects_locations_authz_extensions_delete_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `networkservices_projects_locations_authz_extensions_delete_task()`.
+/// For the simplest API, use `networkservices_projects_locations_authz_extensions_delete()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `networkservices_projects_locations_authz_extensions_delete_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn networkservices_projects_locations_authz_extensions_delete_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<Operation>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let task = networkservices_projects_locations_authz_extensions_delete_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`networkservices_projects_locations_authz_extensions_delete`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct NetworkservicesProjectsLocationsAuthzExtensionsDeleteArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Query parameter: requestId
+    pub requestId: Option<Option<String>>,
+}
+
+/// DELETE v1/projects/{projectsId}/locations/{locationsId}/authzExtensions/{authzExtensionsId}
+/// Deletes the specified AuthzExtension resource.
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `networkservices_projects_locations_authz_extensions_delete_builder()` + `networkservices_projects_locations_authz_extensions_delete_execute()`.
+/// For task-level control, use `networkservices_projects_locations_authz_extensions_delete_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn networkservices_projects_locations_authz_extensions_delete(
+    client: &SimpleHttpClient,
+    args: &NetworkservicesProjectsLocationsAuthzExtensionsDeleteArgs,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<Operation>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let builder = networkservices_projects_locations_authz_extensions_delete_builder(
+        client,
+        &args.name,
+        &args.requestId,
+    )?;
+    networkservices_projects_locations_authz_extensions_delete_execute(builder)
+}
+
+/// GET v1/projects/{projectsId}/locations/{locationsId}/authzExtensions/{authzExtensionsId}
+/// Gets details of the specified AuthzExtension resource.
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `networkservices_projects_locations_authz_extensions_get_execute()` to send, or `networkservices_projects_locations_authz_extensions_get` for simplest API.
+
+pub fn networkservices_projects_locations_authz_extensions_get_builder(
+    client: &SimpleHttpClient,
+    name: &String,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!(
+        "https://networkservices.googleapis.com/v1/projects/{}/locations/{locationsId}/authzExtensions/{authzExtensionsId}",
+        name,
+    );
+
+    // Build request
+    let builder = client
+        .get(&endpoint_url)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// GET v1/projects/{projectsId}/locations/{locationsId}/authzExtensions/{authzExtensionsId}
+/// Gets details of the specified AuthzExtension resource.
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `networkservices_projects_locations_authz_extensions_get_execute()` or `networkservices_projects_locations_authz_extensions_get`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `networkservices_projects_locations_authz_extensions_get_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn networkservices_projects_locations_authz_extensions_get_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<AuthzExtension>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: AuthzExtension = serde_json::from_str(&body)
+                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// GET v1/projects/{projectsId}/locations/{locationsId}/authzExtensions/{authzExtensionsId}
+/// Gets details of the specified AuthzExtension resource.
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `networkservices_projects_locations_authz_extensions_get_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `networkservices_projects_locations_authz_extensions_get_task()`.
+/// For the simplest API, use `networkservices_projects_locations_authz_extensions_get()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `networkservices_projects_locations_authz_extensions_get_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn networkservices_projects_locations_authz_extensions_get_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<AuthzExtension>, ApiError>, P = ApiPending>
+        + Send
+        + 'static,
+    ApiError,
+> {
+    let task = networkservices_projects_locations_authz_extensions_get_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`networkservices_projects_locations_authz_extensions_get`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct NetworkservicesProjectsLocationsAuthzExtensionsGetArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
+/// GET v1/projects/{projectsId}/locations/{locationsId}/authzExtensions/{authzExtensionsId}
+/// Gets details of the specified AuthzExtension resource.
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `networkservices_projects_locations_authz_extensions_get_builder()` + `networkservices_projects_locations_authz_extensions_get_execute()`.
+/// For task-level control, use `networkservices_projects_locations_authz_extensions_get_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn networkservices_projects_locations_authz_extensions_get(
+    client: &SimpleHttpClient,
+    args: &NetworkservicesProjectsLocationsAuthzExtensionsGetArgs,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<AuthzExtension>, ApiError>, P = ApiPending>
+        + Send
+        + 'static,
+    ApiError,
+> {
+    let builder =
+        networkservices_projects_locations_authz_extensions_get_builder(client, &args.name)?;
+    networkservices_projects_locations_authz_extensions_get_execute(builder)
+}
+
+/// GET v1/projects/{projectsId}/locations/{locationsId}/authzExtensions
+/// Lists AuthzExtension resources in a given project and location.
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `networkservices_projects_locations_authz_extensions_list_execute()` to send, or `networkservices_projects_locations_authz_extensions_list` for simplest API.
+
+pub fn networkservices_projects_locations_authz_extensions_list_builder(
+    client: &SimpleHttpClient,
+    parent: &String,
+    filter: &Option<Option<String>>,
+    orderBy: &Option<Option<String>>,
+    pageSize: &Option<Option<String>>,
+    pageToken: &Option<Option<String>>,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!(
+        "https://networkservices.googleapis.com/v1/projects/{}/locations/{locationsId}/authzExtensions",
+        parent,
+    );
+
+    // Build request
+    let mut query_parts = Vec::new();
+    if let Some(val) = filter.as_ref() {
+        query_parts.push(format!("filter={}", val));
+    }
+    if let Some(val) = orderBy.as_ref() {
+        query_parts.push(format!("orderBy={}", val));
+    }
+    if let Some(val) = pageSize.as_ref() {
+        query_parts.push(format!("pageSize={}", val));
+    }
+    if let Some(val) = pageToken.as_ref() {
+        query_parts.push(format!("pageToken={}", val));
+    }
+
+    let url_with_query = if query_parts.is_empty() {
+        endpoint_url
+    } else {
+        format!("{}?{}", endpoint_url, query_parts.join("&"))
+    };
+
+    let builder = client
+        .get(&url_with_query)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// GET v1/projects/{projectsId}/locations/{locationsId}/authzExtensions
+/// Lists AuthzExtension resources in a given project and location.
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `networkservices_projects_locations_authz_extensions_list_execute()` or `networkservices_projects_locations_authz_extensions_list`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `networkservices_projects_locations_authz_extensions_list_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn networkservices_projects_locations_authz_extensions_list_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<ListAuthzExtensionsResponse>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: ListAuthzExtensionsResponse = serde_json::from_str(&body)
+                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// GET v1/projects/{projectsId}/locations/{locationsId}/authzExtensions
+/// Lists AuthzExtension resources in a given project and location.
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `networkservices_projects_locations_authz_extensions_list_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `networkservices_projects_locations_authz_extensions_list_task()`.
+/// For the simplest API, use `networkservices_projects_locations_authz_extensions_list()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `networkservices_projects_locations_authz_extensions_list_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn networkservices_projects_locations_authz_extensions_list_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<
+            D = Result<ApiResponse<ListAuthzExtensionsResponse>, ApiError>,
+            P = ApiPending,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    let task = networkservices_projects_locations_authz_extensions_list_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`networkservices_projects_locations_authz_extensions_list`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct NetworkservicesProjectsLocationsAuthzExtensionsListArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Query parameter: filter
+    pub filter: Option<Option<String>>,
+    /// Query parameter: orderBy
+    pub orderBy: Option<Option<String>>,
+    /// Query parameter: pageSize
+    pub pageSize: Option<Option<String>>,
+    /// Query parameter: pageToken
+    pub pageToken: Option<Option<String>>,
+}
+
+/// GET v1/projects/{projectsId}/locations/{locationsId}/authzExtensions
+/// Lists AuthzExtension resources in a given project and location.
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `networkservices_projects_locations_authz_extensions_list_builder()` + `networkservices_projects_locations_authz_extensions_list_execute()`.
+/// For task-level control, use `networkservices_projects_locations_authz_extensions_list_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn networkservices_projects_locations_authz_extensions_list(
+    client: &SimpleHttpClient,
+    args: &NetworkservicesProjectsLocationsAuthzExtensionsListArgs,
+) -> Result<
+    impl StreamIterator<
+            D = Result<ApiResponse<ListAuthzExtensionsResponse>, ApiError>,
+            P = ApiPending,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    let builder = networkservices_projects_locations_authz_extensions_list_builder(
+        client,
+        &args.parent,
+        &args.filter,
+        &args.orderBy,
+        &args.pageSize,
+        &args.pageToken,
+    )?;
+    networkservices_projects_locations_authz_extensions_list_execute(builder)
+}
+
+/// PATCH v1/projects/{projectsId}/locations/{locationsId}/authzExtensions/{authzExtensionsId}
+/// Updates the parameters of the specified AuthzExtension resource.
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `networkservices_projects_locations_authz_extensions_patch_execute()` to send, or `networkservices_projects_locations_authz_extensions_patch` for simplest API.
+
+pub fn networkservices_projects_locations_authz_extensions_patch_builder(
+    client: &SimpleHttpClient,
+    name: &String,
+    requestId: &Option<Option<String>>,
+    updateMask: &Option<Option<String>>,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!(
+        "https://networkservices.googleapis.com/v1/projects/{}/locations/{locationsId}/authzExtensions/{authzExtensionsId}",
+        name,
+    );
+
+    // Build request
+    let mut query_parts = Vec::new();
+    if let Some(val) = requestId.as_ref() {
+        query_parts.push(format!("requestId={}", val));
+    }
+    if let Some(val) = updateMask.as_ref() {
+        query_parts.push(format!("updateMask={}", val));
+    }
+
+    let url_with_query = if query_parts.is_empty() {
+        endpoint_url
+    } else {
+        format!("{}?{}", endpoint_url, query_parts.join("&"))
+    };
+
+    let builder = client
+        .patch(&url_with_query)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// PATCH v1/projects/{projectsId}/locations/{locationsId}/authzExtensions/{authzExtensionsId}
+/// Updates the parameters of the specified AuthzExtension resource.
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `networkservices_projects_locations_authz_extensions_patch_execute()` or `networkservices_projects_locations_authz_extensions_patch`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `networkservices_projects_locations_authz_extensions_patch_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn networkservices_projects_locations_authz_extensions_patch_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<Operation>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: Operation = serde_json::from_str(&body)
+                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// PATCH v1/projects/{projectsId}/locations/{locationsId}/authzExtensions/{authzExtensionsId}
+/// Updates the parameters of the specified AuthzExtension resource.
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `networkservices_projects_locations_authz_extensions_patch_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `networkservices_projects_locations_authz_extensions_patch_task()`.
+/// For the simplest API, use `networkservices_projects_locations_authz_extensions_patch()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `networkservices_projects_locations_authz_extensions_patch_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn networkservices_projects_locations_authz_extensions_patch_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<Operation>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let task = networkservices_projects_locations_authz_extensions_patch_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`networkservices_projects_locations_authz_extensions_patch`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct NetworkservicesProjectsLocationsAuthzExtensionsPatchArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Query parameter: requestId
+    pub requestId: Option<Option<String>>,
+    /// Query parameter: updateMask
+    pub updateMask: Option<Option<String>>,
+}
+
+/// PATCH v1/projects/{projectsId}/locations/{locationsId}/authzExtensions/{authzExtensionsId}
+/// Updates the parameters of the specified AuthzExtension resource.
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `networkservices_projects_locations_authz_extensions_patch_builder()` + `networkservices_projects_locations_authz_extensions_patch_execute()`.
+/// For task-level control, use `networkservices_projects_locations_authz_extensions_patch_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn networkservices_projects_locations_authz_extensions_patch(
+    client: &SimpleHttpClient,
+    args: &NetworkservicesProjectsLocationsAuthzExtensionsPatchArgs,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<Operation>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let builder = networkservices_projects_locations_authz_extensions_patch_builder(
+        client,
+        &args.name,
+        &args.requestId,
+        &args.updateMask,
+    )?;
+    networkservices_projects_locations_authz_extensions_patch_execute(builder)
+}
+
+/// GET v1/projects/{projectsId}/locations/{locationsId}/edgeCacheKeysets/{edgeCacheKeysetsId}:getIamPolicy
+/// Gets the access control policy for a resource. Returns an empty policy if the resource exists and does not have a policy set.
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `networkservices_projects_locations_edge_cache_keysets_get_iam_policy_execute()` to send, or `networkservices_projects_locations_edge_cache_keysets_get_iam_policy` for simplest API.
+
+pub fn networkservices_projects_locations_edge_cache_keysets_get_iam_policy_builder(
+    client: &SimpleHttpClient,
+    resource: &String,
+    options_requestedPolicyVersion: &Option<Option<String>>,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!(
+        "https://networkservices.googleapis.com/v1/projects/{}/locations/{locationsId}/edgeCacheKeysets/{edgeCacheKeysetsId}:getIamPolicy",
+        resource,
+    );
+
+    // Build request
+    let mut query_parts = Vec::new();
+    if let Some(val) = options_requestedPolicyVersion.as_ref() {
+        query_parts.push(format!("options.requestedPolicyVersion={}", val));
+    }
+
+    let url_with_query = if query_parts.is_empty() {
+        endpoint_url
+    } else {
+        format!("{}?{}", endpoint_url, query_parts.join("&"))
+    };
+
+    let builder = client
+        .get(&url_with_query)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// GET v1/projects/{projectsId}/locations/{locationsId}/edgeCacheKeysets/{edgeCacheKeysetsId}:getIamPolicy
+/// Gets the access control policy for a resource. Returns an empty policy if the resource exists and does not have a policy set.
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `networkservices_projects_locations_edge_cache_keysets_get_iam_policy_execute()` or `networkservices_projects_locations_edge_cache_keysets_get_iam_policy`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `networkservices_projects_locations_edge_cache_keysets_get_iam_policy_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn networkservices_projects_locations_edge_cache_keysets_get_iam_policy_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<Policy>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: Policy = serde_json::from_str(&body)
+                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// GET v1/projects/{projectsId}/locations/{locationsId}/edgeCacheKeysets/{edgeCacheKeysetsId}:getIamPolicy
+/// Gets the access control policy for a resource. Returns an empty policy if the resource exists and does not have a policy set.
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `networkservices_projects_locations_edge_cache_keysets_get_iam_policy_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `networkservices_projects_locations_edge_cache_keysets_get_iam_policy_task()`.
+/// For the simplest API, use `networkservices_projects_locations_edge_cache_keysets_get_iam_policy()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `networkservices_projects_locations_edge_cache_keysets_get_iam_policy_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn networkservices_projects_locations_edge_cache_keysets_get_iam_policy_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<Policy>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let task = networkservices_projects_locations_edge_cache_keysets_get_iam_policy_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`networkservices_projects_locations_edge_cache_keysets_get_iam_policy`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct NetworkservicesProjectsLocationsEdgeCacheKeysetsGetIamPolicyArgs {
+    /// Path parameter: resource
+    pub resource: String,
+    /// Query parameter: options_requestedPolicyVersion
+    pub options_requestedPolicyVersion: Option<Option<String>>,
+}
+
+/// GET v1/projects/{projectsId}/locations/{locationsId}/edgeCacheKeysets/{edgeCacheKeysetsId}:getIamPolicy
+/// Gets the access control policy for a resource. Returns an empty policy if the resource exists and does not have a policy set.
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `networkservices_projects_locations_edge_cache_keysets_get_iam_policy_builder()` + `networkservices_projects_locations_edge_cache_keysets_get_iam_policy_execute()`.
+/// For task-level control, use `networkservices_projects_locations_edge_cache_keysets_get_iam_policy_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn networkservices_projects_locations_edge_cache_keysets_get_iam_policy(
+    client: &SimpleHttpClient,
+    args: &NetworkservicesProjectsLocationsEdgeCacheKeysetsGetIamPolicyArgs,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<Policy>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let builder = networkservices_projects_locations_edge_cache_keysets_get_iam_policy_builder(
+        client,
+        &args.resource,
+        &args.options_requestedPolicyVersion,
+    )?;
+    networkservices_projects_locations_edge_cache_keysets_get_iam_policy_execute(builder)
+}
+
+/// POST v1/projects/{projectsId}/locations/{locationsId}/edgeCacheKeysets/{edgeCacheKeysetsId}:setIamPolicy
+/// Sets the access control policy on the specified resource. Replaces any existing policy. Can return NOT_FOUND, INVALID_ARGUMENT, and PERMISSION_DENIED errors.
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `networkservices_projects_locations_edge_cache_keysets_set_iam_policy_execute()` to send, or `networkservices_projects_locations_edge_cache_keysets_set_iam_policy` for simplest API.
+
+pub fn networkservices_projects_locations_edge_cache_keysets_set_iam_policy_builder(
+    client: &SimpleHttpClient,
+    resource: &String,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!(
+        "https://networkservices.googleapis.com/v1/projects/{}/locations/{locationsId}/edgeCacheKeysets/{edgeCacheKeysetsId}:setIamPolicy",
+        resource,
+    );
+
+    // Build request
+    let builder = client
+        .post(&endpoint_url)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// POST v1/projects/{projectsId}/locations/{locationsId}/edgeCacheKeysets/{edgeCacheKeysetsId}:setIamPolicy
+/// Sets the access control policy on the specified resource. Replaces any existing policy. Can return NOT_FOUND, INVALID_ARGUMENT, and PERMISSION_DENIED errors.
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `networkservices_projects_locations_edge_cache_keysets_set_iam_policy_execute()` or `networkservices_projects_locations_edge_cache_keysets_set_iam_policy`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `networkservices_projects_locations_edge_cache_keysets_set_iam_policy_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn networkservices_projects_locations_edge_cache_keysets_set_iam_policy_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<Policy>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: Policy = serde_json::from_str(&body)
+                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// POST v1/projects/{projectsId}/locations/{locationsId}/edgeCacheKeysets/{edgeCacheKeysetsId}:setIamPolicy
+/// Sets the access control policy on the specified resource. Replaces any existing policy. Can return NOT_FOUND, INVALID_ARGUMENT, and PERMISSION_DENIED errors.
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `networkservices_projects_locations_edge_cache_keysets_set_iam_policy_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `networkservices_projects_locations_edge_cache_keysets_set_iam_policy_task()`.
+/// For the simplest API, use `networkservices_projects_locations_edge_cache_keysets_set_iam_policy()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `networkservices_projects_locations_edge_cache_keysets_set_iam_policy_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn networkservices_projects_locations_edge_cache_keysets_set_iam_policy_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<Policy>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let task = networkservices_projects_locations_edge_cache_keysets_set_iam_policy_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`networkservices_projects_locations_edge_cache_keysets_set_iam_policy`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct NetworkservicesProjectsLocationsEdgeCacheKeysetsSetIamPolicyArgs {
+    /// Path parameter: resource
+    pub resource: String,
+}
+
+/// POST v1/projects/{projectsId}/locations/{locationsId}/edgeCacheKeysets/{edgeCacheKeysetsId}:setIamPolicy
+/// Sets the access control policy on the specified resource. Replaces any existing policy. Can return NOT_FOUND, INVALID_ARGUMENT, and PERMISSION_DENIED errors.
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `networkservices_projects_locations_edge_cache_keysets_set_iam_policy_builder()` + `networkservices_projects_locations_edge_cache_keysets_set_iam_policy_execute()`.
+/// For task-level control, use `networkservices_projects_locations_edge_cache_keysets_set_iam_policy_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn networkservices_projects_locations_edge_cache_keysets_set_iam_policy(
+    client: &SimpleHttpClient,
+    args: &NetworkservicesProjectsLocationsEdgeCacheKeysetsSetIamPolicyArgs,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<Policy>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let builder = networkservices_projects_locations_edge_cache_keysets_set_iam_policy_builder(
+        client,
+        &args.resource,
+    )?;
+    networkservices_projects_locations_edge_cache_keysets_set_iam_policy_execute(builder)
+}
+
+/// POST v1/projects/{projectsId}/locations/{locationsId}/edgeCacheKeysets/{edgeCacheKeysetsId}:testIamPermissions
+/// Returns permissions that a caller has on the specified resource. If the resource does not exist, this will return an empty set of permissions, not a NOT_FOUND error. Note: This operation is designed to be used for building permission-aware UIs and command-line tools, not for authorization checking. This operation may "fail open" without warning.
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `networkservices_projects_locations_edge_cache_keysets_test_iam_permissions_execute()` to send, or `networkservices_projects_locations_edge_cache_keysets_test_iam_permissions` for simplest API.
+
+pub fn networkservices_projects_locations_edge_cache_keysets_test_iam_permissions_builder(
+    client: &SimpleHttpClient,
+    resource: &String,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!(
+        "https://networkservices.googleapis.com/v1/projects/{}/locations/{locationsId}/edgeCacheKeysets/{edgeCacheKeysetsId}:testIamPermissions",
+        resource,
+    );
+
+    // Build request
+    let builder = client
+        .post(&endpoint_url)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// POST v1/projects/{projectsId}/locations/{locationsId}/edgeCacheKeysets/{edgeCacheKeysetsId}:testIamPermissions
+/// Returns permissions that a caller has on the specified resource. If the resource does not exist, this will return an empty set of permissions, not a NOT_FOUND error. Note: This operation is designed to be used for building permission-aware UIs and command-line tools, not for authorization checking. This operation may "fail open" without warning.
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `networkservices_projects_locations_edge_cache_keysets_test_iam_permissions_execute()` or `networkservices_projects_locations_edge_cache_keysets_test_iam_permissions`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `networkservices_projects_locations_edge_cache_keysets_test_iam_permissions_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn networkservices_projects_locations_edge_cache_keysets_test_iam_permissions_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<TestIamPermissionsResponse>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: TestIamPermissionsResponse = serde_json::from_str(&body)
+                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// POST v1/projects/{projectsId}/locations/{locationsId}/edgeCacheKeysets/{edgeCacheKeysetsId}:testIamPermissions
+/// Returns permissions that a caller has on the specified resource. If the resource does not exist, this will return an empty set of permissions, not a NOT_FOUND error. Note: This operation is designed to be used for building permission-aware UIs and command-line tools, not for authorization checking. This operation may "fail open" without warning.
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `networkservices_projects_locations_edge_cache_keysets_test_iam_permissions_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `networkservices_projects_locations_edge_cache_keysets_test_iam_permissions_task()`.
+/// For the simplest API, use `networkservices_projects_locations_edge_cache_keysets_test_iam_permissions()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `networkservices_projects_locations_edge_cache_keysets_test_iam_permissions_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn networkservices_projects_locations_edge_cache_keysets_test_iam_permissions_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<
+            D = Result<ApiResponse<TestIamPermissionsResponse>, ApiError>,
+            P = ApiPending,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    let task =
+        networkservices_projects_locations_edge_cache_keysets_test_iam_permissions_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`networkservices_projects_locations_edge_cache_keysets_test_iam_permissions`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct NetworkservicesProjectsLocationsEdgeCacheKeysetsTestIamPermissionsArgs {
+    /// Path parameter: resource
+    pub resource: String,
+}
+
+/// POST v1/projects/{projectsId}/locations/{locationsId}/edgeCacheKeysets/{edgeCacheKeysetsId}:testIamPermissions
+/// Returns permissions that a caller has on the specified resource. If the resource does not exist, this will return an empty set of permissions, not a NOT_FOUND error. Note: This operation is designed to be used for building permission-aware UIs and command-line tools, not for authorization checking. This operation may "fail open" without warning.
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `networkservices_projects_locations_edge_cache_keysets_test_iam_permissions_builder()` + `networkservices_projects_locations_edge_cache_keysets_test_iam_permissions_execute()`.
+/// For task-level control, use `networkservices_projects_locations_edge_cache_keysets_test_iam_permissions_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn networkservices_projects_locations_edge_cache_keysets_test_iam_permissions(
+    client: &SimpleHttpClient,
+    args: &NetworkservicesProjectsLocationsEdgeCacheKeysetsTestIamPermissionsArgs,
+) -> Result<
+    impl StreamIterator<
+            D = Result<ApiResponse<TestIamPermissionsResponse>, ApiError>,
+            P = ApiPending,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    let builder =
+        networkservices_projects_locations_edge_cache_keysets_test_iam_permissions_builder(
+            client,
+            &args.resource,
+        )?;
+    networkservices_projects_locations_edge_cache_keysets_test_iam_permissions_execute(builder)
+}
+
+/// GET v1/projects/{projectsId}/locations/{locationsId}/edgeCacheOrigins/{edgeCacheOriginsId}:getIamPolicy
+/// Gets the access control policy for a resource. Returns an empty policy if the resource exists and does not have a policy set.
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `networkservices_projects_locations_edge_cache_origins_get_iam_policy_execute()` to send, or `networkservices_projects_locations_edge_cache_origins_get_iam_policy` for simplest API.
+
+pub fn networkservices_projects_locations_edge_cache_origins_get_iam_policy_builder(
+    client: &SimpleHttpClient,
+    resource: &String,
+    options_requestedPolicyVersion: &Option<Option<String>>,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!(
+        "https://networkservices.googleapis.com/v1/projects/{}/locations/{locationsId}/edgeCacheOrigins/{edgeCacheOriginsId}:getIamPolicy",
+        resource,
+    );
+
+    // Build request
+    let mut query_parts = Vec::new();
+    if let Some(val) = options_requestedPolicyVersion.as_ref() {
+        query_parts.push(format!("options.requestedPolicyVersion={}", val));
+    }
+
+    let url_with_query = if query_parts.is_empty() {
+        endpoint_url
+    } else {
+        format!("{}?{}", endpoint_url, query_parts.join("&"))
+    };
+
+    let builder = client
+        .get(&url_with_query)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// GET v1/projects/{projectsId}/locations/{locationsId}/edgeCacheOrigins/{edgeCacheOriginsId}:getIamPolicy
+/// Gets the access control policy for a resource. Returns an empty policy if the resource exists and does not have a policy set.
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `networkservices_projects_locations_edge_cache_origins_get_iam_policy_execute()` or `networkservices_projects_locations_edge_cache_origins_get_iam_policy`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `networkservices_projects_locations_edge_cache_origins_get_iam_policy_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn networkservices_projects_locations_edge_cache_origins_get_iam_policy_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<Policy>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: Policy = serde_json::from_str(&body)
+                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// GET v1/projects/{projectsId}/locations/{locationsId}/edgeCacheOrigins/{edgeCacheOriginsId}:getIamPolicy
+/// Gets the access control policy for a resource. Returns an empty policy if the resource exists and does not have a policy set.
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `networkservices_projects_locations_edge_cache_origins_get_iam_policy_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `networkservices_projects_locations_edge_cache_origins_get_iam_policy_task()`.
+/// For the simplest API, use `networkservices_projects_locations_edge_cache_origins_get_iam_policy()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `networkservices_projects_locations_edge_cache_origins_get_iam_policy_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn networkservices_projects_locations_edge_cache_origins_get_iam_policy_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<Policy>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let task = networkservices_projects_locations_edge_cache_origins_get_iam_policy_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`networkservices_projects_locations_edge_cache_origins_get_iam_policy`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct NetworkservicesProjectsLocationsEdgeCacheOriginsGetIamPolicyArgs {
+    /// Path parameter: resource
+    pub resource: String,
+    /// Query parameter: options_requestedPolicyVersion
+    pub options_requestedPolicyVersion: Option<Option<String>>,
+}
+
+/// GET v1/projects/{projectsId}/locations/{locationsId}/edgeCacheOrigins/{edgeCacheOriginsId}:getIamPolicy
+/// Gets the access control policy for a resource. Returns an empty policy if the resource exists and does not have a policy set.
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `networkservices_projects_locations_edge_cache_origins_get_iam_policy_builder()` + `networkservices_projects_locations_edge_cache_origins_get_iam_policy_execute()`.
+/// For task-level control, use `networkservices_projects_locations_edge_cache_origins_get_iam_policy_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn networkservices_projects_locations_edge_cache_origins_get_iam_policy(
+    client: &SimpleHttpClient,
+    args: &NetworkservicesProjectsLocationsEdgeCacheOriginsGetIamPolicyArgs,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<Policy>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let builder = networkservices_projects_locations_edge_cache_origins_get_iam_policy_builder(
+        client,
+        &args.resource,
+        &args.options_requestedPolicyVersion,
+    )?;
+    networkservices_projects_locations_edge_cache_origins_get_iam_policy_execute(builder)
+}
+
+/// POST v1/projects/{projectsId}/locations/{locationsId}/edgeCacheOrigins/{edgeCacheOriginsId}:setIamPolicy
+/// Sets the access control policy on the specified resource. Replaces any existing policy. Can return NOT_FOUND, INVALID_ARGUMENT, and PERMISSION_DENIED errors.
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `networkservices_projects_locations_edge_cache_origins_set_iam_policy_execute()` to send, or `networkservices_projects_locations_edge_cache_origins_set_iam_policy` for simplest API.
+
+pub fn networkservices_projects_locations_edge_cache_origins_set_iam_policy_builder(
+    client: &SimpleHttpClient,
+    resource: &String,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!(
+        "https://networkservices.googleapis.com/v1/projects/{}/locations/{locationsId}/edgeCacheOrigins/{edgeCacheOriginsId}:setIamPolicy",
+        resource,
+    );
+
+    // Build request
+    let builder = client
+        .post(&endpoint_url)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// POST v1/projects/{projectsId}/locations/{locationsId}/edgeCacheOrigins/{edgeCacheOriginsId}:setIamPolicy
+/// Sets the access control policy on the specified resource. Replaces any existing policy. Can return NOT_FOUND, INVALID_ARGUMENT, and PERMISSION_DENIED errors.
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `networkservices_projects_locations_edge_cache_origins_set_iam_policy_execute()` or `networkservices_projects_locations_edge_cache_origins_set_iam_policy`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `networkservices_projects_locations_edge_cache_origins_set_iam_policy_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn networkservices_projects_locations_edge_cache_origins_set_iam_policy_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<Policy>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: Policy = serde_json::from_str(&body)
+                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// POST v1/projects/{projectsId}/locations/{locationsId}/edgeCacheOrigins/{edgeCacheOriginsId}:setIamPolicy
+/// Sets the access control policy on the specified resource. Replaces any existing policy. Can return NOT_FOUND, INVALID_ARGUMENT, and PERMISSION_DENIED errors.
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `networkservices_projects_locations_edge_cache_origins_set_iam_policy_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `networkservices_projects_locations_edge_cache_origins_set_iam_policy_task()`.
+/// For the simplest API, use `networkservices_projects_locations_edge_cache_origins_set_iam_policy()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `networkservices_projects_locations_edge_cache_origins_set_iam_policy_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn networkservices_projects_locations_edge_cache_origins_set_iam_policy_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<Policy>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let task = networkservices_projects_locations_edge_cache_origins_set_iam_policy_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`networkservices_projects_locations_edge_cache_origins_set_iam_policy`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct NetworkservicesProjectsLocationsEdgeCacheOriginsSetIamPolicyArgs {
+    /// Path parameter: resource
+    pub resource: String,
+}
+
+/// POST v1/projects/{projectsId}/locations/{locationsId}/edgeCacheOrigins/{edgeCacheOriginsId}:setIamPolicy
+/// Sets the access control policy on the specified resource. Replaces any existing policy. Can return NOT_FOUND, INVALID_ARGUMENT, and PERMISSION_DENIED errors.
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `networkservices_projects_locations_edge_cache_origins_set_iam_policy_builder()` + `networkservices_projects_locations_edge_cache_origins_set_iam_policy_execute()`.
+/// For task-level control, use `networkservices_projects_locations_edge_cache_origins_set_iam_policy_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn networkservices_projects_locations_edge_cache_origins_set_iam_policy(
+    client: &SimpleHttpClient,
+    args: &NetworkservicesProjectsLocationsEdgeCacheOriginsSetIamPolicyArgs,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<Policy>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let builder = networkservices_projects_locations_edge_cache_origins_set_iam_policy_builder(
+        client,
+        &args.resource,
+    )?;
+    networkservices_projects_locations_edge_cache_origins_set_iam_policy_execute(builder)
+}
+
+/// POST v1/projects/{projectsId}/locations/{locationsId}/edgeCacheOrigins/{edgeCacheOriginsId}:testIamPermissions
+/// Returns permissions that a caller has on the specified resource. If the resource does not exist, this will return an empty set of permissions, not a NOT_FOUND error. Note: This operation is designed to be used for building permission-aware UIs and command-line tools, not for authorization checking. This operation may "fail open" without warning.
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `networkservices_projects_locations_edge_cache_origins_test_iam_permissions_execute()` to send, or `networkservices_projects_locations_edge_cache_origins_test_iam_permissions` for simplest API.
+
+pub fn networkservices_projects_locations_edge_cache_origins_test_iam_permissions_builder(
+    client: &SimpleHttpClient,
+    resource: &String,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!(
+        "https://networkservices.googleapis.com/v1/projects/{}/locations/{locationsId}/edgeCacheOrigins/{edgeCacheOriginsId}:testIamPermissions",
+        resource,
+    );
+
+    // Build request
+    let builder = client
+        .post(&endpoint_url)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// POST v1/projects/{projectsId}/locations/{locationsId}/edgeCacheOrigins/{edgeCacheOriginsId}:testIamPermissions
+/// Returns permissions that a caller has on the specified resource. If the resource does not exist, this will return an empty set of permissions, not a NOT_FOUND error. Note: This operation is designed to be used for building permission-aware UIs and command-line tools, not for authorization checking. This operation may "fail open" without warning.
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `networkservices_projects_locations_edge_cache_origins_test_iam_permissions_execute()` or `networkservices_projects_locations_edge_cache_origins_test_iam_permissions`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `networkservices_projects_locations_edge_cache_origins_test_iam_permissions_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn networkservices_projects_locations_edge_cache_origins_test_iam_permissions_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<TestIamPermissionsResponse>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: TestIamPermissionsResponse = serde_json::from_str(&body)
+                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// POST v1/projects/{projectsId}/locations/{locationsId}/edgeCacheOrigins/{edgeCacheOriginsId}:testIamPermissions
+/// Returns permissions that a caller has on the specified resource. If the resource does not exist, this will return an empty set of permissions, not a NOT_FOUND error. Note: This operation is designed to be used for building permission-aware UIs and command-line tools, not for authorization checking. This operation may "fail open" without warning.
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `networkservices_projects_locations_edge_cache_origins_test_iam_permissions_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `networkservices_projects_locations_edge_cache_origins_test_iam_permissions_task()`.
+/// For the simplest API, use `networkservices_projects_locations_edge_cache_origins_test_iam_permissions()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `networkservices_projects_locations_edge_cache_origins_test_iam_permissions_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn networkservices_projects_locations_edge_cache_origins_test_iam_permissions_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<
+            D = Result<ApiResponse<TestIamPermissionsResponse>, ApiError>,
+            P = ApiPending,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    let task =
+        networkservices_projects_locations_edge_cache_origins_test_iam_permissions_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`networkservices_projects_locations_edge_cache_origins_test_iam_permissions`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct NetworkservicesProjectsLocationsEdgeCacheOriginsTestIamPermissionsArgs {
+    /// Path parameter: resource
+    pub resource: String,
+}
+
+/// POST v1/projects/{projectsId}/locations/{locationsId}/edgeCacheOrigins/{edgeCacheOriginsId}:testIamPermissions
+/// Returns permissions that a caller has on the specified resource. If the resource does not exist, this will return an empty set of permissions, not a NOT_FOUND error. Note: This operation is designed to be used for building permission-aware UIs and command-line tools, not for authorization checking. This operation may "fail open" without warning.
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `networkservices_projects_locations_edge_cache_origins_test_iam_permissions_builder()` + `networkservices_projects_locations_edge_cache_origins_test_iam_permissions_execute()`.
+/// For task-level control, use `networkservices_projects_locations_edge_cache_origins_test_iam_permissions_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn networkservices_projects_locations_edge_cache_origins_test_iam_permissions(
+    client: &SimpleHttpClient,
+    args: &NetworkservicesProjectsLocationsEdgeCacheOriginsTestIamPermissionsArgs,
+) -> Result<
+    impl StreamIterator<
+            D = Result<ApiResponse<TestIamPermissionsResponse>, ApiError>,
+            P = ApiPending,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    let builder =
+        networkservices_projects_locations_edge_cache_origins_test_iam_permissions_builder(
+            client,
+            &args.resource,
+        )?;
+    networkservices_projects_locations_edge_cache_origins_test_iam_permissions_execute(builder)
+}
+
+/// GET v1/projects/{projectsId}/locations/{locationsId}/edgeCacheServices/{edgeCacheServicesId}:getIamPolicy
+/// Gets the access control policy for a resource. Returns an empty policy if the resource exists and does not have a policy set.
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `networkservices_projects_locations_edge_cache_services_get_iam_policy_execute()` to send, or `networkservices_projects_locations_edge_cache_services_get_iam_policy` for simplest API.
+
+pub fn networkservices_projects_locations_edge_cache_services_get_iam_policy_builder(
+    client: &SimpleHttpClient,
+    resource: &String,
+    options_requestedPolicyVersion: &Option<Option<String>>,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!(
+        "https://networkservices.googleapis.com/v1/projects/{}/locations/{locationsId}/edgeCacheServices/{edgeCacheServicesId}:getIamPolicy",
+        resource,
+    );
+
+    // Build request
+    let mut query_parts = Vec::new();
+    if let Some(val) = options_requestedPolicyVersion.as_ref() {
+        query_parts.push(format!("options.requestedPolicyVersion={}", val));
+    }
+
+    let url_with_query = if query_parts.is_empty() {
+        endpoint_url
+    } else {
+        format!("{}?{}", endpoint_url, query_parts.join("&"))
+    };
+
+    let builder = client
+        .get(&url_with_query)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// GET v1/projects/{projectsId}/locations/{locationsId}/edgeCacheServices/{edgeCacheServicesId}:getIamPolicy
+/// Gets the access control policy for a resource. Returns an empty policy if the resource exists and does not have a policy set.
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `networkservices_projects_locations_edge_cache_services_get_iam_policy_execute()` or `networkservices_projects_locations_edge_cache_services_get_iam_policy`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `networkservices_projects_locations_edge_cache_services_get_iam_policy_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn networkservices_projects_locations_edge_cache_services_get_iam_policy_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<Policy>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: Policy = serde_json::from_str(&body)
+                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// GET v1/projects/{projectsId}/locations/{locationsId}/edgeCacheServices/{edgeCacheServicesId}:getIamPolicy
+/// Gets the access control policy for a resource. Returns an empty policy if the resource exists and does not have a policy set.
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `networkservices_projects_locations_edge_cache_services_get_iam_policy_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `networkservices_projects_locations_edge_cache_services_get_iam_policy_task()`.
+/// For the simplest API, use `networkservices_projects_locations_edge_cache_services_get_iam_policy()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `networkservices_projects_locations_edge_cache_services_get_iam_policy_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn networkservices_projects_locations_edge_cache_services_get_iam_policy_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<Policy>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let task = networkservices_projects_locations_edge_cache_services_get_iam_policy_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`networkservices_projects_locations_edge_cache_services_get_iam_policy`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct NetworkservicesProjectsLocationsEdgeCacheServicesGetIamPolicyArgs {
+    /// Path parameter: resource
+    pub resource: String,
+    /// Query parameter: options_requestedPolicyVersion
+    pub options_requestedPolicyVersion: Option<Option<String>>,
+}
+
+/// GET v1/projects/{projectsId}/locations/{locationsId}/edgeCacheServices/{edgeCacheServicesId}:getIamPolicy
+/// Gets the access control policy for a resource. Returns an empty policy if the resource exists and does not have a policy set.
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `networkservices_projects_locations_edge_cache_services_get_iam_policy_builder()` + `networkservices_projects_locations_edge_cache_services_get_iam_policy_execute()`.
+/// For task-level control, use `networkservices_projects_locations_edge_cache_services_get_iam_policy_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn networkservices_projects_locations_edge_cache_services_get_iam_policy(
+    client: &SimpleHttpClient,
+    args: &NetworkservicesProjectsLocationsEdgeCacheServicesGetIamPolicyArgs,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<Policy>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let builder = networkservices_projects_locations_edge_cache_services_get_iam_policy_builder(
+        client,
+        &args.resource,
+        &args.options_requestedPolicyVersion,
+    )?;
+    networkservices_projects_locations_edge_cache_services_get_iam_policy_execute(builder)
+}
+
+/// POST v1/projects/{projectsId}/locations/{locationsId}/edgeCacheServices/{edgeCacheServicesId}:setIamPolicy
+/// Sets the access control policy on the specified resource. Replaces any existing policy. Can return NOT_FOUND, INVALID_ARGUMENT, and PERMISSION_DENIED errors.
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `networkservices_projects_locations_edge_cache_services_set_iam_policy_execute()` to send, or `networkservices_projects_locations_edge_cache_services_set_iam_policy` for simplest API.
+
+pub fn networkservices_projects_locations_edge_cache_services_set_iam_policy_builder(
+    client: &SimpleHttpClient,
+    resource: &String,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!(
+        "https://networkservices.googleapis.com/v1/projects/{}/locations/{locationsId}/edgeCacheServices/{edgeCacheServicesId}:setIamPolicy",
+        resource,
+    );
+
+    // Build request
+    let builder = client
+        .post(&endpoint_url)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// POST v1/projects/{projectsId}/locations/{locationsId}/edgeCacheServices/{edgeCacheServicesId}:setIamPolicy
+/// Sets the access control policy on the specified resource. Replaces any existing policy. Can return NOT_FOUND, INVALID_ARGUMENT, and PERMISSION_DENIED errors.
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `networkservices_projects_locations_edge_cache_services_set_iam_policy_execute()` or `networkservices_projects_locations_edge_cache_services_set_iam_policy`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `networkservices_projects_locations_edge_cache_services_set_iam_policy_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn networkservices_projects_locations_edge_cache_services_set_iam_policy_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<Policy>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: Policy = serde_json::from_str(&body)
+                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// POST v1/projects/{projectsId}/locations/{locationsId}/edgeCacheServices/{edgeCacheServicesId}:setIamPolicy
+/// Sets the access control policy on the specified resource. Replaces any existing policy. Can return NOT_FOUND, INVALID_ARGUMENT, and PERMISSION_DENIED errors.
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `networkservices_projects_locations_edge_cache_services_set_iam_policy_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `networkservices_projects_locations_edge_cache_services_set_iam_policy_task()`.
+/// For the simplest API, use `networkservices_projects_locations_edge_cache_services_set_iam_policy()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `networkservices_projects_locations_edge_cache_services_set_iam_policy_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn networkservices_projects_locations_edge_cache_services_set_iam_policy_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<Policy>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let task = networkservices_projects_locations_edge_cache_services_set_iam_policy_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`networkservices_projects_locations_edge_cache_services_set_iam_policy`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct NetworkservicesProjectsLocationsEdgeCacheServicesSetIamPolicyArgs {
+    /// Path parameter: resource
+    pub resource: String,
+}
+
+/// POST v1/projects/{projectsId}/locations/{locationsId}/edgeCacheServices/{edgeCacheServicesId}:setIamPolicy
+/// Sets the access control policy on the specified resource. Replaces any existing policy. Can return NOT_FOUND, INVALID_ARGUMENT, and PERMISSION_DENIED errors.
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `networkservices_projects_locations_edge_cache_services_set_iam_policy_builder()` + `networkservices_projects_locations_edge_cache_services_set_iam_policy_execute()`.
+/// For task-level control, use `networkservices_projects_locations_edge_cache_services_set_iam_policy_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn networkservices_projects_locations_edge_cache_services_set_iam_policy(
+    client: &SimpleHttpClient,
+    args: &NetworkservicesProjectsLocationsEdgeCacheServicesSetIamPolicyArgs,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<Policy>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let builder = networkservices_projects_locations_edge_cache_services_set_iam_policy_builder(
+        client,
+        &args.resource,
+    )?;
+    networkservices_projects_locations_edge_cache_services_set_iam_policy_execute(builder)
+}
+
+/// POST v1/projects/{projectsId}/locations/{locationsId}/edgeCacheServices/{edgeCacheServicesId}:testIamPermissions
+/// Returns permissions that a caller has on the specified resource. If the resource does not exist, this will return an empty set of permissions, not a NOT_FOUND error. Note: This operation is designed to be used for building permission-aware UIs and command-line tools, not for authorization checking. This operation may "fail open" without warning.
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `networkservices_projects_locations_edge_cache_services_test_iam_permissions_execute()` to send, or `networkservices_projects_locations_edge_cache_services_test_iam_permissions` for simplest API.
+
+pub fn networkservices_projects_locations_edge_cache_services_test_iam_permissions_builder(
+    client: &SimpleHttpClient,
+    resource: &String,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!(
+        "https://networkservices.googleapis.com/v1/projects/{}/locations/{locationsId}/edgeCacheServices/{edgeCacheServicesId}:testIamPermissions",
+        resource,
+    );
+
+    // Build request
+    let builder = client
+        .post(&endpoint_url)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// POST v1/projects/{projectsId}/locations/{locationsId}/edgeCacheServices/{edgeCacheServicesId}:testIamPermissions
+/// Returns permissions that a caller has on the specified resource. If the resource does not exist, this will return an empty set of permissions, not a NOT_FOUND error. Note: This operation is designed to be used for building permission-aware UIs and command-line tools, not for authorization checking. This operation may "fail open" without warning.
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `networkservices_projects_locations_edge_cache_services_test_iam_permissions_execute()` or `networkservices_projects_locations_edge_cache_services_test_iam_permissions`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `networkservices_projects_locations_edge_cache_services_test_iam_permissions_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn networkservices_projects_locations_edge_cache_services_test_iam_permissions_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<TestIamPermissionsResponse>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: TestIamPermissionsResponse = serde_json::from_str(&body)
+                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// POST v1/projects/{projectsId}/locations/{locationsId}/edgeCacheServices/{edgeCacheServicesId}:testIamPermissions
+/// Returns permissions that a caller has on the specified resource. If the resource does not exist, this will return an empty set of permissions, not a NOT_FOUND error. Note: This operation is designed to be used for building permission-aware UIs and command-line tools, not for authorization checking. This operation may "fail open" without warning.
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `networkservices_projects_locations_edge_cache_services_test_iam_permissions_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `networkservices_projects_locations_edge_cache_services_test_iam_permissions_task()`.
+/// For the simplest API, use `networkservices_projects_locations_edge_cache_services_test_iam_permissions()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `networkservices_projects_locations_edge_cache_services_test_iam_permissions_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn networkservices_projects_locations_edge_cache_services_test_iam_permissions_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<
+            D = Result<ApiResponse<TestIamPermissionsResponse>, ApiError>,
+            P = ApiPending,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    let task =
+        networkservices_projects_locations_edge_cache_services_test_iam_permissions_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`networkservices_projects_locations_edge_cache_services_test_iam_permissions`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct NetworkservicesProjectsLocationsEdgeCacheServicesTestIamPermissionsArgs {
+    /// Path parameter: resource
+    pub resource: String,
+}
+
+/// POST v1/projects/{projectsId}/locations/{locationsId}/edgeCacheServices/{edgeCacheServicesId}:testIamPermissions
+/// Returns permissions that a caller has on the specified resource. If the resource does not exist, this will return an empty set of permissions, not a NOT_FOUND error. Note: This operation is designed to be used for building permission-aware UIs and command-line tools, not for authorization checking. This operation may "fail open" without warning.
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `networkservices_projects_locations_edge_cache_services_test_iam_permissions_builder()` + `networkservices_projects_locations_edge_cache_services_test_iam_permissions_execute()`.
+/// For task-level control, use `networkservices_projects_locations_edge_cache_services_test_iam_permissions_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn networkservices_projects_locations_edge_cache_services_test_iam_permissions(
+    client: &SimpleHttpClient,
+    args: &NetworkservicesProjectsLocationsEdgeCacheServicesTestIamPermissionsArgs,
+) -> Result<
+    impl StreamIterator<
+            D = Result<ApiResponse<TestIamPermissionsResponse>, ApiError>,
+            P = ApiPending,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    let builder =
+        networkservices_projects_locations_edge_cache_services_test_iam_permissions_builder(
+            client,
+            &args.resource,
+        )?;
+    networkservices_projects_locations_edge_cache_services_test_iam_permissions_execute(builder)
+}
+
+/// POST v1/projects/{projectsId}/locations/{locationsId}/endpointPolicies
+/// Creates a new EndpointPolicy in a given project and location.
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `networkservices_projects_locations_endpoint_policies_create_execute()` to send, or `networkservices_projects_locations_endpoint_policies_create` for simplest API.
+
+pub fn networkservices_projects_locations_endpoint_policies_create_builder(
+    client: &SimpleHttpClient,
+    parent: &String,
+    endpointPolicyId: &Option<Option<String>>,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!(
+        "https://networkservices.googleapis.com/v1/projects/{}/locations/{locationsId}/endpointPolicies",
+        parent,
+    );
+
+    // Build request
+    let mut query_parts = Vec::new();
+    if let Some(val) = endpointPolicyId.as_ref() {
+        query_parts.push(format!("endpointPolicyId={}", val));
+    }
+
+    let url_with_query = if query_parts.is_empty() {
+        endpoint_url
+    } else {
+        format!("{}?{}", endpoint_url, query_parts.join("&"))
+    };
+
+    let builder = client
+        .post(&url_with_query)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// POST v1/projects/{projectsId}/locations/{locationsId}/endpointPolicies
+/// Creates a new EndpointPolicy in a given project and location.
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `networkservices_projects_locations_endpoint_policies_create_execute()` or `networkservices_projects_locations_endpoint_policies_create`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `networkservices_projects_locations_endpoint_policies_create_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn networkservices_projects_locations_endpoint_policies_create_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<Operation>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: Operation = serde_json::from_str(&body)
+                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// POST v1/projects/{projectsId}/locations/{locationsId}/endpointPolicies
+/// Creates a new EndpointPolicy in a given project and location.
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `networkservices_projects_locations_endpoint_policies_create_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `networkservices_projects_locations_endpoint_policies_create_task()`.
+/// For the simplest API, use `networkservices_projects_locations_endpoint_policies_create()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `networkservices_projects_locations_endpoint_policies_create_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn networkservices_projects_locations_endpoint_policies_create_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<Operation>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let task = networkservices_projects_locations_endpoint_policies_create_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`networkservices_projects_locations_endpoint_policies_create`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct NetworkservicesProjectsLocationsEndpointPoliciesCreateArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Query parameter: endpointPolicyId
+    pub endpointPolicyId: Option<Option<String>>,
+}
+
+/// POST v1/projects/{projectsId}/locations/{locationsId}/endpointPolicies
+/// Creates a new EndpointPolicy in a given project and location.
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `networkservices_projects_locations_endpoint_policies_create_builder()` + `networkservices_projects_locations_endpoint_policies_create_execute()`.
+/// For task-level control, use `networkservices_projects_locations_endpoint_policies_create_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn networkservices_projects_locations_endpoint_policies_create(
+    client: &SimpleHttpClient,
+    args: &NetworkservicesProjectsLocationsEndpointPoliciesCreateArgs,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<Operation>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let builder = networkservices_projects_locations_endpoint_policies_create_builder(
+        client,
+        &args.parent,
+        &args.endpointPolicyId,
+    )?;
+    networkservices_projects_locations_endpoint_policies_create_execute(builder)
+}
+
+/// DELETE v1/projects/{projectsId}/locations/{locationsId}/endpointPolicies/{endpointPoliciesId}
+/// Deletes a single EndpointPolicy.
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `networkservices_projects_locations_endpoint_policies_delete_execute()` to send, or `networkservices_projects_locations_endpoint_policies_delete` for simplest API.
+
+pub fn networkservices_projects_locations_endpoint_policies_delete_builder(
+    client: &SimpleHttpClient,
+    name: &String,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!(
+        "https://networkservices.googleapis.com/v1/projects/{}/locations/{locationsId}/endpointPolicies/{endpointPoliciesId}",
+        name,
+    );
+
+    // Build request
+    let builder = client
+        .delete(&endpoint_url)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// DELETE v1/projects/{projectsId}/locations/{locationsId}/endpointPolicies/{endpointPoliciesId}
+/// Deletes a single EndpointPolicy.
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `networkservices_projects_locations_endpoint_policies_delete_execute()` or `networkservices_projects_locations_endpoint_policies_delete`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `networkservices_projects_locations_endpoint_policies_delete_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn networkservices_projects_locations_endpoint_policies_delete_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<Operation>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: Operation = serde_json::from_str(&body)
+                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// DELETE v1/projects/{projectsId}/locations/{locationsId}/endpointPolicies/{endpointPoliciesId}
+/// Deletes a single EndpointPolicy.
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `networkservices_projects_locations_endpoint_policies_delete_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `networkservices_projects_locations_endpoint_policies_delete_task()`.
+/// For the simplest API, use `networkservices_projects_locations_endpoint_policies_delete()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `networkservices_projects_locations_endpoint_policies_delete_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn networkservices_projects_locations_endpoint_policies_delete_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<Operation>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let task = networkservices_projects_locations_endpoint_policies_delete_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`networkservices_projects_locations_endpoint_policies_delete`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct NetworkservicesProjectsLocationsEndpointPoliciesDeleteArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
+/// DELETE v1/projects/{projectsId}/locations/{locationsId}/endpointPolicies/{endpointPoliciesId}
+/// Deletes a single EndpointPolicy.
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `networkservices_projects_locations_endpoint_policies_delete_builder()` + `networkservices_projects_locations_endpoint_policies_delete_execute()`.
+/// For task-level control, use `networkservices_projects_locations_endpoint_policies_delete_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn networkservices_projects_locations_endpoint_policies_delete(
+    client: &SimpleHttpClient,
+    args: &NetworkservicesProjectsLocationsEndpointPoliciesDeleteArgs,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<Operation>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let builder =
+        networkservices_projects_locations_endpoint_policies_delete_builder(client, &args.name)?;
+    networkservices_projects_locations_endpoint_policies_delete_execute(builder)
+}
+
+/// GET v1/projects/{projectsId}/locations/{locationsId}/endpointPolicies/{endpointPoliciesId}
+/// Gets details of a single EndpointPolicy.
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `networkservices_projects_locations_endpoint_policies_get_execute()` to send, or `networkservices_projects_locations_endpoint_policies_get` for simplest API.
+
+pub fn networkservices_projects_locations_endpoint_policies_get_builder(
+    client: &SimpleHttpClient,
+    name: &String,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!(
+        "https://networkservices.googleapis.com/v1/projects/{}/locations/{locationsId}/endpointPolicies/{endpointPoliciesId}",
+        name,
+    );
+
+    // Build request
+    let builder = client
+        .get(&endpoint_url)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// GET v1/projects/{projectsId}/locations/{locationsId}/endpointPolicies/{endpointPoliciesId}
+/// Gets details of a single EndpointPolicy.
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `networkservices_projects_locations_endpoint_policies_get_execute()` or `networkservices_projects_locations_endpoint_policies_get`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `networkservices_projects_locations_endpoint_policies_get_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn networkservices_projects_locations_endpoint_policies_get_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<EndpointPolicy>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: EndpointPolicy = serde_json::from_str(&body)
+                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// GET v1/projects/{projectsId}/locations/{locationsId}/endpointPolicies/{endpointPoliciesId}
+/// Gets details of a single EndpointPolicy.
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `networkservices_projects_locations_endpoint_policies_get_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `networkservices_projects_locations_endpoint_policies_get_task()`.
+/// For the simplest API, use `networkservices_projects_locations_endpoint_policies_get()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `networkservices_projects_locations_endpoint_policies_get_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn networkservices_projects_locations_endpoint_policies_get_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<EndpointPolicy>, ApiError>, P = ApiPending>
+        + Send
+        + 'static,
+    ApiError,
+> {
+    let task = networkservices_projects_locations_endpoint_policies_get_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`networkservices_projects_locations_endpoint_policies_get`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct NetworkservicesProjectsLocationsEndpointPoliciesGetArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
+/// GET v1/projects/{projectsId}/locations/{locationsId}/endpointPolicies/{endpointPoliciesId}
+/// Gets details of a single EndpointPolicy.
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `networkservices_projects_locations_endpoint_policies_get_builder()` + `networkservices_projects_locations_endpoint_policies_get_execute()`.
+/// For task-level control, use `networkservices_projects_locations_endpoint_policies_get_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn networkservices_projects_locations_endpoint_policies_get(
+    client: &SimpleHttpClient,
+    args: &NetworkservicesProjectsLocationsEndpointPoliciesGetArgs,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<EndpointPolicy>, ApiError>, P = ApiPending>
+        + Send
+        + 'static,
+    ApiError,
+> {
+    let builder =
+        networkservices_projects_locations_endpoint_policies_get_builder(client, &args.name)?;
+    networkservices_projects_locations_endpoint_policies_get_execute(builder)
+}
+
+/// GET v1/projects/{projectsId}/locations/{locationsId}/endpointPolicies
+/// Lists EndpointPolicies in a given project and location.
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `networkservices_projects_locations_endpoint_policies_list_execute()` to send, or `networkservices_projects_locations_endpoint_policies_list` for simplest API.
+
+pub fn networkservices_projects_locations_endpoint_policies_list_builder(
+    client: &SimpleHttpClient,
+    parent: &String,
+    pageSize: &Option<Option<String>>,
+    pageToken: &Option<Option<String>>,
+    returnPartialSuccess: &Option<Option<String>>,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!(
+        "https://networkservices.googleapis.com/v1/projects/{}/locations/{locationsId}/endpointPolicies",
+        parent,
+    );
+
+    // Build request
+    let mut query_parts = Vec::new();
+    if let Some(val) = pageSize.as_ref() {
+        query_parts.push(format!("pageSize={}", val));
+    }
+    if let Some(val) = pageToken.as_ref() {
+        query_parts.push(format!("pageToken={}", val));
+    }
+    if let Some(val) = returnPartialSuccess.as_ref() {
+        query_parts.push(format!("returnPartialSuccess={}", val));
+    }
+
+    let url_with_query = if query_parts.is_empty() {
+        endpoint_url
+    } else {
+        format!("{}?{}", endpoint_url, query_parts.join("&"))
+    };
+
+    let builder = client
+        .get(&url_with_query)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// GET v1/projects/{projectsId}/locations/{locationsId}/endpointPolicies
+/// Lists EndpointPolicies in a given project and location.
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `networkservices_projects_locations_endpoint_policies_list_execute()` or `networkservices_projects_locations_endpoint_policies_list`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `networkservices_projects_locations_endpoint_policies_list_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn networkservices_projects_locations_endpoint_policies_list_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<ListEndpointPoliciesResponse>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: ListEndpointPoliciesResponse = serde_json::from_str(&body)
+                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// GET v1/projects/{projectsId}/locations/{locationsId}/endpointPolicies
+/// Lists EndpointPolicies in a given project and location.
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `networkservices_projects_locations_endpoint_policies_list_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `networkservices_projects_locations_endpoint_policies_list_task()`.
+/// For the simplest API, use `networkservices_projects_locations_endpoint_policies_list()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `networkservices_projects_locations_endpoint_policies_list_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn networkservices_projects_locations_endpoint_policies_list_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<
+            D = Result<ApiResponse<ListEndpointPoliciesResponse>, ApiError>,
+            P = ApiPending,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    let task = networkservices_projects_locations_endpoint_policies_list_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`networkservices_projects_locations_endpoint_policies_list`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct NetworkservicesProjectsLocationsEndpointPoliciesListArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Query parameter: pageSize
+    pub pageSize: Option<Option<String>>,
+    /// Query parameter: pageToken
+    pub pageToken: Option<Option<String>>,
+    /// Query parameter: returnPartialSuccess
+    pub returnPartialSuccess: Option<Option<String>>,
+}
+
+/// GET v1/projects/{projectsId}/locations/{locationsId}/endpointPolicies
+/// Lists EndpointPolicies in a given project and location.
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `networkservices_projects_locations_endpoint_policies_list_builder()` + `networkservices_projects_locations_endpoint_policies_list_execute()`.
+/// For task-level control, use `networkservices_projects_locations_endpoint_policies_list_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn networkservices_projects_locations_endpoint_policies_list(
+    client: &SimpleHttpClient,
+    args: &NetworkservicesProjectsLocationsEndpointPoliciesListArgs,
+) -> Result<
+    impl StreamIterator<
+            D = Result<ApiResponse<ListEndpointPoliciesResponse>, ApiError>,
+            P = ApiPending,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    let builder = networkservices_projects_locations_endpoint_policies_list_builder(
+        client,
+        &args.parent,
+        &args.pageSize,
+        &args.pageToken,
+        &args.returnPartialSuccess,
+    )?;
+    networkservices_projects_locations_endpoint_policies_list_execute(builder)
+}
+
+/// PATCH v1/projects/{projectsId}/locations/{locationsId}/endpointPolicies/{endpointPoliciesId}
+/// Updates the parameters of a single EndpointPolicy.
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `networkservices_projects_locations_endpoint_policies_patch_execute()` to send, or `networkservices_projects_locations_endpoint_policies_patch` for simplest API.
+
+pub fn networkservices_projects_locations_endpoint_policies_patch_builder(
+    client: &SimpleHttpClient,
+    name: &String,
+    updateMask: &Option<Option<String>>,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!(
+        "https://networkservices.googleapis.com/v1/projects/{}/locations/{locationsId}/endpointPolicies/{endpointPoliciesId}",
+        name,
+    );
+
+    // Build request
+    let mut query_parts = Vec::new();
+    if let Some(val) = updateMask.as_ref() {
+        query_parts.push(format!("updateMask={}", val));
+    }
+
+    let url_with_query = if query_parts.is_empty() {
+        endpoint_url
+    } else {
+        format!("{}?{}", endpoint_url, query_parts.join("&"))
+    };
+
+    let builder = client
+        .patch(&url_with_query)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// PATCH v1/projects/{projectsId}/locations/{locationsId}/endpointPolicies/{endpointPoliciesId}
+/// Updates the parameters of a single EndpointPolicy.
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `networkservices_projects_locations_endpoint_policies_patch_execute()` or `networkservices_projects_locations_endpoint_policies_patch`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `networkservices_projects_locations_endpoint_policies_patch_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn networkservices_projects_locations_endpoint_policies_patch_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<Operation>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: Operation = serde_json::from_str(&body)
+                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// PATCH v1/projects/{projectsId}/locations/{locationsId}/endpointPolicies/{endpointPoliciesId}
+/// Updates the parameters of a single EndpointPolicy.
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `networkservices_projects_locations_endpoint_policies_patch_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `networkservices_projects_locations_endpoint_policies_patch_task()`.
+/// For the simplest API, use `networkservices_projects_locations_endpoint_policies_patch()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `networkservices_projects_locations_endpoint_policies_patch_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn networkservices_projects_locations_endpoint_policies_patch_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<Operation>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let task = networkservices_projects_locations_endpoint_policies_patch_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`networkservices_projects_locations_endpoint_policies_patch`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct NetworkservicesProjectsLocationsEndpointPoliciesPatchArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Query parameter: updateMask
+    pub updateMask: Option<Option<String>>,
+}
+
+/// PATCH v1/projects/{projectsId}/locations/{locationsId}/endpointPolicies/{endpointPoliciesId}
+/// Updates the parameters of a single EndpointPolicy.
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `networkservices_projects_locations_endpoint_policies_patch_builder()` + `networkservices_projects_locations_endpoint_policies_patch_execute()`.
+/// For task-level control, use `networkservices_projects_locations_endpoint_policies_patch_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn networkservices_projects_locations_endpoint_policies_patch(
+    client: &SimpleHttpClient,
+    args: &NetworkservicesProjectsLocationsEndpointPoliciesPatchArgs,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<Operation>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let builder = networkservices_projects_locations_endpoint_policies_patch_builder(
+        client,
+        &args.name,
+        &args.updateMask,
+    )?;
+    networkservices_projects_locations_endpoint_policies_patch_execute(builder)
+}
+
+/// POST v1/projects/{projectsId}/locations/{locationsId}/gateways
+/// Creates a new Gateway in a given project and location.
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `networkservices_projects_locations_gateways_create_execute()` to send, or `networkservices_projects_locations_gateways_create` for simplest API.
+
+pub fn networkservices_projects_locations_gateways_create_builder(
+    client: &SimpleHttpClient,
+    parent: &String,
+    gatewayId: &Option<Option<String>>,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!(
+        "https://networkservices.googleapis.com/v1/projects/{}/locations/{locationsId}/gateways",
+        parent,
+    );
+
+    // Build request
+    let mut query_parts = Vec::new();
+    if let Some(val) = gatewayId.as_ref() {
+        query_parts.push(format!("gatewayId={}", val));
+    }
+
+    let url_with_query = if query_parts.is_empty() {
+        endpoint_url
+    } else {
+        format!("{}?{}", endpoint_url, query_parts.join("&"))
+    };
+
+    let builder = client
+        .post(&url_with_query)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// POST v1/projects/{projectsId}/locations/{locationsId}/gateways
+/// Creates a new Gateway in a given project and location.
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `networkservices_projects_locations_gateways_create_execute()` or `networkservices_projects_locations_gateways_create`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `networkservices_projects_locations_gateways_create_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn networkservices_projects_locations_gateways_create_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<Operation>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: Operation = serde_json::from_str(&body)
+                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// POST v1/projects/{projectsId}/locations/{locationsId}/gateways
+/// Creates a new Gateway in a given project and location.
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `networkservices_projects_locations_gateways_create_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `networkservices_projects_locations_gateways_create_task()`.
+/// For the simplest API, use `networkservices_projects_locations_gateways_create()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `networkservices_projects_locations_gateways_create_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn networkservices_projects_locations_gateways_create_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<Operation>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let task = networkservices_projects_locations_gateways_create_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`networkservices_projects_locations_gateways_create`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct NetworkservicesProjectsLocationsGatewaysCreateArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Query parameter: gatewayId
+    pub gatewayId: Option<Option<String>>,
+}
+
+/// POST v1/projects/{projectsId}/locations/{locationsId}/gateways
+/// Creates a new Gateway in a given project and location.
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `networkservices_projects_locations_gateways_create_builder()` + `networkservices_projects_locations_gateways_create_execute()`.
+/// For task-level control, use `networkservices_projects_locations_gateways_create_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn networkservices_projects_locations_gateways_create(
+    client: &SimpleHttpClient,
+    args: &NetworkservicesProjectsLocationsGatewaysCreateArgs,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<Operation>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let builder = networkservices_projects_locations_gateways_create_builder(
+        client,
+        &args.parent,
+        &args.gatewayId,
+    )?;
+    networkservices_projects_locations_gateways_create_execute(builder)
+}
+
+/// DELETE v1/projects/{projectsId}/locations/{locationsId}/gateways/{gatewaysId}
+/// Deletes a single Gateway.
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `networkservices_projects_locations_gateways_delete_execute()` to send, or `networkservices_projects_locations_gateways_delete` for simplest API.
+
+pub fn networkservices_projects_locations_gateways_delete_builder(
+    client: &SimpleHttpClient,
+    name: &String,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!(
+        "https://networkservices.googleapis.com/v1/projects/{}/locations/{locationsId}/gateways/{gatewaysId}",
+        name,
+    );
+
+    // Build request
+    let builder = client
+        .delete(&endpoint_url)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// DELETE v1/projects/{projectsId}/locations/{locationsId}/gateways/{gatewaysId}
+/// Deletes a single Gateway.
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `networkservices_projects_locations_gateways_delete_execute()` or `networkservices_projects_locations_gateways_delete`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `networkservices_projects_locations_gateways_delete_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn networkservices_projects_locations_gateways_delete_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<Operation>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: Operation = serde_json::from_str(&body)
+                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// DELETE v1/projects/{projectsId}/locations/{locationsId}/gateways/{gatewaysId}
+/// Deletes a single Gateway.
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `networkservices_projects_locations_gateways_delete_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `networkservices_projects_locations_gateways_delete_task()`.
+/// For the simplest API, use `networkservices_projects_locations_gateways_delete()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `networkservices_projects_locations_gateways_delete_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn networkservices_projects_locations_gateways_delete_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<Operation>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let task = networkservices_projects_locations_gateways_delete_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`networkservices_projects_locations_gateways_delete`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct NetworkservicesProjectsLocationsGatewaysDeleteArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
+/// DELETE v1/projects/{projectsId}/locations/{locationsId}/gateways/{gatewaysId}
+/// Deletes a single Gateway.
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `networkservices_projects_locations_gateways_delete_builder()` + `networkservices_projects_locations_gateways_delete_execute()`.
+/// For task-level control, use `networkservices_projects_locations_gateways_delete_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn networkservices_projects_locations_gateways_delete(
+    client: &SimpleHttpClient,
+    args: &NetworkservicesProjectsLocationsGatewaysDeleteArgs,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<Operation>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let builder = networkservices_projects_locations_gateways_delete_builder(client, &args.name)?;
+    networkservices_projects_locations_gateways_delete_execute(builder)
+}
+
+/// GET v1/projects/{projectsId}/locations/{locationsId}/gateways/{gatewaysId}
+/// Gets details of a single Gateway.
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `networkservices_projects_locations_gateways_get_execute()` to send, or `networkservices_projects_locations_gateways_get` for simplest API.
+
+pub fn networkservices_projects_locations_gateways_get_builder(
+    client: &SimpleHttpClient,
+    name: &String,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!(
+        "https://networkservices.googleapis.com/v1/projects/{}/locations/{locationsId}/gateways/{gatewaysId}",
+        name,
+    );
+
+    // Build request
+    let builder = client
+        .get(&endpoint_url)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// GET v1/projects/{projectsId}/locations/{locationsId}/gateways/{gatewaysId}
+/// Gets details of a single Gateway.
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `networkservices_projects_locations_gateways_get_execute()` or `networkservices_projects_locations_gateways_get`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `networkservices_projects_locations_gateways_get_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn networkservices_projects_locations_gateways_get_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<Gateway>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: Gateway = serde_json::from_str(&body)
+                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// GET v1/projects/{projectsId}/locations/{locationsId}/gateways/{gatewaysId}
+/// Gets details of a single Gateway.
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `networkservices_projects_locations_gateways_get_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `networkservices_projects_locations_gateways_get_task()`.
+/// For the simplest API, use `networkservices_projects_locations_gateways_get()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `networkservices_projects_locations_gateways_get_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn networkservices_projects_locations_gateways_get_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<Gateway>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let task = networkservices_projects_locations_gateways_get_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`networkservices_projects_locations_gateways_get`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct NetworkservicesProjectsLocationsGatewaysGetArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
+/// GET v1/projects/{projectsId}/locations/{locationsId}/gateways/{gatewaysId}
+/// Gets details of a single Gateway.
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `networkservices_projects_locations_gateways_get_builder()` + `networkservices_projects_locations_gateways_get_execute()`.
+/// For task-level control, use `networkservices_projects_locations_gateways_get_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn networkservices_projects_locations_gateways_get(
+    client: &SimpleHttpClient,
+    args: &NetworkservicesProjectsLocationsGatewaysGetArgs,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<Gateway>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let builder = networkservices_projects_locations_gateways_get_builder(client, &args.name)?;
+    networkservices_projects_locations_gateways_get_execute(builder)
+}
+
+/// GET v1/projects/{projectsId}/locations/{locationsId}/gateways
+/// Lists Gateways in a given project and location.
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `networkservices_projects_locations_gateways_list_execute()` to send, or `networkservices_projects_locations_gateways_list` for simplest API.
+
+pub fn networkservices_projects_locations_gateways_list_builder(
+    client: &SimpleHttpClient,
+    parent: &String,
+    pageSize: &Option<Option<String>>,
+    pageToken: &Option<Option<String>>,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!(
+        "https://networkservices.googleapis.com/v1/projects/{}/locations/{locationsId}/gateways",
+        parent,
+    );
+
+    // Build request
+    let mut query_parts = Vec::new();
+    if let Some(val) = pageSize.as_ref() {
+        query_parts.push(format!("pageSize={}", val));
+    }
+    if let Some(val) = pageToken.as_ref() {
+        query_parts.push(format!("pageToken={}", val));
+    }
+
+    let url_with_query = if query_parts.is_empty() {
+        endpoint_url
+    } else {
+        format!("{}?{}", endpoint_url, query_parts.join("&"))
+    };
+
+    let builder = client
+        .get(&url_with_query)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// GET v1/projects/{projectsId}/locations/{locationsId}/gateways
+/// Lists Gateways in a given project and location.
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `networkservices_projects_locations_gateways_list_execute()` or `networkservices_projects_locations_gateways_list`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `networkservices_projects_locations_gateways_list_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn networkservices_projects_locations_gateways_list_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<ListGatewaysResponse>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: ListGatewaysResponse = serde_json::from_str(&body)
+                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// GET v1/projects/{projectsId}/locations/{locationsId}/gateways
+/// Lists Gateways in a given project and location.
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `networkservices_projects_locations_gateways_list_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `networkservices_projects_locations_gateways_list_task()`.
+/// For the simplest API, use `networkservices_projects_locations_gateways_list()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `networkservices_projects_locations_gateways_list_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn networkservices_projects_locations_gateways_list_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<ListGatewaysResponse>, ApiError>, P = ApiPending>
+        + Send
+        + 'static,
+    ApiError,
+> {
+    let task = networkservices_projects_locations_gateways_list_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`networkservices_projects_locations_gateways_list`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct NetworkservicesProjectsLocationsGatewaysListArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Query parameter: pageSize
+    pub pageSize: Option<Option<String>>,
+    /// Query parameter: pageToken
+    pub pageToken: Option<Option<String>>,
+}
+
+/// GET v1/projects/{projectsId}/locations/{locationsId}/gateways
+/// Lists Gateways in a given project and location.
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `networkservices_projects_locations_gateways_list_builder()` + `networkservices_projects_locations_gateways_list_execute()`.
+/// For task-level control, use `networkservices_projects_locations_gateways_list_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn networkservices_projects_locations_gateways_list(
+    client: &SimpleHttpClient,
+    args: &NetworkservicesProjectsLocationsGatewaysListArgs,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<ListGatewaysResponse>, ApiError>, P = ApiPending>
+        + Send
+        + 'static,
+    ApiError,
+> {
+    let builder = networkservices_projects_locations_gateways_list_builder(
+        client,
+        &args.parent,
+        &args.pageSize,
+        &args.pageToken,
+    )?;
+    networkservices_projects_locations_gateways_list_execute(builder)
+}
+
+/// PATCH v1/projects/{projectsId}/locations/{locationsId}/gateways/{gatewaysId}
+/// Updates the parameters of a single Gateway.
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `networkservices_projects_locations_gateways_patch_execute()` to send, or `networkservices_projects_locations_gateways_patch` for simplest API.
+
+pub fn networkservices_projects_locations_gateways_patch_builder(
+    client: &SimpleHttpClient,
+    name: &String,
+    updateMask: &Option<Option<String>>,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!(
+        "https://networkservices.googleapis.com/v1/projects/{}/locations/{locationsId}/gateways/{gatewaysId}",
+        name,
+    );
+
+    // Build request
+    let mut query_parts = Vec::new();
+    if let Some(val) = updateMask.as_ref() {
+        query_parts.push(format!("updateMask={}", val));
+    }
+
+    let url_with_query = if query_parts.is_empty() {
+        endpoint_url
+    } else {
+        format!("{}?{}", endpoint_url, query_parts.join("&"))
+    };
+
+    let builder = client
+        .patch(&url_with_query)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// PATCH v1/projects/{projectsId}/locations/{locationsId}/gateways/{gatewaysId}
+/// Updates the parameters of a single Gateway.
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `networkservices_projects_locations_gateways_patch_execute()` or `networkservices_projects_locations_gateways_patch`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `networkservices_projects_locations_gateways_patch_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn networkservices_projects_locations_gateways_patch_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<Operation>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: Operation = serde_json::from_str(&body)
+                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// PATCH v1/projects/{projectsId}/locations/{locationsId}/gateways/{gatewaysId}
+/// Updates the parameters of a single Gateway.
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `networkservices_projects_locations_gateways_patch_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `networkservices_projects_locations_gateways_patch_task()`.
+/// For the simplest API, use `networkservices_projects_locations_gateways_patch()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `networkservices_projects_locations_gateways_patch_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn networkservices_projects_locations_gateways_patch_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<Operation>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let task = networkservices_projects_locations_gateways_patch_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`networkservices_projects_locations_gateways_patch`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct NetworkservicesProjectsLocationsGatewaysPatchArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Query parameter: updateMask
+    pub updateMask: Option<Option<String>>,
+}
+
+/// PATCH v1/projects/{projectsId}/locations/{locationsId}/gateways/{gatewaysId}
+/// Updates the parameters of a single Gateway.
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `networkservices_projects_locations_gateways_patch_builder()` + `networkservices_projects_locations_gateways_patch_execute()`.
+/// For task-level control, use `networkservices_projects_locations_gateways_patch_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn networkservices_projects_locations_gateways_patch(
+    client: &SimpleHttpClient,
+    args: &NetworkservicesProjectsLocationsGatewaysPatchArgs,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<Operation>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let builder = networkservices_projects_locations_gateways_patch_builder(
+        client,
+        &args.name,
+        &args.updateMask,
+    )?;
+    networkservices_projects_locations_gateways_patch_execute(builder)
+}
+
+/// GET v1/projects/{projectsId}/locations/{locationsId}/gateways/{gatewaysId}/routeViews/{routeViewsId}
+/// Get a single RouteView of a Gateway.
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `networkservices_projects_locations_gateways_route_views_get_execute()` to send, or `networkservices_projects_locations_gateways_route_views_get` for simplest API.
+
+pub fn networkservices_projects_locations_gateways_route_views_get_builder(
+    client: &SimpleHttpClient,
+    name: &String,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!(
+        "https://networkservices.googleapis.com/v1/projects/{}/locations/{locationsId}/gateways/{gatewaysId}/routeViews/{routeViewsId}",
+        name,
+    );
+
+    // Build request
+    let builder = client
+        .get(&endpoint_url)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// GET v1/projects/{projectsId}/locations/{locationsId}/gateways/{gatewaysId}/routeViews/{routeViewsId}
+/// Get a single RouteView of a Gateway.
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `networkservices_projects_locations_gateways_route_views_get_execute()` or `networkservices_projects_locations_gateways_route_views_get`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `networkservices_projects_locations_gateways_route_views_get_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn networkservices_projects_locations_gateways_route_views_get_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<GatewayRouteView>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: GatewayRouteView = serde_json::from_str(&body)
+                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// GET v1/projects/{projectsId}/locations/{locationsId}/gateways/{gatewaysId}/routeViews/{routeViewsId}
+/// Get a single RouteView of a Gateway.
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `networkservices_projects_locations_gateways_route_views_get_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `networkservices_projects_locations_gateways_route_views_get_task()`.
+/// For the simplest API, use `networkservices_projects_locations_gateways_route_views_get()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `networkservices_projects_locations_gateways_route_views_get_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn networkservices_projects_locations_gateways_route_views_get_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<GatewayRouteView>, ApiError>, P = ApiPending>
+        + Send
+        + 'static,
+    ApiError,
+> {
+    let task = networkservices_projects_locations_gateways_route_views_get_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`networkservices_projects_locations_gateways_route_views_get`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct NetworkservicesProjectsLocationsGatewaysRouteViewsGetArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
+/// GET v1/projects/{projectsId}/locations/{locationsId}/gateways/{gatewaysId}/routeViews/{routeViewsId}
+/// Get a single RouteView of a Gateway.
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `networkservices_projects_locations_gateways_route_views_get_builder()` + `networkservices_projects_locations_gateways_route_views_get_execute()`.
+/// For task-level control, use `networkservices_projects_locations_gateways_route_views_get_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn networkservices_projects_locations_gateways_route_views_get(
+    client: &SimpleHttpClient,
+    args: &NetworkservicesProjectsLocationsGatewaysRouteViewsGetArgs,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<GatewayRouteView>, ApiError>, P = ApiPending>
+        + Send
+        + 'static,
+    ApiError,
+> {
+    let builder =
+        networkservices_projects_locations_gateways_route_views_get_builder(client, &args.name)?;
+    networkservices_projects_locations_gateways_route_views_get_execute(builder)
+}
+
+/// GET v1/projects/{projectsId}/locations/{locationsId}/gateways/{gatewaysId}/routeViews
+/// Lists RouteViews
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `networkservices_projects_locations_gateways_route_views_list_execute()` to send, or `networkservices_projects_locations_gateways_route_views_list` for simplest API.
+
+pub fn networkservices_projects_locations_gateways_route_views_list_builder(
+    client: &SimpleHttpClient,
+    parent: &String,
+    pageSize: &Option<Option<String>>,
+    pageToken: &Option<Option<String>>,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!(
+        "https://networkservices.googleapis.com/v1/projects/{}/locations/{locationsId}/gateways/{gatewaysId}/routeViews",
+        parent,
+    );
+
+    // Build request
+    let mut query_parts = Vec::new();
+    if let Some(val) = pageSize.as_ref() {
+        query_parts.push(format!("pageSize={}", val));
+    }
+    if let Some(val) = pageToken.as_ref() {
+        query_parts.push(format!("pageToken={}", val));
+    }
+
+    let url_with_query = if query_parts.is_empty() {
+        endpoint_url
+    } else {
+        format!("{}?{}", endpoint_url, query_parts.join("&"))
+    };
+
+    let builder = client
+        .get(&url_with_query)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// GET v1/projects/{projectsId}/locations/{locationsId}/gateways/{gatewaysId}/routeViews
+/// Lists RouteViews
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `networkservices_projects_locations_gateways_route_views_list_execute()` or `networkservices_projects_locations_gateways_route_views_list`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `networkservices_projects_locations_gateways_route_views_list_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn networkservices_projects_locations_gateways_route_views_list_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<ListGatewayRouteViewsResponse>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: ListGatewayRouteViewsResponse = serde_json::from_str(&body)
+                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// GET v1/projects/{projectsId}/locations/{locationsId}/gateways/{gatewaysId}/routeViews
+/// Lists RouteViews
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `networkservices_projects_locations_gateways_route_views_list_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `networkservices_projects_locations_gateways_route_views_list_task()`.
+/// For the simplest API, use `networkservices_projects_locations_gateways_route_views_list()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `networkservices_projects_locations_gateways_route_views_list_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn networkservices_projects_locations_gateways_route_views_list_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<
+            D = Result<ApiResponse<ListGatewayRouteViewsResponse>, ApiError>,
+            P = ApiPending,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    let task = networkservices_projects_locations_gateways_route_views_list_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`networkservices_projects_locations_gateways_route_views_list`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct NetworkservicesProjectsLocationsGatewaysRouteViewsListArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Query parameter: pageSize
+    pub pageSize: Option<Option<String>>,
+    /// Query parameter: pageToken
+    pub pageToken: Option<Option<String>>,
+}
+
+/// GET v1/projects/{projectsId}/locations/{locationsId}/gateways/{gatewaysId}/routeViews
+/// Lists RouteViews
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `networkservices_projects_locations_gateways_route_views_list_builder()` + `networkservices_projects_locations_gateways_route_views_list_execute()`.
+/// For task-level control, use `networkservices_projects_locations_gateways_route_views_list_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn networkservices_projects_locations_gateways_route_views_list(
+    client: &SimpleHttpClient,
+    args: &NetworkservicesProjectsLocationsGatewaysRouteViewsListArgs,
+) -> Result<
+    impl StreamIterator<
+            D = Result<ApiResponse<ListGatewayRouteViewsResponse>, ApiError>,
+            P = ApiPending,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    let builder = networkservices_projects_locations_gateways_route_views_list_builder(
+        client,
+        &args.parent,
+        &args.pageSize,
+        &args.pageToken,
+    )?;
+    networkservices_projects_locations_gateways_route_views_list_execute(builder)
+}
+
+/// POST v1/projects/{projectsId}/locations/{locationsId}/grpcRoutes
+/// Creates a new GrpcRoute in a given project and location.
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `networkservices_projects_locations_grpc_routes_create_execute()` to send, or `networkservices_projects_locations_grpc_routes_create` for simplest API.
+
+pub fn networkservices_projects_locations_grpc_routes_create_builder(
+    client: &SimpleHttpClient,
+    parent: &String,
+    grpcRouteId: &Option<Option<String>>,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!(
+        "https://networkservices.googleapis.com/v1/projects/{}/locations/{locationsId}/grpcRoutes",
+        parent,
+    );
+
+    // Build request
+    let mut query_parts = Vec::new();
+    if let Some(val) = grpcRouteId.as_ref() {
+        query_parts.push(format!("grpcRouteId={}", val));
+    }
+
+    let url_with_query = if query_parts.is_empty() {
+        endpoint_url
+    } else {
+        format!("{}?{}", endpoint_url, query_parts.join("&"))
+    };
+
+    let builder = client
+        .post(&url_with_query)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// POST v1/projects/{projectsId}/locations/{locationsId}/grpcRoutes
+/// Creates a new GrpcRoute in a given project and location.
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `networkservices_projects_locations_grpc_routes_create_execute()` or `networkservices_projects_locations_grpc_routes_create`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `networkservices_projects_locations_grpc_routes_create_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn networkservices_projects_locations_grpc_routes_create_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<Operation>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: Operation = serde_json::from_str(&body)
+                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// POST v1/projects/{projectsId}/locations/{locationsId}/grpcRoutes
+/// Creates a new GrpcRoute in a given project and location.
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `networkservices_projects_locations_grpc_routes_create_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `networkservices_projects_locations_grpc_routes_create_task()`.
+/// For the simplest API, use `networkservices_projects_locations_grpc_routes_create()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `networkservices_projects_locations_grpc_routes_create_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn networkservices_projects_locations_grpc_routes_create_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<Operation>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let task = networkservices_projects_locations_grpc_routes_create_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`networkservices_projects_locations_grpc_routes_create`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct NetworkservicesProjectsLocationsGrpcRoutesCreateArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Query parameter: grpcRouteId
+    pub grpcRouteId: Option<Option<String>>,
+}
+
+/// POST v1/projects/{projectsId}/locations/{locationsId}/grpcRoutes
+/// Creates a new GrpcRoute in a given project and location.
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `networkservices_projects_locations_grpc_routes_create_builder()` + `networkservices_projects_locations_grpc_routes_create_execute()`.
+/// For task-level control, use `networkservices_projects_locations_grpc_routes_create_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn networkservices_projects_locations_grpc_routes_create(
+    client: &SimpleHttpClient,
+    args: &NetworkservicesProjectsLocationsGrpcRoutesCreateArgs,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<Operation>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let builder = networkservices_projects_locations_grpc_routes_create_builder(
+        client,
+        &args.parent,
+        &args.grpcRouteId,
+    )?;
+    networkservices_projects_locations_grpc_routes_create_execute(builder)
+}
+
+/// DELETE v1/projects/{projectsId}/locations/{locationsId}/grpcRoutes/{grpcRoutesId}
+/// Deletes a single GrpcRoute.
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `networkservices_projects_locations_grpc_routes_delete_execute()` to send, or `networkservices_projects_locations_grpc_routes_delete` for simplest API.
+
+pub fn networkservices_projects_locations_grpc_routes_delete_builder(
+    client: &SimpleHttpClient,
+    name: &String,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!(
+        "https://networkservices.googleapis.com/v1/projects/{}/locations/{locationsId}/grpcRoutes/{grpcRoutesId}",
+        name,
+    );
+
+    // Build request
+    let builder = client
+        .delete(&endpoint_url)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// DELETE v1/projects/{projectsId}/locations/{locationsId}/grpcRoutes/{grpcRoutesId}
+/// Deletes a single GrpcRoute.
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `networkservices_projects_locations_grpc_routes_delete_execute()` or `networkservices_projects_locations_grpc_routes_delete`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `networkservices_projects_locations_grpc_routes_delete_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn networkservices_projects_locations_grpc_routes_delete_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<Operation>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: Operation = serde_json::from_str(&body)
+                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// DELETE v1/projects/{projectsId}/locations/{locationsId}/grpcRoutes/{grpcRoutesId}
+/// Deletes a single GrpcRoute.
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `networkservices_projects_locations_grpc_routes_delete_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `networkservices_projects_locations_grpc_routes_delete_task()`.
+/// For the simplest API, use `networkservices_projects_locations_grpc_routes_delete()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `networkservices_projects_locations_grpc_routes_delete_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn networkservices_projects_locations_grpc_routes_delete_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<Operation>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let task = networkservices_projects_locations_grpc_routes_delete_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`networkservices_projects_locations_grpc_routes_delete`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct NetworkservicesProjectsLocationsGrpcRoutesDeleteArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
+/// DELETE v1/projects/{projectsId}/locations/{locationsId}/grpcRoutes/{grpcRoutesId}
+/// Deletes a single GrpcRoute.
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `networkservices_projects_locations_grpc_routes_delete_builder()` + `networkservices_projects_locations_grpc_routes_delete_execute()`.
+/// For task-level control, use `networkservices_projects_locations_grpc_routes_delete_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn networkservices_projects_locations_grpc_routes_delete(
+    client: &SimpleHttpClient,
+    args: &NetworkservicesProjectsLocationsGrpcRoutesDeleteArgs,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<Operation>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let builder =
+        networkservices_projects_locations_grpc_routes_delete_builder(client, &args.name)?;
+    networkservices_projects_locations_grpc_routes_delete_execute(builder)
+}
+
+/// GET v1/projects/{projectsId}/locations/{locationsId}/grpcRoutes/{grpcRoutesId}
+/// Gets details of a single GrpcRoute.
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `networkservices_projects_locations_grpc_routes_get_execute()` to send, or `networkservices_projects_locations_grpc_routes_get` for simplest API.
+
+pub fn networkservices_projects_locations_grpc_routes_get_builder(
+    client: &SimpleHttpClient,
+    name: &String,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!(
+        "https://networkservices.googleapis.com/v1/projects/{}/locations/{locationsId}/grpcRoutes/{grpcRoutesId}",
+        name,
+    );
+
+    // Build request
+    let builder = client
+        .get(&endpoint_url)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// GET v1/projects/{projectsId}/locations/{locationsId}/grpcRoutes/{grpcRoutesId}
+/// Gets details of a single GrpcRoute.
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `networkservices_projects_locations_grpc_routes_get_execute()` or `networkservices_projects_locations_grpc_routes_get`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `networkservices_projects_locations_grpc_routes_get_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn networkservices_projects_locations_grpc_routes_get_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<GrpcRoute>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: GrpcRoute = serde_json::from_str(&body)
+                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// GET v1/projects/{projectsId}/locations/{locationsId}/grpcRoutes/{grpcRoutesId}
+/// Gets details of a single GrpcRoute.
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `networkservices_projects_locations_grpc_routes_get_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `networkservices_projects_locations_grpc_routes_get_task()`.
+/// For the simplest API, use `networkservices_projects_locations_grpc_routes_get()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `networkservices_projects_locations_grpc_routes_get_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn networkservices_projects_locations_grpc_routes_get_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<GrpcRoute>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let task = networkservices_projects_locations_grpc_routes_get_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`networkservices_projects_locations_grpc_routes_get`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct NetworkservicesProjectsLocationsGrpcRoutesGetArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
+/// GET v1/projects/{projectsId}/locations/{locationsId}/grpcRoutes/{grpcRoutesId}
+/// Gets details of a single GrpcRoute.
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `networkservices_projects_locations_grpc_routes_get_builder()` + `networkservices_projects_locations_grpc_routes_get_execute()`.
+/// For task-level control, use `networkservices_projects_locations_grpc_routes_get_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn networkservices_projects_locations_grpc_routes_get(
+    client: &SimpleHttpClient,
+    args: &NetworkservicesProjectsLocationsGrpcRoutesGetArgs,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<GrpcRoute>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let builder = networkservices_projects_locations_grpc_routes_get_builder(client, &args.name)?;
+    networkservices_projects_locations_grpc_routes_get_execute(builder)
+}
+
+/// GET v1/projects/{projectsId}/locations/{locationsId}/grpcRoutes
+/// Lists GrpcRoutes in a given project and location.
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `networkservices_projects_locations_grpc_routes_list_execute()` to send, or `networkservices_projects_locations_grpc_routes_list` for simplest API.
+
+pub fn networkservices_projects_locations_grpc_routes_list_builder(
+    client: &SimpleHttpClient,
+    parent: &String,
+    pageSize: &Option<Option<String>>,
+    pageToken: &Option<Option<String>>,
+    returnPartialSuccess: &Option<Option<String>>,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!(
+        "https://networkservices.googleapis.com/v1/projects/{}/locations/{locationsId}/grpcRoutes",
+        parent,
+    );
+
+    // Build request
+    let mut query_parts = Vec::new();
+    if let Some(val) = pageSize.as_ref() {
+        query_parts.push(format!("pageSize={}", val));
+    }
+    if let Some(val) = pageToken.as_ref() {
+        query_parts.push(format!("pageToken={}", val));
+    }
+    if let Some(val) = returnPartialSuccess.as_ref() {
+        query_parts.push(format!("returnPartialSuccess={}", val));
+    }
+
+    let url_with_query = if query_parts.is_empty() {
+        endpoint_url
+    } else {
+        format!("{}?{}", endpoint_url, query_parts.join("&"))
+    };
+
+    let builder = client
+        .get(&url_with_query)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// GET v1/projects/{projectsId}/locations/{locationsId}/grpcRoutes
+/// Lists GrpcRoutes in a given project and location.
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `networkservices_projects_locations_grpc_routes_list_execute()` or `networkservices_projects_locations_grpc_routes_list`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `networkservices_projects_locations_grpc_routes_list_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn networkservices_projects_locations_grpc_routes_list_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<ListGrpcRoutesResponse>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: ListGrpcRoutesResponse = serde_json::from_str(&body)
+                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// GET v1/projects/{projectsId}/locations/{locationsId}/grpcRoutes
+/// Lists GrpcRoutes in a given project and location.
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `networkservices_projects_locations_grpc_routes_list_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `networkservices_projects_locations_grpc_routes_list_task()`.
+/// For the simplest API, use `networkservices_projects_locations_grpc_routes_list()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `networkservices_projects_locations_grpc_routes_list_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn networkservices_projects_locations_grpc_routes_list_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<ListGrpcRoutesResponse>, ApiError>, P = ApiPending>
+        + Send
+        + 'static,
+    ApiError,
+> {
+    let task = networkservices_projects_locations_grpc_routes_list_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`networkservices_projects_locations_grpc_routes_list`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct NetworkservicesProjectsLocationsGrpcRoutesListArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Query parameter: pageSize
+    pub pageSize: Option<Option<String>>,
+    /// Query parameter: pageToken
+    pub pageToken: Option<Option<String>>,
+    /// Query parameter: returnPartialSuccess
+    pub returnPartialSuccess: Option<Option<String>>,
+}
+
+/// GET v1/projects/{projectsId}/locations/{locationsId}/grpcRoutes
+/// Lists GrpcRoutes in a given project and location.
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `networkservices_projects_locations_grpc_routes_list_builder()` + `networkservices_projects_locations_grpc_routes_list_execute()`.
+/// For task-level control, use `networkservices_projects_locations_grpc_routes_list_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn networkservices_projects_locations_grpc_routes_list(
+    client: &SimpleHttpClient,
+    args: &NetworkservicesProjectsLocationsGrpcRoutesListArgs,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<ListGrpcRoutesResponse>, ApiError>, P = ApiPending>
+        + Send
+        + 'static,
+    ApiError,
+> {
+    let builder = networkservices_projects_locations_grpc_routes_list_builder(
+        client,
+        &args.parent,
+        &args.pageSize,
+        &args.pageToken,
+        &args.returnPartialSuccess,
+    )?;
+    networkservices_projects_locations_grpc_routes_list_execute(builder)
+}
+
+/// PATCH v1/projects/{projectsId}/locations/{locationsId}/grpcRoutes/{grpcRoutesId}
+/// Updates the parameters of a single GrpcRoute.
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `networkservices_projects_locations_grpc_routes_patch_execute()` to send, or `networkservices_projects_locations_grpc_routes_patch` for simplest API.
+
+pub fn networkservices_projects_locations_grpc_routes_patch_builder(
+    client: &SimpleHttpClient,
+    name: &String,
+    updateMask: &Option<Option<String>>,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!(
+        "https://networkservices.googleapis.com/v1/projects/{}/locations/{locationsId}/grpcRoutes/{grpcRoutesId}",
+        name,
+    );
+
+    // Build request
+    let mut query_parts = Vec::new();
+    if let Some(val) = updateMask.as_ref() {
+        query_parts.push(format!("updateMask={}", val));
+    }
+
+    let url_with_query = if query_parts.is_empty() {
+        endpoint_url
+    } else {
+        format!("{}?{}", endpoint_url, query_parts.join("&"))
+    };
+
+    let builder = client
+        .patch(&url_with_query)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// PATCH v1/projects/{projectsId}/locations/{locationsId}/grpcRoutes/{grpcRoutesId}
+/// Updates the parameters of a single GrpcRoute.
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `networkservices_projects_locations_grpc_routes_patch_execute()` or `networkservices_projects_locations_grpc_routes_patch`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `networkservices_projects_locations_grpc_routes_patch_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn networkservices_projects_locations_grpc_routes_patch_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<Operation>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: Operation = serde_json::from_str(&body)
+                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// PATCH v1/projects/{projectsId}/locations/{locationsId}/grpcRoutes/{grpcRoutesId}
+/// Updates the parameters of a single GrpcRoute.
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `networkservices_projects_locations_grpc_routes_patch_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `networkservices_projects_locations_grpc_routes_patch_task()`.
+/// For the simplest API, use `networkservices_projects_locations_grpc_routes_patch()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `networkservices_projects_locations_grpc_routes_patch_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn networkservices_projects_locations_grpc_routes_patch_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<Operation>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let task = networkservices_projects_locations_grpc_routes_patch_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`networkservices_projects_locations_grpc_routes_patch`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct NetworkservicesProjectsLocationsGrpcRoutesPatchArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Query parameter: updateMask
+    pub updateMask: Option<Option<String>>,
+}
+
+/// PATCH v1/projects/{projectsId}/locations/{locationsId}/grpcRoutes/{grpcRoutesId}
+/// Updates the parameters of a single GrpcRoute.
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `networkservices_projects_locations_grpc_routes_patch_builder()` + `networkservices_projects_locations_grpc_routes_patch_execute()`.
+/// For task-level control, use `networkservices_projects_locations_grpc_routes_patch_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn networkservices_projects_locations_grpc_routes_patch(
+    client: &SimpleHttpClient,
+    args: &NetworkservicesProjectsLocationsGrpcRoutesPatchArgs,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<Operation>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let builder = networkservices_projects_locations_grpc_routes_patch_builder(
+        client,
+        &args.name,
+        &args.updateMask,
+    )?;
+    networkservices_projects_locations_grpc_routes_patch_execute(builder)
+}
+
+/// POST v1/projects/{projectsId}/locations/{locationsId}/httpRoutes
+/// Creates a new HttpRoute in a given project and location.
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `networkservices_projects_locations_http_routes_create_execute()` to send, or `networkservices_projects_locations_http_routes_create` for simplest API.
+
+pub fn networkservices_projects_locations_http_routes_create_builder(
+    client: &SimpleHttpClient,
+    parent: &String,
+    httpRouteId: &Option<Option<String>>,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!(
+        "https://networkservices.googleapis.com/v1/projects/{}/locations/{locationsId}/httpRoutes",
+        parent,
+    );
+
+    // Build request
+    let mut query_parts = Vec::new();
+    if let Some(val) = httpRouteId.as_ref() {
+        query_parts.push(format!("httpRouteId={}", val));
+    }
+
+    let url_with_query = if query_parts.is_empty() {
+        endpoint_url
+    } else {
+        format!("{}?{}", endpoint_url, query_parts.join("&"))
+    };
+
+    let builder = client
+        .post(&url_with_query)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// POST v1/projects/{projectsId}/locations/{locationsId}/httpRoutes
+/// Creates a new HttpRoute in a given project and location.
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `networkservices_projects_locations_http_routes_create_execute()` or `networkservices_projects_locations_http_routes_create`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `networkservices_projects_locations_http_routes_create_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn networkservices_projects_locations_http_routes_create_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<Operation>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: Operation = serde_json::from_str(&body)
+                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// POST v1/projects/{projectsId}/locations/{locationsId}/httpRoutes
+/// Creates a new HttpRoute in a given project and location.
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `networkservices_projects_locations_http_routes_create_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `networkservices_projects_locations_http_routes_create_task()`.
+/// For the simplest API, use `networkservices_projects_locations_http_routes_create()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `networkservices_projects_locations_http_routes_create_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn networkservices_projects_locations_http_routes_create_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<Operation>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let task = networkservices_projects_locations_http_routes_create_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`networkservices_projects_locations_http_routes_create`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct NetworkservicesProjectsLocationsHttpRoutesCreateArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Query parameter: httpRouteId
+    pub httpRouteId: Option<Option<String>>,
+}
+
+/// POST v1/projects/{projectsId}/locations/{locationsId}/httpRoutes
+/// Creates a new HttpRoute in a given project and location.
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `networkservices_projects_locations_http_routes_create_builder()` + `networkservices_projects_locations_http_routes_create_execute()`.
+/// For task-level control, use `networkservices_projects_locations_http_routes_create_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn networkservices_projects_locations_http_routes_create(
+    client: &SimpleHttpClient,
+    args: &NetworkservicesProjectsLocationsHttpRoutesCreateArgs,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<Operation>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let builder = networkservices_projects_locations_http_routes_create_builder(
+        client,
+        &args.parent,
+        &args.httpRouteId,
+    )?;
+    networkservices_projects_locations_http_routes_create_execute(builder)
+}
+
+/// DELETE v1/projects/{projectsId}/locations/{locationsId}/httpRoutes/{httpRoutesId}
+/// Deletes a single HttpRoute.
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `networkservices_projects_locations_http_routes_delete_execute()` to send, or `networkservices_projects_locations_http_routes_delete` for simplest API.
+
+pub fn networkservices_projects_locations_http_routes_delete_builder(
+    client: &SimpleHttpClient,
+    name: &String,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!(
+        "https://networkservices.googleapis.com/v1/projects/{}/locations/{locationsId}/httpRoutes/{httpRoutesId}",
+        name,
+    );
+
+    // Build request
+    let builder = client
+        .delete(&endpoint_url)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// DELETE v1/projects/{projectsId}/locations/{locationsId}/httpRoutes/{httpRoutesId}
+/// Deletes a single HttpRoute.
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `networkservices_projects_locations_http_routes_delete_execute()` or `networkservices_projects_locations_http_routes_delete`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `networkservices_projects_locations_http_routes_delete_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn networkservices_projects_locations_http_routes_delete_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<Operation>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: Operation = serde_json::from_str(&body)
+                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// DELETE v1/projects/{projectsId}/locations/{locationsId}/httpRoutes/{httpRoutesId}
+/// Deletes a single HttpRoute.
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `networkservices_projects_locations_http_routes_delete_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `networkservices_projects_locations_http_routes_delete_task()`.
+/// For the simplest API, use `networkservices_projects_locations_http_routes_delete()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `networkservices_projects_locations_http_routes_delete_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn networkservices_projects_locations_http_routes_delete_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<Operation>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let task = networkservices_projects_locations_http_routes_delete_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`networkservices_projects_locations_http_routes_delete`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct NetworkservicesProjectsLocationsHttpRoutesDeleteArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
+/// DELETE v1/projects/{projectsId}/locations/{locationsId}/httpRoutes/{httpRoutesId}
+/// Deletes a single HttpRoute.
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `networkservices_projects_locations_http_routes_delete_builder()` + `networkservices_projects_locations_http_routes_delete_execute()`.
+/// For task-level control, use `networkservices_projects_locations_http_routes_delete_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn networkservices_projects_locations_http_routes_delete(
+    client: &SimpleHttpClient,
+    args: &NetworkservicesProjectsLocationsHttpRoutesDeleteArgs,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<Operation>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let builder =
+        networkservices_projects_locations_http_routes_delete_builder(client, &args.name)?;
+    networkservices_projects_locations_http_routes_delete_execute(builder)
+}
+
+/// GET v1/projects/{projectsId}/locations/{locationsId}/httpRoutes/{httpRoutesId}
+/// Gets details of a single HttpRoute.
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `networkservices_projects_locations_http_routes_get_execute()` to send, or `networkservices_projects_locations_http_routes_get` for simplest API.
+
+pub fn networkservices_projects_locations_http_routes_get_builder(
+    client: &SimpleHttpClient,
+    name: &String,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!(
+        "https://networkservices.googleapis.com/v1/projects/{}/locations/{locationsId}/httpRoutes/{httpRoutesId}",
+        name,
+    );
+
+    // Build request
+    let builder = client
+        .get(&endpoint_url)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// GET v1/projects/{projectsId}/locations/{locationsId}/httpRoutes/{httpRoutesId}
+/// Gets details of a single HttpRoute.
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `networkservices_projects_locations_http_routes_get_execute()` or `networkservices_projects_locations_http_routes_get`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `networkservices_projects_locations_http_routes_get_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn networkservices_projects_locations_http_routes_get_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<HttpRoute>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: HttpRoute = serde_json::from_str(&body)
+                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// GET v1/projects/{projectsId}/locations/{locationsId}/httpRoutes/{httpRoutesId}
+/// Gets details of a single HttpRoute.
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `networkservices_projects_locations_http_routes_get_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `networkservices_projects_locations_http_routes_get_task()`.
+/// For the simplest API, use `networkservices_projects_locations_http_routes_get()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `networkservices_projects_locations_http_routes_get_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn networkservices_projects_locations_http_routes_get_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<HttpRoute>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let task = networkservices_projects_locations_http_routes_get_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`networkservices_projects_locations_http_routes_get`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct NetworkservicesProjectsLocationsHttpRoutesGetArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
+/// GET v1/projects/{projectsId}/locations/{locationsId}/httpRoutes/{httpRoutesId}
+/// Gets details of a single HttpRoute.
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `networkservices_projects_locations_http_routes_get_builder()` + `networkservices_projects_locations_http_routes_get_execute()`.
+/// For task-level control, use `networkservices_projects_locations_http_routes_get_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn networkservices_projects_locations_http_routes_get(
+    client: &SimpleHttpClient,
+    args: &NetworkservicesProjectsLocationsHttpRoutesGetArgs,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<HttpRoute>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let builder = networkservices_projects_locations_http_routes_get_builder(client, &args.name)?;
+    networkservices_projects_locations_http_routes_get_execute(builder)
+}
+
+/// GET v1/projects/{projectsId}/locations/{locationsId}/httpRoutes
+/// Lists HttpRoute in a given project and location.
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `networkservices_projects_locations_http_routes_list_execute()` to send, or `networkservices_projects_locations_http_routes_list` for simplest API.
+
+pub fn networkservices_projects_locations_http_routes_list_builder(
+    client: &SimpleHttpClient,
+    parent: &String,
+    pageSize: &Option<Option<String>>,
+    pageToken: &Option<Option<String>>,
+    returnPartialSuccess: &Option<Option<String>>,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!(
+        "https://networkservices.googleapis.com/v1/projects/{}/locations/{locationsId}/httpRoutes",
+        parent,
+    );
+
+    // Build request
+    let mut query_parts = Vec::new();
+    if let Some(val) = pageSize.as_ref() {
+        query_parts.push(format!("pageSize={}", val));
+    }
+    if let Some(val) = pageToken.as_ref() {
+        query_parts.push(format!("pageToken={}", val));
+    }
+    if let Some(val) = returnPartialSuccess.as_ref() {
+        query_parts.push(format!("returnPartialSuccess={}", val));
+    }
+
+    let url_with_query = if query_parts.is_empty() {
+        endpoint_url
+    } else {
+        format!("{}?{}", endpoint_url, query_parts.join("&"))
+    };
+
+    let builder = client
+        .get(&url_with_query)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// GET v1/projects/{projectsId}/locations/{locationsId}/httpRoutes
+/// Lists HttpRoute in a given project and location.
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `networkservices_projects_locations_http_routes_list_execute()` or `networkservices_projects_locations_http_routes_list`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `networkservices_projects_locations_http_routes_list_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn networkservices_projects_locations_http_routes_list_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<ListHttpRoutesResponse>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: ListHttpRoutesResponse = serde_json::from_str(&body)
+                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// GET v1/projects/{projectsId}/locations/{locationsId}/httpRoutes
+/// Lists HttpRoute in a given project and location.
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `networkservices_projects_locations_http_routes_list_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `networkservices_projects_locations_http_routes_list_task()`.
+/// For the simplest API, use `networkservices_projects_locations_http_routes_list()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `networkservices_projects_locations_http_routes_list_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn networkservices_projects_locations_http_routes_list_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<ListHttpRoutesResponse>, ApiError>, P = ApiPending>
+        + Send
+        + 'static,
+    ApiError,
+> {
+    let task = networkservices_projects_locations_http_routes_list_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`networkservices_projects_locations_http_routes_list`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct NetworkservicesProjectsLocationsHttpRoutesListArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Query parameter: pageSize
+    pub pageSize: Option<Option<String>>,
+    /// Query parameter: pageToken
+    pub pageToken: Option<Option<String>>,
+    /// Query parameter: returnPartialSuccess
+    pub returnPartialSuccess: Option<Option<String>>,
+}
+
+/// GET v1/projects/{projectsId}/locations/{locationsId}/httpRoutes
+/// Lists HttpRoute in a given project and location.
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `networkservices_projects_locations_http_routes_list_builder()` + `networkservices_projects_locations_http_routes_list_execute()`.
+/// For task-level control, use `networkservices_projects_locations_http_routes_list_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn networkservices_projects_locations_http_routes_list(
+    client: &SimpleHttpClient,
+    args: &NetworkservicesProjectsLocationsHttpRoutesListArgs,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<ListHttpRoutesResponse>, ApiError>, P = ApiPending>
+        + Send
+        + 'static,
+    ApiError,
+> {
+    let builder = networkservices_projects_locations_http_routes_list_builder(
+        client,
+        &args.parent,
+        &args.pageSize,
+        &args.pageToken,
+        &args.returnPartialSuccess,
+    )?;
+    networkservices_projects_locations_http_routes_list_execute(builder)
+}
+
+/// PATCH v1/projects/{projectsId}/locations/{locationsId}/httpRoutes/{httpRoutesId}
+/// Updates the parameters of a single HttpRoute.
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `networkservices_projects_locations_http_routes_patch_execute()` to send, or `networkservices_projects_locations_http_routes_patch` for simplest API.
+
+pub fn networkservices_projects_locations_http_routes_patch_builder(
+    client: &SimpleHttpClient,
+    name: &String,
+    updateMask: &Option<Option<String>>,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!(
+        "https://networkservices.googleapis.com/v1/projects/{}/locations/{locationsId}/httpRoutes/{httpRoutesId}",
+        name,
+    );
+
+    // Build request
+    let mut query_parts = Vec::new();
+    if let Some(val) = updateMask.as_ref() {
+        query_parts.push(format!("updateMask={}", val));
+    }
+
+    let url_with_query = if query_parts.is_empty() {
+        endpoint_url
+    } else {
+        format!("{}?{}", endpoint_url, query_parts.join("&"))
+    };
+
+    let builder = client
+        .patch(&url_with_query)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// PATCH v1/projects/{projectsId}/locations/{locationsId}/httpRoutes/{httpRoutesId}
+/// Updates the parameters of a single HttpRoute.
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `networkservices_projects_locations_http_routes_patch_execute()` or `networkservices_projects_locations_http_routes_patch`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `networkservices_projects_locations_http_routes_patch_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn networkservices_projects_locations_http_routes_patch_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<Operation>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: Operation = serde_json::from_str(&body)
+                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// PATCH v1/projects/{projectsId}/locations/{locationsId}/httpRoutes/{httpRoutesId}
+/// Updates the parameters of a single HttpRoute.
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `networkservices_projects_locations_http_routes_patch_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `networkservices_projects_locations_http_routes_patch_task()`.
+/// For the simplest API, use `networkservices_projects_locations_http_routes_patch()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `networkservices_projects_locations_http_routes_patch_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn networkservices_projects_locations_http_routes_patch_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<Operation>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let task = networkservices_projects_locations_http_routes_patch_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`networkservices_projects_locations_http_routes_patch`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct NetworkservicesProjectsLocationsHttpRoutesPatchArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Query parameter: updateMask
+    pub updateMask: Option<Option<String>>,
+}
+
+/// PATCH v1/projects/{projectsId}/locations/{locationsId}/httpRoutes/{httpRoutesId}
+/// Updates the parameters of a single HttpRoute.
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `networkservices_projects_locations_http_routes_patch_builder()` + `networkservices_projects_locations_http_routes_patch_execute()`.
+/// For task-level control, use `networkservices_projects_locations_http_routes_patch_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn networkservices_projects_locations_http_routes_patch(
+    client: &SimpleHttpClient,
+    args: &NetworkservicesProjectsLocationsHttpRoutesPatchArgs,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<Operation>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let builder = networkservices_projects_locations_http_routes_patch_builder(
+        client,
+        &args.name,
+        &args.updateMask,
+    )?;
+    networkservices_projects_locations_http_routes_patch_execute(builder)
+}
+
+/// POST v1/projects/{projectsId}/locations/{locationsId}/lbEdgeExtensions
+/// Creates a new LbEdgeExtension resource in a given project and location.
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `networkservices_projects_locations_lb_edge_extensions_create_execute()` to send, or `networkservices_projects_locations_lb_edge_extensions_create` for simplest API.
+
+pub fn networkservices_projects_locations_lb_edge_extensions_create_builder(
+    client: &SimpleHttpClient,
+    parent: &String,
+    lbEdgeExtensionId: &Option<Option<String>>,
+    requestId: &Option<Option<String>>,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!(
+        "https://networkservices.googleapis.com/v1/projects/{}/locations/{locationsId}/lbEdgeExtensions",
+        parent,
+    );
+
+    // Build request
+    let mut query_parts = Vec::new();
+    if let Some(val) = lbEdgeExtensionId.as_ref() {
+        query_parts.push(format!("lbEdgeExtensionId={}", val));
+    }
+    if let Some(val) = requestId.as_ref() {
+        query_parts.push(format!("requestId={}", val));
+    }
+
+    let url_with_query = if query_parts.is_empty() {
+        endpoint_url
+    } else {
+        format!("{}?{}", endpoint_url, query_parts.join("&"))
+    };
+
+    let builder = client
+        .post(&url_with_query)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// POST v1/projects/{projectsId}/locations/{locationsId}/lbEdgeExtensions
+/// Creates a new LbEdgeExtension resource in a given project and location.
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `networkservices_projects_locations_lb_edge_extensions_create_execute()` or `networkservices_projects_locations_lb_edge_extensions_create`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `networkservices_projects_locations_lb_edge_extensions_create_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn networkservices_projects_locations_lb_edge_extensions_create_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<Operation>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: Operation = serde_json::from_str(&body)
+                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// POST v1/projects/{projectsId}/locations/{locationsId}/lbEdgeExtensions
+/// Creates a new LbEdgeExtension resource in a given project and location.
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `networkservices_projects_locations_lb_edge_extensions_create_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `networkservices_projects_locations_lb_edge_extensions_create_task()`.
+/// For the simplest API, use `networkservices_projects_locations_lb_edge_extensions_create()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `networkservices_projects_locations_lb_edge_extensions_create_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn networkservices_projects_locations_lb_edge_extensions_create_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<Operation>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let task = networkservices_projects_locations_lb_edge_extensions_create_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`networkservices_projects_locations_lb_edge_extensions_create`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct NetworkservicesProjectsLocationsLbEdgeExtensionsCreateArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Query parameter: lbEdgeExtensionId
+    pub lbEdgeExtensionId: Option<Option<String>>,
+    /// Query parameter: requestId
+    pub requestId: Option<Option<String>>,
+}
+
+/// POST v1/projects/{projectsId}/locations/{locationsId}/lbEdgeExtensions
+/// Creates a new LbEdgeExtension resource in a given project and location.
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `networkservices_projects_locations_lb_edge_extensions_create_builder()` + `networkservices_projects_locations_lb_edge_extensions_create_execute()`.
+/// For task-level control, use `networkservices_projects_locations_lb_edge_extensions_create_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn networkservices_projects_locations_lb_edge_extensions_create(
+    client: &SimpleHttpClient,
+    args: &NetworkservicesProjectsLocationsLbEdgeExtensionsCreateArgs,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<Operation>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let builder = networkservices_projects_locations_lb_edge_extensions_create_builder(
+        client,
+        &args.parent,
+        &args.lbEdgeExtensionId,
+        &args.requestId,
+    )?;
+    networkservices_projects_locations_lb_edge_extensions_create_execute(builder)
+}
+
+/// DELETE v1/projects/{projectsId}/locations/{locationsId}/lbEdgeExtensions/{lbEdgeExtensionsId}
+/// Deletes the specified LbEdgeExtension resource.
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `networkservices_projects_locations_lb_edge_extensions_delete_execute()` to send, or `networkservices_projects_locations_lb_edge_extensions_delete` for simplest API.
+
+pub fn networkservices_projects_locations_lb_edge_extensions_delete_builder(
+    client: &SimpleHttpClient,
+    name: &String,
+    requestId: &Option<Option<String>>,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!(
+        "https://networkservices.googleapis.com/v1/projects/{}/locations/{locationsId}/lbEdgeExtensions/{lbEdgeExtensionsId}",
+        name,
+    );
+
+    // Build request
+    let mut query_parts = Vec::new();
+    if let Some(val) = requestId.as_ref() {
+        query_parts.push(format!("requestId={}", val));
+    }
+
+    let url_with_query = if query_parts.is_empty() {
+        endpoint_url
+    } else {
+        format!("{}?{}", endpoint_url, query_parts.join("&"))
+    };
+
+    let builder = client
+        .delete(&url_with_query)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// DELETE v1/projects/{projectsId}/locations/{locationsId}/lbEdgeExtensions/{lbEdgeExtensionsId}
+/// Deletes the specified LbEdgeExtension resource.
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `networkservices_projects_locations_lb_edge_extensions_delete_execute()` or `networkservices_projects_locations_lb_edge_extensions_delete`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `networkservices_projects_locations_lb_edge_extensions_delete_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn networkservices_projects_locations_lb_edge_extensions_delete_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<Operation>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: Operation = serde_json::from_str(&body)
+                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// DELETE v1/projects/{projectsId}/locations/{locationsId}/lbEdgeExtensions/{lbEdgeExtensionsId}
+/// Deletes the specified LbEdgeExtension resource.
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `networkservices_projects_locations_lb_edge_extensions_delete_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `networkservices_projects_locations_lb_edge_extensions_delete_task()`.
+/// For the simplest API, use `networkservices_projects_locations_lb_edge_extensions_delete()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `networkservices_projects_locations_lb_edge_extensions_delete_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn networkservices_projects_locations_lb_edge_extensions_delete_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<Operation>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let task = networkservices_projects_locations_lb_edge_extensions_delete_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`networkservices_projects_locations_lb_edge_extensions_delete`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct NetworkservicesProjectsLocationsLbEdgeExtensionsDeleteArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Query parameter: requestId
+    pub requestId: Option<Option<String>>,
+}
+
+/// DELETE v1/projects/{projectsId}/locations/{locationsId}/lbEdgeExtensions/{lbEdgeExtensionsId}
+/// Deletes the specified LbEdgeExtension resource.
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `networkservices_projects_locations_lb_edge_extensions_delete_builder()` + `networkservices_projects_locations_lb_edge_extensions_delete_execute()`.
+/// For task-level control, use `networkservices_projects_locations_lb_edge_extensions_delete_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn networkservices_projects_locations_lb_edge_extensions_delete(
+    client: &SimpleHttpClient,
+    args: &NetworkservicesProjectsLocationsLbEdgeExtensionsDeleteArgs,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<Operation>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let builder = networkservices_projects_locations_lb_edge_extensions_delete_builder(
+        client,
+        &args.name,
+        &args.requestId,
+    )?;
+    networkservices_projects_locations_lb_edge_extensions_delete_execute(builder)
+}
+
+/// GET v1/projects/{projectsId}/locations/{locationsId}/lbEdgeExtensions/{lbEdgeExtensionsId}
+/// Gets details of the specified LbEdgeExtension resource.
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `networkservices_projects_locations_lb_edge_extensions_get_execute()` to send, or `networkservices_projects_locations_lb_edge_extensions_get` for simplest API.
+
+pub fn networkservices_projects_locations_lb_edge_extensions_get_builder(
+    client: &SimpleHttpClient,
+    name: &String,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!(
+        "https://networkservices.googleapis.com/v1/projects/{}/locations/{locationsId}/lbEdgeExtensions/{lbEdgeExtensionsId}",
+        name,
+    );
+
+    // Build request
+    let builder = client
+        .get(&endpoint_url)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// GET v1/projects/{projectsId}/locations/{locationsId}/lbEdgeExtensions/{lbEdgeExtensionsId}
+/// Gets details of the specified LbEdgeExtension resource.
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `networkservices_projects_locations_lb_edge_extensions_get_execute()` or `networkservices_projects_locations_lb_edge_extensions_get`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `networkservices_projects_locations_lb_edge_extensions_get_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn networkservices_projects_locations_lb_edge_extensions_get_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<LbEdgeExtension>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: LbEdgeExtension = serde_json::from_str(&body)
+                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// GET v1/projects/{projectsId}/locations/{locationsId}/lbEdgeExtensions/{lbEdgeExtensionsId}
+/// Gets details of the specified LbEdgeExtension resource.
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `networkservices_projects_locations_lb_edge_extensions_get_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `networkservices_projects_locations_lb_edge_extensions_get_task()`.
+/// For the simplest API, use `networkservices_projects_locations_lb_edge_extensions_get()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `networkservices_projects_locations_lb_edge_extensions_get_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn networkservices_projects_locations_lb_edge_extensions_get_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<LbEdgeExtension>, ApiError>, P = ApiPending>
+        + Send
+        + 'static,
+    ApiError,
+> {
+    let task = networkservices_projects_locations_lb_edge_extensions_get_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`networkservices_projects_locations_lb_edge_extensions_get`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct NetworkservicesProjectsLocationsLbEdgeExtensionsGetArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
+/// GET v1/projects/{projectsId}/locations/{locationsId}/lbEdgeExtensions/{lbEdgeExtensionsId}
+/// Gets details of the specified LbEdgeExtension resource.
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `networkservices_projects_locations_lb_edge_extensions_get_builder()` + `networkservices_projects_locations_lb_edge_extensions_get_execute()`.
+/// For task-level control, use `networkservices_projects_locations_lb_edge_extensions_get_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn networkservices_projects_locations_lb_edge_extensions_get(
+    client: &SimpleHttpClient,
+    args: &NetworkservicesProjectsLocationsLbEdgeExtensionsGetArgs,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<LbEdgeExtension>, ApiError>, P = ApiPending>
+        + Send
+        + 'static,
+    ApiError,
+> {
+    let builder =
+        networkservices_projects_locations_lb_edge_extensions_get_builder(client, &args.name)?;
+    networkservices_projects_locations_lb_edge_extensions_get_execute(builder)
+}
+
+/// GET v1/projects/{projectsId}/locations/{locationsId}/lbEdgeExtensions
+/// Lists LbEdgeExtension resources in a given project and location.
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `networkservices_projects_locations_lb_edge_extensions_list_execute()` to send, or `networkservices_projects_locations_lb_edge_extensions_list` for simplest API.
+
+pub fn networkservices_projects_locations_lb_edge_extensions_list_builder(
+    client: &SimpleHttpClient,
+    parent: &String,
+    filter: &Option<Option<String>>,
+    orderBy: &Option<Option<String>>,
+    pageSize: &Option<Option<String>>,
+    pageToken: &Option<Option<String>>,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!(
+        "https://networkservices.googleapis.com/v1/projects/{}/locations/{locationsId}/lbEdgeExtensions",
+        parent,
+    );
+
+    // Build request
+    let mut query_parts = Vec::new();
+    if let Some(val) = filter.as_ref() {
+        query_parts.push(format!("filter={}", val));
+    }
+    if let Some(val) = orderBy.as_ref() {
+        query_parts.push(format!("orderBy={}", val));
+    }
+    if let Some(val) = pageSize.as_ref() {
+        query_parts.push(format!("pageSize={}", val));
+    }
+    if let Some(val) = pageToken.as_ref() {
+        query_parts.push(format!("pageToken={}", val));
+    }
+
+    let url_with_query = if query_parts.is_empty() {
+        endpoint_url
+    } else {
+        format!("{}?{}", endpoint_url, query_parts.join("&"))
+    };
+
+    let builder = client
+        .get(&url_with_query)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// GET v1/projects/{projectsId}/locations/{locationsId}/lbEdgeExtensions
+/// Lists LbEdgeExtension resources in a given project and location.
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `networkservices_projects_locations_lb_edge_extensions_list_execute()` or `networkservices_projects_locations_lb_edge_extensions_list`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `networkservices_projects_locations_lb_edge_extensions_list_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn networkservices_projects_locations_lb_edge_extensions_list_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<ListLbEdgeExtensionsResponse>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: ListLbEdgeExtensionsResponse = serde_json::from_str(&body)
+                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// GET v1/projects/{projectsId}/locations/{locationsId}/lbEdgeExtensions
+/// Lists LbEdgeExtension resources in a given project and location.
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `networkservices_projects_locations_lb_edge_extensions_list_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `networkservices_projects_locations_lb_edge_extensions_list_task()`.
+/// For the simplest API, use `networkservices_projects_locations_lb_edge_extensions_list()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `networkservices_projects_locations_lb_edge_extensions_list_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn networkservices_projects_locations_lb_edge_extensions_list_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<
+            D = Result<ApiResponse<ListLbEdgeExtensionsResponse>, ApiError>,
+            P = ApiPending,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    let task = networkservices_projects_locations_lb_edge_extensions_list_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`networkservices_projects_locations_lb_edge_extensions_list`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct NetworkservicesProjectsLocationsLbEdgeExtensionsListArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Query parameter: filter
+    pub filter: Option<Option<String>>,
+    /// Query parameter: orderBy
+    pub orderBy: Option<Option<String>>,
+    /// Query parameter: pageSize
+    pub pageSize: Option<Option<String>>,
+    /// Query parameter: pageToken
+    pub pageToken: Option<Option<String>>,
+}
+
+/// GET v1/projects/{projectsId}/locations/{locationsId}/lbEdgeExtensions
+/// Lists LbEdgeExtension resources in a given project and location.
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `networkservices_projects_locations_lb_edge_extensions_list_builder()` + `networkservices_projects_locations_lb_edge_extensions_list_execute()`.
+/// For task-level control, use `networkservices_projects_locations_lb_edge_extensions_list_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn networkservices_projects_locations_lb_edge_extensions_list(
+    client: &SimpleHttpClient,
+    args: &NetworkservicesProjectsLocationsLbEdgeExtensionsListArgs,
+) -> Result<
+    impl StreamIterator<
+            D = Result<ApiResponse<ListLbEdgeExtensionsResponse>, ApiError>,
+            P = ApiPending,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    let builder = networkservices_projects_locations_lb_edge_extensions_list_builder(
+        client,
+        &args.parent,
+        &args.filter,
+        &args.orderBy,
+        &args.pageSize,
+        &args.pageToken,
+    )?;
+    networkservices_projects_locations_lb_edge_extensions_list_execute(builder)
+}
+
+/// PATCH v1/projects/{projectsId}/locations/{locationsId}/lbEdgeExtensions/{lbEdgeExtensionsId}
+/// Updates the parameters of the specified LbEdgeExtension resource.
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `networkservices_projects_locations_lb_edge_extensions_patch_execute()` to send, or `networkservices_projects_locations_lb_edge_extensions_patch` for simplest API.
+
+pub fn networkservices_projects_locations_lb_edge_extensions_patch_builder(
+    client: &SimpleHttpClient,
+    name: &String,
+    requestId: &Option<Option<String>>,
+    updateMask: &Option<Option<String>>,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!(
+        "https://networkservices.googleapis.com/v1/projects/{}/locations/{locationsId}/lbEdgeExtensions/{lbEdgeExtensionsId}",
+        name,
+    );
+
+    // Build request
+    let mut query_parts = Vec::new();
+    if let Some(val) = requestId.as_ref() {
+        query_parts.push(format!("requestId={}", val));
+    }
+    if let Some(val) = updateMask.as_ref() {
+        query_parts.push(format!("updateMask={}", val));
+    }
+
+    let url_with_query = if query_parts.is_empty() {
+        endpoint_url
+    } else {
+        format!("{}?{}", endpoint_url, query_parts.join("&"))
+    };
+
+    let builder = client
+        .patch(&url_with_query)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// PATCH v1/projects/{projectsId}/locations/{locationsId}/lbEdgeExtensions/{lbEdgeExtensionsId}
+/// Updates the parameters of the specified LbEdgeExtension resource.
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `networkservices_projects_locations_lb_edge_extensions_patch_execute()` or `networkservices_projects_locations_lb_edge_extensions_patch`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `networkservices_projects_locations_lb_edge_extensions_patch_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn networkservices_projects_locations_lb_edge_extensions_patch_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<Operation>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: Operation = serde_json::from_str(&body)
+                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// PATCH v1/projects/{projectsId}/locations/{locationsId}/lbEdgeExtensions/{lbEdgeExtensionsId}
+/// Updates the parameters of the specified LbEdgeExtension resource.
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `networkservices_projects_locations_lb_edge_extensions_patch_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `networkservices_projects_locations_lb_edge_extensions_patch_task()`.
+/// For the simplest API, use `networkservices_projects_locations_lb_edge_extensions_patch()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `networkservices_projects_locations_lb_edge_extensions_patch_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn networkservices_projects_locations_lb_edge_extensions_patch_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<Operation>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let task = networkservices_projects_locations_lb_edge_extensions_patch_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`networkservices_projects_locations_lb_edge_extensions_patch`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct NetworkservicesProjectsLocationsLbEdgeExtensionsPatchArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Query parameter: requestId
+    pub requestId: Option<Option<String>>,
+    /// Query parameter: updateMask
+    pub updateMask: Option<Option<String>>,
+}
+
+/// PATCH v1/projects/{projectsId}/locations/{locationsId}/lbEdgeExtensions/{lbEdgeExtensionsId}
+/// Updates the parameters of the specified LbEdgeExtension resource.
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `networkservices_projects_locations_lb_edge_extensions_patch_builder()` + `networkservices_projects_locations_lb_edge_extensions_patch_execute()`.
+/// For task-level control, use `networkservices_projects_locations_lb_edge_extensions_patch_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn networkservices_projects_locations_lb_edge_extensions_patch(
+    client: &SimpleHttpClient,
+    args: &NetworkservicesProjectsLocationsLbEdgeExtensionsPatchArgs,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<Operation>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let builder = networkservices_projects_locations_lb_edge_extensions_patch_builder(
+        client,
+        &args.name,
+        &args.requestId,
+        &args.updateMask,
+    )?;
+    networkservices_projects_locations_lb_edge_extensions_patch_execute(builder)
+}
+
+/// POST v1/projects/{projectsId}/locations/{locationsId}/lbRouteExtensions
+/// Creates a new LbRouteExtension resource in a given project and location.
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `networkservices_projects_locations_lb_route_extensions_create_execute()` to send, or `networkservices_projects_locations_lb_route_extensions_create` for simplest API.
+
+pub fn networkservices_projects_locations_lb_route_extensions_create_builder(
+    client: &SimpleHttpClient,
+    parent: &String,
+    lbRouteExtensionId: &Option<Option<String>>,
+    requestId: &Option<Option<String>>,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!(
+        "https://networkservices.googleapis.com/v1/projects/{}/locations/{locationsId}/lbRouteExtensions",
+        parent,
+    );
+
+    // Build request
+    let mut query_parts = Vec::new();
+    if let Some(val) = lbRouteExtensionId.as_ref() {
+        query_parts.push(format!("lbRouteExtensionId={}", val));
+    }
+    if let Some(val) = requestId.as_ref() {
+        query_parts.push(format!("requestId={}", val));
+    }
+
+    let url_with_query = if query_parts.is_empty() {
+        endpoint_url
+    } else {
+        format!("{}?{}", endpoint_url, query_parts.join("&"))
+    };
+
+    let builder = client
+        .post(&url_with_query)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// POST v1/projects/{projectsId}/locations/{locationsId}/lbRouteExtensions
+/// Creates a new LbRouteExtension resource in a given project and location.
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `networkservices_projects_locations_lb_route_extensions_create_execute()` or `networkservices_projects_locations_lb_route_extensions_create`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `networkservices_projects_locations_lb_route_extensions_create_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn networkservices_projects_locations_lb_route_extensions_create_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<Operation>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: Operation = serde_json::from_str(&body)
+                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// POST v1/projects/{projectsId}/locations/{locationsId}/lbRouteExtensions
+/// Creates a new LbRouteExtension resource in a given project and location.
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `networkservices_projects_locations_lb_route_extensions_create_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `networkservices_projects_locations_lb_route_extensions_create_task()`.
+/// For the simplest API, use `networkservices_projects_locations_lb_route_extensions_create()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `networkservices_projects_locations_lb_route_extensions_create_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn networkservices_projects_locations_lb_route_extensions_create_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<Operation>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let task = networkservices_projects_locations_lb_route_extensions_create_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`networkservices_projects_locations_lb_route_extensions_create`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct NetworkservicesProjectsLocationsLbRouteExtensionsCreateArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Query parameter: lbRouteExtensionId
+    pub lbRouteExtensionId: Option<Option<String>>,
+    /// Query parameter: requestId
+    pub requestId: Option<Option<String>>,
+}
+
+/// POST v1/projects/{projectsId}/locations/{locationsId}/lbRouteExtensions
+/// Creates a new LbRouteExtension resource in a given project and location.
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `networkservices_projects_locations_lb_route_extensions_create_builder()` + `networkservices_projects_locations_lb_route_extensions_create_execute()`.
+/// For task-level control, use `networkservices_projects_locations_lb_route_extensions_create_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn networkservices_projects_locations_lb_route_extensions_create(
+    client: &SimpleHttpClient,
+    args: &NetworkservicesProjectsLocationsLbRouteExtensionsCreateArgs,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<Operation>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let builder = networkservices_projects_locations_lb_route_extensions_create_builder(
+        client,
+        &args.parent,
+        &args.lbRouteExtensionId,
+        &args.requestId,
+    )?;
+    networkservices_projects_locations_lb_route_extensions_create_execute(builder)
+}
+
+/// DELETE v1/projects/{projectsId}/locations/{locationsId}/lbRouteExtensions/{lbRouteExtensionsId}
+/// Deletes the specified LbRouteExtension resource.
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `networkservices_projects_locations_lb_route_extensions_delete_execute()` to send, or `networkservices_projects_locations_lb_route_extensions_delete` for simplest API.
+
+pub fn networkservices_projects_locations_lb_route_extensions_delete_builder(
+    client: &SimpleHttpClient,
+    name: &String,
+    requestId: &Option<Option<String>>,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!(
+        "https://networkservices.googleapis.com/v1/projects/{}/locations/{locationsId}/lbRouteExtensions/{lbRouteExtensionsId}",
+        name,
+    );
+
+    // Build request
+    let mut query_parts = Vec::new();
+    if let Some(val) = requestId.as_ref() {
+        query_parts.push(format!("requestId={}", val));
+    }
+
+    let url_with_query = if query_parts.is_empty() {
+        endpoint_url
+    } else {
+        format!("{}?{}", endpoint_url, query_parts.join("&"))
+    };
+
+    let builder = client
+        .delete(&url_with_query)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// DELETE v1/projects/{projectsId}/locations/{locationsId}/lbRouteExtensions/{lbRouteExtensionsId}
+/// Deletes the specified LbRouteExtension resource.
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `networkservices_projects_locations_lb_route_extensions_delete_execute()` or `networkservices_projects_locations_lb_route_extensions_delete`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `networkservices_projects_locations_lb_route_extensions_delete_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn networkservices_projects_locations_lb_route_extensions_delete_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<Operation>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: Operation = serde_json::from_str(&body)
+                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// DELETE v1/projects/{projectsId}/locations/{locationsId}/lbRouteExtensions/{lbRouteExtensionsId}
+/// Deletes the specified LbRouteExtension resource.
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `networkservices_projects_locations_lb_route_extensions_delete_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `networkservices_projects_locations_lb_route_extensions_delete_task()`.
+/// For the simplest API, use `networkservices_projects_locations_lb_route_extensions_delete()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `networkservices_projects_locations_lb_route_extensions_delete_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn networkservices_projects_locations_lb_route_extensions_delete_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<Operation>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let task = networkservices_projects_locations_lb_route_extensions_delete_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`networkservices_projects_locations_lb_route_extensions_delete`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct NetworkservicesProjectsLocationsLbRouteExtensionsDeleteArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Query parameter: requestId
+    pub requestId: Option<Option<String>>,
+}
+
+/// DELETE v1/projects/{projectsId}/locations/{locationsId}/lbRouteExtensions/{lbRouteExtensionsId}
+/// Deletes the specified LbRouteExtension resource.
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `networkservices_projects_locations_lb_route_extensions_delete_builder()` + `networkservices_projects_locations_lb_route_extensions_delete_execute()`.
+/// For task-level control, use `networkservices_projects_locations_lb_route_extensions_delete_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn networkservices_projects_locations_lb_route_extensions_delete(
+    client: &SimpleHttpClient,
+    args: &NetworkservicesProjectsLocationsLbRouteExtensionsDeleteArgs,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<Operation>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let builder = networkservices_projects_locations_lb_route_extensions_delete_builder(
+        client,
+        &args.name,
+        &args.requestId,
+    )?;
+    networkservices_projects_locations_lb_route_extensions_delete_execute(builder)
+}
+
+/// GET v1/projects/{projectsId}/locations/{locationsId}/lbRouteExtensions/{lbRouteExtensionsId}
+/// Gets details of the specified LbRouteExtension resource.
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `networkservices_projects_locations_lb_route_extensions_get_execute()` to send, or `networkservices_projects_locations_lb_route_extensions_get` for simplest API.
+
+pub fn networkservices_projects_locations_lb_route_extensions_get_builder(
+    client: &SimpleHttpClient,
+    name: &String,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!(
+        "https://networkservices.googleapis.com/v1/projects/{}/locations/{locationsId}/lbRouteExtensions/{lbRouteExtensionsId}",
+        name,
+    );
+
+    // Build request
+    let builder = client
+        .get(&endpoint_url)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// GET v1/projects/{projectsId}/locations/{locationsId}/lbRouteExtensions/{lbRouteExtensionsId}
+/// Gets details of the specified LbRouteExtension resource.
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `networkservices_projects_locations_lb_route_extensions_get_execute()` or `networkservices_projects_locations_lb_route_extensions_get`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `networkservices_projects_locations_lb_route_extensions_get_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn networkservices_projects_locations_lb_route_extensions_get_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<LbRouteExtension>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: LbRouteExtension = serde_json::from_str(&body)
+                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// GET v1/projects/{projectsId}/locations/{locationsId}/lbRouteExtensions/{lbRouteExtensionsId}
+/// Gets details of the specified LbRouteExtension resource.
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `networkservices_projects_locations_lb_route_extensions_get_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `networkservices_projects_locations_lb_route_extensions_get_task()`.
+/// For the simplest API, use `networkservices_projects_locations_lb_route_extensions_get()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `networkservices_projects_locations_lb_route_extensions_get_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn networkservices_projects_locations_lb_route_extensions_get_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<LbRouteExtension>, ApiError>, P = ApiPending>
+        + Send
+        + 'static,
+    ApiError,
+> {
+    let task = networkservices_projects_locations_lb_route_extensions_get_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`networkservices_projects_locations_lb_route_extensions_get`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct NetworkservicesProjectsLocationsLbRouteExtensionsGetArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
+/// GET v1/projects/{projectsId}/locations/{locationsId}/lbRouteExtensions/{lbRouteExtensionsId}
+/// Gets details of the specified LbRouteExtension resource.
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `networkservices_projects_locations_lb_route_extensions_get_builder()` + `networkservices_projects_locations_lb_route_extensions_get_execute()`.
+/// For task-level control, use `networkservices_projects_locations_lb_route_extensions_get_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn networkservices_projects_locations_lb_route_extensions_get(
+    client: &SimpleHttpClient,
+    args: &NetworkservicesProjectsLocationsLbRouteExtensionsGetArgs,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<LbRouteExtension>, ApiError>, P = ApiPending>
+        + Send
+        + 'static,
+    ApiError,
+> {
+    let builder =
+        networkservices_projects_locations_lb_route_extensions_get_builder(client, &args.name)?;
+    networkservices_projects_locations_lb_route_extensions_get_execute(builder)
+}
+
+/// GET v1/projects/{projectsId}/locations/{locationsId}/lbRouteExtensions
+/// Lists LbRouteExtension resources in a given project and location.
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `networkservices_projects_locations_lb_route_extensions_list_execute()` to send, or `networkservices_projects_locations_lb_route_extensions_list` for simplest API.
+
+pub fn networkservices_projects_locations_lb_route_extensions_list_builder(
+    client: &SimpleHttpClient,
+    parent: &String,
+    filter: &Option<Option<String>>,
+    orderBy: &Option<Option<String>>,
+    pageSize: &Option<Option<String>>,
+    pageToken: &Option<Option<String>>,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!(
+        "https://networkservices.googleapis.com/v1/projects/{}/locations/{locationsId}/lbRouteExtensions",
+        parent,
+    );
+
+    // Build request
+    let mut query_parts = Vec::new();
+    if let Some(val) = filter.as_ref() {
+        query_parts.push(format!("filter={}", val));
+    }
+    if let Some(val) = orderBy.as_ref() {
+        query_parts.push(format!("orderBy={}", val));
+    }
+    if let Some(val) = pageSize.as_ref() {
+        query_parts.push(format!("pageSize={}", val));
+    }
+    if let Some(val) = pageToken.as_ref() {
+        query_parts.push(format!("pageToken={}", val));
+    }
+
+    let url_with_query = if query_parts.is_empty() {
+        endpoint_url
+    } else {
+        format!("{}?{}", endpoint_url, query_parts.join("&"))
+    };
+
+    let builder = client
+        .get(&url_with_query)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// GET v1/projects/{projectsId}/locations/{locationsId}/lbRouteExtensions
+/// Lists LbRouteExtension resources in a given project and location.
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `networkservices_projects_locations_lb_route_extensions_list_execute()` or `networkservices_projects_locations_lb_route_extensions_list`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `networkservices_projects_locations_lb_route_extensions_list_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn networkservices_projects_locations_lb_route_extensions_list_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<ListLbRouteExtensionsResponse>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: ListLbRouteExtensionsResponse = serde_json::from_str(&body)
+                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// GET v1/projects/{projectsId}/locations/{locationsId}/lbRouteExtensions
+/// Lists LbRouteExtension resources in a given project and location.
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `networkservices_projects_locations_lb_route_extensions_list_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `networkservices_projects_locations_lb_route_extensions_list_task()`.
+/// For the simplest API, use `networkservices_projects_locations_lb_route_extensions_list()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `networkservices_projects_locations_lb_route_extensions_list_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn networkservices_projects_locations_lb_route_extensions_list_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<
+            D = Result<ApiResponse<ListLbRouteExtensionsResponse>, ApiError>,
+            P = ApiPending,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    let task = networkservices_projects_locations_lb_route_extensions_list_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`networkservices_projects_locations_lb_route_extensions_list`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct NetworkservicesProjectsLocationsLbRouteExtensionsListArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Query parameter: filter
+    pub filter: Option<Option<String>>,
+    /// Query parameter: orderBy
+    pub orderBy: Option<Option<String>>,
+    /// Query parameter: pageSize
+    pub pageSize: Option<Option<String>>,
+    /// Query parameter: pageToken
+    pub pageToken: Option<Option<String>>,
+}
+
+/// GET v1/projects/{projectsId}/locations/{locationsId}/lbRouteExtensions
+/// Lists LbRouteExtension resources in a given project and location.
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `networkservices_projects_locations_lb_route_extensions_list_builder()` + `networkservices_projects_locations_lb_route_extensions_list_execute()`.
+/// For task-level control, use `networkservices_projects_locations_lb_route_extensions_list_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn networkservices_projects_locations_lb_route_extensions_list(
+    client: &SimpleHttpClient,
+    args: &NetworkservicesProjectsLocationsLbRouteExtensionsListArgs,
+) -> Result<
+    impl StreamIterator<
+            D = Result<ApiResponse<ListLbRouteExtensionsResponse>, ApiError>,
+            P = ApiPending,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    let builder = networkservices_projects_locations_lb_route_extensions_list_builder(
+        client,
+        &args.parent,
+        &args.filter,
+        &args.orderBy,
+        &args.pageSize,
+        &args.pageToken,
+    )?;
+    networkservices_projects_locations_lb_route_extensions_list_execute(builder)
+}
+
+/// PATCH v1/projects/{projectsId}/locations/{locationsId}/lbRouteExtensions/{lbRouteExtensionsId}
+/// Updates the parameters of the specified LbRouteExtension resource.
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `networkservices_projects_locations_lb_route_extensions_patch_execute()` to send, or `networkservices_projects_locations_lb_route_extensions_patch` for simplest API.
+
+pub fn networkservices_projects_locations_lb_route_extensions_patch_builder(
+    client: &SimpleHttpClient,
+    name: &String,
+    requestId: &Option<Option<String>>,
+    updateMask: &Option<Option<String>>,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!(
+        "https://networkservices.googleapis.com/v1/projects/{}/locations/{locationsId}/lbRouteExtensions/{lbRouteExtensionsId}",
+        name,
+    );
+
+    // Build request
+    let mut query_parts = Vec::new();
+    if let Some(val) = requestId.as_ref() {
+        query_parts.push(format!("requestId={}", val));
+    }
+    if let Some(val) = updateMask.as_ref() {
+        query_parts.push(format!("updateMask={}", val));
+    }
+
+    let url_with_query = if query_parts.is_empty() {
+        endpoint_url
+    } else {
+        format!("{}?{}", endpoint_url, query_parts.join("&"))
+    };
+
+    let builder = client
+        .patch(&url_with_query)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// PATCH v1/projects/{projectsId}/locations/{locationsId}/lbRouteExtensions/{lbRouteExtensionsId}
+/// Updates the parameters of the specified LbRouteExtension resource.
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `networkservices_projects_locations_lb_route_extensions_patch_execute()` or `networkservices_projects_locations_lb_route_extensions_patch`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `networkservices_projects_locations_lb_route_extensions_patch_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn networkservices_projects_locations_lb_route_extensions_patch_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<Operation>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: Operation = serde_json::from_str(&body)
+                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// PATCH v1/projects/{projectsId}/locations/{locationsId}/lbRouteExtensions/{lbRouteExtensionsId}
+/// Updates the parameters of the specified LbRouteExtension resource.
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `networkservices_projects_locations_lb_route_extensions_patch_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `networkservices_projects_locations_lb_route_extensions_patch_task()`.
+/// For the simplest API, use `networkservices_projects_locations_lb_route_extensions_patch()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `networkservices_projects_locations_lb_route_extensions_patch_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn networkservices_projects_locations_lb_route_extensions_patch_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<Operation>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let task = networkservices_projects_locations_lb_route_extensions_patch_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`networkservices_projects_locations_lb_route_extensions_patch`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct NetworkservicesProjectsLocationsLbRouteExtensionsPatchArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Query parameter: requestId
+    pub requestId: Option<Option<String>>,
+    /// Query parameter: updateMask
+    pub updateMask: Option<Option<String>>,
+}
+
+/// PATCH v1/projects/{projectsId}/locations/{locationsId}/lbRouteExtensions/{lbRouteExtensionsId}
+/// Updates the parameters of the specified LbRouteExtension resource.
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `networkservices_projects_locations_lb_route_extensions_patch_builder()` + `networkservices_projects_locations_lb_route_extensions_patch_execute()`.
+/// For task-level control, use `networkservices_projects_locations_lb_route_extensions_patch_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn networkservices_projects_locations_lb_route_extensions_patch(
+    client: &SimpleHttpClient,
+    args: &NetworkservicesProjectsLocationsLbRouteExtensionsPatchArgs,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<Operation>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let builder = networkservices_projects_locations_lb_route_extensions_patch_builder(
+        client,
+        &args.name,
+        &args.requestId,
+        &args.updateMask,
+    )?;
+    networkservices_projects_locations_lb_route_extensions_patch_execute(builder)
+}
+
+/// POST v1/projects/{projectsId}/locations/{locationsId}/lbTrafficExtensions
+/// Creates a new LbTrafficExtension resource in a given project and location.
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `networkservices_projects_locations_lb_traffic_extensions_create_execute()` to send, or `networkservices_projects_locations_lb_traffic_extensions_create` for simplest API.
+
+pub fn networkservices_projects_locations_lb_traffic_extensions_create_builder(
+    client: &SimpleHttpClient,
+    parent: &String,
+    lbTrafficExtensionId: &Option<Option<String>>,
+    requestId: &Option<Option<String>>,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!(
+        "https://networkservices.googleapis.com/v1/projects/{}/locations/{locationsId}/lbTrafficExtensions",
+        parent,
+    );
+
+    // Build request
+    let mut query_parts = Vec::new();
+    if let Some(val) = lbTrafficExtensionId.as_ref() {
+        query_parts.push(format!("lbTrafficExtensionId={}", val));
+    }
+    if let Some(val) = requestId.as_ref() {
+        query_parts.push(format!("requestId={}", val));
+    }
+
+    let url_with_query = if query_parts.is_empty() {
+        endpoint_url
+    } else {
+        format!("{}?{}", endpoint_url, query_parts.join("&"))
+    };
+
+    let builder = client
+        .post(&url_with_query)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// POST v1/projects/{projectsId}/locations/{locationsId}/lbTrafficExtensions
+/// Creates a new LbTrafficExtension resource in a given project and location.
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `networkservices_projects_locations_lb_traffic_extensions_create_execute()` or `networkservices_projects_locations_lb_traffic_extensions_create`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `networkservices_projects_locations_lb_traffic_extensions_create_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn networkservices_projects_locations_lb_traffic_extensions_create_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<Operation>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: Operation = serde_json::from_str(&body)
+                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// POST v1/projects/{projectsId}/locations/{locationsId}/lbTrafficExtensions
+/// Creates a new LbTrafficExtension resource in a given project and location.
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `networkservices_projects_locations_lb_traffic_extensions_create_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `networkservices_projects_locations_lb_traffic_extensions_create_task()`.
+/// For the simplest API, use `networkservices_projects_locations_lb_traffic_extensions_create()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `networkservices_projects_locations_lb_traffic_extensions_create_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn networkservices_projects_locations_lb_traffic_extensions_create_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<Operation>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let task = networkservices_projects_locations_lb_traffic_extensions_create_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`networkservices_projects_locations_lb_traffic_extensions_create`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct NetworkservicesProjectsLocationsLbTrafficExtensionsCreateArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Query parameter: lbTrafficExtensionId
+    pub lbTrafficExtensionId: Option<Option<String>>,
+    /// Query parameter: requestId
+    pub requestId: Option<Option<String>>,
+}
+
+/// POST v1/projects/{projectsId}/locations/{locationsId}/lbTrafficExtensions
+/// Creates a new LbTrafficExtension resource in a given project and location.
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `networkservices_projects_locations_lb_traffic_extensions_create_builder()` + `networkservices_projects_locations_lb_traffic_extensions_create_execute()`.
+/// For task-level control, use `networkservices_projects_locations_lb_traffic_extensions_create_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn networkservices_projects_locations_lb_traffic_extensions_create(
+    client: &SimpleHttpClient,
+    args: &NetworkservicesProjectsLocationsLbTrafficExtensionsCreateArgs,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<Operation>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let builder = networkservices_projects_locations_lb_traffic_extensions_create_builder(
+        client,
+        &args.parent,
+        &args.lbTrafficExtensionId,
+        &args.requestId,
+    )?;
+    networkservices_projects_locations_lb_traffic_extensions_create_execute(builder)
+}
+
+/// DELETE v1/projects/{projectsId}/locations/{locationsId}/lbTrafficExtensions/{lbTrafficExtensionsId}
+/// Deletes the specified LbTrafficExtension resource.
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `networkservices_projects_locations_lb_traffic_extensions_delete_execute()` to send, or `networkservices_projects_locations_lb_traffic_extensions_delete` for simplest API.
+
+pub fn networkservices_projects_locations_lb_traffic_extensions_delete_builder(
+    client: &SimpleHttpClient,
+    name: &String,
+    requestId: &Option<Option<String>>,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!(
+        "https://networkservices.googleapis.com/v1/projects/{}/locations/{locationsId}/lbTrafficExtensions/{lbTrafficExtensionsId}",
+        name,
+    );
+
+    // Build request
+    let mut query_parts = Vec::new();
+    if let Some(val) = requestId.as_ref() {
+        query_parts.push(format!("requestId={}", val));
+    }
+
+    let url_with_query = if query_parts.is_empty() {
+        endpoint_url
+    } else {
+        format!("{}?{}", endpoint_url, query_parts.join("&"))
+    };
+
+    let builder = client
+        .delete(&url_with_query)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// DELETE v1/projects/{projectsId}/locations/{locationsId}/lbTrafficExtensions/{lbTrafficExtensionsId}
+/// Deletes the specified LbTrafficExtension resource.
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `networkservices_projects_locations_lb_traffic_extensions_delete_execute()` or `networkservices_projects_locations_lb_traffic_extensions_delete`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `networkservices_projects_locations_lb_traffic_extensions_delete_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn networkservices_projects_locations_lb_traffic_extensions_delete_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<Operation>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: Operation = serde_json::from_str(&body)
+                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// DELETE v1/projects/{projectsId}/locations/{locationsId}/lbTrafficExtensions/{lbTrafficExtensionsId}
+/// Deletes the specified LbTrafficExtension resource.
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `networkservices_projects_locations_lb_traffic_extensions_delete_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `networkservices_projects_locations_lb_traffic_extensions_delete_task()`.
+/// For the simplest API, use `networkservices_projects_locations_lb_traffic_extensions_delete()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `networkservices_projects_locations_lb_traffic_extensions_delete_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn networkservices_projects_locations_lb_traffic_extensions_delete_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<Operation>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let task = networkservices_projects_locations_lb_traffic_extensions_delete_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`networkservices_projects_locations_lb_traffic_extensions_delete`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct NetworkservicesProjectsLocationsLbTrafficExtensionsDeleteArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Query parameter: requestId
+    pub requestId: Option<Option<String>>,
+}
+
+/// DELETE v1/projects/{projectsId}/locations/{locationsId}/lbTrafficExtensions/{lbTrafficExtensionsId}
+/// Deletes the specified LbTrafficExtension resource.
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `networkservices_projects_locations_lb_traffic_extensions_delete_builder()` + `networkservices_projects_locations_lb_traffic_extensions_delete_execute()`.
+/// For task-level control, use `networkservices_projects_locations_lb_traffic_extensions_delete_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn networkservices_projects_locations_lb_traffic_extensions_delete(
+    client: &SimpleHttpClient,
+    args: &NetworkservicesProjectsLocationsLbTrafficExtensionsDeleteArgs,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<Operation>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let builder = networkservices_projects_locations_lb_traffic_extensions_delete_builder(
+        client,
+        &args.name,
+        &args.requestId,
+    )?;
+    networkservices_projects_locations_lb_traffic_extensions_delete_execute(builder)
+}
+
+/// GET v1/projects/{projectsId}/locations/{locationsId}/lbTrafficExtensions/{lbTrafficExtensionsId}
+/// Gets details of the specified LbTrafficExtension resource.
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `networkservices_projects_locations_lb_traffic_extensions_get_execute()` to send, or `networkservices_projects_locations_lb_traffic_extensions_get` for simplest API.
+
+pub fn networkservices_projects_locations_lb_traffic_extensions_get_builder(
+    client: &SimpleHttpClient,
+    name: &String,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!(
+        "https://networkservices.googleapis.com/v1/projects/{}/locations/{locationsId}/lbTrafficExtensions/{lbTrafficExtensionsId}",
+        name,
+    );
+
+    // Build request
+    let builder = client
+        .get(&endpoint_url)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// GET v1/projects/{projectsId}/locations/{locationsId}/lbTrafficExtensions/{lbTrafficExtensionsId}
+/// Gets details of the specified LbTrafficExtension resource.
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `networkservices_projects_locations_lb_traffic_extensions_get_execute()` or `networkservices_projects_locations_lb_traffic_extensions_get`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `networkservices_projects_locations_lb_traffic_extensions_get_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn networkservices_projects_locations_lb_traffic_extensions_get_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<LbTrafficExtension>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: LbTrafficExtension = serde_json::from_str(&body)
+                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// GET v1/projects/{projectsId}/locations/{locationsId}/lbTrafficExtensions/{lbTrafficExtensionsId}
+/// Gets details of the specified LbTrafficExtension resource.
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `networkservices_projects_locations_lb_traffic_extensions_get_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `networkservices_projects_locations_lb_traffic_extensions_get_task()`.
+/// For the simplest API, use `networkservices_projects_locations_lb_traffic_extensions_get()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `networkservices_projects_locations_lb_traffic_extensions_get_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn networkservices_projects_locations_lb_traffic_extensions_get_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<LbTrafficExtension>, ApiError>, P = ApiPending>
+        + Send
+        + 'static,
+    ApiError,
+> {
+    let task = networkservices_projects_locations_lb_traffic_extensions_get_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`networkservices_projects_locations_lb_traffic_extensions_get`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct NetworkservicesProjectsLocationsLbTrafficExtensionsGetArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
+/// GET v1/projects/{projectsId}/locations/{locationsId}/lbTrafficExtensions/{lbTrafficExtensionsId}
+/// Gets details of the specified LbTrafficExtension resource.
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `networkservices_projects_locations_lb_traffic_extensions_get_builder()` + `networkservices_projects_locations_lb_traffic_extensions_get_execute()`.
+/// For task-level control, use `networkservices_projects_locations_lb_traffic_extensions_get_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn networkservices_projects_locations_lb_traffic_extensions_get(
+    client: &SimpleHttpClient,
+    args: &NetworkservicesProjectsLocationsLbTrafficExtensionsGetArgs,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<LbTrafficExtension>, ApiError>, P = ApiPending>
+        + Send
+        + 'static,
+    ApiError,
+> {
+    let builder =
+        networkservices_projects_locations_lb_traffic_extensions_get_builder(client, &args.name)?;
+    networkservices_projects_locations_lb_traffic_extensions_get_execute(builder)
+}
+
+/// GET v1/projects/{projectsId}/locations/{locationsId}/lbTrafficExtensions
+/// Lists LbTrafficExtension resources in a given project and location.
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `networkservices_projects_locations_lb_traffic_extensions_list_execute()` to send, or `networkservices_projects_locations_lb_traffic_extensions_list` for simplest API.
+
+pub fn networkservices_projects_locations_lb_traffic_extensions_list_builder(
+    client: &SimpleHttpClient,
+    parent: &String,
+    filter: &Option<Option<String>>,
+    orderBy: &Option<Option<String>>,
+    pageSize: &Option<Option<String>>,
+    pageToken: &Option<Option<String>>,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!(
+        "https://networkservices.googleapis.com/v1/projects/{}/locations/{locationsId}/lbTrafficExtensions",
+        parent,
+    );
+
+    // Build request
+    let mut query_parts = Vec::new();
+    if let Some(val) = filter.as_ref() {
+        query_parts.push(format!("filter={}", val));
+    }
+    if let Some(val) = orderBy.as_ref() {
+        query_parts.push(format!("orderBy={}", val));
+    }
+    if let Some(val) = pageSize.as_ref() {
+        query_parts.push(format!("pageSize={}", val));
+    }
+    if let Some(val) = pageToken.as_ref() {
+        query_parts.push(format!("pageToken={}", val));
+    }
+
+    let url_with_query = if query_parts.is_empty() {
+        endpoint_url
+    } else {
+        format!("{}?{}", endpoint_url, query_parts.join("&"))
+    };
+
+    let builder = client
+        .get(&url_with_query)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// GET v1/projects/{projectsId}/locations/{locationsId}/lbTrafficExtensions
+/// Lists LbTrafficExtension resources in a given project and location.
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `networkservices_projects_locations_lb_traffic_extensions_list_execute()` or `networkservices_projects_locations_lb_traffic_extensions_list`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `networkservices_projects_locations_lb_traffic_extensions_list_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn networkservices_projects_locations_lb_traffic_extensions_list_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<ListLbTrafficExtensionsResponse>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: ListLbTrafficExtensionsResponse = serde_json::from_str(&body)
+                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// GET v1/projects/{projectsId}/locations/{locationsId}/lbTrafficExtensions
+/// Lists LbTrafficExtension resources in a given project and location.
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `networkservices_projects_locations_lb_traffic_extensions_list_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `networkservices_projects_locations_lb_traffic_extensions_list_task()`.
+/// For the simplest API, use `networkservices_projects_locations_lb_traffic_extensions_list()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `networkservices_projects_locations_lb_traffic_extensions_list_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn networkservices_projects_locations_lb_traffic_extensions_list_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<
+            D = Result<ApiResponse<ListLbTrafficExtensionsResponse>, ApiError>,
+            P = ApiPending,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    let task = networkservices_projects_locations_lb_traffic_extensions_list_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`networkservices_projects_locations_lb_traffic_extensions_list`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct NetworkservicesProjectsLocationsLbTrafficExtensionsListArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Query parameter: filter
+    pub filter: Option<Option<String>>,
+    /// Query parameter: orderBy
+    pub orderBy: Option<Option<String>>,
+    /// Query parameter: pageSize
+    pub pageSize: Option<Option<String>>,
+    /// Query parameter: pageToken
+    pub pageToken: Option<Option<String>>,
+}
+
+/// GET v1/projects/{projectsId}/locations/{locationsId}/lbTrafficExtensions
+/// Lists LbTrafficExtension resources in a given project and location.
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `networkservices_projects_locations_lb_traffic_extensions_list_builder()` + `networkservices_projects_locations_lb_traffic_extensions_list_execute()`.
+/// For task-level control, use `networkservices_projects_locations_lb_traffic_extensions_list_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn networkservices_projects_locations_lb_traffic_extensions_list(
+    client: &SimpleHttpClient,
+    args: &NetworkservicesProjectsLocationsLbTrafficExtensionsListArgs,
+) -> Result<
+    impl StreamIterator<
+            D = Result<ApiResponse<ListLbTrafficExtensionsResponse>, ApiError>,
+            P = ApiPending,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    let builder = networkservices_projects_locations_lb_traffic_extensions_list_builder(
+        client,
+        &args.parent,
+        &args.filter,
+        &args.orderBy,
+        &args.pageSize,
+        &args.pageToken,
+    )?;
+    networkservices_projects_locations_lb_traffic_extensions_list_execute(builder)
+}
+
+/// PATCH v1/projects/{projectsId}/locations/{locationsId}/lbTrafficExtensions/{lbTrafficExtensionsId}
+/// Updates the parameters of the specified LbTrafficExtension resource.
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `networkservices_projects_locations_lb_traffic_extensions_patch_execute()` to send, or `networkservices_projects_locations_lb_traffic_extensions_patch` for simplest API.
+
+pub fn networkservices_projects_locations_lb_traffic_extensions_patch_builder(
+    client: &SimpleHttpClient,
+    name: &String,
+    requestId: &Option<Option<String>>,
+    updateMask: &Option<Option<String>>,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!(
+        "https://networkservices.googleapis.com/v1/projects/{}/locations/{locationsId}/lbTrafficExtensions/{lbTrafficExtensionsId}",
+        name,
+    );
+
+    // Build request
+    let mut query_parts = Vec::new();
+    if let Some(val) = requestId.as_ref() {
+        query_parts.push(format!("requestId={}", val));
+    }
+    if let Some(val) = updateMask.as_ref() {
+        query_parts.push(format!("updateMask={}", val));
+    }
+
+    let url_with_query = if query_parts.is_empty() {
+        endpoint_url
+    } else {
+        format!("{}?{}", endpoint_url, query_parts.join("&"))
+    };
+
+    let builder = client
+        .patch(&url_with_query)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// PATCH v1/projects/{projectsId}/locations/{locationsId}/lbTrafficExtensions/{lbTrafficExtensionsId}
+/// Updates the parameters of the specified LbTrafficExtension resource.
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `networkservices_projects_locations_lb_traffic_extensions_patch_execute()` or `networkservices_projects_locations_lb_traffic_extensions_patch`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `networkservices_projects_locations_lb_traffic_extensions_patch_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn networkservices_projects_locations_lb_traffic_extensions_patch_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<Operation>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: Operation = serde_json::from_str(&body)
+                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// PATCH v1/projects/{projectsId}/locations/{locationsId}/lbTrafficExtensions/{lbTrafficExtensionsId}
+/// Updates the parameters of the specified LbTrafficExtension resource.
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `networkservices_projects_locations_lb_traffic_extensions_patch_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `networkservices_projects_locations_lb_traffic_extensions_patch_task()`.
+/// For the simplest API, use `networkservices_projects_locations_lb_traffic_extensions_patch()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `networkservices_projects_locations_lb_traffic_extensions_patch_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn networkservices_projects_locations_lb_traffic_extensions_patch_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<Operation>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let task = networkservices_projects_locations_lb_traffic_extensions_patch_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`networkservices_projects_locations_lb_traffic_extensions_patch`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct NetworkservicesProjectsLocationsLbTrafficExtensionsPatchArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Query parameter: requestId
+    pub requestId: Option<Option<String>>,
+    /// Query parameter: updateMask
+    pub updateMask: Option<Option<String>>,
+}
+
+/// PATCH v1/projects/{projectsId}/locations/{locationsId}/lbTrafficExtensions/{lbTrafficExtensionsId}
+/// Updates the parameters of the specified LbTrafficExtension resource.
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `networkservices_projects_locations_lb_traffic_extensions_patch_builder()` + `networkservices_projects_locations_lb_traffic_extensions_patch_execute()`.
+/// For task-level control, use `networkservices_projects_locations_lb_traffic_extensions_patch_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn networkservices_projects_locations_lb_traffic_extensions_patch(
+    client: &SimpleHttpClient,
+    args: &NetworkservicesProjectsLocationsLbTrafficExtensionsPatchArgs,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<Operation>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let builder = networkservices_projects_locations_lb_traffic_extensions_patch_builder(
+        client,
+        &args.name,
+        &args.requestId,
+        &args.updateMask,
+    )?;
+    networkservices_projects_locations_lb_traffic_extensions_patch_execute(builder)
+}
+
+/// POST v1/projects/{projectsId}/locations/{locationsId}/meshes
+/// Creates a new Mesh in a given project and location.
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `networkservices_projects_locations_meshes_create_execute()` to send, or `networkservices_projects_locations_meshes_create` for simplest API.
+
+pub fn networkservices_projects_locations_meshes_create_builder(
+    client: &SimpleHttpClient,
+    parent: &String,
+    meshId: &Option<Option<String>>,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!(
+        "https://networkservices.googleapis.com/v1/projects/{}/locations/{locationsId}/meshes",
+        parent,
+    );
+
+    // Build request
+    let mut query_parts = Vec::new();
+    if let Some(val) = meshId.as_ref() {
+        query_parts.push(format!("meshId={}", val));
+    }
+
+    let url_with_query = if query_parts.is_empty() {
+        endpoint_url
+    } else {
+        format!("{}?{}", endpoint_url, query_parts.join("&"))
+    };
+
+    let builder = client
+        .post(&url_with_query)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// POST v1/projects/{projectsId}/locations/{locationsId}/meshes
+/// Creates a new Mesh in a given project and location.
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `networkservices_projects_locations_meshes_create_execute()` or `networkservices_projects_locations_meshes_create`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `networkservices_projects_locations_meshes_create_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn networkservices_projects_locations_meshes_create_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<Operation>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: Operation = serde_json::from_str(&body)
+                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// POST v1/projects/{projectsId}/locations/{locationsId}/meshes
+/// Creates a new Mesh in a given project and location.
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `networkservices_projects_locations_meshes_create_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `networkservices_projects_locations_meshes_create_task()`.
+/// For the simplest API, use `networkservices_projects_locations_meshes_create()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `networkservices_projects_locations_meshes_create_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn networkservices_projects_locations_meshes_create_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<Operation>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let task = networkservices_projects_locations_meshes_create_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`networkservices_projects_locations_meshes_create`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct NetworkservicesProjectsLocationsMeshesCreateArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Query parameter: meshId
+    pub meshId: Option<Option<String>>,
+}
+
+/// POST v1/projects/{projectsId}/locations/{locationsId}/meshes
+/// Creates a new Mesh in a given project and location.
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `networkservices_projects_locations_meshes_create_builder()` + `networkservices_projects_locations_meshes_create_execute()`.
+/// For task-level control, use `networkservices_projects_locations_meshes_create_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn networkservices_projects_locations_meshes_create(
+    client: &SimpleHttpClient,
+    args: &NetworkservicesProjectsLocationsMeshesCreateArgs,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<Operation>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let builder = networkservices_projects_locations_meshes_create_builder(
+        client,
+        &args.parent,
+        &args.meshId,
+    )?;
+    networkservices_projects_locations_meshes_create_execute(builder)
+}
+
+/// DELETE v1/projects/{projectsId}/locations/{locationsId}/meshes/{meshesId}
+/// Deletes a single Mesh.
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `networkservices_projects_locations_meshes_delete_execute()` to send, or `networkservices_projects_locations_meshes_delete` for simplest API.
+
+pub fn networkservices_projects_locations_meshes_delete_builder(
+    client: &SimpleHttpClient,
+    name: &String,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!(
+        "https://networkservices.googleapis.com/v1/projects/{}/locations/{locationsId}/meshes/{meshesId}",
+        name,
+    );
+
+    // Build request
+    let builder = client
+        .delete(&endpoint_url)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// DELETE v1/projects/{projectsId}/locations/{locationsId}/meshes/{meshesId}
+/// Deletes a single Mesh.
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `networkservices_projects_locations_meshes_delete_execute()` or `networkservices_projects_locations_meshes_delete`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `networkservices_projects_locations_meshes_delete_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn networkservices_projects_locations_meshes_delete_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<Operation>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: Operation = serde_json::from_str(&body)
+                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// DELETE v1/projects/{projectsId}/locations/{locationsId}/meshes/{meshesId}
+/// Deletes a single Mesh.
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `networkservices_projects_locations_meshes_delete_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `networkservices_projects_locations_meshes_delete_task()`.
+/// For the simplest API, use `networkservices_projects_locations_meshes_delete()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `networkservices_projects_locations_meshes_delete_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn networkservices_projects_locations_meshes_delete_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<Operation>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let task = networkservices_projects_locations_meshes_delete_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`networkservices_projects_locations_meshes_delete`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct NetworkservicesProjectsLocationsMeshesDeleteArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
+/// DELETE v1/projects/{projectsId}/locations/{locationsId}/meshes/{meshesId}
+/// Deletes a single Mesh.
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `networkservices_projects_locations_meshes_delete_builder()` + `networkservices_projects_locations_meshes_delete_execute()`.
+/// For task-level control, use `networkservices_projects_locations_meshes_delete_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn networkservices_projects_locations_meshes_delete(
+    client: &SimpleHttpClient,
+    args: &NetworkservicesProjectsLocationsMeshesDeleteArgs,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<Operation>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let builder = networkservices_projects_locations_meshes_delete_builder(client, &args.name)?;
+    networkservices_projects_locations_meshes_delete_execute(builder)
+}
+
+/// GET v1/projects/{projectsId}/locations/{locationsId}/meshes/{meshesId}
+/// Gets details of a single Mesh.
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `networkservices_projects_locations_meshes_get_execute()` to send, or `networkservices_projects_locations_meshes_get` for simplest API.
+
+pub fn networkservices_projects_locations_meshes_get_builder(
+    client: &SimpleHttpClient,
+    name: &String,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!(
+        "https://networkservices.googleapis.com/v1/projects/{}/locations/{locationsId}/meshes/{meshesId}",
+        name,
+    );
+
+    // Build request
+    let builder = client
+        .get(&endpoint_url)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// GET v1/projects/{projectsId}/locations/{locationsId}/meshes/{meshesId}
+/// Gets details of a single Mesh.
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `networkservices_projects_locations_meshes_get_execute()` or `networkservices_projects_locations_meshes_get`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `networkservices_projects_locations_meshes_get_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn networkservices_projects_locations_meshes_get_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<Mesh>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: Mesh = serde_json::from_str(&body)
+                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// GET v1/projects/{projectsId}/locations/{locationsId}/meshes/{meshesId}
+/// Gets details of a single Mesh.
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `networkservices_projects_locations_meshes_get_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `networkservices_projects_locations_meshes_get_task()`.
+/// For the simplest API, use `networkservices_projects_locations_meshes_get()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `networkservices_projects_locations_meshes_get_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn networkservices_projects_locations_meshes_get_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<Mesh>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let task = networkservices_projects_locations_meshes_get_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`networkservices_projects_locations_meshes_get`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct NetworkservicesProjectsLocationsMeshesGetArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
+/// GET v1/projects/{projectsId}/locations/{locationsId}/meshes/{meshesId}
+/// Gets details of a single Mesh.
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `networkservices_projects_locations_meshes_get_builder()` + `networkservices_projects_locations_meshes_get_execute()`.
+/// For task-level control, use `networkservices_projects_locations_meshes_get_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn networkservices_projects_locations_meshes_get(
+    client: &SimpleHttpClient,
+    args: &NetworkservicesProjectsLocationsMeshesGetArgs,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<Mesh>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let builder = networkservices_projects_locations_meshes_get_builder(client, &args.name)?;
+    networkservices_projects_locations_meshes_get_execute(builder)
+}
+
+/// GET v1/projects/{projectsId}/locations/{locationsId}/meshes
+/// Lists Meshes in a given project and location.
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `networkservices_projects_locations_meshes_list_execute()` to send, or `networkservices_projects_locations_meshes_list` for simplest API.
+
+pub fn networkservices_projects_locations_meshes_list_builder(
+    client: &SimpleHttpClient,
+    parent: &String,
+    pageSize: &Option<Option<String>>,
+    pageToken: &Option<Option<String>>,
+    returnPartialSuccess: &Option<Option<String>>,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!(
+        "https://networkservices.googleapis.com/v1/projects/{}/locations/{locationsId}/meshes",
+        parent,
+    );
+
+    // Build request
+    let mut query_parts = Vec::new();
+    if let Some(val) = pageSize.as_ref() {
+        query_parts.push(format!("pageSize={}", val));
+    }
+    if let Some(val) = pageToken.as_ref() {
+        query_parts.push(format!("pageToken={}", val));
+    }
+    if let Some(val) = returnPartialSuccess.as_ref() {
+        query_parts.push(format!("returnPartialSuccess={}", val));
+    }
+
+    let url_with_query = if query_parts.is_empty() {
+        endpoint_url
+    } else {
+        format!("{}?{}", endpoint_url, query_parts.join("&"))
+    };
+
+    let builder = client
+        .get(&url_with_query)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// GET v1/projects/{projectsId}/locations/{locationsId}/meshes
+/// Lists Meshes in a given project and location.
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `networkservices_projects_locations_meshes_list_execute()` or `networkservices_projects_locations_meshes_list`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `networkservices_projects_locations_meshes_list_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn networkservices_projects_locations_meshes_list_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<ListMeshesResponse>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: ListMeshesResponse = serde_json::from_str(&body)
+                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// GET v1/projects/{projectsId}/locations/{locationsId}/meshes
+/// Lists Meshes in a given project and location.
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `networkservices_projects_locations_meshes_list_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `networkservices_projects_locations_meshes_list_task()`.
+/// For the simplest API, use `networkservices_projects_locations_meshes_list()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `networkservices_projects_locations_meshes_list_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn networkservices_projects_locations_meshes_list_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<ListMeshesResponse>, ApiError>, P = ApiPending>
+        + Send
+        + 'static,
+    ApiError,
+> {
+    let task = networkservices_projects_locations_meshes_list_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`networkservices_projects_locations_meshes_list`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct NetworkservicesProjectsLocationsMeshesListArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Query parameter: pageSize
+    pub pageSize: Option<Option<String>>,
+    /// Query parameter: pageToken
+    pub pageToken: Option<Option<String>>,
+    /// Query parameter: returnPartialSuccess
+    pub returnPartialSuccess: Option<Option<String>>,
+}
+
+/// GET v1/projects/{projectsId}/locations/{locationsId}/meshes
+/// Lists Meshes in a given project and location.
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `networkservices_projects_locations_meshes_list_builder()` + `networkservices_projects_locations_meshes_list_execute()`.
+/// For task-level control, use `networkservices_projects_locations_meshes_list_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn networkservices_projects_locations_meshes_list(
+    client: &SimpleHttpClient,
+    args: &NetworkservicesProjectsLocationsMeshesListArgs,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<ListMeshesResponse>, ApiError>, P = ApiPending>
+        + Send
+        + 'static,
+    ApiError,
+> {
+    let builder = networkservices_projects_locations_meshes_list_builder(
+        client,
+        &args.parent,
+        &args.pageSize,
+        &args.pageToken,
+        &args.returnPartialSuccess,
+    )?;
+    networkservices_projects_locations_meshes_list_execute(builder)
+}
+
+/// PATCH v1/projects/{projectsId}/locations/{locationsId}/meshes/{meshesId}
+/// Updates the parameters of a single Mesh.
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `networkservices_projects_locations_meshes_patch_execute()` to send, or `networkservices_projects_locations_meshes_patch` for simplest API.
+
+pub fn networkservices_projects_locations_meshes_patch_builder(
+    client: &SimpleHttpClient,
+    name: &String,
+    updateMask: &Option<Option<String>>,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!(
+        "https://networkservices.googleapis.com/v1/projects/{}/locations/{locationsId}/meshes/{meshesId}",
+        name,
+    );
+
+    // Build request
+    let mut query_parts = Vec::new();
+    if let Some(val) = updateMask.as_ref() {
+        query_parts.push(format!("updateMask={}", val));
+    }
+
+    let url_with_query = if query_parts.is_empty() {
+        endpoint_url
+    } else {
+        format!("{}?{}", endpoint_url, query_parts.join("&"))
+    };
+
+    let builder = client
+        .patch(&url_with_query)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// PATCH v1/projects/{projectsId}/locations/{locationsId}/meshes/{meshesId}
+/// Updates the parameters of a single Mesh.
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `networkservices_projects_locations_meshes_patch_execute()` or `networkservices_projects_locations_meshes_patch`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `networkservices_projects_locations_meshes_patch_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn networkservices_projects_locations_meshes_patch_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<Operation>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: Operation = serde_json::from_str(&body)
+                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// PATCH v1/projects/{projectsId}/locations/{locationsId}/meshes/{meshesId}
+/// Updates the parameters of a single Mesh.
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `networkservices_projects_locations_meshes_patch_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `networkservices_projects_locations_meshes_patch_task()`.
+/// For the simplest API, use `networkservices_projects_locations_meshes_patch()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `networkservices_projects_locations_meshes_patch_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn networkservices_projects_locations_meshes_patch_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<Operation>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let task = networkservices_projects_locations_meshes_patch_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`networkservices_projects_locations_meshes_patch`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct NetworkservicesProjectsLocationsMeshesPatchArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Query parameter: updateMask
+    pub updateMask: Option<Option<String>>,
+}
+
+/// PATCH v1/projects/{projectsId}/locations/{locationsId}/meshes/{meshesId}
+/// Updates the parameters of a single Mesh.
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `networkservices_projects_locations_meshes_patch_builder()` + `networkservices_projects_locations_meshes_patch_execute()`.
+/// For task-level control, use `networkservices_projects_locations_meshes_patch_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn networkservices_projects_locations_meshes_patch(
+    client: &SimpleHttpClient,
+    args: &NetworkservicesProjectsLocationsMeshesPatchArgs,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<Operation>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let builder = networkservices_projects_locations_meshes_patch_builder(
+        client,
+        &args.name,
+        &args.updateMask,
+    )?;
+    networkservices_projects_locations_meshes_patch_execute(builder)
+}
+
+/// GET v1/projects/{projectsId}/locations/{locationsId}/meshes/{meshesId}/routeViews/{routeViewsId}
+/// Get a single RouteView of a Mesh.
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `networkservices_projects_locations_meshes_route_views_get_execute()` to send, or `networkservices_projects_locations_meshes_route_views_get` for simplest API.
+
+pub fn networkservices_projects_locations_meshes_route_views_get_builder(
+    client: &SimpleHttpClient,
+    name: &String,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!(
+        "https://networkservices.googleapis.com/v1/projects/{}/locations/{locationsId}/meshes/{meshesId}/routeViews/{routeViewsId}",
+        name,
+    );
+
+    // Build request
+    let builder = client
+        .get(&endpoint_url)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// GET v1/projects/{projectsId}/locations/{locationsId}/meshes/{meshesId}/routeViews/{routeViewsId}
+/// Get a single RouteView of a Mesh.
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `networkservices_projects_locations_meshes_route_views_get_execute()` or `networkservices_projects_locations_meshes_route_views_get`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `networkservices_projects_locations_meshes_route_views_get_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn networkservices_projects_locations_meshes_route_views_get_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<MeshRouteView>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: MeshRouteView = serde_json::from_str(&body)
+                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// GET v1/projects/{projectsId}/locations/{locationsId}/meshes/{meshesId}/routeViews/{routeViewsId}
+/// Get a single RouteView of a Mesh.
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `networkservices_projects_locations_meshes_route_views_get_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `networkservices_projects_locations_meshes_route_views_get_task()`.
+/// For the simplest API, use `networkservices_projects_locations_meshes_route_views_get()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `networkservices_projects_locations_meshes_route_views_get_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn networkservices_projects_locations_meshes_route_views_get_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<MeshRouteView>, ApiError>, P = ApiPending>
+        + Send
+        + 'static,
+    ApiError,
+> {
+    let task = networkservices_projects_locations_meshes_route_views_get_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`networkservices_projects_locations_meshes_route_views_get`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct NetworkservicesProjectsLocationsMeshesRouteViewsGetArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
+/// GET v1/projects/{projectsId}/locations/{locationsId}/meshes/{meshesId}/routeViews/{routeViewsId}
+/// Get a single RouteView of a Mesh.
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `networkservices_projects_locations_meshes_route_views_get_builder()` + `networkservices_projects_locations_meshes_route_views_get_execute()`.
+/// For task-level control, use `networkservices_projects_locations_meshes_route_views_get_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn networkservices_projects_locations_meshes_route_views_get(
+    client: &SimpleHttpClient,
+    args: &NetworkservicesProjectsLocationsMeshesRouteViewsGetArgs,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<MeshRouteView>, ApiError>, P = ApiPending>
+        + Send
+        + 'static,
+    ApiError,
+> {
+    let builder =
+        networkservices_projects_locations_meshes_route_views_get_builder(client, &args.name)?;
+    networkservices_projects_locations_meshes_route_views_get_execute(builder)
+}
+
+/// GET v1/projects/{projectsId}/locations/{locationsId}/meshes/{meshesId}/routeViews
+/// Lists RouteViews
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `networkservices_projects_locations_meshes_route_views_list_execute()` to send, or `networkservices_projects_locations_meshes_route_views_list` for simplest API.
+
+pub fn networkservices_projects_locations_meshes_route_views_list_builder(
+    client: &SimpleHttpClient,
+    parent: &String,
+    pageSize: &Option<Option<String>>,
+    pageToken: &Option<Option<String>>,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!(
+        "https://networkservices.googleapis.com/v1/projects/{}/locations/{locationsId}/meshes/{meshesId}/routeViews",
+        parent,
+    );
+
+    // Build request
+    let mut query_parts = Vec::new();
+    if let Some(val) = pageSize.as_ref() {
+        query_parts.push(format!("pageSize={}", val));
+    }
+    if let Some(val) = pageToken.as_ref() {
+        query_parts.push(format!("pageToken={}", val));
+    }
+
+    let url_with_query = if query_parts.is_empty() {
+        endpoint_url
+    } else {
+        format!("{}?{}", endpoint_url, query_parts.join("&"))
+    };
+
+    let builder = client
+        .get(&url_with_query)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// GET v1/projects/{projectsId}/locations/{locationsId}/meshes/{meshesId}/routeViews
+/// Lists RouteViews
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `networkservices_projects_locations_meshes_route_views_list_execute()` or `networkservices_projects_locations_meshes_route_views_list`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `networkservices_projects_locations_meshes_route_views_list_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn networkservices_projects_locations_meshes_route_views_list_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<ListMeshRouteViewsResponse>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: ListMeshRouteViewsResponse = serde_json::from_str(&body)
+                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// GET v1/projects/{projectsId}/locations/{locationsId}/meshes/{meshesId}/routeViews
+/// Lists RouteViews
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `networkservices_projects_locations_meshes_route_views_list_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `networkservices_projects_locations_meshes_route_views_list_task()`.
+/// For the simplest API, use `networkservices_projects_locations_meshes_route_views_list()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `networkservices_projects_locations_meshes_route_views_list_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn networkservices_projects_locations_meshes_route_views_list_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<
+            D = Result<ApiResponse<ListMeshRouteViewsResponse>, ApiError>,
+            P = ApiPending,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    let task = networkservices_projects_locations_meshes_route_views_list_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`networkservices_projects_locations_meshes_route_views_list`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct NetworkservicesProjectsLocationsMeshesRouteViewsListArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Query parameter: pageSize
+    pub pageSize: Option<Option<String>>,
+    /// Query parameter: pageToken
+    pub pageToken: Option<Option<String>>,
+}
+
+/// GET v1/projects/{projectsId}/locations/{locationsId}/meshes/{meshesId}/routeViews
+/// Lists RouteViews
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `networkservices_projects_locations_meshes_route_views_list_builder()` + `networkservices_projects_locations_meshes_route_views_list_execute()`.
+/// For task-level control, use `networkservices_projects_locations_meshes_route_views_list_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn networkservices_projects_locations_meshes_route_views_list(
+    client: &SimpleHttpClient,
+    args: &NetworkservicesProjectsLocationsMeshesRouteViewsListArgs,
+) -> Result<
+    impl StreamIterator<
+            D = Result<ApiResponse<ListMeshRouteViewsResponse>, ApiError>,
+            P = ApiPending,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    let builder = networkservices_projects_locations_meshes_route_views_list_builder(
+        client,
+        &args.parent,
+        &args.pageSize,
+        &args.pageToken,
+    )?;
+    networkservices_projects_locations_meshes_route_views_list_execute(builder)
+}
+
+/// POST v1/projects/{projectsId}/locations/{locationsId}/operations/{operationsId}:cancel
+/// Starts asynchronous cancellation on a long-running operation. The server makes a best effort to cancel the operation, but success is not guaranteed. If the server doesn't support this method, it returns google.rpc.Code.UNIMPLEMENTED. Clients can use Operations.GetOperation or other methods to check whether the cancellation succeeded or whether the operation completed despite cancellation. On successful cancellation, the operation is not deleted; instead, it becomes an operation with an Operation.error value with a google.rpc.Status.code of 1, corresponding to Code.CANCELLED.
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `networkservices_projects_locations_operations_cancel_execute()` to send, or `networkservices_projects_locations_operations_cancel` for simplest API.
+
+pub fn networkservices_projects_locations_operations_cancel_builder(
+    client: &SimpleHttpClient,
+    name: &String,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!(
+        "https://networkservices.googleapis.com/v1/projects/{}/locations/{locationsId}/operations/{operationsId}:cancel",
+        name,
+    );
+
+    // Build request
+    let builder = client
+        .post(&endpoint_url)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// POST v1/projects/{projectsId}/locations/{locationsId}/operations/{operationsId}:cancel
+/// Starts asynchronous cancellation on a long-running operation. The server makes a best effort to cancel the operation, but success is not guaranteed. If the server doesn't support this method, it returns google.rpc.Code.UNIMPLEMENTED. Clients can use Operations.GetOperation or other methods to check whether the cancellation succeeded or whether the operation completed despite cancellation. On successful cancellation, the operation is not deleted; instead, it becomes an operation with an Operation.error value with a google.rpc.Status.code of 1, corresponding to Code.CANCELLED.
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `networkservices_projects_locations_operations_cancel_execute()` or `networkservices_projects_locations_operations_cancel`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `networkservices_projects_locations_operations_cancel_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn networkservices_projects_locations_operations_cancel_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<Empty>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: Empty = serde_json::from_str(&body)
+                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// POST v1/projects/{projectsId}/locations/{locationsId}/operations/{operationsId}:cancel
+/// Starts asynchronous cancellation on a long-running operation. The server makes a best effort to cancel the operation, but success is not guaranteed. If the server doesn't support this method, it returns google.rpc.Code.UNIMPLEMENTED. Clients can use Operations.GetOperation or other methods to check whether the cancellation succeeded or whether the operation completed despite cancellation. On successful cancellation, the operation is not deleted; instead, it becomes an operation with an Operation.error value with a google.rpc.Status.code of 1, corresponding to Code.CANCELLED.
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `networkservices_projects_locations_operations_cancel_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `networkservices_projects_locations_operations_cancel_task()`.
+/// For the simplest API, use `networkservices_projects_locations_operations_cancel()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `networkservices_projects_locations_operations_cancel_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn networkservices_projects_locations_operations_cancel_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<Empty>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let task = networkservices_projects_locations_operations_cancel_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`networkservices_projects_locations_operations_cancel`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct NetworkservicesProjectsLocationsOperationsCancelArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
+/// POST v1/projects/{projectsId}/locations/{locationsId}/operations/{operationsId}:cancel
+/// Starts asynchronous cancellation on a long-running operation. The server makes a best effort to cancel the operation, but success is not guaranteed. If the server doesn't support this method, it returns google.rpc.Code.UNIMPLEMENTED. Clients can use Operations.GetOperation or other methods to check whether the cancellation succeeded or whether the operation completed despite cancellation. On successful cancellation, the operation is not deleted; instead, it becomes an operation with an Operation.error value with a google.rpc.Status.code of 1, corresponding to Code.CANCELLED.
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `networkservices_projects_locations_operations_cancel_builder()` + `networkservices_projects_locations_operations_cancel_execute()`.
+/// For task-level control, use `networkservices_projects_locations_operations_cancel_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn networkservices_projects_locations_operations_cancel(
+    client: &SimpleHttpClient,
+    args: &NetworkservicesProjectsLocationsOperationsCancelArgs,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<Empty>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let builder = networkservices_projects_locations_operations_cancel_builder(client, &args.name)?;
+    networkservices_projects_locations_operations_cancel_execute(builder)
+}
+
+/// DELETE v1/projects/{projectsId}/locations/{locationsId}/operations/{operationsId}
+/// Deletes a long-running operation. This method indicates that the client is no longer interested in the operation result. It does not cancel the operation. If the server doesn't support this method, it returns google.rpc.Code.UNIMPLEMENTED.
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `networkservices_projects_locations_operations_delete_execute()` to send, or `networkservices_projects_locations_operations_delete` for simplest API.
+
+pub fn networkservices_projects_locations_operations_delete_builder(
+    client: &SimpleHttpClient,
+    name: &String,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!(
+        "https://networkservices.googleapis.com/v1/projects/{}/locations/{locationsId}/operations/{operationsId}",
+        name,
+    );
+
+    // Build request
+    let builder = client
+        .delete(&endpoint_url)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// DELETE v1/projects/{projectsId}/locations/{locationsId}/operations/{operationsId}
+/// Deletes a long-running operation. This method indicates that the client is no longer interested in the operation result. It does not cancel the operation. If the server doesn't support this method, it returns google.rpc.Code.UNIMPLEMENTED.
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `networkservices_projects_locations_operations_delete_execute()` or `networkservices_projects_locations_operations_delete`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `networkservices_projects_locations_operations_delete_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn networkservices_projects_locations_operations_delete_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<Empty>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: Empty = serde_json::from_str(&body)
+                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// DELETE v1/projects/{projectsId}/locations/{locationsId}/operations/{operationsId}
+/// Deletes a long-running operation. This method indicates that the client is no longer interested in the operation result. It does not cancel the operation. If the server doesn't support this method, it returns google.rpc.Code.UNIMPLEMENTED.
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `networkservices_projects_locations_operations_delete_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `networkservices_projects_locations_operations_delete_task()`.
+/// For the simplest API, use `networkservices_projects_locations_operations_delete()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `networkservices_projects_locations_operations_delete_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn networkservices_projects_locations_operations_delete_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<Empty>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let task = networkservices_projects_locations_operations_delete_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`networkservices_projects_locations_operations_delete`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct NetworkservicesProjectsLocationsOperationsDeleteArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
+/// DELETE v1/projects/{projectsId}/locations/{locationsId}/operations/{operationsId}
+/// Deletes a long-running operation. This method indicates that the client is no longer interested in the operation result. It does not cancel the operation. If the server doesn't support this method, it returns google.rpc.Code.UNIMPLEMENTED.
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `networkservices_projects_locations_operations_delete_builder()` + `networkservices_projects_locations_operations_delete_execute()`.
+/// For task-level control, use `networkservices_projects_locations_operations_delete_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn networkservices_projects_locations_operations_delete(
+    client: &SimpleHttpClient,
+    args: &NetworkservicesProjectsLocationsOperationsDeleteArgs,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<Empty>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let builder = networkservices_projects_locations_operations_delete_builder(client, &args.name)?;
+    networkservices_projects_locations_operations_delete_execute(builder)
+}
+
+/// GET v1/projects/{projectsId}/locations/{locationsId}/operations/{operationsId}
+/// Gets the latest state of a long-running operation. Clients can use this method to poll the operation result at intervals as recommended by the API service.
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `networkservices_projects_locations_operations_get_execute()` to send, or `networkservices_projects_locations_operations_get` for simplest API.
+
+pub fn networkservices_projects_locations_operations_get_builder(
+    client: &SimpleHttpClient,
+    name: &String,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!(
+        "https://networkservices.googleapis.com/v1/projects/{}/locations/{locationsId}/operations/{operationsId}",
+        name,
+    );
+
+    // Build request
+    let builder = client
+        .get(&endpoint_url)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// GET v1/projects/{projectsId}/locations/{locationsId}/operations/{operationsId}
+/// Gets the latest state of a long-running operation. Clients can use this method to poll the operation result at intervals as recommended by the API service.
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `networkservices_projects_locations_operations_get_execute()` or `networkservices_projects_locations_operations_get`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `networkservices_projects_locations_operations_get_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn networkservices_projects_locations_operations_get_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<Operation>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: Operation = serde_json::from_str(&body)
+                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// GET v1/projects/{projectsId}/locations/{locationsId}/operations/{operationsId}
+/// Gets the latest state of a long-running operation. Clients can use this method to poll the operation result at intervals as recommended by the API service.
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `networkservices_projects_locations_operations_get_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `networkservices_projects_locations_operations_get_task()`.
+/// For the simplest API, use `networkservices_projects_locations_operations_get()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `networkservices_projects_locations_operations_get_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn networkservices_projects_locations_operations_get_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<Operation>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let task = networkservices_projects_locations_operations_get_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`networkservices_projects_locations_operations_get`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct NetworkservicesProjectsLocationsOperationsGetArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
+/// GET v1/projects/{projectsId}/locations/{locationsId}/operations/{operationsId}
+/// Gets the latest state of a long-running operation. Clients can use this method to poll the operation result at intervals as recommended by the API service.
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `networkservices_projects_locations_operations_get_builder()` + `networkservices_projects_locations_operations_get_execute()`.
+/// For task-level control, use `networkservices_projects_locations_operations_get_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn networkservices_projects_locations_operations_get(
+    client: &SimpleHttpClient,
+    args: &NetworkservicesProjectsLocationsOperationsGetArgs,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<Operation>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let builder = networkservices_projects_locations_operations_get_builder(client, &args.name)?;
+    networkservices_projects_locations_operations_get_execute(builder)
+}
+
+/// GET v1/projects/{projectsId}/locations/{locationsId}/operations
+/// Lists operations that match the specified filter in the request. If the server doesn't support this method, it returns UNIMPLEMENTED.
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `networkservices_projects_locations_operations_list_execute()` to send, or `networkservices_projects_locations_operations_list` for simplest API.
+
+pub fn networkservices_projects_locations_operations_list_builder(
+    client: &SimpleHttpClient,
+    name: &String,
+    filter: &Option<Option<String>>,
+    pageSize: &Option<Option<String>>,
+    pageToken: &Option<Option<String>>,
+    returnPartialSuccess: &Option<Option<String>>,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!(
+        "https://networkservices.googleapis.com/v1/projects/{}/locations/{locationsId}/operations",
+        name,
+    );
+
+    // Build request
+    let mut query_parts = Vec::new();
+    if let Some(val) = filter.as_ref() {
+        query_parts.push(format!("filter={}", val));
+    }
+    if let Some(val) = pageSize.as_ref() {
+        query_parts.push(format!("pageSize={}", val));
+    }
+    if let Some(val) = pageToken.as_ref() {
+        query_parts.push(format!("pageToken={}", val));
+    }
+    if let Some(val) = returnPartialSuccess.as_ref() {
+        query_parts.push(format!("returnPartialSuccess={}", val));
+    }
+
+    let url_with_query = if query_parts.is_empty() {
+        endpoint_url
+    } else {
+        format!("{}?{}", endpoint_url, query_parts.join("&"))
+    };
+
+    let builder = client
+        .get(&url_with_query)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// GET v1/projects/{projectsId}/locations/{locationsId}/operations
+/// Lists operations that match the specified filter in the request. If the server doesn't support this method, it returns UNIMPLEMENTED.
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `networkservices_projects_locations_operations_list_execute()` or `networkservices_projects_locations_operations_list`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `networkservices_projects_locations_operations_list_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn networkservices_projects_locations_operations_list_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<ListOperationsResponse>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: ListOperationsResponse = serde_json::from_str(&body)
+                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// GET v1/projects/{projectsId}/locations/{locationsId}/operations
+/// Lists operations that match the specified filter in the request. If the server doesn't support this method, it returns UNIMPLEMENTED.
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `networkservices_projects_locations_operations_list_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `networkservices_projects_locations_operations_list_task()`.
+/// For the simplest API, use `networkservices_projects_locations_operations_list()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `networkservices_projects_locations_operations_list_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn networkservices_projects_locations_operations_list_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<ListOperationsResponse>, ApiError>, P = ApiPending>
+        + Send
+        + 'static,
+    ApiError,
+> {
+    let task = networkservices_projects_locations_operations_list_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`networkservices_projects_locations_operations_list`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct NetworkservicesProjectsLocationsOperationsListArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Query parameter: filter
+    pub filter: Option<Option<String>>,
+    /// Query parameter: pageSize
+    pub pageSize: Option<Option<String>>,
+    /// Query parameter: pageToken
+    pub pageToken: Option<Option<String>>,
+    /// Query parameter: returnPartialSuccess
+    pub returnPartialSuccess: Option<Option<String>>,
+}
+
+/// GET v1/projects/{projectsId}/locations/{locationsId}/operations
+/// Lists operations that match the specified filter in the request. If the server doesn't support this method, it returns UNIMPLEMENTED.
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `networkservices_projects_locations_operations_list_builder()` + `networkservices_projects_locations_operations_list_execute()`.
+/// For task-level control, use `networkservices_projects_locations_operations_list_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn networkservices_projects_locations_operations_list(
+    client: &SimpleHttpClient,
+    args: &NetworkservicesProjectsLocationsOperationsListArgs,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<ListOperationsResponse>, ApiError>, P = ApiPending>
+        + Send
+        + 'static,
+    ApiError,
+> {
+    let builder = networkservices_projects_locations_operations_list_builder(
+        client,
+        &args.name,
+        &args.filter,
+        &args.pageSize,
+        &args.pageToken,
+        &args.returnPartialSuccess,
+    )?;
+    networkservices_projects_locations_operations_list_execute(builder)
+}
+
+/// POST v1/projects/{projectsId}/locations/{locationsId}/serviceBindings
+/// Creates a new ServiceBinding in a given project and location.
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `networkservices_projects_locations_service_bindings_create_execute()` to send, or `networkservices_projects_locations_service_bindings_create` for simplest API.
+
+pub fn networkservices_projects_locations_service_bindings_create_builder(
+    client: &SimpleHttpClient,
+    parent: &String,
+    serviceBindingId: &Option<Option<String>>,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!(
+        "https://networkservices.googleapis.com/v1/projects/{}/locations/{locationsId}/serviceBindings",
+        parent,
+    );
+
+    // Build request
+    let mut query_parts = Vec::new();
+    if let Some(val) = serviceBindingId.as_ref() {
+        query_parts.push(format!("serviceBindingId={}", val));
+    }
+
+    let url_with_query = if query_parts.is_empty() {
+        endpoint_url
+    } else {
+        format!("{}?{}", endpoint_url, query_parts.join("&"))
+    };
+
+    let builder = client
+        .post(&url_with_query)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// POST v1/projects/{projectsId}/locations/{locationsId}/serviceBindings
+/// Creates a new ServiceBinding in a given project and location.
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `networkservices_projects_locations_service_bindings_create_execute()` or `networkservices_projects_locations_service_bindings_create`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `networkservices_projects_locations_service_bindings_create_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn networkservices_projects_locations_service_bindings_create_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<Operation>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: Operation = serde_json::from_str(&body)
+                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// POST v1/projects/{projectsId}/locations/{locationsId}/serviceBindings
+/// Creates a new ServiceBinding in a given project and location.
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `networkservices_projects_locations_service_bindings_create_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `networkservices_projects_locations_service_bindings_create_task()`.
+/// For the simplest API, use `networkservices_projects_locations_service_bindings_create()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `networkservices_projects_locations_service_bindings_create_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn networkservices_projects_locations_service_bindings_create_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<Operation>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let task = networkservices_projects_locations_service_bindings_create_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`networkservices_projects_locations_service_bindings_create`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct NetworkservicesProjectsLocationsServiceBindingsCreateArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Query parameter: serviceBindingId
+    pub serviceBindingId: Option<Option<String>>,
+}
+
+/// POST v1/projects/{projectsId}/locations/{locationsId}/serviceBindings
+/// Creates a new ServiceBinding in a given project and location.
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `networkservices_projects_locations_service_bindings_create_builder()` + `networkservices_projects_locations_service_bindings_create_execute()`.
+/// For task-level control, use `networkservices_projects_locations_service_bindings_create_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn networkservices_projects_locations_service_bindings_create(
+    client: &SimpleHttpClient,
+    args: &NetworkservicesProjectsLocationsServiceBindingsCreateArgs,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<Operation>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let builder = networkservices_projects_locations_service_bindings_create_builder(
+        client,
+        &args.parent,
+        &args.serviceBindingId,
+    )?;
+    networkservices_projects_locations_service_bindings_create_execute(builder)
+}
+
+/// DELETE v1/projects/{projectsId}/locations/{locationsId}/serviceBindings/{serviceBindingsId}
+/// Deletes a single ServiceBinding.
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `networkservices_projects_locations_service_bindings_delete_execute()` to send, or `networkservices_projects_locations_service_bindings_delete` for simplest API.
+
+pub fn networkservices_projects_locations_service_bindings_delete_builder(
+    client: &SimpleHttpClient,
+    name: &String,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!(
+        "https://networkservices.googleapis.com/v1/projects/{}/locations/{locationsId}/serviceBindings/{serviceBindingsId}",
+        name,
+    );
+
+    // Build request
+    let builder = client
+        .delete(&endpoint_url)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// DELETE v1/projects/{projectsId}/locations/{locationsId}/serviceBindings/{serviceBindingsId}
+/// Deletes a single ServiceBinding.
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `networkservices_projects_locations_service_bindings_delete_execute()` or `networkservices_projects_locations_service_bindings_delete`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `networkservices_projects_locations_service_bindings_delete_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn networkservices_projects_locations_service_bindings_delete_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<Operation>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: Operation = serde_json::from_str(&body)
+                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// DELETE v1/projects/{projectsId}/locations/{locationsId}/serviceBindings/{serviceBindingsId}
+/// Deletes a single ServiceBinding.
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `networkservices_projects_locations_service_bindings_delete_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `networkservices_projects_locations_service_bindings_delete_task()`.
+/// For the simplest API, use `networkservices_projects_locations_service_bindings_delete()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `networkservices_projects_locations_service_bindings_delete_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn networkservices_projects_locations_service_bindings_delete_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<Operation>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let task = networkservices_projects_locations_service_bindings_delete_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`networkservices_projects_locations_service_bindings_delete`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct NetworkservicesProjectsLocationsServiceBindingsDeleteArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
+/// DELETE v1/projects/{projectsId}/locations/{locationsId}/serviceBindings/{serviceBindingsId}
+/// Deletes a single ServiceBinding.
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `networkservices_projects_locations_service_bindings_delete_builder()` + `networkservices_projects_locations_service_bindings_delete_execute()`.
+/// For task-level control, use `networkservices_projects_locations_service_bindings_delete_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn networkservices_projects_locations_service_bindings_delete(
+    client: &SimpleHttpClient,
+    args: &NetworkservicesProjectsLocationsServiceBindingsDeleteArgs,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<Operation>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let builder =
+        networkservices_projects_locations_service_bindings_delete_builder(client, &args.name)?;
+    networkservices_projects_locations_service_bindings_delete_execute(builder)
+}
+
+/// GET v1/projects/{projectsId}/locations/{locationsId}/serviceBindings/{serviceBindingsId}
+/// Gets details of a single ServiceBinding.
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `networkservices_projects_locations_service_bindings_get_execute()` to send, or `networkservices_projects_locations_service_bindings_get` for simplest API.
+
+pub fn networkservices_projects_locations_service_bindings_get_builder(
+    client: &SimpleHttpClient,
+    name: &String,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!(
+        "https://networkservices.googleapis.com/v1/projects/{}/locations/{locationsId}/serviceBindings/{serviceBindingsId}",
+        name,
+    );
+
+    // Build request
+    let builder = client
+        .get(&endpoint_url)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// GET v1/projects/{projectsId}/locations/{locationsId}/serviceBindings/{serviceBindingsId}
+/// Gets details of a single ServiceBinding.
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `networkservices_projects_locations_service_bindings_get_execute()` or `networkservices_projects_locations_service_bindings_get`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `networkservices_projects_locations_service_bindings_get_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn networkservices_projects_locations_service_bindings_get_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<ServiceBinding>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: ServiceBinding = serde_json::from_str(&body)
+                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// GET v1/projects/{projectsId}/locations/{locationsId}/serviceBindings/{serviceBindingsId}
+/// Gets details of a single ServiceBinding.
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `networkservices_projects_locations_service_bindings_get_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `networkservices_projects_locations_service_bindings_get_task()`.
+/// For the simplest API, use `networkservices_projects_locations_service_bindings_get()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `networkservices_projects_locations_service_bindings_get_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn networkservices_projects_locations_service_bindings_get_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<ServiceBinding>, ApiError>, P = ApiPending>
+        + Send
+        + 'static,
+    ApiError,
+> {
+    let task = networkservices_projects_locations_service_bindings_get_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`networkservices_projects_locations_service_bindings_get`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct NetworkservicesProjectsLocationsServiceBindingsGetArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
+/// GET v1/projects/{projectsId}/locations/{locationsId}/serviceBindings/{serviceBindingsId}
+/// Gets details of a single ServiceBinding.
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `networkservices_projects_locations_service_bindings_get_builder()` + `networkservices_projects_locations_service_bindings_get_execute()`.
+/// For task-level control, use `networkservices_projects_locations_service_bindings_get_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn networkservices_projects_locations_service_bindings_get(
+    client: &SimpleHttpClient,
+    args: &NetworkservicesProjectsLocationsServiceBindingsGetArgs,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<ServiceBinding>, ApiError>, P = ApiPending>
+        + Send
+        + 'static,
+    ApiError,
+> {
+    let builder =
+        networkservices_projects_locations_service_bindings_get_builder(client, &args.name)?;
+    networkservices_projects_locations_service_bindings_get_execute(builder)
+}
+
+/// GET v1/projects/{projectsId}/locations/{locationsId}/serviceBindings
+/// Lists ServiceBinding in a given project and location.
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `networkservices_projects_locations_service_bindings_list_execute()` to send, or `networkservices_projects_locations_service_bindings_list` for simplest API.
+
+pub fn networkservices_projects_locations_service_bindings_list_builder(
+    client: &SimpleHttpClient,
+    parent: &String,
+    pageSize: &Option<Option<String>>,
+    pageToken: &Option<Option<String>>,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!(
+        "https://networkservices.googleapis.com/v1/projects/{}/locations/{locationsId}/serviceBindings",
+        parent,
+    );
+
+    // Build request
+    let mut query_parts = Vec::new();
+    if let Some(val) = pageSize.as_ref() {
+        query_parts.push(format!("pageSize={}", val));
+    }
+    if let Some(val) = pageToken.as_ref() {
+        query_parts.push(format!("pageToken={}", val));
+    }
+
+    let url_with_query = if query_parts.is_empty() {
+        endpoint_url
+    } else {
+        format!("{}?{}", endpoint_url, query_parts.join("&"))
+    };
+
+    let builder = client
+        .get(&url_with_query)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// GET v1/projects/{projectsId}/locations/{locationsId}/serviceBindings
+/// Lists ServiceBinding in a given project and location.
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `networkservices_projects_locations_service_bindings_list_execute()` or `networkservices_projects_locations_service_bindings_list`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `networkservices_projects_locations_service_bindings_list_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn networkservices_projects_locations_service_bindings_list_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<ListServiceBindingsResponse>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: ListServiceBindingsResponse = serde_json::from_str(&body)
+                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// GET v1/projects/{projectsId}/locations/{locationsId}/serviceBindings
+/// Lists ServiceBinding in a given project and location.
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `networkservices_projects_locations_service_bindings_list_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `networkservices_projects_locations_service_bindings_list_task()`.
+/// For the simplest API, use `networkservices_projects_locations_service_bindings_list()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `networkservices_projects_locations_service_bindings_list_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn networkservices_projects_locations_service_bindings_list_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<
+            D = Result<ApiResponse<ListServiceBindingsResponse>, ApiError>,
+            P = ApiPending,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    let task = networkservices_projects_locations_service_bindings_list_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`networkservices_projects_locations_service_bindings_list`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct NetworkservicesProjectsLocationsServiceBindingsListArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Query parameter: pageSize
+    pub pageSize: Option<Option<String>>,
+    /// Query parameter: pageToken
+    pub pageToken: Option<Option<String>>,
+}
+
+/// GET v1/projects/{projectsId}/locations/{locationsId}/serviceBindings
+/// Lists ServiceBinding in a given project and location.
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `networkservices_projects_locations_service_bindings_list_builder()` + `networkservices_projects_locations_service_bindings_list_execute()`.
+/// For task-level control, use `networkservices_projects_locations_service_bindings_list_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn networkservices_projects_locations_service_bindings_list(
+    client: &SimpleHttpClient,
+    args: &NetworkservicesProjectsLocationsServiceBindingsListArgs,
+) -> Result<
+    impl StreamIterator<
+            D = Result<ApiResponse<ListServiceBindingsResponse>, ApiError>,
+            P = ApiPending,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    let builder = networkservices_projects_locations_service_bindings_list_builder(
+        client,
+        &args.parent,
+        &args.pageSize,
+        &args.pageToken,
+    )?;
+    networkservices_projects_locations_service_bindings_list_execute(builder)
+}
+
+/// PATCH v1/projects/{projectsId}/locations/{locationsId}/serviceBindings/{serviceBindingsId}
+/// Updates the parameters of a single ServiceBinding.
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `networkservices_projects_locations_service_bindings_patch_execute()` to send, or `networkservices_projects_locations_service_bindings_patch` for simplest API.
+
+pub fn networkservices_projects_locations_service_bindings_patch_builder(
+    client: &SimpleHttpClient,
+    name: &String,
+    updateMask: &Option<Option<String>>,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!(
+        "https://networkservices.googleapis.com/v1/projects/{}/locations/{locationsId}/serviceBindings/{serviceBindingsId}",
+        name,
+    );
+
+    // Build request
+    let mut query_parts = Vec::new();
+    if let Some(val) = updateMask.as_ref() {
+        query_parts.push(format!("updateMask={}", val));
+    }
+
+    let url_with_query = if query_parts.is_empty() {
+        endpoint_url
+    } else {
+        format!("{}?{}", endpoint_url, query_parts.join("&"))
+    };
+
+    let builder = client
+        .patch(&url_with_query)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// PATCH v1/projects/{projectsId}/locations/{locationsId}/serviceBindings/{serviceBindingsId}
+/// Updates the parameters of a single ServiceBinding.
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `networkservices_projects_locations_service_bindings_patch_execute()` or `networkservices_projects_locations_service_bindings_patch`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `networkservices_projects_locations_service_bindings_patch_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn networkservices_projects_locations_service_bindings_patch_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<Operation>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: Operation = serde_json::from_str(&body)
+                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// PATCH v1/projects/{projectsId}/locations/{locationsId}/serviceBindings/{serviceBindingsId}
+/// Updates the parameters of a single ServiceBinding.
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `networkservices_projects_locations_service_bindings_patch_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `networkservices_projects_locations_service_bindings_patch_task()`.
+/// For the simplest API, use `networkservices_projects_locations_service_bindings_patch()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `networkservices_projects_locations_service_bindings_patch_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn networkservices_projects_locations_service_bindings_patch_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<Operation>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let task = networkservices_projects_locations_service_bindings_patch_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`networkservices_projects_locations_service_bindings_patch`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct NetworkservicesProjectsLocationsServiceBindingsPatchArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Query parameter: updateMask
+    pub updateMask: Option<Option<String>>,
+}
+
+/// PATCH v1/projects/{projectsId}/locations/{locationsId}/serviceBindings/{serviceBindingsId}
+/// Updates the parameters of a single ServiceBinding.
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `networkservices_projects_locations_service_bindings_patch_builder()` + `networkservices_projects_locations_service_bindings_patch_execute()`.
+/// For task-level control, use `networkservices_projects_locations_service_bindings_patch_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn networkservices_projects_locations_service_bindings_patch(
+    client: &SimpleHttpClient,
+    args: &NetworkservicesProjectsLocationsServiceBindingsPatchArgs,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<Operation>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let builder = networkservices_projects_locations_service_bindings_patch_builder(
+        client,
+        &args.name,
+        &args.updateMask,
+    )?;
+    networkservices_projects_locations_service_bindings_patch_execute(builder)
+}
+
+/// POST v1/projects/{projectsId}/locations/{locationsId}/serviceLbPolicies
+/// Creates a new ServiceLbPolicy in a given project and location.
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `networkservices_projects_locations_service_lb_policies_create_execute()` to send, or `networkservices_projects_locations_service_lb_policies_create` for simplest API.
+
+pub fn networkservices_projects_locations_service_lb_policies_create_builder(
+    client: &SimpleHttpClient,
+    parent: &String,
+    serviceLbPolicyId: &Option<Option<String>>,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!(
+        "https://networkservices.googleapis.com/v1/projects/{}/locations/{locationsId}/serviceLbPolicies",
+        parent,
+    );
+
+    // Build request
+    let mut query_parts = Vec::new();
+    if let Some(val) = serviceLbPolicyId.as_ref() {
+        query_parts.push(format!("serviceLbPolicyId={}", val));
+    }
+
+    let url_with_query = if query_parts.is_empty() {
+        endpoint_url
+    } else {
+        format!("{}?{}", endpoint_url, query_parts.join("&"))
+    };
+
+    let builder = client
+        .post(&url_with_query)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// POST v1/projects/{projectsId}/locations/{locationsId}/serviceLbPolicies
+/// Creates a new ServiceLbPolicy in a given project and location.
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `networkservices_projects_locations_service_lb_policies_create_execute()` or `networkservices_projects_locations_service_lb_policies_create`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `networkservices_projects_locations_service_lb_policies_create_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn networkservices_projects_locations_service_lb_policies_create_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<Operation>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: Operation = serde_json::from_str(&body)
+                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// POST v1/projects/{projectsId}/locations/{locationsId}/serviceLbPolicies
+/// Creates a new ServiceLbPolicy in a given project and location.
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `networkservices_projects_locations_service_lb_policies_create_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `networkservices_projects_locations_service_lb_policies_create_task()`.
+/// For the simplest API, use `networkservices_projects_locations_service_lb_policies_create()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `networkservices_projects_locations_service_lb_policies_create_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn networkservices_projects_locations_service_lb_policies_create_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<Operation>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let task = networkservices_projects_locations_service_lb_policies_create_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`networkservices_projects_locations_service_lb_policies_create`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct NetworkservicesProjectsLocationsServiceLbPoliciesCreateArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Query parameter: serviceLbPolicyId
+    pub serviceLbPolicyId: Option<Option<String>>,
+}
+
+/// POST v1/projects/{projectsId}/locations/{locationsId}/serviceLbPolicies
+/// Creates a new ServiceLbPolicy in a given project and location.
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `networkservices_projects_locations_service_lb_policies_create_builder()` + `networkservices_projects_locations_service_lb_policies_create_execute()`.
+/// For task-level control, use `networkservices_projects_locations_service_lb_policies_create_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn networkservices_projects_locations_service_lb_policies_create(
+    client: &SimpleHttpClient,
+    args: &NetworkservicesProjectsLocationsServiceLbPoliciesCreateArgs,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<Operation>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let builder = networkservices_projects_locations_service_lb_policies_create_builder(
+        client,
+        &args.parent,
+        &args.serviceLbPolicyId,
+    )?;
+    networkservices_projects_locations_service_lb_policies_create_execute(builder)
+}
+
+/// DELETE v1/projects/{projectsId}/locations/{locationsId}/serviceLbPolicies/{serviceLbPoliciesId}
+/// Deletes a single ServiceLbPolicy.
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `networkservices_projects_locations_service_lb_policies_delete_execute()` to send, or `networkservices_projects_locations_service_lb_policies_delete` for simplest API.
+
+pub fn networkservices_projects_locations_service_lb_policies_delete_builder(
+    client: &SimpleHttpClient,
+    name: &String,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!(
+        "https://networkservices.googleapis.com/v1/projects/{}/locations/{locationsId}/serviceLbPolicies/{serviceLbPoliciesId}",
+        name,
+    );
+
+    // Build request
+    let builder = client
+        .delete(&endpoint_url)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// DELETE v1/projects/{projectsId}/locations/{locationsId}/serviceLbPolicies/{serviceLbPoliciesId}
+/// Deletes a single ServiceLbPolicy.
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `networkservices_projects_locations_service_lb_policies_delete_execute()` or `networkservices_projects_locations_service_lb_policies_delete`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `networkservices_projects_locations_service_lb_policies_delete_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn networkservices_projects_locations_service_lb_policies_delete_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<Operation>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: Operation = serde_json::from_str(&body)
+                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// DELETE v1/projects/{projectsId}/locations/{locationsId}/serviceLbPolicies/{serviceLbPoliciesId}
+/// Deletes a single ServiceLbPolicy.
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `networkservices_projects_locations_service_lb_policies_delete_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `networkservices_projects_locations_service_lb_policies_delete_task()`.
+/// For the simplest API, use `networkservices_projects_locations_service_lb_policies_delete()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `networkservices_projects_locations_service_lb_policies_delete_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn networkservices_projects_locations_service_lb_policies_delete_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<Operation>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let task = networkservices_projects_locations_service_lb_policies_delete_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`networkservices_projects_locations_service_lb_policies_delete`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct NetworkservicesProjectsLocationsServiceLbPoliciesDeleteArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
+/// DELETE v1/projects/{projectsId}/locations/{locationsId}/serviceLbPolicies/{serviceLbPoliciesId}
+/// Deletes a single ServiceLbPolicy.
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `networkservices_projects_locations_service_lb_policies_delete_builder()` + `networkservices_projects_locations_service_lb_policies_delete_execute()`.
+/// For task-level control, use `networkservices_projects_locations_service_lb_policies_delete_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn networkservices_projects_locations_service_lb_policies_delete(
+    client: &SimpleHttpClient,
+    args: &NetworkservicesProjectsLocationsServiceLbPoliciesDeleteArgs,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<Operation>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let builder =
+        networkservices_projects_locations_service_lb_policies_delete_builder(client, &args.name)?;
+    networkservices_projects_locations_service_lb_policies_delete_execute(builder)
+}
+
+/// GET v1/projects/{projectsId}/locations/{locationsId}/serviceLbPolicies/{serviceLbPoliciesId}
+/// Gets details of a single ServiceLbPolicy.
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `networkservices_projects_locations_service_lb_policies_get_execute()` to send, or `networkservices_projects_locations_service_lb_policies_get` for simplest API.
+
+pub fn networkservices_projects_locations_service_lb_policies_get_builder(
+    client: &SimpleHttpClient,
+    name: &String,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!(
+        "https://networkservices.googleapis.com/v1/projects/{}/locations/{locationsId}/serviceLbPolicies/{serviceLbPoliciesId}",
+        name,
+    );
+
+    // Build request
+    let builder = client
+        .get(&endpoint_url)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// GET v1/projects/{projectsId}/locations/{locationsId}/serviceLbPolicies/{serviceLbPoliciesId}
+/// Gets details of a single ServiceLbPolicy.
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `networkservices_projects_locations_service_lb_policies_get_execute()` or `networkservices_projects_locations_service_lb_policies_get`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `networkservices_projects_locations_service_lb_policies_get_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn networkservices_projects_locations_service_lb_policies_get_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<ServiceLbPolicy>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: ServiceLbPolicy = serde_json::from_str(&body)
+                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// GET v1/projects/{projectsId}/locations/{locationsId}/serviceLbPolicies/{serviceLbPoliciesId}
+/// Gets details of a single ServiceLbPolicy.
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `networkservices_projects_locations_service_lb_policies_get_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `networkservices_projects_locations_service_lb_policies_get_task()`.
+/// For the simplest API, use `networkservices_projects_locations_service_lb_policies_get()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `networkservices_projects_locations_service_lb_policies_get_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn networkservices_projects_locations_service_lb_policies_get_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<ServiceLbPolicy>, ApiError>, P = ApiPending>
+        + Send
+        + 'static,
+    ApiError,
+> {
+    let task = networkservices_projects_locations_service_lb_policies_get_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`networkservices_projects_locations_service_lb_policies_get`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct NetworkservicesProjectsLocationsServiceLbPoliciesGetArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
+/// GET v1/projects/{projectsId}/locations/{locationsId}/serviceLbPolicies/{serviceLbPoliciesId}
+/// Gets details of a single ServiceLbPolicy.
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `networkservices_projects_locations_service_lb_policies_get_builder()` + `networkservices_projects_locations_service_lb_policies_get_execute()`.
+/// For task-level control, use `networkservices_projects_locations_service_lb_policies_get_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn networkservices_projects_locations_service_lb_policies_get(
+    client: &SimpleHttpClient,
+    args: &NetworkservicesProjectsLocationsServiceLbPoliciesGetArgs,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<ServiceLbPolicy>, ApiError>, P = ApiPending>
+        + Send
+        + 'static,
+    ApiError,
+> {
+    let builder =
+        networkservices_projects_locations_service_lb_policies_get_builder(client, &args.name)?;
+    networkservices_projects_locations_service_lb_policies_get_execute(builder)
+}
+
+/// GET v1/projects/{projectsId}/locations/{locationsId}/serviceLbPolicies
+/// Lists ServiceLbPolicies in a given project and location.
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `networkservices_projects_locations_service_lb_policies_list_execute()` to send, or `networkservices_projects_locations_service_lb_policies_list` for simplest API.
+
+pub fn networkservices_projects_locations_service_lb_policies_list_builder(
+    client: &SimpleHttpClient,
+    parent: &String,
+    pageSize: &Option<Option<String>>,
+    pageToken: &Option<Option<String>>,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!(
+        "https://networkservices.googleapis.com/v1/projects/{}/locations/{locationsId}/serviceLbPolicies",
+        parent,
+    );
+
+    // Build request
+    let mut query_parts = Vec::new();
+    if let Some(val) = pageSize.as_ref() {
+        query_parts.push(format!("pageSize={}", val));
+    }
+    if let Some(val) = pageToken.as_ref() {
+        query_parts.push(format!("pageToken={}", val));
+    }
+
+    let url_with_query = if query_parts.is_empty() {
+        endpoint_url
+    } else {
+        format!("{}?{}", endpoint_url, query_parts.join("&"))
+    };
+
+    let builder = client
+        .get(&url_with_query)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// GET v1/projects/{projectsId}/locations/{locationsId}/serviceLbPolicies
+/// Lists ServiceLbPolicies in a given project and location.
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `networkservices_projects_locations_service_lb_policies_list_execute()` or `networkservices_projects_locations_service_lb_policies_list`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `networkservices_projects_locations_service_lb_policies_list_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn networkservices_projects_locations_service_lb_policies_list_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<ListServiceLbPoliciesResponse>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: ListServiceLbPoliciesResponse = serde_json::from_str(&body)
+                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// GET v1/projects/{projectsId}/locations/{locationsId}/serviceLbPolicies
+/// Lists ServiceLbPolicies in a given project and location.
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `networkservices_projects_locations_service_lb_policies_list_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `networkservices_projects_locations_service_lb_policies_list_task()`.
+/// For the simplest API, use `networkservices_projects_locations_service_lb_policies_list()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `networkservices_projects_locations_service_lb_policies_list_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn networkservices_projects_locations_service_lb_policies_list_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<
+            D = Result<ApiResponse<ListServiceLbPoliciesResponse>, ApiError>,
+            P = ApiPending,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    let task = networkservices_projects_locations_service_lb_policies_list_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`networkservices_projects_locations_service_lb_policies_list`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct NetworkservicesProjectsLocationsServiceLbPoliciesListArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Query parameter: pageSize
+    pub pageSize: Option<Option<String>>,
+    /// Query parameter: pageToken
+    pub pageToken: Option<Option<String>>,
+}
+
+/// GET v1/projects/{projectsId}/locations/{locationsId}/serviceLbPolicies
+/// Lists ServiceLbPolicies in a given project and location.
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `networkservices_projects_locations_service_lb_policies_list_builder()` + `networkservices_projects_locations_service_lb_policies_list_execute()`.
+/// For task-level control, use `networkservices_projects_locations_service_lb_policies_list_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn networkservices_projects_locations_service_lb_policies_list(
+    client: &SimpleHttpClient,
+    args: &NetworkservicesProjectsLocationsServiceLbPoliciesListArgs,
+) -> Result<
+    impl StreamIterator<
+            D = Result<ApiResponse<ListServiceLbPoliciesResponse>, ApiError>,
+            P = ApiPending,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    let builder = networkservices_projects_locations_service_lb_policies_list_builder(
+        client,
+        &args.parent,
+        &args.pageSize,
+        &args.pageToken,
+    )?;
+    networkservices_projects_locations_service_lb_policies_list_execute(builder)
+}
+
+/// PATCH v1/projects/{projectsId}/locations/{locationsId}/serviceLbPolicies/{serviceLbPoliciesId}
+/// Updates the parameters of a single ServiceLbPolicy.
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `networkservices_projects_locations_service_lb_policies_patch_execute()` to send, or `networkservices_projects_locations_service_lb_policies_patch` for simplest API.
+
+pub fn networkservices_projects_locations_service_lb_policies_patch_builder(
+    client: &SimpleHttpClient,
+    name: &String,
+    updateMask: &Option<Option<String>>,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!(
+        "https://networkservices.googleapis.com/v1/projects/{}/locations/{locationsId}/serviceLbPolicies/{serviceLbPoliciesId}",
+        name,
+    );
+
+    // Build request
+    let mut query_parts = Vec::new();
+    if let Some(val) = updateMask.as_ref() {
+        query_parts.push(format!("updateMask={}", val));
+    }
+
+    let url_with_query = if query_parts.is_empty() {
+        endpoint_url
+    } else {
+        format!("{}?{}", endpoint_url, query_parts.join("&"))
+    };
+
+    let builder = client
+        .patch(&url_with_query)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// PATCH v1/projects/{projectsId}/locations/{locationsId}/serviceLbPolicies/{serviceLbPoliciesId}
+/// Updates the parameters of a single ServiceLbPolicy.
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `networkservices_projects_locations_service_lb_policies_patch_execute()` or `networkservices_projects_locations_service_lb_policies_patch`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `networkservices_projects_locations_service_lb_policies_patch_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn networkservices_projects_locations_service_lb_policies_patch_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<Operation>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: Operation = serde_json::from_str(&body)
+                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// PATCH v1/projects/{projectsId}/locations/{locationsId}/serviceLbPolicies/{serviceLbPoliciesId}
+/// Updates the parameters of a single ServiceLbPolicy.
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `networkservices_projects_locations_service_lb_policies_patch_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `networkservices_projects_locations_service_lb_policies_patch_task()`.
+/// For the simplest API, use `networkservices_projects_locations_service_lb_policies_patch()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `networkservices_projects_locations_service_lb_policies_patch_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn networkservices_projects_locations_service_lb_policies_patch_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<Operation>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let task = networkservices_projects_locations_service_lb_policies_patch_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`networkservices_projects_locations_service_lb_policies_patch`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct NetworkservicesProjectsLocationsServiceLbPoliciesPatchArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Query parameter: updateMask
+    pub updateMask: Option<Option<String>>,
+}
+
+/// PATCH v1/projects/{projectsId}/locations/{locationsId}/serviceLbPolicies/{serviceLbPoliciesId}
+/// Updates the parameters of a single ServiceLbPolicy.
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `networkservices_projects_locations_service_lb_policies_patch_builder()` + `networkservices_projects_locations_service_lb_policies_patch_execute()`.
+/// For task-level control, use `networkservices_projects_locations_service_lb_policies_patch_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn networkservices_projects_locations_service_lb_policies_patch(
+    client: &SimpleHttpClient,
+    args: &NetworkservicesProjectsLocationsServiceLbPoliciesPatchArgs,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<Operation>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let builder = networkservices_projects_locations_service_lb_policies_patch_builder(
+        client,
+        &args.name,
+        &args.updateMask,
+    )?;
+    networkservices_projects_locations_service_lb_policies_patch_execute(builder)
+}
+
+/// POST v1/projects/{projectsId}/locations/{locationsId}/tcpRoutes
+/// Creates a new TcpRoute in a given project and location.
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `networkservices_projects_locations_tcp_routes_create_execute()` to send, or `networkservices_projects_locations_tcp_routes_create` for simplest API.
+
+pub fn networkservices_projects_locations_tcp_routes_create_builder(
+    client: &SimpleHttpClient,
+    parent: &String,
+    tcpRouteId: &Option<Option<String>>,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!(
+        "https://networkservices.googleapis.com/v1/projects/{}/locations/{locationsId}/tcpRoutes",
+        parent,
+    );
+
+    // Build request
+    let mut query_parts = Vec::new();
+    if let Some(val) = tcpRouteId.as_ref() {
+        query_parts.push(format!("tcpRouteId={}", val));
+    }
+
+    let url_with_query = if query_parts.is_empty() {
+        endpoint_url
+    } else {
+        format!("{}?{}", endpoint_url, query_parts.join("&"))
+    };
+
+    let builder = client
+        .post(&url_with_query)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// POST v1/projects/{projectsId}/locations/{locationsId}/tcpRoutes
+/// Creates a new TcpRoute in a given project and location.
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `networkservices_projects_locations_tcp_routes_create_execute()` or `networkservices_projects_locations_tcp_routes_create`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `networkservices_projects_locations_tcp_routes_create_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn networkservices_projects_locations_tcp_routes_create_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<Operation>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: Operation = serde_json::from_str(&body)
+                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// POST v1/projects/{projectsId}/locations/{locationsId}/tcpRoutes
+/// Creates a new TcpRoute in a given project and location.
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `networkservices_projects_locations_tcp_routes_create_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `networkservices_projects_locations_tcp_routes_create_task()`.
+/// For the simplest API, use `networkservices_projects_locations_tcp_routes_create()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `networkservices_projects_locations_tcp_routes_create_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn networkservices_projects_locations_tcp_routes_create_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<Operation>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let task = networkservices_projects_locations_tcp_routes_create_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`networkservices_projects_locations_tcp_routes_create`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct NetworkservicesProjectsLocationsTcpRoutesCreateArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Query parameter: tcpRouteId
+    pub tcpRouteId: Option<Option<String>>,
+}
+
+/// POST v1/projects/{projectsId}/locations/{locationsId}/tcpRoutes
+/// Creates a new TcpRoute in a given project and location.
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `networkservices_projects_locations_tcp_routes_create_builder()` + `networkservices_projects_locations_tcp_routes_create_execute()`.
+/// For task-level control, use `networkservices_projects_locations_tcp_routes_create_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn networkservices_projects_locations_tcp_routes_create(
+    client: &SimpleHttpClient,
+    args: &NetworkservicesProjectsLocationsTcpRoutesCreateArgs,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<Operation>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let builder = networkservices_projects_locations_tcp_routes_create_builder(
+        client,
+        &args.parent,
+        &args.tcpRouteId,
+    )?;
+    networkservices_projects_locations_tcp_routes_create_execute(builder)
+}
+
+/// DELETE v1/projects/{projectsId}/locations/{locationsId}/tcpRoutes/{tcpRoutesId}
+/// Deletes a single TcpRoute.
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `networkservices_projects_locations_tcp_routes_delete_execute()` to send, or `networkservices_projects_locations_tcp_routes_delete` for simplest API.
+
+pub fn networkservices_projects_locations_tcp_routes_delete_builder(
+    client: &SimpleHttpClient,
+    name: &String,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!(
+        "https://networkservices.googleapis.com/v1/projects/{}/locations/{locationsId}/tcpRoutes/{tcpRoutesId}",
+        name,
+    );
+
+    // Build request
+    let builder = client
+        .delete(&endpoint_url)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// DELETE v1/projects/{projectsId}/locations/{locationsId}/tcpRoutes/{tcpRoutesId}
+/// Deletes a single TcpRoute.
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `networkservices_projects_locations_tcp_routes_delete_execute()` or `networkservices_projects_locations_tcp_routes_delete`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `networkservices_projects_locations_tcp_routes_delete_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn networkservices_projects_locations_tcp_routes_delete_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<Operation>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: Operation = serde_json::from_str(&body)
+                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// DELETE v1/projects/{projectsId}/locations/{locationsId}/tcpRoutes/{tcpRoutesId}
+/// Deletes a single TcpRoute.
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `networkservices_projects_locations_tcp_routes_delete_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `networkservices_projects_locations_tcp_routes_delete_task()`.
+/// For the simplest API, use `networkservices_projects_locations_tcp_routes_delete()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `networkservices_projects_locations_tcp_routes_delete_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn networkservices_projects_locations_tcp_routes_delete_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<Operation>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let task = networkservices_projects_locations_tcp_routes_delete_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`networkservices_projects_locations_tcp_routes_delete`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct NetworkservicesProjectsLocationsTcpRoutesDeleteArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
+/// DELETE v1/projects/{projectsId}/locations/{locationsId}/tcpRoutes/{tcpRoutesId}
+/// Deletes a single TcpRoute.
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `networkservices_projects_locations_tcp_routes_delete_builder()` + `networkservices_projects_locations_tcp_routes_delete_execute()`.
+/// For task-level control, use `networkservices_projects_locations_tcp_routes_delete_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn networkservices_projects_locations_tcp_routes_delete(
+    client: &SimpleHttpClient,
+    args: &NetworkservicesProjectsLocationsTcpRoutesDeleteArgs,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<Operation>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let builder = networkservices_projects_locations_tcp_routes_delete_builder(client, &args.name)?;
+    networkservices_projects_locations_tcp_routes_delete_execute(builder)
+}
+
+/// GET v1/projects/{projectsId}/locations/{locationsId}/tcpRoutes/{tcpRoutesId}
+/// Gets details of a single TcpRoute.
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `networkservices_projects_locations_tcp_routes_get_execute()` to send, or `networkservices_projects_locations_tcp_routes_get` for simplest API.
+
+pub fn networkservices_projects_locations_tcp_routes_get_builder(
+    client: &SimpleHttpClient,
+    name: &String,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!(
+        "https://networkservices.googleapis.com/v1/projects/{}/locations/{locationsId}/tcpRoutes/{tcpRoutesId}",
+        name,
+    );
+
+    // Build request
+    let builder = client
+        .get(&endpoint_url)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// GET v1/projects/{projectsId}/locations/{locationsId}/tcpRoutes/{tcpRoutesId}
+/// Gets details of a single TcpRoute.
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `networkservices_projects_locations_tcp_routes_get_execute()` or `networkservices_projects_locations_tcp_routes_get`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `networkservices_projects_locations_tcp_routes_get_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn networkservices_projects_locations_tcp_routes_get_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<TcpRoute>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: TcpRoute = serde_json::from_str(&body)
+                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// GET v1/projects/{projectsId}/locations/{locationsId}/tcpRoutes/{tcpRoutesId}
+/// Gets details of a single TcpRoute.
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `networkservices_projects_locations_tcp_routes_get_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `networkservices_projects_locations_tcp_routes_get_task()`.
+/// For the simplest API, use `networkservices_projects_locations_tcp_routes_get()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `networkservices_projects_locations_tcp_routes_get_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn networkservices_projects_locations_tcp_routes_get_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<TcpRoute>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let task = networkservices_projects_locations_tcp_routes_get_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`networkservices_projects_locations_tcp_routes_get`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct NetworkservicesProjectsLocationsTcpRoutesGetArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
+/// GET v1/projects/{projectsId}/locations/{locationsId}/tcpRoutes/{tcpRoutesId}
+/// Gets details of a single TcpRoute.
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `networkservices_projects_locations_tcp_routes_get_builder()` + `networkservices_projects_locations_tcp_routes_get_execute()`.
+/// For task-level control, use `networkservices_projects_locations_tcp_routes_get_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn networkservices_projects_locations_tcp_routes_get(
+    client: &SimpleHttpClient,
+    args: &NetworkservicesProjectsLocationsTcpRoutesGetArgs,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<TcpRoute>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let builder = networkservices_projects_locations_tcp_routes_get_builder(client, &args.name)?;
+    networkservices_projects_locations_tcp_routes_get_execute(builder)
+}
+
+/// GET v1/projects/{projectsId}/locations/{locationsId}/tcpRoutes
+/// Lists TcpRoute in a given project and location.
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `networkservices_projects_locations_tcp_routes_list_execute()` to send, or `networkservices_projects_locations_tcp_routes_list` for simplest API.
+
+pub fn networkservices_projects_locations_tcp_routes_list_builder(
+    client: &SimpleHttpClient,
+    parent: &String,
+    pageSize: &Option<Option<String>>,
+    pageToken: &Option<Option<String>>,
+    returnPartialSuccess: &Option<Option<String>>,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!(
+        "https://networkservices.googleapis.com/v1/projects/{}/locations/{locationsId}/tcpRoutes",
+        parent,
+    );
+
+    // Build request
+    let mut query_parts = Vec::new();
+    if let Some(val) = pageSize.as_ref() {
+        query_parts.push(format!("pageSize={}", val));
+    }
+    if let Some(val) = pageToken.as_ref() {
+        query_parts.push(format!("pageToken={}", val));
+    }
+    if let Some(val) = returnPartialSuccess.as_ref() {
+        query_parts.push(format!("returnPartialSuccess={}", val));
+    }
+
+    let url_with_query = if query_parts.is_empty() {
+        endpoint_url
+    } else {
+        format!("{}?{}", endpoint_url, query_parts.join("&"))
+    };
+
+    let builder = client
+        .get(&url_with_query)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// GET v1/projects/{projectsId}/locations/{locationsId}/tcpRoutes
+/// Lists TcpRoute in a given project and location.
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `networkservices_projects_locations_tcp_routes_list_execute()` or `networkservices_projects_locations_tcp_routes_list`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `networkservices_projects_locations_tcp_routes_list_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn networkservices_projects_locations_tcp_routes_list_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<ListTcpRoutesResponse>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: ListTcpRoutesResponse = serde_json::from_str(&body)
+                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// GET v1/projects/{projectsId}/locations/{locationsId}/tcpRoutes
+/// Lists TcpRoute in a given project and location.
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `networkservices_projects_locations_tcp_routes_list_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `networkservices_projects_locations_tcp_routes_list_task()`.
+/// For the simplest API, use `networkservices_projects_locations_tcp_routes_list()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `networkservices_projects_locations_tcp_routes_list_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn networkservices_projects_locations_tcp_routes_list_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<ListTcpRoutesResponse>, ApiError>, P = ApiPending>
+        + Send
+        + 'static,
+    ApiError,
+> {
+    let task = networkservices_projects_locations_tcp_routes_list_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`networkservices_projects_locations_tcp_routes_list`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct NetworkservicesProjectsLocationsTcpRoutesListArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Query parameter: pageSize
+    pub pageSize: Option<Option<String>>,
+    /// Query parameter: pageToken
+    pub pageToken: Option<Option<String>>,
+    /// Query parameter: returnPartialSuccess
+    pub returnPartialSuccess: Option<Option<String>>,
+}
+
+/// GET v1/projects/{projectsId}/locations/{locationsId}/tcpRoutes
+/// Lists TcpRoute in a given project and location.
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `networkservices_projects_locations_tcp_routes_list_builder()` + `networkservices_projects_locations_tcp_routes_list_execute()`.
+/// For task-level control, use `networkservices_projects_locations_tcp_routes_list_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn networkservices_projects_locations_tcp_routes_list(
+    client: &SimpleHttpClient,
+    args: &NetworkservicesProjectsLocationsTcpRoutesListArgs,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<ListTcpRoutesResponse>, ApiError>, P = ApiPending>
+        + Send
+        + 'static,
+    ApiError,
+> {
+    let builder = networkservices_projects_locations_tcp_routes_list_builder(
+        client,
+        &args.parent,
+        &args.pageSize,
+        &args.pageToken,
+        &args.returnPartialSuccess,
+    )?;
+    networkservices_projects_locations_tcp_routes_list_execute(builder)
+}
+
+/// PATCH v1/projects/{projectsId}/locations/{locationsId}/tcpRoutes/{tcpRoutesId}
+/// Updates the parameters of a single TcpRoute.
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `networkservices_projects_locations_tcp_routes_patch_execute()` to send, or `networkservices_projects_locations_tcp_routes_patch` for simplest API.
+
+pub fn networkservices_projects_locations_tcp_routes_patch_builder(
+    client: &SimpleHttpClient,
+    name: &String,
+    updateMask: &Option<Option<String>>,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!(
+        "https://networkservices.googleapis.com/v1/projects/{}/locations/{locationsId}/tcpRoutes/{tcpRoutesId}",
+        name,
+    );
+
+    // Build request
+    let mut query_parts = Vec::new();
+    if let Some(val) = updateMask.as_ref() {
+        query_parts.push(format!("updateMask={}", val));
+    }
+
+    let url_with_query = if query_parts.is_empty() {
+        endpoint_url
+    } else {
+        format!("{}?{}", endpoint_url, query_parts.join("&"))
+    };
+
+    let builder = client
+        .patch(&url_with_query)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// PATCH v1/projects/{projectsId}/locations/{locationsId}/tcpRoutes/{tcpRoutesId}
+/// Updates the parameters of a single TcpRoute.
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `networkservices_projects_locations_tcp_routes_patch_execute()` or `networkservices_projects_locations_tcp_routes_patch`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `networkservices_projects_locations_tcp_routes_patch_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn networkservices_projects_locations_tcp_routes_patch_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<Operation>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: Operation = serde_json::from_str(&body)
+                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// PATCH v1/projects/{projectsId}/locations/{locationsId}/tcpRoutes/{tcpRoutesId}
+/// Updates the parameters of a single TcpRoute.
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `networkservices_projects_locations_tcp_routes_patch_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `networkservices_projects_locations_tcp_routes_patch_task()`.
+/// For the simplest API, use `networkservices_projects_locations_tcp_routes_patch()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `networkservices_projects_locations_tcp_routes_patch_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn networkservices_projects_locations_tcp_routes_patch_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<Operation>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let task = networkservices_projects_locations_tcp_routes_patch_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`networkservices_projects_locations_tcp_routes_patch`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct NetworkservicesProjectsLocationsTcpRoutesPatchArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Query parameter: updateMask
+    pub updateMask: Option<Option<String>>,
+}
+
+/// PATCH v1/projects/{projectsId}/locations/{locationsId}/tcpRoutes/{tcpRoutesId}
+/// Updates the parameters of a single TcpRoute.
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `networkservices_projects_locations_tcp_routes_patch_builder()` + `networkservices_projects_locations_tcp_routes_patch_execute()`.
+/// For task-level control, use `networkservices_projects_locations_tcp_routes_patch_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn networkservices_projects_locations_tcp_routes_patch(
+    client: &SimpleHttpClient,
+    args: &NetworkservicesProjectsLocationsTcpRoutesPatchArgs,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<Operation>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let builder = networkservices_projects_locations_tcp_routes_patch_builder(
+        client,
+        &args.name,
+        &args.updateMask,
+    )?;
+    networkservices_projects_locations_tcp_routes_patch_execute(builder)
+}
+
+/// POST v1/projects/{projectsId}/locations/{locationsId}/tlsRoutes
+/// Creates a new TlsRoute in a given project and location.
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `networkservices_projects_locations_tls_routes_create_execute()` to send, or `networkservices_projects_locations_tls_routes_create` for simplest API.
+
+pub fn networkservices_projects_locations_tls_routes_create_builder(
+    client: &SimpleHttpClient,
+    parent: &String,
+    tlsRouteId: &Option<Option<String>>,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!(
+        "https://networkservices.googleapis.com/v1/projects/{}/locations/{locationsId}/tlsRoutes",
+        parent,
+    );
+
+    // Build request
+    let mut query_parts = Vec::new();
+    if let Some(val) = tlsRouteId.as_ref() {
+        query_parts.push(format!("tlsRouteId={}", val));
+    }
+
+    let url_with_query = if query_parts.is_empty() {
+        endpoint_url
+    } else {
+        format!("{}?{}", endpoint_url, query_parts.join("&"))
+    };
+
+    let builder = client
+        .post(&url_with_query)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// POST v1/projects/{projectsId}/locations/{locationsId}/tlsRoutes
+/// Creates a new TlsRoute in a given project and location.
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `networkservices_projects_locations_tls_routes_create_execute()` or `networkservices_projects_locations_tls_routes_create`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `networkservices_projects_locations_tls_routes_create_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn networkservices_projects_locations_tls_routes_create_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<Operation>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: Operation = serde_json::from_str(&body)
+                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// POST v1/projects/{projectsId}/locations/{locationsId}/tlsRoutes
+/// Creates a new TlsRoute in a given project and location.
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `networkservices_projects_locations_tls_routes_create_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `networkservices_projects_locations_tls_routes_create_task()`.
+/// For the simplest API, use `networkservices_projects_locations_tls_routes_create()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `networkservices_projects_locations_tls_routes_create_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn networkservices_projects_locations_tls_routes_create_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<Operation>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let task = networkservices_projects_locations_tls_routes_create_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`networkservices_projects_locations_tls_routes_create`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct NetworkservicesProjectsLocationsTlsRoutesCreateArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Query parameter: tlsRouteId
+    pub tlsRouteId: Option<Option<String>>,
+}
+
+/// POST v1/projects/{projectsId}/locations/{locationsId}/tlsRoutes
+/// Creates a new TlsRoute in a given project and location.
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `networkservices_projects_locations_tls_routes_create_builder()` + `networkservices_projects_locations_tls_routes_create_execute()`.
+/// For task-level control, use `networkservices_projects_locations_tls_routes_create_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn networkservices_projects_locations_tls_routes_create(
+    client: &SimpleHttpClient,
+    args: &NetworkservicesProjectsLocationsTlsRoutesCreateArgs,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<Operation>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let builder = networkservices_projects_locations_tls_routes_create_builder(
+        client,
+        &args.parent,
+        &args.tlsRouteId,
+    )?;
+    networkservices_projects_locations_tls_routes_create_execute(builder)
+}
+
+/// DELETE v1/projects/{projectsId}/locations/{locationsId}/tlsRoutes/{tlsRoutesId}
+/// Deletes a single TlsRoute.
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `networkservices_projects_locations_tls_routes_delete_execute()` to send, or `networkservices_projects_locations_tls_routes_delete` for simplest API.
+
+pub fn networkservices_projects_locations_tls_routes_delete_builder(
+    client: &SimpleHttpClient,
+    name: &String,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!(
+        "https://networkservices.googleapis.com/v1/projects/{}/locations/{locationsId}/tlsRoutes/{tlsRoutesId}",
+        name,
+    );
+
+    // Build request
+    let builder = client
+        .delete(&endpoint_url)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// DELETE v1/projects/{projectsId}/locations/{locationsId}/tlsRoutes/{tlsRoutesId}
+/// Deletes a single TlsRoute.
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `networkservices_projects_locations_tls_routes_delete_execute()` or `networkservices_projects_locations_tls_routes_delete`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `networkservices_projects_locations_tls_routes_delete_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn networkservices_projects_locations_tls_routes_delete_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<Operation>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: Operation = serde_json::from_str(&body)
+                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// DELETE v1/projects/{projectsId}/locations/{locationsId}/tlsRoutes/{tlsRoutesId}
+/// Deletes a single TlsRoute.
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `networkservices_projects_locations_tls_routes_delete_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `networkservices_projects_locations_tls_routes_delete_task()`.
+/// For the simplest API, use `networkservices_projects_locations_tls_routes_delete()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `networkservices_projects_locations_tls_routes_delete_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn networkservices_projects_locations_tls_routes_delete_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<Operation>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let task = networkservices_projects_locations_tls_routes_delete_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`networkservices_projects_locations_tls_routes_delete`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct NetworkservicesProjectsLocationsTlsRoutesDeleteArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
+/// DELETE v1/projects/{projectsId}/locations/{locationsId}/tlsRoutes/{tlsRoutesId}
+/// Deletes a single TlsRoute.
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `networkservices_projects_locations_tls_routes_delete_builder()` + `networkservices_projects_locations_tls_routes_delete_execute()`.
+/// For task-level control, use `networkservices_projects_locations_tls_routes_delete_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn networkservices_projects_locations_tls_routes_delete(
+    client: &SimpleHttpClient,
+    args: &NetworkservicesProjectsLocationsTlsRoutesDeleteArgs,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<Operation>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let builder = networkservices_projects_locations_tls_routes_delete_builder(client, &args.name)?;
+    networkservices_projects_locations_tls_routes_delete_execute(builder)
+}
+
+/// GET v1/projects/{projectsId}/locations/{locationsId}/tlsRoutes/{tlsRoutesId}
+/// Gets details of a single TlsRoute.
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `networkservices_projects_locations_tls_routes_get_execute()` to send, or `networkservices_projects_locations_tls_routes_get` for simplest API.
+
+pub fn networkservices_projects_locations_tls_routes_get_builder(
+    client: &SimpleHttpClient,
+    name: &String,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!(
+        "https://networkservices.googleapis.com/v1/projects/{}/locations/{locationsId}/tlsRoutes/{tlsRoutesId}",
+        name,
+    );
+
+    // Build request
+    let builder = client
+        .get(&endpoint_url)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// GET v1/projects/{projectsId}/locations/{locationsId}/tlsRoutes/{tlsRoutesId}
+/// Gets details of a single TlsRoute.
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `networkservices_projects_locations_tls_routes_get_execute()` or `networkservices_projects_locations_tls_routes_get`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `networkservices_projects_locations_tls_routes_get_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn networkservices_projects_locations_tls_routes_get_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<TlsRoute>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: TlsRoute = serde_json::from_str(&body)
+                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// GET v1/projects/{projectsId}/locations/{locationsId}/tlsRoutes/{tlsRoutesId}
+/// Gets details of a single TlsRoute.
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `networkservices_projects_locations_tls_routes_get_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `networkservices_projects_locations_tls_routes_get_task()`.
+/// For the simplest API, use `networkservices_projects_locations_tls_routes_get()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `networkservices_projects_locations_tls_routes_get_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn networkservices_projects_locations_tls_routes_get_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<TlsRoute>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let task = networkservices_projects_locations_tls_routes_get_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`networkservices_projects_locations_tls_routes_get`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct NetworkservicesProjectsLocationsTlsRoutesGetArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
+/// GET v1/projects/{projectsId}/locations/{locationsId}/tlsRoutes/{tlsRoutesId}
+/// Gets details of a single TlsRoute.
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `networkservices_projects_locations_tls_routes_get_builder()` + `networkservices_projects_locations_tls_routes_get_execute()`.
+/// For task-level control, use `networkservices_projects_locations_tls_routes_get_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn networkservices_projects_locations_tls_routes_get(
+    client: &SimpleHttpClient,
+    args: &NetworkservicesProjectsLocationsTlsRoutesGetArgs,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<TlsRoute>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let builder = networkservices_projects_locations_tls_routes_get_builder(client, &args.name)?;
+    networkservices_projects_locations_tls_routes_get_execute(builder)
+}
+
+/// GET v1/projects/{projectsId}/locations/{locationsId}/tlsRoutes
+/// Lists TlsRoute in a given project and location.
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `networkservices_projects_locations_tls_routes_list_execute()` to send, or `networkservices_projects_locations_tls_routes_list` for simplest API.
+
+pub fn networkservices_projects_locations_tls_routes_list_builder(
+    client: &SimpleHttpClient,
+    parent: &String,
+    pageSize: &Option<Option<String>>,
+    pageToken: &Option<Option<String>>,
+    returnPartialSuccess: &Option<Option<String>>,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!(
+        "https://networkservices.googleapis.com/v1/projects/{}/locations/{locationsId}/tlsRoutes",
+        parent,
+    );
+
+    // Build request
+    let mut query_parts = Vec::new();
+    if let Some(val) = pageSize.as_ref() {
+        query_parts.push(format!("pageSize={}", val));
+    }
+    if let Some(val) = pageToken.as_ref() {
+        query_parts.push(format!("pageToken={}", val));
+    }
+    if let Some(val) = returnPartialSuccess.as_ref() {
+        query_parts.push(format!("returnPartialSuccess={}", val));
+    }
+
+    let url_with_query = if query_parts.is_empty() {
+        endpoint_url
+    } else {
+        format!("{}?{}", endpoint_url, query_parts.join("&"))
+    };
+
+    let builder = client
+        .get(&url_with_query)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// GET v1/projects/{projectsId}/locations/{locationsId}/tlsRoutes
+/// Lists TlsRoute in a given project and location.
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `networkservices_projects_locations_tls_routes_list_execute()` or `networkservices_projects_locations_tls_routes_list`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `networkservices_projects_locations_tls_routes_list_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn networkservices_projects_locations_tls_routes_list_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<ListTlsRoutesResponse>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: ListTlsRoutesResponse = serde_json::from_str(&body)
+                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// GET v1/projects/{projectsId}/locations/{locationsId}/tlsRoutes
+/// Lists TlsRoute in a given project and location.
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `networkservices_projects_locations_tls_routes_list_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `networkservices_projects_locations_tls_routes_list_task()`.
+/// For the simplest API, use `networkservices_projects_locations_tls_routes_list()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `networkservices_projects_locations_tls_routes_list_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn networkservices_projects_locations_tls_routes_list_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<ListTlsRoutesResponse>, ApiError>, P = ApiPending>
+        + Send
+        + 'static,
+    ApiError,
+> {
+    let task = networkservices_projects_locations_tls_routes_list_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`networkservices_projects_locations_tls_routes_list`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct NetworkservicesProjectsLocationsTlsRoutesListArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Query parameter: pageSize
+    pub pageSize: Option<Option<String>>,
+    /// Query parameter: pageToken
+    pub pageToken: Option<Option<String>>,
+    /// Query parameter: returnPartialSuccess
+    pub returnPartialSuccess: Option<Option<String>>,
+}
+
+/// GET v1/projects/{projectsId}/locations/{locationsId}/tlsRoutes
+/// Lists TlsRoute in a given project and location.
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `networkservices_projects_locations_tls_routes_list_builder()` + `networkservices_projects_locations_tls_routes_list_execute()`.
+/// For task-level control, use `networkservices_projects_locations_tls_routes_list_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn networkservices_projects_locations_tls_routes_list(
+    client: &SimpleHttpClient,
+    args: &NetworkservicesProjectsLocationsTlsRoutesListArgs,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<ListTlsRoutesResponse>, ApiError>, P = ApiPending>
+        + Send
+        + 'static,
+    ApiError,
+> {
+    let builder = networkservices_projects_locations_tls_routes_list_builder(
+        client,
+        &args.parent,
+        &args.pageSize,
+        &args.pageToken,
+        &args.returnPartialSuccess,
+    )?;
+    networkservices_projects_locations_tls_routes_list_execute(builder)
+}
+
+/// PATCH v1/projects/{projectsId}/locations/{locationsId}/tlsRoutes/{tlsRoutesId}
+/// Updates the parameters of a single TlsRoute.
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `networkservices_projects_locations_tls_routes_patch_execute()` to send, or `networkservices_projects_locations_tls_routes_patch` for simplest API.
+
+pub fn networkservices_projects_locations_tls_routes_patch_builder(
+    client: &SimpleHttpClient,
+    name: &String,
+    updateMask: &Option<Option<String>>,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!(
+        "https://networkservices.googleapis.com/v1/projects/{}/locations/{locationsId}/tlsRoutes/{tlsRoutesId}",
+        name,
+    );
+
+    // Build request
+    let mut query_parts = Vec::new();
+    if let Some(val) = updateMask.as_ref() {
+        query_parts.push(format!("updateMask={}", val));
+    }
+
+    let url_with_query = if query_parts.is_empty() {
+        endpoint_url
+    } else {
+        format!("{}?{}", endpoint_url, query_parts.join("&"))
+    };
+
+    let builder = client
+        .patch(&url_with_query)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// PATCH v1/projects/{projectsId}/locations/{locationsId}/tlsRoutes/{tlsRoutesId}
+/// Updates the parameters of a single TlsRoute.
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `networkservices_projects_locations_tls_routes_patch_execute()` or `networkservices_projects_locations_tls_routes_patch`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `networkservices_projects_locations_tls_routes_patch_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn networkservices_projects_locations_tls_routes_patch_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<Operation>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: Operation = serde_json::from_str(&body)
+                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// PATCH v1/projects/{projectsId}/locations/{locationsId}/tlsRoutes/{tlsRoutesId}
+/// Updates the parameters of a single TlsRoute.
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `networkservices_projects_locations_tls_routes_patch_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `networkservices_projects_locations_tls_routes_patch_task()`.
+/// For the simplest API, use `networkservices_projects_locations_tls_routes_patch()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `networkservices_projects_locations_tls_routes_patch_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn networkservices_projects_locations_tls_routes_patch_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<Operation>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let task = networkservices_projects_locations_tls_routes_patch_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`networkservices_projects_locations_tls_routes_patch`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct NetworkservicesProjectsLocationsTlsRoutesPatchArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Query parameter: updateMask
+    pub updateMask: Option<Option<String>>,
+}
+
+/// PATCH v1/projects/{projectsId}/locations/{locationsId}/tlsRoutes/{tlsRoutesId}
+/// Updates the parameters of a single TlsRoute.
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `networkservices_projects_locations_tls_routes_patch_builder()` + `networkservices_projects_locations_tls_routes_patch_execute()`.
+/// For task-level control, use `networkservices_projects_locations_tls_routes_patch_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn networkservices_projects_locations_tls_routes_patch(
+    client: &SimpleHttpClient,
+    args: &NetworkservicesProjectsLocationsTlsRoutesPatchArgs,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<Operation>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let builder = networkservices_projects_locations_tls_routes_patch_builder(
+        client,
+        &args.name,
+        &args.updateMask,
+    )?;
+    networkservices_projects_locations_tls_routes_patch_execute(builder)
+}
+
+/// POST v1/projects/{projectsId}/locations/{locationsId}/wasmPlugins
+/// Creates a new WasmPlugin resource in a given project and location.
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `networkservices_projects_locations_wasm_plugins_create_execute()` to send, or `networkservices_projects_locations_wasm_plugins_create` for simplest API.
+
+pub fn networkservices_projects_locations_wasm_plugins_create_builder(
+    client: &SimpleHttpClient,
+    parent: &String,
+    wasmPluginId: &Option<Option<String>>,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!(
+        "https://networkservices.googleapis.com/v1/projects/{}/locations/{locationsId}/wasmPlugins",
+        parent,
+    );
+
+    // Build request
+    let mut query_parts = Vec::new();
+    if let Some(val) = wasmPluginId.as_ref() {
+        query_parts.push(format!("wasmPluginId={}", val));
+    }
+
+    let url_with_query = if query_parts.is_empty() {
+        endpoint_url
+    } else {
+        format!("{}?{}", endpoint_url, query_parts.join("&"))
+    };
+
+    let builder = client
+        .post(&url_with_query)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// POST v1/projects/{projectsId}/locations/{locationsId}/wasmPlugins
+/// Creates a new WasmPlugin resource in a given project and location.
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `networkservices_projects_locations_wasm_plugins_create_execute()` or `networkservices_projects_locations_wasm_plugins_create`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `networkservices_projects_locations_wasm_plugins_create_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn networkservices_projects_locations_wasm_plugins_create_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<Operation>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: Operation = serde_json::from_str(&body)
+                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// POST v1/projects/{projectsId}/locations/{locationsId}/wasmPlugins
+/// Creates a new WasmPlugin resource in a given project and location.
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `networkservices_projects_locations_wasm_plugins_create_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `networkservices_projects_locations_wasm_plugins_create_task()`.
+/// For the simplest API, use `networkservices_projects_locations_wasm_plugins_create()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `networkservices_projects_locations_wasm_plugins_create_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn networkservices_projects_locations_wasm_plugins_create_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<Operation>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let task = networkservices_projects_locations_wasm_plugins_create_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`networkservices_projects_locations_wasm_plugins_create`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct NetworkservicesProjectsLocationsWasmPluginsCreateArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Query parameter: wasmPluginId
+    pub wasmPluginId: Option<Option<String>>,
+}
+
+/// POST v1/projects/{projectsId}/locations/{locationsId}/wasmPlugins
+/// Creates a new WasmPlugin resource in a given project and location.
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `networkservices_projects_locations_wasm_plugins_create_builder()` + `networkservices_projects_locations_wasm_plugins_create_execute()`.
+/// For task-level control, use `networkservices_projects_locations_wasm_plugins_create_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn networkservices_projects_locations_wasm_plugins_create(
+    client: &SimpleHttpClient,
+    args: &NetworkservicesProjectsLocationsWasmPluginsCreateArgs,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<Operation>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let builder = networkservices_projects_locations_wasm_plugins_create_builder(
+        client,
+        &args.parent,
+        &args.wasmPluginId,
+    )?;
+    networkservices_projects_locations_wasm_plugins_create_execute(builder)
+}
+
+/// DELETE v1/projects/{projectsId}/locations/{locationsId}/wasmPlugins/{wasmPluginsId}
+/// Deletes the specified WasmPlugin resource.
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `networkservices_projects_locations_wasm_plugins_delete_execute()` to send, or `networkservices_projects_locations_wasm_plugins_delete` for simplest API.
+
+pub fn networkservices_projects_locations_wasm_plugins_delete_builder(
+    client: &SimpleHttpClient,
+    name: &String,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!(
+        "https://networkservices.googleapis.com/v1/projects/{}/locations/{locationsId}/wasmPlugins/{wasmPluginsId}",
+        name,
+    );
+
+    // Build request
+    let builder = client
+        .delete(&endpoint_url)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// DELETE v1/projects/{projectsId}/locations/{locationsId}/wasmPlugins/{wasmPluginsId}
+/// Deletes the specified WasmPlugin resource.
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `networkservices_projects_locations_wasm_plugins_delete_execute()` or `networkservices_projects_locations_wasm_plugins_delete`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `networkservices_projects_locations_wasm_plugins_delete_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn networkservices_projects_locations_wasm_plugins_delete_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<Operation>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: Operation = serde_json::from_str(&body)
+                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// DELETE v1/projects/{projectsId}/locations/{locationsId}/wasmPlugins/{wasmPluginsId}
+/// Deletes the specified WasmPlugin resource.
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `networkservices_projects_locations_wasm_plugins_delete_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `networkservices_projects_locations_wasm_plugins_delete_task()`.
+/// For the simplest API, use `networkservices_projects_locations_wasm_plugins_delete()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `networkservices_projects_locations_wasm_plugins_delete_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn networkservices_projects_locations_wasm_plugins_delete_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<Operation>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let task = networkservices_projects_locations_wasm_plugins_delete_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`networkservices_projects_locations_wasm_plugins_delete`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct NetworkservicesProjectsLocationsWasmPluginsDeleteArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
+/// DELETE v1/projects/{projectsId}/locations/{locationsId}/wasmPlugins/{wasmPluginsId}
+/// Deletes the specified WasmPlugin resource.
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `networkservices_projects_locations_wasm_plugins_delete_builder()` + `networkservices_projects_locations_wasm_plugins_delete_execute()`.
+/// For task-level control, use `networkservices_projects_locations_wasm_plugins_delete_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn networkservices_projects_locations_wasm_plugins_delete(
+    client: &SimpleHttpClient,
+    args: &NetworkservicesProjectsLocationsWasmPluginsDeleteArgs,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<Operation>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let builder =
+        networkservices_projects_locations_wasm_plugins_delete_builder(client, &args.name)?;
+    networkservices_projects_locations_wasm_plugins_delete_execute(builder)
+}
+
+/// GET v1/projects/{projectsId}/locations/{locationsId}/wasmPlugins/{wasmPluginsId}
+/// Gets details of the specified WasmPlugin resource.
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `networkservices_projects_locations_wasm_plugins_get_execute()` to send, or `networkservices_projects_locations_wasm_plugins_get` for simplest API.
+
+pub fn networkservices_projects_locations_wasm_plugins_get_builder(
+    client: &SimpleHttpClient,
+    name: &String,
+    view: &Option<Option<String>>,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!(
+        "https://networkservices.googleapis.com/v1/projects/{}/locations/{locationsId}/wasmPlugins/{wasmPluginsId}",
+        name,
+    );
+
+    // Build request
+    let mut query_parts = Vec::new();
+    if let Some(val) = view.as_ref() {
+        query_parts.push(format!("view={}", val));
+    }
+
+    let url_with_query = if query_parts.is_empty() {
+        endpoint_url
+    } else {
+        format!("{}?{}", endpoint_url, query_parts.join("&"))
+    };
+
+    let builder = client
+        .get(&url_with_query)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// GET v1/projects/{projectsId}/locations/{locationsId}/wasmPlugins/{wasmPluginsId}
+/// Gets details of the specified WasmPlugin resource.
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `networkservices_projects_locations_wasm_plugins_get_execute()` or `networkservices_projects_locations_wasm_plugins_get`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `networkservices_projects_locations_wasm_plugins_get_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn networkservices_projects_locations_wasm_plugins_get_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<WasmPlugin>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: WasmPlugin = serde_json::from_str(&body)
+                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// GET v1/projects/{projectsId}/locations/{locationsId}/wasmPlugins/{wasmPluginsId}
+/// Gets details of the specified WasmPlugin resource.
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `networkservices_projects_locations_wasm_plugins_get_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `networkservices_projects_locations_wasm_plugins_get_task()`.
+/// For the simplest API, use `networkservices_projects_locations_wasm_plugins_get()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `networkservices_projects_locations_wasm_plugins_get_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn networkservices_projects_locations_wasm_plugins_get_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<WasmPlugin>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let task = networkservices_projects_locations_wasm_plugins_get_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`networkservices_projects_locations_wasm_plugins_get`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct NetworkservicesProjectsLocationsWasmPluginsGetArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Query parameter: view
+    pub view: Option<Option<String>>,
+}
+
+/// GET v1/projects/{projectsId}/locations/{locationsId}/wasmPlugins/{wasmPluginsId}
+/// Gets details of the specified WasmPlugin resource.
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `networkservices_projects_locations_wasm_plugins_get_builder()` + `networkservices_projects_locations_wasm_plugins_get_execute()`.
+/// For task-level control, use `networkservices_projects_locations_wasm_plugins_get_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn networkservices_projects_locations_wasm_plugins_get(
+    client: &SimpleHttpClient,
+    args: &NetworkservicesProjectsLocationsWasmPluginsGetArgs,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<WasmPlugin>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let builder = networkservices_projects_locations_wasm_plugins_get_builder(
+        client, &args.name, &args.view,
+    )?;
+    networkservices_projects_locations_wasm_plugins_get_execute(builder)
+}
+
+/// GET v1/projects/{projectsId}/locations/{locationsId}/wasmPlugins
+/// Lists WasmPlugin resources in a given project and location.
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `networkservices_projects_locations_wasm_plugins_list_execute()` to send, or `networkservices_projects_locations_wasm_plugins_list` for simplest API.
+
+pub fn networkservices_projects_locations_wasm_plugins_list_builder(
+    client: &SimpleHttpClient,
+    parent: &String,
+    pageSize: &Option<Option<String>>,
+    pageToken: &Option<Option<String>>,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!(
+        "https://networkservices.googleapis.com/v1/projects/{}/locations/{locationsId}/wasmPlugins",
+        parent,
+    );
+
+    // Build request
+    let mut query_parts = Vec::new();
+    if let Some(val) = pageSize.as_ref() {
+        query_parts.push(format!("pageSize={}", val));
+    }
+    if let Some(val) = pageToken.as_ref() {
+        query_parts.push(format!("pageToken={}", val));
+    }
+
+    let url_with_query = if query_parts.is_empty() {
+        endpoint_url
+    } else {
+        format!("{}?{}", endpoint_url, query_parts.join("&"))
+    };
+
+    let builder = client
+        .get(&url_with_query)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// GET v1/projects/{projectsId}/locations/{locationsId}/wasmPlugins
+/// Lists WasmPlugin resources in a given project and location.
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `networkservices_projects_locations_wasm_plugins_list_execute()` or `networkservices_projects_locations_wasm_plugins_list`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `networkservices_projects_locations_wasm_plugins_list_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn networkservices_projects_locations_wasm_plugins_list_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<ListWasmPluginsResponse>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: ListWasmPluginsResponse = serde_json::from_str(&body)
+                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// GET v1/projects/{projectsId}/locations/{locationsId}/wasmPlugins
+/// Lists WasmPlugin resources in a given project and location.
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `networkservices_projects_locations_wasm_plugins_list_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `networkservices_projects_locations_wasm_plugins_list_task()`.
+/// For the simplest API, use `networkservices_projects_locations_wasm_plugins_list()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `networkservices_projects_locations_wasm_plugins_list_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn networkservices_projects_locations_wasm_plugins_list_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<ListWasmPluginsResponse>, ApiError>, P = ApiPending>
+        + Send
+        + 'static,
+    ApiError,
+> {
+    let task = networkservices_projects_locations_wasm_plugins_list_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`networkservices_projects_locations_wasm_plugins_list`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct NetworkservicesProjectsLocationsWasmPluginsListArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Query parameter: pageSize
+    pub pageSize: Option<Option<String>>,
+    /// Query parameter: pageToken
+    pub pageToken: Option<Option<String>>,
+}
+
+/// GET v1/projects/{projectsId}/locations/{locationsId}/wasmPlugins
+/// Lists WasmPlugin resources in a given project and location.
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `networkservices_projects_locations_wasm_plugins_list_builder()` + `networkservices_projects_locations_wasm_plugins_list_execute()`.
+/// For task-level control, use `networkservices_projects_locations_wasm_plugins_list_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn networkservices_projects_locations_wasm_plugins_list(
+    client: &SimpleHttpClient,
+    args: &NetworkservicesProjectsLocationsWasmPluginsListArgs,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<ListWasmPluginsResponse>, ApiError>, P = ApiPending>
+        + Send
+        + 'static,
+    ApiError,
+> {
+    let builder = networkservices_projects_locations_wasm_plugins_list_builder(
+        client,
+        &args.parent,
+        &args.pageSize,
+        &args.pageToken,
+    )?;
+    networkservices_projects_locations_wasm_plugins_list_execute(builder)
+}
+
+/// PATCH v1/projects/{projectsId}/locations/{locationsId}/wasmPlugins/{wasmPluginsId}
+/// Updates the parameters of the specified WasmPlugin resource.
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `networkservices_projects_locations_wasm_plugins_patch_execute()` to send, or `networkservices_projects_locations_wasm_plugins_patch` for simplest API.
+
+pub fn networkservices_projects_locations_wasm_plugins_patch_builder(
+    client: &SimpleHttpClient,
+    name: &String,
+    updateMask: &Option<Option<String>>,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!(
+        "https://networkservices.googleapis.com/v1/projects/{}/locations/{locationsId}/wasmPlugins/{wasmPluginsId}",
+        name,
+    );
+
+    // Build request
+    let mut query_parts = Vec::new();
+    if let Some(val) = updateMask.as_ref() {
+        query_parts.push(format!("updateMask={}", val));
+    }
+
+    let url_with_query = if query_parts.is_empty() {
+        endpoint_url
+    } else {
+        format!("{}?{}", endpoint_url, query_parts.join("&"))
+    };
+
+    let builder = client
+        .patch(&url_with_query)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// PATCH v1/projects/{projectsId}/locations/{locationsId}/wasmPlugins/{wasmPluginsId}
+/// Updates the parameters of the specified WasmPlugin resource.
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `networkservices_projects_locations_wasm_plugins_patch_execute()` or `networkservices_projects_locations_wasm_plugins_patch`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `networkservices_projects_locations_wasm_plugins_patch_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn networkservices_projects_locations_wasm_plugins_patch_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<Operation>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: Operation = serde_json::from_str(&body)
+                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// PATCH v1/projects/{projectsId}/locations/{locationsId}/wasmPlugins/{wasmPluginsId}
+/// Updates the parameters of the specified WasmPlugin resource.
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `networkservices_projects_locations_wasm_plugins_patch_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `networkservices_projects_locations_wasm_plugins_patch_task()`.
+/// For the simplest API, use `networkservices_projects_locations_wasm_plugins_patch()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `networkservices_projects_locations_wasm_plugins_patch_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn networkservices_projects_locations_wasm_plugins_patch_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<Operation>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let task = networkservices_projects_locations_wasm_plugins_patch_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`networkservices_projects_locations_wasm_plugins_patch`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct NetworkservicesProjectsLocationsWasmPluginsPatchArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Query parameter: updateMask
+    pub updateMask: Option<Option<String>>,
+}
+
+/// PATCH v1/projects/{projectsId}/locations/{locationsId}/wasmPlugins/{wasmPluginsId}
+/// Updates the parameters of the specified WasmPlugin resource.
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `networkservices_projects_locations_wasm_plugins_patch_builder()` + `networkservices_projects_locations_wasm_plugins_patch_execute()`.
+/// For task-level control, use `networkservices_projects_locations_wasm_plugins_patch_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn networkservices_projects_locations_wasm_plugins_patch(
+    client: &SimpleHttpClient,
+    args: &NetworkservicesProjectsLocationsWasmPluginsPatchArgs,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<Operation>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let builder = networkservices_projects_locations_wasm_plugins_patch_builder(
+        client,
+        &args.name,
+        &args.updateMask,
+    )?;
+    networkservices_projects_locations_wasm_plugins_patch_execute(builder)
+}
+
+/// POST v1/projects/{projectsId}/locations/{locationsId}/wasmPlugins/{wasmPluginsId}/versions
+/// Creates a new WasmPluginVersion resource in a given project and location.
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `networkservices_projects_locations_wasm_plugins_versions_create_execute()` to send, or `networkservices_projects_locations_wasm_plugins_versions_create` for simplest API.
+
+pub fn networkservices_projects_locations_wasm_plugins_versions_create_builder(
+    client: &SimpleHttpClient,
+    parent: &String,
+    wasmPluginVersionId: &Option<Option<String>>,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!(
+        "https://networkservices.googleapis.com/v1/projects/{}/locations/{locationsId}/wasmPlugins/{wasmPluginsId}/versions",
+        parent,
+    );
+
+    // Build request
+    let mut query_parts = Vec::new();
+    if let Some(val) = wasmPluginVersionId.as_ref() {
+        query_parts.push(format!("wasmPluginVersionId={}", val));
+    }
+
+    let url_with_query = if query_parts.is_empty() {
+        endpoint_url
+    } else {
+        format!("{}?{}", endpoint_url, query_parts.join("&"))
+    };
+
+    let builder = client
+        .post(&url_with_query)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// POST v1/projects/{projectsId}/locations/{locationsId}/wasmPlugins/{wasmPluginsId}/versions
+/// Creates a new WasmPluginVersion resource in a given project and location.
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `networkservices_projects_locations_wasm_plugins_versions_create_execute()` or `networkservices_projects_locations_wasm_plugins_versions_create`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `networkservices_projects_locations_wasm_plugins_versions_create_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn networkservices_projects_locations_wasm_plugins_versions_create_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<Operation>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: Operation = serde_json::from_str(&body)
+                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// POST v1/projects/{projectsId}/locations/{locationsId}/wasmPlugins/{wasmPluginsId}/versions
+/// Creates a new WasmPluginVersion resource in a given project and location.
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `networkservices_projects_locations_wasm_plugins_versions_create_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `networkservices_projects_locations_wasm_plugins_versions_create_task()`.
+/// For the simplest API, use `networkservices_projects_locations_wasm_plugins_versions_create()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `networkservices_projects_locations_wasm_plugins_versions_create_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn networkservices_projects_locations_wasm_plugins_versions_create_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<Operation>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let task = networkservices_projects_locations_wasm_plugins_versions_create_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`networkservices_projects_locations_wasm_plugins_versions_create`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct NetworkservicesProjectsLocationsWasmPluginsVersionsCreateArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Query parameter: wasmPluginVersionId
+    pub wasmPluginVersionId: Option<Option<String>>,
+}
+
+/// POST v1/projects/{projectsId}/locations/{locationsId}/wasmPlugins/{wasmPluginsId}/versions
+/// Creates a new WasmPluginVersion resource in a given project and location.
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `networkservices_projects_locations_wasm_plugins_versions_create_builder()` + `networkservices_projects_locations_wasm_plugins_versions_create_execute()`.
+/// For task-level control, use `networkservices_projects_locations_wasm_plugins_versions_create_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn networkservices_projects_locations_wasm_plugins_versions_create(
+    client: &SimpleHttpClient,
+    args: &NetworkservicesProjectsLocationsWasmPluginsVersionsCreateArgs,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<Operation>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let builder = networkservices_projects_locations_wasm_plugins_versions_create_builder(
+        client,
+        &args.parent,
+        &args.wasmPluginVersionId,
+    )?;
+    networkservices_projects_locations_wasm_plugins_versions_create_execute(builder)
+}
+
+/// DELETE v1/projects/{projectsId}/locations/{locationsId}/wasmPlugins/{wasmPluginsId}/versions/{versionsId}
+/// Deletes the specified WasmPluginVersion resource.
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `networkservices_projects_locations_wasm_plugins_versions_delete_execute()` to send, or `networkservices_projects_locations_wasm_plugins_versions_delete` for simplest API.
+
+pub fn networkservices_projects_locations_wasm_plugins_versions_delete_builder(
+    client: &SimpleHttpClient,
+    name: &String,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!(
+        "https://networkservices.googleapis.com/v1/projects/{}/locations/{locationsId}/wasmPlugins/{wasmPluginsId}/versions/{versionsId}",
+        name,
+    );
+
+    // Build request
+    let builder = client
+        .delete(&endpoint_url)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// DELETE v1/projects/{projectsId}/locations/{locationsId}/wasmPlugins/{wasmPluginsId}/versions/{versionsId}
+/// Deletes the specified WasmPluginVersion resource.
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `networkservices_projects_locations_wasm_plugins_versions_delete_execute()` or `networkservices_projects_locations_wasm_plugins_versions_delete`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `networkservices_projects_locations_wasm_plugins_versions_delete_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn networkservices_projects_locations_wasm_plugins_versions_delete_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<Operation>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: Operation = serde_json::from_str(&body)
+                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// DELETE v1/projects/{projectsId}/locations/{locationsId}/wasmPlugins/{wasmPluginsId}/versions/{versionsId}
+/// Deletes the specified WasmPluginVersion resource.
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `networkservices_projects_locations_wasm_plugins_versions_delete_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `networkservices_projects_locations_wasm_plugins_versions_delete_task()`.
+/// For the simplest API, use `networkservices_projects_locations_wasm_plugins_versions_delete()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `networkservices_projects_locations_wasm_plugins_versions_delete_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn networkservices_projects_locations_wasm_plugins_versions_delete_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<Operation>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let task = networkservices_projects_locations_wasm_plugins_versions_delete_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`networkservices_projects_locations_wasm_plugins_versions_delete`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct NetworkservicesProjectsLocationsWasmPluginsVersionsDeleteArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
+/// DELETE v1/projects/{projectsId}/locations/{locationsId}/wasmPlugins/{wasmPluginsId}/versions/{versionsId}
+/// Deletes the specified WasmPluginVersion resource.
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `networkservices_projects_locations_wasm_plugins_versions_delete_builder()` + `networkservices_projects_locations_wasm_plugins_versions_delete_execute()`.
+/// For task-level control, use `networkservices_projects_locations_wasm_plugins_versions_delete_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn networkservices_projects_locations_wasm_plugins_versions_delete(
+    client: &SimpleHttpClient,
+    args: &NetworkservicesProjectsLocationsWasmPluginsVersionsDeleteArgs,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<Operation>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let builder = networkservices_projects_locations_wasm_plugins_versions_delete_builder(
+        client, &args.name,
+    )?;
+    networkservices_projects_locations_wasm_plugins_versions_delete_execute(builder)
+}
+
+/// GET v1/projects/{projectsId}/locations/{locationsId}/wasmPlugins/{wasmPluginsId}/versions/{versionsId}
+/// Gets details of the specified WasmPluginVersion resource.
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `networkservices_projects_locations_wasm_plugins_versions_get_execute()` to send, or `networkservices_projects_locations_wasm_plugins_versions_get` for simplest API.
+
+pub fn networkservices_projects_locations_wasm_plugins_versions_get_builder(
+    client: &SimpleHttpClient,
+    name: &String,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!(
+        "https://networkservices.googleapis.com/v1/projects/{}/locations/{locationsId}/wasmPlugins/{wasmPluginsId}/versions/{versionsId}",
+        name,
+    );
+
+    // Build request
+    let builder = client
+        .get(&endpoint_url)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// GET v1/projects/{projectsId}/locations/{locationsId}/wasmPlugins/{wasmPluginsId}/versions/{versionsId}
+/// Gets details of the specified WasmPluginVersion resource.
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `networkservices_projects_locations_wasm_plugins_versions_get_execute()` or `networkservices_projects_locations_wasm_plugins_versions_get`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `networkservices_projects_locations_wasm_plugins_versions_get_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn networkservices_projects_locations_wasm_plugins_versions_get_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<WasmPluginVersion>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: WasmPluginVersion = serde_json::from_str(&body)
+                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// GET v1/projects/{projectsId}/locations/{locationsId}/wasmPlugins/{wasmPluginsId}/versions/{versionsId}
+/// Gets details of the specified WasmPluginVersion resource.
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `networkservices_projects_locations_wasm_plugins_versions_get_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `networkservices_projects_locations_wasm_plugins_versions_get_task()`.
+/// For the simplest API, use `networkservices_projects_locations_wasm_plugins_versions_get()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `networkservices_projects_locations_wasm_plugins_versions_get_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn networkservices_projects_locations_wasm_plugins_versions_get_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<WasmPluginVersion>, ApiError>, P = ApiPending>
+        + Send
+        + 'static,
+    ApiError,
+> {
+    let task = networkservices_projects_locations_wasm_plugins_versions_get_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`networkservices_projects_locations_wasm_plugins_versions_get`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct NetworkservicesProjectsLocationsWasmPluginsVersionsGetArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
+/// GET v1/projects/{projectsId}/locations/{locationsId}/wasmPlugins/{wasmPluginsId}/versions/{versionsId}
+/// Gets details of the specified WasmPluginVersion resource.
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `networkservices_projects_locations_wasm_plugins_versions_get_builder()` + `networkservices_projects_locations_wasm_plugins_versions_get_execute()`.
+/// For task-level control, use `networkservices_projects_locations_wasm_plugins_versions_get_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn networkservices_projects_locations_wasm_plugins_versions_get(
+    client: &SimpleHttpClient,
+    args: &NetworkservicesProjectsLocationsWasmPluginsVersionsGetArgs,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<WasmPluginVersion>, ApiError>, P = ApiPending>
+        + Send
+        + 'static,
+    ApiError,
+> {
+    let builder =
+        networkservices_projects_locations_wasm_plugins_versions_get_builder(client, &args.name)?;
+    networkservices_projects_locations_wasm_plugins_versions_get_execute(builder)
+}
+
+/// GET v1/projects/{projectsId}/locations/{locationsId}/wasmPlugins/{wasmPluginsId}/versions
+/// Lists WasmPluginVersion resources in a given project and location.
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `networkservices_projects_locations_wasm_plugins_versions_list_execute()` to send, or `networkservices_projects_locations_wasm_plugins_versions_list` for simplest API.
+
+pub fn networkservices_projects_locations_wasm_plugins_versions_list_builder(
+    client: &SimpleHttpClient,
+    parent: &String,
+    pageSize: &Option<Option<String>>,
+    pageToken: &Option<Option<String>>,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!(
+        "https://networkservices.googleapis.com/v1/projects/{}/locations/{locationsId}/wasmPlugins/{wasmPluginsId}/versions",
+        parent,
+    );
+
+    // Build request
+    let mut query_parts = Vec::new();
+    if let Some(val) = pageSize.as_ref() {
+        query_parts.push(format!("pageSize={}", val));
+    }
+    if let Some(val) = pageToken.as_ref() {
+        query_parts.push(format!("pageToken={}", val));
+    }
+
+    let url_with_query = if query_parts.is_empty() {
+        endpoint_url
+    } else {
+        format!("{}?{}", endpoint_url, query_parts.join("&"))
+    };
+
+    let builder = client
+        .get(&url_with_query)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// GET v1/projects/{projectsId}/locations/{locationsId}/wasmPlugins/{wasmPluginsId}/versions
+/// Lists WasmPluginVersion resources in a given project and location.
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `networkservices_projects_locations_wasm_plugins_versions_list_execute()` or `networkservices_projects_locations_wasm_plugins_versions_list`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `networkservices_projects_locations_wasm_plugins_versions_list_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn networkservices_projects_locations_wasm_plugins_versions_list_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<ListWasmPluginVersionsResponse>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: ListWasmPluginVersionsResponse = serde_json::from_str(&body)
+                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// GET v1/projects/{projectsId}/locations/{locationsId}/wasmPlugins/{wasmPluginsId}/versions
+/// Lists WasmPluginVersion resources in a given project and location.
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `networkservices_projects_locations_wasm_plugins_versions_list_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `networkservices_projects_locations_wasm_plugins_versions_list_task()`.
+/// For the simplest API, use `networkservices_projects_locations_wasm_plugins_versions_list()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `networkservices_projects_locations_wasm_plugins_versions_list_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn networkservices_projects_locations_wasm_plugins_versions_list_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<
+            D = Result<ApiResponse<ListWasmPluginVersionsResponse>, ApiError>,
+            P = ApiPending,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    let task = networkservices_projects_locations_wasm_plugins_versions_list_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`networkservices_projects_locations_wasm_plugins_versions_list`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct NetworkservicesProjectsLocationsWasmPluginsVersionsListArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Query parameter: pageSize
+    pub pageSize: Option<Option<String>>,
+    /// Query parameter: pageToken
+    pub pageToken: Option<Option<String>>,
+}
+
+/// GET v1/projects/{projectsId}/locations/{locationsId}/wasmPlugins/{wasmPluginsId}/versions
+/// Lists WasmPluginVersion resources in a given project and location.
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `networkservices_projects_locations_wasm_plugins_versions_list_builder()` + `networkservices_projects_locations_wasm_plugins_versions_list_execute()`.
+/// For task-level control, use `networkservices_projects_locations_wasm_plugins_versions_list_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn networkservices_projects_locations_wasm_plugins_versions_list(
+    client: &SimpleHttpClient,
+    args: &NetworkservicesProjectsLocationsWasmPluginsVersionsListArgs,
+) -> Result<
+    impl StreamIterator<
+            D = Result<ApiResponse<ListWasmPluginVersionsResponse>, ApiError>,
+            P = ApiPending,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    let builder = networkservices_projects_locations_wasm_plugins_versions_list_builder(
+        client,
+        &args.parent,
+        &args.pageSize,
+        &args.pageToken,
+    )?;
+    networkservices_projects_locations_wasm_plugins_versions_list_execute(builder)
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for Location
+// =============================================================================
+
+/// ResourceIdentifier implementation for Location with NetworkservicesProjectsLocationsGetArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<NetworkservicesProjectsLocationsGetArgs> for Location {
+    fn generate_resource_id(&self, input: &NetworkservicesProjectsLocationsGetArgs) -> String {
+        format!("gcp::networkservices::Location/{}", input.name)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::networkservices::Location"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for ListLocationsResponse
+// =============================================================================
+
+/// ResourceIdentifier implementation for ListLocationsResponse with NetworkservicesProjectsLocationsListArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<NetworkservicesProjectsLocationsListArgs> for ListLocationsResponse {
+    fn generate_resource_id(&self, input: &NetworkservicesProjectsLocationsListArgs) -> String {
+        format!("gcp::networkservices::ListLocationsResponse/{}", input.name)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::networkservices::ListLocationsResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for Operation
+// =============================================================================
+
+/// ResourceIdentifier implementation for Operation with NetworkservicesProjectsLocationsAuthzExtensionsCreateArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<NetworkservicesProjectsLocationsAuthzExtensionsCreateArgs> for Operation {
+    fn generate_resource_id(
+        &self,
+        input: &NetworkservicesProjectsLocationsAuthzExtensionsCreateArgs,
+    ) -> String {
+        format!("gcp::networkservices::Operation/{}", input.parent)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::networkservices::Operation"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for Operation
+// =============================================================================
+
+/// ResourceIdentifier implementation for Operation with NetworkservicesProjectsLocationsAuthzExtensionsDeleteArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<NetworkservicesProjectsLocationsAuthzExtensionsDeleteArgs> for Operation {
+    fn generate_resource_id(
+        &self,
+        input: &NetworkservicesProjectsLocationsAuthzExtensionsDeleteArgs,
+    ) -> String {
+        format!("gcp::networkservices::Operation/{}", input.name)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::networkservices::Operation"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for AuthzExtension
+// =============================================================================
+
+/// ResourceIdentifier implementation for AuthzExtension with NetworkservicesProjectsLocationsAuthzExtensionsGetArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<NetworkservicesProjectsLocationsAuthzExtensionsGetArgs> for AuthzExtension {
+    fn generate_resource_id(
+        &self,
+        input: &NetworkservicesProjectsLocationsAuthzExtensionsGetArgs,
+    ) -> String {
+        format!("gcp::networkservices::AuthzExtension/{}", input.name)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::networkservices::AuthzExtension"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for ListAuthzExtensionsResponse
+// =============================================================================
+
+/// ResourceIdentifier implementation for ListAuthzExtensionsResponse with NetworkservicesProjectsLocationsAuthzExtensionsListArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<NetworkservicesProjectsLocationsAuthzExtensionsListArgs>
+    for ListAuthzExtensionsResponse
+{
+    fn generate_resource_id(
+        &self,
+        input: &NetworkservicesProjectsLocationsAuthzExtensionsListArgs,
+    ) -> String {
+        format!(
+            "gcp::networkservices::ListAuthzExtensionsResponse/{}",
+            input.parent
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::networkservices::ListAuthzExtensionsResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for Operation
+// =============================================================================
+
+/// ResourceIdentifier implementation for Operation with NetworkservicesProjectsLocationsAuthzExtensionsPatchArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<NetworkservicesProjectsLocationsAuthzExtensionsPatchArgs> for Operation {
+    fn generate_resource_id(
+        &self,
+        input: &NetworkservicesProjectsLocationsAuthzExtensionsPatchArgs,
+    ) -> String {
+        format!("gcp::networkservices::Operation/{}", input.name)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::networkservices::Operation"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for Policy
+// =============================================================================
+
+/// ResourceIdentifier implementation for Policy with NetworkservicesProjectsLocationsEdgeCacheKeysetsGetIamPolicyArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<NetworkservicesProjectsLocationsEdgeCacheKeysetsGetIamPolicyArgs>
+    for Policy
+{
+    fn generate_resource_id(
+        &self,
+        input: &NetworkservicesProjectsLocationsEdgeCacheKeysetsGetIamPolicyArgs,
+    ) -> String {
+        format!("gcp::networkservices::Policy/{}", input.resource)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::networkservices::Policy"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for Policy
+// =============================================================================
+
+/// ResourceIdentifier implementation for Policy with NetworkservicesProjectsLocationsEdgeCacheKeysetsSetIamPolicyArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<NetworkservicesProjectsLocationsEdgeCacheKeysetsSetIamPolicyArgs>
+    for Policy
+{
+    fn generate_resource_id(
+        &self,
+        input: &NetworkservicesProjectsLocationsEdgeCacheKeysetsSetIamPolicyArgs,
+    ) -> String {
+        format!("gcp::networkservices::Policy/{}", input.resource)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::networkservices::Policy"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for TestIamPermissionsResponse
+// =============================================================================
+
+/// ResourceIdentifier implementation for TestIamPermissionsResponse with NetworkservicesProjectsLocationsEdgeCacheKeysetsTestIamPermissionsArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<NetworkservicesProjectsLocationsEdgeCacheKeysetsTestIamPermissionsArgs>
+    for TestIamPermissionsResponse
+{
+    fn generate_resource_id(
+        &self,
+        input: &NetworkservicesProjectsLocationsEdgeCacheKeysetsTestIamPermissionsArgs,
+    ) -> String {
+        format!(
+            "gcp::networkservices::TestIamPermissionsResponse/{}",
+            input.resource
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::networkservices::TestIamPermissionsResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for Policy
+// =============================================================================
+
+/// ResourceIdentifier implementation for Policy with NetworkservicesProjectsLocationsEdgeCacheOriginsGetIamPolicyArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<NetworkservicesProjectsLocationsEdgeCacheOriginsGetIamPolicyArgs>
+    for Policy
+{
+    fn generate_resource_id(
+        &self,
+        input: &NetworkservicesProjectsLocationsEdgeCacheOriginsGetIamPolicyArgs,
+    ) -> String {
+        format!("gcp::networkservices::Policy/{}", input.resource)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::networkservices::Policy"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for Policy
+// =============================================================================
+
+/// ResourceIdentifier implementation for Policy with NetworkservicesProjectsLocationsEdgeCacheOriginsSetIamPolicyArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<NetworkservicesProjectsLocationsEdgeCacheOriginsSetIamPolicyArgs>
+    for Policy
+{
+    fn generate_resource_id(
+        &self,
+        input: &NetworkservicesProjectsLocationsEdgeCacheOriginsSetIamPolicyArgs,
+    ) -> String {
+        format!("gcp::networkservices::Policy/{}", input.resource)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::networkservices::Policy"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for TestIamPermissionsResponse
+// =============================================================================
+
+/// ResourceIdentifier implementation for TestIamPermissionsResponse with NetworkservicesProjectsLocationsEdgeCacheOriginsTestIamPermissionsArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<NetworkservicesProjectsLocationsEdgeCacheOriginsTestIamPermissionsArgs>
+    for TestIamPermissionsResponse
+{
+    fn generate_resource_id(
+        &self,
+        input: &NetworkservicesProjectsLocationsEdgeCacheOriginsTestIamPermissionsArgs,
+    ) -> String {
+        format!(
+            "gcp::networkservices::TestIamPermissionsResponse/{}",
+            input.resource
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::networkservices::TestIamPermissionsResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for Policy
+// =============================================================================
+
+/// ResourceIdentifier implementation for Policy with NetworkservicesProjectsLocationsEdgeCacheServicesGetIamPolicyArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<NetworkservicesProjectsLocationsEdgeCacheServicesGetIamPolicyArgs>
+    for Policy
+{
+    fn generate_resource_id(
+        &self,
+        input: &NetworkservicesProjectsLocationsEdgeCacheServicesGetIamPolicyArgs,
+    ) -> String {
+        format!("gcp::networkservices::Policy/{}", input.resource)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::networkservices::Policy"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for Policy
+// =============================================================================
+
+/// ResourceIdentifier implementation for Policy with NetworkservicesProjectsLocationsEdgeCacheServicesSetIamPolicyArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<NetworkservicesProjectsLocationsEdgeCacheServicesSetIamPolicyArgs>
+    for Policy
+{
+    fn generate_resource_id(
+        &self,
+        input: &NetworkservicesProjectsLocationsEdgeCacheServicesSetIamPolicyArgs,
+    ) -> String {
+        format!("gcp::networkservices::Policy/{}", input.resource)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::networkservices::Policy"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for TestIamPermissionsResponse
+// =============================================================================
+
+/// ResourceIdentifier implementation for TestIamPermissionsResponse with NetworkservicesProjectsLocationsEdgeCacheServicesTestIamPermissionsArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<NetworkservicesProjectsLocationsEdgeCacheServicesTestIamPermissionsArgs>
+    for TestIamPermissionsResponse
+{
+    fn generate_resource_id(
+        &self,
+        input: &NetworkservicesProjectsLocationsEdgeCacheServicesTestIamPermissionsArgs,
+    ) -> String {
+        format!(
+            "gcp::networkservices::TestIamPermissionsResponse/{}",
+            input.resource
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::networkservices::TestIamPermissionsResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for Operation
+// =============================================================================
+
+/// ResourceIdentifier implementation for Operation with NetworkservicesProjectsLocationsEndpointPoliciesCreateArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<NetworkservicesProjectsLocationsEndpointPoliciesCreateArgs> for Operation {
+    fn generate_resource_id(
+        &self,
+        input: &NetworkservicesProjectsLocationsEndpointPoliciesCreateArgs,
+    ) -> String {
+        format!("gcp::networkservices::Operation/{}", input.parent)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::networkservices::Operation"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for Operation
+// =============================================================================
+
+/// ResourceIdentifier implementation for Operation with NetworkservicesProjectsLocationsEndpointPoliciesDeleteArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<NetworkservicesProjectsLocationsEndpointPoliciesDeleteArgs> for Operation {
+    fn generate_resource_id(
+        &self,
+        input: &NetworkservicesProjectsLocationsEndpointPoliciesDeleteArgs,
+    ) -> String {
+        format!("gcp::networkservices::Operation/{}", input.name)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::networkservices::Operation"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for EndpointPolicy
+// =============================================================================
+
+/// ResourceIdentifier implementation for EndpointPolicy with NetworkservicesProjectsLocationsEndpointPoliciesGetArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<NetworkservicesProjectsLocationsEndpointPoliciesGetArgs>
+    for EndpointPolicy
+{
+    fn generate_resource_id(
+        &self,
+        input: &NetworkservicesProjectsLocationsEndpointPoliciesGetArgs,
+    ) -> String {
+        format!("gcp::networkservices::EndpointPolicy/{}", input.name)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::networkservices::EndpointPolicy"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for ListEndpointPoliciesResponse
+// =============================================================================
+
+/// ResourceIdentifier implementation for ListEndpointPoliciesResponse with NetworkservicesProjectsLocationsEndpointPoliciesListArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<NetworkservicesProjectsLocationsEndpointPoliciesListArgs>
+    for ListEndpointPoliciesResponse
+{
+    fn generate_resource_id(
+        &self,
+        input: &NetworkservicesProjectsLocationsEndpointPoliciesListArgs,
+    ) -> String {
+        format!(
+            "gcp::networkservices::ListEndpointPoliciesResponse/{}",
+            input.parent
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::networkservices::ListEndpointPoliciesResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for Operation
+// =============================================================================
+
+/// ResourceIdentifier implementation for Operation with NetworkservicesProjectsLocationsEndpointPoliciesPatchArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<NetworkservicesProjectsLocationsEndpointPoliciesPatchArgs> for Operation {
+    fn generate_resource_id(
+        &self,
+        input: &NetworkservicesProjectsLocationsEndpointPoliciesPatchArgs,
+    ) -> String {
+        format!("gcp::networkservices::Operation/{}", input.name)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::networkservices::Operation"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for Operation
+// =============================================================================
+
+/// ResourceIdentifier implementation for Operation with NetworkservicesProjectsLocationsGatewaysCreateArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<NetworkservicesProjectsLocationsGatewaysCreateArgs> for Operation {
+    fn generate_resource_id(
+        &self,
+        input: &NetworkservicesProjectsLocationsGatewaysCreateArgs,
+    ) -> String {
+        format!("gcp::networkservices::Operation/{}", input.parent)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::networkservices::Operation"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for Operation
+// =============================================================================
+
+/// ResourceIdentifier implementation for Operation with NetworkservicesProjectsLocationsGatewaysDeleteArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<NetworkservicesProjectsLocationsGatewaysDeleteArgs> for Operation {
+    fn generate_resource_id(
+        &self,
+        input: &NetworkservicesProjectsLocationsGatewaysDeleteArgs,
+    ) -> String {
+        format!("gcp::networkservices::Operation/{}", input.name)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::networkservices::Operation"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for Gateway
+// =============================================================================
+
+/// ResourceIdentifier implementation for Gateway with NetworkservicesProjectsLocationsGatewaysGetArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<NetworkservicesProjectsLocationsGatewaysGetArgs> for Gateway {
+    fn generate_resource_id(
+        &self,
+        input: &NetworkservicesProjectsLocationsGatewaysGetArgs,
+    ) -> String {
+        format!("gcp::networkservices::Gateway/{}", input.name)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::networkservices::Gateway"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for ListGatewaysResponse
+// =============================================================================
+
+/// ResourceIdentifier implementation for ListGatewaysResponse with NetworkservicesProjectsLocationsGatewaysListArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<NetworkservicesProjectsLocationsGatewaysListArgs> for ListGatewaysResponse {
+    fn generate_resource_id(
+        &self,
+        input: &NetworkservicesProjectsLocationsGatewaysListArgs,
+    ) -> String {
+        format!(
+            "gcp::networkservices::ListGatewaysResponse/{}",
+            input.parent
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::networkservices::ListGatewaysResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for Operation
+// =============================================================================
+
+/// ResourceIdentifier implementation for Operation with NetworkservicesProjectsLocationsGatewaysPatchArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<NetworkservicesProjectsLocationsGatewaysPatchArgs> for Operation {
+    fn generate_resource_id(
+        &self,
+        input: &NetworkservicesProjectsLocationsGatewaysPatchArgs,
+    ) -> String {
+        format!("gcp::networkservices::Operation/{}", input.name)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::networkservices::Operation"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for GatewayRouteView
+// =============================================================================
+
+/// ResourceIdentifier implementation for GatewayRouteView with NetworkservicesProjectsLocationsGatewaysRouteViewsGetArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<NetworkservicesProjectsLocationsGatewaysRouteViewsGetArgs>
+    for GatewayRouteView
+{
+    fn generate_resource_id(
+        &self,
+        input: &NetworkservicesProjectsLocationsGatewaysRouteViewsGetArgs,
+    ) -> String {
+        format!("gcp::networkservices::GatewayRouteView/{}", input.name)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::networkservices::GatewayRouteView"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for ListGatewayRouteViewsResponse
+// =============================================================================
+
+/// ResourceIdentifier implementation for ListGatewayRouteViewsResponse with NetworkservicesProjectsLocationsGatewaysRouteViewsListArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<NetworkservicesProjectsLocationsGatewaysRouteViewsListArgs>
+    for ListGatewayRouteViewsResponse
+{
+    fn generate_resource_id(
+        &self,
+        input: &NetworkservicesProjectsLocationsGatewaysRouteViewsListArgs,
+    ) -> String {
+        format!(
+            "gcp::networkservices::ListGatewayRouteViewsResponse/{}",
+            input.parent
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::networkservices::ListGatewayRouteViewsResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for Operation
+// =============================================================================
+
+/// ResourceIdentifier implementation for Operation with NetworkservicesProjectsLocationsGrpcRoutesCreateArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<NetworkservicesProjectsLocationsGrpcRoutesCreateArgs> for Operation {
+    fn generate_resource_id(
+        &self,
+        input: &NetworkservicesProjectsLocationsGrpcRoutesCreateArgs,
+    ) -> String {
+        format!("gcp::networkservices::Operation/{}", input.parent)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::networkservices::Operation"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for Operation
+// =============================================================================
+
+/// ResourceIdentifier implementation for Operation with NetworkservicesProjectsLocationsGrpcRoutesDeleteArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<NetworkservicesProjectsLocationsGrpcRoutesDeleteArgs> for Operation {
+    fn generate_resource_id(
+        &self,
+        input: &NetworkservicesProjectsLocationsGrpcRoutesDeleteArgs,
+    ) -> String {
+        format!("gcp::networkservices::Operation/{}", input.name)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::networkservices::Operation"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for GrpcRoute
+// =============================================================================
+
+/// ResourceIdentifier implementation for GrpcRoute with NetworkservicesProjectsLocationsGrpcRoutesGetArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<NetworkservicesProjectsLocationsGrpcRoutesGetArgs> for GrpcRoute {
+    fn generate_resource_id(
+        &self,
+        input: &NetworkservicesProjectsLocationsGrpcRoutesGetArgs,
+    ) -> String {
+        format!("gcp::networkservices::GrpcRoute/{}", input.name)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::networkservices::GrpcRoute"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for ListGrpcRoutesResponse
+// =============================================================================
+
+/// ResourceIdentifier implementation for ListGrpcRoutesResponse with NetworkservicesProjectsLocationsGrpcRoutesListArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<NetworkservicesProjectsLocationsGrpcRoutesListArgs>
+    for ListGrpcRoutesResponse
+{
+    fn generate_resource_id(
+        &self,
+        input: &NetworkservicesProjectsLocationsGrpcRoutesListArgs,
+    ) -> String {
+        format!(
+            "gcp::networkservices::ListGrpcRoutesResponse/{}",
+            input.parent
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::networkservices::ListGrpcRoutesResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for Operation
+// =============================================================================
+
+/// ResourceIdentifier implementation for Operation with NetworkservicesProjectsLocationsGrpcRoutesPatchArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<NetworkservicesProjectsLocationsGrpcRoutesPatchArgs> for Operation {
+    fn generate_resource_id(
+        &self,
+        input: &NetworkservicesProjectsLocationsGrpcRoutesPatchArgs,
+    ) -> String {
+        format!("gcp::networkservices::Operation/{}", input.name)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::networkservices::Operation"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for Operation
+// =============================================================================
+
+/// ResourceIdentifier implementation for Operation with NetworkservicesProjectsLocationsHttpRoutesCreateArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<NetworkservicesProjectsLocationsHttpRoutesCreateArgs> for Operation {
+    fn generate_resource_id(
+        &self,
+        input: &NetworkservicesProjectsLocationsHttpRoutesCreateArgs,
+    ) -> String {
+        format!("gcp::networkservices::Operation/{}", input.parent)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::networkservices::Operation"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for Operation
+// =============================================================================
+
+/// ResourceIdentifier implementation for Operation with NetworkservicesProjectsLocationsHttpRoutesDeleteArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<NetworkservicesProjectsLocationsHttpRoutesDeleteArgs> for Operation {
+    fn generate_resource_id(
+        &self,
+        input: &NetworkservicesProjectsLocationsHttpRoutesDeleteArgs,
+    ) -> String {
+        format!("gcp::networkservices::Operation/{}", input.name)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::networkservices::Operation"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for HttpRoute
+// =============================================================================
+
+/// ResourceIdentifier implementation for HttpRoute with NetworkservicesProjectsLocationsHttpRoutesGetArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<NetworkservicesProjectsLocationsHttpRoutesGetArgs> for HttpRoute {
+    fn generate_resource_id(
+        &self,
+        input: &NetworkservicesProjectsLocationsHttpRoutesGetArgs,
+    ) -> String {
+        format!("gcp::networkservices::HttpRoute/{}", input.name)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::networkservices::HttpRoute"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for ListHttpRoutesResponse
+// =============================================================================
+
+/// ResourceIdentifier implementation for ListHttpRoutesResponse with NetworkservicesProjectsLocationsHttpRoutesListArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<NetworkservicesProjectsLocationsHttpRoutesListArgs>
+    for ListHttpRoutesResponse
+{
+    fn generate_resource_id(
+        &self,
+        input: &NetworkservicesProjectsLocationsHttpRoutesListArgs,
+    ) -> String {
+        format!(
+            "gcp::networkservices::ListHttpRoutesResponse/{}",
+            input.parent
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::networkservices::ListHttpRoutesResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for Operation
+// =============================================================================
+
+/// ResourceIdentifier implementation for Operation with NetworkservicesProjectsLocationsHttpRoutesPatchArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<NetworkservicesProjectsLocationsHttpRoutesPatchArgs> for Operation {
+    fn generate_resource_id(
+        &self,
+        input: &NetworkservicesProjectsLocationsHttpRoutesPatchArgs,
+    ) -> String {
+        format!("gcp::networkservices::Operation/{}", input.name)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::networkservices::Operation"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for Operation
+// =============================================================================
+
+/// ResourceIdentifier implementation for Operation with NetworkservicesProjectsLocationsLbEdgeExtensionsCreateArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<NetworkservicesProjectsLocationsLbEdgeExtensionsCreateArgs> for Operation {
+    fn generate_resource_id(
+        &self,
+        input: &NetworkservicesProjectsLocationsLbEdgeExtensionsCreateArgs,
+    ) -> String {
+        format!("gcp::networkservices::Operation/{}", input.parent)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::networkservices::Operation"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for Operation
+// =============================================================================
+
+/// ResourceIdentifier implementation for Operation with NetworkservicesProjectsLocationsLbEdgeExtensionsDeleteArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<NetworkservicesProjectsLocationsLbEdgeExtensionsDeleteArgs> for Operation {
+    fn generate_resource_id(
+        &self,
+        input: &NetworkservicesProjectsLocationsLbEdgeExtensionsDeleteArgs,
+    ) -> String {
+        format!("gcp::networkservices::Operation/{}", input.name)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::networkservices::Operation"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for LbEdgeExtension
+// =============================================================================
+
+/// ResourceIdentifier implementation for LbEdgeExtension with NetworkservicesProjectsLocationsLbEdgeExtensionsGetArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<NetworkservicesProjectsLocationsLbEdgeExtensionsGetArgs>
+    for LbEdgeExtension
+{
+    fn generate_resource_id(
+        &self,
+        input: &NetworkservicesProjectsLocationsLbEdgeExtensionsGetArgs,
+    ) -> String {
+        format!("gcp::networkservices::LbEdgeExtension/{}", input.name)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::networkservices::LbEdgeExtension"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for ListLbEdgeExtensionsResponse
+// =============================================================================
+
+/// ResourceIdentifier implementation for ListLbEdgeExtensionsResponse with NetworkservicesProjectsLocationsLbEdgeExtensionsListArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<NetworkservicesProjectsLocationsLbEdgeExtensionsListArgs>
+    for ListLbEdgeExtensionsResponse
+{
+    fn generate_resource_id(
+        &self,
+        input: &NetworkservicesProjectsLocationsLbEdgeExtensionsListArgs,
+    ) -> String {
+        format!(
+            "gcp::networkservices::ListLbEdgeExtensionsResponse/{}",
+            input.parent
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::networkservices::ListLbEdgeExtensionsResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for Operation
+// =============================================================================
+
+/// ResourceIdentifier implementation for Operation with NetworkservicesProjectsLocationsLbEdgeExtensionsPatchArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<NetworkservicesProjectsLocationsLbEdgeExtensionsPatchArgs> for Operation {
+    fn generate_resource_id(
+        &self,
+        input: &NetworkservicesProjectsLocationsLbEdgeExtensionsPatchArgs,
+    ) -> String {
+        format!("gcp::networkservices::Operation/{}", input.name)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::networkservices::Operation"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for Operation
+// =============================================================================
+
+/// ResourceIdentifier implementation for Operation with NetworkservicesProjectsLocationsLbRouteExtensionsCreateArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<NetworkservicesProjectsLocationsLbRouteExtensionsCreateArgs> for Operation {
+    fn generate_resource_id(
+        &self,
+        input: &NetworkservicesProjectsLocationsLbRouteExtensionsCreateArgs,
+    ) -> String {
+        format!("gcp::networkservices::Operation/{}", input.parent)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::networkservices::Operation"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for Operation
+// =============================================================================
+
+/// ResourceIdentifier implementation for Operation with NetworkservicesProjectsLocationsLbRouteExtensionsDeleteArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<NetworkservicesProjectsLocationsLbRouteExtensionsDeleteArgs> for Operation {
+    fn generate_resource_id(
+        &self,
+        input: &NetworkservicesProjectsLocationsLbRouteExtensionsDeleteArgs,
+    ) -> String {
+        format!("gcp::networkservices::Operation/{}", input.name)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::networkservices::Operation"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for LbRouteExtension
+// =============================================================================
+
+/// ResourceIdentifier implementation for LbRouteExtension with NetworkservicesProjectsLocationsLbRouteExtensionsGetArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<NetworkservicesProjectsLocationsLbRouteExtensionsGetArgs>
+    for LbRouteExtension
+{
+    fn generate_resource_id(
+        &self,
+        input: &NetworkservicesProjectsLocationsLbRouteExtensionsGetArgs,
+    ) -> String {
+        format!("gcp::networkservices::LbRouteExtension/{}", input.name)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::networkservices::LbRouteExtension"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for ListLbRouteExtensionsResponse
+// =============================================================================
+
+/// ResourceIdentifier implementation for ListLbRouteExtensionsResponse with NetworkservicesProjectsLocationsLbRouteExtensionsListArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<NetworkservicesProjectsLocationsLbRouteExtensionsListArgs>
+    for ListLbRouteExtensionsResponse
+{
+    fn generate_resource_id(
+        &self,
+        input: &NetworkservicesProjectsLocationsLbRouteExtensionsListArgs,
+    ) -> String {
+        format!(
+            "gcp::networkservices::ListLbRouteExtensionsResponse/{}",
+            input.parent
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::networkservices::ListLbRouteExtensionsResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for Operation
+// =============================================================================
+
+/// ResourceIdentifier implementation for Operation with NetworkservicesProjectsLocationsLbRouteExtensionsPatchArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<NetworkservicesProjectsLocationsLbRouteExtensionsPatchArgs> for Operation {
+    fn generate_resource_id(
+        &self,
+        input: &NetworkservicesProjectsLocationsLbRouteExtensionsPatchArgs,
+    ) -> String {
+        format!("gcp::networkservices::Operation/{}", input.name)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::networkservices::Operation"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for Operation
+// =============================================================================
+
+/// ResourceIdentifier implementation for Operation with NetworkservicesProjectsLocationsLbTrafficExtensionsCreateArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<NetworkservicesProjectsLocationsLbTrafficExtensionsCreateArgs>
+    for Operation
+{
+    fn generate_resource_id(
+        &self,
+        input: &NetworkservicesProjectsLocationsLbTrafficExtensionsCreateArgs,
+    ) -> String {
+        format!("gcp::networkservices::Operation/{}", input.parent)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::networkservices::Operation"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for Operation
+// =============================================================================
+
+/// ResourceIdentifier implementation for Operation with NetworkservicesProjectsLocationsLbTrafficExtensionsDeleteArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<NetworkservicesProjectsLocationsLbTrafficExtensionsDeleteArgs>
+    for Operation
+{
+    fn generate_resource_id(
+        &self,
+        input: &NetworkservicesProjectsLocationsLbTrafficExtensionsDeleteArgs,
+    ) -> String {
+        format!("gcp::networkservices::Operation/{}", input.name)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::networkservices::Operation"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for LbTrafficExtension
+// =============================================================================
+
+/// ResourceIdentifier implementation for LbTrafficExtension with NetworkservicesProjectsLocationsLbTrafficExtensionsGetArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<NetworkservicesProjectsLocationsLbTrafficExtensionsGetArgs>
+    for LbTrafficExtension
+{
+    fn generate_resource_id(
+        &self,
+        input: &NetworkservicesProjectsLocationsLbTrafficExtensionsGetArgs,
+    ) -> String {
+        format!("gcp::networkservices::LbTrafficExtension/{}", input.name)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::networkservices::LbTrafficExtension"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for ListLbTrafficExtensionsResponse
+// =============================================================================
+
+/// ResourceIdentifier implementation for ListLbTrafficExtensionsResponse with NetworkservicesProjectsLocationsLbTrafficExtensionsListArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<NetworkservicesProjectsLocationsLbTrafficExtensionsListArgs>
+    for ListLbTrafficExtensionsResponse
+{
+    fn generate_resource_id(
+        &self,
+        input: &NetworkservicesProjectsLocationsLbTrafficExtensionsListArgs,
+    ) -> String {
+        format!(
+            "gcp::networkservices::ListLbTrafficExtensionsResponse/{}",
+            input.parent
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::networkservices::ListLbTrafficExtensionsResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for Operation
+// =============================================================================
+
+/// ResourceIdentifier implementation for Operation with NetworkservicesProjectsLocationsLbTrafficExtensionsPatchArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<NetworkservicesProjectsLocationsLbTrafficExtensionsPatchArgs>
+    for Operation
+{
+    fn generate_resource_id(
+        &self,
+        input: &NetworkservicesProjectsLocationsLbTrafficExtensionsPatchArgs,
+    ) -> String {
+        format!("gcp::networkservices::Operation/{}", input.name)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::networkservices::Operation"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for Operation
+// =============================================================================
+
+/// ResourceIdentifier implementation for Operation with NetworkservicesProjectsLocationsMeshesCreateArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<NetworkservicesProjectsLocationsMeshesCreateArgs> for Operation {
+    fn generate_resource_id(
+        &self,
+        input: &NetworkservicesProjectsLocationsMeshesCreateArgs,
+    ) -> String {
+        format!("gcp::networkservices::Operation/{}", input.parent)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::networkservices::Operation"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for Operation
+// =============================================================================
+
+/// ResourceIdentifier implementation for Operation with NetworkservicesProjectsLocationsMeshesDeleteArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<NetworkservicesProjectsLocationsMeshesDeleteArgs> for Operation {
+    fn generate_resource_id(
+        &self,
+        input: &NetworkservicesProjectsLocationsMeshesDeleteArgs,
+    ) -> String {
+        format!("gcp::networkservices::Operation/{}", input.name)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::networkservices::Operation"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for Mesh
+// =============================================================================
+
+/// ResourceIdentifier implementation for Mesh with NetworkservicesProjectsLocationsMeshesGetArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<NetworkservicesProjectsLocationsMeshesGetArgs> for Mesh {
+    fn generate_resource_id(
+        &self,
+        input: &NetworkservicesProjectsLocationsMeshesGetArgs,
+    ) -> String {
+        format!("gcp::networkservices::Mesh/{}", input.name)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::networkservices::Mesh"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for ListMeshesResponse
+// =============================================================================
+
+/// ResourceIdentifier implementation for ListMeshesResponse with NetworkservicesProjectsLocationsMeshesListArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<NetworkservicesProjectsLocationsMeshesListArgs> for ListMeshesResponse {
+    fn generate_resource_id(
+        &self,
+        input: &NetworkservicesProjectsLocationsMeshesListArgs,
+    ) -> String {
+        format!("gcp::networkservices::ListMeshesResponse/{}", input.parent)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::networkservices::ListMeshesResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for Operation
+// =============================================================================
+
+/// ResourceIdentifier implementation for Operation with NetworkservicesProjectsLocationsMeshesPatchArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<NetworkservicesProjectsLocationsMeshesPatchArgs> for Operation {
+    fn generate_resource_id(
+        &self,
+        input: &NetworkservicesProjectsLocationsMeshesPatchArgs,
+    ) -> String {
+        format!("gcp::networkservices::Operation/{}", input.name)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::networkservices::Operation"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for MeshRouteView
+// =============================================================================
+
+/// ResourceIdentifier implementation for MeshRouteView with NetworkservicesProjectsLocationsMeshesRouteViewsGetArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<NetworkservicesProjectsLocationsMeshesRouteViewsGetArgs> for MeshRouteView {
+    fn generate_resource_id(
+        &self,
+        input: &NetworkservicesProjectsLocationsMeshesRouteViewsGetArgs,
+    ) -> String {
+        format!("gcp::networkservices::MeshRouteView/{}", input.name)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::networkservices::MeshRouteView"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for ListMeshRouteViewsResponse
+// =============================================================================
+
+/// ResourceIdentifier implementation for ListMeshRouteViewsResponse with NetworkservicesProjectsLocationsMeshesRouteViewsListArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<NetworkservicesProjectsLocationsMeshesRouteViewsListArgs>
+    for ListMeshRouteViewsResponse
+{
+    fn generate_resource_id(
+        &self,
+        input: &NetworkservicesProjectsLocationsMeshesRouteViewsListArgs,
+    ) -> String {
+        format!(
+            "gcp::networkservices::ListMeshRouteViewsResponse/{}",
+            input.parent
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::networkservices::ListMeshRouteViewsResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for Empty
+// =============================================================================
+
+/// ResourceIdentifier implementation for Empty with NetworkservicesProjectsLocationsOperationsCancelArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<NetworkservicesProjectsLocationsOperationsCancelArgs> for Empty {
+    fn generate_resource_id(
+        &self,
+        input: &NetworkservicesProjectsLocationsOperationsCancelArgs,
+    ) -> String {
+        format!("gcp::networkservices::Empty/{}", input.name)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::networkservices::Empty"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for Empty
+// =============================================================================
+
+/// ResourceIdentifier implementation for Empty with NetworkservicesProjectsLocationsOperationsDeleteArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<NetworkservicesProjectsLocationsOperationsDeleteArgs> for Empty {
+    fn generate_resource_id(
+        &self,
+        input: &NetworkservicesProjectsLocationsOperationsDeleteArgs,
+    ) -> String {
+        format!("gcp::networkservices::Empty/{}", input.name)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::networkservices::Empty"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for Operation
+// =============================================================================
+
+/// ResourceIdentifier implementation for Operation with NetworkservicesProjectsLocationsOperationsGetArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<NetworkservicesProjectsLocationsOperationsGetArgs> for Operation {
+    fn generate_resource_id(
+        &self,
+        input: &NetworkservicesProjectsLocationsOperationsGetArgs,
+    ) -> String {
+        format!("gcp::networkservices::Operation/{}", input.name)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::networkservices::Operation"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for ListOperationsResponse
+// =============================================================================
+
+/// ResourceIdentifier implementation for ListOperationsResponse with NetworkservicesProjectsLocationsOperationsListArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<NetworkservicesProjectsLocationsOperationsListArgs>
+    for ListOperationsResponse
+{
+    fn generate_resource_id(
+        &self,
+        input: &NetworkservicesProjectsLocationsOperationsListArgs,
+    ) -> String {
+        format!(
+            "gcp::networkservices::ListOperationsResponse/{}",
+            input.name
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::networkservices::ListOperationsResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for Operation
+// =============================================================================
+
+/// ResourceIdentifier implementation for Operation with NetworkservicesProjectsLocationsServiceBindingsCreateArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<NetworkservicesProjectsLocationsServiceBindingsCreateArgs> for Operation {
+    fn generate_resource_id(
+        &self,
+        input: &NetworkservicesProjectsLocationsServiceBindingsCreateArgs,
+    ) -> String {
+        format!("gcp::networkservices::Operation/{}", input.parent)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::networkservices::Operation"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for Operation
+// =============================================================================
+
+/// ResourceIdentifier implementation for Operation with NetworkservicesProjectsLocationsServiceBindingsDeleteArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<NetworkservicesProjectsLocationsServiceBindingsDeleteArgs> for Operation {
+    fn generate_resource_id(
+        &self,
+        input: &NetworkservicesProjectsLocationsServiceBindingsDeleteArgs,
+    ) -> String {
+        format!("gcp::networkservices::Operation/{}", input.name)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::networkservices::Operation"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for ServiceBinding
+// =============================================================================
+
+/// ResourceIdentifier implementation for ServiceBinding with NetworkservicesProjectsLocationsServiceBindingsGetArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<NetworkservicesProjectsLocationsServiceBindingsGetArgs> for ServiceBinding {
+    fn generate_resource_id(
+        &self,
+        input: &NetworkservicesProjectsLocationsServiceBindingsGetArgs,
+    ) -> String {
+        format!("gcp::networkservices::ServiceBinding/{}", input.name)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::networkservices::ServiceBinding"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for ListServiceBindingsResponse
+// =============================================================================
+
+/// ResourceIdentifier implementation for ListServiceBindingsResponse with NetworkservicesProjectsLocationsServiceBindingsListArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<NetworkservicesProjectsLocationsServiceBindingsListArgs>
+    for ListServiceBindingsResponse
+{
+    fn generate_resource_id(
+        &self,
+        input: &NetworkservicesProjectsLocationsServiceBindingsListArgs,
+    ) -> String {
+        format!(
+            "gcp::networkservices::ListServiceBindingsResponse/{}",
+            input.parent
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::networkservices::ListServiceBindingsResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for Operation
+// =============================================================================
+
+/// ResourceIdentifier implementation for Operation with NetworkservicesProjectsLocationsServiceBindingsPatchArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<NetworkservicesProjectsLocationsServiceBindingsPatchArgs> for Operation {
+    fn generate_resource_id(
+        &self,
+        input: &NetworkservicesProjectsLocationsServiceBindingsPatchArgs,
+    ) -> String {
+        format!("gcp::networkservices::Operation/{}", input.name)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::networkservices::Operation"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for Operation
+// =============================================================================
+
+/// ResourceIdentifier implementation for Operation with NetworkservicesProjectsLocationsServiceLbPoliciesCreateArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<NetworkservicesProjectsLocationsServiceLbPoliciesCreateArgs> for Operation {
+    fn generate_resource_id(
+        &self,
+        input: &NetworkservicesProjectsLocationsServiceLbPoliciesCreateArgs,
+    ) -> String {
+        format!("gcp::networkservices::Operation/{}", input.parent)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::networkservices::Operation"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for Operation
+// =============================================================================
+
+/// ResourceIdentifier implementation for Operation with NetworkservicesProjectsLocationsServiceLbPoliciesDeleteArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<NetworkservicesProjectsLocationsServiceLbPoliciesDeleteArgs> for Operation {
+    fn generate_resource_id(
+        &self,
+        input: &NetworkservicesProjectsLocationsServiceLbPoliciesDeleteArgs,
+    ) -> String {
+        format!("gcp::networkservices::Operation/{}", input.name)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::networkservices::Operation"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for ServiceLbPolicy
+// =============================================================================
+
+/// ResourceIdentifier implementation for ServiceLbPolicy with NetworkservicesProjectsLocationsServiceLbPoliciesGetArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<NetworkservicesProjectsLocationsServiceLbPoliciesGetArgs>
+    for ServiceLbPolicy
+{
+    fn generate_resource_id(
+        &self,
+        input: &NetworkservicesProjectsLocationsServiceLbPoliciesGetArgs,
+    ) -> String {
+        format!("gcp::networkservices::ServiceLbPolicy/{}", input.name)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::networkservices::ServiceLbPolicy"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for ListServiceLbPoliciesResponse
+// =============================================================================
+
+/// ResourceIdentifier implementation for ListServiceLbPoliciesResponse with NetworkservicesProjectsLocationsServiceLbPoliciesListArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<NetworkservicesProjectsLocationsServiceLbPoliciesListArgs>
+    for ListServiceLbPoliciesResponse
+{
+    fn generate_resource_id(
+        &self,
+        input: &NetworkservicesProjectsLocationsServiceLbPoliciesListArgs,
+    ) -> String {
+        format!(
+            "gcp::networkservices::ListServiceLbPoliciesResponse/{}",
+            input.parent
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::networkservices::ListServiceLbPoliciesResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for Operation
+// =============================================================================
+
+/// ResourceIdentifier implementation for Operation with NetworkservicesProjectsLocationsServiceLbPoliciesPatchArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<NetworkservicesProjectsLocationsServiceLbPoliciesPatchArgs> for Operation {
+    fn generate_resource_id(
+        &self,
+        input: &NetworkservicesProjectsLocationsServiceLbPoliciesPatchArgs,
+    ) -> String {
+        format!("gcp::networkservices::Operation/{}", input.name)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::networkservices::Operation"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for Operation
+// =============================================================================
+
+/// ResourceIdentifier implementation for Operation with NetworkservicesProjectsLocationsTcpRoutesCreateArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<NetworkservicesProjectsLocationsTcpRoutesCreateArgs> for Operation {
+    fn generate_resource_id(
+        &self,
+        input: &NetworkservicesProjectsLocationsTcpRoutesCreateArgs,
+    ) -> String {
+        format!("gcp::networkservices::Operation/{}", input.parent)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::networkservices::Operation"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for Operation
+// =============================================================================
+
+/// ResourceIdentifier implementation for Operation with NetworkservicesProjectsLocationsTcpRoutesDeleteArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<NetworkservicesProjectsLocationsTcpRoutesDeleteArgs> for Operation {
+    fn generate_resource_id(
+        &self,
+        input: &NetworkservicesProjectsLocationsTcpRoutesDeleteArgs,
+    ) -> String {
+        format!("gcp::networkservices::Operation/{}", input.name)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::networkservices::Operation"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for TcpRoute
+// =============================================================================
+
+/// ResourceIdentifier implementation for TcpRoute with NetworkservicesProjectsLocationsTcpRoutesGetArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<NetworkservicesProjectsLocationsTcpRoutesGetArgs> for TcpRoute {
+    fn generate_resource_id(
+        &self,
+        input: &NetworkservicesProjectsLocationsTcpRoutesGetArgs,
+    ) -> String {
+        format!("gcp::networkservices::TcpRoute/{}", input.name)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::networkservices::TcpRoute"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for ListTcpRoutesResponse
+// =============================================================================
+
+/// ResourceIdentifier implementation for ListTcpRoutesResponse with NetworkservicesProjectsLocationsTcpRoutesListArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<NetworkservicesProjectsLocationsTcpRoutesListArgs>
+    for ListTcpRoutesResponse
+{
+    fn generate_resource_id(
+        &self,
+        input: &NetworkservicesProjectsLocationsTcpRoutesListArgs,
+    ) -> String {
+        format!(
+            "gcp::networkservices::ListTcpRoutesResponse/{}",
+            input.parent
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::networkservices::ListTcpRoutesResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for Operation
+// =============================================================================
+
+/// ResourceIdentifier implementation for Operation with NetworkservicesProjectsLocationsTcpRoutesPatchArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<NetworkservicesProjectsLocationsTcpRoutesPatchArgs> for Operation {
+    fn generate_resource_id(
+        &self,
+        input: &NetworkservicesProjectsLocationsTcpRoutesPatchArgs,
+    ) -> String {
+        format!("gcp::networkservices::Operation/{}", input.name)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::networkservices::Operation"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for Operation
+// =============================================================================
+
+/// ResourceIdentifier implementation for Operation with NetworkservicesProjectsLocationsTlsRoutesCreateArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<NetworkservicesProjectsLocationsTlsRoutesCreateArgs> for Operation {
+    fn generate_resource_id(
+        &self,
+        input: &NetworkservicesProjectsLocationsTlsRoutesCreateArgs,
+    ) -> String {
+        format!("gcp::networkservices::Operation/{}", input.parent)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::networkservices::Operation"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for Operation
+// =============================================================================
+
+/// ResourceIdentifier implementation for Operation with NetworkservicesProjectsLocationsTlsRoutesDeleteArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<NetworkservicesProjectsLocationsTlsRoutesDeleteArgs> for Operation {
+    fn generate_resource_id(
+        &self,
+        input: &NetworkservicesProjectsLocationsTlsRoutesDeleteArgs,
+    ) -> String {
+        format!("gcp::networkservices::Operation/{}", input.name)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::networkservices::Operation"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for TlsRoute
+// =============================================================================
+
+/// ResourceIdentifier implementation for TlsRoute with NetworkservicesProjectsLocationsTlsRoutesGetArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<NetworkservicesProjectsLocationsTlsRoutesGetArgs> for TlsRoute {
+    fn generate_resource_id(
+        &self,
+        input: &NetworkservicesProjectsLocationsTlsRoutesGetArgs,
+    ) -> String {
+        format!("gcp::networkservices::TlsRoute/{}", input.name)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::networkservices::TlsRoute"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for ListTlsRoutesResponse
+// =============================================================================
+
+/// ResourceIdentifier implementation for ListTlsRoutesResponse with NetworkservicesProjectsLocationsTlsRoutesListArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<NetworkservicesProjectsLocationsTlsRoutesListArgs>
+    for ListTlsRoutesResponse
+{
+    fn generate_resource_id(
+        &self,
+        input: &NetworkservicesProjectsLocationsTlsRoutesListArgs,
+    ) -> String {
+        format!(
+            "gcp::networkservices::ListTlsRoutesResponse/{}",
+            input.parent
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::networkservices::ListTlsRoutesResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for Operation
+// =============================================================================
+
+/// ResourceIdentifier implementation for Operation with NetworkservicesProjectsLocationsTlsRoutesPatchArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<NetworkservicesProjectsLocationsTlsRoutesPatchArgs> for Operation {
+    fn generate_resource_id(
+        &self,
+        input: &NetworkservicesProjectsLocationsTlsRoutesPatchArgs,
+    ) -> String {
+        format!("gcp::networkservices::Operation/{}", input.name)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::networkservices::Operation"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for Operation
+// =============================================================================
+
+/// ResourceIdentifier implementation for Operation with NetworkservicesProjectsLocationsWasmPluginsCreateArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<NetworkservicesProjectsLocationsWasmPluginsCreateArgs> for Operation {
+    fn generate_resource_id(
+        &self,
+        input: &NetworkservicesProjectsLocationsWasmPluginsCreateArgs,
+    ) -> String {
+        format!("gcp::networkservices::Operation/{}", input.parent)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::networkservices::Operation"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for Operation
+// =============================================================================
+
+/// ResourceIdentifier implementation for Operation with NetworkservicesProjectsLocationsWasmPluginsDeleteArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<NetworkservicesProjectsLocationsWasmPluginsDeleteArgs> for Operation {
+    fn generate_resource_id(
+        &self,
+        input: &NetworkservicesProjectsLocationsWasmPluginsDeleteArgs,
+    ) -> String {
+        format!("gcp::networkservices::Operation/{}", input.name)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::networkservices::Operation"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for WasmPlugin
+// =============================================================================
+
+/// ResourceIdentifier implementation for WasmPlugin with NetworkservicesProjectsLocationsWasmPluginsGetArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<NetworkservicesProjectsLocationsWasmPluginsGetArgs> for WasmPlugin {
+    fn generate_resource_id(
+        &self,
+        input: &NetworkservicesProjectsLocationsWasmPluginsGetArgs,
+    ) -> String {
+        format!("gcp::networkservices::WasmPlugin/{}", input.name)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::networkservices::WasmPlugin"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for ListWasmPluginsResponse
+// =============================================================================
+
+/// ResourceIdentifier implementation for ListWasmPluginsResponse with NetworkservicesProjectsLocationsWasmPluginsListArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<NetworkservicesProjectsLocationsWasmPluginsListArgs>
+    for ListWasmPluginsResponse
+{
+    fn generate_resource_id(
+        &self,
+        input: &NetworkservicesProjectsLocationsWasmPluginsListArgs,
+    ) -> String {
+        format!(
+            "gcp::networkservices::ListWasmPluginsResponse/{}",
+            input.parent
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::networkservices::ListWasmPluginsResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for Operation
+// =============================================================================
+
+/// ResourceIdentifier implementation for Operation with NetworkservicesProjectsLocationsWasmPluginsPatchArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<NetworkservicesProjectsLocationsWasmPluginsPatchArgs> for Operation {
+    fn generate_resource_id(
+        &self,
+        input: &NetworkservicesProjectsLocationsWasmPluginsPatchArgs,
+    ) -> String {
+        format!("gcp::networkservices::Operation/{}", input.name)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::networkservices::Operation"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for Operation
+// =============================================================================
+
+/// ResourceIdentifier implementation for Operation with NetworkservicesProjectsLocationsWasmPluginsVersionsCreateArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<NetworkservicesProjectsLocationsWasmPluginsVersionsCreateArgs>
+    for Operation
+{
+    fn generate_resource_id(
+        &self,
+        input: &NetworkservicesProjectsLocationsWasmPluginsVersionsCreateArgs,
+    ) -> String {
+        format!("gcp::networkservices::Operation/{}", input.parent)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::networkservices::Operation"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for Operation
+// =============================================================================
+
+/// ResourceIdentifier implementation for Operation with NetworkservicesProjectsLocationsWasmPluginsVersionsDeleteArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<NetworkservicesProjectsLocationsWasmPluginsVersionsDeleteArgs>
+    for Operation
+{
+    fn generate_resource_id(
+        &self,
+        input: &NetworkservicesProjectsLocationsWasmPluginsVersionsDeleteArgs,
+    ) -> String {
+        format!("gcp::networkservices::Operation/{}", input.name)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::networkservices::Operation"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for WasmPluginVersion
+// =============================================================================
+
+/// ResourceIdentifier implementation for WasmPluginVersion with NetworkservicesProjectsLocationsWasmPluginsVersionsGetArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<NetworkservicesProjectsLocationsWasmPluginsVersionsGetArgs>
+    for WasmPluginVersion
+{
+    fn generate_resource_id(
+        &self,
+        input: &NetworkservicesProjectsLocationsWasmPluginsVersionsGetArgs,
+    ) -> String {
+        format!("gcp::networkservices::WasmPluginVersion/{}", input.name)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::networkservices::WasmPluginVersion"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for ListWasmPluginVersionsResponse
+// =============================================================================
+
+/// ResourceIdentifier implementation for ListWasmPluginVersionsResponse with NetworkservicesProjectsLocationsWasmPluginsVersionsListArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<NetworkservicesProjectsLocationsWasmPluginsVersionsListArgs>
+    for ListWasmPluginVersionsResponse
+{
+    fn generate_resource_id(
+        &self,
+        input: &NetworkservicesProjectsLocationsWasmPluginsVersionsListArgs,
+    ) -> String {
+        format!(
+            "gcp::networkservices::ListWasmPluginVersionsResponse/{}",
+            input.parent
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::networkservices::ListWasmPluginVersionsResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
 }

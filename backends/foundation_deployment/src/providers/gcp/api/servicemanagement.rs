@@ -12,27 +12,46 @@
 #![cfg(feature = "gcp")]
 
 use crate::providers::gcp::clients::servicemanagement::{
+    servicemanagement_operations_get_builder, servicemanagement_operations_get_task,
+    servicemanagement_operations_list_builder, servicemanagement_operations_list_task,
     servicemanagement_services_create_builder, servicemanagement_services_create_task,
     servicemanagement_services_delete_builder, servicemanagement_services_delete_task,
     servicemanagement_services_generate_config_report_builder, servicemanagement_services_generate_config_report_task,
+    servicemanagement_services_get_builder, servicemanagement_services_get_task,
+    servicemanagement_services_get_config_builder, servicemanagement_services_get_config_task,
     servicemanagement_services_get_iam_policy_builder, servicemanagement_services_get_iam_policy_task,
+    servicemanagement_services_list_builder, servicemanagement_services_list_task,
     servicemanagement_services_set_iam_policy_builder, servicemanagement_services_set_iam_policy_task,
     servicemanagement_services_test_iam_permissions_builder, servicemanagement_services_test_iam_permissions_task,
     servicemanagement_services_undelete_builder, servicemanagement_services_undelete_task,
     servicemanagement_services_configs_create_builder, servicemanagement_services_configs_create_task,
+    servicemanagement_services_configs_get_builder, servicemanagement_services_configs_get_task,
+    servicemanagement_services_configs_list_builder, servicemanagement_services_configs_list_task,
     servicemanagement_services_configs_submit_builder, servicemanagement_services_configs_submit_task,
     servicemanagement_services_consumers_get_iam_policy_builder, servicemanagement_services_consumers_get_iam_policy_task,
     servicemanagement_services_consumers_set_iam_policy_builder, servicemanagement_services_consumers_set_iam_policy_task,
     servicemanagement_services_consumers_test_iam_permissions_builder, servicemanagement_services_consumers_test_iam_permissions_task,
     servicemanagement_services_rollouts_create_builder, servicemanagement_services_rollouts_create_task,
+    servicemanagement_services_rollouts_get_builder, servicemanagement_services_rollouts_get_task,
+    servicemanagement_services_rollouts_list_builder, servicemanagement_services_rollouts_list_task,
 };
 use crate::providers::gcp::clients::types::{ApiError, ApiPending};
 use crate::providers::gcp::clients::servicemanagement::GenerateConfigReportResponse;
+use crate::providers::gcp::clients::servicemanagement::ListOperationsResponse;
+use crate::providers::gcp::clients::servicemanagement::ListServiceConfigsResponse;
+use crate::providers::gcp::clients::servicemanagement::ListServiceRolloutsResponse;
+use crate::providers::gcp::clients::servicemanagement::ListServicesResponse;
+use crate::providers::gcp::clients::servicemanagement::ManagedService;
 use crate::providers::gcp::clients::servicemanagement::Operation;
 use crate::providers::gcp::clients::servicemanagement::Policy;
+use crate::providers::gcp::clients::servicemanagement::Rollout;
 use crate::providers::gcp::clients::servicemanagement::Service;
 use crate::providers::gcp::clients::servicemanagement::TestIamPermissionsResponse;
+use crate::providers::gcp::clients::servicemanagement::ServicemanagementOperationsGetArgs;
+use crate::providers::gcp::clients::servicemanagement::ServicemanagementOperationsListArgs;
 use crate::providers::gcp::clients::servicemanagement::ServicemanagementServicesConfigsCreateArgs;
+use crate::providers::gcp::clients::servicemanagement::ServicemanagementServicesConfigsGetArgs;
+use crate::providers::gcp::clients::servicemanagement::ServicemanagementServicesConfigsListArgs;
 use crate::providers::gcp::clients::servicemanagement::ServicemanagementServicesConfigsSubmitArgs;
 use crate::providers::gcp::clients::servicemanagement::ServicemanagementServicesConsumersGetIamPolicyArgs;
 use crate::providers::gcp::clients::servicemanagement::ServicemanagementServicesConsumersSetIamPolicyArgs;
@@ -40,8 +59,13 @@ use crate::providers::gcp::clients::servicemanagement::ServicemanagementServices
 use crate::providers::gcp::clients::servicemanagement::ServicemanagementServicesCreateArgs;
 use crate::providers::gcp::clients::servicemanagement::ServicemanagementServicesDeleteArgs;
 use crate::providers::gcp::clients::servicemanagement::ServicemanagementServicesGenerateConfigReportArgs;
+use crate::providers::gcp::clients::servicemanagement::ServicemanagementServicesGetArgs;
+use crate::providers::gcp::clients::servicemanagement::ServicemanagementServicesGetConfigArgs;
 use crate::providers::gcp::clients::servicemanagement::ServicemanagementServicesGetIamPolicyArgs;
+use crate::providers::gcp::clients::servicemanagement::ServicemanagementServicesListArgs;
 use crate::providers::gcp::clients::servicemanagement::ServicemanagementServicesRolloutsCreateArgs;
+use crate::providers::gcp::clients::servicemanagement::ServicemanagementServicesRolloutsGetArgs;
+use crate::providers::gcp::clients::servicemanagement::ServicemanagementServicesRolloutsListArgs;
 use crate::providers::gcp::clients::servicemanagement::ServicemanagementServicesSetIamPolicyArgs;
 use crate::providers::gcp::clients::servicemanagement::ServicemanagementServicesTestIamPermissionsArgs;
 use crate::providers::gcp::clients::servicemanagement::ServicemanagementServicesUndeleteArgs;
@@ -84,6 +108,86 @@ where
             client,
             http_client: Arc::new(http_client),
         }
+    }
+
+    /// Servicemanagement operations get.
+    ///
+    /// Read-only operation - no state tracking.
+    ///
+    /// # Arguments
+    ///
+    /// * `args` - Request arguments
+    ///
+    /// # Returns
+    ///
+    /// StreamIterator yielding the Operation result.
+    ///
+    /// # Errors
+    ///
+    /// Returns ProviderError if the API request fails.
+    pub fn servicemanagement_operations_get(
+        &self,
+        args: &ServicemanagementOperationsGetArgs,
+    ) -> Result<
+        impl StreamIterator<
+            D = Result<Operation, ProviderError<ApiError>>,
+            P = crate::providers::gcp::clients::types::ApiPending,
+        > + Send
+        + 'static,
+        ProviderError<ApiError>,
+    > {
+        let builder = servicemanagement_operations_get_builder(
+            &self.http_client,
+            &args.name,
+        )
+        .map_err(ProviderError::Api)?;
+
+        let task = servicemanagement_operations_get_task(builder)
+            .map_err(ProviderError::Api)?;
+
+        execute(task, None).map_err(|e: String| ProviderError::ExecuteFailed(e.to_string()))
+    }
+
+    /// Servicemanagement operations list.
+    ///
+    /// Read-only operation - no state tracking.
+    ///
+    /// # Arguments
+    ///
+    /// * `args` - Request arguments
+    ///
+    /// # Returns
+    ///
+    /// StreamIterator yielding the ListOperationsResponse result.
+    ///
+    /// # Errors
+    ///
+    /// Returns ProviderError if the API request fails.
+    pub fn servicemanagement_operations_list(
+        &self,
+        args: &ServicemanagementOperationsListArgs,
+    ) -> Result<
+        impl StreamIterator<
+            D = Result<ListOperationsResponse, ProviderError<ApiError>>,
+            P = crate::providers::gcp::clients::types::ApiPending,
+        > + Send
+        + 'static,
+        ProviderError<ApiError>,
+    > {
+        let builder = servicemanagement_operations_list_builder(
+            &self.http_client,
+            &args.filter,
+            &args.name,
+            &args.pageSize,
+            &args.pageToken,
+            &args.returnPartialSuccess,
+        )
+        .map_err(ProviderError::Api)?;
+
+        let task = servicemanagement_operations_list_task(builder)
+            .map_err(ProviderError::Api)?;
+
+        execute(task, None).map_err(|e: String| ProviderError::ExecuteFailed(e.to_string()))
     }
 
     /// Servicemanagement services create.
@@ -213,9 +317,87 @@ where
         execute(store_task, None).map_err(|e: String| ProviderError::ExecuteFailed(e.to_string()))
     }
 
+    /// Servicemanagement services get.
+    ///
+    /// Read-only operation - no state tracking.
+    ///
+    /// # Arguments
+    ///
+    /// * `args` - Request arguments
+    ///
+    /// # Returns
+    ///
+    /// StreamIterator yielding the ManagedService result.
+    ///
+    /// # Errors
+    ///
+    /// Returns ProviderError if the API request fails.
+    pub fn servicemanagement_services_get(
+        &self,
+        args: &ServicemanagementServicesGetArgs,
+    ) -> Result<
+        impl StreamIterator<
+            D = Result<ManagedService, ProviderError<ApiError>>,
+            P = crate::providers::gcp::clients::types::ApiPending,
+        > + Send
+        + 'static,
+        ProviderError<ApiError>,
+    > {
+        let builder = servicemanagement_services_get_builder(
+            &self.http_client,
+            &args.serviceName,
+        )
+        .map_err(ProviderError::Api)?;
+
+        let task = servicemanagement_services_get_task(builder)
+            .map_err(ProviderError::Api)?;
+
+        execute(task, None).map_err(|e: String| ProviderError::ExecuteFailed(e.to_string()))
+    }
+
+    /// Servicemanagement services get config.
+    ///
+    /// Read-only operation - no state tracking.
+    ///
+    /// # Arguments
+    ///
+    /// * `args` - Request arguments
+    ///
+    /// # Returns
+    ///
+    /// StreamIterator yielding the Service result.
+    ///
+    /// # Errors
+    ///
+    /// Returns ProviderError if the API request fails.
+    pub fn servicemanagement_services_get_config(
+        &self,
+        args: &ServicemanagementServicesGetConfigArgs,
+    ) -> Result<
+        impl StreamIterator<
+            D = Result<Service, ProviderError<ApiError>>,
+            P = crate::providers::gcp::clients::types::ApiPending,
+        > + Send
+        + 'static,
+        ProviderError<ApiError>,
+    > {
+        let builder = servicemanagement_services_get_config_builder(
+            &self.http_client,
+            &args.serviceName,
+            &args.configId,
+            &args.view,
+        )
+        .map_err(ProviderError::Api)?;
+
+        let task = servicemanagement_services_get_config_task(builder)
+            .map_err(ProviderError::Api)?;
+
+        execute(task, None).map_err(|e: String| ProviderError::ExecuteFailed(e.to_string()))
+    }
+
     /// Servicemanagement services get iam policy.
     ///
-    /// Automatically stores the result in the state store on success.
+    /// Read-only operation - no state tracking.
     ///
     /// # Arguments
     ///
@@ -227,7 +409,7 @@ where
     ///
     /// # Errors
     ///
-    /// Returns ProviderError if the API request or state storage fails.
+    /// Returns ProviderError if the API request fails.
     pub fn servicemanagement_services_get_iam_policy(
         &self,
         args: &ServicemanagementServicesGetIamPolicyArgs,
@@ -248,12 +430,48 @@ where
         let task = servicemanagement_services_get_iam_policy_task(builder)
             .map_err(ProviderError::Api)?;
 
-        let state_store = self.client.state_store.clone();
-        let stage = Some(self.client.stage.clone());
+        execute(task, None).map_err(|e: String| ProviderError::ExecuteFailed(e.to_string()))
+    }
 
-        let store_task = StoreStateIdentifierTask::new(task, state_store, args, stage);
+    /// Servicemanagement services list.
+    ///
+    /// Read-only operation - no state tracking.
+    ///
+    /// # Arguments
+    ///
+    /// * `args` - Request arguments
+    ///
+    /// # Returns
+    ///
+    /// StreamIterator yielding the ListServicesResponse result.
+    ///
+    /// # Errors
+    ///
+    /// Returns ProviderError if the API request fails.
+    pub fn servicemanagement_services_list(
+        &self,
+        args: &ServicemanagementServicesListArgs,
+    ) -> Result<
+        impl StreamIterator<
+            D = Result<ListServicesResponse, ProviderError<ApiError>>,
+            P = crate::providers::gcp::clients::types::ApiPending,
+        > + Send
+        + 'static,
+        ProviderError<ApiError>,
+    > {
+        let builder = servicemanagement_services_list_builder(
+            &self.http_client,
+            &args.consumerId,
+            &args.pageSize,
+            &args.pageToken,
+            &args.producerProjectId,
+        )
+        .map_err(ProviderError::Api)?;
 
-        execute(store_task, None).map_err(|e: String| ProviderError::ExecuteFailed(e.to_string()))
+        let task = servicemanagement_services_list_task(builder)
+            .map_err(ProviderError::Api)?;
+
+        execute(task, None).map_err(|e: String| ProviderError::ExecuteFailed(e.to_string()))
     }
 
     /// Servicemanagement services set iam policy.
@@ -301,7 +519,7 @@ where
 
     /// Servicemanagement services test iam permissions.
     ///
-    /// Automatically stores the result in the state store on success.
+    /// Read-only operation - no state tracking.
     ///
     /// # Arguments
     ///
@@ -313,7 +531,7 @@ where
     ///
     /// # Errors
     ///
-    /// Returns ProviderError if the API request or state storage fails.
+    /// Returns ProviderError if the API request fails.
     pub fn servicemanagement_services_test_iam_permissions(
         &self,
         args: &ServicemanagementServicesTestIamPermissionsArgs,
@@ -334,12 +552,7 @@ where
         let task = servicemanagement_services_test_iam_permissions_task(builder)
             .map_err(ProviderError::Api)?;
 
-        let state_store = self.client.state_store.clone();
-        let stage = Some(self.client.stage.clone());
-
-        let store_task = StoreStateIdentifierTask::new(task, state_store, args, stage);
-
-        execute(store_task, None).map_err(|e: String| ProviderError::ExecuteFailed(e.to_string()))
+        execute(task, None).map_err(|e: String| ProviderError::ExecuteFailed(e.to_string()))
     }
 
     /// Servicemanagement services undelete.
@@ -428,6 +641,86 @@ where
         execute(store_task, None).map_err(|e: String| ProviderError::ExecuteFailed(e.to_string()))
     }
 
+    /// Servicemanagement services configs get.
+    ///
+    /// Read-only operation - no state tracking.
+    ///
+    /// # Arguments
+    ///
+    /// * `args` - Request arguments
+    ///
+    /// # Returns
+    ///
+    /// StreamIterator yielding the Service result.
+    ///
+    /// # Errors
+    ///
+    /// Returns ProviderError if the API request fails.
+    pub fn servicemanagement_services_configs_get(
+        &self,
+        args: &ServicemanagementServicesConfigsGetArgs,
+    ) -> Result<
+        impl StreamIterator<
+            D = Result<Service, ProviderError<ApiError>>,
+            P = crate::providers::gcp::clients::types::ApiPending,
+        > + Send
+        + 'static,
+        ProviderError<ApiError>,
+    > {
+        let builder = servicemanagement_services_configs_get_builder(
+            &self.http_client,
+            &args.serviceName,
+            &args.configId,
+            &args.view,
+        )
+        .map_err(ProviderError::Api)?;
+
+        let task = servicemanagement_services_configs_get_task(builder)
+            .map_err(ProviderError::Api)?;
+
+        execute(task, None).map_err(|e: String| ProviderError::ExecuteFailed(e.to_string()))
+    }
+
+    /// Servicemanagement services configs list.
+    ///
+    /// Read-only operation - no state tracking.
+    ///
+    /// # Arguments
+    ///
+    /// * `args` - Request arguments
+    ///
+    /// # Returns
+    ///
+    /// StreamIterator yielding the ListServiceConfigsResponse result.
+    ///
+    /// # Errors
+    ///
+    /// Returns ProviderError if the API request fails.
+    pub fn servicemanagement_services_configs_list(
+        &self,
+        args: &ServicemanagementServicesConfigsListArgs,
+    ) -> Result<
+        impl StreamIterator<
+            D = Result<ListServiceConfigsResponse, ProviderError<ApiError>>,
+            P = crate::providers::gcp::clients::types::ApiPending,
+        > + Send
+        + 'static,
+        ProviderError<ApiError>,
+    > {
+        let builder = servicemanagement_services_configs_list_builder(
+            &self.http_client,
+            &args.serviceName,
+            &args.pageSize,
+            &args.pageToken,
+        )
+        .map_err(ProviderError::Api)?;
+
+        let task = servicemanagement_services_configs_list_task(builder)
+            .map_err(ProviderError::Api)?;
+
+        execute(task, None).map_err(|e: String| ProviderError::ExecuteFailed(e.to_string()))
+    }
+
     /// Servicemanagement services configs submit.
     ///
     /// Automatically stores the result in the state store on success.
@@ -473,7 +766,7 @@ where
 
     /// Servicemanagement services consumers get iam policy.
     ///
-    /// Automatically stores the result in the state store on success.
+    /// Read-only operation - no state tracking.
     ///
     /// # Arguments
     ///
@@ -485,7 +778,7 @@ where
     ///
     /// # Errors
     ///
-    /// Returns ProviderError if the API request or state storage fails.
+    /// Returns ProviderError if the API request fails.
     pub fn servicemanagement_services_consumers_get_iam_policy(
         &self,
         args: &ServicemanagementServicesConsumersGetIamPolicyArgs,
@@ -506,12 +799,7 @@ where
         let task = servicemanagement_services_consumers_get_iam_policy_task(builder)
             .map_err(ProviderError::Api)?;
 
-        let state_store = self.client.state_store.clone();
-        let stage = Some(self.client.stage.clone());
-
-        let store_task = StoreStateIdentifierTask::new(task, state_store, args, stage);
-
-        execute(store_task, None).map_err(|e: String| ProviderError::ExecuteFailed(e.to_string()))
+        execute(task, None).map_err(|e: String| ProviderError::ExecuteFailed(e.to_string()))
     }
 
     /// Servicemanagement services consumers set iam policy.
@@ -559,7 +847,7 @@ where
 
     /// Servicemanagement services consumers test iam permissions.
     ///
-    /// Automatically stores the result in the state store on success.
+    /// Read-only operation - no state tracking.
     ///
     /// # Arguments
     ///
@@ -571,7 +859,7 @@ where
     ///
     /// # Errors
     ///
-    /// Returns ProviderError if the API request or state storage fails.
+    /// Returns ProviderError if the API request fails.
     pub fn servicemanagement_services_consumers_test_iam_permissions(
         &self,
         args: &ServicemanagementServicesConsumersTestIamPermissionsArgs,
@@ -592,12 +880,7 @@ where
         let task = servicemanagement_services_consumers_test_iam_permissions_task(builder)
             .map_err(ProviderError::Api)?;
 
-        let state_store = self.client.state_store.clone();
-        let stage = Some(self.client.stage.clone());
-
-        let store_task = StoreStateIdentifierTask::new(task, state_store, args, stage);
-
-        execute(store_task, None).map_err(|e: String| ProviderError::ExecuteFailed(e.to_string()))
+        execute(task, None).map_err(|e: String| ProviderError::ExecuteFailed(e.to_string()))
     }
 
     /// Servicemanagement services rollouts create.
@@ -641,6 +924,86 @@ where
         let store_task = StoreStateIdentifierTask::new(task, state_store, args, stage);
 
         execute(store_task, None).map_err(|e: String| ProviderError::ExecuteFailed(e.to_string()))
+    }
+
+    /// Servicemanagement services rollouts get.
+    ///
+    /// Read-only operation - no state tracking.
+    ///
+    /// # Arguments
+    ///
+    /// * `args` - Request arguments
+    ///
+    /// # Returns
+    ///
+    /// StreamIterator yielding the Rollout result.
+    ///
+    /// # Errors
+    ///
+    /// Returns ProviderError if the API request fails.
+    pub fn servicemanagement_services_rollouts_get(
+        &self,
+        args: &ServicemanagementServicesRolloutsGetArgs,
+    ) -> Result<
+        impl StreamIterator<
+            D = Result<Rollout, ProviderError<ApiError>>,
+            P = crate::providers::gcp::clients::types::ApiPending,
+        > + Send
+        + 'static,
+        ProviderError<ApiError>,
+    > {
+        let builder = servicemanagement_services_rollouts_get_builder(
+            &self.http_client,
+            &args.serviceName,
+            &args.rolloutId,
+        )
+        .map_err(ProviderError::Api)?;
+
+        let task = servicemanagement_services_rollouts_get_task(builder)
+            .map_err(ProviderError::Api)?;
+
+        execute(task, None).map_err(|e: String| ProviderError::ExecuteFailed(e.to_string()))
+    }
+
+    /// Servicemanagement services rollouts list.
+    ///
+    /// Read-only operation - no state tracking.
+    ///
+    /// # Arguments
+    ///
+    /// * `args` - Request arguments
+    ///
+    /// # Returns
+    ///
+    /// StreamIterator yielding the ListServiceRolloutsResponse result.
+    ///
+    /// # Errors
+    ///
+    /// Returns ProviderError if the API request fails.
+    pub fn servicemanagement_services_rollouts_list(
+        &self,
+        args: &ServicemanagementServicesRolloutsListArgs,
+    ) -> Result<
+        impl StreamIterator<
+            D = Result<ListServiceRolloutsResponse, ProviderError<ApiError>>,
+            P = crate::providers::gcp::clients::types::ApiPending,
+        > + Send
+        + 'static,
+        ProviderError<ApiError>,
+    > {
+        let builder = servicemanagement_services_rollouts_list_builder(
+            &self.http_client,
+            &args.serviceName,
+            &args.filter,
+            &args.pageSize,
+            &args.pageToken,
+        )
+        .map_err(ProviderError::Api)?;
+
+        let task = servicemanagement_services_rollouts_list_task(builder)
+            .map_err(ProviderError::Api)?;
+
+        execute(task, None).map_err(|e: String| ProviderError::ExecuteFailed(e.to_string()))
     }
 
 }

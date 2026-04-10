@@ -7,7 +7,6 @@
 
 #![cfg(feature = "gcp")]
 
-
 use crate::providers::gcp::clients::types::*;
 use crate::providers::gcp::resources::*;
 use foundation_core::valtron::{
@@ -17,6 +16,7 @@ use foundation_core::valtron::{
 use foundation_core::wire::simple_http::client::{
     body_reader, ClientRequestBuilder, RequestIntro, SimpleHttpClient, SystemDnsResolver,
 };
+use foundation_db::state::resource_identifier::ResourceIdentifier;
 use foundation_macros::JsonHash;
 use serde::Serialize;
 
@@ -28,9 +28,9 @@ use serde::Serialize;
 
 pub fn people_contact_groups_batch_get_builder(
     client: &SimpleHttpClient,
-    groupFields: &Option<String>,
-    maxMembers: &Option<i32>,
-    resourceNames: &Option<String>,
+    groupFields: &Option<Option<String>>,
+    maxMembers: &Option<Option<String>>,
+    resourceNames: &Option<Option<String>>,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!("https://people.googleapis.com/v1/contactGroups:batchGet",);
@@ -172,11 +172,11 @@ pub fn people_contact_groups_batch_get_execute(
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct PeopleContactGroupsBatchGetArgs {
     /// Query parameter: groupFields
-    pub groupFields: Option<String>,
+    pub groupFields: Option<Option<String>>,
     /// Query parameter: maxMembers
-    pub maxMembers: Option<i32>,
+    pub maxMembers: Option<Option<String>>,
     /// Query parameter: resourceNames
-    pub resourceNames: Option<String>,
+    pub resourceNames: Option<Option<String>>,
 }
 
 /// GET v1/contactGroups:batchGet
@@ -210,7 +210,7 @@ pub fn people_contact_groups_batch_get(
     people_contact_groups_batch_get_execute(builder)
 }
 
-/// GET v1/contactGroups
+/// POST v1/contactGroups
 /// Create a new contact group owned by the authenticated user. Created contact group names must be unique to the users contact groups. Attempting to create a group with a duplicate name will return a HTTP 409 error. Mutate requests for the same user should be sent sequentially to avoid increased latency and failures.
 ///
 /// Returns `ClientRequestBuilder` for customization.
@@ -218,22 +218,19 @@ pub fn people_contact_groups_batch_get(
 
 pub fn people_contact_groups_create_builder(
     client: &SimpleHttpClient,
-    body: &CreateContactGroupRequest,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!("https://people.googleapis.com/v1/contactGroups",);
 
     // Build request
     let builder = client
-        .get(&endpoint_url)
+        .post(&endpoint_url)
         .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
 
-    builder
-        .body_json(body)
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+    Ok(builder)
 }
 
-/// GET v1/contactGroups
+/// POST v1/contactGroups
 /// Create a new contact group owned by the authenticated user. Created contact group names must be unique to the users contact groups. Attempting to create a group with a duplicate name will return a HTTP 409 error. Mutate requests for the same user should be sent sequentially to avoid increased latency and failures.
 ///
 /// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
@@ -307,7 +304,7 @@ pub fn people_contact_groups_create_task(
         .map_pending(|_| ApiPending::Sending))
 }
 
-/// GET v1/contactGroups
+/// POST v1/contactGroups
 /// Create a new contact group owned by the authenticated user. Created contact group names must be unique to the users contact groups. Attempting to create a group with a duplicate name will return a HTTP 409 error. Mutate requests for the same user should be sent sequentially to avoid increased latency and failures.
 ///
 /// Takes a `ClientRequestBuilder`, builds and executes the request,
@@ -339,14 +336,7 @@ pub fn people_contact_groups_create_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
-/// Arguments for [`people_contact_groups_create`].
-#[derive(Debug, Clone, Serialize, JsonHash)]
-pub struct PeopleContactGroupsCreateArgs {
-    /// Request body.
-    pub body: CreateContactGroupRequest,
-}
-
-/// GET v1/contactGroups
+/// POST v1/contactGroups
 /// Create a new contact group owned by the authenticated user. Created contact group names must be unique to the users contact groups. Attempting to create a group with a duplicate name will return a HTTP 409 error. Mutate requests for the same user should be sent sequentially to avoid increased latency and failures.
 ///
 /// Simplest API - builds and executes the request in one call.
@@ -359,18 +349,17 @@ pub struct PeopleContactGroupsCreateArgs {
 
 pub fn people_contact_groups_create(
     client: &SimpleHttpClient,
-    args: &PeopleContactGroupsCreateArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<ContactGroup>, ApiError>, P = ApiPending>
         + Send
         + 'static,
     ApiError,
 > {
-    let builder = people_contact_groups_create_builder(client, &args.body)?;
+    let builder = people_contact_groups_create_builder(client)?;
     people_contact_groups_create_execute(builder)
 }
 
-/// GET v1/contactGroups/{contactGroupsId}
+/// DELETE v1/contactGroups/{contactGroupsId}
 /// Delete an existing contact group owned by the authenticated user by specifying a contact group resource name. Mutate requests for the same user should be sent sequentially to avoid increased latency and failures.
 ///
 /// Returns `ClientRequestBuilder` for customization.
@@ -379,10 +368,13 @@ pub fn people_contact_groups_create(
 pub fn people_contact_groups_delete_builder(
     client: &SimpleHttpClient,
     resourceName: &String,
-    deleteContacts: &Option<bool>,
+    deleteContacts: &Option<Option<String>>,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
-    let endpoint_url = format!("https://people.googleapis.com/v1/contactGroups/{}",);
+    let endpoint_url = format!(
+        "https://people.googleapis.com/v1/contactGroups/{}",
+        resourceName,
+    );
 
     // Build request
     let mut query_parts = Vec::new();
@@ -397,13 +389,13 @@ pub fn people_contact_groups_delete_builder(
     };
 
     let builder = client
-        .get(&url_with_query)
+        .delete(&url_with_query)
         .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
 
     Ok(builder)
 }
 
-/// GET v1/contactGroups/{contactGroupsId}
+/// DELETE v1/contactGroups/{contactGroupsId}
 /// Delete an existing contact group owned by the authenticated user by specifying a contact group resource name. Mutate requests for the same user should be sent sequentially to avoid increased latency and failures.
 ///
 /// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
@@ -477,7 +469,7 @@ pub fn people_contact_groups_delete_task(
         .map_pending(|_| ApiPending::Sending))
 }
 
-/// GET v1/contactGroups/{contactGroupsId}
+/// DELETE v1/contactGroups/{contactGroupsId}
 /// Delete an existing contact group owned by the authenticated user by specifying a contact group resource name. Mutate requests for the same user should be sent sequentially to avoid increased latency and failures.
 ///
 /// Takes a `ClientRequestBuilder`, builds and executes the request,
@@ -513,10 +505,10 @@ pub struct PeopleContactGroupsDeleteArgs {
     /// Path parameter: resourceName
     pub resourceName: String,
     /// Query parameter: deleteContacts
-    pub deleteContacts: Option<bool>,
+    pub deleteContacts: Option<Option<String>>,
 }
 
-/// GET v1/contactGroups/{contactGroupsId}
+/// DELETE v1/contactGroups/{contactGroupsId}
 /// Delete an existing contact group owned by the authenticated user by specifying a contact group resource name. Mutate requests for the same user should be sent sequentially to avoid increased latency and failures.
 ///
 /// Simplest API - builds and executes the request in one call.
@@ -539,7 +531,547 @@ pub fn people_contact_groups_delete(
     people_contact_groups_delete_execute(builder)
 }
 
-/// GET v1/contactGroups/{contactGroupsId}/members:modify
+/// GET v1/contactGroups/{contactGroupsId}
+/// Get a specific contact group owned by the authenticated user by specifying a contact group resource name.
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `people_contact_groups_get_execute()` to send, or `people_contact_groups_get` for simplest API.
+
+pub fn people_contact_groups_get_builder(
+    client: &SimpleHttpClient,
+    resourceName: &String,
+    groupFields: &Option<Option<String>>,
+    maxMembers: &Option<Option<String>>,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!(
+        "https://people.googleapis.com/v1/contactGroups/{}",
+        resourceName,
+    );
+
+    // Build request
+    let mut query_parts = Vec::new();
+    if let Some(val) = groupFields.as_ref() {
+        query_parts.push(format!("groupFields={}", val));
+    }
+    if let Some(val) = maxMembers.as_ref() {
+        query_parts.push(format!("maxMembers={}", val));
+    }
+
+    let url_with_query = if query_parts.is_empty() {
+        endpoint_url
+    } else {
+        format!("{}?{}", endpoint_url, query_parts.join("&"))
+    };
+
+    let builder = client
+        .get(&url_with_query)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// GET v1/contactGroups/{contactGroupsId}
+/// Get a specific contact group owned by the authenticated user by specifying a contact group resource name.
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `people_contact_groups_get_execute()` or `people_contact_groups_get`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `people_contact_groups_get_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn people_contact_groups_get_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<ContactGroup>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: ContactGroup = serde_json::from_str(&body)
+                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// GET v1/contactGroups/{contactGroupsId}
+/// Get a specific contact group owned by the authenticated user by specifying a contact group resource name.
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `people_contact_groups_get_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `people_contact_groups_get_task()`.
+/// For the simplest API, use `people_contact_groups_get()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `people_contact_groups_get_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn people_contact_groups_get_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<ContactGroup>, ApiError>, P = ApiPending>
+        + Send
+        + 'static,
+    ApiError,
+> {
+    let task = people_contact_groups_get_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`people_contact_groups_get`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct PeopleContactGroupsGetArgs {
+    /// Path parameter: resourceName
+    pub resourceName: String,
+    /// Query parameter: groupFields
+    pub groupFields: Option<Option<String>>,
+    /// Query parameter: maxMembers
+    pub maxMembers: Option<Option<String>>,
+}
+
+/// GET v1/contactGroups/{contactGroupsId}
+/// Get a specific contact group owned by the authenticated user by specifying a contact group resource name.
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `people_contact_groups_get_builder()` + `people_contact_groups_get_execute()`.
+/// For task-level control, use `people_contact_groups_get_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn people_contact_groups_get(
+    client: &SimpleHttpClient,
+    args: &PeopleContactGroupsGetArgs,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<ContactGroup>, ApiError>, P = ApiPending>
+        + Send
+        + 'static,
+    ApiError,
+> {
+    let builder = people_contact_groups_get_builder(
+        client,
+        &args.resourceName,
+        &args.groupFields,
+        &args.maxMembers,
+    )?;
+    people_contact_groups_get_execute(builder)
+}
+
+/// GET v1/contactGroups
+/// List all contact groups owned by the authenticated user. Members of the contact groups are not populated.
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `people_contact_groups_list_execute()` to send, or `people_contact_groups_list` for simplest API.
+
+pub fn people_contact_groups_list_builder(
+    client: &SimpleHttpClient,
+    groupFields: &Option<Option<String>>,
+    pageSize: &Option<Option<String>>,
+    pageToken: &Option<Option<String>>,
+    syncToken: &Option<Option<String>>,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!("https://people.googleapis.com/v1/contactGroups",);
+
+    // Build request
+    let mut query_parts = Vec::new();
+    if let Some(val) = groupFields.as_ref() {
+        query_parts.push(format!("groupFields={}", val));
+    }
+    if let Some(val) = pageSize.as_ref() {
+        query_parts.push(format!("pageSize={}", val));
+    }
+    if let Some(val) = pageToken.as_ref() {
+        query_parts.push(format!("pageToken={}", val));
+    }
+    if let Some(val) = syncToken.as_ref() {
+        query_parts.push(format!("syncToken={}", val));
+    }
+
+    let url_with_query = if query_parts.is_empty() {
+        endpoint_url
+    } else {
+        format!("{}?{}", endpoint_url, query_parts.join("&"))
+    };
+
+    let builder = client
+        .get(&url_with_query)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// GET v1/contactGroups
+/// List all contact groups owned by the authenticated user. Members of the contact groups are not populated.
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `people_contact_groups_list_execute()` or `people_contact_groups_list`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `people_contact_groups_list_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn people_contact_groups_list_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<ListContactGroupsResponse>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: ListContactGroupsResponse = serde_json::from_str(&body)
+                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// GET v1/contactGroups
+/// List all contact groups owned by the authenticated user. Members of the contact groups are not populated.
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `people_contact_groups_list_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `people_contact_groups_list_task()`.
+/// For the simplest API, use `people_contact_groups_list()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `people_contact_groups_list_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn people_contact_groups_list_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<ListContactGroupsResponse>, ApiError>, P = ApiPending>
+        + Send
+        + 'static,
+    ApiError,
+> {
+    let task = people_contact_groups_list_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`people_contact_groups_list`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct PeopleContactGroupsListArgs {
+    /// Query parameter: groupFields
+    pub groupFields: Option<Option<String>>,
+    /// Query parameter: pageSize
+    pub pageSize: Option<Option<String>>,
+    /// Query parameter: pageToken
+    pub pageToken: Option<Option<String>>,
+    /// Query parameter: syncToken
+    pub syncToken: Option<Option<String>>,
+}
+
+/// GET v1/contactGroups
+/// List all contact groups owned by the authenticated user. Members of the contact groups are not populated.
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `people_contact_groups_list_builder()` + `people_contact_groups_list_execute()`.
+/// For task-level control, use `people_contact_groups_list_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn people_contact_groups_list(
+    client: &SimpleHttpClient,
+    args: &PeopleContactGroupsListArgs,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<ListContactGroupsResponse>, ApiError>, P = ApiPending>
+        + Send
+        + 'static,
+    ApiError,
+> {
+    let builder = people_contact_groups_list_builder(
+        client,
+        &args.groupFields,
+        &args.pageSize,
+        &args.pageToken,
+        &args.syncToken,
+    )?;
+    people_contact_groups_list_execute(builder)
+}
+
+/// PUT v1/contactGroups/{contactGroupsId}
+/// Update the name of an existing contact group owned by the authenticated user. Updated contact group names must be unique to the users contact groups. Attempting to create a group with a duplicate name will return a HTTP 409 error. Mutate requests for the same user should be sent sequentially to avoid increased latency and failures.
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `people_contact_groups_update_execute()` to send, or `people_contact_groups_update` for simplest API.
+
+pub fn people_contact_groups_update_builder(
+    client: &SimpleHttpClient,
+    resourceName: &String,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!(
+        "https://people.googleapis.com/v1/contactGroups/{}",
+        resourceName,
+    );
+
+    // Build request
+    let builder = client
+        .put(&endpoint_url)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// PUT v1/contactGroups/{contactGroupsId}
+/// Update the name of an existing contact group owned by the authenticated user. Updated contact group names must be unique to the users contact groups. Attempting to create a group with a duplicate name will return a HTTP 409 error. Mutate requests for the same user should be sent sequentially to avoid increased latency and failures.
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `people_contact_groups_update_execute()` or `people_contact_groups_update`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `people_contact_groups_update_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn people_contact_groups_update_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<ContactGroup>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: ContactGroup = serde_json::from_str(&body)
+                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// PUT v1/contactGroups/{contactGroupsId}
+/// Update the name of an existing contact group owned by the authenticated user. Updated contact group names must be unique to the users contact groups. Attempting to create a group with a duplicate name will return a HTTP 409 error. Mutate requests for the same user should be sent sequentially to avoid increased latency and failures.
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `people_contact_groups_update_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `people_contact_groups_update_task()`.
+/// For the simplest API, use `people_contact_groups_update()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `people_contact_groups_update_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn people_contact_groups_update_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<ContactGroup>, ApiError>, P = ApiPending>
+        + Send
+        + 'static,
+    ApiError,
+> {
+    let task = people_contact_groups_update_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`people_contact_groups_update`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct PeopleContactGroupsUpdateArgs {
+    /// Path parameter: resourceName
+    pub resourceName: String,
+}
+
+/// PUT v1/contactGroups/{contactGroupsId}
+/// Update the name of an existing contact group owned by the authenticated user. Updated contact group names must be unique to the users contact groups. Attempting to create a group with a duplicate name will return a HTTP 409 error. Mutate requests for the same user should be sent sequentially to avoid increased latency and failures.
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `people_contact_groups_update_builder()` + `people_contact_groups_update_execute()`.
+/// For task-level control, use `people_contact_groups_update_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn people_contact_groups_update(
+    client: &SimpleHttpClient,
+    args: &PeopleContactGroupsUpdateArgs,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<ContactGroup>, ApiError>, P = ApiPending>
+        + Send
+        + 'static,
+    ApiError,
+> {
+    let builder = people_contact_groups_update_builder(client, &args.resourceName)?;
+    people_contact_groups_update_execute(builder)
+}
+
+/// POST v1/contactGroups/{contactGroupsId}/members:modify
 /// Modify the members of a contact group owned by the authenticated user. The only system contact groups that can have members added are contactG`roups/`myContacts`` and contactG`roups/starred`. Other system contact groups are deprecated and can only have contacts removed.
 ///
 /// Returns `ClientRequestBuilder` for customization.
@@ -548,22 +1080,22 @@ pub fn people_contact_groups_delete(
 pub fn people_contact_groups_members_modify_builder(
     client: &SimpleHttpClient,
     resourceName: &String,
-    body: &ModifyContactGroupMembersRequest,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
-    let endpoint_url = format!("https://people.googleapis.com/v1/contactGroups/{}/members:modify",);
+    let endpoint_url = format!(
+        "https://people.googleapis.com/v1/contactGroups/{}/members:modify",
+        resourceName,
+    );
 
     // Build request
     let builder = client
-        .get(&endpoint_url)
+        .post(&endpoint_url)
         .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
 
-    builder
-        .body_json(body)
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+    Ok(builder)
 }
 
-/// GET v1/contactGroups/{contactGroupsId}/members:modify
+/// POST v1/contactGroups/{contactGroupsId}/members:modify
 /// Modify the members of a contact group owned by the authenticated user. The only system contact groups that can have members added are contactG`roups/`myContacts`` and contactG`roups/starred`. Other system contact groups are deprecated and can only have contacts removed.
 ///
 /// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
@@ -637,7 +1169,7 @@ pub fn people_contact_groups_members_modify_task(
         .map_pending(|_| ApiPending::Sending))
 }
 
-/// GET v1/contactGroups/{contactGroupsId}/members:modify
+/// POST v1/contactGroups/{contactGroupsId}/members:modify
 /// Modify the members of a contact group owned by the authenticated user. The only system contact groups that can have members added are contactG`roups/`myContacts`` and contactG`roups/starred`. Other system contact groups are deprecated and can only have contacts removed.
 ///
 /// Takes a `ClientRequestBuilder`, builds and executes the request,
@@ -676,11 +1208,9 @@ pub fn people_contact_groups_members_modify_execute(
 pub struct PeopleContactGroupsMembersModifyArgs {
     /// Path parameter: resourceName
     pub resourceName: String,
-    /// Request body.
-    pub body: ModifyContactGroupMembersRequest,
 }
 
-/// GET v1/contactGroups/{contactGroupsId}/members:modify
+/// POST v1/contactGroups/{contactGroupsId}/members:modify
 /// Modify the members of a contact group owned by the authenticated user. The only system contact groups that can have members added are contactG`roups/`myContacts`` and contactG`roups/starred`. Other system contact groups are deprecated and can only have contacts removed.
 ///
 /// Simplest API - builds and executes the request in one call.
@@ -702,12 +1232,11 @@ pub fn people_contact_groups_members_modify(
         + 'static,
     ApiError,
 > {
-    let builder =
-        people_contact_groups_members_modify_builder(client, &args.resourceName, &args.body)?;
+    let builder = people_contact_groups_members_modify_builder(client, &args.resourceName)?;
     people_contact_groups_members_modify_execute(builder)
 }
 
-/// GET v1/otherContacts/{otherContactsId}:copyOtherContactToMyContactsGroup
+/// POST v1/otherContacts/{otherContactsId}:copyOtherContactToMyContactsGroup
 /// Copies an "Other contact" to a new contact in the user's "`myContacts`" group Mutate requests for the same user should be sent sequentially to avoid increased latency and failures.
 ///
 /// Returns `ClientRequestBuilder` for customization.
@@ -716,24 +1245,22 @@ pub fn people_contact_groups_members_modify(
 pub fn people_other_contacts_copy_other_contact_to_my_contacts_group_builder(
     client: &SimpleHttpClient,
     resourceName: &String,
-    body: &CopyOtherContactToMyContactsGroupRequest,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
         "https://people.googleapis.com/v1/otherContacts/{}:copyOtherContactToMyContactsGroup",
+        resourceName,
     );
 
     // Build request
     let builder = client
-        .get(&endpoint_url)
+        .post(&endpoint_url)
         .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
 
-    builder
-        .body_json(body)
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+    Ok(builder)
 }
 
-/// GET v1/otherContacts/{otherContactsId}:copyOtherContactToMyContactsGroup
+/// POST v1/otherContacts/{otherContactsId}:copyOtherContactToMyContactsGroup
 /// Copies an "Other contact" to a new contact in the user's "`myContacts`" group Mutate requests for the same user should be sent sequentially to avoid increased latency and failures.
 ///
 /// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
@@ -807,7 +1334,7 @@ pub fn people_other_contacts_copy_other_contact_to_my_contacts_group_task(
         .map_pending(|_| ApiPending::Sending))
 }
 
-/// GET v1/otherContacts/{otherContactsId}:copyOtherContactToMyContactsGroup
+/// POST v1/otherContacts/{otherContactsId}:copyOtherContactToMyContactsGroup
 /// Copies an "Other contact" to a new contact in the user's "`myContacts`" group Mutate requests for the same user should be sent sequentially to avoid increased latency and failures.
 ///
 /// Takes a `ClientRequestBuilder`, builds and executes the request,
@@ -842,11 +1369,9 @@ pub fn people_other_contacts_copy_other_contact_to_my_contacts_group_execute(
 pub struct PeopleOtherContactsCopyOtherContactToMyContactsGroupArgs {
     /// Path parameter: resourceName
     pub resourceName: String,
-    /// Request body.
-    pub body: CopyOtherContactToMyContactsGroupRequest,
 }
 
-/// GET v1/otherContacts/{otherContactsId}:copyOtherContactToMyContactsGroup
+/// POST v1/otherContacts/{otherContactsId}:copyOtherContactToMyContactsGroup
 /// Copies an "Other contact" to a new contact in the user's "`myContacts`" group Mutate requests for the same user should be sent sequentially to avoid increased latency and failures.
 ///
 /// Simplest API - builds and executes the request in one call.
@@ -867,7 +1392,6 @@ pub fn people_other_contacts_copy_other_contact_to_my_contacts_group(
     let builder = people_other_contacts_copy_other_contact_to_my_contacts_group_builder(
         client,
         &args.resourceName,
-        &args.body,
     )?;
     people_other_contacts_copy_other_contact_to_my_contacts_group_execute(builder)
 }
@@ -880,12 +1404,12 @@ pub fn people_other_contacts_copy_other_contact_to_my_contacts_group(
 
 pub fn people_other_contacts_list_builder(
     client: &SimpleHttpClient,
-    pageSize: &Option<i32>,
-    pageToken: &Option<String>,
-    readMask: &Option<String>,
-    requestSyncToken: &Option<bool>,
-    sources: &Option<String>,
-    syncToken: &Option<String>,
+    pageSize: &Option<Option<String>>,
+    pageToken: &Option<Option<String>>,
+    readMask: &Option<Option<String>>,
+    requestSyncToken: &Option<Option<String>>,
+    sources: &Option<Option<String>>,
+    syncToken: &Option<Option<String>>,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!("https://people.googleapis.com/v1/otherContacts",);
@@ -1034,17 +1558,17 @@ pub fn people_other_contacts_list_execute(
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct PeopleOtherContactsListArgs {
     /// Query parameter: pageSize
-    pub pageSize: Option<i32>,
+    pub pageSize: Option<Option<String>>,
     /// Query parameter: pageToken
-    pub pageToken: Option<String>,
+    pub pageToken: Option<Option<String>>,
     /// Query parameter: readMask
-    pub readMask: Option<String>,
+    pub readMask: Option<Option<String>>,
     /// Query parameter: requestSyncToken
-    pub requestSyncToken: Option<bool>,
+    pub requestSyncToken: Option<Option<String>>,
     /// Query parameter: sources
-    pub sources: Option<String>,
+    pub sources: Option<Option<String>>,
     /// Query parameter: syncToken
-    pub syncToken: Option<String>,
+    pub syncToken: Option<Option<String>>,
 }
 
 /// GET v1/otherContacts
@@ -1087,9 +1611,9 @@ pub fn people_other_contacts_list(
 
 pub fn people_other_contacts_search_builder(
     client: &SimpleHttpClient,
-    pageSize: &Option<i32>,
-    query: &Option<String>,
-    readMask: &Option<String>,
+    pageSize: &Option<Option<String>>,
+    query: &Option<Option<String>>,
+    readMask: &Option<Option<String>>,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!("https://people.googleapis.com/v1/otherContacts:search",);
@@ -1229,11 +1753,11 @@ pub fn people_other_contacts_search_execute(
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct PeopleOtherContactsSearchArgs {
     /// Query parameter: pageSize
-    pub pageSize: Option<i32>,
+    pub pageSize: Option<Option<String>>,
     /// Query parameter: query
-    pub query: Option<String>,
+    pub query: Option<Option<String>>,
     /// Query parameter: readMask
-    pub readMask: Option<String>,
+    pub readMask: Option<Option<String>>,
 }
 
 /// GET v1/otherContacts:search
@@ -1261,7 +1785,7 @@ pub fn people_other_contacts_search(
     people_other_contacts_search_execute(builder)
 }
 
-/// GET v1/people:batchCreateContacts
+/// POST v1/people:batchCreateContacts
 /// Create a batch of new contacts and return the PersonResponses for the newly Mutate requests for the same user should be sent sequentially to avoid increased latency and failures.
 ///
 /// Returns `ClientRequestBuilder` for customization.
@@ -1269,22 +1793,19 @@ pub fn people_other_contacts_search(
 
 pub fn people_people_batch_create_contacts_builder(
     client: &SimpleHttpClient,
-    body: &BatchCreateContactsRequest,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!("https://people.googleapis.com/v1/people:batchCreateContacts",);
 
     // Build request
     let builder = client
-        .get(&endpoint_url)
+        .post(&endpoint_url)
         .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
 
-    builder
-        .body_json(body)
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+    Ok(builder)
 }
 
-/// GET v1/people:batchCreateContacts
+/// POST v1/people:batchCreateContacts
 /// Create a batch of new contacts and return the PersonResponses for the newly Mutate requests for the same user should be sent sequentially to avoid increased latency and failures.
 ///
 /// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
@@ -1358,7 +1879,7 @@ pub fn people_people_batch_create_contacts_task(
         .map_pending(|_| ApiPending::Sending))
 }
 
-/// GET v1/people:batchCreateContacts
+/// POST v1/people:batchCreateContacts
 /// Create a batch of new contacts and return the PersonResponses for the newly Mutate requests for the same user should be sent sequentially to avoid increased latency and failures.
 ///
 /// Takes a `ClientRequestBuilder`, builds and executes the request,
@@ -1392,14 +1913,7 @@ pub fn people_people_batch_create_contacts_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
-/// Arguments for [`people_people_batch_create_contacts`].
-#[derive(Debug, Clone, Serialize, JsonHash)]
-pub struct PeoplePeopleBatchCreateContactsArgs {
-    /// Request body.
-    pub body: BatchCreateContactsRequest,
-}
-
-/// GET v1/people:batchCreateContacts
+/// POST v1/people:batchCreateContacts
 /// Create a batch of new contacts and return the PersonResponses for the newly Mutate requests for the same user should be sent sequentially to avoid increased latency and failures.
 ///
 /// Simplest API - builds and executes the request in one call.
@@ -1412,7 +1926,6 @@ pub struct PeoplePeopleBatchCreateContactsArgs {
 
 pub fn people_people_batch_create_contacts(
     client: &SimpleHttpClient,
-    args: &PeoplePeopleBatchCreateContactsArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<BatchCreateContactsResponse>, ApiError>,
@@ -1421,11 +1934,11 @@ pub fn people_people_batch_create_contacts(
         + 'static,
     ApiError,
 > {
-    let builder = people_people_batch_create_contacts_builder(client, &args.body)?;
+    let builder = people_people_batch_create_contacts_builder(client)?;
     people_people_batch_create_contacts_execute(builder)
 }
 
-/// GET v1/people:batchDeleteContacts
+/// POST v1/people:batchDeleteContacts
 /// Delete a batch of contacts. Any non-contact data will not be deleted. Mutate requests for the same user should be sent sequentially to avoid increased latency and failures.
 ///
 /// Returns `ClientRequestBuilder` for customization.
@@ -1433,22 +1946,19 @@ pub fn people_people_batch_create_contacts(
 
 pub fn people_people_batch_delete_contacts_builder(
     client: &SimpleHttpClient,
-    body: &BatchDeleteContactsRequest,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!("https://people.googleapis.com/v1/people:batchDeleteContacts",);
 
     // Build request
     let builder = client
-        .get(&endpoint_url)
+        .post(&endpoint_url)
         .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
 
-    builder
-        .body_json(body)
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+    Ok(builder)
 }
 
-/// GET v1/people:batchDeleteContacts
+/// POST v1/people:batchDeleteContacts
 /// Delete a batch of contacts. Any non-contact data will not be deleted. Mutate requests for the same user should be sent sequentially to avoid increased latency and failures.
 ///
 /// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
@@ -1522,7 +2032,7 @@ pub fn people_people_batch_delete_contacts_task(
         .map_pending(|_| ApiPending::Sending))
 }
 
-/// GET v1/people:batchDeleteContacts
+/// POST v1/people:batchDeleteContacts
 /// Delete a batch of contacts. Any non-contact data will not be deleted. Mutate requests for the same user should be sent sequentially to avoid increased latency and failures.
 ///
 /// Takes a `ClientRequestBuilder`, builds and executes the request,
@@ -1552,14 +2062,7 @@ pub fn people_people_batch_delete_contacts_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
-/// Arguments for [`people_people_batch_delete_contacts`].
-#[derive(Debug, Clone, Serialize, JsonHash)]
-pub struct PeoplePeopleBatchDeleteContactsArgs {
-    /// Request body.
-    pub body: BatchDeleteContactsRequest,
-}
-
-/// GET v1/people:batchDeleteContacts
+/// POST v1/people:batchDeleteContacts
 /// Delete a batch of contacts. Any non-contact data will not be deleted. Mutate requests for the same user should be sent sequentially to avoid increased latency and failures.
 ///
 /// Simplest API - builds and executes the request in one call.
@@ -1572,16 +2075,15 @@ pub struct PeoplePeopleBatchDeleteContactsArgs {
 
 pub fn people_people_batch_delete_contacts(
     client: &SimpleHttpClient,
-    args: &PeoplePeopleBatchDeleteContactsArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Empty>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = people_people_batch_delete_contacts_builder(client, &args.body)?;
+    let builder = people_people_batch_delete_contacts_builder(client)?;
     people_people_batch_delete_contacts_execute(builder)
 }
 
-/// GET v1/people:batchUpdateContacts
+/// POST v1/people:batchUpdateContacts
 /// Update a batch of contacts and return a map of resource names to PersonResponses for the updated contacts. Mutate requests for the same user should be sent sequentially to avoid increased latency and failures.
 ///
 /// Returns `ClientRequestBuilder` for customization.
@@ -1589,22 +2091,19 @@ pub fn people_people_batch_delete_contacts(
 
 pub fn people_people_batch_update_contacts_builder(
     client: &SimpleHttpClient,
-    body: &BatchUpdateContactsRequest,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!("https://people.googleapis.com/v1/people:batchUpdateContacts",);
 
     // Build request
     let builder = client
-        .get(&endpoint_url)
+        .post(&endpoint_url)
         .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
 
-    builder
-        .body_json(body)
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+    Ok(builder)
 }
 
-/// GET v1/people:batchUpdateContacts
+/// POST v1/people:batchUpdateContacts
 /// Update a batch of contacts and return a map of resource names to PersonResponses for the updated contacts. Mutate requests for the same user should be sent sequentially to avoid increased latency and failures.
 ///
 /// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
@@ -1678,7 +2177,7 @@ pub fn people_people_batch_update_contacts_task(
         .map_pending(|_| ApiPending::Sending))
 }
 
-/// GET v1/people:batchUpdateContacts
+/// POST v1/people:batchUpdateContacts
 /// Update a batch of contacts and return a map of resource names to PersonResponses for the updated contacts. Mutate requests for the same user should be sent sequentially to avoid increased latency and failures.
 ///
 /// Takes a `ClientRequestBuilder`, builds and executes the request,
@@ -1712,14 +2211,7 @@ pub fn people_people_batch_update_contacts_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
-/// Arguments for [`people_people_batch_update_contacts`].
-#[derive(Debug, Clone, Serialize, JsonHash)]
-pub struct PeoplePeopleBatchUpdateContactsArgs {
-    /// Request body.
-    pub body: BatchUpdateContactsRequest,
-}
-
-/// GET v1/people:batchUpdateContacts
+/// POST v1/people:batchUpdateContacts
 /// Update a batch of contacts and return a map of resource names to PersonResponses for the updated contacts. Mutate requests for the same user should be sent sequentially to avoid increased latency and failures.
 ///
 /// Simplest API - builds and executes the request in one call.
@@ -1732,7 +2224,6 @@ pub struct PeoplePeopleBatchUpdateContactsArgs {
 
 pub fn people_people_batch_update_contacts(
     client: &SimpleHttpClient,
-    args: &PeoplePeopleBatchUpdateContactsArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<BatchUpdateContactsResponse>, ApiError>,
@@ -1741,11 +2232,11 @@ pub fn people_people_batch_update_contacts(
         + 'static,
     ApiError,
 > {
-    let builder = people_people_batch_update_contacts_builder(client, &args.body)?;
+    let builder = people_people_batch_update_contacts_builder(client)?;
     people_people_batch_update_contacts_execute(builder)
 }
 
-/// GET v1/people:createContact
+/// POST v1/people:createContact
 /// Create a new contact and return the person resource for that contact. The request returns a 400 error if more than one field is specified on a field that is a singleton for contact sources: * biographies * birthdays * genders * names Mutate requests for the same user should be sent sequentially to avoid increased latency and failures.
 ///
 /// Returns `ClientRequestBuilder` for customization.
@@ -1753,9 +2244,8 @@ pub fn people_people_batch_update_contacts(
 
 pub fn people_people_create_contact_builder(
     client: &SimpleHttpClient,
-    personFields: &Option<String>,
-    sources: &Option<String>,
-    body: &Person,
+    personFields: &Option<Option<String>>,
+    sources: &Option<Option<String>>,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!("https://people.googleapis.com/v1/people:createContact",);
@@ -1776,15 +2266,13 @@ pub fn people_people_create_contact_builder(
     };
 
     let builder = client
-        .get(&url_with_query)
+        .post(&url_with_query)
         .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
 
-    builder
-        .body_json(body)
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+    Ok(builder)
 }
 
-/// GET v1/people:createContact
+/// POST v1/people:createContact
 /// Create a new contact and return the person resource for that contact. The request returns a 400 error if more than one field is specified on a field that is a singleton for contact sources: * biographies * birthdays * genders * names Mutate requests for the same user should be sent sequentially to avoid increased latency and failures.
 ///
 /// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
@@ -1858,7 +2346,7 @@ pub fn people_people_create_contact_task(
         .map_pending(|_| ApiPending::Sending))
 }
 
-/// GET v1/people:createContact
+/// POST v1/people:createContact
 /// Create a new contact and return the person resource for that contact. The request returns a 400 error if more than one field is specified on a field that is a singleton for contact sources: * biographies * birthdays * genders * names Mutate requests for the same user should be sent sequentially to avoid increased latency and failures.
 ///
 /// Takes a `ClientRequestBuilder`, builds and executes the request,
@@ -1892,14 +2380,12 @@ pub fn people_people_create_contact_execute(
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct PeoplePeopleCreateContactArgs {
     /// Query parameter: personFields
-    pub personFields: Option<String>,
+    pub personFields: Option<Option<String>>,
     /// Query parameter: sources
-    pub sources: Option<String>,
-    /// Request body.
-    pub body: Person,
+    pub sources: Option<Option<String>>,
 }
 
-/// GET v1/people:createContact
+/// POST v1/people:createContact
 /// Create a new contact and return the person resource for that contact. The request returns a 400 error if more than one field is specified on a field that is a singleton for contact sources: * biographies * birthdays * genders * names Mutate requests for the same user should be sent sequentially to avoid increased latency and failures.
 ///
 /// Simplest API - builds and executes the request in one call.
@@ -1917,16 +2403,11 @@ pub fn people_people_create_contact(
     impl StreamIterator<D = Result<ApiResponse<Person>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = people_people_create_contact_builder(
-        client,
-        &args.personFields,
-        &args.sources,
-        &args.body,
-    )?;
+    let builder = people_people_create_contact_builder(client, &args.personFields, &args.sources)?;
     people_people_create_contact_execute(builder)
 }
 
-/// GET v1/people/{peopleId}:deleteContact
+/// DELETE v1/people/{peopleId}:deleteContact
 /// Delete a contact person. Any non-contact data will not be deleted. Mutate requests for the same user should be sent sequentially to avoid increased latency and failures.
 ///
 /// Returns `ClientRequestBuilder` for customization.
@@ -1937,17 +2418,20 @@ pub fn people_people_delete_contact_builder(
     resourceName: &String,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
-    let endpoint_url = format!("https://people.googleapis.com/v1/people/{}:deleteContact",);
+    let endpoint_url = format!(
+        "https://people.googleapis.com/v1/people/{}:deleteContact",
+        resourceName,
+    );
 
     // Build request
     let builder = client
-        .get(&endpoint_url)
+        .delete(&endpoint_url)
         .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
 
     Ok(builder)
 }
 
-/// GET v1/people/{peopleId}:deleteContact
+/// DELETE v1/people/{peopleId}:deleteContact
 /// Delete a contact person. Any non-contact data will not be deleted. Mutate requests for the same user should be sent sequentially to avoid increased latency and failures.
 ///
 /// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
@@ -2021,7 +2505,7 @@ pub fn people_people_delete_contact_task(
         .map_pending(|_| ApiPending::Sending))
 }
 
-/// GET v1/people/{peopleId}:deleteContact
+/// DELETE v1/people/{peopleId}:deleteContact
 /// Delete a contact person. Any non-contact data will not be deleted. Mutate requests for the same user should be sent sequentially to avoid increased latency and failures.
 ///
 /// Takes a `ClientRequestBuilder`, builds and executes the request,
@@ -2058,7 +2542,7 @@ pub struct PeoplePeopleDeleteContactArgs {
     pub resourceName: String,
 }
 
-/// GET v1/people/{peopleId}:deleteContact
+/// DELETE v1/people/{peopleId}:deleteContact
 /// Delete a contact person. Any non-contact data will not be deleted. Mutate requests for the same user should be sent sequentially to avoid increased latency and failures.
 ///
 /// Simplest API - builds and executes the request in one call.
@@ -2080,7 +2564,7 @@ pub fn people_people_delete_contact(
     people_people_delete_contact_execute(builder)
 }
 
-/// GET v1/people/{peopleId}:deleteContactPhoto
+/// DELETE v1/people/{peopleId}:deleteContactPhoto
 /// Delete a contact's photo. Mutate requests for the same user should be done sequentially to avoid // lock contention.
 ///
 /// Returns `ClientRequestBuilder` for customization.
@@ -2089,11 +2573,14 @@ pub fn people_people_delete_contact(
 pub fn people_people_delete_contact_photo_builder(
     client: &SimpleHttpClient,
     resourceName: &String,
-    personFields: &Option<String>,
-    sources: &Option<String>,
+    personFields: &Option<Option<String>>,
+    sources: &Option<Option<String>>,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
-    let endpoint_url = format!("https://people.googleapis.com/v1/people/{}:deleteContactPhoto",);
+    let endpoint_url = format!(
+        "https://people.googleapis.com/v1/people/{}:deleteContactPhoto",
+        resourceName,
+    );
 
     // Build request
     let mut query_parts = Vec::new();
@@ -2111,13 +2598,13 @@ pub fn people_people_delete_contact_photo_builder(
     };
 
     let builder = client
-        .get(&url_with_query)
+        .delete(&url_with_query)
         .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
 
     Ok(builder)
 }
 
-/// GET v1/people/{peopleId}:deleteContactPhoto
+/// DELETE v1/people/{peopleId}:deleteContactPhoto
 /// Delete a contact's photo. Mutate requests for the same user should be done sequentially to avoid // lock contention.
 ///
 /// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
@@ -2191,7 +2678,7 @@ pub fn people_people_delete_contact_photo_task(
         .map_pending(|_| ApiPending::Sending))
 }
 
-/// GET v1/people/{peopleId}:deleteContactPhoto
+/// DELETE v1/people/{peopleId}:deleteContactPhoto
 /// Delete a contact's photo. Mutate requests for the same user should be done sequentially to avoid // lock contention.
 ///
 /// Takes a `ClientRequestBuilder`, builds and executes the request,
@@ -2231,12 +2718,12 @@ pub struct PeoplePeopleDeleteContactPhotoArgs {
     /// Path parameter: resourceName
     pub resourceName: String,
     /// Query parameter: personFields
-    pub personFields: Option<String>,
+    pub personFields: Option<Option<String>>,
     /// Query parameter: sources
-    pub sources: Option<String>,
+    pub sources: Option<Option<String>>,
 }
 
-/// GET v1/people/{peopleId}:deleteContactPhoto
+/// DELETE v1/people/{peopleId}:deleteContactPhoto
 /// Delete a contact's photo. Mutate requests for the same user should be done sequentially to avoid // lock contention.
 ///
 /// Simplest API - builds and executes the request in one call.
@@ -2276,12 +2763,12 @@ pub fn people_people_delete_contact_photo(
 pub fn people_people_get_builder(
     client: &SimpleHttpClient,
     resourceName: &String,
-    personFields: &Option<String>,
-    requestMask_includeField: &Option<String>,
-    sources: &Option<String>,
+    personFields: &Option<Option<String>>,
+    requestMask_includeField: &Option<Option<String>>,
+    sources: &Option<Option<String>>,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
-    let endpoint_url = format!("https://people.googleapis.com/v1/people/{}",);
+    let endpoint_url = format!("https://people.googleapis.com/v1/people/{}", resourceName,);
 
     // Build request
     let mut query_parts = Vec::new();
@@ -2418,11 +2905,11 @@ pub struct PeoplePeopleGetArgs {
     /// Path parameter: resourceName
     pub resourceName: String,
     /// Query parameter: personFields
-    pub personFields: Option<String>,
+    pub personFields: Option<Option<String>>,
     /// Query parameter: requestMask_includeField
-    pub requestMask_includeField: Option<String>,
+    pub requestMask_includeField: Option<Option<String>>,
     /// Query parameter: sources
-    pub sources: Option<String>,
+    pub sources: Option<Option<String>>,
 }
 
 /// GET v1/people/{peopleId}
@@ -2461,10 +2948,10 @@ pub fn people_people_get(
 
 pub fn people_people_get_batch_get_builder(
     client: &SimpleHttpClient,
-    personFields: &Option<String>,
-    requestMask_includeField: &Option<String>,
-    resourceNames: &Option<String>,
-    sources: &Option<String>,
+    personFields: &Option<Option<String>>,
+    requestMask_includeField: &Option<Option<String>>,
+    resourceNames: &Option<Option<String>>,
+    sources: &Option<Option<String>>,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!("https://people.googleapis.com/v1/people:batchGet",);
@@ -2607,13 +3094,13 @@ pub fn people_people_get_batch_get_execute(
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct PeoplePeopleGetBatchGetArgs {
     /// Query parameter: personFields
-    pub personFields: Option<String>,
+    pub personFields: Option<Option<String>>,
     /// Query parameter: requestMask_includeField
-    pub requestMask_includeField: Option<String>,
+    pub requestMask_includeField: Option<Option<String>>,
     /// Query parameter: resourceNames
-    pub resourceNames: Option<String>,
+    pub resourceNames: Option<Option<String>>,
     /// Query parameter: sources
-    pub sources: Option<String>,
+    pub sources: Option<Option<String>>,
 }
 
 /// GET v1/people:batchGet
@@ -2654,13 +3141,13 @@ pub fn people_people_get_batch_get(
 
 pub fn people_people_list_directory_people_builder(
     client: &SimpleHttpClient,
-    mergeSources: &Option<String>,
-    pageSize: &Option<i32>,
-    pageToken: &Option<String>,
-    readMask: &Option<String>,
-    requestSyncToken: &Option<bool>,
-    sources: &Option<String>,
-    syncToken: &Option<String>,
+    mergeSources: &Option<Option<String>>,
+    pageSize: &Option<Option<String>>,
+    pageToken: &Option<Option<String>>,
+    readMask: &Option<Option<String>>,
+    requestSyncToken: &Option<Option<String>>,
+    sources: &Option<Option<String>>,
+    syncToken: &Option<Option<String>>,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!("https://people.googleapis.com/v1/people:listDirectoryPeople",);
@@ -2814,19 +3301,19 @@ pub fn people_people_list_directory_people_execute(
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct PeoplePeopleListDirectoryPeopleArgs {
     /// Query parameter: mergeSources
-    pub mergeSources: Option<String>,
+    pub mergeSources: Option<Option<String>>,
     /// Query parameter: pageSize
-    pub pageSize: Option<i32>,
+    pub pageSize: Option<Option<String>>,
     /// Query parameter: pageToken
-    pub pageToken: Option<String>,
+    pub pageToken: Option<Option<String>>,
     /// Query parameter: readMask
-    pub readMask: Option<String>,
+    pub readMask: Option<Option<String>>,
     /// Query parameter: requestSyncToken
-    pub requestSyncToken: Option<bool>,
+    pub requestSyncToken: Option<Option<String>>,
     /// Query parameter: sources
-    pub sources: Option<String>,
+    pub sources: Option<Option<String>>,
     /// Query parameter: syncToken
-    pub syncToken: Option<String>,
+    pub syncToken: Option<Option<String>>,
 }
 
 /// GET v1/people:listDirectoryPeople
@@ -2872,10 +3359,10 @@ pub fn people_people_list_directory_people(
 
 pub fn people_people_search_contacts_builder(
     client: &SimpleHttpClient,
-    pageSize: &Option<i32>,
-    query: &Option<String>,
-    readMask: &Option<String>,
-    sources: &Option<String>,
+    pageSize: &Option<Option<String>>,
+    query: &Option<Option<String>>,
+    readMask: &Option<Option<String>>,
+    sources: &Option<Option<String>>,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!("https://people.googleapis.com/v1/people:searchContacts",);
@@ -3018,13 +3505,13 @@ pub fn people_people_search_contacts_execute(
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct PeoplePeopleSearchContactsArgs {
     /// Query parameter: pageSize
-    pub pageSize: Option<i32>,
+    pub pageSize: Option<Option<String>>,
     /// Query parameter: query
-    pub query: Option<String>,
+    pub query: Option<Option<String>>,
     /// Query parameter: readMask
-    pub readMask: Option<String>,
+    pub readMask: Option<Option<String>>,
     /// Query parameter: sources
-    pub sources: Option<String>,
+    pub sources: Option<Option<String>>,
 }
 
 /// GET v1/people:searchContacts
@@ -3065,12 +3552,12 @@ pub fn people_people_search_contacts(
 
 pub fn people_people_search_directory_people_builder(
     client: &SimpleHttpClient,
-    mergeSources: &Option<String>,
-    pageSize: &Option<i32>,
-    pageToken: &Option<String>,
-    query: &Option<String>,
-    readMask: &Option<String>,
-    sources: &Option<String>,
+    mergeSources: &Option<Option<String>>,
+    pageSize: &Option<Option<String>>,
+    pageToken: &Option<Option<String>>,
+    query: &Option<Option<String>>,
+    readMask: &Option<Option<String>>,
+    sources: &Option<Option<String>>,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!("https://people.googleapis.com/v1/people:searchDirectoryPeople",);
@@ -3221,17 +3708,17 @@ pub fn people_people_search_directory_people_execute(
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct PeoplePeopleSearchDirectoryPeopleArgs {
     /// Query parameter: mergeSources
-    pub mergeSources: Option<String>,
+    pub mergeSources: Option<Option<String>>,
     /// Query parameter: pageSize
-    pub pageSize: Option<i32>,
+    pub pageSize: Option<Option<String>>,
     /// Query parameter: pageToken
-    pub pageToken: Option<String>,
+    pub pageToken: Option<Option<String>>,
     /// Query parameter: query
-    pub query: Option<String>,
+    pub query: Option<Option<String>>,
     /// Query parameter: readMask
-    pub readMask: Option<String>,
+    pub readMask: Option<Option<String>>,
     /// Query parameter: sources
-    pub sources: Option<String>,
+    pub sources: Option<Option<String>>,
 }
 
 /// GET v1/people:searchDirectoryPeople
@@ -3268,7 +3755,7 @@ pub fn people_people_search_directory_people(
     people_people_search_directory_people_execute(builder)
 }
 
-/// GET v1/people/{peopleId}:updateContact
+/// PATCH v1/people/{peopleId}:updateContact
 /// Update contact data for an existing contact person. Any non-contact data will not be modified. Any non-contact data in the person to update will be ignored. All fields specified in the update_mask will be replaced. The server returns a 400 error if person.metadata.sources is not specified for the contact to be updated or if there is no contact source. The server returns a 400 error with reason "`failedPrecondition`" if person.metadata.sources.etag is different than the contact's etag, which indicates the contact has changed since its data was read. Clients should get the latest person and merge their updates into the latest person. If making sequential updates to the same person, the etag from the `updateContact` response should be used to avoid failures. The server returns a 400 error if memberships are being updated and there are no contact group memberships specified on the person. The server returns a 400 error if more than one field is specified on a field that is a singleton for contact sources: * biographies * birthdays * genders * names Mutate requests for the same user should be sent sequentially to avoid increased latency and failures.
 ///
 /// Returns `ClientRequestBuilder` for customization.
@@ -3277,13 +3764,15 @@ pub fn people_people_search_directory_people(
 pub fn people_people_update_contact_builder(
     client: &SimpleHttpClient,
     resourceName: &String,
-    personFields: &Option<String>,
-    sources: &Option<String>,
-    updatePersonFields: &Option<String>,
-    body: &Person,
+    personFields: &Option<Option<String>>,
+    sources: &Option<Option<String>>,
+    updatePersonFields: &Option<Option<String>>,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
-    let endpoint_url = format!("https://people.googleapis.com/v1/people/{}:updateContact",);
+    let endpoint_url = format!(
+        "https://people.googleapis.com/v1/people/{}:updateContact",
+        resourceName,
+    );
 
     // Build request
     let mut query_parts = Vec::new();
@@ -3304,15 +3793,13 @@ pub fn people_people_update_contact_builder(
     };
 
     let builder = client
-        .get(&url_with_query)
+        .patch(&url_with_query)
         .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
 
-    builder
-        .body_json(body)
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+    Ok(builder)
 }
 
-/// GET v1/people/{peopleId}:updateContact
+/// PATCH v1/people/{peopleId}:updateContact
 /// Update contact data for an existing contact person. Any non-contact data will not be modified. Any non-contact data in the person to update will be ignored. All fields specified in the update_mask will be replaced. The server returns a 400 error if person.metadata.sources is not specified for the contact to be updated or if there is no contact source. The server returns a 400 error with reason "`failedPrecondition`" if person.metadata.sources.etag is different than the contact's etag, which indicates the contact has changed since its data was read. Clients should get the latest person and merge their updates into the latest person. If making sequential updates to the same person, the etag from the `updateContact` response should be used to avoid failures. The server returns a 400 error if memberships are being updated and there are no contact group memberships specified on the person. The server returns a 400 error if more than one field is specified on a field that is a singleton for contact sources: * biographies * birthdays * genders * names Mutate requests for the same user should be sent sequentially to avoid increased latency and failures.
 ///
 /// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
@@ -3386,7 +3873,7 @@ pub fn people_people_update_contact_task(
         .map_pending(|_| ApiPending::Sending))
 }
 
-/// GET v1/people/{peopleId}:updateContact
+/// PATCH v1/people/{peopleId}:updateContact
 /// Update contact data for an existing contact person. Any non-contact data will not be modified. Any non-contact data in the person to update will be ignored. All fields specified in the update_mask will be replaced. The server returns a 400 error if person.metadata.sources is not specified for the contact to be updated or if there is no contact source. The server returns a 400 error with reason "`failedPrecondition`" if person.metadata.sources.etag is different than the contact's etag, which indicates the contact has changed since its data was read. Clients should get the latest person and merge their updates into the latest person. If making sequential updates to the same person, the etag from the `updateContact` response should be used to avoid failures. The server returns a 400 error if memberships are being updated and there are no contact group memberships specified on the person. The server returns a 400 error if more than one field is specified on a field that is a singleton for contact sources: * biographies * birthdays * genders * names Mutate requests for the same user should be sent sequentially to avoid increased latency and failures.
 ///
 /// Takes a `ClientRequestBuilder`, builds and executes the request,
@@ -3422,16 +3909,14 @@ pub struct PeoplePeopleUpdateContactArgs {
     /// Path parameter: resourceName
     pub resourceName: String,
     /// Query parameter: personFields
-    pub personFields: Option<String>,
+    pub personFields: Option<Option<String>>,
     /// Query parameter: sources
-    pub sources: Option<String>,
+    pub sources: Option<Option<String>>,
     /// Query parameter: updatePersonFields
-    pub updatePersonFields: Option<String>,
-    /// Request body.
-    pub body: Person,
+    pub updatePersonFields: Option<Option<String>>,
 }
 
-/// GET v1/people/{peopleId}:updateContact
+/// PATCH v1/people/{peopleId}:updateContact
 /// Update contact data for an existing contact person. Any non-contact data will not be modified. Any non-contact data in the person to update will be ignored. All fields specified in the update_mask will be replaced. The server returns a 400 error if person.metadata.sources is not specified for the contact to be updated or if there is no contact source. The server returns a 400 error with reason "`failedPrecondition`" if person.metadata.sources.etag is different than the contact's etag, which indicates the contact has changed since its data was read. Clients should get the latest person and merge their updates into the latest person. If making sequential updates to the same person, the etag from the `updateContact` response should be used to avoid failures. The server returns a 400 error if memberships are being updated and there are no contact group memberships specified on the person. The server returns a 400 error if more than one field is specified on a field that is a singleton for contact sources: * biographies * birthdays * genders * names Mutate requests for the same user should be sent sequentially to avoid increased latency and failures.
 ///
 /// Simplest API - builds and executes the request in one call.
@@ -3455,12 +3940,11 @@ pub fn people_people_update_contact(
         &args.personFields,
         &args.sources,
         &args.updatePersonFields,
-        &args.body,
     )?;
     people_people_update_contact_execute(builder)
 }
 
-/// GET v1/people/{peopleId}:updateContactPhoto
+/// PATCH v1/people/{peopleId}:updateContactPhoto
 /// Update a contact's photo. Mutate requests for the same user should be sent sequentially to avoid increased latency and failures.
 ///
 /// Returns `ClientRequestBuilder` for customization.
@@ -3469,22 +3953,22 @@ pub fn people_people_update_contact(
 pub fn people_people_update_contact_photo_builder(
     client: &SimpleHttpClient,
     resourceName: &String,
-    body: &UpdateContactPhotoRequest,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
-    let endpoint_url = format!("https://people.googleapis.com/v1/people/{}:updateContactPhoto",);
+    let endpoint_url = format!(
+        "https://people.googleapis.com/v1/people/{}:updateContactPhoto",
+        resourceName,
+    );
 
     // Build request
     let builder = client
-        .get(&endpoint_url)
+        .patch(&endpoint_url)
         .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
 
-    builder
-        .body_json(body)
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+    Ok(builder)
 }
 
-/// GET v1/people/{peopleId}:updateContactPhoto
+/// PATCH v1/people/{peopleId}:updateContactPhoto
 /// Update a contact's photo. Mutate requests for the same user should be sent sequentially to avoid increased latency and failures.
 ///
 /// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
@@ -3558,7 +4042,7 @@ pub fn people_people_update_contact_photo_task(
         .map_pending(|_| ApiPending::Sending))
 }
 
-/// GET v1/people/{peopleId}:updateContactPhoto
+/// PATCH v1/people/{peopleId}:updateContactPhoto
 /// Update a contact's photo. Mutate requests for the same user should be sent sequentially to avoid increased latency and failures.
 ///
 /// Takes a `ClientRequestBuilder`, builds and executes the request,
@@ -3597,11 +4081,9 @@ pub fn people_people_update_contact_photo_execute(
 pub struct PeoplePeopleUpdateContactPhotoArgs {
     /// Path parameter: resourceName
     pub resourceName: String,
-    /// Request body.
-    pub body: UpdateContactPhotoRequest,
 }
 
-/// GET v1/people/{peopleId}:updateContactPhoto
+/// PATCH v1/people/{peopleId}:updateContactPhoto
 /// Update a contact's photo. Mutate requests for the same user should be sent sequentially to avoid increased latency and failures.
 ///
 /// Simplest API - builds and executes the request in one call.
@@ -3623,8 +4105,7 @@ pub fn people_people_update_contact_photo(
         + 'static,
     ApiError,
 > {
-    let builder =
-        people_people_update_contact_photo_builder(client, &args.resourceName, &args.body)?;
+    let builder = people_people_update_contact_photo_builder(client, &args.resourceName)?;
     people_people_update_contact_photo_execute(builder)
 }
 
@@ -3637,17 +4118,20 @@ pub fn people_people_update_contact_photo(
 pub fn people_people_connections_list_builder(
     client: &SimpleHttpClient,
     resourceName: &String,
-    pageSize: &Option<i32>,
-    pageToken: &Option<String>,
-    personFields: &Option<String>,
-    requestMask_includeField: &Option<String>,
-    requestSyncToken: &Option<bool>,
-    sortOrder: &Option<String>,
-    sources: &Option<String>,
-    syncToken: &Option<String>,
+    pageSize: &Option<Option<String>>,
+    pageToken: &Option<Option<String>>,
+    personFields: &Option<Option<String>>,
+    requestMask_includeField: &Option<Option<String>>,
+    requestSyncToken: &Option<Option<String>>,
+    sortOrder: &Option<Option<String>>,
+    sources: &Option<Option<String>>,
+    syncToken: &Option<Option<String>>,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
-    let endpoint_url = format!("https://people.googleapis.com/v1/people/{}/connections",);
+    let endpoint_url = format!(
+        "https://people.googleapis.com/v1/people/{}/connections",
+        resourceName,
+    );
 
     // Build request
     let mut query_parts = Vec::new();
@@ -3801,21 +4285,21 @@ pub struct PeoplePeopleConnectionsListArgs {
     /// Path parameter: resourceName
     pub resourceName: String,
     /// Query parameter: pageSize
-    pub pageSize: Option<i32>,
+    pub pageSize: Option<Option<String>>,
     /// Query parameter: pageToken
-    pub pageToken: Option<String>,
+    pub pageToken: Option<Option<String>>,
     /// Query parameter: personFields
-    pub personFields: Option<String>,
+    pub personFields: Option<Option<String>>,
     /// Query parameter: requestMask_includeField
-    pub requestMask_includeField: Option<String>,
+    pub requestMask_includeField: Option<Option<String>>,
     /// Query parameter: requestSyncToken
-    pub requestSyncToken: Option<bool>,
+    pub requestSyncToken: Option<Option<String>>,
     /// Query parameter: sortOrder
-    pub sortOrder: Option<String>,
+    pub sortOrder: Option<Option<String>>,
     /// Query parameter: sources
-    pub sources: Option<String>,
+    pub sources: Option<Option<String>>,
     /// Query parameter: syncToken
-    pub syncToken: Option<String>,
+    pub syncToken: Option<Option<String>>,
 }
 
 /// GET v1/people/{peopleId}/connections
@@ -3851,4 +4335,573 @@ pub fn people_people_connections_list(
         &args.syncToken,
     )?;
     people_people_connections_list_execute(builder)
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for BatchGetContactGroupsResponse
+// =============================================================================
+
+/// ResourceIdentifier implementation for BatchGetContactGroupsResponse with PeopleContactGroupsBatchGetArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<PeopleContactGroupsBatchGetArgs> for BatchGetContactGroupsResponse {
+    fn generate_resource_id(&self, input: &PeopleContactGroupsBatchGetArgs) -> String {
+        "gcp::people::BatchGetContactGroupsResponse".to_string()
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::people::BatchGetContactGroupsResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for ContactGroup
+// =============================================================================
+
+/// ResourceIdentifier implementation for ContactGroup with PeopleContactGroupsCreateArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<PeopleContactGroupsCreateArgs> for ContactGroup {
+    fn generate_resource_id(&self, input: &PeopleContactGroupsCreateArgs) -> String {
+        "gcp::people::ContactGroup".to_string()
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::people::ContactGroup"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for Empty
+// =============================================================================
+
+/// ResourceIdentifier implementation for Empty with PeopleContactGroupsDeleteArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<PeopleContactGroupsDeleteArgs> for Empty {
+    fn generate_resource_id(&self, input: &PeopleContactGroupsDeleteArgs) -> String {
+        format!("gcp::people::Empty/{}", input.resourceName)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::people::Empty"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for ContactGroup
+// =============================================================================
+
+/// ResourceIdentifier implementation for ContactGroup with PeopleContactGroupsGetArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<PeopleContactGroupsGetArgs> for ContactGroup {
+    fn generate_resource_id(&self, input: &PeopleContactGroupsGetArgs) -> String {
+        format!("gcp::people::ContactGroup/{}", input.resourceName)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::people::ContactGroup"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for ListContactGroupsResponse
+// =============================================================================
+
+/// ResourceIdentifier implementation for ListContactGroupsResponse with PeopleContactGroupsListArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<PeopleContactGroupsListArgs> for ListContactGroupsResponse {
+    fn generate_resource_id(&self, input: &PeopleContactGroupsListArgs) -> String {
+        "gcp::people::ListContactGroupsResponse".to_string()
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::people::ListContactGroupsResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for ContactGroup
+// =============================================================================
+
+/// ResourceIdentifier implementation for ContactGroup with PeopleContactGroupsUpdateArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<PeopleContactGroupsUpdateArgs> for ContactGroup {
+    fn generate_resource_id(&self, input: &PeopleContactGroupsUpdateArgs) -> String {
+        format!("gcp::people::ContactGroup/{}", input.resourceName)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::people::ContactGroup"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for ModifyContactGroupMembersResponse
+// =============================================================================
+
+/// ResourceIdentifier implementation for ModifyContactGroupMembersResponse with PeopleContactGroupsMembersModifyArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<PeopleContactGroupsMembersModifyArgs>
+    for ModifyContactGroupMembersResponse
+{
+    fn generate_resource_id(&self, input: &PeopleContactGroupsMembersModifyArgs) -> String {
+        format!(
+            "gcp::people::ModifyContactGroupMembersResponse/{}",
+            input.resourceName
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::people::ModifyContactGroupMembersResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for Person
+// =============================================================================
+
+/// ResourceIdentifier implementation for Person with PeopleOtherContactsCopyOtherContactToMyContactsGroupArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<PeopleOtherContactsCopyOtherContactToMyContactsGroupArgs> for Person {
+    fn generate_resource_id(
+        &self,
+        input: &PeopleOtherContactsCopyOtherContactToMyContactsGroupArgs,
+    ) -> String {
+        format!("gcp::people::Person/{}", input.resourceName)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::people::Person"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for ListOtherContactsResponse
+// =============================================================================
+
+/// ResourceIdentifier implementation for ListOtherContactsResponse with PeopleOtherContactsListArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<PeopleOtherContactsListArgs> for ListOtherContactsResponse {
+    fn generate_resource_id(&self, input: &PeopleOtherContactsListArgs) -> String {
+        "gcp::people::ListOtherContactsResponse".to_string()
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::people::ListOtherContactsResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for SearchResponse
+// =============================================================================
+
+/// ResourceIdentifier implementation for SearchResponse with PeopleOtherContactsSearchArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<PeopleOtherContactsSearchArgs> for SearchResponse {
+    fn generate_resource_id(&self, input: &PeopleOtherContactsSearchArgs) -> String {
+        "gcp::people::SearchResponse".to_string()
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::people::SearchResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for BatchCreateContactsResponse
+// =============================================================================
+
+/// ResourceIdentifier implementation for BatchCreateContactsResponse with PeoplePeopleBatchCreateContactsArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<PeoplePeopleBatchCreateContactsArgs> for BatchCreateContactsResponse {
+    fn generate_resource_id(&self, input: &PeoplePeopleBatchCreateContactsArgs) -> String {
+        "gcp::people::BatchCreateContactsResponse".to_string()
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::people::BatchCreateContactsResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for Empty
+// =============================================================================
+
+/// ResourceIdentifier implementation for Empty with PeoplePeopleBatchDeleteContactsArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<PeoplePeopleBatchDeleteContactsArgs> for Empty {
+    fn generate_resource_id(&self, input: &PeoplePeopleBatchDeleteContactsArgs) -> String {
+        "gcp::people::Empty".to_string()
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::people::Empty"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for BatchUpdateContactsResponse
+// =============================================================================
+
+/// ResourceIdentifier implementation for BatchUpdateContactsResponse with PeoplePeopleBatchUpdateContactsArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<PeoplePeopleBatchUpdateContactsArgs> for BatchUpdateContactsResponse {
+    fn generate_resource_id(&self, input: &PeoplePeopleBatchUpdateContactsArgs) -> String {
+        "gcp::people::BatchUpdateContactsResponse".to_string()
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::people::BatchUpdateContactsResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for Person
+// =============================================================================
+
+/// ResourceIdentifier implementation for Person with PeoplePeopleCreateContactArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<PeoplePeopleCreateContactArgs> for Person {
+    fn generate_resource_id(&self, input: &PeoplePeopleCreateContactArgs) -> String {
+        "gcp::people::Person".to_string()
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::people::Person"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for Empty
+// =============================================================================
+
+/// ResourceIdentifier implementation for Empty with PeoplePeopleDeleteContactArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<PeoplePeopleDeleteContactArgs> for Empty {
+    fn generate_resource_id(&self, input: &PeoplePeopleDeleteContactArgs) -> String {
+        format!("gcp::people::Empty/{}", input.resourceName)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::people::Empty"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for DeleteContactPhotoResponse
+// =============================================================================
+
+/// ResourceIdentifier implementation for DeleteContactPhotoResponse with PeoplePeopleDeleteContactPhotoArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<PeoplePeopleDeleteContactPhotoArgs> for DeleteContactPhotoResponse {
+    fn generate_resource_id(&self, input: &PeoplePeopleDeleteContactPhotoArgs) -> String {
+        format!(
+            "gcp::people::DeleteContactPhotoResponse/{}",
+            input.resourceName
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::people::DeleteContactPhotoResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for Person
+// =============================================================================
+
+/// ResourceIdentifier implementation for Person with PeoplePeopleGetArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<PeoplePeopleGetArgs> for Person {
+    fn generate_resource_id(&self, input: &PeoplePeopleGetArgs) -> String {
+        format!("gcp::people::Person/{}", input.resourceName)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::people::Person"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for GetPeopleResponse
+// =============================================================================
+
+/// ResourceIdentifier implementation for GetPeopleResponse with PeoplePeopleGetBatchGetArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<PeoplePeopleGetBatchGetArgs> for GetPeopleResponse {
+    fn generate_resource_id(&self, input: &PeoplePeopleGetBatchGetArgs) -> String {
+        "gcp::people::GetPeopleResponse".to_string()
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::people::GetPeopleResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for ListDirectoryPeopleResponse
+// =============================================================================
+
+/// ResourceIdentifier implementation for ListDirectoryPeopleResponse with PeoplePeopleListDirectoryPeopleArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<PeoplePeopleListDirectoryPeopleArgs> for ListDirectoryPeopleResponse {
+    fn generate_resource_id(&self, input: &PeoplePeopleListDirectoryPeopleArgs) -> String {
+        "gcp::people::ListDirectoryPeopleResponse".to_string()
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::people::ListDirectoryPeopleResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for SearchResponse
+// =============================================================================
+
+/// ResourceIdentifier implementation for SearchResponse with PeoplePeopleSearchContactsArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<PeoplePeopleSearchContactsArgs> for SearchResponse {
+    fn generate_resource_id(&self, input: &PeoplePeopleSearchContactsArgs) -> String {
+        "gcp::people::SearchResponse".to_string()
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::people::SearchResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for SearchDirectoryPeopleResponse
+// =============================================================================
+
+/// ResourceIdentifier implementation for SearchDirectoryPeopleResponse with PeoplePeopleSearchDirectoryPeopleArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<PeoplePeopleSearchDirectoryPeopleArgs> for SearchDirectoryPeopleResponse {
+    fn generate_resource_id(&self, input: &PeoplePeopleSearchDirectoryPeopleArgs) -> String {
+        "gcp::people::SearchDirectoryPeopleResponse".to_string()
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::people::SearchDirectoryPeopleResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for Person
+// =============================================================================
+
+/// ResourceIdentifier implementation for Person with PeoplePeopleUpdateContactArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<PeoplePeopleUpdateContactArgs> for Person {
+    fn generate_resource_id(&self, input: &PeoplePeopleUpdateContactArgs) -> String {
+        format!("gcp::people::Person/{}", input.resourceName)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::people::Person"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for UpdateContactPhotoResponse
+// =============================================================================
+
+/// ResourceIdentifier implementation for UpdateContactPhotoResponse with PeoplePeopleUpdateContactPhotoArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<PeoplePeopleUpdateContactPhotoArgs> for UpdateContactPhotoResponse {
+    fn generate_resource_id(&self, input: &PeoplePeopleUpdateContactPhotoArgs) -> String {
+        format!(
+            "gcp::people::UpdateContactPhotoResponse/{}",
+            input.resourceName
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::people::UpdateContactPhotoResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for ListConnectionsResponse
+// =============================================================================
+
+/// ResourceIdentifier implementation for ListConnectionsResponse with PeoplePeopleConnectionsListArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<PeoplePeopleConnectionsListArgs> for ListConnectionsResponse {
+    fn generate_resource_id(&self, input: &PeoplePeopleConnectionsListArgs) -> String {
+        format!(
+            "gcp::people::ListConnectionsResponse/{}",
+            input.resourceName
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::people::ListConnectionsResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
 }

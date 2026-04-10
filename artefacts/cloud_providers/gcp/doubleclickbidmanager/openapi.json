@@ -319,7 +319,7 @@
       }
     }
   },
-  "revision": "20260331",
+  "revision": "20260401",
   "rootUrl": "https://doubleclickbidmanager.googleapis.com/",
   "schemas": {
     "DataRange": {

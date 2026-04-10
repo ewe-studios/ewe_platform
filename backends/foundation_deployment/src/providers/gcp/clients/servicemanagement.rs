@@ -7,7 +7,6 @@
 
 #![cfg(feature = "gcp")]
 
-
 use crate::providers::gcp::clients::types::*;
 use crate::providers::gcp::resources::*;
 use foundation_core::valtron::{
@@ -17,6 +16,7 @@ use foundation_core::valtron::{
 use foundation_core::wire::simple_http::client::{
     body_reader, ClientRequestBuilder, RequestIntro, SimpleHttpClient, SystemDnsResolver,
 };
+use foundation_db::state::resource_identifier::ResourceIdentifier;
 use foundation_macros::JsonHash;
 use serde::Serialize;
 
@@ -31,7 +31,10 @@ pub fn servicemanagement_operations_get_builder(
     name: &String,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
-    let endpoint_url = format!("https://servicemanagement.googleapis.com/v1/operations/{}",);
+    let endpoint_url = format!(
+        "https://servicemanagement.googleapis.com/v1/operations/{}",
+        name,
+    );
 
     // Build request
     let builder = client
@@ -182,11 +185,11 @@ pub fn servicemanagement_operations_get(
 
 pub fn servicemanagement_operations_list_builder(
     client: &SimpleHttpClient,
-    filter: &Option<String>,
-    name: &Option<String>,
-    pageSize: &Option<i32>,
-    pageToken: &Option<String>,
-    returnPartialSuccess: &Option<bool>,
+    filter: &Option<Option<String>>,
+    name: &Option<Option<String>>,
+    pageSize: &Option<Option<String>>,
+    pageToken: &Option<Option<String>>,
+    returnPartialSuccess: &Option<Option<String>>,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!("https://servicemanagement.googleapis.com/v1/operations",);
@@ -332,15 +335,15 @@ pub fn servicemanagement_operations_list_execute(
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct ServicemanagementOperationsListArgs {
     /// Query parameter: filter
-    pub filter: Option<String>,
+    pub filter: Option<Option<String>>,
     /// Query parameter: name
-    pub name: Option<String>,
+    pub name: Option<Option<String>>,
     /// Query parameter: pageSize
-    pub pageSize: Option<i32>,
+    pub pageSize: Option<Option<String>>,
     /// Query parameter: pageToken
-    pub pageToken: Option<String>,
+    pub pageToken: Option<Option<String>>,
     /// Query parameter: returnPartialSuccess
-    pub returnPartialSuccess: Option<bool>,
+    pub returnPartialSuccess: Option<Option<String>>,
 }
 
 /// GET v1/operations
@@ -374,7 +377,7 @@ pub fn servicemanagement_operations_list(
     servicemanagement_operations_list_execute(builder)
 }
 
-/// GET v1/services
+/// POST v1/services
 /// Creates a new managed service. A managed service is immutable, and is subject to mandatory 30-day data retention. You cannot move a service or recreate it within 30 days after deletion. One producer project can own no more than 500 services. For security and reliability purposes, a production service should be hosted in a dedicated producer project. Operation
 ///
 /// Returns `ClientRequestBuilder` for customization.
@@ -382,22 +385,19 @@ pub fn servicemanagement_operations_list(
 
 pub fn servicemanagement_services_create_builder(
     client: &SimpleHttpClient,
-    body: &ManagedService,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!("https://servicemanagement.googleapis.com/v1/services",);
 
     // Build request
     let builder = client
-        .get(&endpoint_url)
+        .post(&endpoint_url)
         .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
 
-    builder
-        .body_json(body)
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+    Ok(builder)
 }
 
-/// GET v1/services
+/// POST v1/services
 /// Creates a new managed service. A managed service is immutable, and is subject to mandatory 30-day data retention. You cannot move a service or recreate it within 30 days after deletion. One producer project can own no more than 500 services. For security and reliability purposes, a production service should be hosted in a dedicated producer project. Operation
 ///
 /// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
@@ -471,7 +471,7 @@ pub fn servicemanagement_services_create_task(
         .map_pending(|_| ApiPending::Sending))
 }
 
-/// GET v1/services
+/// POST v1/services
 /// Creates a new managed service. A managed service is immutable, and is subject to mandatory 30-day data retention. You cannot move a service or recreate it within 30 days after deletion. One producer project can own no more than 500 services. For security and reliability purposes, a production service should be hosted in a dedicated producer project. Operation
 ///
 /// Takes a `ClientRequestBuilder`, builds and executes the request,
@@ -501,14 +501,7 @@ pub fn servicemanagement_services_create_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
-/// Arguments for [`servicemanagement_services_create`].
-#[derive(Debug, Clone, Serialize, JsonHash)]
-pub struct ServicemanagementServicesCreateArgs {
-    /// Request body.
-    pub body: ManagedService,
-}
-
-/// GET v1/services
+/// POST v1/services
 /// Creates a new managed service. A managed service is immutable, and is subject to mandatory 30-day data retention. You cannot move a service or recreate it within 30 days after deletion. One producer project can own no more than 500 services. For security and reliability purposes, a production service should be hosted in a dedicated producer project. Operation
 ///
 /// Simplest API - builds and executes the request in one call.
@@ -521,16 +514,15 @@ pub struct ServicemanagementServicesCreateArgs {
 
 pub fn servicemanagement_services_create(
     client: &SimpleHttpClient,
-    args: &ServicemanagementServicesCreateArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Operation>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = servicemanagement_services_create_builder(client, &args.body)?;
+    let builder = servicemanagement_services_create_builder(client)?;
     servicemanagement_services_create_execute(builder)
 }
 
-/// GET v1/services/{serviceName}
+/// DELETE v1/services/{serviceName}
 /// Deletes a managed service. This method will change the service to the Soft-Delete state for 30 days. Within this period, service producers may call UndeleteService to restore the service. After 30 days, the service will be permanently deleted. Operation
 ///
 /// Returns `ClientRequestBuilder` for customization.
@@ -548,13 +540,13 @@ pub fn servicemanagement_services_delete_builder(
 
     // Build request
     let builder = client
-        .get(&endpoint_url)
+        .delete(&endpoint_url)
         .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
 
     Ok(builder)
 }
 
-/// GET v1/services/{serviceName}
+/// DELETE v1/services/{serviceName}
 /// Deletes a managed service. This method will change the service to the Soft-Delete state for 30 days. Within this period, service producers may call UndeleteService to restore the service. After 30 days, the service will be permanently deleted. Operation
 ///
 /// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
@@ -628,7 +620,7 @@ pub fn servicemanagement_services_delete_task(
         .map_pending(|_| ApiPending::Sending))
 }
 
-/// GET v1/services/{serviceName}
+/// DELETE v1/services/{serviceName}
 /// Deletes a managed service. This method will change the service to the Soft-Delete state for 30 days. Within this period, service producers may call UndeleteService to restore the service. After 30 days, the service will be permanently deleted. Operation
 ///
 /// Takes a `ClientRequestBuilder`, builds and executes the request,
@@ -665,7 +657,7 @@ pub struct ServicemanagementServicesDeleteArgs {
     pub serviceName: String,
 }
 
-/// GET v1/services/{serviceName}
+/// DELETE v1/services/{serviceName}
 /// Deletes a managed service. This method will change the service to the Soft-Delete state for 30 days. Within this period, service producers may call UndeleteService to restore the service. After 30 days, the service will be permanently deleted. Operation
 ///
 /// Simplest API - builds and executes the request in one call.
@@ -687,7 +679,7 @@ pub fn servicemanagement_services_delete(
     servicemanagement_services_delete_execute(builder)
 }
 
-/// GET v1/services:generateConfigReport
+/// POST v1/services:generateConfigReport
 /// Generates and returns a report (errors, warnings and changes from existing configurations) associated with GenerateConfigReportRequest.new_value If GenerateConfigReportRequest.old_value is specified, GenerateConfigReportRequest will contain a single ChangeReport based on the comparison between GenerateConfigReportRequest.new_value and GenerateConfigReportRequest.old_value. If GenerateConfigReportRequest.old_value is not specified, this method will compare GenerateConfigReportRequest.new_value with the last pushed service configuration.
 ///
 /// Returns `ClientRequestBuilder` for customization.
@@ -695,7 +687,6 @@ pub fn servicemanagement_services_delete(
 
 pub fn servicemanagement_services_generate_config_report_builder(
     client: &SimpleHttpClient,
-    body: &GenerateConfigReportRequest,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url =
@@ -703,15 +694,13 @@ pub fn servicemanagement_services_generate_config_report_builder(
 
     // Build request
     let builder = client
-        .get(&endpoint_url)
+        .post(&endpoint_url)
         .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
 
-    builder
-        .body_json(body)
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+    Ok(builder)
 }
 
-/// GET v1/services:generateConfigReport
+/// POST v1/services:generateConfigReport
 /// Generates and returns a report (errors, warnings and changes from existing configurations) associated with GenerateConfigReportRequest.new_value If GenerateConfigReportRequest.old_value is specified, GenerateConfigReportRequest will contain a single ChangeReport based on the comparison between GenerateConfigReportRequest.new_value and GenerateConfigReportRequest.old_value. If GenerateConfigReportRequest.old_value is not specified, this method will compare GenerateConfigReportRequest.new_value with the last pushed service configuration.
 ///
 /// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
@@ -785,7 +774,7 @@ pub fn servicemanagement_services_generate_config_report_task(
         .map_pending(|_| ApiPending::Sending))
 }
 
-/// GET v1/services:generateConfigReport
+/// POST v1/services:generateConfigReport
 /// Generates and returns a report (errors, warnings and changes from existing configurations) associated with GenerateConfigReportRequest.new_value If GenerateConfigReportRequest.old_value is specified, GenerateConfigReportRequest will contain a single ChangeReport based on the comparison between GenerateConfigReportRequest.new_value and GenerateConfigReportRequest.old_value. If GenerateConfigReportRequest.old_value is not specified, this method will compare GenerateConfigReportRequest.new_value with the last pushed service configuration.
 ///
 /// Takes a `ClientRequestBuilder`, builds and executes the request,
@@ -819,14 +808,7 @@ pub fn servicemanagement_services_generate_config_report_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
-/// Arguments for [`servicemanagement_services_generate_config_report`].
-#[derive(Debug, Clone, Serialize, JsonHash)]
-pub struct ServicemanagementServicesGenerateConfigReportArgs {
-    /// Request body.
-    pub body: GenerateConfigReportRequest,
-}
-
-/// GET v1/services:generateConfigReport
+/// POST v1/services:generateConfigReport
 /// Generates and returns a report (errors, warnings and changes from existing configurations) associated with GenerateConfigReportRequest.new_value If GenerateConfigReportRequest.old_value is specified, GenerateConfigReportRequest will contain a single ChangeReport based on the comparison between GenerateConfigReportRequest.new_value and GenerateConfigReportRequest.old_value. If GenerateConfigReportRequest.old_value is not specified, this method will compare GenerateConfigReportRequest.new_value with the last pushed service configuration.
 ///
 /// Simplest API - builds and executes the request in one call.
@@ -839,7 +821,6 @@ pub struct ServicemanagementServicesGenerateConfigReportArgs {
 
 pub fn servicemanagement_services_generate_config_report(
     client: &SimpleHttpClient,
-    args: &ServicemanagementServicesGenerateConfigReportArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<GenerateConfigReportResponse>, ApiError>,
@@ -848,8 +829,169 @@ pub fn servicemanagement_services_generate_config_report(
         + 'static,
     ApiError,
 > {
-    let builder = servicemanagement_services_generate_config_report_builder(client, &args.body)?;
+    let builder = servicemanagement_services_generate_config_report_builder(client)?;
     servicemanagement_services_generate_config_report_execute(builder)
+}
+
+/// GET v1/services/{serviceName}
+/// Gets a managed service. Authentication is required unless the service is public.
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `servicemanagement_services_get_execute()` to send, or `servicemanagement_services_get` for simplest API.
+
+pub fn servicemanagement_services_get_builder(
+    client: &SimpleHttpClient,
+    serviceName: &String,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!(
+        "https://servicemanagement.googleapis.com/v1/services/{}",
+        serviceName,
+    );
+
+    // Build request
+    let builder = client
+        .get(&endpoint_url)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// GET v1/services/{serviceName}
+/// Gets a managed service. Authentication is required unless the service is public.
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `servicemanagement_services_get_execute()` or `servicemanagement_services_get`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `servicemanagement_services_get_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn servicemanagement_services_get_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<ManagedService>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: ManagedService = serde_json::from_str(&body)
+                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// GET v1/services/{serviceName}
+/// Gets a managed service. Authentication is required unless the service is public.
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `servicemanagement_services_get_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `servicemanagement_services_get_task()`.
+/// For the simplest API, use `servicemanagement_services_get()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `servicemanagement_services_get_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn servicemanagement_services_get_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<ManagedService>, ApiError>, P = ApiPending>
+        + Send
+        + 'static,
+    ApiError,
+> {
+    let task = servicemanagement_services_get_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`servicemanagement_services_get`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct ServicemanagementServicesGetArgs {
+    /// Path parameter: serviceName
+    pub serviceName: String,
+}
+
+/// GET v1/services/{serviceName}
+/// Gets a managed service. Authentication is required unless the service is public.
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `servicemanagement_services_get_builder()` + `servicemanagement_services_get_execute()`.
+/// For task-level control, use `servicemanagement_services_get_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn servicemanagement_services_get(
+    client: &SimpleHttpClient,
+    args: &ServicemanagementServicesGetArgs,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<ManagedService>, ApiError>, P = ApiPending>
+        + Send
+        + 'static,
+    ApiError,
+> {
+    let builder = servicemanagement_services_get_builder(client, &args.serviceName)?;
+    servicemanagement_services_get_execute(builder)
 }
 
 /// GET v1/services/{serviceName}/config
@@ -861,8 +1003,8 @@ pub fn servicemanagement_services_generate_config_report(
 pub fn servicemanagement_services_get_config_builder(
     client: &SimpleHttpClient,
     serviceName: &String,
-    configId: &Option<String>,
-    view: &Option<String>,
+    configId: &Option<Option<String>>,
+    view: &Option<Option<String>>,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
@@ -1002,9 +1144,9 @@ pub struct ServicemanagementServicesGetConfigArgs {
     /// Path parameter: serviceName
     pub serviceName: String,
     /// Query parameter: configId
-    pub configId: Option<String>,
+    pub configId: Option<Option<String>>,
     /// Query parameter: view
-    pub view: Option<String>,
+    pub view: Option<Option<String>>,
 }
 
 /// GET v1/services/{serviceName}/config
@@ -1034,7 +1176,7 @@ pub fn servicemanagement_services_get_config(
     servicemanagement_services_get_config_execute(builder)
 }
 
-/// GET v1/services/{servicesId}:getIamPolicy
+/// POST v1/services/{servicesId}:getIamPolicy
 /// Gets the access control policy for a resource. Returns an empty policy if the resource exists and does not have a policy set.
 ///
 /// Returns `ClientRequestBuilder` for customization.
@@ -1043,23 +1185,22 @@ pub fn servicemanagement_services_get_config(
 pub fn servicemanagement_services_get_iam_policy_builder(
     client: &SimpleHttpClient,
     resource: &String,
-    body: &GetIamPolicyRequest,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
-    let endpoint_url =
-        format!("https://servicemanagement.googleapis.com/v1/services/{}:getIamPolicy",);
+    let endpoint_url = format!(
+        "https://servicemanagement.googleapis.com/v1/services/{}:getIamPolicy",
+        resource,
+    );
 
     // Build request
     let builder = client
-        .get(&endpoint_url)
+        .post(&endpoint_url)
         .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
 
-    builder
-        .body_json(body)
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+    Ok(builder)
 }
 
-/// GET v1/services/{servicesId}:getIamPolicy
+/// POST v1/services/{servicesId}:getIamPolicy
 /// Gets the access control policy for a resource. Returns an empty policy if the resource exists and does not have a policy set.
 ///
 /// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
@@ -1133,7 +1274,7 @@ pub fn servicemanagement_services_get_iam_policy_task(
         .map_pending(|_| ApiPending::Sending))
 }
 
-/// GET v1/services/{servicesId}:getIamPolicy
+/// POST v1/services/{servicesId}:getIamPolicy
 /// Gets the access control policy for a resource. Returns an empty policy if the resource exists and does not have a policy set.
 ///
 /// Takes a `ClientRequestBuilder`, builds and executes the request,
@@ -1168,11 +1309,9 @@ pub fn servicemanagement_services_get_iam_policy_execute(
 pub struct ServicemanagementServicesGetIamPolicyArgs {
     /// Path parameter: resource
     pub resource: String,
-    /// Request body.
-    pub body: GetIamPolicyRequest,
 }
 
-/// GET v1/services/{servicesId}:getIamPolicy
+/// POST v1/services/{servicesId}:getIamPolicy
 /// Gets the access control policy for a resource. Returns an empty policy if the resource exists and does not have a policy set.
 ///
 /// Simplest API - builds and executes the request in one call.
@@ -1190,12 +1329,204 @@ pub fn servicemanagement_services_get_iam_policy(
     impl StreamIterator<D = Result<ApiResponse<Policy>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder =
-        servicemanagement_services_get_iam_policy_builder(client, &args.resource, &args.body)?;
+    let builder = servicemanagement_services_get_iam_policy_builder(client, &args.resource)?;
     servicemanagement_services_get_iam_policy_execute(builder)
 }
 
-/// GET v1/services/{servicesId}:setIamPolicy
+/// GET v1/services
+/// Lists managed services. Returns all public services. For authenticated users, also returns all services the calling user has "servicemanagement.services.get" permission for.
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `servicemanagement_services_list_execute()` to send, or `servicemanagement_services_list` for simplest API.
+
+pub fn servicemanagement_services_list_builder(
+    client: &SimpleHttpClient,
+    consumerId: &Option<Option<String>>,
+    pageSize: &Option<Option<String>>,
+    pageToken: &Option<Option<String>>,
+    producerProjectId: &Option<Option<String>>,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!("https://servicemanagement.googleapis.com/v1/services",);
+
+    // Build request
+    let mut query_parts = Vec::new();
+    if let Some(val) = consumerId.as_ref() {
+        query_parts.push(format!("consumerId={}", val));
+    }
+    if let Some(val) = pageSize.as_ref() {
+        query_parts.push(format!("pageSize={}", val));
+    }
+    if let Some(val) = pageToken.as_ref() {
+        query_parts.push(format!("pageToken={}", val));
+    }
+    if let Some(val) = producerProjectId.as_ref() {
+        query_parts.push(format!("producerProjectId={}", val));
+    }
+
+    let url_with_query = if query_parts.is_empty() {
+        endpoint_url
+    } else {
+        format!("{}?{}", endpoint_url, query_parts.join("&"))
+    };
+
+    let builder = client
+        .get(&url_with_query)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// GET v1/services
+/// Lists managed services. Returns all public services. For authenticated users, also returns all services the calling user has "servicemanagement.services.get" permission for.
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `servicemanagement_services_list_execute()` or `servicemanagement_services_list`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `servicemanagement_services_list_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn servicemanagement_services_list_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<ListServicesResponse>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: ListServicesResponse = serde_json::from_str(&body)
+                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// GET v1/services
+/// Lists managed services. Returns all public services. For authenticated users, also returns all services the calling user has "servicemanagement.services.get" permission for.
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `servicemanagement_services_list_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `servicemanagement_services_list_task()`.
+/// For the simplest API, use `servicemanagement_services_list()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `servicemanagement_services_list_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn servicemanagement_services_list_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<ListServicesResponse>, ApiError>, P = ApiPending>
+        + Send
+        + 'static,
+    ApiError,
+> {
+    let task = servicemanagement_services_list_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`servicemanagement_services_list`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct ServicemanagementServicesListArgs {
+    /// Query parameter: consumerId
+    pub consumerId: Option<Option<String>>,
+    /// Query parameter: pageSize
+    pub pageSize: Option<Option<String>>,
+    /// Query parameter: pageToken
+    pub pageToken: Option<Option<String>>,
+    /// Query parameter: producerProjectId
+    pub producerProjectId: Option<Option<String>>,
+}
+
+/// GET v1/services
+/// Lists managed services. Returns all public services. For authenticated users, also returns all services the calling user has "servicemanagement.services.get" permission for.
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `servicemanagement_services_list_builder()` + `servicemanagement_services_list_execute()`.
+/// For task-level control, use `servicemanagement_services_list_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn servicemanagement_services_list(
+    client: &SimpleHttpClient,
+    args: &ServicemanagementServicesListArgs,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<ListServicesResponse>, ApiError>, P = ApiPending>
+        + Send
+        + 'static,
+    ApiError,
+> {
+    let builder = servicemanagement_services_list_builder(
+        client,
+        &args.consumerId,
+        &args.pageSize,
+        &args.pageToken,
+        &args.producerProjectId,
+    )?;
+    servicemanagement_services_list_execute(builder)
+}
+
+/// POST v1/services/{servicesId}:setIamPolicy
 /// Sets the access control policy on the specified resource. Replaces any existing policy. Can return NOT_FOUND, INVALID_ARGUMENT, and PERMISSION_DENIED errors.
 ///
 /// Returns `ClientRequestBuilder` for customization.
@@ -1204,23 +1535,22 @@ pub fn servicemanagement_services_get_iam_policy(
 pub fn servicemanagement_services_set_iam_policy_builder(
     client: &SimpleHttpClient,
     resource: &String,
-    body: &SetIamPolicyRequest,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
-    let endpoint_url =
-        format!("https://servicemanagement.googleapis.com/v1/services/{}:setIamPolicy",);
+    let endpoint_url = format!(
+        "https://servicemanagement.googleapis.com/v1/services/{}:setIamPolicy",
+        resource,
+    );
 
     // Build request
     let builder = client
-        .get(&endpoint_url)
+        .post(&endpoint_url)
         .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
 
-    builder
-        .body_json(body)
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+    Ok(builder)
 }
 
-/// GET v1/services/{servicesId}:setIamPolicy
+/// POST v1/services/{servicesId}:setIamPolicy
 /// Sets the access control policy on the specified resource. Replaces any existing policy. Can return NOT_FOUND, INVALID_ARGUMENT, and PERMISSION_DENIED errors.
 ///
 /// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
@@ -1294,7 +1624,7 @@ pub fn servicemanagement_services_set_iam_policy_task(
         .map_pending(|_| ApiPending::Sending))
 }
 
-/// GET v1/services/{servicesId}:setIamPolicy
+/// POST v1/services/{servicesId}:setIamPolicy
 /// Sets the access control policy on the specified resource. Replaces any existing policy. Can return NOT_FOUND, INVALID_ARGUMENT, and PERMISSION_DENIED errors.
 ///
 /// Takes a `ClientRequestBuilder`, builds and executes the request,
@@ -1329,11 +1659,9 @@ pub fn servicemanagement_services_set_iam_policy_execute(
 pub struct ServicemanagementServicesSetIamPolicyArgs {
     /// Path parameter: resource
     pub resource: String,
-    /// Request body.
-    pub body: SetIamPolicyRequest,
 }
 
-/// GET v1/services/{servicesId}:setIamPolicy
+/// POST v1/services/{servicesId}:setIamPolicy
 /// Sets the access control policy on the specified resource. Replaces any existing policy. Can return NOT_FOUND, INVALID_ARGUMENT, and PERMISSION_DENIED errors.
 ///
 /// Simplest API - builds and executes the request in one call.
@@ -1351,12 +1679,11 @@ pub fn servicemanagement_services_set_iam_policy(
     impl StreamIterator<D = Result<ApiResponse<Policy>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder =
-        servicemanagement_services_set_iam_policy_builder(client, &args.resource, &args.body)?;
+    let builder = servicemanagement_services_set_iam_policy_builder(client, &args.resource)?;
     servicemanagement_services_set_iam_policy_execute(builder)
 }
 
-/// GET v1/services/{servicesId}:testIamPermissions
+/// POST v1/services/{servicesId}:testIamPermissions
 /// Returns permissions that a caller has on the specified resource. If the resource does not exist, this will return an empty set of permissions, not a NOT_FOUND error. Note: This operation is designed to be used for building permission-aware UIs and command-line tools, not for authorization checking. This operation may "fail open" without warning.
 ///
 /// Returns `ClientRequestBuilder` for customization.
@@ -1365,23 +1692,22 @@ pub fn servicemanagement_services_set_iam_policy(
 pub fn servicemanagement_services_test_iam_permissions_builder(
     client: &SimpleHttpClient,
     resource: &String,
-    body: &TestIamPermissionsRequest,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
-    let endpoint_url =
-        format!("https://servicemanagement.googleapis.com/v1/services/{}:testIamPermissions",);
+    let endpoint_url = format!(
+        "https://servicemanagement.googleapis.com/v1/services/{}:testIamPermissions",
+        resource,
+    );
 
     // Build request
     let builder = client
-        .get(&endpoint_url)
+        .post(&endpoint_url)
         .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
 
-    builder
-        .body_json(body)
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+    Ok(builder)
 }
 
-/// GET v1/services/{servicesId}:testIamPermissions
+/// POST v1/services/{servicesId}:testIamPermissions
 /// Returns permissions that a caller has on the specified resource. If the resource does not exist, this will return an empty set of permissions, not a NOT_FOUND error. Note: This operation is designed to be used for building permission-aware UIs and command-line tools, not for authorization checking. This operation may "fail open" without warning.
 ///
 /// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
@@ -1455,7 +1781,7 @@ pub fn servicemanagement_services_test_iam_permissions_task(
         .map_pending(|_| ApiPending::Sending))
 }
 
-/// GET v1/services/{servicesId}:testIamPermissions
+/// POST v1/services/{servicesId}:testIamPermissions
 /// Returns permissions that a caller has on the specified resource. If the resource does not exist, this will return an empty set of permissions, not a NOT_FOUND error. Note: This operation is designed to be used for building permission-aware UIs and command-line tools, not for authorization checking. This operation may "fail open" without warning.
 ///
 /// Takes a `ClientRequestBuilder`, builds and executes the request,
@@ -1494,11 +1820,9 @@ pub fn servicemanagement_services_test_iam_permissions_execute(
 pub struct ServicemanagementServicesTestIamPermissionsArgs {
     /// Path parameter: resource
     pub resource: String,
-    /// Request body.
-    pub body: TestIamPermissionsRequest,
 }
 
-/// GET v1/services/{servicesId}:testIamPermissions
+/// POST v1/services/{servicesId}:testIamPermissions
 /// Returns permissions that a caller has on the specified resource. If the resource does not exist, this will return an empty set of permissions, not a NOT_FOUND error. Note: This operation is designed to be used for building permission-aware UIs and command-line tools, not for authorization checking. This operation may "fail open" without warning.
 ///
 /// Simplest API - builds and executes the request in one call.
@@ -1520,15 +1844,11 @@ pub fn servicemanagement_services_test_iam_permissions(
         + 'static,
     ApiError,
 > {
-    let builder = servicemanagement_services_test_iam_permissions_builder(
-        client,
-        &args.resource,
-        &args.body,
-    )?;
+    let builder = servicemanagement_services_test_iam_permissions_builder(client, &args.resource)?;
     servicemanagement_services_test_iam_permissions_execute(builder)
 }
 
-/// GET v1/services/{serviceName}:undelete
+/// POST v1/services/{serviceName}:undelete
 /// Revives a previously deleted managed service. The method restores the service using the configuration at the time the service was deleted. The target service must exist and must have been deleted within the last 30 days. Operation
 ///
 /// Returns `ClientRequestBuilder` for customization.
@@ -1546,13 +1866,13 @@ pub fn servicemanagement_services_undelete_builder(
 
     // Build request
     let builder = client
-        .get(&endpoint_url)
+        .post(&endpoint_url)
         .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
 
     Ok(builder)
 }
 
-/// GET v1/services/{serviceName}:undelete
+/// POST v1/services/{serviceName}:undelete
 /// Revives a previously deleted managed service. The method restores the service using the configuration at the time the service was deleted. The target service must exist and must have been deleted within the last 30 days. Operation
 ///
 /// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
@@ -1626,7 +1946,7 @@ pub fn servicemanagement_services_undelete_task(
         .map_pending(|_| ApiPending::Sending))
 }
 
-/// GET v1/services/{serviceName}:undelete
+/// POST v1/services/{serviceName}:undelete
 /// Revives a previously deleted managed service. The method restores the service using the configuration at the time the service was deleted. The target service must exist and must have been deleted within the last 30 days. Operation
 ///
 /// Takes a `ClientRequestBuilder`, builds and executes the request,
@@ -1663,7 +1983,7 @@ pub struct ServicemanagementServicesUndeleteArgs {
     pub serviceName: String,
 }
 
-/// GET v1/services/{serviceName}:undelete
+/// POST v1/services/{serviceName}:undelete
 /// Revives a previously deleted managed service. The method restores the service using the configuration at the time the service was deleted. The target service must exist and must have been deleted within the last 30 days. Operation
 ///
 /// Simplest API - builds and executes the request in one call.
@@ -1685,7 +2005,7 @@ pub fn servicemanagement_services_undelete(
     servicemanagement_services_undelete_execute(builder)
 }
 
-/// GET v1/services/{serviceName}/configs
+/// POST v1/services/{serviceName}/configs
 /// Creates a new service configuration (version) for a managed service. This method only stores the service configuration. To roll out the service configuration to backend systems please call CreateServiceRollout. Only the 100 most recent service configurations and ones referenced by existing rollouts are kept for each service. The rest will be deleted eventually.
 ///
 /// Returns `ClientRequestBuilder` for customization.
@@ -1694,7 +2014,6 @@ pub fn servicemanagement_services_undelete(
 pub fn servicemanagement_services_configs_create_builder(
     client: &SimpleHttpClient,
     serviceName: &String,
-    body: &Service,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
@@ -1704,15 +2023,13 @@ pub fn servicemanagement_services_configs_create_builder(
 
     // Build request
     let builder = client
-        .get(&endpoint_url)
+        .post(&endpoint_url)
         .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
 
-    builder
-        .body_json(body)
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+    Ok(builder)
 }
 
-/// GET v1/services/{serviceName}/configs
+/// POST v1/services/{serviceName}/configs
 /// Creates a new service configuration (version) for a managed service. This method only stores the service configuration. To roll out the service configuration to backend systems please call CreateServiceRollout. Only the 100 most recent service configurations and ones referenced by existing rollouts are kept for each service. The rest will be deleted eventually.
 ///
 /// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
@@ -1786,7 +2103,7 @@ pub fn servicemanagement_services_configs_create_task(
         .map_pending(|_| ApiPending::Sending))
 }
 
-/// GET v1/services/{serviceName}/configs
+/// POST v1/services/{serviceName}/configs
 /// Creates a new service configuration (version) for a managed service. This method only stores the service configuration. To roll out the service configuration to backend systems please call CreateServiceRollout. Only the 100 most recent service configurations and ones referenced by existing rollouts are kept for each service. The rest will be deleted eventually.
 ///
 /// Takes a `ClientRequestBuilder`, builds and executes the request,
@@ -1821,11 +2138,9 @@ pub fn servicemanagement_services_configs_create_execute(
 pub struct ServicemanagementServicesConfigsCreateArgs {
     /// Path parameter: serviceName
     pub serviceName: String,
-    /// Request body.
-    pub body: Service,
 }
 
-/// GET v1/services/{serviceName}/configs
+/// POST v1/services/{serviceName}/configs
 /// Creates a new service configuration (version) for a managed service. This method only stores the service configuration. To roll out the service configuration to backend systems please call CreateServiceRollout. Only the 100 most recent service configurations and ones referenced by existing rollouts are kept for each service. The rest will be deleted eventually.
 ///
 /// Simplest API - builds and executes the request in one call.
@@ -1843,8 +2158,7 @@ pub fn servicemanagement_services_configs_create(
     impl StreamIterator<D = Result<ApiResponse<Service>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder =
-        servicemanagement_services_configs_create_builder(client, &args.serviceName, &args.body)?;
+    let builder = servicemanagement_services_configs_create_builder(client, &args.serviceName)?;
     servicemanagement_services_configs_create_execute(builder)
 }
 
@@ -1858,7 +2172,7 @@ pub fn servicemanagement_services_configs_get_builder(
     client: &SimpleHttpClient,
     serviceName: &String,
     configId: &String,
-    view: &Option<String>,
+    view: &Option<Option<String>>,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
@@ -1997,7 +2311,7 @@ pub struct ServicemanagementServicesConfigsGetArgs {
     /// Path parameter: configId
     pub configId: String,
     /// Query parameter: view
-    pub view: Option<String>,
+    pub view: Option<Option<String>>,
 }
 
 /// GET v1/services/{serviceName}/configs/{configId}
@@ -2027,7 +2341,197 @@ pub fn servicemanagement_services_configs_get(
     servicemanagement_services_configs_get_execute(builder)
 }
 
-/// GET v1/services/{serviceName}/configs:submit
+/// GET v1/services/{serviceName}/configs
+/// Lists the history of the service configuration for a managed service, from the newest to the oldest.
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `servicemanagement_services_configs_list_execute()` to send, or `servicemanagement_services_configs_list` for simplest API.
+
+pub fn servicemanagement_services_configs_list_builder(
+    client: &SimpleHttpClient,
+    serviceName: &String,
+    pageSize: &Option<Option<String>>,
+    pageToken: &Option<Option<String>>,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!(
+        "https://servicemanagement.googleapis.com/v1/services/{}/configs",
+        serviceName,
+    );
+
+    // Build request
+    let mut query_parts = Vec::new();
+    if let Some(val) = pageSize.as_ref() {
+        query_parts.push(format!("pageSize={}", val));
+    }
+    if let Some(val) = pageToken.as_ref() {
+        query_parts.push(format!("pageToken={}", val));
+    }
+
+    let url_with_query = if query_parts.is_empty() {
+        endpoint_url
+    } else {
+        format!("{}?{}", endpoint_url, query_parts.join("&"))
+    };
+
+    let builder = client
+        .get(&url_with_query)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// GET v1/services/{serviceName}/configs
+/// Lists the history of the service configuration for a managed service, from the newest to the oldest.
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `servicemanagement_services_configs_list_execute()` or `servicemanagement_services_configs_list`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `servicemanagement_services_configs_list_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn servicemanagement_services_configs_list_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<ListServiceConfigsResponse>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: ListServiceConfigsResponse = serde_json::from_str(&body)
+                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// GET v1/services/{serviceName}/configs
+/// Lists the history of the service configuration for a managed service, from the newest to the oldest.
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `servicemanagement_services_configs_list_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `servicemanagement_services_configs_list_task()`.
+/// For the simplest API, use `servicemanagement_services_configs_list()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `servicemanagement_services_configs_list_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn servicemanagement_services_configs_list_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<
+            D = Result<ApiResponse<ListServiceConfigsResponse>, ApiError>,
+            P = ApiPending,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    let task = servicemanagement_services_configs_list_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`servicemanagement_services_configs_list`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct ServicemanagementServicesConfigsListArgs {
+    /// Path parameter: serviceName
+    pub serviceName: String,
+    /// Query parameter: pageSize
+    pub pageSize: Option<Option<String>>,
+    /// Query parameter: pageToken
+    pub pageToken: Option<Option<String>>,
+}
+
+/// GET v1/services/{serviceName}/configs
+/// Lists the history of the service configuration for a managed service, from the newest to the oldest.
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `servicemanagement_services_configs_list_builder()` + `servicemanagement_services_configs_list_execute()`.
+/// For task-level control, use `servicemanagement_services_configs_list_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn servicemanagement_services_configs_list(
+    client: &SimpleHttpClient,
+    args: &ServicemanagementServicesConfigsListArgs,
+) -> Result<
+    impl StreamIterator<
+            D = Result<ApiResponse<ListServiceConfigsResponse>, ApiError>,
+            P = ApiPending,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    let builder = servicemanagement_services_configs_list_builder(
+        client,
+        &args.serviceName,
+        &args.pageSize,
+        &args.pageToken,
+    )?;
+    servicemanagement_services_configs_list_execute(builder)
+}
+
+/// POST v1/services/{serviceName}/configs:submit
 /// Creates a new service configuration (version) for a managed service based on user-supplied configuration source files (for example: OpenAPI Specification). This method stores the source configurations as well as the generated service configuration. To rollout the service configuration to other services, please call CreateServiceRollout. Only the 100 most recent configuration sources and ones referenced by existing service configurtions are kept for each service. The rest will be deleted eventually. Operation
 ///
 /// Returns `ClientRequestBuilder` for customization.
@@ -2036,7 +2540,6 @@ pub fn servicemanagement_services_configs_get(
 pub fn servicemanagement_services_configs_submit_builder(
     client: &SimpleHttpClient,
     serviceName: &String,
-    body: &SubmitConfigSourceRequest,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
@@ -2046,15 +2549,13 @@ pub fn servicemanagement_services_configs_submit_builder(
 
     // Build request
     let builder = client
-        .get(&endpoint_url)
+        .post(&endpoint_url)
         .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
 
-    builder
-        .body_json(body)
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+    Ok(builder)
 }
 
-/// GET v1/services/{serviceName}/configs:submit
+/// POST v1/services/{serviceName}/configs:submit
 /// Creates a new service configuration (version) for a managed service based on user-supplied configuration source files (for example: OpenAPI Specification). This method stores the source configurations as well as the generated service configuration. To rollout the service configuration to other services, please call CreateServiceRollout. Only the 100 most recent configuration sources and ones referenced by existing service configurtions are kept for each service. The rest will be deleted eventually. Operation
 ///
 /// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
@@ -2128,7 +2629,7 @@ pub fn servicemanagement_services_configs_submit_task(
         .map_pending(|_| ApiPending::Sending))
 }
 
-/// GET v1/services/{serviceName}/configs:submit
+/// POST v1/services/{serviceName}/configs:submit
 /// Creates a new service configuration (version) for a managed service based on user-supplied configuration source files (for example: OpenAPI Specification). This method stores the source configurations as well as the generated service configuration. To rollout the service configuration to other services, please call CreateServiceRollout. Only the 100 most recent configuration sources and ones referenced by existing service configurtions are kept for each service. The rest will be deleted eventually. Operation
 ///
 /// Takes a `ClientRequestBuilder`, builds and executes the request,
@@ -2163,11 +2664,9 @@ pub fn servicemanagement_services_configs_submit_execute(
 pub struct ServicemanagementServicesConfigsSubmitArgs {
     /// Path parameter: serviceName
     pub serviceName: String,
-    /// Request body.
-    pub body: SubmitConfigSourceRequest,
 }
 
-/// GET v1/services/{serviceName}/configs:submit
+/// POST v1/services/{serviceName}/configs:submit
 /// Creates a new service configuration (version) for a managed service based on user-supplied configuration source files (for example: OpenAPI Specification). This method stores the source configurations as well as the generated service configuration. To rollout the service configuration to other services, please call CreateServiceRollout. Only the 100 most recent configuration sources and ones referenced by existing service configurtions are kept for each service. The rest will be deleted eventually. Operation
 ///
 /// Simplest API - builds and executes the request in one call.
@@ -2185,12 +2684,493 @@ pub fn servicemanagement_services_configs_submit(
     impl StreamIterator<D = Result<ApiResponse<Operation>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder =
-        servicemanagement_services_configs_submit_builder(client, &args.serviceName, &args.body)?;
+    let builder = servicemanagement_services_configs_submit_builder(client, &args.serviceName)?;
     servicemanagement_services_configs_submit_execute(builder)
 }
 
-/// GET v1/services/{serviceName}/rollouts
+/// POST v1/services/{servicesId}/consumers/{consumersId}:getIamPolicy
+/// Gets the access control policy for a resource. Returns an empty policy if the resource exists and does not have a policy set.
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `servicemanagement_services_consumers_get_iam_policy_execute()` to send, or `servicemanagement_services_consumers_get_iam_policy` for simplest API.
+
+pub fn servicemanagement_services_consumers_get_iam_policy_builder(
+    client: &SimpleHttpClient,
+    resource: &String,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!(
+        "https://servicemanagement.googleapis.com/v1/services/{}/consumers/{consumersId}:getIamPolicy",
+        resource,
+    );
+
+    // Build request
+    let builder = client
+        .post(&endpoint_url)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// POST v1/services/{servicesId}/consumers/{consumersId}:getIamPolicy
+/// Gets the access control policy for a resource. Returns an empty policy if the resource exists and does not have a policy set.
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `servicemanagement_services_consumers_get_iam_policy_execute()` or `servicemanagement_services_consumers_get_iam_policy`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `servicemanagement_services_consumers_get_iam_policy_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn servicemanagement_services_consumers_get_iam_policy_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<Policy>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: Policy = serde_json::from_str(&body)
+                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// POST v1/services/{servicesId}/consumers/{consumersId}:getIamPolicy
+/// Gets the access control policy for a resource. Returns an empty policy if the resource exists and does not have a policy set.
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `servicemanagement_services_consumers_get_iam_policy_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `servicemanagement_services_consumers_get_iam_policy_task()`.
+/// For the simplest API, use `servicemanagement_services_consumers_get_iam_policy()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `servicemanagement_services_consumers_get_iam_policy_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn servicemanagement_services_consumers_get_iam_policy_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<Policy>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let task = servicemanagement_services_consumers_get_iam_policy_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`servicemanagement_services_consumers_get_iam_policy`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct ServicemanagementServicesConsumersGetIamPolicyArgs {
+    /// Path parameter: resource
+    pub resource: String,
+}
+
+/// POST v1/services/{servicesId}/consumers/{consumersId}:getIamPolicy
+/// Gets the access control policy for a resource. Returns an empty policy if the resource exists and does not have a policy set.
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `servicemanagement_services_consumers_get_iam_policy_builder()` + `servicemanagement_services_consumers_get_iam_policy_execute()`.
+/// For task-level control, use `servicemanagement_services_consumers_get_iam_policy_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn servicemanagement_services_consumers_get_iam_policy(
+    client: &SimpleHttpClient,
+    args: &ServicemanagementServicesConsumersGetIamPolicyArgs,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<Policy>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let builder =
+        servicemanagement_services_consumers_get_iam_policy_builder(client, &args.resource)?;
+    servicemanagement_services_consumers_get_iam_policy_execute(builder)
+}
+
+/// POST v1/services/{servicesId}/consumers/{consumersId}:setIamPolicy
+/// Sets the access control policy on the specified resource. Replaces any existing policy. Can return NOT_FOUND, INVALID_ARGUMENT, and PERMISSION_DENIED errors.
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `servicemanagement_services_consumers_set_iam_policy_execute()` to send, or `servicemanagement_services_consumers_set_iam_policy` for simplest API.
+
+pub fn servicemanagement_services_consumers_set_iam_policy_builder(
+    client: &SimpleHttpClient,
+    resource: &String,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!(
+        "https://servicemanagement.googleapis.com/v1/services/{}/consumers/{consumersId}:setIamPolicy",
+        resource,
+    );
+
+    // Build request
+    let builder = client
+        .post(&endpoint_url)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// POST v1/services/{servicesId}/consumers/{consumersId}:setIamPolicy
+/// Sets the access control policy on the specified resource. Replaces any existing policy. Can return NOT_FOUND, INVALID_ARGUMENT, and PERMISSION_DENIED errors.
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `servicemanagement_services_consumers_set_iam_policy_execute()` or `servicemanagement_services_consumers_set_iam_policy`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `servicemanagement_services_consumers_set_iam_policy_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn servicemanagement_services_consumers_set_iam_policy_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<Policy>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: Policy = serde_json::from_str(&body)
+                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// POST v1/services/{servicesId}/consumers/{consumersId}:setIamPolicy
+/// Sets the access control policy on the specified resource. Replaces any existing policy. Can return NOT_FOUND, INVALID_ARGUMENT, and PERMISSION_DENIED errors.
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `servicemanagement_services_consumers_set_iam_policy_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `servicemanagement_services_consumers_set_iam_policy_task()`.
+/// For the simplest API, use `servicemanagement_services_consumers_set_iam_policy()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `servicemanagement_services_consumers_set_iam_policy_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn servicemanagement_services_consumers_set_iam_policy_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<Policy>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let task = servicemanagement_services_consumers_set_iam_policy_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`servicemanagement_services_consumers_set_iam_policy`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct ServicemanagementServicesConsumersSetIamPolicyArgs {
+    /// Path parameter: resource
+    pub resource: String,
+}
+
+/// POST v1/services/{servicesId}/consumers/{consumersId}:setIamPolicy
+/// Sets the access control policy on the specified resource. Replaces any existing policy. Can return NOT_FOUND, INVALID_ARGUMENT, and PERMISSION_DENIED errors.
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `servicemanagement_services_consumers_set_iam_policy_builder()` + `servicemanagement_services_consumers_set_iam_policy_execute()`.
+/// For task-level control, use `servicemanagement_services_consumers_set_iam_policy_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn servicemanagement_services_consumers_set_iam_policy(
+    client: &SimpleHttpClient,
+    args: &ServicemanagementServicesConsumersSetIamPolicyArgs,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<Policy>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let builder =
+        servicemanagement_services_consumers_set_iam_policy_builder(client, &args.resource)?;
+    servicemanagement_services_consumers_set_iam_policy_execute(builder)
+}
+
+/// POST v1/services/{servicesId}/consumers/{consumersId}:testIamPermissions
+/// Returns permissions that a caller has on the specified resource. If the resource does not exist, this will return an empty set of permissions, not a NOT_FOUND error. Note: This operation is designed to be used for building permission-aware UIs and command-line tools, not for authorization checking. This operation may "fail open" without warning.
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `servicemanagement_services_consumers_test_iam_permissions_execute()` to send, or `servicemanagement_services_consumers_test_iam_permissions` for simplest API.
+
+pub fn servicemanagement_services_consumers_test_iam_permissions_builder(
+    client: &SimpleHttpClient,
+    resource: &String,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!(
+        "https://servicemanagement.googleapis.com/v1/services/{}/consumers/{consumersId}:testIamPermissions",
+        resource,
+    );
+
+    // Build request
+    let builder = client
+        .post(&endpoint_url)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// POST v1/services/{servicesId}/consumers/{consumersId}:testIamPermissions
+/// Returns permissions that a caller has on the specified resource. If the resource does not exist, this will return an empty set of permissions, not a NOT_FOUND error. Note: This operation is designed to be used for building permission-aware UIs and command-line tools, not for authorization checking. This operation may "fail open" without warning.
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `servicemanagement_services_consumers_test_iam_permissions_execute()` or `servicemanagement_services_consumers_test_iam_permissions`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `servicemanagement_services_consumers_test_iam_permissions_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn servicemanagement_services_consumers_test_iam_permissions_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<TestIamPermissionsResponse>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: TestIamPermissionsResponse = serde_json::from_str(&body)
+                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// POST v1/services/{servicesId}/consumers/{consumersId}:testIamPermissions
+/// Returns permissions that a caller has on the specified resource. If the resource does not exist, this will return an empty set of permissions, not a NOT_FOUND error. Note: This operation is designed to be used for building permission-aware UIs and command-line tools, not for authorization checking. This operation may "fail open" without warning.
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `servicemanagement_services_consumers_test_iam_permissions_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `servicemanagement_services_consumers_test_iam_permissions_task()`.
+/// For the simplest API, use `servicemanagement_services_consumers_test_iam_permissions()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `servicemanagement_services_consumers_test_iam_permissions_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn servicemanagement_services_consumers_test_iam_permissions_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<
+            D = Result<ApiResponse<TestIamPermissionsResponse>, ApiError>,
+            P = ApiPending,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    let task = servicemanagement_services_consumers_test_iam_permissions_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`servicemanagement_services_consumers_test_iam_permissions`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct ServicemanagementServicesConsumersTestIamPermissionsArgs {
+    /// Path parameter: resource
+    pub resource: String,
+}
+
+/// POST v1/services/{servicesId}/consumers/{consumersId}:testIamPermissions
+/// Returns permissions that a caller has on the specified resource. If the resource does not exist, this will return an empty set of permissions, not a NOT_FOUND error. Note: This operation is designed to be used for building permission-aware UIs and command-line tools, not for authorization checking. This operation may "fail open" without warning.
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `servicemanagement_services_consumers_test_iam_permissions_builder()` + `servicemanagement_services_consumers_test_iam_permissions_execute()`.
+/// For task-level control, use `servicemanagement_services_consumers_test_iam_permissions_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn servicemanagement_services_consumers_test_iam_permissions(
+    client: &SimpleHttpClient,
+    args: &ServicemanagementServicesConsumersTestIamPermissionsArgs,
+) -> Result<
+    impl StreamIterator<
+            D = Result<ApiResponse<TestIamPermissionsResponse>, ApiError>,
+            P = ApiPending,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    let builder =
+        servicemanagement_services_consumers_test_iam_permissions_builder(client, &args.resource)?;
+    servicemanagement_services_consumers_test_iam_permissions_execute(builder)
+}
+
+/// POST v1/services/{serviceName}/rollouts
 /// Creates a new service configuration rollout. Based on rollout, the Google Service Management will roll out the service configurations to different backend services. For example, the logging configuration will be pushed to Google Cloud Logging. Please note that any previous pending and running Rollouts and associated Operations will be automatically cancelled so that the latest Rollout will not be blocked by previous Rollouts. Only the 100 most recent (in any state) and the last 10 successful (if not already part of the set of 100 most recent) rollouts are kept for each service. The rest will be deleted eventually. Operation
 ///
 /// Returns `ClientRequestBuilder` for customization.
@@ -2199,7 +3179,6 @@ pub fn servicemanagement_services_configs_submit(
 pub fn servicemanagement_services_rollouts_create_builder(
     client: &SimpleHttpClient,
     serviceName: &String,
-    body: &Rollout,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
@@ -2209,15 +3188,13 @@ pub fn servicemanagement_services_rollouts_create_builder(
 
     // Build request
     let builder = client
-        .get(&endpoint_url)
+        .post(&endpoint_url)
         .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
 
-    builder
-        .body_json(body)
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+    Ok(builder)
 }
 
-/// GET v1/services/{serviceName}/rollouts
+/// POST v1/services/{serviceName}/rollouts
 /// Creates a new service configuration rollout. Based on rollout, the Google Service Management will roll out the service configurations to different backend services. For example, the logging configuration will be pushed to Google Cloud Logging. Please note that any previous pending and running Rollouts and associated Operations will be automatically cancelled so that the latest Rollout will not be blocked by previous Rollouts. Only the 100 most recent (in any state) and the last 10 successful (if not already part of the set of 100 most recent) rollouts are kept for each service. The rest will be deleted eventually. Operation
 ///
 /// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
@@ -2291,7 +3268,7 @@ pub fn servicemanagement_services_rollouts_create_task(
         .map_pending(|_| ApiPending::Sending))
 }
 
-/// GET v1/services/{serviceName}/rollouts
+/// POST v1/services/{serviceName}/rollouts
 /// Creates a new service configuration rollout. Based on rollout, the Google Service Management will roll out the service configurations to different backend services. For example, the logging configuration will be pushed to Google Cloud Logging. Please note that any previous pending and running Rollouts and associated Operations will be automatically cancelled so that the latest Rollout will not be blocked by previous Rollouts. Only the 100 most recent (in any state) and the last 10 successful (if not already part of the set of 100 most recent) rollouts are kept for each service. The rest will be deleted eventually. Operation
 ///
 /// Takes a `ClientRequestBuilder`, builds and executes the request,
@@ -2326,11 +3303,9 @@ pub fn servicemanagement_services_rollouts_create_execute(
 pub struct ServicemanagementServicesRolloutsCreateArgs {
     /// Path parameter: serviceName
     pub serviceName: String,
-    /// Request body.
-    pub body: Rollout,
 }
 
-/// GET v1/services/{serviceName}/rollouts
+/// POST v1/services/{serviceName}/rollouts
 /// Creates a new service configuration rollout. Based on rollout, the Google Service Management will roll out the service configurations to different backend services. For example, the logging configuration will be pushed to Google Cloud Logging. Please note that any previous pending and running Rollouts and associated Operations will be automatically cancelled so that the latest Rollout will not be blocked by previous Rollouts. Only the 100 most recent (in any state) and the last 10 successful (if not already part of the set of 100 most recent) rollouts are kept for each service. The rest will be deleted eventually. Operation
 ///
 /// Simplest API - builds and executes the request in one call.
@@ -2348,8 +3323,7 @@ pub fn servicemanagement_services_rollouts_create(
     impl StreamIterator<D = Result<ApiResponse<Operation>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder =
-        servicemanagement_services_rollouts_create_builder(client, &args.serviceName, &args.body)?;
+    let builder = servicemanagement_services_rollouts_create_builder(client, &args.serviceName)?;
     servicemanagement_services_rollouts_create_execute(builder)
 }
 
@@ -2515,4 +3489,749 @@ pub fn servicemanagement_services_rollouts_get(
         &args.rolloutId,
     )?;
     servicemanagement_services_rollouts_get_execute(builder)
+}
+
+/// GET v1/services/{serviceName}/rollouts
+/// Lists the history of the service configuration rollouts for a managed service, from the newest to the oldest.
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `servicemanagement_services_rollouts_list_execute()` to send, or `servicemanagement_services_rollouts_list` for simplest API.
+
+pub fn servicemanagement_services_rollouts_list_builder(
+    client: &SimpleHttpClient,
+    serviceName: &String,
+    filter: &Option<Option<String>>,
+    pageSize: &Option<Option<String>>,
+    pageToken: &Option<Option<String>>,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!(
+        "https://servicemanagement.googleapis.com/v1/services/{}/rollouts",
+        serviceName,
+    );
+
+    // Build request
+    let mut query_parts = Vec::new();
+    if let Some(val) = filter.as_ref() {
+        query_parts.push(format!("filter={}", val));
+    }
+    if let Some(val) = pageSize.as_ref() {
+        query_parts.push(format!("pageSize={}", val));
+    }
+    if let Some(val) = pageToken.as_ref() {
+        query_parts.push(format!("pageToken={}", val));
+    }
+
+    let url_with_query = if query_parts.is_empty() {
+        endpoint_url
+    } else {
+        format!("{}?{}", endpoint_url, query_parts.join("&"))
+    };
+
+    let builder = client
+        .get(&url_with_query)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// GET v1/services/{serviceName}/rollouts
+/// Lists the history of the service configuration rollouts for a managed service, from the newest to the oldest.
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `servicemanagement_services_rollouts_list_execute()` or `servicemanagement_services_rollouts_list`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `servicemanagement_services_rollouts_list_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn servicemanagement_services_rollouts_list_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<ListServiceRolloutsResponse>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: ListServiceRolloutsResponse = serde_json::from_str(&body)
+                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// GET v1/services/{serviceName}/rollouts
+/// Lists the history of the service configuration rollouts for a managed service, from the newest to the oldest.
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `servicemanagement_services_rollouts_list_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `servicemanagement_services_rollouts_list_task()`.
+/// For the simplest API, use `servicemanagement_services_rollouts_list()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `servicemanagement_services_rollouts_list_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn servicemanagement_services_rollouts_list_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<
+            D = Result<ApiResponse<ListServiceRolloutsResponse>, ApiError>,
+            P = ApiPending,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    let task = servicemanagement_services_rollouts_list_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`servicemanagement_services_rollouts_list`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct ServicemanagementServicesRolloutsListArgs {
+    /// Path parameter: serviceName
+    pub serviceName: String,
+    /// Query parameter: filter
+    pub filter: Option<Option<String>>,
+    /// Query parameter: pageSize
+    pub pageSize: Option<Option<String>>,
+    /// Query parameter: pageToken
+    pub pageToken: Option<Option<String>>,
+}
+
+/// GET v1/services/{serviceName}/rollouts
+/// Lists the history of the service configuration rollouts for a managed service, from the newest to the oldest.
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `servicemanagement_services_rollouts_list_builder()` + `servicemanagement_services_rollouts_list_execute()`.
+/// For task-level control, use `servicemanagement_services_rollouts_list_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn servicemanagement_services_rollouts_list(
+    client: &SimpleHttpClient,
+    args: &ServicemanagementServicesRolloutsListArgs,
+) -> Result<
+    impl StreamIterator<
+            D = Result<ApiResponse<ListServiceRolloutsResponse>, ApiError>,
+            P = ApiPending,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    let builder = servicemanagement_services_rollouts_list_builder(
+        client,
+        &args.serviceName,
+        &args.filter,
+        &args.pageSize,
+        &args.pageToken,
+    )?;
+    servicemanagement_services_rollouts_list_execute(builder)
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for Operation
+// =============================================================================
+
+/// ResourceIdentifier implementation for Operation with ServicemanagementOperationsGetArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<ServicemanagementOperationsGetArgs> for Operation {
+    fn generate_resource_id(&self, input: &ServicemanagementOperationsGetArgs) -> String {
+        format!("gcp::servicemanagement::Operation/{}", input.name)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::servicemanagement::Operation"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for ListOperationsResponse
+// =============================================================================
+
+/// ResourceIdentifier implementation for ListOperationsResponse with ServicemanagementOperationsListArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<ServicemanagementOperationsListArgs> for ListOperationsResponse {
+    fn generate_resource_id(&self, input: &ServicemanagementOperationsListArgs) -> String {
+        "gcp::servicemanagement::ListOperationsResponse".to_string()
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::servicemanagement::ListOperationsResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for Operation
+// =============================================================================
+
+/// ResourceIdentifier implementation for Operation with ServicemanagementServicesCreateArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<ServicemanagementServicesCreateArgs> for Operation {
+    fn generate_resource_id(&self, input: &ServicemanagementServicesCreateArgs) -> String {
+        "gcp::servicemanagement::Operation".to_string()
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::servicemanagement::Operation"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for Operation
+// =============================================================================
+
+/// ResourceIdentifier implementation for Operation with ServicemanagementServicesDeleteArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<ServicemanagementServicesDeleteArgs> for Operation {
+    fn generate_resource_id(&self, input: &ServicemanagementServicesDeleteArgs) -> String {
+        format!("gcp::servicemanagement::Operation/{}", input.serviceName)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::servicemanagement::Operation"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for GenerateConfigReportResponse
+// =============================================================================
+
+/// ResourceIdentifier implementation for GenerateConfigReportResponse with ServicemanagementServicesGenerateConfigReportArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<ServicemanagementServicesGenerateConfigReportArgs>
+    for GenerateConfigReportResponse
+{
+    fn generate_resource_id(
+        &self,
+        input: &ServicemanagementServicesGenerateConfigReportArgs,
+    ) -> String {
+        "gcp::servicemanagement::GenerateConfigReportResponse".to_string()
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::servicemanagement::GenerateConfigReportResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for ManagedService
+// =============================================================================
+
+/// ResourceIdentifier implementation for ManagedService with ServicemanagementServicesGetArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<ServicemanagementServicesGetArgs> for ManagedService {
+    fn generate_resource_id(&self, input: &ServicemanagementServicesGetArgs) -> String {
+        format!(
+            "gcp::servicemanagement::ManagedService/{}",
+            input.serviceName
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::servicemanagement::ManagedService"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for Service
+// =============================================================================
+
+/// ResourceIdentifier implementation for Service with ServicemanagementServicesGetConfigArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<ServicemanagementServicesGetConfigArgs> for Service {
+    fn generate_resource_id(&self, input: &ServicemanagementServicesGetConfigArgs) -> String {
+        format!("gcp::servicemanagement::Service/{}", input.serviceName)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::servicemanagement::Service"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for Policy
+// =============================================================================
+
+/// ResourceIdentifier implementation for Policy with ServicemanagementServicesGetIamPolicyArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<ServicemanagementServicesGetIamPolicyArgs> for Policy {
+    fn generate_resource_id(&self, input: &ServicemanagementServicesGetIamPolicyArgs) -> String {
+        format!("gcp::servicemanagement::Policy/{}", input.resource)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::servicemanagement::Policy"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for ListServicesResponse
+// =============================================================================
+
+/// ResourceIdentifier implementation for ListServicesResponse with ServicemanagementServicesListArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<ServicemanagementServicesListArgs> for ListServicesResponse {
+    fn generate_resource_id(&self, input: &ServicemanagementServicesListArgs) -> String {
+        "gcp::servicemanagement::ListServicesResponse".to_string()
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::servicemanagement::ListServicesResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for Policy
+// =============================================================================
+
+/// ResourceIdentifier implementation for Policy with ServicemanagementServicesSetIamPolicyArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<ServicemanagementServicesSetIamPolicyArgs> for Policy {
+    fn generate_resource_id(&self, input: &ServicemanagementServicesSetIamPolicyArgs) -> String {
+        format!("gcp::servicemanagement::Policy/{}", input.resource)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::servicemanagement::Policy"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for TestIamPermissionsResponse
+// =============================================================================
+
+/// ResourceIdentifier implementation for TestIamPermissionsResponse with ServicemanagementServicesTestIamPermissionsArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<ServicemanagementServicesTestIamPermissionsArgs>
+    for TestIamPermissionsResponse
+{
+    fn generate_resource_id(
+        &self,
+        input: &ServicemanagementServicesTestIamPermissionsArgs,
+    ) -> String {
+        format!(
+            "gcp::servicemanagement::TestIamPermissionsResponse/{}",
+            input.resource
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::servicemanagement::TestIamPermissionsResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for Operation
+// =============================================================================
+
+/// ResourceIdentifier implementation for Operation with ServicemanagementServicesUndeleteArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<ServicemanagementServicesUndeleteArgs> for Operation {
+    fn generate_resource_id(&self, input: &ServicemanagementServicesUndeleteArgs) -> String {
+        format!("gcp::servicemanagement::Operation/{}", input.serviceName)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::servicemanagement::Operation"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for Service
+// =============================================================================
+
+/// ResourceIdentifier implementation for Service with ServicemanagementServicesConfigsCreateArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<ServicemanagementServicesConfigsCreateArgs> for Service {
+    fn generate_resource_id(&self, input: &ServicemanagementServicesConfigsCreateArgs) -> String {
+        format!("gcp::servicemanagement::Service/{}", input.serviceName)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::servicemanagement::Service"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for Service
+// =============================================================================
+
+/// ResourceIdentifier implementation for Service with ServicemanagementServicesConfigsGetArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<ServicemanagementServicesConfigsGetArgs> for Service {
+    fn generate_resource_id(&self, input: &ServicemanagementServicesConfigsGetArgs) -> String {
+        format!(
+            "gcp::servicemanagement::Service/{}/{}",
+            input.serviceName, input.configId
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::servicemanagement::Service"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for ListServiceConfigsResponse
+// =============================================================================
+
+/// ResourceIdentifier implementation for ListServiceConfigsResponse with ServicemanagementServicesConfigsListArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<ServicemanagementServicesConfigsListArgs> for ListServiceConfigsResponse {
+    fn generate_resource_id(&self, input: &ServicemanagementServicesConfigsListArgs) -> String {
+        format!(
+            "gcp::servicemanagement::ListServiceConfigsResponse/{}",
+            input.serviceName
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::servicemanagement::ListServiceConfigsResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for Operation
+// =============================================================================
+
+/// ResourceIdentifier implementation for Operation with ServicemanagementServicesConfigsSubmitArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<ServicemanagementServicesConfigsSubmitArgs> for Operation {
+    fn generate_resource_id(&self, input: &ServicemanagementServicesConfigsSubmitArgs) -> String {
+        format!("gcp::servicemanagement::Operation/{}", input.serviceName)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::servicemanagement::Operation"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for Policy
+// =============================================================================
+
+/// ResourceIdentifier implementation for Policy with ServicemanagementServicesConsumersGetIamPolicyArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<ServicemanagementServicesConsumersGetIamPolicyArgs> for Policy {
+    fn generate_resource_id(
+        &self,
+        input: &ServicemanagementServicesConsumersGetIamPolicyArgs,
+    ) -> String {
+        format!("gcp::servicemanagement::Policy/{}", input.resource)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::servicemanagement::Policy"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for Policy
+// =============================================================================
+
+/// ResourceIdentifier implementation for Policy with ServicemanagementServicesConsumersSetIamPolicyArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<ServicemanagementServicesConsumersSetIamPolicyArgs> for Policy {
+    fn generate_resource_id(
+        &self,
+        input: &ServicemanagementServicesConsumersSetIamPolicyArgs,
+    ) -> String {
+        format!("gcp::servicemanagement::Policy/{}", input.resource)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::servicemanagement::Policy"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for TestIamPermissionsResponse
+// =============================================================================
+
+/// ResourceIdentifier implementation for TestIamPermissionsResponse with ServicemanagementServicesConsumersTestIamPermissionsArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<ServicemanagementServicesConsumersTestIamPermissionsArgs>
+    for TestIamPermissionsResponse
+{
+    fn generate_resource_id(
+        &self,
+        input: &ServicemanagementServicesConsumersTestIamPermissionsArgs,
+    ) -> String {
+        format!(
+            "gcp::servicemanagement::TestIamPermissionsResponse/{}",
+            input.resource
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::servicemanagement::TestIamPermissionsResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for Operation
+// =============================================================================
+
+/// ResourceIdentifier implementation for Operation with ServicemanagementServicesRolloutsCreateArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<ServicemanagementServicesRolloutsCreateArgs> for Operation {
+    fn generate_resource_id(&self, input: &ServicemanagementServicesRolloutsCreateArgs) -> String {
+        format!("gcp::servicemanagement::Operation/{}", input.serviceName)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::servicemanagement::Operation"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for Rollout
+// =============================================================================
+
+/// ResourceIdentifier implementation for Rollout with ServicemanagementServicesRolloutsGetArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<ServicemanagementServicesRolloutsGetArgs> for Rollout {
+    fn generate_resource_id(&self, input: &ServicemanagementServicesRolloutsGetArgs) -> String {
+        format!(
+            "gcp::servicemanagement::Rollout/{}/{}",
+            input.serviceName, input.rolloutId
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::servicemanagement::Rollout"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for ListServiceRolloutsResponse
+// =============================================================================
+
+/// ResourceIdentifier implementation for ListServiceRolloutsResponse with ServicemanagementServicesRolloutsListArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<ServicemanagementServicesRolloutsListArgs> for ListServiceRolloutsResponse {
+    fn generate_resource_id(&self, input: &ServicemanagementServicesRolloutsListArgs) -> String {
+        format!(
+            "gcp::servicemanagement::ListServiceRolloutsResponse/{}",
+            input.serviceName
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::servicemanagement::ListServiceRolloutsResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
 }

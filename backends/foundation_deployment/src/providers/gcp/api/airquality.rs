@@ -15,14 +15,17 @@ use crate::providers::gcp::clients::airquality::{
     airquality_current_conditions_lookup_builder, airquality_current_conditions_lookup_task,
     airquality_forecast_lookup_builder, airquality_forecast_lookup_task,
     airquality_history_lookup_builder, airquality_history_lookup_task,
+    airquality_map_types_heatmap_tiles_lookup_heatmap_tile_builder, airquality_map_types_heatmap_tiles_lookup_heatmap_tile_task,
 };
 use crate::providers::gcp::clients::types::{ApiError, ApiPending};
+use crate::providers::gcp::clients::airquality::HttpBody;
 use crate::providers::gcp::clients::airquality::LookupCurrentConditionsResponse;
 use crate::providers::gcp::clients::airquality::LookupForecastResponse;
 use crate::providers::gcp::clients::airquality::LookupHistoryResponse;
 use crate::providers::gcp::clients::airquality::AirqualityCurrentConditionsLookupArgs;
 use crate::providers::gcp::clients::airquality::AirqualityForecastLookupArgs;
 use crate::providers::gcp::clients::airquality::AirqualityHistoryLookupArgs;
+use crate::providers::gcp::clients::airquality::AirqualityMapTypesHeatmapTilesLookupHeatmapTileArgs;
 use crate::provider_client::{ProviderClient, ProviderError};
 use foundation_core::valtron::{execute, StreamIterator};
 use foundation_core::wire::simple_http::client::SimpleHttpClient;
@@ -188,6 +191,47 @@ where
         let store_task = StoreStateIdentifierTask::new(task, state_store, args, stage);
 
         execute(store_task, None).map_err(|e: String| ProviderError::ExecuteFailed(e.to_string()))
+    }
+
+    /// Airquality map types heatmap tiles lookup heatmap tile.
+    ///
+    /// Read-only operation - no state tracking.
+    ///
+    /// # Arguments
+    ///
+    /// * `args` - Request arguments
+    ///
+    /// # Returns
+    ///
+    /// StreamIterator yielding the HttpBody result.
+    ///
+    /// # Errors
+    ///
+    /// Returns ProviderError if the API request fails.
+    pub fn airquality_map_types_heatmap_tiles_lookup_heatmap_tile(
+        &self,
+        args: &AirqualityMapTypesHeatmapTilesLookupHeatmapTileArgs,
+    ) -> Result<
+        impl StreamIterator<
+            D = Result<HttpBody, ProviderError<ApiError>>,
+            P = crate::providers::gcp::clients::types::ApiPending,
+        > + Send
+        + 'static,
+        ProviderError<ApiError>,
+    > {
+        let builder = airquality_map_types_heatmap_tiles_lookup_heatmap_tile_builder(
+            &self.http_client,
+            &args.mapType,
+            &args.zoom,
+            &args.x,
+            &args.y,
+        )
+        .map_err(ProviderError::Api)?;
+
+        let task = airquality_map_types_heatmap_tiles_lookup_heatmap_tile_task(builder)
+            .map_err(ProviderError::Api)?;
+
+        execute(task, None).map_err(|e: String| ProviderError::ExecuteFailed(e.to_string()))
     }
 
 }

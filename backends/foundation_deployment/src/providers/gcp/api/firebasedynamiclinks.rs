@@ -14,14 +14,17 @@
 use crate::providers::gcp::clients::firebasedynamiclinks::{
     firebasedynamiclinks_managed_short_links_create_builder, firebasedynamiclinks_managed_short_links_create_task,
     firebasedynamiclinks_short_links_create_builder, firebasedynamiclinks_short_links_create_task,
+    firebasedynamiclinks_get_link_stats_builder, firebasedynamiclinks_get_link_stats_task,
     firebasedynamiclinks_install_attribution_builder, firebasedynamiclinks_install_attribution_task,
     firebasedynamiclinks_reopen_attribution_builder, firebasedynamiclinks_reopen_attribution_task,
 };
 use crate::providers::gcp::clients::types::{ApiError, ApiPending};
 use crate::providers::gcp::clients::firebasedynamiclinks::CreateManagedShortLinkResponse;
 use crate::providers::gcp::clients::firebasedynamiclinks::CreateShortDynamicLinkResponse;
+use crate::providers::gcp::clients::firebasedynamiclinks::DynamicLinkStats;
 use crate::providers::gcp::clients::firebasedynamiclinks::GetIosPostInstallAttributionResponse;
 use crate::providers::gcp::clients::firebasedynamiclinks::GetIosReopenAttributionResponse;
+use crate::providers::gcp::clients::firebasedynamiclinks::FirebasedynamiclinksGetLinkStatsArgs;
 use crate::providers::gcp::clients::firebasedynamiclinks::FirebasedynamiclinksInstallAttributionArgs;
 use crate::providers::gcp::clients::firebasedynamiclinks::FirebasedynamiclinksManagedShortLinksCreateArgs;
 use crate::providers::gcp::clients::firebasedynamiclinks::FirebasedynamiclinksReopenAttributionArgs;
@@ -149,6 +152,46 @@ where
         let store_task = StoreStateIdentifierTask::new(task, state_store, args, stage);
 
         execute(store_task, None).map_err(|e: String| ProviderError::ExecuteFailed(e.to_string()))
+    }
+
+    /// Firebasedynamiclinks get link stats.
+    ///
+    /// Read-only operation - no state tracking.
+    ///
+    /// # Arguments
+    ///
+    /// * `args` - Request arguments
+    ///
+    /// # Returns
+    ///
+    /// StreamIterator yielding the DynamicLinkStats result.
+    ///
+    /// # Errors
+    ///
+    /// Returns ProviderError if the API request fails.
+    pub fn firebasedynamiclinks_get_link_stats(
+        &self,
+        args: &FirebasedynamiclinksGetLinkStatsArgs,
+    ) -> Result<
+        impl StreamIterator<
+            D = Result<DynamicLinkStats, ProviderError<ApiError>>,
+            P = crate::providers::gcp::clients::types::ApiPending,
+        > + Send
+        + 'static,
+        ProviderError<ApiError>,
+    > {
+        let builder = firebasedynamiclinks_get_link_stats_builder(
+            &self.http_client,
+            &args.dynamicLink,
+            &args.durationDays,
+            &args.sdkVersion,
+        )
+        .map_err(ProviderError::Api)?;
+
+        let task = firebasedynamiclinks_get_link_stats_task(builder)
+            .map_err(ProviderError::Api)?;
+
+        execute(task, None).map_err(|e: String| ProviderError::ExecuteFailed(e.to_string()))
     }
 
     /// Firebasedynamiclinks install attribution.

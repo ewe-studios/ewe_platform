@@ -12,13 +12,22 @@
 #![cfg(feature = "gcp")]
 
 use crate::providers::gcp::clients::artifactregistry::{
+    artifactregistry_projects_get_project_settings_builder, artifactregistry_projects_get_project_settings_task,
     artifactregistry_projects_update_project_settings_builder, artifactregistry_projects_update_project_settings_task,
+    artifactregistry_projects_locations_get_builder, artifactregistry_projects_locations_get_task,
+    artifactregistry_projects_locations_get_project_config_builder, artifactregistry_projects_locations_get_project_config_task,
+    artifactregistry_projects_locations_get_vpcsc_config_builder, artifactregistry_projects_locations_get_vpcsc_config_task,
+    artifactregistry_projects_locations_list_builder, artifactregistry_projects_locations_list_task,
     artifactregistry_projects_locations_update_project_config_builder, artifactregistry_projects_locations_update_project_config_task,
     artifactregistry_projects_locations_update_vpcsc_config_builder, artifactregistry_projects_locations_update_vpcsc_config_task,
     artifactregistry_projects_locations_operations_cancel_builder, artifactregistry_projects_locations_operations_cancel_task,
+    artifactregistry_projects_locations_operations_get_builder, artifactregistry_projects_locations_operations_get_task,
     artifactregistry_projects_locations_repositories_create_builder, artifactregistry_projects_locations_repositories_create_task,
     artifactregistry_projects_locations_repositories_delete_builder, artifactregistry_projects_locations_repositories_delete_task,
     artifactregistry_projects_locations_repositories_export_artifact_builder, artifactregistry_projects_locations_repositories_export_artifact_task,
+    artifactregistry_projects_locations_repositories_get_builder, artifactregistry_projects_locations_repositories_get_task,
+    artifactregistry_projects_locations_repositories_get_iam_policy_builder, artifactregistry_projects_locations_repositories_get_iam_policy_task,
+    artifactregistry_projects_locations_repositories_list_builder, artifactregistry_projects_locations_repositories_list_task,
     artifactregistry_projects_locations_repositories_patch_builder, artifactregistry_projects_locations_repositories_patch_task,
     artifactregistry_projects_locations_repositories_set_iam_policy_builder, artifactregistry_projects_locations_repositories_set_iam_policy_task,
     artifactregistry_projects_locations_repositories_test_iam_permissions_builder, artifactregistry_projects_locations_repositories_test_iam_permissions_task,
@@ -26,7 +35,14 @@ use crate::providers::gcp::clients::artifactregistry::{
     artifactregistry_projects_locations_repositories_apt_artifacts_upload_builder, artifactregistry_projects_locations_repositories_apt_artifacts_upload_task,
     artifactregistry_projects_locations_repositories_attachments_create_builder, artifactregistry_projects_locations_repositories_attachments_create_task,
     artifactregistry_projects_locations_repositories_attachments_delete_builder, artifactregistry_projects_locations_repositories_attachments_delete_task,
+    artifactregistry_projects_locations_repositories_attachments_get_builder, artifactregistry_projects_locations_repositories_attachments_get_task,
+    artifactregistry_projects_locations_repositories_attachments_list_builder, artifactregistry_projects_locations_repositories_attachments_list_task,
+    artifactregistry_projects_locations_repositories_docker_images_get_builder, artifactregistry_projects_locations_repositories_docker_images_get_task,
+    artifactregistry_projects_locations_repositories_docker_images_list_builder, artifactregistry_projects_locations_repositories_docker_images_list_task,
     artifactregistry_projects_locations_repositories_files_delete_builder, artifactregistry_projects_locations_repositories_files_delete_task,
+    artifactregistry_projects_locations_repositories_files_download_builder, artifactregistry_projects_locations_repositories_files_download_task,
+    artifactregistry_projects_locations_repositories_files_get_builder, artifactregistry_projects_locations_repositories_files_get_task,
+    artifactregistry_projects_locations_repositories_files_list_builder, artifactregistry_projects_locations_repositories_files_list_task,
     artifactregistry_projects_locations_repositories_files_patch_builder, artifactregistry_projects_locations_repositories_files_patch_task,
     artifactregistry_projects_locations_repositories_files_upload_builder, artifactregistry_projects_locations_repositories_files_upload_task,
     artifactregistry_projects_locations_repositories_generic_artifacts_upload_builder, artifactregistry_projects_locations_repositories_generic_artifacts_upload_task,
@@ -34,29 +50,62 @@ use crate::providers::gcp::clients::artifactregistry::{
     artifactregistry_projects_locations_repositories_googet_artifacts_import_builder, artifactregistry_projects_locations_repositories_googet_artifacts_import_task,
     artifactregistry_projects_locations_repositories_googet_artifacts_upload_builder, artifactregistry_projects_locations_repositories_googet_artifacts_upload_task,
     artifactregistry_projects_locations_repositories_kfp_artifacts_upload_builder, artifactregistry_projects_locations_repositories_kfp_artifacts_upload_task,
+    artifactregistry_projects_locations_repositories_maven_artifacts_get_builder, artifactregistry_projects_locations_repositories_maven_artifacts_get_task,
+    artifactregistry_projects_locations_repositories_maven_artifacts_list_builder, artifactregistry_projects_locations_repositories_maven_artifacts_list_task,
+    artifactregistry_projects_locations_repositories_npm_packages_get_builder, artifactregistry_projects_locations_repositories_npm_packages_get_task,
+    artifactregistry_projects_locations_repositories_npm_packages_list_builder, artifactregistry_projects_locations_repositories_npm_packages_list_task,
     artifactregistry_projects_locations_repositories_packages_delete_builder, artifactregistry_projects_locations_repositories_packages_delete_task,
+    artifactregistry_projects_locations_repositories_packages_get_builder, artifactregistry_projects_locations_repositories_packages_get_task,
+    artifactregistry_projects_locations_repositories_packages_list_builder, artifactregistry_projects_locations_repositories_packages_list_task,
     artifactregistry_projects_locations_repositories_packages_patch_builder, artifactregistry_projects_locations_repositories_packages_patch_task,
     artifactregistry_projects_locations_repositories_packages_tags_create_builder, artifactregistry_projects_locations_repositories_packages_tags_create_task,
     artifactregistry_projects_locations_repositories_packages_tags_delete_builder, artifactregistry_projects_locations_repositories_packages_tags_delete_task,
+    artifactregistry_projects_locations_repositories_packages_tags_get_builder, artifactregistry_projects_locations_repositories_packages_tags_get_task,
+    artifactregistry_projects_locations_repositories_packages_tags_list_builder, artifactregistry_projects_locations_repositories_packages_tags_list_task,
     artifactregistry_projects_locations_repositories_packages_tags_patch_builder, artifactregistry_projects_locations_repositories_packages_tags_patch_task,
     artifactregistry_projects_locations_repositories_packages_versions_batch_delete_builder, artifactregistry_projects_locations_repositories_packages_versions_batch_delete_task,
     artifactregistry_projects_locations_repositories_packages_versions_delete_builder, artifactregistry_projects_locations_repositories_packages_versions_delete_task,
+    artifactregistry_projects_locations_repositories_packages_versions_get_builder, artifactregistry_projects_locations_repositories_packages_versions_get_task,
+    artifactregistry_projects_locations_repositories_packages_versions_list_builder, artifactregistry_projects_locations_repositories_packages_versions_list_task,
     artifactregistry_projects_locations_repositories_packages_versions_patch_builder, artifactregistry_projects_locations_repositories_packages_versions_patch_task,
+    artifactregistry_projects_locations_repositories_python_packages_get_builder, artifactregistry_projects_locations_repositories_python_packages_get_task,
+    artifactregistry_projects_locations_repositories_python_packages_list_builder, artifactregistry_projects_locations_repositories_python_packages_list_task,
     artifactregistry_projects_locations_repositories_rules_create_builder, artifactregistry_projects_locations_repositories_rules_create_task,
     artifactregistry_projects_locations_repositories_rules_delete_builder, artifactregistry_projects_locations_repositories_rules_delete_task,
+    artifactregistry_projects_locations_repositories_rules_get_builder, artifactregistry_projects_locations_repositories_rules_get_task,
+    artifactregistry_projects_locations_repositories_rules_list_builder, artifactregistry_projects_locations_repositories_rules_list_task,
     artifactregistry_projects_locations_repositories_rules_patch_builder, artifactregistry_projects_locations_repositories_rules_patch_task,
     artifactregistry_projects_locations_repositories_yum_artifacts_import_builder, artifactregistry_projects_locations_repositories_yum_artifacts_import_task,
     artifactregistry_projects_locations_repositories_yum_artifacts_upload_builder, artifactregistry_projects_locations_repositories_yum_artifacts_upload_task,
 };
 use crate::providers::gcp::clients::types::{ApiError, ApiPending};
+use crate::providers::gcp::clients::artifactregistry::Attachment;
+use crate::providers::gcp::clients::artifactregistry::DockerImage;
+use crate::providers::gcp::clients::artifactregistry::DownloadFileResponse;
 use crate::providers::gcp::clients::artifactregistry::Empty;
 use crate::providers::gcp::clients::artifactregistry::GoogleDevtoolsArtifactregistryV1File;
 use crate::providers::gcp::clients::artifactregistry::GoogleDevtoolsArtifactregistryV1Rule;
+use crate::providers::gcp::clients::artifactregistry::ListAttachmentsResponse;
+use crate::providers::gcp::clients::artifactregistry::ListDockerImagesResponse;
+use crate::providers::gcp::clients::artifactregistry::ListFilesResponse;
+use crate::providers::gcp::clients::artifactregistry::ListLocationsResponse;
+use crate::providers::gcp::clients::artifactregistry::ListMavenArtifactsResponse;
+use crate::providers::gcp::clients::artifactregistry::ListNpmPackagesResponse;
+use crate::providers::gcp::clients::artifactregistry::ListPackagesResponse;
+use crate::providers::gcp::clients::artifactregistry::ListPythonPackagesResponse;
+use crate::providers::gcp::clients::artifactregistry::ListRepositoriesResponse;
+use crate::providers::gcp::clients::artifactregistry::ListRulesResponse;
+use crate::providers::gcp::clients::artifactregistry::ListTagsResponse;
+use crate::providers::gcp::clients::artifactregistry::ListVersionsResponse;
+use crate::providers::gcp::clients::artifactregistry::Location;
+use crate::providers::gcp::clients::artifactregistry::MavenArtifact;
+use crate::providers::gcp::clients::artifactregistry::NpmPackage;
 use crate::providers::gcp::clients::artifactregistry::Operation;
 use crate::providers::gcp::clients::artifactregistry::Package;
 use crate::providers::gcp::clients::artifactregistry::Policy;
 use crate::providers::gcp::clients::artifactregistry::ProjectConfig;
 use crate::providers::gcp::clients::artifactregistry::ProjectSettings;
+use crate::providers::gcp::clients::artifactregistry::PythonPackage;
 use crate::providers::gcp::clients::artifactregistry::Repository;
 use crate::providers::gcp::clients::artifactregistry::Tag;
 use crate::providers::gcp::clients::artifactregistry::TestIamPermissionsResponse;
@@ -69,33 +118,63 @@ use crate::providers::gcp::clients::artifactregistry::UploadKfpArtifactMediaResp
 use crate::providers::gcp::clients::artifactregistry::UploadYumArtifactMediaResponse;
 use crate::providers::gcp::clients::artifactregistry::VPCSCConfig;
 use crate::providers::gcp::clients::artifactregistry::Version;
+use crate::providers::gcp::clients::artifactregistry::ArtifactregistryProjectsGetProjectSettingsArgs;
+use crate::providers::gcp::clients::artifactregistry::ArtifactregistryProjectsLocationsGetArgs;
+use crate::providers::gcp::clients::artifactregistry::ArtifactregistryProjectsLocationsGetProjectConfigArgs;
+use crate::providers::gcp::clients::artifactregistry::ArtifactregistryProjectsLocationsGetVpcscConfigArgs;
+use crate::providers::gcp::clients::artifactregistry::ArtifactregistryProjectsLocationsListArgs;
 use crate::providers::gcp::clients::artifactregistry::ArtifactregistryProjectsLocationsOperationsCancelArgs;
+use crate::providers::gcp::clients::artifactregistry::ArtifactregistryProjectsLocationsOperationsGetArgs;
 use crate::providers::gcp::clients::artifactregistry::ArtifactregistryProjectsLocationsRepositoriesAptArtifactsImportArgs;
 use crate::providers::gcp::clients::artifactregistry::ArtifactregistryProjectsLocationsRepositoriesAptArtifactsUploadArgs;
 use crate::providers::gcp::clients::artifactregistry::ArtifactregistryProjectsLocationsRepositoriesAttachmentsCreateArgs;
 use crate::providers::gcp::clients::artifactregistry::ArtifactregistryProjectsLocationsRepositoriesAttachmentsDeleteArgs;
+use crate::providers::gcp::clients::artifactregistry::ArtifactregistryProjectsLocationsRepositoriesAttachmentsGetArgs;
+use crate::providers::gcp::clients::artifactregistry::ArtifactregistryProjectsLocationsRepositoriesAttachmentsListArgs;
 use crate::providers::gcp::clients::artifactregistry::ArtifactregistryProjectsLocationsRepositoriesCreateArgs;
 use crate::providers::gcp::clients::artifactregistry::ArtifactregistryProjectsLocationsRepositoriesDeleteArgs;
+use crate::providers::gcp::clients::artifactregistry::ArtifactregistryProjectsLocationsRepositoriesDockerImagesGetArgs;
+use crate::providers::gcp::clients::artifactregistry::ArtifactregistryProjectsLocationsRepositoriesDockerImagesListArgs;
 use crate::providers::gcp::clients::artifactregistry::ArtifactregistryProjectsLocationsRepositoriesExportArtifactArgs;
 use crate::providers::gcp::clients::artifactregistry::ArtifactregistryProjectsLocationsRepositoriesFilesDeleteArgs;
+use crate::providers::gcp::clients::artifactregistry::ArtifactregistryProjectsLocationsRepositoriesFilesDownloadArgs;
+use crate::providers::gcp::clients::artifactregistry::ArtifactregistryProjectsLocationsRepositoriesFilesGetArgs;
+use crate::providers::gcp::clients::artifactregistry::ArtifactregistryProjectsLocationsRepositoriesFilesListArgs;
 use crate::providers::gcp::clients::artifactregistry::ArtifactregistryProjectsLocationsRepositoriesFilesPatchArgs;
 use crate::providers::gcp::clients::artifactregistry::ArtifactregistryProjectsLocationsRepositoriesFilesUploadArgs;
 use crate::providers::gcp::clients::artifactregistry::ArtifactregistryProjectsLocationsRepositoriesGenericArtifactsUploadArgs;
+use crate::providers::gcp::clients::artifactregistry::ArtifactregistryProjectsLocationsRepositoriesGetArgs;
+use crate::providers::gcp::clients::artifactregistry::ArtifactregistryProjectsLocationsRepositoriesGetIamPolicyArgs;
 use crate::providers::gcp::clients::artifactregistry::ArtifactregistryProjectsLocationsRepositoriesGoModulesUploadArgs;
 use crate::providers::gcp::clients::artifactregistry::ArtifactregistryProjectsLocationsRepositoriesGoogetArtifactsImportArgs;
 use crate::providers::gcp::clients::artifactregistry::ArtifactregistryProjectsLocationsRepositoriesGoogetArtifactsUploadArgs;
 use crate::providers::gcp::clients::artifactregistry::ArtifactregistryProjectsLocationsRepositoriesKfpArtifactsUploadArgs;
+use crate::providers::gcp::clients::artifactregistry::ArtifactregistryProjectsLocationsRepositoriesListArgs;
+use crate::providers::gcp::clients::artifactregistry::ArtifactregistryProjectsLocationsRepositoriesMavenArtifactsGetArgs;
+use crate::providers::gcp::clients::artifactregistry::ArtifactregistryProjectsLocationsRepositoriesMavenArtifactsListArgs;
+use crate::providers::gcp::clients::artifactregistry::ArtifactregistryProjectsLocationsRepositoriesNpmPackagesGetArgs;
+use crate::providers::gcp::clients::artifactregistry::ArtifactregistryProjectsLocationsRepositoriesNpmPackagesListArgs;
 use crate::providers::gcp::clients::artifactregistry::ArtifactregistryProjectsLocationsRepositoriesPackagesDeleteArgs;
+use crate::providers::gcp::clients::artifactregistry::ArtifactregistryProjectsLocationsRepositoriesPackagesGetArgs;
+use crate::providers::gcp::clients::artifactregistry::ArtifactregistryProjectsLocationsRepositoriesPackagesListArgs;
 use crate::providers::gcp::clients::artifactregistry::ArtifactregistryProjectsLocationsRepositoriesPackagesPatchArgs;
 use crate::providers::gcp::clients::artifactregistry::ArtifactregistryProjectsLocationsRepositoriesPackagesTagsCreateArgs;
 use crate::providers::gcp::clients::artifactregistry::ArtifactregistryProjectsLocationsRepositoriesPackagesTagsDeleteArgs;
+use crate::providers::gcp::clients::artifactregistry::ArtifactregistryProjectsLocationsRepositoriesPackagesTagsGetArgs;
+use crate::providers::gcp::clients::artifactregistry::ArtifactregistryProjectsLocationsRepositoriesPackagesTagsListArgs;
 use crate::providers::gcp::clients::artifactregistry::ArtifactregistryProjectsLocationsRepositoriesPackagesTagsPatchArgs;
 use crate::providers::gcp::clients::artifactregistry::ArtifactregistryProjectsLocationsRepositoriesPackagesVersionsBatchDeleteArgs;
 use crate::providers::gcp::clients::artifactregistry::ArtifactregistryProjectsLocationsRepositoriesPackagesVersionsDeleteArgs;
+use crate::providers::gcp::clients::artifactregistry::ArtifactregistryProjectsLocationsRepositoriesPackagesVersionsGetArgs;
+use crate::providers::gcp::clients::artifactregistry::ArtifactregistryProjectsLocationsRepositoriesPackagesVersionsListArgs;
 use crate::providers::gcp::clients::artifactregistry::ArtifactregistryProjectsLocationsRepositoriesPackagesVersionsPatchArgs;
 use crate::providers::gcp::clients::artifactregistry::ArtifactregistryProjectsLocationsRepositoriesPatchArgs;
+use crate::providers::gcp::clients::artifactregistry::ArtifactregistryProjectsLocationsRepositoriesPythonPackagesGetArgs;
+use crate::providers::gcp::clients::artifactregistry::ArtifactregistryProjectsLocationsRepositoriesPythonPackagesListArgs;
 use crate::providers::gcp::clients::artifactregistry::ArtifactregistryProjectsLocationsRepositoriesRulesCreateArgs;
 use crate::providers::gcp::clients::artifactregistry::ArtifactregistryProjectsLocationsRepositoriesRulesDeleteArgs;
+use crate::providers::gcp::clients::artifactregistry::ArtifactregistryProjectsLocationsRepositoriesRulesGetArgs;
+use crate::providers::gcp::clients::artifactregistry::ArtifactregistryProjectsLocationsRepositoriesRulesListArgs;
 use crate::providers::gcp::clients::artifactregistry::ArtifactregistryProjectsLocationsRepositoriesRulesPatchArgs;
 use crate::providers::gcp::clients::artifactregistry::ArtifactregistryProjectsLocationsRepositoriesSetIamPolicyArgs;
 use crate::providers::gcp::clients::artifactregistry::ArtifactregistryProjectsLocationsRepositoriesTestIamPermissionsArgs;
@@ -145,6 +224,44 @@ where
         }
     }
 
+    /// Artifactregistry projects get project settings.
+    ///
+    /// Read-only operation - no state tracking.
+    ///
+    /// # Arguments
+    ///
+    /// * `args` - Request arguments
+    ///
+    /// # Returns
+    ///
+    /// StreamIterator yielding the ProjectSettings result.
+    ///
+    /// # Errors
+    ///
+    /// Returns ProviderError if the API request fails.
+    pub fn artifactregistry_projects_get_project_settings(
+        &self,
+        args: &ArtifactregistryProjectsGetProjectSettingsArgs,
+    ) -> Result<
+        impl StreamIterator<
+            D = Result<ProjectSettings, ProviderError<ApiError>>,
+            P = crate::providers::gcp::clients::types::ApiPending,
+        > + Send
+        + 'static,
+        ProviderError<ApiError>,
+    > {
+        let builder = artifactregistry_projects_get_project_settings_builder(
+            &self.http_client,
+            &args.name,
+        )
+        .map_err(ProviderError::Api)?;
+
+        let task = artifactregistry_projects_get_project_settings_task(builder)
+            .map_err(ProviderError::Api)?;
+
+        execute(task, None).map_err(|e: String| ProviderError::ExecuteFailed(e.to_string()))
+    }
+
     /// Artifactregistry projects update project settings.
     ///
     /// Automatically stores the result in the state store on success.
@@ -187,6 +304,162 @@ where
         let store_task = StoreStateIdentifierTask::new(task, state_store, args, stage);
 
         execute(store_task, None).map_err(|e: String| ProviderError::ExecuteFailed(e.to_string()))
+    }
+
+    /// Artifactregistry projects locations get.
+    ///
+    /// Read-only operation - no state tracking.
+    ///
+    /// # Arguments
+    ///
+    /// * `args` - Request arguments
+    ///
+    /// # Returns
+    ///
+    /// StreamIterator yielding the Location result.
+    ///
+    /// # Errors
+    ///
+    /// Returns ProviderError if the API request fails.
+    pub fn artifactregistry_projects_locations_get(
+        &self,
+        args: &ArtifactregistryProjectsLocationsGetArgs,
+    ) -> Result<
+        impl StreamIterator<
+            D = Result<Location, ProviderError<ApiError>>,
+            P = crate::providers::gcp::clients::types::ApiPending,
+        > + Send
+        + 'static,
+        ProviderError<ApiError>,
+    > {
+        let builder = artifactregistry_projects_locations_get_builder(
+            &self.http_client,
+            &args.name,
+        )
+        .map_err(ProviderError::Api)?;
+
+        let task = artifactregistry_projects_locations_get_task(builder)
+            .map_err(ProviderError::Api)?;
+
+        execute(task, None).map_err(|e: String| ProviderError::ExecuteFailed(e.to_string()))
+    }
+
+    /// Artifactregistry projects locations get project config.
+    ///
+    /// Read-only operation - no state tracking.
+    ///
+    /// # Arguments
+    ///
+    /// * `args` - Request arguments
+    ///
+    /// # Returns
+    ///
+    /// StreamIterator yielding the ProjectConfig result.
+    ///
+    /// # Errors
+    ///
+    /// Returns ProviderError if the API request fails.
+    pub fn artifactregistry_projects_locations_get_project_config(
+        &self,
+        args: &ArtifactregistryProjectsLocationsGetProjectConfigArgs,
+    ) -> Result<
+        impl StreamIterator<
+            D = Result<ProjectConfig, ProviderError<ApiError>>,
+            P = crate::providers::gcp::clients::types::ApiPending,
+        > + Send
+        + 'static,
+        ProviderError<ApiError>,
+    > {
+        let builder = artifactregistry_projects_locations_get_project_config_builder(
+            &self.http_client,
+            &args.name,
+        )
+        .map_err(ProviderError::Api)?;
+
+        let task = artifactregistry_projects_locations_get_project_config_task(builder)
+            .map_err(ProviderError::Api)?;
+
+        execute(task, None).map_err(|e: String| ProviderError::ExecuteFailed(e.to_string()))
+    }
+
+    /// Artifactregistry projects locations get vpcsc config.
+    ///
+    /// Read-only operation - no state tracking.
+    ///
+    /// # Arguments
+    ///
+    /// * `args` - Request arguments
+    ///
+    /// # Returns
+    ///
+    /// StreamIterator yielding the VPCSCConfig result.
+    ///
+    /// # Errors
+    ///
+    /// Returns ProviderError if the API request fails.
+    pub fn artifactregistry_projects_locations_get_vpcsc_config(
+        &self,
+        args: &ArtifactregistryProjectsLocationsGetVpcscConfigArgs,
+    ) -> Result<
+        impl StreamIterator<
+            D = Result<VPCSCConfig, ProviderError<ApiError>>,
+            P = crate::providers::gcp::clients::types::ApiPending,
+        > + Send
+        + 'static,
+        ProviderError<ApiError>,
+    > {
+        let builder = artifactregistry_projects_locations_get_vpcsc_config_builder(
+            &self.http_client,
+            &args.name,
+        )
+        .map_err(ProviderError::Api)?;
+
+        let task = artifactregistry_projects_locations_get_vpcsc_config_task(builder)
+            .map_err(ProviderError::Api)?;
+
+        execute(task, None).map_err(|e: String| ProviderError::ExecuteFailed(e.to_string()))
+    }
+
+    /// Artifactregistry projects locations list.
+    ///
+    /// Read-only operation - no state tracking.
+    ///
+    /// # Arguments
+    ///
+    /// * `args` - Request arguments
+    ///
+    /// # Returns
+    ///
+    /// StreamIterator yielding the ListLocationsResponse result.
+    ///
+    /// # Errors
+    ///
+    /// Returns ProviderError if the API request fails.
+    pub fn artifactregistry_projects_locations_list(
+        &self,
+        args: &ArtifactregistryProjectsLocationsListArgs,
+    ) -> Result<
+        impl StreamIterator<
+            D = Result<ListLocationsResponse, ProviderError<ApiError>>,
+            P = crate::providers::gcp::clients::types::ApiPending,
+        > + Send
+        + 'static,
+        ProviderError<ApiError>,
+    > {
+        let builder = artifactregistry_projects_locations_list_builder(
+            &self.http_client,
+            &args.name,
+            &args.extraLocationTypes,
+            &args.filter,
+            &args.pageSize,
+            &args.pageToken,
+        )
+        .map_err(ProviderError::Api)?;
+
+        let task = artifactregistry_projects_locations_list_task(builder)
+            .map_err(ProviderError::Api)?;
+
+        execute(task, None).map_err(|e: String| ProviderError::ExecuteFailed(e.to_string()))
     }
 
     /// Artifactregistry projects locations update project config.
@@ -320,6 +593,44 @@ where
         execute(store_task, None).map_err(|e: String| ProviderError::ExecuteFailed(e.to_string()))
     }
 
+    /// Artifactregistry projects locations operations get.
+    ///
+    /// Read-only operation - no state tracking.
+    ///
+    /// # Arguments
+    ///
+    /// * `args` - Request arguments
+    ///
+    /// # Returns
+    ///
+    /// StreamIterator yielding the Operation result.
+    ///
+    /// # Errors
+    ///
+    /// Returns ProviderError if the API request fails.
+    pub fn artifactregistry_projects_locations_operations_get(
+        &self,
+        args: &ArtifactregistryProjectsLocationsOperationsGetArgs,
+    ) -> Result<
+        impl StreamIterator<
+            D = Result<Operation, ProviderError<ApiError>>,
+            P = crate::providers::gcp::clients::types::ApiPending,
+        > + Send
+        + 'static,
+        ProviderError<ApiError>,
+    > {
+        let builder = artifactregistry_projects_locations_operations_get_builder(
+            &self.http_client,
+            &args.name,
+        )
+        .map_err(ProviderError::Api)?;
+
+        let task = artifactregistry_projects_locations_operations_get_task(builder)
+            .map_err(ProviderError::Api)?;
+
+        execute(task, None).map_err(|e: String| ProviderError::ExecuteFailed(e.to_string()))
+    }
+
     /// Artifactregistry projects locations repositories create.
     ///
     /// Automatically stores the result in the state store on success.
@@ -409,7 +720,7 @@ where
 
     /// Artifactregistry projects locations repositories export artifact.
     ///
-    /// Automatically stores the result in the state store on success.
+    /// Read-only operation - no state tracking.
     ///
     /// # Arguments
     ///
@@ -421,7 +732,7 @@ where
     ///
     /// # Errors
     ///
-    /// Returns ProviderError if the API request or state storage fails.
+    /// Returns ProviderError if the API request fails.
     pub fn artifactregistry_projects_locations_repositories_export_artifact(
         &self,
         args: &ArtifactregistryProjectsLocationsRepositoriesExportArtifactArgs,
@@ -442,12 +753,126 @@ where
         let task = artifactregistry_projects_locations_repositories_export_artifact_task(builder)
             .map_err(ProviderError::Api)?;
 
-        let state_store = self.client.state_store.clone();
-        let stage = Some(self.client.stage.clone());
+        execute(task, None).map_err(|e: String| ProviderError::ExecuteFailed(e.to_string()))
+    }
 
-        let store_task = StoreStateIdentifierTask::new(task, state_store, args, stage);
+    /// Artifactregistry projects locations repositories get.
+    ///
+    /// Read-only operation - no state tracking.
+    ///
+    /// # Arguments
+    ///
+    /// * `args` - Request arguments
+    ///
+    /// # Returns
+    ///
+    /// StreamIterator yielding the Repository result.
+    ///
+    /// # Errors
+    ///
+    /// Returns ProviderError if the API request fails.
+    pub fn artifactregistry_projects_locations_repositories_get(
+        &self,
+        args: &ArtifactregistryProjectsLocationsRepositoriesGetArgs,
+    ) -> Result<
+        impl StreamIterator<
+            D = Result<Repository, ProviderError<ApiError>>,
+            P = crate::providers::gcp::clients::types::ApiPending,
+        > + Send
+        + 'static,
+        ProviderError<ApiError>,
+    > {
+        let builder = artifactregistry_projects_locations_repositories_get_builder(
+            &self.http_client,
+            &args.name,
+        )
+        .map_err(ProviderError::Api)?;
 
-        execute(store_task, None).map_err(|e: String| ProviderError::ExecuteFailed(e.to_string()))
+        let task = artifactregistry_projects_locations_repositories_get_task(builder)
+            .map_err(ProviderError::Api)?;
+
+        execute(task, None).map_err(|e: String| ProviderError::ExecuteFailed(e.to_string()))
+    }
+
+    /// Artifactregistry projects locations repositories get iam policy.
+    ///
+    /// Read-only operation - no state tracking.
+    ///
+    /// # Arguments
+    ///
+    /// * `args` - Request arguments
+    ///
+    /// # Returns
+    ///
+    /// StreamIterator yielding the Policy result.
+    ///
+    /// # Errors
+    ///
+    /// Returns ProviderError if the API request fails.
+    pub fn artifactregistry_projects_locations_repositories_get_iam_policy(
+        &self,
+        args: &ArtifactregistryProjectsLocationsRepositoriesGetIamPolicyArgs,
+    ) -> Result<
+        impl StreamIterator<
+            D = Result<Policy, ProviderError<ApiError>>,
+            P = crate::providers::gcp::clients::types::ApiPending,
+        > + Send
+        + 'static,
+        ProviderError<ApiError>,
+    > {
+        let builder = artifactregistry_projects_locations_repositories_get_iam_policy_builder(
+            &self.http_client,
+            &args.resource,
+            &args.options.requestedPolicyVersion,
+        )
+        .map_err(ProviderError::Api)?;
+
+        let task = artifactregistry_projects_locations_repositories_get_iam_policy_task(builder)
+            .map_err(ProviderError::Api)?;
+
+        execute(task, None).map_err(|e: String| ProviderError::ExecuteFailed(e.to_string()))
+    }
+
+    /// Artifactregistry projects locations repositories list.
+    ///
+    /// Read-only operation - no state tracking.
+    ///
+    /// # Arguments
+    ///
+    /// * `args` - Request arguments
+    ///
+    /// # Returns
+    ///
+    /// StreamIterator yielding the ListRepositoriesResponse result.
+    ///
+    /// # Errors
+    ///
+    /// Returns ProviderError if the API request fails.
+    pub fn artifactregistry_projects_locations_repositories_list(
+        &self,
+        args: &ArtifactregistryProjectsLocationsRepositoriesListArgs,
+    ) -> Result<
+        impl StreamIterator<
+            D = Result<ListRepositoriesResponse, ProviderError<ApiError>>,
+            P = crate::providers::gcp::clients::types::ApiPending,
+        > + Send
+        + 'static,
+        ProviderError<ApiError>,
+    > {
+        let builder = artifactregistry_projects_locations_repositories_list_builder(
+            &self.http_client,
+            &args.parent,
+            &args.filter,
+            &args.orderBy,
+            &args.pageSize,
+            &args.pageToken,
+        )
+        .map_err(ProviderError::Api)?;
+
+        let task = artifactregistry_projects_locations_repositories_list_task(builder)
+            .map_err(ProviderError::Api)?;
+
+        execute(task, None).map_err(|e: String| ProviderError::ExecuteFailed(e.to_string()))
     }
 
     /// Artifactregistry projects locations repositories patch.
@@ -539,7 +964,7 @@ where
 
     /// Artifactregistry projects locations repositories test iam permissions.
     ///
-    /// Automatically stores the result in the state store on success.
+    /// Read-only operation - no state tracking.
     ///
     /// # Arguments
     ///
@@ -551,7 +976,7 @@ where
     ///
     /// # Errors
     ///
-    /// Returns ProviderError if the API request or state storage fails.
+    /// Returns ProviderError if the API request fails.
     pub fn artifactregistry_projects_locations_repositories_test_iam_permissions(
         &self,
         args: &ArtifactregistryProjectsLocationsRepositoriesTestIamPermissionsArgs,
@@ -572,12 +997,7 @@ where
         let task = artifactregistry_projects_locations_repositories_test_iam_permissions_task(builder)
             .map_err(ProviderError::Api)?;
 
-        let state_store = self.client.state_store.clone();
-        let stage = Some(self.client.stage.clone());
-
-        let store_task = StoreStateIdentifierTask::new(task, state_store, args, stage);
-
-        execute(store_task, None).map_err(|e: String| ProviderError::ExecuteFailed(e.to_string()))
+        execute(task, None).map_err(|e: String| ProviderError::ExecuteFailed(e.to_string()))
     }
 
     /// Artifactregistry projects locations repositories apt artifacts import.
@@ -753,6 +1173,164 @@ where
         execute(store_task, None).map_err(|e: String| ProviderError::ExecuteFailed(e.to_string()))
     }
 
+    /// Artifactregistry projects locations repositories attachments get.
+    ///
+    /// Read-only operation - no state tracking.
+    ///
+    /// # Arguments
+    ///
+    /// * `args` - Request arguments
+    ///
+    /// # Returns
+    ///
+    /// StreamIterator yielding the Attachment result.
+    ///
+    /// # Errors
+    ///
+    /// Returns ProviderError if the API request fails.
+    pub fn artifactregistry_projects_locations_repositories_attachments_get(
+        &self,
+        args: &ArtifactregistryProjectsLocationsRepositoriesAttachmentsGetArgs,
+    ) -> Result<
+        impl StreamIterator<
+            D = Result<Attachment, ProviderError<ApiError>>,
+            P = crate::providers::gcp::clients::types::ApiPending,
+        > + Send
+        + 'static,
+        ProviderError<ApiError>,
+    > {
+        let builder = artifactregistry_projects_locations_repositories_attachments_get_builder(
+            &self.http_client,
+            &args.name,
+        )
+        .map_err(ProviderError::Api)?;
+
+        let task = artifactregistry_projects_locations_repositories_attachments_get_task(builder)
+            .map_err(ProviderError::Api)?;
+
+        execute(task, None).map_err(|e: String| ProviderError::ExecuteFailed(e.to_string()))
+    }
+
+    /// Artifactregistry projects locations repositories attachments list.
+    ///
+    /// Read-only operation - no state tracking.
+    ///
+    /// # Arguments
+    ///
+    /// * `args` - Request arguments
+    ///
+    /// # Returns
+    ///
+    /// StreamIterator yielding the ListAttachmentsResponse result.
+    ///
+    /// # Errors
+    ///
+    /// Returns ProviderError if the API request fails.
+    pub fn artifactregistry_projects_locations_repositories_attachments_list(
+        &self,
+        args: &ArtifactregistryProjectsLocationsRepositoriesAttachmentsListArgs,
+    ) -> Result<
+        impl StreamIterator<
+            D = Result<ListAttachmentsResponse, ProviderError<ApiError>>,
+            P = crate::providers::gcp::clients::types::ApiPending,
+        > + Send
+        + 'static,
+        ProviderError<ApiError>,
+    > {
+        let builder = artifactregistry_projects_locations_repositories_attachments_list_builder(
+            &self.http_client,
+            &args.parent,
+            &args.filter,
+            &args.pageSize,
+            &args.pageToken,
+        )
+        .map_err(ProviderError::Api)?;
+
+        let task = artifactregistry_projects_locations_repositories_attachments_list_task(builder)
+            .map_err(ProviderError::Api)?;
+
+        execute(task, None).map_err(|e: String| ProviderError::ExecuteFailed(e.to_string()))
+    }
+
+    /// Artifactregistry projects locations repositories docker images get.
+    ///
+    /// Read-only operation - no state tracking.
+    ///
+    /// # Arguments
+    ///
+    /// * `args` - Request arguments
+    ///
+    /// # Returns
+    ///
+    /// StreamIterator yielding the DockerImage result.
+    ///
+    /// # Errors
+    ///
+    /// Returns ProviderError if the API request fails.
+    pub fn artifactregistry_projects_locations_repositories_docker_images_get(
+        &self,
+        args: &ArtifactregistryProjectsLocationsRepositoriesDockerImagesGetArgs,
+    ) -> Result<
+        impl StreamIterator<
+            D = Result<DockerImage, ProviderError<ApiError>>,
+            P = crate::providers::gcp::clients::types::ApiPending,
+        > + Send
+        + 'static,
+        ProviderError<ApiError>,
+    > {
+        let builder = artifactregistry_projects_locations_repositories_docker_images_get_builder(
+            &self.http_client,
+            &args.name,
+        )
+        .map_err(ProviderError::Api)?;
+
+        let task = artifactregistry_projects_locations_repositories_docker_images_get_task(builder)
+            .map_err(ProviderError::Api)?;
+
+        execute(task, None).map_err(|e: String| ProviderError::ExecuteFailed(e.to_string()))
+    }
+
+    /// Artifactregistry projects locations repositories docker images list.
+    ///
+    /// Read-only operation - no state tracking.
+    ///
+    /// # Arguments
+    ///
+    /// * `args` - Request arguments
+    ///
+    /// # Returns
+    ///
+    /// StreamIterator yielding the ListDockerImagesResponse result.
+    ///
+    /// # Errors
+    ///
+    /// Returns ProviderError if the API request fails.
+    pub fn artifactregistry_projects_locations_repositories_docker_images_list(
+        &self,
+        args: &ArtifactregistryProjectsLocationsRepositoriesDockerImagesListArgs,
+    ) -> Result<
+        impl StreamIterator<
+            D = Result<ListDockerImagesResponse, ProviderError<ApiError>>,
+            P = crate::providers::gcp::clients::types::ApiPending,
+        > + Send
+        + 'static,
+        ProviderError<ApiError>,
+    > {
+        let builder = artifactregistry_projects_locations_repositories_docker_images_list_builder(
+            &self.http_client,
+            &args.parent,
+            &args.orderBy,
+            &args.pageSize,
+            &args.pageToken,
+        )
+        .map_err(ProviderError::Api)?;
+
+        let task = artifactregistry_projects_locations_repositories_docker_images_list_task(builder)
+            .map_err(ProviderError::Api)?;
+
+        execute(task, None).map_err(|e: String| ProviderError::ExecuteFailed(e.to_string()))
+    }
+
     /// Artifactregistry projects locations repositories files delete.
     ///
     /// Automatically stores the result in the state store on success.
@@ -794,6 +1372,124 @@ where
         let store_task = StoreStateIdentifierTask::new(task, state_store, args, stage);
 
         execute(store_task, None).map_err(|e: String| ProviderError::ExecuteFailed(e.to_string()))
+    }
+
+    /// Artifactregistry projects locations repositories files download.
+    ///
+    /// Read-only operation - no state tracking.
+    ///
+    /// # Arguments
+    ///
+    /// * `args` - Request arguments
+    ///
+    /// # Returns
+    ///
+    /// StreamIterator yielding the DownloadFileResponse result.
+    ///
+    /// # Errors
+    ///
+    /// Returns ProviderError if the API request fails.
+    pub fn artifactregistry_projects_locations_repositories_files_download(
+        &self,
+        args: &ArtifactregistryProjectsLocationsRepositoriesFilesDownloadArgs,
+    ) -> Result<
+        impl StreamIterator<
+            D = Result<DownloadFileResponse, ProviderError<ApiError>>,
+            P = crate::providers::gcp::clients::types::ApiPending,
+        > + Send
+        + 'static,
+        ProviderError<ApiError>,
+    > {
+        let builder = artifactregistry_projects_locations_repositories_files_download_builder(
+            &self.http_client,
+            &args.name,
+        )
+        .map_err(ProviderError::Api)?;
+
+        let task = artifactregistry_projects_locations_repositories_files_download_task(builder)
+            .map_err(ProviderError::Api)?;
+
+        execute(task, None).map_err(|e: String| ProviderError::ExecuteFailed(e.to_string()))
+    }
+
+    /// Artifactregistry projects locations repositories files get.
+    ///
+    /// Read-only operation - no state tracking.
+    ///
+    /// # Arguments
+    ///
+    /// * `args` - Request arguments
+    ///
+    /// # Returns
+    ///
+    /// StreamIterator yielding the GoogleDevtoolsArtifactregistryV1File result.
+    ///
+    /// # Errors
+    ///
+    /// Returns ProviderError if the API request fails.
+    pub fn artifactregistry_projects_locations_repositories_files_get(
+        &self,
+        args: &ArtifactregistryProjectsLocationsRepositoriesFilesGetArgs,
+    ) -> Result<
+        impl StreamIterator<
+            D = Result<GoogleDevtoolsArtifactregistryV1File, ProviderError<ApiError>>,
+            P = crate::providers::gcp::clients::types::ApiPending,
+        > + Send
+        + 'static,
+        ProviderError<ApiError>,
+    > {
+        let builder = artifactregistry_projects_locations_repositories_files_get_builder(
+            &self.http_client,
+            &args.name,
+        )
+        .map_err(ProviderError::Api)?;
+
+        let task = artifactregistry_projects_locations_repositories_files_get_task(builder)
+            .map_err(ProviderError::Api)?;
+
+        execute(task, None).map_err(|e: String| ProviderError::ExecuteFailed(e.to_string()))
+    }
+
+    /// Artifactregistry projects locations repositories files list.
+    ///
+    /// Read-only operation - no state tracking.
+    ///
+    /// # Arguments
+    ///
+    /// * `args` - Request arguments
+    ///
+    /// # Returns
+    ///
+    /// StreamIterator yielding the ListFilesResponse result.
+    ///
+    /// # Errors
+    ///
+    /// Returns ProviderError if the API request fails.
+    pub fn artifactregistry_projects_locations_repositories_files_list(
+        &self,
+        args: &ArtifactregistryProjectsLocationsRepositoriesFilesListArgs,
+    ) -> Result<
+        impl StreamIterator<
+            D = Result<ListFilesResponse, ProviderError<ApiError>>,
+            P = crate::providers::gcp::clients::types::ApiPending,
+        > + Send
+        + 'static,
+        ProviderError<ApiError>,
+    > {
+        let builder = artifactregistry_projects_locations_repositories_files_list_builder(
+            &self.http_client,
+            &args.parent,
+            &args.filter,
+            &args.orderBy,
+            &args.pageSize,
+            &args.pageToken,
+        )
+        .map_err(ProviderError::Api)?;
+
+        let task = artifactregistry_projects_locations_repositories_files_list_task(builder)
+            .map_err(ProviderError::Api)?;
+
+        execute(task, None).map_err(|e: String| ProviderError::ExecuteFailed(e.to_string()))
     }
 
     /// Artifactregistry projects locations repositories files patch.
@@ -971,7 +1667,7 @@ where
 
     /// Artifactregistry projects locations repositories googet artifacts import.
     ///
-    /// Automatically stores the result in the state store on success.
+    /// Read-only operation - no state tracking.
     ///
     /// # Arguments
     ///
@@ -983,7 +1679,7 @@ where
     ///
     /// # Errors
     ///
-    /// Returns ProviderError if the API request or state storage fails.
+    /// Returns ProviderError if the API request fails.
     pub fn artifactregistry_projects_locations_repositories_googet_artifacts_import(
         &self,
         args: &ArtifactregistryProjectsLocationsRepositoriesGoogetArtifactsImportArgs,
@@ -1004,17 +1700,12 @@ where
         let task = artifactregistry_projects_locations_repositories_googet_artifacts_import_task(builder)
             .map_err(ProviderError::Api)?;
 
-        let state_store = self.client.state_store.clone();
-        let stage = Some(self.client.stage.clone());
-
-        let store_task = StoreStateIdentifierTask::new(task, state_store, args, stage);
-
-        execute(store_task, None).map_err(|e: String| ProviderError::ExecuteFailed(e.to_string()))
+        execute(task, None).map_err(|e: String| ProviderError::ExecuteFailed(e.to_string()))
     }
 
     /// Artifactregistry projects locations repositories googet artifacts upload.
     ///
-    /// Automatically stores the result in the state store on success.
+    /// Read-only operation - no state tracking.
     ///
     /// # Arguments
     ///
@@ -1026,7 +1717,7 @@ where
     ///
     /// # Errors
     ///
-    /// Returns ProviderError if the API request or state storage fails.
+    /// Returns ProviderError if the API request fails.
     pub fn artifactregistry_projects_locations_repositories_googet_artifacts_upload(
         &self,
         args: &ArtifactregistryProjectsLocationsRepositoriesGoogetArtifactsUploadArgs,
@@ -1047,12 +1738,7 @@ where
         let task = artifactregistry_projects_locations_repositories_googet_artifacts_upload_task(builder)
             .map_err(ProviderError::Api)?;
 
-        let state_store = self.client.state_store.clone();
-        let stage = Some(self.client.stage.clone());
-
-        let store_task = StoreStateIdentifierTask::new(task, state_store, args, stage);
-
-        execute(store_task, None).map_err(|e: String| ProviderError::ExecuteFailed(e.to_string()))
+        execute(task, None).map_err(|e: String| ProviderError::ExecuteFailed(e.to_string()))
     }
 
     /// Artifactregistry projects locations repositories kfp artifacts upload.
@@ -1098,6 +1784,162 @@ where
         execute(store_task, None).map_err(|e: String| ProviderError::ExecuteFailed(e.to_string()))
     }
 
+    /// Artifactregistry projects locations repositories maven artifacts get.
+    ///
+    /// Read-only operation - no state tracking.
+    ///
+    /// # Arguments
+    ///
+    /// * `args` - Request arguments
+    ///
+    /// # Returns
+    ///
+    /// StreamIterator yielding the MavenArtifact result.
+    ///
+    /// # Errors
+    ///
+    /// Returns ProviderError if the API request fails.
+    pub fn artifactregistry_projects_locations_repositories_maven_artifacts_get(
+        &self,
+        args: &ArtifactregistryProjectsLocationsRepositoriesMavenArtifactsGetArgs,
+    ) -> Result<
+        impl StreamIterator<
+            D = Result<MavenArtifact, ProviderError<ApiError>>,
+            P = crate::providers::gcp::clients::types::ApiPending,
+        > + Send
+        + 'static,
+        ProviderError<ApiError>,
+    > {
+        let builder = artifactregistry_projects_locations_repositories_maven_artifacts_get_builder(
+            &self.http_client,
+            &args.name,
+        )
+        .map_err(ProviderError::Api)?;
+
+        let task = artifactregistry_projects_locations_repositories_maven_artifacts_get_task(builder)
+            .map_err(ProviderError::Api)?;
+
+        execute(task, None).map_err(|e: String| ProviderError::ExecuteFailed(e.to_string()))
+    }
+
+    /// Artifactregistry projects locations repositories maven artifacts list.
+    ///
+    /// Read-only operation - no state tracking.
+    ///
+    /// # Arguments
+    ///
+    /// * `args` - Request arguments
+    ///
+    /// # Returns
+    ///
+    /// StreamIterator yielding the ListMavenArtifactsResponse result.
+    ///
+    /// # Errors
+    ///
+    /// Returns ProviderError if the API request fails.
+    pub fn artifactregistry_projects_locations_repositories_maven_artifacts_list(
+        &self,
+        args: &ArtifactregistryProjectsLocationsRepositoriesMavenArtifactsListArgs,
+    ) -> Result<
+        impl StreamIterator<
+            D = Result<ListMavenArtifactsResponse, ProviderError<ApiError>>,
+            P = crate::providers::gcp::clients::types::ApiPending,
+        > + Send
+        + 'static,
+        ProviderError<ApiError>,
+    > {
+        let builder = artifactregistry_projects_locations_repositories_maven_artifacts_list_builder(
+            &self.http_client,
+            &args.parent,
+            &args.pageSize,
+            &args.pageToken,
+        )
+        .map_err(ProviderError::Api)?;
+
+        let task = artifactregistry_projects_locations_repositories_maven_artifacts_list_task(builder)
+            .map_err(ProviderError::Api)?;
+
+        execute(task, None).map_err(|e: String| ProviderError::ExecuteFailed(e.to_string()))
+    }
+
+    /// Artifactregistry projects locations repositories npm packages get.
+    ///
+    /// Read-only operation - no state tracking.
+    ///
+    /// # Arguments
+    ///
+    /// * `args` - Request arguments
+    ///
+    /// # Returns
+    ///
+    /// StreamIterator yielding the NpmPackage result.
+    ///
+    /// # Errors
+    ///
+    /// Returns ProviderError if the API request fails.
+    pub fn artifactregistry_projects_locations_repositories_npm_packages_get(
+        &self,
+        args: &ArtifactregistryProjectsLocationsRepositoriesNpmPackagesGetArgs,
+    ) -> Result<
+        impl StreamIterator<
+            D = Result<NpmPackage, ProviderError<ApiError>>,
+            P = crate::providers::gcp::clients::types::ApiPending,
+        > + Send
+        + 'static,
+        ProviderError<ApiError>,
+    > {
+        let builder = artifactregistry_projects_locations_repositories_npm_packages_get_builder(
+            &self.http_client,
+            &args.name,
+        )
+        .map_err(ProviderError::Api)?;
+
+        let task = artifactregistry_projects_locations_repositories_npm_packages_get_task(builder)
+            .map_err(ProviderError::Api)?;
+
+        execute(task, None).map_err(|e: String| ProviderError::ExecuteFailed(e.to_string()))
+    }
+
+    /// Artifactregistry projects locations repositories npm packages list.
+    ///
+    /// Read-only operation - no state tracking.
+    ///
+    /// # Arguments
+    ///
+    /// * `args` - Request arguments
+    ///
+    /// # Returns
+    ///
+    /// StreamIterator yielding the ListNpmPackagesResponse result.
+    ///
+    /// # Errors
+    ///
+    /// Returns ProviderError if the API request fails.
+    pub fn artifactregistry_projects_locations_repositories_npm_packages_list(
+        &self,
+        args: &ArtifactregistryProjectsLocationsRepositoriesNpmPackagesListArgs,
+    ) -> Result<
+        impl StreamIterator<
+            D = Result<ListNpmPackagesResponse, ProviderError<ApiError>>,
+            P = crate::providers::gcp::clients::types::ApiPending,
+        > + Send
+        + 'static,
+        ProviderError<ApiError>,
+    > {
+        let builder = artifactregistry_projects_locations_repositories_npm_packages_list_builder(
+            &self.http_client,
+            &args.parent,
+            &args.pageSize,
+            &args.pageToken,
+        )
+        .map_err(ProviderError::Api)?;
+
+        let task = artifactregistry_projects_locations_repositories_npm_packages_list_task(builder)
+            .map_err(ProviderError::Api)?;
+
+        execute(task, None).map_err(|e: String| ProviderError::ExecuteFailed(e.to_string()))
+    }
+
     /// Artifactregistry projects locations repositories packages delete.
     ///
     /// Automatically stores the result in the state store on success.
@@ -1139,6 +1981,86 @@ where
         let store_task = StoreStateIdentifierTask::new(task, state_store, args, stage);
 
         execute(store_task, None).map_err(|e: String| ProviderError::ExecuteFailed(e.to_string()))
+    }
+
+    /// Artifactregistry projects locations repositories packages get.
+    ///
+    /// Read-only operation - no state tracking.
+    ///
+    /// # Arguments
+    ///
+    /// * `args` - Request arguments
+    ///
+    /// # Returns
+    ///
+    /// StreamIterator yielding the Package result.
+    ///
+    /// # Errors
+    ///
+    /// Returns ProviderError if the API request fails.
+    pub fn artifactregistry_projects_locations_repositories_packages_get(
+        &self,
+        args: &ArtifactregistryProjectsLocationsRepositoriesPackagesGetArgs,
+    ) -> Result<
+        impl StreamIterator<
+            D = Result<Package, ProviderError<ApiError>>,
+            P = crate::providers::gcp::clients::types::ApiPending,
+        > + Send
+        + 'static,
+        ProviderError<ApiError>,
+    > {
+        let builder = artifactregistry_projects_locations_repositories_packages_get_builder(
+            &self.http_client,
+            &args.name,
+        )
+        .map_err(ProviderError::Api)?;
+
+        let task = artifactregistry_projects_locations_repositories_packages_get_task(builder)
+            .map_err(ProviderError::Api)?;
+
+        execute(task, None).map_err(|e: String| ProviderError::ExecuteFailed(e.to_string()))
+    }
+
+    /// Artifactregistry projects locations repositories packages list.
+    ///
+    /// Read-only operation - no state tracking.
+    ///
+    /// # Arguments
+    ///
+    /// * `args` - Request arguments
+    ///
+    /// # Returns
+    ///
+    /// StreamIterator yielding the ListPackagesResponse result.
+    ///
+    /// # Errors
+    ///
+    /// Returns ProviderError if the API request fails.
+    pub fn artifactregistry_projects_locations_repositories_packages_list(
+        &self,
+        args: &ArtifactregistryProjectsLocationsRepositoriesPackagesListArgs,
+    ) -> Result<
+        impl StreamIterator<
+            D = Result<ListPackagesResponse, ProviderError<ApiError>>,
+            P = crate::providers::gcp::clients::types::ApiPending,
+        > + Send
+        + 'static,
+        ProviderError<ApiError>,
+    > {
+        let builder = artifactregistry_projects_locations_repositories_packages_list_builder(
+            &self.http_client,
+            &args.parent,
+            &args.filter,
+            &args.orderBy,
+            &args.pageSize,
+            &args.pageToken,
+        )
+        .map_err(ProviderError::Api)?;
+
+        let task = artifactregistry_projects_locations_repositories_packages_list_task(builder)
+            .map_err(ProviderError::Api)?;
+
+        execute(task, None).map_err(|e: String| ProviderError::ExecuteFailed(e.to_string()))
     }
 
     /// Artifactregistry projects locations repositories packages patch.
@@ -1272,6 +2194,85 @@ where
         execute(store_task, None).map_err(|e: String| ProviderError::ExecuteFailed(e.to_string()))
     }
 
+    /// Artifactregistry projects locations repositories packages tags get.
+    ///
+    /// Read-only operation - no state tracking.
+    ///
+    /// # Arguments
+    ///
+    /// * `args` - Request arguments
+    ///
+    /// # Returns
+    ///
+    /// StreamIterator yielding the Tag result.
+    ///
+    /// # Errors
+    ///
+    /// Returns ProviderError if the API request fails.
+    pub fn artifactregistry_projects_locations_repositories_packages_tags_get(
+        &self,
+        args: &ArtifactregistryProjectsLocationsRepositoriesPackagesTagsGetArgs,
+    ) -> Result<
+        impl StreamIterator<
+            D = Result<Tag, ProviderError<ApiError>>,
+            P = crate::providers::gcp::clients::types::ApiPending,
+        > + Send
+        + 'static,
+        ProviderError<ApiError>,
+    > {
+        let builder = artifactregistry_projects_locations_repositories_packages_tags_get_builder(
+            &self.http_client,
+            &args.name,
+        )
+        .map_err(ProviderError::Api)?;
+
+        let task = artifactregistry_projects_locations_repositories_packages_tags_get_task(builder)
+            .map_err(ProviderError::Api)?;
+
+        execute(task, None).map_err(|e: String| ProviderError::ExecuteFailed(e.to_string()))
+    }
+
+    /// Artifactregistry projects locations repositories packages tags list.
+    ///
+    /// Read-only operation - no state tracking.
+    ///
+    /// # Arguments
+    ///
+    /// * `args` - Request arguments
+    ///
+    /// # Returns
+    ///
+    /// StreamIterator yielding the ListTagsResponse result.
+    ///
+    /// # Errors
+    ///
+    /// Returns ProviderError if the API request fails.
+    pub fn artifactregistry_projects_locations_repositories_packages_tags_list(
+        &self,
+        args: &ArtifactregistryProjectsLocationsRepositoriesPackagesTagsListArgs,
+    ) -> Result<
+        impl StreamIterator<
+            D = Result<ListTagsResponse, ProviderError<ApiError>>,
+            P = crate::providers::gcp::clients::types::ApiPending,
+        > + Send
+        + 'static,
+        ProviderError<ApiError>,
+    > {
+        let builder = artifactregistry_projects_locations_repositories_packages_tags_list_builder(
+            &self.http_client,
+            &args.parent,
+            &args.filter,
+            &args.pageSize,
+            &args.pageToken,
+        )
+        .map_err(ProviderError::Api)?;
+
+        let task = artifactregistry_projects_locations_repositories_packages_tags_list_task(builder)
+            .map_err(ProviderError::Api)?;
+
+        execute(task, None).map_err(|e: String| ProviderError::ExecuteFailed(e.to_string()))
+    }
+
     /// Artifactregistry projects locations repositories packages tags patch.
     ///
     /// Automatically stores the result in the state store on success.
@@ -1403,6 +2404,88 @@ where
         execute(store_task, None).map_err(|e: String| ProviderError::ExecuteFailed(e.to_string()))
     }
 
+    /// Artifactregistry projects locations repositories packages versions get.
+    ///
+    /// Read-only operation - no state tracking.
+    ///
+    /// # Arguments
+    ///
+    /// * `args` - Request arguments
+    ///
+    /// # Returns
+    ///
+    /// StreamIterator yielding the Version result.
+    ///
+    /// # Errors
+    ///
+    /// Returns ProviderError if the API request fails.
+    pub fn artifactregistry_projects_locations_repositories_packages_versions_get(
+        &self,
+        args: &ArtifactregistryProjectsLocationsRepositoriesPackagesVersionsGetArgs,
+    ) -> Result<
+        impl StreamIterator<
+            D = Result<Version, ProviderError<ApiError>>,
+            P = crate::providers::gcp::clients::types::ApiPending,
+        > + Send
+        + 'static,
+        ProviderError<ApiError>,
+    > {
+        let builder = artifactregistry_projects_locations_repositories_packages_versions_get_builder(
+            &self.http_client,
+            &args.name,
+            &args.view,
+        )
+        .map_err(ProviderError::Api)?;
+
+        let task = artifactregistry_projects_locations_repositories_packages_versions_get_task(builder)
+            .map_err(ProviderError::Api)?;
+
+        execute(task, None).map_err(|e: String| ProviderError::ExecuteFailed(e.to_string()))
+    }
+
+    /// Artifactregistry projects locations repositories packages versions list.
+    ///
+    /// Read-only operation - no state tracking.
+    ///
+    /// # Arguments
+    ///
+    /// * `args` - Request arguments
+    ///
+    /// # Returns
+    ///
+    /// StreamIterator yielding the ListVersionsResponse result.
+    ///
+    /// # Errors
+    ///
+    /// Returns ProviderError if the API request fails.
+    pub fn artifactregistry_projects_locations_repositories_packages_versions_list(
+        &self,
+        args: &ArtifactregistryProjectsLocationsRepositoriesPackagesVersionsListArgs,
+    ) -> Result<
+        impl StreamIterator<
+            D = Result<ListVersionsResponse, ProviderError<ApiError>>,
+            P = crate::providers::gcp::clients::types::ApiPending,
+        > + Send
+        + 'static,
+        ProviderError<ApiError>,
+    > {
+        let builder = artifactregistry_projects_locations_repositories_packages_versions_list_builder(
+            &self.http_client,
+            &args.parent,
+            &args.filter,
+            &args.orderBy,
+            &args.pageSize,
+            &args.pageToken,
+            &args.view,
+        )
+        .map_err(ProviderError::Api)?;
+
+        let task = artifactregistry_projects_locations_repositories_packages_versions_list_task(builder)
+            .map_err(ProviderError::Api)?;
+
+        execute(task, None).map_err(|e: String| ProviderError::ExecuteFailed(e.to_string()))
+    }
+
     /// Artifactregistry projects locations repositories packages versions patch.
     ///
     /// Automatically stores the result in the state store on success.
@@ -1445,6 +2528,84 @@ where
         let store_task = StoreStateIdentifierTask::new(task, state_store, args, stage);
 
         execute(store_task, None).map_err(|e: String| ProviderError::ExecuteFailed(e.to_string()))
+    }
+
+    /// Artifactregistry projects locations repositories python packages get.
+    ///
+    /// Read-only operation - no state tracking.
+    ///
+    /// # Arguments
+    ///
+    /// * `args` - Request arguments
+    ///
+    /// # Returns
+    ///
+    /// StreamIterator yielding the PythonPackage result.
+    ///
+    /// # Errors
+    ///
+    /// Returns ProviderError if the API request fails.
+    pub fn artifactregistry_projects_locations_repositories_python_packages_get(
+        &self,
+        args: &ArtifactregistryProjectsLocationsRepositoriesPythonPackagesGetArgs,
+    ) -> Result<
+        impl StreamIterator<
+            D = Result<PythonPackage, ProviderError<ApiError>>,
+            P = crate::providers::gcp::clients::types::ApiPending,
+        > + Send
+        + 'static,
+        ProviderError<ApiError>,
+    > {
+        let builder = artifactregistry_projects_locations_repositories_python_packages_get_builder(
+            &self.http_client,
+            &args.name,
+        )
+        .map_err(ProviderError::Api)?;
+
+        let task = artifactregistry_projects_locations_repositories_python_packages_get_task(builder)
+            .map_err(ProviderError::Api)?;
+
+        execute(task, None).map_err(|e: String| ProviderError::ExecuteFailed(e.to_string()))
+    }
+
+    /// Artifactregistry projects locations repositories python packages list.
+    ///
+    /// Read-only operation - no state tracking.
+    ///
+    /// # Arguments
+    ///
+    /// * `args` - Request arguments
+    ///
+    /// # Returns
+    ///
+    /// StreamIterator yielding the ListPythonPackagesResponse result.
+    ///
+    /// # Errors
+    ///
+    /// Returns ProviderError if the API request fails.
+    pub fn artifactregistry_projects_locations_repositories_python_packages_list(
+        &self,
+        args: &ArtifactregistryProjectsLocationsRepositoriesPythonPackagesListArgs,
+    ) -> Result<
+        impl StreamIterator<
+            D = Result<ListPythonPackagesResponse, ProviderError<ApiError>>,
+            P = crate::providers::gcp::clients::types::ApiPending,
+        > + Send
+        + 'static,
+        ProviderError<ApiError>,
+    > {
+        let builder = artifactregistry_projects_locations_repositories_python_packages_list_builder(
+            &self.http_client,
+            &args.parent,
+            &args.pageSize,
+            &args.pageToken,
+        )
+        .map_err(ProviderError::Api)?;
+
+        let task = artifactregistry_projects_locations_repositories_python_packages_list_task(builder)
+            .map_err(ProviderError::Api)?;
+
+        execute(task, None).map_err(|e: String| ProviderError::ExecuteFailed(e.to_string()))
     }
 
     /// Artifactregistry projects locations repositories rules create.
@@ -1532,6 +2693,84 @@ where
         let store_task = StoreStateIdentifierTask::new(task, state_store, args, stage);
 
         execute(store_task, None).map_err(|e: String| ProviderError::ExecuteFailed(e.to_string()))
+    }
+
+    /// Artifactregistry projects locations repositories rules get.
+    ///
+    /// Read-only operation - no state tracking.
+    ///
+    /// # Arguments
+    ///
+    /// * `args` - Request arguments
+    ///
+    /// # Returns
+    ///
+    /// StreamIterator yielding the GoogleDevtoolsArtifactregistryV1Rule result.
+    ///
+    /// # Errors
+    ///
+    /// Returns ProviderError if the API request fails.
+    pub fn artifactregistry_projects_locations_repositories_rules_get(
+        &self,
+        args: &ArtifactregistryProjectsLocationsRepositoriesRulesGetArgs,
+    ) -> Result<
+        impl StreamIterator<
+            D = Result<GoogleDevtoolsArtifactregistryV1Rule, ProviderError<ApiError>>,
+            P = crate::providers::gcp::clients::types::ApiPending,
+        > + Send
+        + 'static,
+        ProviderError<ApiError>,
+    > {
+        let builder = artifactregistry_projects_locations_repositories_rules_get_builder(
+            &self.http_client,
+            &args.name,
+        )
+        .map_err(ProviderError::Api)?;
+
+        let task = artifactregistry_projects_locations_repositories_rules_get_task(builder)
+            .map_err(ProviderError::Api)?;
+
+        execute(task, None).map_err(|e: String| ProviderError::ExecuteFailed(e.to_string()))
+    }
+
+    /// Artifactregistry projects locations repositories rules list.
+    ///
+    /// Read-only operation - no state tracking.
+    ///
+    /// # Arguments
+    ///
+    /// * `args` - Request arguments
+    ///
+    /// # Returns
+    ///
+    /// StreamIterator yielding the ListRulesResponse result.
+    ///
+    /// # Errors
+    ///
+    /// Returns ProviderError if the API request fails.
+    pub fn artifactregistry_projects_locations_repositories_rules_list(
+        &self,
+        args: &ArtifactregistryProjectsLocationsRepositoriesRulesListArgs,
+    ) -> Result<
+        impl StreamIterator<
+            D = Result<ListRulesResponse, ProviderError<ApiError>>,
+            P = crate::providers::gcp::clients::types::ApiPending,
+        > + Send
+        + 'static,
+        ProviderError<ApiError>,
+    > {
+        let builder = artifactregistry_projects_locations_repositories_rules_list_builder(
+            &self.http_client,
+            &args.parent,
+            &args.pageSize,
+            &args.pageToken,
+        )
+        .map_err(ProviderError::Api)?;
+
+        let task = artifactregistry_projects_locations_repositories_rules_list_task(builder)
+            .map_err(ProviderError::Api)?;
+
+        execute(task, None).map_err(|e: String| ProviderError::ExecuteFailed(e.to_string()))
     }
 
     /// Artifactregistry projects locations repositories rules patch.

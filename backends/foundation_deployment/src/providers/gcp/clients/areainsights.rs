@@ -7,7 +7,6 @@
 
 #![cfg(feature = "gcp")]
 
-
 use crate::providers::gcp::clients::types::*;
 use crate::providers::gcp::resources::*;
 use foundation_core::valtron::{
@@ -17,10 +16,11 @@ use foundation_core::valtron::{
 use foundation_core::wire::simple_http::client::{
     body_reader, ClientRequestBuilder, RequestIntro, SimpleHttpClient, SystemDnsResolver,
 };
+use foundation_db::state::resource_identifier::ResourceIdentifier;
 use foundation_macros::JsonHash;
 use serde::Serialize;
 
-/// GET v1:computeInsights
+/// POST v1:computeInsights
 /// This method lets you retrieve insights about areas using a variety of filter such as: area, place type, operating status, price level and ratings. Currently "count" and "places" insights are supported. With "count" insights you can answer questions such as "How many restaurant are located in California that are operational, are inexpensive and have an average rating of at least 4 stars" (see insight enum for more details). With "places" insights, you can determine which places match the requested filter. Clients can then use those place resource names to fetch more details about each individual place using the Places API.
 ///
 /// Returns `ClientRequestBuilder` for customization.
@@ -28,22 +28,19 @@ use serde::Serialize;
 
 pub fn areainsights_compute_insights_builder(
     client: &SimpleHttpClient,
-    body: &ComputeInsightsRequest,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!("https://areainsights.googleapis.com/v1:computeInsights",);
 
     // Build request
     let builder = client
-        .get(&endpoint_url)
+        .post(&endpoint_url)
         .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
 
-    builder
-        .body_json(body)
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+    Ok(builder)
 }
 
-/// GET v1:computeInsights
+/// POST v1:computeInsights
 /// This method lets you retrieve insights about areas using a variety of filter such as: area, place type, operating status, price level and ratings. Currently "count" and "places" insights are supported. With "count" insights you can answer questions such as "How many restaurant are located in California that are operational, are inexpensive and have an average rating of at least 4 stars" (see insight enum for more details). With "places" insights, you can determine which places match the requested filter. Clients can then use those place resource names to fetch more details about each individual place using the Places API.
 ///
 /// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
@@ -117,7 +114,7 @@ pub fn areainsights_compute_insights_task(
         .map_pending(|_| ApiPending::Sending))
 }
 
-/// GET v1:computeInsights
+/// POST v1:computeInsights
 /// This method lets you retrieve insights about areas using a variety of filter such as: area, place type, operating status, price level and ratings. Currently "count" and "places" insights are supported. With "count" insights you can answer questions such as "How many restaurant are located in California that are operational, are inexpensive and have an average rating of at least 4 stars" (see insight enum for more details). With "places" insights, you can determine which places match the requested filter. Clients can then use those place resource names to fetch more details about each individual place using the Places API.
 ///
 /// Takes a `ClientRequestBuilder`, builds and executes the request,
@@ -149,14 +146,7 @@ pub fn areainsights_compute_insights_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
-/// Arguments for [`areainsights_compute_insights`].
-#[derive(Debug, Clone, Serialize, JsonHash)]
-pub struct AreainsightsComputeInsightsArgs {
-    /// Request body.
-    pub body: ComputeInsightsRequest,
-}
-
-/// GET v1:computeInsights
+/// POST v1:computeInsights
 /// This method lets you retrieve insights about areas using a variety of filter such as: area, place type, operating status, price level and ratings. Currently "count" and "places" insights are supported. With "count" insights you can answer questions such as "How many restaurant are located in California that are operational, are inexpensive and have an average rating of at least 4 stars" (see insight enum for more details). With "places" insights, you can determine which places match the requested filter. Clients can then use those place resource names to fetch more details about each individual place using the Places API.
 ///
 /// Simplest API - builds and executes the request in one call.
@@ -169,13 +159,35 @@ pub struct AreainsightsComputeInsightsArgs {
 
 pub fn areainsights_compute_insights(
     client: &SimpleHttpClient,
-    args: &AreainsightsComputeInsightsArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<ComputeInsightsResponse>, ApiError>, P = ApiPending>
         + Send
         + 'static,
     ApiError,
 > {
-    let builder = areainsights_compute_insights_builder(client, &args.body)?;
+    let builder = areainsights_compute_insights_builder(client)?;
     areainsights_compute_insights_execute(builder)
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for ComputeInsightsResponse
+// =============================================================================
+
+/// ResourceIdentifier implementation for ComputeInsightsResponse with AreainsightsComputeInsightsArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<AreainsightsComputeInsightsArgs> for ComputeInsightsResponse {
+    fn generate_resource_id(&self, input: &AreainsightsComputeInsightsArgs) -> String {
+        "gcp::areainsights::ComputeInsightsResponse".to_string()
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::areainsights::ComputeInsightsResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
 }

@@ -12,6 +12,7 @@
 #![cfg(feature = "gcp")]
 
 use crate::providers::gcp::clients::firebaseappcheck::{
+    firebaseappcheck_jwks_get_builder, firebaseappcheck_jwks_get_task,
     firebaseappcheck_oauth_clients_exchange_app_attest_assertion_builder, firebaseappcheck_oauth_clients_exchange_app_attest_assertion_task,
     firebaseappcheck_oauth_clients_exchange_app_attest_attestation_builder, firebaseappcheck_oauth_clients_exchange_app_attest_attestation_task,
     firebaseappcheck_oauth_clients_exchange_debug_token_builder, firebaseappcheck_oauth_clients_exchange_debug_token_task,
@@ -27,25 +28,49 @@ use crate::providers::gcp::clients::firebaseappcheck::{
     firebaseappcheck_projects_apps_exchange_safety_net_token_builder, firebaseappcheck_projects_apps_exchange_safety_net_token_task,
     firebaseappcheck_projects_apps_generate_app_attest_challenge_builder, firebaseappcheck_projects_apps_generate_app_attest_challenge_task,
     firebaseappcheck_projects_apps_generate_play_integrity_challenge_builder, firebaseappcheck_projects_apps_generate_play_integrity_challenge_task,
+    firebaseappcheck_projects_apps_app_attest_config_batch_get_builder, firebaseappcheck_projects_apps_app_attest_config_batch_get_task,
+    firebaseappcheck_projects_apps_app_attest_config_get_builder, firebaseappcheck_projects_apps_app_attest_config_get_task,
     firebaseappcheck_projects_apps_app_attest_config_patch_builder, firebaseappcheck_projects_apps_app_attest_config_patch_task,
     firebaseappcheck_projects_apps_debug_tokens_create_builder, firebaseappcheck_projects_apps_debug_tokens_create_task,
     firebaseappcheck_projects_apps_debug_tokens_delete_builder, firebaseappcheck_projects_apps_debug_tokens_delete_task,
+    firebaseappcheck_projects_apps_debug_tokens_get_builder, firebaseappcheck_projects_apps_debug_tokens_get_task,
+    firebaseappcheck_projects_apps_debug_tokens_list_builder, firebaseappcheck_projects_apps_debug_tokens_list_task,
     firebaseappcheck_projects_apps_debug_tokens_patch_builder, firebaseappcheck_projects_apps_debug_tokens_patch_task,
+    firebaseappcheck_projects_apps_device_check_config_batch_get_builder, firebaseappcheck_projects_apps_device_check_config_batch_get_task,
+    firebaseappcheck_projects_apps_device_check_config_get_builder, firebaseappcheck_projects_apps_device_check_config_get_task,
     firebaseappcheck_projects_apps_device_check_config_patch_builder, firebaseappcheck_projects_apps_device_check_config_patch_task,
+    firebaseappcheck_projects_apps_play_integrity_config_batch_get_builder, firebaseappcheck_projects_apps_play_integrity_config_batch_get_task,
+    firebaseappcheck_projects_apps_play_integrity_config_get_builder, firebaseappcheck_projects_apps_play_integrity_config_get_task,
     firebaseappcheck_projects_apps_play_integrity_config_patch_builder, firebaseappcheck_projects_apps_play_integrity_config_patch_task,
+    firebaseappcheck_projects_apps_recaptcha_enterprise_config_batch_get_builder, firebaseappcheck_projects_apps_recaptcha_enterprise_config_batch_get_task,
+    firebaseappcheck_projects_apps_recaptcha_enterprise_config_get_builder, firebaseappcheck_projects_apps_recaptcha_enterprise_config_get_task,
     firebaseappcheck_projects_apps_recaptcha_enterprise_config_patch_builder, firebaseappcheck_projects_apps_recaptcha_enterprise_config_patch_task,
+    firebaseappcheck_projects_apps_recaptcha_v3_config_batch_get_builder, firebaseappcheck_projects_apps_recaptcha_v3_config_batch_get_task,
+    firebaseappcheck_projects_apps_recaptcha_v3_config_get_builder, firebaseappcheck_projects_apps_recaptcha_v3_config_get_task,
     firebaseappcheck_projects_apps_recaptcha_v3_config_patch_builder, firebaseappcheck_projects_apps_recaptcha_v3_config_patch_task,
+    firebaseappcheck_projects_apps_safety_net_config_batch_get_builder, firebaseappcheck_projects_apps_safety_net_config_batch_get_task,
+    firebaseappcheck_projects_apps_safety_net_config_get_builder, firebaseappcheck_projects_apps_safety_net_config_get_task,
     firebaseappcheck_projects_apps_safety_net_config_patch_builder, firebaseappcheck_projects_apps_safety_net_config_patch_task,
     firebaseappcheck_projects_services_batch_update_builder, firebaseappcheck_projects_services_batch_update_task,
+    firebaseappcheck_projects_services_get_builder, firebaseappcheck_projects_services_get_task,
+    firebaseappcheck_projects_services_list_builder, firebaseappcheck_projects_services_list_task,
     firebaseappcheck_projects_services_patch_builder, firebaseappcheck_projects_services_patch_task,
     firebaseappcheck_projects_services_resource_policies_batch_update_builder, firebaseappcheck_projects_services_resource_policies_batch_update_task,
     firebaseappcheck_projects_services_resource_policies_create_builder, firebaseappcheck_projects_services_resource_policies_create_task,
     firebaseappcheck_projects_services_resource_policies_delete_builder, firebaseappcheck_projects_services_resource_policies_delete_task,
+    firebaseappcheck_projects_services_resource_policies_get_builder, firebaseappcheck_projects_services_resource_policies_get_task,
+    firebaseappcheck_projects_services_resource_policies_list_builder, firebaseappcheck_projects_services_resource_policies_list_task,
     firebaseappcheck_projects_services_resource_policies_patch_builder, firebaseappcheck_projects_services_resource_policies_patch_task,
 };
 use crate::providers::gcp::clients::types::{ApiError, ApiPending};
 use crate::providers::gcp::clients::firebaseappcheck::GoogleFirebaseAppcheckV1AppAttestConfig;
 use crate::providers::gcp::clients::firebaseappcheck::GoogleFirebaseAppcheckV1AppCheckToken;
+use crate::providers::gcp::clients::firebaseappcheck::GoogleFirebaseAppcheckV1BatchGetAppAttestConfigsResponse;
+use crate::providers::gcp::clients::firebaseappcheck::GoogleFirebaseAppcheckV1BatchGetDeviceCheckConfigsResponse;
+use crate::providers::gcp::clients::firebaseappcheck::GoogleFirebaseAppcheckV1BatchGetPlayIntegrityConfigsResponse;
+use crate::providers::gcp::clients::firebaseappcheck::GoogleFirebaseAppcheckV1BatchGetRecaptchaEnterpriseConfigsResponse;
+use crate::providers::gcp::clients::firebaseappcheck::GoogleFirebaseAppcheckV1BatchGetRecaptchaV3ConfigsResponse;
+use crate::providers::gcp::clients::firebaseappcheck::GoogleFirebaseAppcheckV1BatchGetSafetyNetConfigsResponse;
 use crate::providers::gcp::clients::firebaseappcheck::GoogleFirebaseAppcheckV1BatchUpdateResourcePoliciesResponse;
 use crate::providers::gcp::clients::firebaseappcheck::GoogleFirebaseAppcheckV1BatchUpdateServicesResponse;
 use crate::providers::gcp::clients::firebaseappcheck::GoogleFirebaseAppcheckV1DebugToken;
@@ -53,21 +78,32 @@ use crate::providers::gcp::clients::firebaseappcheck::GoogleFirebaseAppcheckV1De
 use crate::providers::gcp::clients::firebaseappcheck::GoogleFirebaseAppcheckV1ExchangeAppAttestAttestationResponse;
 use crate::providers::gcp::clients::firebaseappcheck::GoogleFirebaseAppcheckV1GenerateAppAttestChallengeResponse;
 use crate::providers::gcp::clients::firebaseappcheck::GoogleFirebaseAppcheckV1GeneratePlayIntegrityChallengeResponse;
+use crate::providers::gcp::clients::firebaseappcheck::GoogleFirebaseAppcheckV1ListDebugTokensResponse;
+use crate::providers::gcp::clients::firebaseappcheck::GoogleFirebaseAppcheckV1ListResourcePoliciesResponse;
+use crate::providers::gcp::clients::firebaseappcheck::GoogleFirebaseAppcheckV1ListServicesResponse;
 use crate::providers::gcp::clients::firebaseappcheck::GoogleFirebaseAppcheckV1PlayIntegrityConfig;
+use crate::providers::gcp::clients::firebaseappcheck::GoogleFirebaseAppcheckV1PublicJwkSet;
 use crate::providers::gcp::clients::firebaseappcheck::GoogleFirebaseAppcheckV1RecaptchaEnterpriseConfig;
 use crate::providers::gcp::clients::firebaseappcheck::GoogleFirebaseAppcheckV1RecaptchaV3Config;
 use crate::providers::gcp::clients::firebaseappcheck::GoogleFirebaseAppcheckV1ResourcePolicy;
 use crate::providers::gcp::clients::firebaseappcheck::GoogleFirebaseAppcheckV1SafetyNetConfig;
 use crate::providers::gcp::clients::firebaseappcheck::GoogleFirebaseAppcheckV1Service;
 use crate::providers::gcp::clients::firebaseappcheck::GoogleProtobufEmpty;
+use crate::providers::gcp::clients::firebaseappcheck::FirebaseappcheckJwksGetArgs;
 use crate::providers::gcp::clients::firebaseappcheck::FirebaseappcheckOauthClientsExchangeAppAttestAssertionArgs;
 use crate::providers::gcp::clients::firebaseappcheck::FirebaseappcheckOauthClientsExchangeAppAttestAttestationArgs;
 use crate::providers::gcp::clients::firebaseappcheck::FirebaseappcheckOauthClientsExchangeDebugTokenArgs;
 use crate::providers::gcp::clients::firebaseappcheck::FirebaseappcheckOauthClientsGenerateAppAttestChallengeArgs;
+use crate::providers::gcp::clients::firebaseappcheck::FirebaseappcheckProjectsAppsAppAttestConfigBatchGetArgs;
+use crate::providers::gcp::clients::firebaseappcheck::FirebaseappcheckProjectsAppsAppAttestConfigGetArgs;
 use crate::providers::gcp::clients::firebaseappcheck::FirebaseappcheckProjectsAppsAppAttestConfigPatchArgs;
 use crate::providers::gcp::clients::firebaseappcheck::FirebaseappcheckProjectsAppsDebugTokensCreateArgs;
 use crate::providers::gcp::clients::firebaseappcheck::FirebaseappcheckProjectsAppsDebugTokensDeleteArgs;
+use crate::providers::gcp::clients::firebaseappcheck::FirebaseappcheckProjectsAppsDebugTokensGetArgs;
+use crate::providers::gcp::clients::firebaseappcheck::FirebaseappcheckProjectsAppsDebugTokensListArgs;
 use crate::providers::gcp::clients::firebaseappcheck::FirebaseappcheckProjectsAppsDebugTokensPatchArgs;
+use crate::providers::gcp::clients::firebaseappcheck::FirebaseappcheckProjectsAppsDeviceCheckConfigBatchGetArgs;
+use crate::providers::gcp::clients::firebaseappcheck::FirebaseappcheckProjectsAppsDeviceCheckConfigGetArgs;
 use crate::providers::gcp::clients::firebaseappcheck::FirebaseappcheckProjectsAppsDeviceCheckConfigPatchArgs;
 use crate::providers::gcp::clients::firebaseappcheck::FirebaseappcheckProjectsAppsExchangeAppAttestAssertionArgs;
 use crate::providers::gcp::clients::firebaseappcheck::FirebaseappcheckProjectsAppsExchangeAppAttestAttestationArgs;
@@ -80,15 +116,27 @@ use crate::providers::gcp::clients::firebaseappcheck::FirebaseappcheckProjectsAp
 use crate::providers::gcp::clients::firebaseappcheck::FirebaseappcheckProjectsAppsExchangeSafetyNetTokenArgs;
 use crate::providers::gcp::clients::firebaseappcheck::FirebaseappcheckProjectsAppsGenerateAppAttestChallengeArgs;
 use crate::providers::gcp::clients::firebaseappcheck::FirebaseappcheckProjectsAppsGeneratePlayIntegrityChallengeArgs;
+use crate::providers::gcp::clients::firebaseappcheck::FirebaseappcheckProjectsAppsPlayIntegrityConfigBatchGetArgs;
+use crate::providers::gcp::clients::firebaseappcheck::FirebaseappcheckProjectsAppsPlayIntegrityConfigGetArgs;
 use crate::providers::gcp::clients::firebaseappcheck::FirebaseappcheckProjectsAppsPlayIntegrityConfigPatchArgs;
+use crate::providers::gcp::clients::firebaseappcheck::FirebaseappcheckProjectsAppsRecaptchaEnterpriseConfigBatchGetArgs;
+use crate::providers::gcp::clients::firebaseappcheck::FirebaseappcheckProjectsAppsRecaptchaEnterpriseConfigGetArgs;
 use crate::providers::gcp::clients::firebaseappcheck::FirebaseappcheckProjectsAppsRecaptchaEnterpriseConfigPatchArgs;
+use crate::providers::gcp::clients::firebaseappcheck::FirebaseappcheckProjectsAppsRecaptchaV3ConfigBatchGetArgs;
+use crate::providers::gcp::clients::firebaseappcheck::FirebaseappcheckProjectsAppsRecaptchaV3ConfigGetArgs;
 use crate::providers::gcp::clients::firebaseappcheck::FirebaseappcheckProjectsAppsRecaptchaV3ConfigPatchArgs;
+use crate::providers::gcp::clients::firebaseappcheck::FirebaseappcheckProjectsAppsSafetyNetConfigBatchGetArgs;
+use crate::providers::gcp::clients::firebaseappcheck::FirebaseappcheckProjectsAppsSafetyNetConfigGetArgs;
 use crate::providers::gcp::clients::firebaseappcheck::FirebaseappcheckProjectsAppsSafetyNetConfigPatchArgs;
 use crate::providers::gcp::clients::firebaseappcheck::FirebaseappcheckProjectsServicesBatchUpdateArgs;
+use crate::providers::gcp::clients::firebaseappcheck::FirebaseappcheckProjectsServicesGetArgs;
+use crate::providers::gcp::clients::firebaseappcheck::FirebaseappcheckProjectsServicesListArgs;
 use crate::providers::gcp::clients::firebaseappcheck::FirebaseappcheckProjectsServicesPatchArgs;
 use crate::providers::gcp::clients::firebaseappcheck::FirebaseappcheckProjectsServicesResourcePoliciesBatchUpdateArgs;
 use crate::providers::gcp::clients::firebaseappcheck::FirebaseappcheckProjectsServicesResourcePoliciesCreateArgs;
 use crate::providers::gcp::clients::firebaseappcheck::FirebaseappcheckProjectsServicesResourcePoliciesDeleteArgs;
+use crate::providers::gcp::clients::firebaseappcheck::FirebaseappcheckProjectsServicesResourcePoliciesGetArgs;
+use crate::providers::gcp::clients::firebaseappcheck::FirebaseappcheckProjectsServicesResourcePoliciesListArgs;
 use crate::providers::gcp::clients::firebaseappcheck::FirebaseappcheckProjectsServicesResourcePoliciesPatchArgs;
 use crate::provider_client::{ProviderClient, ProviderError};
 use foundation_core::valtron::{execute, StreamIterator};
@@ -131,9 +179,46 @@ where
         }
     }
 
+    /// Firebaseappcheck jwks get.
+    ///
+    /// Read-only operation - no state tracking.
+    ///
+    /// # Arguments
+    ///
+    /// * `args` - Request arguments
+    ///
+    /// # Returns
+    ///
+    /// StreamIterator yielding the GoogleFirebaseAppcheckV1PublicJwkSet result.
+    ///
+    /// # Errors
+    ///
+    /// Returns ProviderError if the API request fails.
+    pub fn firebaseappcheck_jwks_get(
+        &self,
+        args: &FirebaseappcheckJwksGetArgs,
+    ) -> Result<
+        impl StreamIterator<
+            D = Result<GoogleFirebaseAppcheckV1PublicJwkSet, ProviderError<ApiError>>,
+            P = crate::providers::gcp::clients::types::ApiPending,
+        > + Send
+        + 'static,
+        ProviderError<ApiError>,
+    > {
+        let builder = firebaseappcheck_jwks_get_builder(
+            &self.http_client,
+        )
+        .map_err(ProviderError::Api)?;
+
+        let task = firebaseappcheck_jwks_get_task(builder)
+            .map_err(ProviderError::Api)?;
+
+        execute(task, None).map_err(|e: String| ProviderError::ExecuteFailed(e.to_string()))
+    }
+
     /// Firebaseappcheck oauth clients exchange app attest assertion.
     ///
-    /// Automatically stores the result in the state store on success.
+    /// Read-only operation - no state tracking.
     ///
     /// # Arguments
     ///
@@ -145,7 +230,7 @@ where
     ///
     /// # Errors
     ///
-    /// Returns ProviderError if the API request or state storage fails.
+    /// Returns ProviderError if the API request fails.
     pub fn firebaseappcheck_oauth_clients_exchange_app_attest_assertion(
         &self,
         args: &FirebaseappcheckOauthClientsExchangeAppAttestAssertionArgs,
@@ -166,17 +251,12 @@ where
         let task = firebaseappcheck_oauth_clients_exchange_app_attest_assertion_task(builder)
             .map_err(ProviderError::Api)?;
 
-        let state_store = self.client.state_store.clone();
-        let stage = Some(self.client.stage.clone());
-
-        let store_task = StoreStateIdentifierTask::new(task, state_store, args, stage);
-
-        execute(store_task, None).map_err(|e: String| ProviderError::ExecuteFailed(e.to_string()))
+        execute(task, None).map_err(|e: String| ProviderError::ExecuteFailed(e.to_string()))
     }
 
     /// Firebaseappcheck oauth clients exchange app attest attestation.
     ///
-    /// Automatically stores the result in the state store on success.
+    /// Read-only operation - no state tracking.
     ///
     /// # Arguments
     ///
@@ -188,7 +268,7 @@ where
     ///
     /// # Errors
     ///
-    /// Returns ProviderError if the API request or state storage fails.
+    /// Returns ProviderError if the API request fails.
     pub fn firebaseappcheck_oauth_clients_exchange_app_attest_attestation(
         &self,
         args: &FirebaseappcheckOauthClientsExchangeAppAttestAttestationArgs,
@@ -209,12 +289,7 @@ where
         let task = firebaseappcheck_oauth_clients_exchange_app_attest_attestation_task(builder)
             .map_err(ProviderError::Api)?;
 
-        let state_store = self.client.state_store.clone();
-        let stage = Some(self.client.stage.clone());
-
-        let store_task = StoreStateIdentifierTask::new(task, state_store, args, stage);
-
-        execute(store_task, None).map_err(|e: String| ProviderError::ExecuteFailed(e.to_string()))
+        execute(task, None).map_err(|e: String| ProviderError::ExecuteFailed(e.to_string()))
     }
 
     /// Firebaseappcheck oauth clients exchange debug token.
@@ -262,7 +337,7 @@ where
 
     /// Firebaseappcheck oauth clients generate app attest challenge.
     ///
-    /// Automatically stores the result in the state store on success.
+    /// Read-only operation - no state tracking.
     ///
     /// # Arguments
     ///
@@ -274,7 +349,7 @@ where
     ///
     /// # Errors
     ///
-    /// Returns ProviderError if the API request or state storage fails.
+    /// Returns ProviderError if the API request fails.
     pub fn firebaseappcheck_oauth_clients_generate_app_attest_challenge(
         &self,
         args: &FirebaseappcheckOauthClientsGenerateAppAttestChallengeArgs,
@@ -295,17 +370,12 @@ where
         let task = firebaseappcheck_oauth_clients_generate_app_attest_challenge_task(builder)
             .map_err(ProviderError::Api)?;
 
-        let state_store = self.client.state_store.clone();
-        let stage = Some(self.client.stage.clone());
-
-        let store_task = StoreStateIdentifierTask::new(task, state_store, args, stage);
-
-        execute(store_task, None).map_err(|e: String| ProviderError::ExecuteFailed(e.to_string()))
+        execute(task, None).map_err(|e: String| ProviderError::ExecuteFailed(e.to_string()))
     }
 
     /// Firebaseappcheck projects apps exchange app attest assertion.
     ///
-    /// Automatically stores the result in the state store on success.
+    /// Read-only operation - no state tracking.
     ///
     /// # Arguments
     ///
@@ -317,7 +387,7 @@ where
     ///
     /// # Errors
     ///
-    /// Returns ProviderError if the API request or state storage fails.
+    /// Returns ProviderError if the API request fails.
     pub fn firebaseappcheck_projects_apps_exchange_app_attest_assertion(
         &self,
         args: &FirebaseappcheckProjectsAppsExchangeAppAttestAssertionArgs,
@@ -338,17 +408,12 @@ where
         let task = firebaseappcheck_projects_apps_exchange_app_attest_assertion_task(builder)
             .map_err(ProviderError::Api)?;
 
-        let state_store = self.client.state_store.clone();
-        let stage = Some(self.client.stage.clone());
-
-        let store_task = StoreStateIdentifierTask::new(task, state_store, args, stage);
-
-        execute(store_task, None).map_err(|e: String| ProviderError::ExecuteFailed(e.to_string()))
+        execute(task, None).map_err(|e: String| ProviderError::ExecuteFailed(e.to_string()))
     }
 
     /// Firebaseappcheck projects apps exchange app attest attestation.
     ///
-    /// Automatically stores the result in the state store on success.
+    /// Read-only operation - no state tracking.
     ///
     /// # Arguments
     ///
@@ -360,7 +425,7 @@ where
     ///
     /// # Errors
     ///
-    /// Returns ProviderError if the API request or state storage fails.
+    /// Returns ProviderError if the API request fails.
     pub fn firebaseappcheck_projects_apps_exchange_app_attest_attestation(
         &self,
         args: &FirebaseappcheckProjectsAppsExchangeAppAttestAttestationArgs,
@@ -381,12 +446,7 @@ where
         let task = firebaseappcheck_projects_apps_exchange_app_attest_attestation_task(builder)
             .map_err(ProviderError::Api)?;
 
-        let state_store = self.client.state_store.clone();
-        let stage = Some(self.client.stage.clone());
-
-        let store_task = StoreStateIdentifierTask::new(task, state_store, args, stage);
-
-        execute(store_task, None).map_err(|e: String| ProviderError::ExecuteFailed(e.to_string()))
+        execute(task, None).map_err(|e: String| ProviderError::ExecuteFailed(e.to_string()))
     }
 
     /// Firebaseappcheck projects apps exchange custom token.
@@ -692,7 +752,7 @@ where
 
     /// Firebaseappcheck projects apps generate app attest challenge.
     ///
-    /// Automatically stores the result in the state store on success.
+    /// Read-only operation - no state tracking.
     ///
     /// # Arguments
     ///
@@ -704,7 +764,7 @@ where
     ///
     /// # Errors
     ///
-    /// Returns ProviderError if the API request or state storage fails.
+    /// Returns ProviderError if the API request fails.
     pub fn firebaseappcheck_projects_apps_generate_app_attest_challenge(
         &self,
         args: &FirebaseappcheckProjectsAppsGenerateAppAttestChallengeArgs,
@@ -725,12 +785,7 @@ where
         let task = firebaseappcheck_projects_apps_generate_app_attest_challenge_task(builder)
             .map_err(ProviderError::Api)?;
 
-        let state_store = self.client.state_store.clone();
-        let stage = Some(self.client.stage.clone());
-
-        let store_task = StoreStateIdentifierTask::new(task, state_store, args, stage);
-
-        execute(store_task, None).map_err(|e: String| ProviderError::ExecuteFailed(e.to_string()))
+        execute(task, None).map_err(|e: String| ProviderError::ExecuteFailed(e.to_string()))
     }
 
     /// Firebaseappcheck projects apps generate play integrity challenge.
@@ -774,6 +829,83 @@ where
         let store_task = StoreStateIdentifierTask::new(task, state_store, args, stage);
 
         execute(store_task, None).map_err(|e: String| ProviderError::ExecuteFailed(e.to_string()))
+    }
+
+    /// Firebaseappcheck projects apps app attest config batch get.
+    ///
+    /// Read-only operation - no state tracking.
+    ///
+    /// # Arguments
+    ///
+    /// * `args` - Request arguments
+    ///
+    /// # Returns
+    ///
+    /// StreamIterator yielding the GoogleFirebaseAppcheckV1BatchGetAppAttestConfigsResponse result.
+    ///
+    /// # Errors
+    ///
+    /// Returns ProviderError if the API request fails.
+    pub fn firebaseappcheck_projects_apps_app_attest_config_batch_get(
+        &self,
+        args: &FirebaseappcheckProjectsAppsAppAttestConfigBatchGetArgs,
+    ) -> Result<
+        impl StreamIterator<
+            D = Result<GoogleFirebaseAppcheckV1BatchGetAppAttestConfigsResponse, ProviderError<ApiError>>,
+            P = crate::providers::gcp::clients::types::ApiPending,
+        > + Send
+        + 'static,
+        ProviderError<ApiError>,
+    > {
+        let builder = firebaseappcheck_projects_apps_app_attest_config_batch_get_builder(
+            &self.http_client,
+            &args.parent,
+            &args.names,
+        )
+        .map_err(ProviderError::Api)?;
+
+        let task = firebaseappcheck_projects_apps_app_attest_config_batch_get_task(builder)
+            .map_err(ProviderError::Api)?;
+
+        execute(task, None).map_err(|e: String| ProviderError::ExecuteFailed(e.to_string()))
+    }
+
+    /// Firebaseappcheck projects apps app attest config get.
+    ///
+    /// Read-only operation - no state tracking.
+    ///
+    /// # Arguments
+    ///
+    /// * `args` - Request arguments
+    ///
+    /// # Returns
+    ///
+    /// StreamIterator yielding the GoogleFirebaseAppcheckV1AppAttestConfig result.
+    ///
+    /// # Errors
+    ///
+    /// Returns ProviderError if the API request fails.
+    pub fn firebaseappcheck_projects_apps_app_attest_config_get(
+        &self,
+        args: &FirebaseappcheckProjectsAppsAppAttestConfigGetArgs,
+    ) -> Result<
+        impl StreamIterator<
+            D = Result<GoogleFirebaseAppcheckV1AppAttestConfig, ProviderError<ApiError>>,
+            P = crate::providers::gcp::clients::types::ApiPending,
+        > + Send
+        + 'static,
+        ProviderError<ApiError>,
+    > {
+        let builder = firebaseappcheck_projects_apps_app_attest_config_get_builder(
+            &self.http_client,
+            &args.name,
+        )
+        .map_err(ProviderError::Api)?;
+
+        let task = firebaseappcheck_projects_apps_app_attest_config_get_task(builder)
+            .map_err(ProviderError::Api)?;
+
+        execute(task, None).map_err(|e: String| ProviderError::ExecuteFailed(e.to_string()))
     }
 
     /// Firebaseappcheck projects apps app attest config patch.
@@ -906,6 +1038,84 @@ where
         execute(store_task, None).map_err(|e: String| ProviderError::ExecuteFailed(e.to_string()))
     }
 
+    /// Firebaseappcheck projects apps debug tokens get.
+    ///
+    /// Read-only operation - no state tracking.
+    ///
+    /// # Arguments
+    ///
+    /// * `args` - Request arguments
+    ///
+    /// # Returns
+    ///
+    /// StreamIterator yielding the GoogleFirebaseAppcheckV1DebugToken result.
+    ///
+    /// # Errors
+    ///
+    /// Returns ProviderError if the API request fails.
+    pub fn firebaseappcheck_projects_apps_debug_tokens_get(
+        &self,
+        args: &FirebaseappcheckProjectsAppsDebugTokensGetArgs,
+    ) -> Result<
+        impl StreamIterator<
+            D = Result<GoogleFirebaseAppcheckV1DebugToken, ProviderError<ApiError>>,
+            P = crate::providers::gcp::clients::types::ApiPending,
+        > + Send
+        + 'static,
+        ProviderError<ApiError>,
+    > {
+        let builder = firebaseappcheck_projects_apps_debug_tokens_get_builder(
+            &self.http_client,
+            &args.name,
+        )
+        .map_err(ProviderError::Api)?;
+
+        let task = firebaseappcheck_projects_apps_debug_tokens_get_task(builder)
+            .map_err(ProviderError::Api)?;
+
+        execute(task, None).map_err(|e: String| ProviderError::ExecuteFailed(e.to_string()))
+    }
+
+    /// Firebaseappcheck projects apps debug tokens list.
+    ///
+    /// Read-only operation - no state tracking.
+    ///
+    /// # Arguments
+    ///
+    /// * `args` - Request arguments
+    ///
+    /// # Returns
+    ///
+    /// StreamIterator yielding the GoogleFirebaseAppcheckV1ListDebugTokensResponse result.
+    ///
+    /// # Errors
+    ///
+    /// Returns ProviderError if the API request fails.
+    pub fn firebaseappcheck_projects_apps_debug_tokens_list(
+        &self,
+        args: &FirebaseappcheckProjectsAppsDebugTokensListArgs,
+    ) -> Result<
+        impl StreamIterator<
+            D = Result<GoogleFirebaseAppcheckV1ListDebugTokensResponse, ProviderError<ApiError>>,
+            P = crate::providers::gcp::clients::types::ApiPending,
+        > + Send
+        + 'static,
+        ProviderError<ApiError>,
+    > {
+        let builder = firebaseappcheck_projects_apps_debug_tokens_list_builder(
+            &self.http_client,
+            &args.parent,
+            &args.pageSize,
+            &args.pageToken,
+        )
+        .map_err(ProviderError::Api)?;
+
+        let task = firebaseappcheck_projects_apps_debug_tokens_list_task(builder)
+            .map_err(ProviderError::Api)?;
+
+        execute(task, None).map_err(|e: String| ProviderError::ExecuteFailed(e.to_string()))
+    }
+
     /// Firebaseappcheck projects apps debug tokens patch.
     ///
     /// Automatically stores the result in the state store on success.
@@ -948,6 +1158,83 @@ where
         let store_task = StoreStateIdentifierTask::new(task, state_store, args, stage);
 
         execute(store_task, None).map_err(|e: String| ProviderError::ExecuteFailed(e.to_string()))
+    }
+
+    /// Firebaseappcheck projects apps device check config batch get.
+    ///
+    /// Read-only operation - no state tracking.
+    ///
+    /// # Arguments
+    ///
+    /// * `args` - Request arguments
+    ///
+    /// # Returns
+    ///
+    /// StreamIterator yielding the GoogleFirebaseAppcheckV1BatchGetDeviceCheckConfigsResponse result.
+    ///
+    /// # Errors
+    ///
+    /// Returns ProviderError if the API request fails.
+    pub fn firebaseappcheck_projects_apps_device_check_config_batch_get(
+        &self,
+        args: &FirebaseappcheckProjectsAppsDeviceCheckConfigBatchGetArgs,
+    ) -> Result<
+        impl StreamIterator<
+            D = Result<GoogleFirebaseAppcheckV1BatchGetDeviceCheckConfigsResponse, ProviderError<ApiError>>,
+            P = crate::providers::gcp::clients::types::ApiPending,
+        > + Send
+        + 'static,
+        ProviderError<ApiError>,
+    > {
+        let builder = firebaseappcheck_projects_apps_device_check_config_batch_get_builder(
+            &self.http_client,
+            &args.parent,
+            &args.names,
+        )
+        .map_err(ProviderError::Api)?;
+
+        let task = firebaseappcheck_projects_apps_device_check_config_batch_get_task(builder)
+            .map_err(ProviderError::Api)?;
+
+        execute(task, None).map_err(|e: String| ProviderError::ExecuteFailed(e.to_string()))
+    }
+
+    /// Firebaseappcheck projects apps device check config get.
+    ///
+    /// Read-only operation - no state tracking.
+    ///
+    /// # Arguments
+    ///
+    /// * `args` - Request arguments
+    ///
+    /// # Returns
+    ///
+    /// StreamIterator yielding the GoogleFirebaseAppcheckV1DeviceCheckConfig result.
+    ///
+    /// # Errors
+    ///
+    /// Returns ProviderError if the API request fails.
+    pub fn firebaseappcheck_projects_apps_device_check_config_get(
+        &self,
+        args: &FirebaseappcheckProjectsAppsDeviceCheckConfigGetArgs,
+    ) -> Result<
+        impl StreamIterator<
+            D = Result<GoogleFirebaseAppcheckV1DeviceCheckConfig, ProviderError<ApiError>>,
+            P = crate::providers::gcp::clients::types::ApiPending,
+        > + Send
+        + 'static,
+        ProviderError<ApiError>,
+    > {
+        let builder = firebaseappcheck_projects_apps_device_check_config_get_builder(
+            &self.http_client,
+            &args.name,
+        )
+        .map_err(ProviderError::Api)?;
+
+        let task = firebaseappcheck_projects_apps_device_check_config_get_task(builder)
+            .map_err(ProviderError::Api)?;
+
+        execute(task, None).map_err(|e: String| ProviderError::ExecuteFailed(e.to_string()))
     }
 
     /// Firebaseappcheck projects apps device check config patch.
@@ -994,6 +1281,83 @@ where
         execute(store_task, None).map_err(|e: String| ProviderError::ExecuteFailed(e.to_string()))
     }
 
+    /// Firebaseappcheck projects apps play integrity config batch get.
+    ///
+    /// Read-only operation - no state tracking.
+    ///
+    /// # Arguments
+    ///
+    /// * `args` - Request arguments
+    ///
+    /// # Returns
+    ///
+    /// StreamIterator yielding the GoogleFirebaseAppcheckV1BatchGetPlayIntegrityConfigsResponse result.
+    ///
+    /// # Errors
+    ///
+    /// Returns ProviderError if the API request fails.
+    pub fn firebaseappcheck_projects_apps_play_integrity_config_batch_get(
+        &self,
+        args: &FirebaseappcheckProjectsAppsPlayIntegrityConfigBatchGetArgs,
+    ) -> Result<
+        impl StreamIterator<
+            D = Result<GoogleFirebaseAppcheckV1BatchGetPlayIntegrityConfigsResponse, ProviderError<ApiError>>,
+            P = crate::providers::gcp::clients::types::ApiPending,
+        > + Send
+        + 'static,
+        ProviderError<ApiError>,
+    > {
+        let builder = firebaseappcheck_projects_apps_play_integrity_config_batch_get_builder(
+            &self.http_client,
+            &args.parent,
+            &args.names,
+        )
+        .map_err(ProviderError::Api)?;
+
+        let task = firebaseappcheck_projects_apps_play_integrity_config_batch_get_task(builder)
+            .map_err(ProviderError::Api)?;
+
+        execute(task, None).map_err(|e: String| ProviderError::ExecuteFailed(e.to_string()))
+    }
+
+    /// Firebaseappcheck projects apps play integrity config get.
+    ///
+    /// Read-only operation - no state tracking.
+    ///
+    /// # Arguments
+    ///
+    /// * `args` - Request arguments
+    ///
+    /// # Returns
+    ///
+    /// StreamIterator yielding the GoogleFirebaseAppcheckV1PlayIntegrityConfig result.
+    ///
+    /// # Errors
+    ///
+    /// Returns ProviderError if the API request fails.
+    pub fn firebaseappcheck_projects_apps_play_integrity_config_get(
+        &self,
+        args: &FirebaseappcheckProjectsAppsPlayIntegrityConfigGetArgs,
+    ) -> Result<
+        impl StreamIterator<
+            D = Result<GoogleFirebaseAppcheckV1PlayIntegrityConfig, ProviderError<ApiError>>,
+            P = crate::providers::gcp::clients::types::ApiPending,
+        > + Send
+        + 'static,
+        ProviderError<ApiError>,
+    > {
+        let builder = firebaseappcheck_projects_apps_play_integrity_config_get_builder(
+            &self.http_client,
+            &args.name,
+        )
+        .map_err(ProviderError::Api)?;
+
+        let task = firebaseappcheck_projects_apps_play_integrity_config_get_task(builder)
+            .map_err(ProviderError::Api)?;
+
+        execute(task, None).map_err(|e: String| ProviderError::ExecuteFailed(e.to_string()))
+    }
+
     /// Firebaseappcheck projects apps play integrity config patch.
     ///
     /// Automatically stores the result in the state store on success.
@@ -1036,6 +1400,83 @@ where
         let store_task = StoreStateIdentifierTask::new(task, state_store, args, stage);
 
         execute(store_task, None).map_err(|e: String| ProviderError::ExecuteFailed(e.to_string()))
+    }
+
+    /// Firebaseappcheck projects apps recaptcha enterprise config batch get.
+    ///
+    /// Read-only operation - no state tracking.
+    ///
+    /// # Arguments
+    ///
+    /// * `args` - Request arguments
+    ///
+    /// # Returns
+    ///
+    /// StreamIterator yielding the GoogleFirebaseAppcheckV1BatchGetRecaptchaEnterpriseConfigsResponse result.
+    ///
+    /// # Errors
+    ///
+    /// Returns ProviderError if the API request fails.
+    pub fn firebaseappcheck_projects_apps_recaptcha_enterprise_config_batch_get(
+        &self,
+        args: &FirebaseappcheckProjectsAppsRecaptchaEnterpriseConfigBatchGetArgs,
+    ) -> Result<
+        impl StreamIterator<
+            D = Result<GoogleFirebaseAppcheckV1BatchGetRecaptchaEnterpriseConfigsResponse, ProviderError<ApiError>>,
+            P = crate::providers::gcp::clients::types::ApiPending,
+        > + Send
+        + 'static,
+        ProviderError<ApiError>,
+    > {
+        let builder = firebaseappcheck_projects_apps_recaptcha_enterprise_config_batch_get_builder(
+            &self.http_client,
+            &args.parent,
+            &args.names,
+        )
+        .map_err(ProviderError::Api)?;
+
+        let task = firebaseappcheck_projects_apps_recaptcha_enterprise_config_batch_get_task(builder)
+            .map_err(ProviderError::Api)?;
+
+        execute(task, None).map_err(|e: String| ProviderError::ExecuteFailed(e.to_string()))
+    }
+
+    /// Firebaseappcheck projects apps recaptcha enterprise config get.
+    ///
+    /// Read-only operation - no state tracking.
+    ///
+    /// # Arguments
+    ///
+    /// * `args` - Request arguments
+    ///
+    /// # Returns
+    ///
+    /// StreamIterator yielding the GoogleFirebaseAppcheckV1RecaptchaEnterpriseConfig result.
+    ///
+    /// # Errors
+    ///
+    /// Returns ProviderError if the API request fails.
+    pub fn firebaseappcheck_projects_apps_recaptcha_enterprise_config_get(
+        &self,
+        args: &FirebaseappcheckProjectsAppsRecaptchaEnterpriseConfigGetArgs,
+    ) -> Result<
+        impl StreamIterator<
+            D = Result<GoogleFirebaseAppcheckV1RecaptchaEnterpriseConfig, ProviderError<ApiError>>,
+            P = crate::providers::gcp::clients::types::ApiPending,
+        > + Send
+        + 'static,
+        ProviderError<ApiError>,
+    > {
+        let builder = firebaseappcheck_projects_apps_recaptcha_enterprise_config_get_builder(
+            &self.http_client,
+            &args.name,
+        )
+        .map_err(ProviderError::Api)?;
+
+        let task = firebaseappcheck_projects_apps_recaptcha_enterprise_config_get_task(builder)
+            .map_err(ProviderError::Api)?;
+
+        execute(task, None).map_err(|e: String| ProviderError::ExecuteFailed(e.to_string()))
     }
 
     /// Firebaseappcheck projects apps recaptcha enterprise config patch.
@@ -1082,6 +1523,83 @@ where
         execute(store_task, None).map_err(|e: String| ProviderError::ExecuteFailed(e.to_string()))
     }
 
+    /// Firebaseappcheck projects apps recaptcha v3 config batch get.
+    ///
+    /// Read-only operation - no state tracking.
+    ///
+    /// # Arguments
+    ///
+    /// * `args` - Request arguments
+    ///
+    /// # Returns
+    ///
+    /// StreamIterator yielding the GoogleFirebaseAppcheckV1BatchGetRecaptchaV3ConfigsResponse result.
+    ///
+    /// # Errors
+    ///
+    /// Returns ProviderError if the API request fails.
+    pub fn firebaseappcheck_projects_apps_recaptcha_v3_config_batch_get(
+        &self,
+        args: &FirebaseappcheckProjectsAppsRecaptchaV3ConfigBatchGetArgs,
+    ) -> Result<
+        impl StreamIterator<
+            D = Result<GoogleFirebaseAppcheckV1BatchGetRecaptchaV3ConfigsResponse, ProviderError<ApiError>>,
+            P = crate::providers::gcp::clients::types::ApiPending,
+        > + Send
+        + 'static,
+        ProviderError<ApiError>,
+    > {
+        let builder = firebaseappcheck_projects_apps_recaptcha_v3_config_batch_get_builder(
+            &self.http_client,
+            &args.parent,
+            &args.names,
+        )
+        .map_err(ProviderError::Api)?;
+
+        let task = firebaseappcheck_projects_apps_recaptcha_v3_config_batch_get_task(builder)
+            .map_err(ProviderError::Api)?;
+
+        execute(task, None).map_err(|e: String| ProviderError::ExecuteFailed(e.to_string()))
+    }
+
+    /// Firebaseappcheck projects apps recaptcha v3 config get.
+    ///
+    /// Read-only operation - no state tracking.
+    ///
+    /// # Arguments
+    ///
+    /// * `args` - Request arguments
+    ///
+    /// # Returns
+    ///
+    /// StreamIterator yielding the GoogleFirebaseAppcheckV1RecaptchaV3Config result.
+    ///
+    /// # Errors
+    ///
+    /// Returns ProviderError if the API request fails.
+    pub fn firebaseappcheck_projects_apps_recaptcha_v3_config_get(
+        &self,
+        args: &FirebaseappcheckProjectsAppsRecaptchaV3ConfigGetArgs,
+    ) -> Result<
+        impl StreamIterator<
+            D = Result<GoogleFirebaseAppcheckV1RecaptchaV3Config, ProviderError<ApiError>>,
+            P = crate::providers::gcp::clients::types::ApiPending,
+        > + Send
+        + 'static,
+        ProviderError<ApiError>,
+    > {
+        let builder = firebaseappcheck_projects_apps_recaptcha_v3_config_get_builder(
+            &self.http_client,
+            &args.name,
+        )
+        .map_err(ProviderError::Api)?;
+
+        let task = firebaseappcheck_projects_apps_recaptcha_v3_config_get_task(builder)
+            .map_err(ProviderError::Api)?;
+
+        execute(task, None).map_err(|e: String| ProviderError::ExecuteFailed(e.to_string()))
+    }
+
     /// Firebaseappcheck projects apps recaptcha v3 config patch.
     ///
     /// Automatically stores the result in the state store on success.
@@ -1124,6 +1642,83 @@ where
         let store_task = StoreStateIdentifierTask::new(task, state_store, args, stage);
 
         execute(store_task, None).map_err(|e: String| ProviderError::ExecuteFailed(e.to_string()))
+    }
+
+    /// Firebaseappcheck projects apps safety net config batch get.
+    ///
+    /// Read-only operation - no state tracking.
+    ///
+    /// # Arguments
+    ///
+    /// * `args` - Request arguments
+    ///
+    /// # Returns
+    ///
+    /// StreamIterator yielding the GoogleFirebaseAppcheckV1BatchGetSafetyNetConfigsResponse result.
+    ///
+    /// # Errors
+    ///
+    /// Returns ProviderError if the API request fails.
+    pub fn firebaseappcheck_projects_apps_safety_net_config_batch_get(
+        &self,
+        args: &FirebaseappcheckProjectsAppsSafetyNetConfigBatchGetArgs,
+    ) -> Result<
+        impl StreamIterator<
+            D = Result<GoogleFirebaseAppcheckV1BatchGetSafetyNetConfigsResponse, ProviderError<ApiError>>,
+            P = crate::providers::gcp::clients::types::ApiPending,
+        > + Send
+        + 'static,
+        ProviderError<ApiError>,
+    > {
+        let builder = firebaseappcheck_projects_apps_safety_net_config_batch_get_builder(
+            &self.http_client,
+            &args.parent,
+            &args.names,
+        )
+        .map_err(ProviderError::Api)?;
+
+        let task = firebaseappcheck_projects_apps_safety_net_config_batch_get_task(builder)
+            .map_err(ProviderError::Api)?;
+
+        execute(task, None).map_err(|e: String| ProviderError::ExecuteFailed(e.to_string()))
+    }
+
+    /// Firebaseappcheck projects apps safety net config get.
+    ///
+    /// Read-only operation - no state tracking.
+    ///
+    /// # Arguments
+    ///
+    /// * `args` - Request arguments
+    ///
+    /// # Returns
+    ///
+    /// StreamIterator yielding the GoogleFirebaseAppcheckV1SafetyNetConfig result.
+    ///
+    /// # Errors
+    ///
+    /// Returns ProviderError if the API request fails.
+    pub fn firebaseappcheck_projects_apps_safety_net_config_get(
+        &self,
+        args: &FirebaseappcheckProjectsAppsSafetyNetConfigGetArgs,
+    ) -> Result<
+        impl StreamIterator<
+            D = Result<GoogleFirebaseAppcheckV1SafetyNetConfig, ProviderError<ApiError>>,
+            P = crate::providers::gcp::clients::types::ApiPending,
+        > + Send
+        + 'static,
+        ProviderError<ApiError>,
+    > {
+        let builder = firebaseappcheck_projects_apps_safety_net_config_get_builder(
+            &self.http_client,
+            &args.name,
+        )
+        .map_err(ProviderError::Api)?;
+
+        let task = firebaseappcheck_projects_apps_safety_net_config_get_task(builder)
+            .map_err(ProviderError::Api)?;
+
+        execute(task, None).map_err(|e: String| ProviderError::ExecuteFailed(e.to_string()))
     }
 
     /// Firebaseappcheck projects apps safety net config patch.
@@ -1211,6 +1806,84 @@ where
         let store_task = StoreStateIdentifierTask::new(task, state_store, args, stage);
 
         execute(store_task, None).map_err(|e: String| ProviderError::ExecuteFailed(e.to_string()))
+    }
+
+    /// Firebaseappcheck projects services get.
+    ///
+    /// Read-only operation - no state tracking.
+    ///
+    /// # Arguments
+    ///
+    /// * `args` - Request arguments
+    ///
+    /// # Returns
+    ///
+    /// StreamIterator yielding the GoogleFirebaseAppcheckV1Service result.
+    ///
+    /// # Errors
+    ///
+    /// Returns ProviderError if the API request fails.
+    pub fn firebaseappcheck_projects_services_get(
+        &self,
+        args: &FirebaseappcheckProjectsServicesGetArgs,
+    ) -> Result<
+        impl StreamIterator<
+            D = Result<GoogleFirebaseAppcheckV1Service, ProviderError<ApiError>>,
+            P = crate::providers::gcp::clients::types::ApiPending,
+        > + Send
+        + 'static,
+        ProviderError<ApiError>,
+    > {
+        let builder = firebaseappcheck_projects_services_get_builder(
+            &self.http_client,
+            &args.name,
+        )
+        .map_err(ProviderError::Api)?;
+
+        let task = firebaseappcheck_projects_services_get_task(builder)
+            .map_err(ProviderError::Api)?;
+
+        execute(task, None).map_err(|e: String| ProviderError::ExecuteFailed(e.to_string()))
+    }
+
+    /// Firebaseappcheck projects services list.
+    ///
+    /// Read-only operation - no state tracking.
+    ///
+    /// # Arguments
+    ///
+    /// * `args` - Request arguments
+    ///
+    /// # Returns
+    ///
+    /// StreamIterator yielding the GoogleFirebaseAppcheckV1ListServicesResponse result.
+    ///
+    /// # Errors
+    ///
+    /// Returns ProviderError if the API request fails.
+    pub fn firebaseappcheck_projects_services_list(
+        &self,
+        args: &FirebaseappcheckProjectsServicesListArgs,
+    ) -> Result<
+        impl StreamIterator<
+            D = Result<GoogleFirebaseAppcheckV1ListServicesResponse, ProviderError<ApiError>>,
+            P = crate::providers::gcp::clients::types::ApiPending,
+        > + Send
+        + 'static,
+        ProviderError<ApiError>,
+    > {
+        let builder = firebaseappcheck_projects_services_list_builder(
+            &self.http_client,
+            &args.parent,
+            &args.pageSize,
+            &args.pageToken,
+        )
+        .map_err(ProviderError::Api)?;
+
+        let task = firebaseappcheck_projects_services_list_task(builder)
+            .map_err(ProviderError::Api)?;
+
+        execute(task, None).map_err(|e: String| ProviderError::ExecuteFailed(e.to_string()))
     }
 
     /// Firebaseappcheck projects services patch.
@@ -1385,6 +2058,85 @@ where
         let store_task = StoreStateIdentifierTask::new(task, state_store, args, stage);
 
         execute(store_task, None).map_err(|e: String| ProviderError::ExecuteFailed(e.to_string()))
+    }
+
+    /// Firebaseappcheck projects services resource policies get.
+    ///
+    /// Read-only operation - no state tracking.
+    ///
+    /// # Arguments
+    ///
+    /// * `args` - Request arguments
+    ///
+    /// # Returns
+    ///
+    /// StreamIterator yielding the GoogleFirebaseAppcheckV1ResourcePolicy result.
+    ///
+    /// # Errors
+    ///
+    /// Returns ProviderError if the API request fails.
+    pub fn firebaseappcheck_projects_services_resource_policies_get(
+        &self,
+        args: &FirebaseappcheckProjectsServicesResourcePoliciesGetArgs,
+    ) -> Result<
+        impl StreamIterator<
+            D = Result<GoogleFirebaseAppcheckV1ResourcePolicy, ProviderError<ApiError>>,
+            P = crate::providers::gcp::clients::types::ApiPending,
+        > + Send
+        + 'static,
+        ProviderError<ApiError>,
+    > {
+        let builder = firebaseappcheck_projects_services_resource_policies_get_builder(
+            &self.http_client,
+            &args.name,
+        )
+        .map_err(ProviderError::Api)?;
+
+        let task = firebaseappcheck_projects_services_resource_policies_get_task(builder)
+            .map_err(ProviderError::Api)?;
+
+        execute(task, None).map_err(|e: String| ProviderError::ExecuteFailed(e.to_string()))
+    }
+
+    /// Firebaseappcheck projects services resource policies list.
+    ///
+    /// Read-only operation - no state tracking.
+    ///
+    /// # Arguments
+    ///
+    /// * `args` - Request arguments
+    ///
+    /// # Returns
+    ///
+    /// StreamIterator yielding the GoogleFirebaseAppcheckV1ListResourcePoliciesResponse result.
+    ///
+    /// # Errors
+    ///
+    /// Returns ProviderError if the API request fails.
+    pub fn firebaseappcheck_projects_services_resource_policies_list(
+        &self,
+        args: &FirebaseappcheckProjectsServicesResourcePoliciesListArgs,
+    ) -> Result<
+        impl StreamIterator<
+            D = Result<GoogleFirebaseAppcheckV1ListResourcePoliciesResponse, ProviderError<ApiError>>,
+            P = crate::providers::gcp::clients::types::ApiPending,
+        > + Send
+        + 'static,
+        ProviderError<ApiError>,
+    > {
+        let builder = firebaseappcheck_projects_services_resource_policies_list_builder(
+            &self.http_client,
+            &args.parent,
+            &args.filter,
+            &args.pageSize,
+            &args.pageToken,
+        )
+        .map_err(ProviderError::Api)?;
+
+        let task = firebaseappcheck_projects_services_resource_policies_list_task(builder)
+            .map_err(ProviderError::Api)?;
+
+        execute(task, None).map_err(|e: String| ProviderError::ExecuteFailed(e.to_string()))
     }
 
     /// Firebaseappcheck projects services resource policies patch.

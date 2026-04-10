@@ -7,7 +7,6 @@
 
 #![cfg(feature = "gcp")]
 
-
 use crate::providers::gcp::clients::types::*;
 use crate::providers::gcp::resources::*;
 use foundation_core::valtron::{
@@ -17,6 +16,7 @@ use foundation_core::valtron::{
 use foundation_core::wire::simple_http::client::{
     body_reader, ClientRequestBuilder, RequestIntro, SimpleHttpClient, SystemDnsResolver,
 };
+use foundation_db::state::resource_identifier::ResourceIdentifier;
 use foundation_macros::JsonHash;
 use serde::Serialize;
 
@@ -30,21 +30,21 @@ pub fn reports_activities_list_builder(
     client: &SimpleHttpClient,
     userKey: &String,
     applicationName: &String,
-    actorIpAddress: &Option<String>,
-    applicationInfoFilter: &Option<String>,
-    customerId: &Option<String>,
-    endTime: &Option<String>,
-    eventName: &Option<String>,
-    filters: &Option<String>,
-    groupIdFilter: &Option<String>,
-    includeSensitiveData: &Option<bool>,
-    maxResults: &Option<i32>,
-    networkInfoFilter: &Option<String>,
-    orgUnitID: &Option<String>,
-    pageToken: &Option<String>,
-    resourceDetailsFilter: &Option<String>,
-    startTime: &Option<String>,
-    statusFilter: &Option<String>,
+    actorIpAddress: &Option<Option<String>>,
+    applicationInfoFilter: &Option<Option<String>>,
+    customerId: &Option<Option<String>>,
+    endTime: &Option<Option<String>>,
+    eventName: &Option<Option<String>>,
+    filters: &Option<Option<String>>,
+    groupIdFilter: &Option<Option<String>>,
+    includeSensitiveData: &Option<Option<String>>,
+    maxResults: &Option<Option<String>>,
+    networkInfoFilter: &Option<Option<String>>,
+    orgUnitID: &Option<Option<String>>,
+    pageToken: &Option<Option<String>>,
+    resourceDetailsFilter: &Option<Option<String>>,
+    startTime: &Option<Option<String>>,
+    statusFilter: &Option<Option<String>>,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
@@ -225,35 +225,35 @@ pub struct ReportsActivitiesListArgs {
     /// Path parameter: applicationName
     pub applicationName: String,
     /// Query parameter: actorIpAddress
-    pub actorIpAddress: Option<String>,
+    pub actorIpAddress: Option<Option<String>>,
     /// Query parameter: applicationInfoFilter
-    pub applicationInfoFilter: Option<String>,
+    pub applicationInfoFilter: Option<Option<String>>,
     /// Query parameter: customerId
-    pub customerId: Option<String>,
+    pub customerId: Option<Option<String>>,
     /// Query parameter: endTime
-    pub endTime: Option<String>,
+    pub endTime: Option<Option<String>>,
     /// Query parameter: eventName
-    pub eventName: Option<String>,
+    pub eventName: Option<Option<String>>,
     /// Query parameter: filters
-    pub filters: Option<String>,
+    pub filters: Option<Option<String>>,
     /// Query parameter: groupIdFilter
-    pub groupIdFilter: Option<String>,
+    pub groupIdFilter: Option<Option<String>>,
     /// Query parameter: includeSensitiveData
-    pub includeSensitiveData: Option<bool>,
+    pub includeSensitiveData: Option<Option<String>>,
     /// Query parameter: maxResults
-    pub maxResults: Option<i32>,
+    pub maxResults: Option<Option<String>>,
     /// Query parameter: networkInfoFilter
-    pub networkInfoFilter: Option<String>,
+    pub networkInfoFilter: Option<Option<String>>,
     /// Query parameter: orgUnitID
-    pub orgUnitID: Option<String>,
+    pub orgUnitID: Option<Option<String>>,
     /// Query parameter: pageToken
-    pub pageToken: Option<String>,
+    pub pageToken: Option<Option<String>>,
     /// Query parameter: resourceDetailsFilter
-    pub resourceDetailsFilter: Option<String>,
+    pub resourceDetailsFilter: Option<Option<String>>,
     /// Query parameter: startTime
-    pub startTime: Option<String>,
+    pub startTime: Option<Option<String>>,
     /// Query parameter: statusFilter
-    pub statusFilter: Option<String>,
+    pub statusFilter: Option<Option<String>>,
 }
 
 /// GET admin/reports/v1/activity/users/{userKey}/applications/{applicationName}
@@ -297,7 +297,7 @@ pub fn reports_activities_list(
     reports_activities_list_execute(builder)
 }
 
-/// GET admin/reports/v1/activity/users/{userKey}/applications/{applicationName}/watch
+/// POST admin/reports/v1/activity/users/{userKey}/applications/{applicationName}/watch
 /// Start receiving notifications for account activities. For more information, see Receiving Push Notifications.
 ///
 /// Returns `ClientRequestBuilder` for customization.
@@ -307,17 +307,16 @@ pub fn reports_activities_watch_builder(
     client: &SimpleHttpClient,
     userKey: &String,
     applicationName: &String,
-    actorIpAddress: &Option<String>,
-    customerId: &Option<String>,
-    endTime: &Option<String>,
-    eventName: &Option<String>,
-    filters: &Option<String>,
-    groupIdFilter: &Option<String>,
-    maxResults: &Option<i32>,
-    orgUnitID: &Option<String>,
-    pageToken: &Option<String>,
-    startTime: &Option<String>,
-    body: &Channel,
+    actorIpAddress: &Option<Option<String>>,
+    customerId: &Option<Option<String>>,
+    endTime: &Option<Option<String>>,
+    eventName: &Option<Option<String>>,
+    filters: &Option<Option<String>>,
+    groupIdFilter: &Option<Option<String>>,
+    maxResults: &Option<Option<String>>,
+    orgUnitID: &Option<Option<String>>,
+    pageToken: &Option<Option<String>>,
+    startTime: &Option<Option<String>>,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
@@ -365,15 +364,13 @@ pub fn reports_activities_watch_builder(
     };
 
     let builder = client
-        .get(&url_with_query)
+        .post(&url_with_query)
         .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
 
-    builder
-        .body_json(body)
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+    Ok(builder)
 }
 
-/// GET admin/reports/v1/activity/users/{userKey}/applications/{applicationName}/watch
+/// POST admin/reports/v1/activity/users/{userKey}/applications/{applicationName}/watch
 /// Start receiving notifications for account activities. For more information, see Receiving Push Notifications.
 ///
 /// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
@@ -447,7 +444,7 @@ pub fn reports_activities_watch_task(
         .map_pending(|_| ApiPending::Sending))
 }
 
-/// GET admin/reports/v1/activity/users/{userKey}/applications/{applicationName}/watch
+/// POST admin/reports/v1/activity/users/{userKey}/applications/{applicationName}/watch
 /// Start receiving notifications for account activities. For more information, see Receiving Push Notifications.
 ///
 /// Takes a `ClientRequestBuilder`, builds and executes the request,
@@ -485,30 +482,28 @@ pub struct ReportsActivitiesWatchArgs {
     /// Path parameter: applicationName
     pub applicationName: String,
     /// Query parameter: actorIpAddress
-    pub actorIpAddress: Option<String>,
+    pub actorIpAddress: Option<Option<String>>,
     /// Query parameter: customerId
-    pub customerId: Option<String>,
+    pub customerId: Option<Option<String>>,
     /// Query parameter: endTime
-    pub endTime: Option<String>,
+    pub endTime: Option<Option<String>>,
     /// Query parameter: eventName
-    pub eventName: Option<String>,
+    pub eventName: Option<Option<String>>,
     /// Query parameter: filters
-    pub filters: Option<String>,
+    pub filters: Option<Option<String>>,
     /// Query parameter: groupIdFilter
-    pub groupIdFilter: Option<String>,
+    pub groupIdFilter: Option<Option<String>>,
     /// Query parameter: maxResults
-    pub maxResults: Option<i32>,
+    pub maxResults: Option<Option<String>>,
     /// Query parameter: orgUnitID
-    pub orgUnitID: Option<String>,
+    pub orgUnitID: Option<Option<String>>,
     /// Query parameter: pageToken
-    pub pageToken: Option<String>,
+    pub pageToken: Option<Option<String>>,
     /// Query parameter: startTime
-    pub startTime: Option<String>,
-    /// Request body.
-    pub body: Channel,
+    pub startTime: Option<Option<String>>,
 }
 
-/// GET admin/reports/v1/activity/users/{userKey}/applications/{applicationName}/watch
+/// POST admin/reports/v1/activity/users/{userKey}/applications/{applicationName}/watch
 /// Start receiving notifications for account activities. For more information, see Receiving Push Notifications.
 ///
 /// Simplest API - builds and executes the request in one call.
@@ -540,12 +535,11 @@ pub fn reports_activities_watch(
         &args.orgUnitID,
         &args.pageToken,
         &args.startTime,
-        &args.body,
     )?;
     reports_activities_watch_execute(builder)
 }
 
-/// GET admin/reports_v1/channels/stop
+/// POST admin/reports_v1/channels/stop
 /// Stop watching resources through this channel.
 ///
 /// Returns `ClientRequestBuilder` for customization.
@@ -553,22 +547,19 @@ pub fn reports_activities_watch(
 
 pub fn admin_channels_stop_builder(
     client: &SimpleHttpClient,
-    body: &Channel,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!("https://admin.googleapis.com/admin/reports_v1/channels/stop",);
 
     // Build request
     let builder = client
-        .get(&endpoint_url)
+        .post(&endpoint_url)
         .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
 
-    builder
-        .body_json(body)
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+    Ok(builder)
 }
 
-/// GET admin/reports_v1/channels/stop
+/// POST admin/reports_v1/channels/stop
 /// Stop watching resources through this channel.
 ///
 /// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
@@ -639,7 +630,7 @@ pub fn admin_channels_stop_task(
         .map_pending(|_| ApiPending::Sending))
 }
 
-/// GET admin/reports_v1/channels/stop
+/// POST admin/reports_v1/channels/stop
 /// Stop watching resources through this channel.
 ///
 /// Takes a `ClientRequestBuilder`, builds and executes the request,
@@ -669,14 +660,7 @@ pub fn admin_channels_stop_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
-/// Arguments for [`admin_channels_stop`].
-#[derive(Debug, Clone, Serialize, JsonHash)]
-pub struct AdminChannelsStopArgs {
-    /// Request body.
-    pub body: Channel,
-}
-
-/// GET admin/reports_v1/channels/stop
+/// POST admin/reports_v1/channels/stop
 /// Stop watching resources through this channel.
 ///
 /// Simplest API - builds and executes the request in one call.
@@ -689,12 +673,11 @@ pub struct AdminChannelsStopArgs {
 
 pub fn admin_channels_stop(
     client: &SimpleHttpClient,
-    args: &AdminChannelsStopArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<()>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = admin_channels_stop_builder(client, &args.body)?;
+    let builder = admin_channels_stop_builder(client)?;
     admin_channels_stop_execute(builder)
 }
 
@@ -707,9 +690,9 @@ pub fn admin_channels_stop(
 pub fn reports_customer_usage_reports_get_builder(
     client: &SimpleHttpClient,
     date: &String,
-    customerId: &Option<String>,
-    pageToken: &Option<String>,
-    parameters: &Option<String>,
+    customerId: &Option<Option<String>>,
+    pageToken: &Option<Option<String>>,
+    parameters: &Option<Option<String>>,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
@@ -854,11 +837,11 @@ pub struct ReportsCustomerUsageReportsGetArgs {
     /// Path parameter: date
     pub date: String,
     /// Query parameter: customerId
-    pub customerId: Option<String>,
+    pub customerId: Option<Option<String>>,
     /// Query parameter: pageToken
-    pub pageToken: Option<String>,
+    pub pageToken: Option<Option<String>>,
     /// Query parameter: parameters
-    pub parameters: Option<String>,
+    pub parameters: Option<Option<String>>,
 }
 
 /// GET admin/reports/v1/usage/dates/{date}
@@ -902,11 +885,11 @@ pub fn reports_entity_usage_reports_get_builder(
     entityType: &String,
     entityKey: &String,
     date: &String,
-    customerId: &Option<String>,
-    filters: &Option<String>,
-    maxResults: &Option<i32>,
-    pageToken: &Option<String>,
-    parameters: &Option<String>,
+    customerId: &Option<Option<String>>,
+    filters: &Option<Option<String>>,
+    maxResults: &Option<Option<String>>,
+    pageToken: &Option<Option<String>>,
+    parameters: &Option<Option<String>>,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
@@ -1061,15 +1044,15 @@ pub struct ReportsEntityUsageReportsGetArgs {
     /// Path parameter: date
     pub date: String,
     /// Query parameter: customerId
-    pub customerId: Option<String>,
+    pub customerId: Option<Option<String>>,
     /// Query parameter: filters
-    pub filters: Option<String>,
+    pub filters: Option<Option<String>>,
     /// Query parameter: maxResults
-    pub maxResults: Option<i32>,
+    pub maxResults: Option<Option<String>>,
     /// Query parameter: pageToken
-    pub pageToken: Option<String>,
+    pub pageToken: Option<Option<String>>,
     /// Query parameter: parameters
-    pub parameters: Option<String>,
+    pub parameters: Option<Option<String>>,
 }
 
 /// GET admin/reports/v1/usage/{entityType}/{entityKey}/dates/{date}
@@ -1116,13 +1099,13 @@ pub fn reports_user_usage_report_get_builder(
     client: &SimpleHttpClient,
     userKey: &String,
     date: &String,
-    customerId: &Option<String>,
-    filters: &Option<String>,
-    groupIdFilter: &Option<String>,
-    maxResults: &Option<i32>,
-    orgUnitID: &Option<String>,
-    pageToken: &Option<String>,
-    parameters: &Option<String>,
+    customerId: &Option<Option<String>>,
+    filters: &Option<Option<String>>,
+    groupIdFilter: &Option<Option<String>>,
+    maxResults: &Option<Option<String>>,
+    orgUnitID: &Option<Option<String>>,
+    pageToken: &Option<Option<String>>,
+    parameters: &Option<Option<String>>,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
@@ -1281,19 +1264,19 @@ pub struct ReportsUserUsageReportGetArgs {
     /// Path parameter: date
     pub date: String,
     /// Query parameter: customerId
-    pub customerId: Option<String>,
+    pub customerId: Option<Option<String>>,
     /// Query parameter: filters
-    pub filters: Option<String>,
+    pub filters: Option<Option<String>>,
     /// Query parameter: groupIdFilter
-    pub groupIdFilter: Option<String>,
+    pub groupIdFilter: Option<Option<String>>,
     /// Query parameter: maxResults
-    pub maxResults: Option<i32>,
+    pub maxResults: Option<Option<String>>,
     /// Query parameter: orgUnitID
-    pub orgUnitID: Option<String>,
+    pub orgUnitID: Option<Option<String>>,
     /// Query parameter: pageToken
-    pub pageToken: Option<String>,
+    pub pageToken: Option<Option<String>>,
     /// Query parameter: parameters
-    pub parameters: Option<String>,
+    pub parameters: Option<Option<String>>,
 }
 
 /// GET admin/reports/v1/usage/users/{userKey}/dates/{date}
@@ -1329,4 +1312,128 @@ pub fn reports_user_usage_report_get(
         &args.parameters,
     )?;
     reports_user_usage_report_get_execute(builder)
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for Activities
+// =============================================================================
+
+/// ResourceIdentifier implementation for Activities with ReportsActivitiesListArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<ReportsActivitiesListArgs> for Activities {
+    fn generate_resource_id(&self, input: &ReportsActivitiesListArgs) -> String {
+        format!(
+            "gcp::admin::Activities/{}/{}",
+            input.userKey, input.applicationName
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::admin::Activities"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for Channel
+// =============================================================================
+
+/// ResourceIdentifier implementation for Channel with ReportsActivitiesWatchArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<ReportsActivitiesWatchArgs> for Channel {
+    fn generate_resource_id(&self, input: &ReportsActivitiesWatchArgs) -> String {
+        format!(
+            "gcp::admin::Channel/{}/{}",
+            input.userKey, input.applicationName
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::admin::Channel"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for UsageReports
+// =============================================================================
+
+/// ResourceIdentifier implementation for UsageReports with ReportsCustomerUsageReportsGetArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<ReportsCustomerUsageReportsGetArgs> for UsageReports {
+    fn generate_resource_id(&self, input: &ReportsCustomerUsageReportsGetArgs) -> String {
+        format!("gcp::admin::UsageReports/{}", input.date)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::admin::UsageReports"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for UsageReports
+// =============================================================================
+
+/// ResourceIdentifier implementation for UsageReports with ReportsEntityUsageReportsGetArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<ReportsEntityUsageReportsGetArgs> for UsageReports {
+    fn generate_resource_id(&self, input: &ReportsEntityUsageReportsGetArgs) -> String {
+        format!(
+            "gcp::admin::UsageReports/{}/{}/{}",
+            input.entityType, input.entityKey, input.date
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::admin::UsageReports"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for UsageReports
+// =============================================================================
+
+/// ResourceIdentifier implementation for UsageReports with ReportsUserUsageReportGetArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<ReportsUserUsageReportGetArgs> for UsageReports {
+    fn generate_resource_id(&self, input: &ReportsUserUsageReportGetArgs) -> String {
+        format!("gcp::admin::UsageReports/{}/{}", input.userKey, input.date)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::admin::UsageReports"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
 }

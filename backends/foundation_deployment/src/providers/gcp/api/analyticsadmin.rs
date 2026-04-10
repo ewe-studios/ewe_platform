@@ -12,7 +12,11 @@
 #![cfg(feature = "gcp")]
 
 use crate::providers::gcp::clients::analyticsadmin::{
+    analyticsadmin_account_summaries_list_builder, analyticsadmin_account_summaries_list_task,
     analyticsadmin_accounts_delete_builder, analyticsadmin_accounts_delete_task,
+    analyticsadmin_accounts_get_builder, analyticsadmin_accounts_get_task,
+    analyticsadmin_accounts_get_data_sharing_settings_builder, analyticsadmin_accounts_get_data_sharing_settings_task,
+    analyticsadmin_accounts_list_builder, analyticsadmin_accounts_list_task,
     analyticsadmin_accounts_patch_builder, analyticsadmin_accounts_patch_task,
     analyticsadmin_accounts_provision_account_ticket_builder, analyticsadmin_accounts_provision_account_ticket_task,
     analyticsadmin_accounts_run_access_report_builder, analyticsadmin_accounts_run_access_report_task,
@@ -20,31 +24,48 @@ use crate::providers::gcp::clients::analyticsadmin::{
     analyticsadmin_properties_acknowledge_user_data_collection_builder, analyticsadmin_properties_acknowledge_user_data_collection_task,
     analyticsadmin_properties_create_builder, analyticsadmin_properties_create_task,
     analyticsadmin_properties_delete_builder, analyticsadmin_properties_delete_task,
+    analyticsadmin_properties_get_builder, analyticsadmin_properties_get_task,
+    analyticsadmin_properties_get_data_retention_settings_builder, analyticsadmin_properties_get_data_retention_settings_task,
+    analyticsadmin_properties_list_builder, analyticsadmin_properties_list_task,
     analyticsadmin_properties_patch_builder, analyticsadmin_properties_patch_task,
     analyticsadmin_properties_run_access_report_builder, analyticsadmin_properties_run_access_report_task,
     analyticsadmin_properties_update_data_retention_settings_builder, analyticsadmin_properties_update_data_retention_settings_task,
     analyticsadmin_properties_conversion_events_create_builder, analyticsadmin_properties_conversion_events_create_task,
     analyticsadmin_properties_conversion_events_delete_builder, analyticsadmin_properties_conversion_events_delete_task,
+    analyticsadmin_properties_conversion_events_get_builder, analyticsadmin_properties_conversion_events_get_task,
+    analyticsadmin_properties_conversion_events_list_builder, analyticsadmin_properties_conversion_events_list_task,
     analyticsadmin_properties_conversion_events_patch_builder, analyticsadmin_properties_conversion_events_patch_task,
     analyticsadmin_properties_custom_dimensions_archive_builder, analyticsadmin_properties_custom_dimensions_archive_task,
     analyticsadmin_properties_custom_dimensions_create_builder, analyticsadmin_properties_custom_dimensions_create_task,
+    analyticsadmin_properties_custom_dimensions_get_builder, analyticsadmin_properties_custom_dimensions_get_task,
+    analyticsadmin_properties_custom_dimensions_list_builder, analyticsadmin_properties_custom_dimensions_list_task,
     analyticsadmin_properties_custom_dimensions_patch_builder, analyticsadmin_properties_custom_dimensions_patch_task,
     analyticsadmin_properties_custom_metrics_archive_builder, analyticsadmin_properties_custom_metrics_archive_task,
     analyticsadmin_properties_custom_metrics_create_builder, analyticsadmin_properties_custom_metrics_create_task,
+    analyticsadmin_properties_custom_metrics_get_builder, analyticsadmin_properties_custom_metrics_get_task,
+    analyticsadmin_properties_custom_metrics_list_builder, analyticsadmin_properties_custom_metrics_list_task,
     analyticsadmin_properties_custom_metrics_patch_builder, analyticsadmin_properties_custom_metrics_patch_task,
     analyticsadmin_properties_data_streams_create_builder, analyticsadmin_properties_data_streams_create_task,
     analyticsadmin_properties_data_streams_delete_builder, analyticsadmin_properties_data_streams_delete_task,
+    analyticsadmin_properties_data_streams_get_builder, analyticsadmin_properties_data_streams_get_task,
+    analyticsadmin_properties_data_streams_list_builder, analyticsadmin_properties_data_streams_list_task,
     analyticsadmin_properties_data_streams_patch_builder, analyticsadmin_properties_data_streams_patch_task,
     analyticsadmin_properties_data_streams_measurement_protocol_secrets_create_builder, analyticsadmin_properties_data_streams_measurement_protocol_secrets_create_task,
     analyticsadmin_properties_data_streams_measurement_protocol_secrets_delete_builder, analyticsadmin_properties_data_streams_measurement_protocol_secrets_delete_task,
+    analyticsadmin_properties_data_streams_measurement_protocol_secrets_get_builder, analyticsadmin_properties_data_streams_measurement_protocol_secrets_get_task,
+    analyticsadmin_properties_data_streams_measurement_protocol_secrets_list_builder, analyticsadmin_properties_data_streams_measurement_protocol_secrets_list_task,
     analyticsadmin_properties_data_streams_measurement_protocol_secrets_patch_builder, analyticsadmin_properties_data_streams_measurement_protocol_secrets_patch_task,
     analyticsadmin_properties_firebase_links_create_builder, analyticsadmin_properties_firebase_links_create_task,
     analyticsadmin_properties_firebase_links_delete_builder, analyticsadmin_properties_firebase_links_delete_task,
+    analyticsadmin_properties_firebase_links_list_builder, analyticsadmin_properties_firebase_links_list_task,
     analyticsadmin_properties_google_ads_links_create_builder, analyticsadmin_properties_google_ads_links_create_task,
     analyticsadmin_properties_google_ads_links_delete_builder, analyticsadmin_properties_google_ads_links_delete_task,
+    analyticsadmin_properties_google_ads_links_list_builder, analyticsadmin_properties_google_ads_links_list_task,
     analyticsadmin_properties_google_ads_links_patch_builder, analyticsadmin_properties_google_ads_links_patch_task,
     analyticsadmin_properties_key_events_create_builder, analyticsadmin_properties_key_events_create_task,
     analyticsadmin_properties_key_events_delete_builder, analyticsadmin_properties_key_events_delete_task,
+    analyticsadmin_properties_key_events_get_builder, analyticsadmin_properties_key_events_get_task,
+    analyticsadmin_properties_key_events_list_builder, analyticsadmin_properties_key_events_list_task,
     analyticsadmin_properties_key_events_patch_builder, analyticsadmin_properties_key_events_patch_task,
 };
 use crate::providers::gcp::clients::types::{ApiError, ApiPending};
@@ -54,17 +75,33 @@ use crate::providers::gcp::clients::analyticsadmin::GoogleAnalyticsAdminV1betaCo
 use crate::providers::gcp::clients::analyticsadmin::GoogleAnalyticsAdminV1betaCustomDimension;
 use crate::providers::gcp::clients::analyticsadmin::GoogleAnalyticsAdminV1betaCustomMetric;
 use crate::providers::gcp::clients::analyticsadmin::GoogleAnalyticsAdminV1betaDataRetentionSettings;
+use crate::providers::gcp::clients::analyticsadmin::GoogleAnalyticsAdminV1betaDataSharingSettings;
 use crate::providers::gcp::clients::analyticsadmin::GoogleAnalyticsAdminV1betaDataStream;
 use crate::providers::gcp::clients::analyticsadmin::GoogleAnalyticsAdminV1betaFirebaseLink;
 use crate::providers::gcp::clients::analyticsadmin::GoogleAnalyticsAdminV1betaGoogleAdsLink;
 use crate::providers::gcp::clients::analyticsadmin::GoogleAnalyticsAdminV1betaKeyEvent;
+use crate::providers::gcp::clients::analyticsadmin::GoogleAnalyticsAdminV1betaListAccountSummariesResponse;
+use crate::providers::gcp::clients::analyticsadmin::GoogleAnalyticsAdminV1betaListAccountsResponse;
+use crate::providers::gcp::clients::analyticsadmin::GoogleAnalyticsAdminV1betaListConversionEventsResponse;
+use crate::providers::gcp::clients::analyticsadmin::GoogleAnalyticsAdminV1betaListCustomDimensionsResponse;
+use crate::providers::gcp::clients::analyticsadmin::GoogleAnalyticsAdminV1betaListCustomMetricsResponse;
+use crate::providers::gcp::clients::analyticsadmin::GoogleAnalyticsAdminV1betaListDataStreamsResponse;
+use crate::providers::gcp::clients::analyticsadmin::GoogleAnalyticsAdminV1betaListFirebaseLinksResponse;
+use crate::providers::gcp::clients::analyticsadmin::GoogleAnalyticsAdminV1betaListGoogleAdsLinksResponse;
+use crate::providers::gcp::clients::analyticsadmin::GoogleAnalyticsAdminV1betaListKeyEventsResponse;
+use crate::providers::gcp::clients::analyticsadmin::GoogleAnalyticsAdminV1betaListMeasurementProtocolSecretsResponse;
+use crate::providers::gcp::clients::analyticsadmin::GoogleAnalyticsAdminV1betaListPropertiesResponse;
 use crate::providers::gcp::clients::analyticsadmin::GoogleAnalyticsAdminV1betaMeasurementProtocolSecret;
 use crate::providers::gcp::clients::analyticsadmin::GoogleAnalyticsAdminV1betaProperty;
 use crate::providers::gcp::clients::analyticsadmin::GoogleAnalyticsAdminV1betaProvisionAccountTicketResponse;
 use crate::providers::gcp::clients::analyticsadmin::GoogleAnalyticsAdminV1betaRunAccessReportResponse;
 use crate::providers::gcp::clients::analyticsadmin::GoogleAnalyticsAdminV1betaSearchChangeHistoryEventsResponse;
 use crate::providers::gcp::clients::analyticsadmin::GoogleProtobufEmpty;
+use crate::providers::gcp::clients::analyticsadmin::AnalyticsadminAccountSummariesListArgs;
 use crate::providers::gcp::clients::analyticsadmin::AnalyticsadminAccountsDeleteArgs;
+use crate::providers::gcp::clients::analyticsadmin::AnalyticsadminAccountsGetArgs;
+use crate::providers::gcp::clients::analyticsadmin::AnalyticsadminAccountsGetDataSharingSettingsArgs;
+use crate::providers::gcp::clients::analyticsadmin::AnalyticsadminAccountsListArgs;
 use crate::providers::gcp::clients::analyticsadmin::AnalyticsadminAccountsPatchArgs;
 use crate::providers::gcp::clients::analyticsadmin::AnalyticsadminAccountsProvisionAccountTicketArgs;
 use crate::providers::gcp::clients::analyticsadmin::AnalyticsadminAccountsRunAccessReportArgs;
@@ -72,29 +109,46 @@ use crate::providers::gcp::clients::analyticsadmin::AnalyticsadminAccountsSearch
 use crate::providers::gcp::clients::analyticsadmin::AnalyticsadminPropertiesAcknowledgeUserDataCollectionArgs;
 use crate::providers::gcp::clients::analyticsadmin::AnalyticsadminPropertiesConversionEventsCreateArgs;
 use crate::providers::gcp::clients::analyticsadmin::AnalyticsadminPropertiesConversionEventsDeleteArgs;
+use crate::providers::gcp::clients::analyticsadmin::AnalyticsadminPropertiesConversionEventsGetArgs;
+use crate::providers::gcp::clients::analyticsadmin::AnalyticsadminPropertiesConversionEventsListArgs;
 use crate::providers::gcp::clients::analyticsadmin::AnalyticsadminPropertiesConversionEventsPatchArgs;
 use crate::providers::gcp::clients::analyticsadmin::AnalyticsadminPropertiesCreateArgs;
 use crate::providers::gcp::clients::analyticsadmin::AnalyticsadminPropertiesCustomDimensionsArchiveArgs;
 use crate::providers::gcp::clients::analyticsadmin::AnalyticsadminPropertiesCustomDimensionsCreateArgs;
+use crate::providers::gcp::clients::analyticsadmin::AnalyticsadminPropertiesCustomDimensionsGetArgs;
+use crate::providers::gcp::clients::analyticsadmin::AnalyticsadminPropertiesCustomDimensionsListArgs;
 use crate::providers::gcp::clients::analyticsadmin::AnalyticsadminPropertiesCustomDimensionsPatchArgs;
 use crate::providers::gcp::clients::analyticsadmin::AnalyticsadminPropertiesCustomMetricsArchiveArgs;
 use crate::providers::gcp::clients::analyticsadmin::AnalyticsadminPropertiesCustomMetricsCreateArgs;
+use crate::providers::gcp::clients::analyticsadmin::AnalyticsadminPropertiesCustomMetricsGetArgs;
+use crate::providers::gcp::clients::analyticsadmin::AnalyticsadminPropertiesCustomMetricsListArgs;
 use crate::providers::gcp::clients::analyticsadmin::AnalyticsadminPropertiesCustomMetricsPatchArgs;
 use crate::providers::gcp::clients::analyticsadmin::AnalyticsadminPropertiesDataStreamsCreateArgs;
 use crate::providers::gcp::clients::analyticsadmin::AnalyticsadminPropertiesDataStreamsDeleteArgs;
+use crate::providers::gcp::clients::analyticsadmin::AnalyticsadminPropertiesDataStreamsGetArgs;
+use crate::providers::gcp::clients::analyticsadmin::AnalyticsadminPropertiesDataStreamsListArgs;
 use crate::providers::gcp::clients::analyticsadmin::AnalyticsadminPropertiesDataStreamsMeasurementProtocolSecretsCreateArgs;
 use crate::providers::gcp::clients::analyticsadmin::AnalyticsadminPropertiesDataStreamsMeasurementProtocolSecretsDeleteArgs;
+use crate::providers::gcp::clients::analyticsadmin::AnalyticsadminPropertiesDataStreamsMeasurementProtocolSecretsGetArgs;
+use crate::providers::gcp::clients::analyticsadmin::AnalyticsadminPropertiesDataStreamsMeasurementProtocolSecretsListArgs;
 use crate::providers::gcp::clients::analyticsadmin::AnalyticsadminPropertiesDataStreamsMeasurementProtocolSecretsPatchArgs;
 use crate::providers::gcp::clients::analyticsadmin::AnalyticsadminPropertiesDataStreamsPatchArgs;
 use crate::providers::gcp::clients::analyticsadmin::AnalyticsadminPropertiesDeleteArgs;
 use crate::providers::gcp::clients::analyticsadmin::AnalyticsadminPropertiesFirebaseLinksCreateArgs;
 use crate::providers::gcp::clients::analyticsadmin::AnalyticsadminPropertiesFirebaseLinksDeleteArgs;
+use crate::providers::gcp::clients::analyticsadmin::AnalyticsadminPropertiesFirebaseLinksListArgs;
+use crate::providers::gcp::clients::analyticsadmin::AnalyticsadminPropertiesGetArgs;
+use crate::providers::gcp::clients::analyticsadmin::AnalyticsadminPropertiesGetDataRetentionSettingsArgs;
 use crate::providers::gcp::clients::analyticsadmin::AnalyticsadminPropertiesGoogleAdsLinksCreateArgs;
 use crate::providers::gcp::clients::analyticsadmin::AnalyticsadminPropertiesGoogleAdsLinksDeleteArgs;
+use crate::providers::gcp::clients::analyticsadmin::AnalyticsadminPropertiesGoogleAdsLinksListArgs;
 use crate::providers::gcp::clients::analyticsadmin::AnalyticsadminPropertiesGoogleAdsLinksPatchArgs;
 use crate::providers::gcp::clients::analyticsadmin::AnalyticsadminPropertiesKeyEventsCreateArgs;
 use crate::providers::gcp::clients::analyticsadmin::AnalyticsadminPropertiesKeyEventsDeleteArgs;
+use crate::providers::gcp::clients::analyticsadmin::AnalyticsadminPropertiesKeyEventsGetArgs;
+use crate::providers::gcp::clients::analyticsadmin::AnalyticsadminPropertiesKeyEventsListArgs;
 use crate::providers::gcp::clients::analyticsadmin::AnalyticsadminPropertiesKeyEventsPatchArgs;
+use crate::providers::gcp::clients::analyticsadmin::AnalyticsadminPropertiesListArgs;
 use crate::providers::gcp::clients::analyticsadmin::AnalyticsadminPropertiesPatchArgs;
 use crate::providers::gcp::clients::analyticsadmin::AnalyticsadminPropertiesRunAccessReportArgs;
 use crate::providers::gcp::clients::analyticsadmin::AnalyticsadminPropertiesUpdateDataRetentionSettingsArgs;
@@ -139,6 +193,45 @@ where
         }
     }
 
+    /// Analyticsadmin account summaries list.
+    ///
+    /// Read-only operation - no state tracking.
+    ///
+    /// # Arguments
+    ///
+    /// * `args` - Request arguments
+    ///
+    /// # Returns
+    ///
+    /// StreamIterator yielding the GoogleAnalyticsAdminV1betaListAccountSummariesResponse result.
+    ///
+    /// # Errors
+    ///
+    /// Returns ProviderError if the API request fails.
+    pub fn analyticsadmin_account_summaries_list(
+        &self,
+        args: &AnalyticsadminAccountSummariesListArgs,
+    ) -> Result<
+        impl StreamIterator<
+            D = Result<GoogleAnalyticsAdminV1betaListAccountSummariesResponse, ProviderError<ApiError>>,
+            P = crate::providers::gcp::clients::types::ApiPending,
+        > + Send
+        + 'static,
+        ProviderError<ApiError>,
+    > {
+        let builder = analyticsadmin_account_summaries_list_builder(
+            &self.http_client,
+            &args.pageSize,
+            &args.pageToken,
+        )
+        .map_err(ProviderError::Api)?;
+
+        let task = analyticsadmin_account_summaries_list_task(builder)
+            .map_err(ProviderError::Api)?;
+
+        execute(task, None).map_err(|e: String| ProviderError::ExecuteFailed(e.to_string()))
+    }
+
     /// Analyticsadmin accounts delete.
     ///
     /// Automatically stores the result in the state store on success.
@@ -180,6 +273,122 @@ where
         let store_task = StoreStateIdentifierTask::new(task, state_store, args, stage);
 
         execute(store_task, None).map_err(|e: String| ProviderError::ExecuteFailed(e.to_string()))
+    }
+
+    /// Analyticsadmin accounts get.
+    ///
+    /// Read-only operation - no state tracking.
+    ///
+    /// # Arguments
+    ///
+    /// * `args` - Request arguments
+    ///
+    /// # Returns
+    ///
+    /// StreamIterator yielding the GoogleAnalyticsAdminV1betaAccount result.
+    ///
+    /// # Errors
+    ///
+    /// Returns ProviderError if the API request fails.
+    pub fn analyticsadmin_accounts_get(
+        &self,
+        args: &AnalyticsadminAccountsGetArgs,
+    ) -> Result<
+        impl StreamIterator<
+            D = Result<GoogleAnalyticsAdminV1betaAccount, ProviderError<ApiError>>,
+            P = crate::providers::gcp::clients::types::ApiPending,
+        > + Send
+        + 'static,
+        ProviderError<ApiError>,
+    > {
+        let builder = analyticsadmin_accounts_get_builder(
+            &self.http_client,
+            &args.name,
+        )
+        .map_err(ProviderError::Api)?;
+
+        let task = analyticsadmin_accounts_get_task(builder)
+            .map_err(ProviderError::Api)?;
+
+        execute(task, None).map_err(|e: String| ProviderError::ExecuteFailed(e.to_string()))
+    }
+
+    /// Analyticsadmin accounts get data sharing settings.
+    ///
+    /// Read-only operation - no state tracking.
+    ///
+    /// # Arguments
+    ///
+    /// * `args` - Request arguments
+    ///
+    /// # Returns
+    ///
+    /// StreamIterator yielding the GoogleAnalyticsAdminV1betaDataSharingSettings result.
+    ///
+    /// # Errors
+    ///
+    /// Returns ProviderError if the API request fails.
+    pub fn analyticsadmin_accounts_get_data_sharing_settings(
+        &self,
+        args: &AnalyticsadminAccountsGetDataSharingSettingsArgs,
+    ) -> Result<
+        impl StreamIterator<
+            D = Result<GoogleAnalyticsAdminV1betaDataSharingSettings, ProviderError<ApiError>>,
+            P = crate::providers::gcp::clients::types::ApiPending,
+        > + Send
+        + 'static,
+        ProviderError<ApiError>,
+    > {
+        let builder = analyticsadmin_accounts_get_data_sharing_settings_builder(
+            &self.http_client,
+            &args.name,
+        )
+        .map_err(ProviderError::Api)?;
+
+        let task = analyticsadmin_accounts_get_data_sharing_settings_task(builder)
+            .map_err(ProviderError::Api)?;
+
+        execute(task, None).map_err(|e: String| ProviderError::ExecuteFailed(e.to_string()))
+    }
+
+    /// Analyticsadmin accounts list.
+    ///
+    /// Read-only operation - no state tracking.
+    ///
+    /// # Arguments
+    ///
+    /// * `args` - Request arguments
+    ///
+    /// # Returns
+    ///
+    /// StreamIterator yielding the GoogleAnalyticsAdminV1betaListAccountsResponse result.
+    ///
+    /// # Errors
+    ///
+    /// Returns ProviderError if the API request fails.
+    pub fn analyticsadmin_accounts_list(
+        &self,
+        args: &AnalyticsadminAccountsListArgs,
+    ) -> Result<
+        impl StreamIterator<
+            D = Result<GoogleAnalyticsAdminV1betaListAccountsResponse, ProviderError<ApiError>>,
+            P = crate::providers::gcp::clients::types::ApiPending,
+        > + Send
+        + 'static,
+        ProviderError<ApiError>,
+    > {
+        let builder = analyticsadmin_accounts_list_builder(
+            &self.http_client,
+            &args.pageSize,
+            &args.pageToken,
+            &args.showDeleted,
+        )
+        .map_err(ProviderError::Api)?;
+
+        let task = analyticsadmin_accounts_list_task(builder)
+            .map_err(ProviderError::Api)?;
+
+        execute(task, None).map_err(|e: String| ProviderError::ExecuteFailed(e.to_string()))
     }
 
     /// Analyticsadmin accounts patch.
@@ -313,7 +522,7 @@ where
 
     /// Analyticsadmin accounts search change history events.
     ///
-    /// Automatically stores the result in the state store on success.
+    /// Read-only operation - no state tracking.
     ///
     /// # Arguments
     ///
@@ -325,7 +534,7 @@ where
     ///
     /// # Errors
     ///
-    /// Returns ProviderError if the API request or state storage fails.
+    /// Returns ProviderError if the API request fails.
     pub fn analyticsadmin_accounts_search_change_history_events(
         &self,
         args: &AnalyticsadminAccountsSearchChangeHistoryEventsArgs,
@@ -346,12 +555,7 @@ where
         let task = analyticsadmin_accounts_search_change_history_events_task(builder)
             .map_err(ProviderError::Api)?;
 
-        let state_store = self.client.state_store.clone();
-        let stage = Some(self.client.stage.clone());
-
-        let store_task = StoreStateIdentifierTask::new(task, state_store, args, stage);
-
-        execute(store_task, None).map_err(|e: String| ProviderError::ExecuteFailed(e.to_string()))
+        execute(task, None).map_err(|e: String| ProviderError::ExecuteFailed(e.to_string()))
     }
 
     /// Analyticsadmin properties acknowledge user data collection.
@@ -480,6 +684,123 @@ where
         let store_task = StoreStateIdentifierTask::new(task, state_store, args, stage);
 
         execute(store_task, None).map_err(|e: String| ProviderError::ExecuteFailed(e.to_string()))
+    }
+
+    /// Analyticsadmin properties get.
+    ///
+    /// Read-only operation - no state tracking.
+    ///
+    /// # Arguments
+    ///
+    /// * `args` - Request arguments
+    ///
+    /// # Returns
+    ///
+    /// StreamIterator yielding the GoogleAnalyticsAdminV1betaProperty result.
+    ///
+    /// # Errors
+    ///
+    /// Returns ProviderError if the API request fails.
+    pub fn analyticsadmin_properties_get(
+        &self,
+        args: &AnalyticsadminPropertiesGetArgs,
+    ) -> Result<
+        impl StreamIterator<
+            D = Result<GoogleAnalyticsAdminV1betaProperty, ProviderError<ApiError>>,
+            P = crate::providers::gcp::clients::types::ApiPending,
+        > + Send
+        + 'static,
+        ProviderError<ApiError>,
+    > {
+        let builder = analyticsadmin_properties_get_builder(
+            &self.http_client,
+            &args.name,
+        )
+        .map_err(ProviderError::Api)?;
+
+        let task = analyticsadmin_properties_get_task(builder)
+            .map_err(ProviderError::Api)?;
+
+        execute(task, None).map_err(|e: String| ProviderError::ExecuteFailed(e.to_string()))
+    }
+
+    /// Analyticsadmin properties get data retention settings.
+    ///
+    /// Read-only operation - no state tracking.
+    ///
+    /// # Arguments
+    ///
+    /// * `args` - Request arguments
+    ///
+    /// # Returns
+    ///
+    /// StreamIterator yielding the GoogleAnalyticsAdminV1betaDataRetentionSettings result.
+    ///
+    /// # Errors
+    ///
+    /// Returns ProviderError if the API request fails.
+    pub fn analyticsadmin_properties_get_data_retention_settings(
+        &self,
+        args: &AnalyticsadminPropertiesGetDataRetentionSettingsArgs,
+    ) -> Result<
+        impl StreamIterator<
+            D = Result<GoogleAnalyticsAdminV1betaDataRetentionSettings, ProviderError<ApiError>>,
+            P = crate::providers::gcp::clients::types::ApiPending,
+        > + Send
+        + 'static,
+        ProviderError<ApiError>,
+    > {
+        let builder = analyticsadmin_properties_get_data_retention_settings_builder(
+            &self.http_client,
+            &args.name,
+        )
+        .map_err(ProviderError::Api)?;
+
+        let task = analyticsadmin_properties_get_data_retention_settings_task(builder)
+            .map_err(ProviderError::Api)?;
+
+        execute(task, None).map_err(|e: String| ProviderError::ExecuteFailed(e.to_string()))
+    }
+
+    /// Analyticsadmin properties list.
+    ///
+    /// Read-only operation - no state tracking.
+    ///
+    /// # Arguments
+    ///
+    /// * `args` - Request arguments
+    ///
+    /// # Returns
+    ///
+    /// StreamIterator yielding the GoogleAnalyticsAdminV1betaListPropertiesResponse result.
+    ///
+    /// # Errors
+    ///
+    /// Returns ProviderError if the API request fails.
+    pub fn analyticsadmin_properties_list(
+        &self,
+        args: &AnalyticsadminPropertiesListArgs,
+    ) -> Result<
+        impl StreamIterator<
+            D = Result<GoogleAnalyticsAdminV1betaListPropertiesResponse, ProviderError<ApiError>>,
+            P = crate::providers::gcp::clients::types::ApiPending,
+        > + Send
+        + 'static,
+        ProviderError<ApiError>,
+    > {
+        let builder = analyticsadmin_properties_list_builder(
+            &self.http_client,
+            &args.filter,
+            &args.pageSize,
+            &args.pageToken,
+            &args.showDeleted,
+        )
+        .map_err(ProviderError::Api)?;
+
+        let task = analyticsadmin_properties_list_task(builder)
+            .map_err(ProviderError::Api)?;
+
+        execute(task, None).map_err(|e: String| ProviderError::ExecuteFailed(e.to_string()))
     }
 
     /// Analyticsadmin properties patch.
@@ -699,6 +1020,84 @@ where
         execute(store_task, None).map_err(|e: String| ProviderError::ExecuteFailed(e.to_string()))
     }
 
+    /// Analyticsadmin properties conversion events get.
+    ///
+    /// Read-only operation - no state tracking.
+    ///
+    /// # Arguments
+    ///
+    /// * `args` - Request arguments
+    ///
+    /// # Returns
+    ///
+    /// StreamIterator yielding the GoogleAnalyticsAdminV1betaConversionEvent result.
+    ///
+    /// # Errors
+    ///
+    /// Returns ProviderError if the API request fails.
+    pub fn analyticsadmin_properties_conversion_events_get(
+        &self,
+        args: &AnalyticsadminPropertiesConversionEventsGetArgs,
+    ) -> Result<
+        impl StreamIterator<
+            D = Result<GoogleAnalyticsAdminV1betaConversionEvent, ProviderError<ApiError>>,
+            P = crate::providers::gcp::clients::types::ApiPending,
+        > + Send
+        + 'static,
+        ProviderError<ApiError>,
+    > {
+        let builder = analyticsadmin_properties_conversion_events_get_builder(
+            &self.http_client,
+            &args.name,
+        )
+        .map_err(ProviderError::Api)?;
+
+        let task = analyticsadmin_properties_conversion_events_get_task(builder)
+            .map_err(ProviderError::Api)?;
+
+        execute(task, None).map_err(|e: String| ProviderError::ExecuteFailed(e.to_string()))
+    }
+
+    /// Analyticsadmin properties conversion events list.
+    ///
+    /// Read-only operation - no state tracking.
+    ///
+    /// # Arguments
+    ///
+    /// * `args` - Request arguments
+    ///
+    /// # Returns
+    ///
+    /// StreamIterator yielding the GoogleAnalyticsAdminV1betaListConversionEventsResponse result.
+    ///
+    /// # Errors
+    ///
+    /// Returns ProviderError if the API request fails.
+    pub fn analyticsadmin_properties_conversion_events_list(
+        &self,
+        args: &AnalyticsadminPropertiesConversionEventsListArgs,
+    ) -> Result<
+        impl StreamIterator<
+            D = Result<GoogleAnalyticsAdminV1betaListConversionEventsResponse, ProviderError<ApiError>>,
+            P = crate::providers::gcp::clients::types::ApiPending,
+        > + Send
+        + 'static,
+        ProviderError<ApiError>,
+    > {
+        let builder = analyticsadmin_properties_conversion_events_list_builder(
+            &self.http_client,
+            &args.parent,
+            &args.pageSize,
+            &args.pageToken,
+        )
+        .map_err(ProviderError::Api)?;
+
+        let task = analyticsadmin_properties_conversion_events_list_task(builder)
+            .map_err(ProviderError::Api)?;
+
+        execute(task, None).map_err(|e: String| ProviderError::ExecuteFailed(e.to_string()))
+    }
+
     /// Analyticsadmin properties conversion events patch.
     ///
     /// Automatically stores the result in the state store on success.
@@ -827,6 +1226,84 @@ where
         let store_task = StoreStateIdentifierTask::new(task, state_store, args, stage);
 
         execute(store_task, None).map_err(|e: String| ProviderError::ExecuteFailed(e.to_string()))
+    }
+
+    /// Analyticsadmin properties custom dimensions get.
+    ///
+    /// Read-only operation - no state tracking.
+    ///
+    /// # Arguments
+    ///
+    /// * `args` - Request arguments
+    ///
+    /// # Returns
+    ///
+    /// StreamIterator yielding the GoogleAnalyticsAdminV1betaCustomDimension result.
+    ///
+    /// # Errors
+    ///
+    /// Returns ProviderError if the API request fails.
+    pub fn analyticsadmin_properties_custom_dimensions_get(
+        &self,
+        args: &AnalyticsadminPropertiesCustomDimensionsGetArgs,
+    ) -> Result<
+        impl StreamIterator<
+            D = Result<GoogleAnalyticsAdminV1betaCustomDimension, ProviderError<ApiError>>,
+            P = crate::providers::gcp::clients::types::ApiPending,
+        > + Send
+        + 'static,
+        ProviderError<ApiError>,
+    > {
+        let builder = analyticsadmin_properties_custom_dimensions_get_builder(
+            &self.http_client,
+            &args.name,
+        )
+        .map_err(ProviderError::Api)?;
+
+        let task = analyticsadmin_properties_custom_dimensions_get_task(builder)
+            .map_err(ProviderError::Api)?;
+
+        execute(task, None).map_err(|e: String| ProviderError::ExecuteFailed(e.to_string()))
+    }
+
+    /// Analyticsadmin properties custom dimensions list.
+    ///
+    /// Read-only operation - no state tracking.
+    ///
+    /// # Arguments
+    ///
+    /// * `args` - Request arguments
+    ///
+    /// # Returns
+    ///
+    /// StreamIterator yielding the GoogleAnalyticsAdminV1betaListCustomDimensionsResponse result.
+    ///
+    /// # Errors
+    ///
+    /// Returns ProviderError if the API request fails.
+    pub fn analyticsadmin_properties_custom_dimensions_list(
+        &self,
+        args: &AnalyticsadminPropertiesCustomDimensionsListArgs,
+    ) -> Result<
+        impl StreamIterator<
+            D = Result<GoogleAnalyticsAdminV1betaListCustomDimensionsResponse, ProviderError<ApiError>>,
+            P = crate::providers::gcp::clients::types::ApiPending,
+        > + Send
+        + 'static,
+        ProviderError<ApiError>,
+    > {
+        let builder = analyticsadmin_properties_custom_dimensions_list_builder(
+            &self.http_client,
+            &args.parent,
+            &args.pageSize,
+            &args.pageToken,
+        )
+        .map_err(ProviderError::Api)?;
+
+        let task = analyticsadmin_properties_custom_dimensions_list_task(builder)
+            .map_err(ProviderError::Api)?;
+
+        execute(task, None).map_err(|e: String| ProviderError::ExecuteFailed(e.to_string()))
     }
 
     /// Analyticsadmin properties custom dimensions patch.
@@ -959,6 +1436,84 @@ where
         execute(store_task, None).map_err(|e: String| ProviderError::ExecuteFailed(e.to_string()))
     }
 
+    /// Analyticsadmin properties custom metrics get.
+    ///
+    /// Read-only operation - no state tracking.
+    ///
+    /// # Arguments
+    ///
+    /// * `args` - Request arguments
+    ///
+    /// # Returns
+    ///
+    /// StreamIterator yielding the GoogleAnalyticsAdminV1betaCustomMetric result.
+    ///
+    /// # Errors
+    ///
+    /// Returns ProviderError if the API request fails.
+    pub fn analyticsadmin_properties_custom_metrics_get(
+        &self,
+        args: &AnalyticsadminPropertiesCustomMetricsGetArgs,
+    ) -> Result<
+        impl StreamIterator<
+            D = Result<GoogleAnalyticsAdminV1betaCustomMetric, ProviderError<ApiError>>,
+            P = crate::providers::gcp::clients::types::ApiPending,
+        > + Send
+        + 'static,
+        ProviderError<ApiError>,
+    > {
+        let builder = analyticsadmin_properties_custom_metrics_get_builder(
+            &self.http_client,
+            &args.name,
+        )
+        .map_err(ProviderError::Api)?;
+
+        let task = analyticsadmin_properties_custom_metrics_get_task(builder)
+            .map_err(ProviderError::Api)?;
+
+        execute(task, None).map_err(|e: String| ProviderError::ExecuteFailed(e.to_string()))
+    }
+
+    /// Analyticsadmin properties custom metrics list.
+    ///
+    /// Read-only operation - no state tracking.
+    ///
+    /// # Arguments
+    ///
+    /// * `args` - Request arguments
+    ///
+    /// # Returns
+    ///
+    /// StreamIterator yielding the GoogleAnalyticsAdminV1betaListCustomMetricsResponse result.
+    ///
+    /// # Errors
+    ///
+    /// Returns ProviderError if the API request fails.
+    pub fn analyticsadmin_properties_custom_metrics_list(
+        &self,
+        args: &AnalyticsadminPropertiesCustomMetricsListArgs,
+    ) -> Result<
+        impl StreamIterator<
+            D = Result<GoogleAnalyticsAdminV1betaListCustomMetricsResponse, ProviderError<ApiError>>,
+            P = crate::providers::gcp::clients::types::ApiPending,
+        > + Send
+        + 'static,
+        ProviderError<ApiError>,
+    > {
+        let builder = analyticsadmin_properties_custom_metrics_list_builder(
+            &self.http_client,
+            &args.parent,
+            &args.pageSize,
+            &args.pageToken,
+        )
+        .map_err(ProviderError::Api)?;
+
+        let task = analyticsadmin_properties_custom_metrics_list_task(builder)
+            .map_err(ProviderError::Api)?;
+
+        execute(task, None).map_err(|e: String| ProviderError::ExecuteFailed(e.to_string()))
+    }
+
     /// Analyticsadmin properties custom metrics patch.
     ///
     /// Automatically stores the result in the state store on success.
@@ -1087,6 +1642,84 @@ where
         let store_task = StoreStateIdentifierTask::new(task, state_store, args, stage);
 
         execute(store_task, None).map_err(|e: String| ProviderError::ExecuteFailed(e.to_string()))
+    }
+
+    /// Analyticsadmin properties data streams get.
+    ///
+    /// Read-only operation - no state tracking.
+    ///
+    /// # Arguments
+    ///
+    /// * `args` - Request arguments
+    ///
+    /// # Returns
+    ///
+    /// StreamIterator yielding the GoogleAnalyticsAdminV1betaDataStream result.
+    ///
+    /// # Errors
+    ///
+    /// Returns ProviderError if the API request fails.
+    pub fn analyticsadmin_properties_data_streams_get(
+        &self,
+        args: &AnalyticsadminPropertiesDataStreamsGetArgs,
+    ) -> Result<
+        impl StreamIterator<
+            D = Result<GoogleAnalyticsAdminV1betaDataStream, ProviderError<ApiError>>,
+            P = crate::providers::gcp::clients::types::ApiPending,
+        > + Send
+        + 'static,
+        ProviderError<ApiError>,
+    > {
+        let builder = analyticsadmin_properties_data_streams_get_builder(
+            &self.http_client,
+            &args.name,
+        )
+        .map_err(ProviderError::Api)?;
+
+        let task = analyticsadmin_properties_data_streams_get_task(builder)
+            .map_err(ProviderError::Api)?;
+
+        execute(task, None).map_err(|e: String| ProviderError::ExecuteFailed(e.to_string()))
+    }
+
+    /// Analyticsadmin properties data streams list.
+    ///
+    /// Read-only operation - no state tracking.
+    ///
+    /// # Arguments
+    ///
+    /// * `args` - Request arguments
+    ///
+    /// # Returns
+    ///
+    /// StreamIterator yielding the GoogleAnalyticsAdminV1betaListDataStreamsResponse result.
+    ///
+    /// # Errors
+    ///
+    /// Returns ProviderError if the API request fails.
+    pub fn analyticsadmin_properties_data_streams_list(
+        &self,
+        args: &AnalyticsadminPropertiesDataStreamsListArgs,
+    ) -> Result<
+        impl StreamIterator<
+            D = Result<GoogleAnalyticsAdminV1betaListDataStreamsResponse, ProviderError<ApiError>>,
+            P = crate::providers::gcp::clients::types::ApiPending,
+        > + Send
+        + 'static,
+        ProviderError<ApiError>,
+    > {
+        let builder = analyticsadmin_properties_data_streams_list_builder(
+            &self.http_client,
+            &args.parent,
+            &args.pageSize,
+            &args.pageToken,
+        )
+        .map_err(ProviderError::Api)?;
+
+        let task = analyticsadmin_properties_data_streams_list_task(builder)
+            .map_err(ProviderError::Api)?;
+
+        execute(task, None).map_err(|e: String| ProviderError::ExecuteFailed(e.to_string()))
     }
 
     /// Analyticsadmin properties data streams patch.
@@ -1219,6 +1852,84 @@ where
         execute(store_task, None).map_err(|e: String| ProviderError::ExecuteFailed(e.to_string()))
     }
 
+    /// Analyticsadmin properties data streams measurement protocol secrets get.
+    ///
+    /// Read-only operation - no state tracking.
+    ///
+    /// # Arguments
+    ///
+    /// * `args` - Request arguments
+    ///
+    /// # Returns
+    ///
+    /// StreamIterator yielding the GoogleAnalyticsAdminV1betaMeasurementProtocolSecret result.
+    ///
+    /// # Errors
+    ///
+    /// Returns ProviderError if the API request fails.
+    pub fn analyticsadmin_properties_data_streams_measurement_protocol_secrets_get(
+        &self,
+        args: &AnalyticsadminPropertiesDataStreamsMeasurementProtocolSecretsGetArgs,
+    ) -> Result<
+        impl StreamIterator<
+            D = Result<GoogleAnalyticsAdminV1betaMeasurementProtocolSecret, ProviderError<ApiError>>,
+            P = crate::providers::gcp::clients::types::ApiPending,
+        > + Send
+        + 'static,
+        ProviderError<ApiError>,
+    > {
+        let builder = analyticsadmin_properties_data_streams_measurement_protocol_secrets_get_builder(
+            &self.http_client,
+            &args.name,
+        )
+        .map_err(ProviderError::Api)?;
+
+        let task = analyticsadmin_properties_data_streams_measurement_protocol_secrets_get_task(builder)
+            .map_err(ProviderError::Api)?;
+
+        execute(task, None).map_err(|e: String| ProviderError::ExecuteFailed(e.to_string()))
+    }
+
+    /// Analyticsadmin properties data streams measurement protocol secrets list.
+    ///
+    /// Read-only operation - no state tracking.
+    ///
+    /// # Arguments
+    ///
+    /// * `args` - Request arguments
+    ///
+    /// # Returns
+    ///
+    /// StreamIterator yielding the GoogleAnalyticsAdminV1betaListMeasurementProtocolSecretsResponse result.
+    ///
+    /// # Errors
+    ///
+    /// Returns ProviderError if the API request fails.
+    pub fn analyticsadmin_properties_data_streams_measurement_protocol_secrets_list(
+        &self,
+        args: &AnalyticsadminPropertiesDataStreamsMeasurementProtocolSecretsListArgs,
+    ) -> Result<
+        impl StreamIterator<
+            D = Result<GoogleAnalyticsAdminV1betaListMeasurementProtocolSecretsResponse, ProviderError<ApiError>>,
+            P = crate::providers::gcp::clients::types::ApiPending,
+        > + Send
+        + 'static,
+        ProviderError<ApiError>,
+    > {
+        let builder = analyticsadmin_properties_data_streams_measurement_protocol_secrets_list_builder(
+            &self.http_client,
+            &args.parent,
+            &args.pageSize,
+            &args.pageToken,
+        )
+        .map_err(ProviderError::Api)?;
+
+        let task = analyticsadmin_properties_data_streams_measurement_protocol_secrets_list_task(builder)
+            .map_err(ProviderError::Api)?;
+
+        execute(task, None).map_err(|e: String| ProviderError::ExecuteFailed(e.to_string()))
+    }
+
     /// Analyticsadmin properties data streams measurement protocol secrets patch.
     ///
     /// Automatically stores the result in the state store on success.
@@ -1349,6 +2060,46 @@ where
         execute(store_task, None).map_err(|e: String| ProviderError::ExecuteFailed(e.to_string()))
     }
 
+    /// Analyticsadmin properties firebase links list.
+    ///
+    /// Read-only operation - no state tracking.
+    ///
+    /// # Arguments
+    ///
+    /// * `args` - Request arguments
+    ///
+    /// # Returns
+    ///
+    /// StreamIterator yielding the GoogleAnalyticsAdminV1betaListFirebaseLinksResponse result.
+    ///
+    /// # Errors
+    ///
+    /// Returns ProviderError if the API request fails.
+    pub fn analyticsadmin_properties_firebase_links_list(
+        &self,
+        args: &AnalyticsadminPropertiesFirebaseLinksListArgs,
+    ) -> Result<
+        impl StreamIterator<
+            D = Result<GoogleAnalyticsAdminV1betaListFirebaseLinksResponse, ProviderError<ApiError>>,
+            P = crate::providers::gcp::clients::types::ApiPending,
+        > + Send
+        + 'static,
+        ProviderError<ApiError>,
+    > {
+        let builder = analyticsadmin_properties_firebase_links_list_builder(
+            &self.http_client,
+            &args.parent,
+            &args.pageSize,
+            &args.pageToken,
+        )
+        .map_err(ProviderError::Api)?;
+
+        let task = analyticsadmin_properties_firebase_links_list_task(builder)
+            .map_err(ProviderError::Api)?;
+
+        execute(task, None).map_err(|e: String| ProviderError::ExecuteFailed(e.to_string()))
+    }
+
     /// Analyticsadmin properties google ads links create.
     ///
     /// Automatically stores the result in the state store on success.
@@ -1433,6 +2184,46 @@ where
         let store_task = StoreStateIdentifierTask::new(task, state_store, args, stage);
 
         execute(store_task, None).map_err(|e: String| ProviderError::ExecuteFailed(e.to_string()))
+    }
+
+    /// Analyticsadmin properties google ads links list.
+    ///
+    /// Read-only operation - no state tracking.
+    ///
+    /// # Arguments
+    ///
+    /// * `args` - Request arguments
+    ///
+    /// # Returns
+    ///
+    /// StreamIterator yielding the GoogleAnalyticsAdminV1betaListGoogleAdsLinksResponse result.
+    ///
+    /// # Errors
+    ///
+    /// Returns ProviderError if the API request fails.
+    pub fn analyticsadmin_properties_google_ads_links_list(
+        &self,
+        args: &AnalyticsadminPropertiesGoogleAdsLinksListArgs,
+    ) -> Result<
+        impl StreamIterator<
+            D = Result<GoogleAnalyticsAdminV1betaListGoogleAdsLinksResponse, ProviderError<ApiError>>,
+            P = crate::providers::gcp::clients::types::ApiPending,
+        > + Send
+        + 'static,
+        ProviderError<ApiError>,
+    > {
+        let builder = analyticsadmin_properties_google_ads_links_list_builder(
+            &self.http_client,
+            &args.parent,
+            &args.pageSize,
+            &args.pageToken,
+        )
+        .map_err(ProviderError::Api)?;
+
+        let task = analyticsadmin_properties_google_ads_links_list_task(builder)
+            .map_err(ProviderError::Api)?;
+
+        execute(task, None).map_err(|e: String| ProviderError::ExecuteFailed(e.to_string()))
     }
 
     /// Analyticsadmin properties google ads links patch.
@@ -1563,6 +2354,84 @@ where
         let store_task = StoreStateIdentifierTask::new(task, state_store, args, stage);
 
         execute(store_task, None).map_err(|e: String| ProviderError::ExecuteFailed(e.to_string()))
+    }
+
+    /// Analyticsadmin properties key events get.
+    ///
+    /// Read-only operation - no state tracking.
+    ///
+    /// # Arguments
+    ///
+    /// * `args` - Request arguments
+    ///
+    /// # Returns
+    ///
+    /// StreamIterator yielding the GoogleAnalyticsAdminV1betaKeyEvent result.
+    ///
+    /// # Errors
+    ///
+    /// Returns ProviderError if the API request fails.
+    pub fn analyticsadmin_properties_key_events_get(
+        &self,
+        args: &AnalyticsadminPropertiesKeyEventsGetArgs,
+    ) -> Result<
+        impl StreamIterator<
+            D = Result<GoogleAnalyticsAdminV1betaKeyEvent, ProviderError<ApiError>>,
+            P = crate::providers::gcp::clients::types::ApiPending,
+        > + Send
+        + 'static,
+        ProviderError<ApiError>,
+    > {
+        let builder = analyticsadmin_properties_key_events_get_builder(
+            &self.http_client,
+            &args.name,
+        )
+        .map_err(ProviderError::Api)?;
+
+        let task = analyticsadmin_properties_key_events_get_task(builder)
+            .map_err(ProviderError::Api)?;
+
+        execute(task, None).map_err(|e: String| ProviderError::ExecuteFailed(e.to_string()))
+    }
+
+    /// Analyticsadmin properties key events list.
+    ///
+    /// Read-only operation - no state tracking.
+    ///
+    /// # Arguments
+    ///
+    /// * `args` - Request arguments
+    ///
+    /// # Returns
+    ///
+    /// StreamIterator yielding the GoogleAnalyticsAdminV1betaListKeyEventsResponse result.
+    ///
+    /// # Errors
+    ///
+    /// Returns ProviderError if the API request fails.
+    pub fn analyticsadmin_properties_key_events_list(
+        &self,
+        args: &AnalyticsadminPropertiesKeyEventsListArgs,
+    ) -> Result<
+        impl StreamIterator<
+            D = Result<GoogleAnalyticsAdminV1betaListKeyEventsResponse, ProviderError<ApiError>>,
+            P = crate::providers::gcp::clients::types::ApiPending,
+        > + Send
+        + 'static,
+        ProviderError<ApiError>,
+    > {
+        let builder = analyticsadmin_properties_key_events_list_builder(
+            &self.http_client,
+            &args.parent,
+            &args.pageSize,
+            &args.pageToken,
+        )
+        .map_err(ProviderError::Api)?;
+
+        let task = analyticsadmin_properties_key_events_list_task(builder)
+            .map_err(ProviderError::Api)?;
+
+        execute(task, None).map_err(|e: String| ProviderError::ExecuteFailed(e.to_string()))
     }
 
     /// Analyticsadmin properties key events patch.

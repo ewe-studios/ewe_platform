@@ -293,7 +293,7 @@
       }
     }
   },
-  "revision": "20260326",
+  "revision": "20260403",
   "rootUrl": "https://iam.googleapis.com/",
   "schemas": {
     "CloudControl2SharedOperationsReconciliationOperationMetadata": {

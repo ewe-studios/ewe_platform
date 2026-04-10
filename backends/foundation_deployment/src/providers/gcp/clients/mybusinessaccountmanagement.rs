@@ -7,7 +7,6 @@
 
 #![cfg(feature = "gcp")]
 
-
 use crate::providers::gcp::clients::types::*;
 use crate::providers::gcp::resources::*;
 use foundation_core::valtron::{
@@ -17,10 +16,11 @@ use foundation_core::valtron::{
 use foundation_core::wire::simple_http::client::{
     body_reader, ClientRequestBuilder, RequestIntro, SimpleHttpClient, SystemDnsResolver,
 };
+use foundation_db::state::resource_identifier::ResourceIdentifier;
 use foundation_macros::JsonHash;
 use serde::Serialize;
 
-/// GET v1/accounts
+/// POST v1/accounts
 /// Creates an account with the specified name and type under the given parent. - Personal accounts and Organizations cannot be created. - User Groups cannot be created with a Personal account as primary owner. - Location Groups cannot be created with a primary owner of a Personal account if the Personal account is in an Organization. - Location Groups cannot own Location Groups.
 ///
 /// Returns `ClientRequestBuilder` for customization.
@@ -28,22 +28,19 @@ use serde::Serialize;
 
 pub fn mybusinessaccountmanagement_accounts_create_builder(
     client: &SimpleHttpClient,
-    body: &Account,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!("https://mybusinessaccountmanagement.googleapis.com/v1/accounts",);
 
     // Build request
     let builder = client
-        .get(&endpoint_url)
+        .post(&endpoint_url)
         .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
 
-    builder
-        .body_json(body)
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+    Ok(builder)
 }
 
-/// GET v1/accounts
+/// POST v1/accounts
 /// Creates an account with the specified name and type under the given parent. - Personal accounts and Organizations cannot be created. - User Groups cannot be created with a Personal account as primary owner. - Location Groups cannot be created with a primary owner of a Personal account if the Personal account is in an Organization. - Location Groups cannot own Location Groups.
 ///
 /// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
@@ -117,7 +114,7 @@ pub fn mybusinessaccountmanagement_accounts_create_task(
         .map_pending(|_| ApiPending::Sending))
 }
 
-/// GET v1/accounts
+/// POST v1/accounts
 /// Creates an account with the specified name and type under the given parent. - Personal accounts and Organizations cannot be created. - User Groups cannot be created with a Personal account as primary owner. - Location Groups cannot be created with a primary owner of a Personal account if the Personal account is in an Organization. - Location Groups cannot own Location Groups.
 ///
 /// Takes a `ClientRequestBuilder`, builds and executes the request,
@@ -147,14 +144,7 @@ pub fn mybusinessaccountmanagement_accounts_create_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
-/// Arguments for [`mybusinessaccountmanagement_accounts_create`].
-#[derive(Debug, Clone, Serialize, JsonHash)]
-pub struct MybusinessaccountmanagementAccountsCreateArgs {
-    /// Request body.
-    pub body: Account,
-}
-
-/// GET v1/accounts
+/// POST v1/accounts
 /// Creates an account with the specified name and type under the given parent. - Personal accounts and Organizations cannot be created. - User Groups cannot be created with a Personal account as primary owner. - Location Groups cannot be created with a primary owner of a Personal account if the Personal account is in an Organization. - Location Groups cannot own Location Groups.
 ///
 /// Simplest API - builds and executes the request in one call.
@@ -167,12 +157,11 @@ pub struct MybusinessaccountmanagementAccountsCreateArgs {
 
 pub fn mybusinessaccountmanagement_accounts_create(
     client: &SimpleHttpClient,
-    args: &MybusinessaccountmanagementAccountsCreateArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Account>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = mybusinessaccountmanagement_accounts_create_builder(client, &args.body)?;
+    let builder = mybusinessaccountmanagement_accounts_create_builder(client)?;
     mybusinessaccountmanagement_accounts_create_execute(builder)
 }
 
@@ -187,8 +176,10 @@ pub fn mybusinessaccountmanagement_accounts_get_builder(
     name: &String,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
-    let endpoint_url =
-        format!("https://mybusinessaccountmanagement.googleapis.com/v1/accounts/{}",);
+    let endpoint_url = format!(
+        "https://mybusinessaccountmanagement.googleapis.com/v1/accounts/{}",
+        name,
+    );
 
     // Build request
     let builder = client
@@ -331,7 +322,382 @@ pub fn mybusinessaccountmanagement_accounts_get(
     mybusinessaccountmanagement_accounts_get_execute(builder)
 }
 
-/// GET v1/accounts/{accountsId}/admins
+/// GET v1/accounts
+/// Lists all of the accounts for the authenticated user. This includes all accounts that the user owns, as well as any accounts for which the user has management rights.
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `mybusinessaccountmanagement_accounts_list_execute()` to send, or `mybusinessaccountmanagement_accounts_list` for simplest API.
+
+pub fn mybusinessaccountmanagement_accounts_list_builder(
+    client: &SimpleHttpClient,
+    filter: &Option<Option<String>>,
+    pageSize: &Option<Option<String>>,
+    pageToken: &Option<Option<String>>,
+    parentAccount: &Option<Option<String>>,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!("https://mybusinessaccountmanagement.googleapis.com/v1/accounts",);
+
+    // Build request
+    let mut query_parts = Vec::new();
+    if let Some(val) = filter.as_ref() {
+        query_parts.push(format!("filter={}", val));
+    }
+    if let Some(val) = pageSize.as_ref() {
+        query_parts.push(format!("pageSize={}", val));
+    }
+    if let Some(val) = pageToken.as_ref() {
+        query_parts.push(format!("pageToken={}", val));
+    }
+    if let Some(val) = parentAccount.as_ref() {
+        query_parts.push(format!("parentAccount={}", val));
+    }
+
+    let url_with_query = if query_parts.is_empty() {
+        endpoint_url
+    } else {
+        format!("{}?{}", endpoint_url, query_parts.join("&"))
+    };
+
+    let builder = client
+        .get(&url_with_query)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// GET v1/accounts
+/// Lists all of the accounts for the authenticated user. This includes all accounts that the user owns, as well as any accounts for which the user has management rights.
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `mybusinessaccountmanagement_accounts_list_execute()` or `mybusinessaccountmanagement_accounts_list`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `mybusinessaccountmanagement_accounts_list_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn mybusinessaccountmanagement_accounts_list_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<ListAccountsResponse>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: ListAccountsResponse = serde_json::from_str(&body)
+                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// GET v1/accounts
+/// Lists all of the accounts for the authenticated user. This includes all accounts that the user owns, as well as any accounts for which the user has management rights.
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `mybusinessaccountmanagement_accounts_list_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `mybusinessaccountmanagement_accounts_list_task()`.
+/// For the simplest API, use `mybusinessaccountmanagement_accounts_list()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `mybusinessaccountmanagement_accounts_list_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn mybusinessaccountmanagement_accounts_list_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<ListAccountsResponse>, ApiError>, P = ApiPending>
+        + Send
+        + 'static,
+    ApiError,
+> {
+    let task = mybusinessaccountmanagement_accounts_list_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`mybusinessaccountmanagement_accounts_list`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct MybusinessaccountmanagementAccountsListArgs {
+    /// Query parameter: filter
+    pub filter: Option<Option<String>>,
+    /// Query parameter: pageSize
+    pub pageSize: Option<Option<String>>,
+    /// Query parameter: pageToken
+    pub pageToken: Option<Option<String>>,
+    /// Query parameter: parentAccount
+    pub parentAccount: Option<Option<String>>,
+}
+
+/// GET v1/accounts
+/// Lists all of the accounts for the authenticated user. This includes all accounts that the user owns, as well as any accounts for which the user has management rights.
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `mybusinessaccountmanagement_accounts_list_builder()` + `mybusinessaccountmanagement_accounts_list_execute()`.
+/// For task-level control, use `mybusinessaccountmanagement_accounts_list_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn mybusinessaccountmanagement_accounts_list(
+    client: &SimpleHttpClient,
+    args: &MybusinessaccountmanagementAccountsListArgs,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<ListAccountsResponse>, ApiError>, P = ApiPending>
+        + Send
+        + 'static,
+    ApiError,
+> {
+    let builder = mybusinessaccountmanagement_accounts_list_builder(
+        client,
+        &args.filter,
+        &args.pageSize,
+        &args.pageToken,
+        &args.parentAccount,
+    )?;
+    mybusinessaccountmanagement_accounts_list_execute(builder)
+}
+
+/// PATCH v1/accounts/{accountsId}
+/// Updates the specified business account. Personal accounts cannot be updated using this method.
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `mybusinessaccountmanagement_accounts_patch_execute()` to send, or `mybusinessaccountmanagement_accounts_patch` for simplest API.
+
+pub fn mybusinessaccountmanagement_accounts_patch_builder(
+    client: &SimpleHttpClient,
+    name: &String,
+    updateMask: &Option<Option<String>>,
+    validateOnly: &Option<Option<String>>,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!(
+        "https://mybusinessaccountmanagement.googleapis.com/v1/accounts/{}",
+        name,
+    );
+
+    // Build request
+    let mut query_parts = Vec::new();
+    if let Some(val) = updateMask.as_ref() {
+        query_parts.push(format!("updateMask={}", val));
+    }
+    if let Some(val) = validateOnly.as_ref() {
+        query_parts.push(format!("validateOnly={}", val));
+    }
+
+    let url_with_query = if query_parts.is_empty() {
+        endpoint_url
+    } else {
+        format!("{}?{}", endpoint_url, query_parts.join("&"))
+    };
+
+    let builder = client
+        .patch(&url_with_query)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// PATCH v1/accounts/{accountsId}
+/// Updates the specified business account. Personal accounts cannot be updated using this method.
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `mybusinessaccountmanagement_accounts_patch_execute()` or `mybusinessaccountmanagement_accounts_patch`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `mybusinessaccountmanagement_accounts_patch_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn mybusinessaccountmanagement_accounts_patch_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<Account>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: Account = serde_json::from_str(&body)
+                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// PATCH v1/accounts/{accountsId}
+/// Updates the specified business account. Personal accounts cannot be updated using this method.
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `mybusinessaccountmanagement_accounts_patch_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `mybusinessaccountmanagement_accounts_patch_task()`.
+/// For the simplest API, use `mybusinessaccountmanagement_accounts_patch()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `mybusinessaccountmanagement_accounts_patch_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn mybusinessaccountmanagement_accounts_patch_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<Account>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let task = mybusinessaccountmanagement_accounts_patch_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`mybusinessaccountmanagement_accounts_patch`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct MybusinessaccountmanagementAccountsPatchArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Query parameter: updateMask
+    pub updateMask: Option<Option<String>>,
+    /// Query parameter: validateOnly
+    pub validateOnly: Option<Option<String>>,
+}
+
+/// PATCH v1/accounts/{accountsId}
+/// Updates the specified business account. Personal accounts cannot be updated using this method.
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `mybusinessaccountmanagement_accounts_patch_builder()` + `mybusinessaccountmanagement_accounts_patch_execute()`.
+/// For task-level control, use `mybusinessaccountmanagement_accounts_patch_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn mybusinessaccountmanagement_accounts_patch(
+    client: &SimpleHttpClient,
+    args: &MybusinessaccountmanagementAccountsPatchArgs,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<Account>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let builder = mybusinessaccountmanagement_accounts_patch_builder(
+        client,
+        &args.name,
+        &args.updateMask,
+        &args.validateOnly,
+    )?;
+    mybusinessaccountmanagement_accounts_patch_execute(builder)
+}
+
+/// POST v1/accounts/{accountsId}/admins
 /// Invites the specified user to become an administrator for the specified account. The invitee must accept the invitation in order to be granted access to the account. See AcceptInvitation to programmatically accept an invitation.
 ///
 /// Returns `ClientRequestBuilder` for customization.
@@ -340,23 +706,22 @@ pub fn mybusinessaccountmanagement_accounts_get(
 pub fn mybusinessaccountmanagement_accounts_admins_create_builder(
     client: &SimpleHttpClient,
     parent: &String,
-    body: &Admin,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
-    let endpoint_url =
-        format!("https://mybusinessaccountmanagement.googleapis.com/v1/accounts/{}/admins",);
+    let endpoint_url = format!(
+        "https://mybusinessaccountmanagement.googleapis.com/v1/accounts/{}/admins",
+        parent,
+    );
 
     // Build request
     let builder = client
-        .get(&endpoint_url)
+        .post(&endpoint_url)
         .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
 
-    builder
-        .body_json(body)
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+    Ok(builder)
 }
 
-/// GET v1/accounts/{accountsId}/admins
+/// POST v1/accounts/{accountsId}/admins
 /// Invites the specified user to become an administrator for the specified account. The invitee must accept the invitation in order to be granted access to the account. See AcceptInvitation to programmatically accept an invitation.
 ///
 /// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
@@ -430,7 +795,7 @@ pub fn mybusinessaccountmanagement_accounts_admins_create_task(
         .map_pending(|_| ApiPending::Sending))
 }
 
-/// GET v1/accounts/{accountsId}/admins
+/// POST v1/accounts/{accountsId}/admins
 /// Invites the specified user to become an administrator for the specified account. The invitee must accept the invitation in order to be granted access to the account. See AcceptInvitation to programmatically accept an invitation.
 ///
 /// Takes a `ClientRequestBuilder`, builds and executes the request,
@@ -465,11 +830,9 @@ pub fn mybusinessaccountmanagement_accounts_admins_create_execute(
 pub struct MybusinessaccountmanagementAccountsAdminsCreateArgs {
     /// Path parameter: parent
     pub parent: String,
-    /// Request body.
-    pub body: Admin,
 }
 
-/// GET v1/accounts/{accountsId}/admins
+/// POST v1/accounts/{accountsId}/admins
 /// Invites the specified user to become an administrator for the specified account. The invitee must accept the invitation in order to be granted access to the account. See AcceptInvitation to programmatically accept an invitation.
 ///
 /// Simplest API - builds and executes the request in one call.
@@ -487,12 +850,817 @@ pub fn mybusinessaccountmanagement_accounts_admins_create(
     impl StreamIterator<D = Result<ApiResponse<Admin>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = mybusinessaccountmanagement_accounts_admins_create_builder(
-        client,
-        &args.parent,
-        &args.body,
-    )?;
+    let builder = mybusinessaccountmanagement_accounts_admins_create_builder(client, &args.parent)?;
     mybusinessaccountmanagement_accounts_admins_create_execute(builder)
+}
+
+/// DELETE v1/accounts/{accountsId}/admins/{adminsId}
+/// Removes the specified admin from the specified account.
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `mybusinessaccountmanagement_accounts_admins_delete_execute()` to send, or `mybusinessaccountmanagement_accounts_admins_delete` for simplest API.
+
+pub fn mybusinessaccountmanagement_accounts_admins_delete_builder(
+    client: &SimpleHttpClient,
+    name: &String,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!(
+        "https://mybusinessaccountmanagement.googleapis.com/v1/accounts/{}/admins/{adminsId}",
+        name,
+    );
+
+    // Build request
+    let builder = client
+        .delete(&endpoint_url)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// DELETE v1/accounts/{accountsId}/admins/{adminsId}
+/// Removes the specified admin from the specified account.
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `mybusinessaccountmanagement_accounts_admins_delete_execute()` or `mybusinessaccountmanagement_accounts_admins_delete`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `mybusinessaccountmanagement_accounts_admins_delete_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn mybusinessaccountmanagement_accounts_admins_delete_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<Empty>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: Empty = serde_json::from_str(&body)
+                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// DELETE v1/accounts/{accountsId}/admins/{adminsId}
+/// Removes the specified admin from the specified account.
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `mybusinessaccountmanagement_accounts_admins_delete_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `mybusinessaccountmanagement_accounts_admins_delete_task()`.
+/// For the simplest API, use `mybusinessaccountmanagement_accounts_admins_delete()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `mybusinessaccountmanagement_accounts_admins_delete_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn mybusinessaccountmanagement_accounts_admins_delete_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<Empty>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let task = mybusinessaccountmanagement_accounts_admins_delete_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`mybusinessaccountmanagement_accounts_admins_delete`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct MybusinessaccountmanagementAccountsAdminsDeleteArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
+/// DELETE v1/accounts/{accountsId}/admins/{adminsId}
+/// Removes the specified admin from the specified account.
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `mybusinessaccountmanagement_accounts_admins_delete_builder()` + `mybusinessaccountmanagement_accounts_admins_delete_execute()`.
+/// For task-level control, use `mybusinessaccountmanagement_accounts_admins_delete_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn mybusinessaccountmanagement_accounts_admins_delete(
+    client: &SimpleHttpClient,
+    args: &MybusinessaccountmanagementAccountsAdminsDeleteArgs,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<Empty>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let builder = mybusinessaccountmanagement_accounts_admins_delete_builder(client, &args.name)?;
+    mybusinessaccountmanagement_accounts_admins_delete_execute(builder)
+}
+
+/// GET v1/accounts/{accountsId}/admins
+/// Lists the admins for the specified account.
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `mybusinessaccountmanagement_accounts_admins_list_execute()` to send, or `mybusinessaccountmanagement_accounts_admins_list` for simplest API.
+
+pub fn mybusinessaccountmanagement_accounts_admins_list_builder(
+    client: &SimpleHttpClient,
+    parent: &String,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!(
+        "https://mybusinessaccountmanagement.googleapis.com/v1/accounts/{}/admins",
+        parent,
+    );
+
+    // Build request
+    let builder = client
+        .get(&endpoint_url)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// GET v1/accounts/{accountsId}/admins
+/// Lists the admins for the specified account.
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `mybusinessaccountmanagement_accounts_admins_list_execute()` or `mybusinessaccountmanagement_accounts_admins_list`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `mybusinessaccountmanagement_accounts_admins_list_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn mybusinessaccountmanagement_accounts_admins_list_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<ListAccountAdminsResponse>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: ListAccountAdminsResponse = serde_json::from_str(&body)
+                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// GET v1/accounts/{accountsId}/admins
+/// Lists the admins for the specified account.
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `mybusinessaccountmanagement_accounts_admins_list_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `mybusinessaccountmanagement_accounts_admins_list_task()`.
+/// For the simplest API, use `mybusinessaccountmanagement_accounts_admins_list()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `mybusinessaccountmanagement_accounts_admins_list_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn mybusinessaccountmanagement_accounts_admins_list_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<ListAccountAdminsResponse>, ApiError>, P = ApiPending>
+        + Send
+        + 'static,
+    ApiError,
+> {
+    let task = mybusinessaccountmanagement_accounts_admins_list_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`mybusinessaccountmanagement_accounts_admins_list`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct MybusinessaccountmanagementAccountsAdminsListArgs {
+    /// Path parameter: parent
+    pub parent: String,
+}
+
+/// GET v1/accounts/{accountsId}/admins
+/// Lists the admins for the specified account.
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `mybusinessaccountmanagement_accounts_admins_list_builder()` + `mybusinessaccountmanagement_accounts_admins_list_execute()`.
+/// For task-level control, use `mybusinessaccountmanagement_accounts_admins_list_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn mybusinessaccountmanagement_accounts_admins_list(
+    client: &SimpleHttpClient,
+    args: &MybusinessaccountmanagementAccountsAdminsListArgs,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<ListAccountAdminsResponse>, ApiError>, P = ApiPending>
+        + Send
+        + 'static,
+    ApiError,
+> {
+    let builder = mybusinessaccountmanagement_accounts_admins_list_builder(client, &args.parent)?;
+    mybusinessaccountmanagement_accounts_admins_list_execute(builder)
+}
+
+/// PATCH v1/accounts/{accountsId}/admins/{adminsId}
+/// Updates the Admin for the specified Account Admin.
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `mybusinessaccountmanagement_accounts_admins_patch_execute()` to send, or `mybusinessaccountmanagement_accounts_admins_patch` for simplest API.
+
+pub fn mybusinessaccountmanagement_accounts_admins_patch_builder(
+    client: &SimpleHttpClient,
+    name: &String,
+    updateMask: &Option<Option<String>>,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!(
+        "https://mybusinessaccountmanagement.googleapis.com/v1/accounts/{}/admins/{adminsId}",
+        name,
+    );
+
+    // Build request
+    let mut query_parts = Vec::new();
+    if let Some(val) = updateMask.as_ref() {
+        query_parts.push(format!("updateMask={}", val));
+    }
+
+    let url_with_query = if query_parts.is_empty() {
+        endpoint_url
+    } else {
+        format!("{}?{}", endpoint_url, query_parts.join("&"))
+    };
+
+    let builder = client
+        .patch(&url_with_query)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// PATCH v1/accounts/{accountsId}/admins/{adminsId}
+/// Updates the Admin for the specified Account Admin.
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `mybusinessaccountmanagement_accounts_admins_patch_execute()` or `mybusinessaccountmanagement_accounts_admins_patch`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `mybusinessaccountmanagement_accounts_admins_patch_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn mybusinessaccountmanagement_accounts_admins_patch_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<Admin>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: Admin = serde_json::from_str(&body)
+                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// PATCH v1/accounts/{accountsId}/admins/{adminsId}
+/// Updates the Admin for the specified Account Admin.
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `mybusinessaccountmanagement_accounts_admins_patch_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `mybusinessaccountmanagement_accounts_admins_patch_task()`.
+/// For the simplest API, use `mybusinessaccountmanagement_accounts_admins_patch()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `mybusinessaccountmanagement_accounts_admins_patch_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn mybusinessaccountmanagement_accounts_admins_patch_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<Admin>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let task = mybusinessaccountmanagement_accounts_admins_patch_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`mybusinessaccountmanagement_accounts_admins_patch`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct MybusinessaccountmanagementAccountsAdminsPatchArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Query parameter: updateMask
+    pub updateMask: Option<Option<String>>,
+}
+
+/// PATCH v1/accounts/{accountsId}/admins/{adminsId}
+/// Updates the Admin for the specified Account Admin.
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `mybusinessaccountmanagement_accounts_admins_patch_builder()` + `mybusinessaccountmanagement_accounts_admins_patch_execute()`.
+/// For task-level control, use `mybusinessaccountmanagement_accounts_admins_patch_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn mybusinessaccountmanagement_accounts_admins_patch(
+    client: &SimpleHttpClient,
+    args: &MybusinessaccountmanagementAccountsAdminsPatchArgs,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<Admin>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let builder = mybusinessaccountmanagement_accounts_admins_patch_builder(
+        client,
+        &args.name,
+        &args.updateMask,
+    )?;
+    mybusinessaccountmanagement_accounts_admins_patch_execute(builder)
+}
+
+/// POST v1/accounts/{accountsId}/invitations/{invitationsId}:accept
+/// Accepts the specified invitation.
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `mybusinessaccountmanagement_accounts_invitations_accept_execute()` to send, or `mybusinessaccountmanagement_accounts_invitations_accept` for simplest API.
+
+pub fn mybusinessaccountmanagement_accounts_invitations_accept_builder(
+    client: &SimpleHttpClient,
+    name: &String,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!(
+        "https://mybusinessaccountmanagement.googleapis.com/v1/accounts/{}/invitations/{invitationsId}:accept",
+        name,
+    );
+
+    // Build request
+    let builder = client
+        .post(&endpoint_url)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// POST v1/accounts/{accountsId}/invitations/{invitationsId}:accept
+/// Accepts the specified invitation.
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `mybusinessaccountmanagement_accounts_invitations_accept_execute()` or `mybusinessaccountmanagement_accounts_invitations_accept`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `mybusinessaccountmanagement_accounts_invitations_accept_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn mybusinessaccountmanagement_accounts_invitations_accept_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<Empty>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: Empty = serde_json::from_str(&body)
+                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// POST v1/accounts/{accountsId}/invitations/{invitationsId}:accept
+/// Accepts the specified invitation.
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `mybusinessaccountmanagement_accounts_invitations_accept_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `mybusinessaccountmanagement_accounts_invitations_accept_task()`.
+/// For the simplest API, use `mybusinessaccountmanagement_accounts_invitations_accept()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `mybusinessaccountmanagement_accounts_invitations_accept_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn mybusinessaccountmanagement_accounts_invitations_accept_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<Empty>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let task = mybusinessaccountmanagement_accounts_invitations_accept_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`mybusinessaccountmanagement_accounts_invitations_accept`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct MybusinessaccountmanagementAccountsInvitationsAcceptArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
+/// POST v1/accounts/{accountsId}/invitations/{invitationsId}:accept
+/// Accepts the specified invitation.
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `mybusinessaccountmanagement_accounts_invitations_accept_builder()` + `mybusinessaccountmanagement_accounts_invitations_accept_execute()`.
+/// For task-level control, use `mybusinessaccountmanagement_accounts_invitations_accept_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn mybusinessaccountmanagement_accounts_invitations_accept(
+    client: &SimpleHttpClient,
+    args: &MybusinessaccountmanagementAccountsInvitationsAcceptArgs,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<Empty>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let builder =
+        mybusinessaccountmanagement_accounts_invitations_accept_builder(client, &args.name)?;
+    mybusinessaccountmanagement_accounts_invitations_accept_execute(builder)
+}
+
+/// POST v1/accounts/{accountsId}/invitations/{invitationsId}:decline
+/// Declines the specified invitation.
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `mybusinessaccountmanagement_accounts_invitations_decline_execute()` to send, or `mybusinessaccountmanagement_accounts_invitations_decline` for simplest API.
+
+pub fn mybusinessaccountmanagement_accounts_invitations_decline_builder(
+    client: &SimpleHttpClient,
+    name: &String,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!(
+        "https://mybusinessaccountmanagement.googleapis.com/v1/accounts/{}/invitations/{invitationsId}:decline",
+        name,
+    );
+
+    // Build request
+    let builder = client
+        .post(&endpoint_url)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// POST v1/accounts/{accountsId}/invitations/{invitationsId}:decline
+/// Declines the specified invitation.
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `mybusinessaccountmanagement_accounts_invitations_decline_execute()` or `mybusinessaccountmanagement_accounts_invitations_decline`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `mybusinessaccountmanagement_accounts_invitations_decline_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn mybusinessaccountmanagement_accounts_invitations_decline_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<Empty>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: Empty = serde_json::from_str(&body)
+                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// POST v1/accounts/{accountsId}/invitations/{invitationsId}:decline
+/// Declines the specified invitation.
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `mybusinessaccountmanagement_accounts_invitations_decline_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `mybusinessaccountmanagement_accounts_invitations_decline_task()`.
+/// For the simplest API, use `mybusinessaccountmanagement_accounts_invitations_decline()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `mybusinessaccountmanagement_accounts_invitations_decline_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn mybusinessaccountmanagement_accounts_invitations_decline_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<Empty>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let task = mybusinessaccountmanagement_accounts_invitations_decline_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`mybusinessaccountmanagement_accounts_invitations_decline`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct MybusinessaccountmanagementAccountsInvitationsDeclineArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
+/// POST v1/accounts/{accountsId}/invitations/{invitationsId}:decline
+/// Declines the specified invitation.
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `mybusinessaccountmanagement_accounts_invitations_decline_builder()` + `mybusinessaccountmanagement_accounts_invitations_decline_execute()`.
+/// For task-level control, use `mybusinessaccountmanagement_accounts_invitations_decline_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn mybusinessaccountmanagement_accounts_invitations_decline(
+    client: &SimpleHttpClient,
+    args: &MybusinessaccountmanagementAccountsInvitationsDeclineArgs,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<Empty>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let builder =
+        mybusinessaccountmanagement_accounts_invitations_decline_builder(client, &args.name)?;
+    mybusinessaccountmanagement_accounts_invitations_decline_execute(builder)
 }
 
 /// GET v1/accounts/{accountsId}/invitations
@@ -504,11 +1672,13 @@ pub fn mybusinessaccountmanagement_accounts_admins_create(
 pub fn mybusinessaccountmanagement_accounts_invitations_list_builder(
     client: &SimpleHttpClient,
     parent: &String,
-    filter: &Option<String>,
+    filter: &Option<Option<String>>,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
-    let endpoint_url =
-        format!("https://mybusinessaccountmanagement.googleapis.com/v1/accounts/{}/invitations",);
+    let endpoint_url = format!(
+        "https://mybusinessaccountmanagement.googleapis.com/v1/accounts/{}/invitations",
+        parent,
+    );
 
     // Build request
     let mut query_parts = Vec::new();
@@ -641,7 +1811,7 @@ pub struct MybusinessaccountmanagementAccountsInvitationsListArgs {
     /// Path parameter: parent
     pub parent: String,
     /// Query parameter: filter
-    pub filter: Option<String>,
+    pub filter: Option<Option<String>>,
 }
 
 /// GET v1/accounts/{accountsId}/invitations
@@ -672,7 +1842,7 @@ pub fn mybusinessaccountmanagement_accounts_invitations_list(
     mybusinessaccountmanagement_accounts_invitations_list_execute(builder)
 }
 
-/// GET v1/locations/{locationsId}:transfer
+/// POST v1/locations/{locationsId}:transfer
 /// Moves a location from an account that the user owns to another account that the same user administers. The user must be an owner of the account the location is currently associated with and must also be at least a manager of the destination account.
 ///
 /// Returns `ClientRequestBuilder` for customization.
@@ -681,23 +1851,22 @@ pub fn mybusinessaccountmanagement_accounts_invitations_list(
 pub fn mybusinessaccountmanagement_locations_transfer_builder(
     client: &SimpleHttpClient,
     name: &String,
-    body: &TransferLocationRequest,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
-    let endpoint_url =
-        format!("https://mybusinessaccountmanagement.googleapis.com/v1/locations/{}:transfer",);
+    let endpoint_url = format!(
+        "https://mybusinessaccountmanagement.googleapis.com/v1/locations/{}:transfer",
+        name,
+    );
 
     // Build request
     let builder = client
-        .get(&endpoint_url)
+        .post(&endpoint_url)
         .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
 
-    builder
-        .body_json(body)
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+    Ok(builder)
 }
 
-/// GET v1/locations/{locationsId}:transfer
+/// POST v1/locations/{locationsId}:transfer
 /// Moves a location from an account that the user owns to another account that the same user administers. The user must be an owner of the account the location is currently associated with and must also be at least a manager of the destination account.
 ///
 /// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
@@ -771,7 +1940,7 @@ pub fn mybusinessaccountmanagement_locations_transfer_task(
         .map_pending(|_| ApiPending::Sending))
 }
 
-/// GET v1/locations/{locationsId}:transfer
+/// POST v1/locations/{locationsId}:transfer
 /// Moves a location from an account that the user owns to another account that the same user administers. The user must be an owner of the account the location is currently associated with and must also be at least a manager of the destination account.
 ///
 /// Takes a `ClientRequestBuilder`, builds and executes the request,
@@ -806,11 +1975,9 @@ pub fn mybusinessaccountmanagement_locations_transfer_execute(
 pub struct MybusinessaccountmanagementLocationsTransferArgs {
     /// Path parameter: name
     pub name: String,
-    /// Request body.
-    pub body: TransferLocationRequest,
 }
 
-/// GET v1/locations/{locationsId}:transfer
+/// POST v1/locations/{locationsId}:transfer
 /// Moves a location from an account that the user owns to another account that the same user administers. The user must be an owner of the account the location is currently associated with and must also be at least a manager of the destination account.
 ///
 /// Simplest API - builds and executes the request in one call.
@@ -828,12 +1995,11 @@ pub fn mybusinessaccountmanagement_locations_transfer(
     impl StreamIterator<D = Result<ApiResponse<Empty>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder =
-        mybusinessaccountmanagement_locations_transfer_builder(client, &args.name, &args.body)?;
+    let builder = mybusinessaccountmanagement_locations_transfer_builder(client, &args.name)?;
     mybusinessaccountmanagement_locations_transfer_execute(builder)
 }
 
-/// GET v1/locations/{locationsId}/admins
+/// POST v1/locations/{locationsId}/admins
 /// Invites the specified user to become an administrator for the specified location. The invitee must accept the invitation in order to be granted access to the location. See AcceptInvitation to programmatically accept an invitation.
 ///
 /// Returns `ClientRequestBuilder` for customization.
@@ -842,23 +2008,22 @@ pub fn mybusinessaccountmanagement_locations_transfer(
 pub fn mybusinessaccountmanagement_locations_admins_create_builder(
     client: &SimpleHttpClient,
     parent: &String,
-    body: &Admin,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
-    let endpoint_url =
-        format!("https://mybusinessaccountmanagement.googleapis.com/v1/locations/{}/admins",);
+    let endpoint_url = format!(
+        "https://mybusinessaccountmanagement.googleapis.com/v1/locations/{}/admins",
+        parent,
+    );
 
     // Build request
     let builder = client
-        .get(&endpoint_url)
+        .post(&endpoint_url)
         .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
 
-    builder
-        .body_json(body)
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+    Ok(builder)
 }
 
-/// GET v1/locations/{locationsId}/admins
+/// POST v1/locations/{locationsId}/admins
 /// Invites the specified user to become an administrator for the specified location. The invitee must accept the invitation in order to be granted access to the location. See AcceptInvitation to programmatically accept an invitation.
 ///
 /// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
@@ -932,7 +2097,7 @@ pub fn mybusinessaccountmanagement_locations_admins_create_task(
         .map_pending(|_| ApiPending::Sending))
 }
 
-/// GET v1/locations/{locationsId}/admins
+/// POST v1/locations/{locationsId}/admins
 /// Invites the specified user to become an administrator for the specified location. The invitee must accept the invitation in order to be granted access to the location. See AcceptInvitation to programmatically accept an invitation.
 ///
 /// Takes a `ClientRequestBuilder`, builds and executes the request,
@@ -967,11 +2132,9 @@ pub fn mybusinessaccountmanagement_locations_admins_create_execute(
 pub struct MybusinessaccountmanagementLocationsAdminsCreateArgs {
     /// Path parameter: parent
     pub parent: String,
-    /// Request body.
-    pub body: Admin,
 }
 
-/// GET v1/locations/{locationsId}/admins
+/// POST v1/locations/{locationsId}/admins
 /// Invites the specified user to become an administrator for the specified location. The invitee must accept the invitation in order to be granted access to the location. See AcceptInvitation to programmatically accept an invitation.
 ///
 /// Simplest API - builds and executes the request in one call.
@@ -989,10 +2152,926 @@ pub fn mybusinessaccountmanagement_locations_admins_create(
     impl StreamIterator<D = Result<ApiResponse<Admin>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = mybusinessaccountmanagement_locations_admins_create_builder(
-        client,
-        &args.parent,
-        &args.body,
-    )?;
+    let builder =
+        mybusinessaccountmanagement_locations_admins_create_builder(client, &args.parent)?;
     mybusinessaccountmanagement_locations_admins_create_execute(builder)
+}
+
+/// DELETE v1/locations/{locationsId}/admins/{adminsId}
+/// Removes the specified admin as a manager of the specified location.
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `mybusinessaccountmanagement_locations_admins_delete_execute()` to send, or `mybusinessaccountmanagement_locations_admins_delete` for simplest API.
+
+pub fn mybusinessaccountmanagement_locations_admins_delete_builder(
+    client: &SimpleHttpClient,
+    name: &String,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!(
+        "https://mybusinessaccountmanagement.googleapis.com/v1/locations/{}/admins/{adminsId}",
+        name,
+    );
+
+    // Build request
+    let builder = client
+        .delete(&endpoint_url)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// DELETE v1/locations/{locationsId}/admins/{adminsId}
+/// Removes the specified admin as a manager of the specified location.
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `mybusinessaccountmanagement_locations_admins_delete_execute()` or `mybusinessaccountmanagement_locations_admins_delete`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `mybusinessaccountmanagement_locations_admins_delete_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn mybusinessaccountmanagement_locations_admins_delete_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<Empty>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: Empty = serde_json::from_str(&body)
+                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// DELETE v1/locations/{locationsId}/admins/{adminsId}
+/// Removes the specified admin as a manager of the specified location.
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `mybusinessaccountmanagement_locations_admins_delete_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `mybusinessaccountmanagement_locations_admins_delete_task()`.
+/// For the simplest API, use `mybusinessaccountmanagement_locations_admins_delete()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `mybusinessaccountmanagement_locations_admins_delete_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn mybusinessaccountmanagement_locations_admins_delete_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<Empty>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let task = mybusinessaccountmanagement_locations_admins_delete_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`mybusinessaccountmanagement_locations_admins_delete`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct MybusinessaccountmanagementLocationsAdminsDeleteArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
+/// DELETE v1/locations/{locationsId}/admins/{adminsId}
+/// Removes the specified admin as a manager of the specified location.
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `mybusinessaccountmanagement_locations_admins_delete_builder()` + `mybusinessaccountmanagement_locations_admins_delete_execute()`.
+/// For task-level control, use `mybusinessaccountmanagement_locations_admins_delete_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn mybusinessaccountmanagement_locations_admins_delete(
+    client: &SimpleHttpClient,
+    args: &MybusinessaccountmanagementLocationsAdminsDeleteArgs,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<Empty>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let builder = mybusinessaccountmanagement_locations_admins_delete_builder(client, &args.name)?;
+    mybusinessaccountmanagement_locations_admins_delete_execute(builder)
+}
+
+/// GET v1/locations/{locationsId}/admins
+/// Lists all of the admins for the specified location.
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `mybusinessaccountmanagement_locations_admins_list_execute()` to send, or `mybusinessaccountmanagement_locations_admins_list` for simplest API.
+
+pub fn mybusinessaccountmanagement_locations_admins_list_builder(
+    client: &SimpleHttpClient,
+    parent: &String,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!(
+        "https://mybusinessaccountmanagement.googleapis.com/v1/locations/{}/admins",
+        parent,
+    );
+
+    // Build request
+    let builder = client
+        .get(&endpoint_url)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// GET v1/locations/{locationsId}/admins
+/// Lists all of the admins for the specified location.
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `mybusinessaccountmanagement_locations_admins_list_execute()` or `mybusinessaccountmanagement_locations_admins_list`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `mybusinessaccountmanagement_locations_admins_list_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn mybusinessaccountmanagement_locations_admins_list_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<ListLocationAdminsResponse>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: ListLocationAdminsResponse = serde_json::from_str(&body)
+                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// GET v1/locations/{locationsId}/admins
+/// Lists all of the admins for the specified location.
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `mybusinessaccountmanagement_locations_admins_list_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `mybusinessaccountmanagement_locations_admins_list_task()`.
+/// For the simplest API, use `mybusinessaccountmanagement_locations_admins_list()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `mybusinessaccountmanagement_locations_admins_list_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn mybusinessaccountmanagement_locations_admins_list_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<
+            D = Result<ApiResponse<ListLocationAdminsResponse>, ApiError>,
+            P = ApiPending,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    let task = mybusinessaccountmanagement_locations_admins_list_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`mybusinessaccountmanagement_locations_admins_list`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct MybusinessaccountmanagementLocationsAdminsListArgs {
+    /// Path parameter: parent
+    pub parent: String,
+}
+
+/// GET v1/locations/{locationsId}/admins
+/// Lists all of the admins for the specified location.
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `mybusinessaccountmanagement_locations_admins_list_builder()` + `mybusinessaccountmanagement_locations_admins_list_execute()`.
+/// For task-level control, use `mybusinessaccountmanagement_locations_admins_list_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn mybusinessaccountmanagement_locations_admins_list(
+    client: &SimpleHttpClient,
+    args: &MybusinessaccountmanagementLocationsAdminsListArgs,
+) -> Result<
+    impl StreamIterator<
+            D = Result<ApiResponse<ListLocationAdminsResponse>, ApiError>,
+            P = ApiPending,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    let builder = mybusinessaccountmanagement_locations_admins_list_builder(client, &args.parent)?;
+    mybusinessaccountmanagement_locations_admins_list_execute(builder)
+}
+
+/// PATCH v1/locations/{locationsId}/admins/{adminsId}
+/// Updates the Admin for the specified location. Only the AdminRole of the Admin can be updated.
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `mybusinessaccountmanagement_locations_admins_patch_execute()` to send, or `mybusinessaccountmanagement_locations_admins_patch` for simplest API.
+
+pub fn mybusinessaccountmanagement_locations_admins_patch_builder(
+    client: &SimpleHttpClient,
+    name: &String,
+    updateMask: &Option<Option<String>>,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!(
+        "https://mybusinessaccountmanagement.googleapis.com/v1/locations/{}/admins/{adminsId}",
+        name,
+    );
+
+    // Build request
+    let mut query_parts = Vec::new();
+    if let Some(val) = updateMask.as_ref() {
+        query_parts.push(format!("updateMask={}", val));
+    }
+
+    let url_with_query = if query_parts.is_empty() {
+        endpoint_url
+    } else {
+        format!("{}?{}", endpoint_url, query_parts.join("&"))
+    };
+
+    let builder = client
+        .patch(&url_with_query)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// PATCH v1/locations/{locationsId}/admins/{adminsId}
+/// Updates the Admin for the specified location. Only the AdminRole of the Admin can be updated.
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `mybusinessaccountmanagement_locations_admins_patch_execute()` or `mybusinessaccountmanagement_locations_admins_patch`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `mybusinessaccountmanagement_locations_admins_patch_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn mybusinessaccountmanagement_locations_admins_patch_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<Admin>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: Admin = serde_json::from_str(&body)
+                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// PATCH v1/locations/{locationsId}/admins/{adminsId}
+/// Updates the Admin for the specified location. Only the AdminRole of the Admin can be updated.
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `mybusinessaccountmanagement_locations_admins_patch_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `mybusinessaccountmanagement_locations_admins_patch_task()`.
+/// For the simplest API, use `mybusinessaccountmanagement_locations_admins_patch()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `mybusinessaccountmanagement_locations_admins_patch_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn mybusinessaccountmanagement_locations_admins_patch_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<Admin>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let task = mybusinessaccountmanagement_locations_admins_patch_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`mybusinessaccountmanagement_locations_admins_patch`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct MybusinessaccountmanagementLocationsAdminsPatchArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Query parameter: updateMask
+    pub updateMask: Option<Option<String>>,
+}
+
+/// PATCH v1/locations/{locationsId}/admins/{adminsId}
+/// Updates the Admin for the specified location. Only the AdminRole of the Admin can be updated.
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `mybusinessaccountmanagement_locations_admins_patch_builder()` + `mybusinessaccountmanagement_locations_admins_patch_execute()`.
+/// For task-level control, use `mybusinessaccountmanagement_locations_admins_patch_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn mybusinessaccountmanagement_locations_admins_patch(
+    client: &SimpleHttpClient,
+    args: &MybusinessaccountmanagementLocationsAdminsPatchArgs,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<Admin>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let builder = mybusinessaccountmanagement_locations_admins_patch_builder(
+        client,
+        &args.name,
+        &args.updateMask,
+    )?;
+    mybusinessaccountmanagement_locations_admins_patch_execute(builder)
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for Account
+// =============================================================================
+
+/// ResourceIdentifier implementation for Account with MybusinessaccountmanagementAccountsCreateArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<MybusinessaccountmanagementAccountsCreateArgs> for Account {
+    fn generate_resource_id(
+        &self,
+        input: &MybusinessaccountmanagementAccountsCreateArgs,
+    ) -> String {
+        "gcp::mybusinessaccountmanagement::Account".to_string()
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::mybusinessaccountmanagement::Account"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for Account
+// =============================================================================
+
+/// ResourceIdentifier implementation for Account with MybusinessaccountmanagementAccountsGetArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<MybusinessaccountmanagementAccountsGetArgs> for Account {
+    fn generate_resource_id(&self, input: &MybusinessaccountmanagementAccountsGetArgs) -> String {
+        format!("gcp::mybusinessaccountmanagement::Account/{}", input.name)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::mybusinessaccountmanagement::Account"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for ListAccountsResponse
+// =============================================================================
+
+/// ResourceIdentifier implementation for ListAccountsResponse with MybusinessaccountmanagementAccountsListArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<MybusinessaccountmanagementAccountsListArgs> for ListAccountsResponse {
+    fn generate_resource_id(&self, input: &MybusinessaccountmanagementAccountsListArgs) -> String {
+        "gcp::mybusinessaccountmanagement::ListAccountsResponse".to_string()
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::mybusinessaccountmanagement::ListAccountsResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for Account
+// =============================================================================
+
+/// ResourceIdentifier implementation for Account with MybusinessaccountmanagementAccountsPatchArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<MybusinessaccountmanagementAccountsPatchArgs> for Account {
+    fn generate_resource_id(&self, input: &MybusinessaccountmanagementAccountsPatchArgs) -> String {
+        format!("gcp::mybusinessaccountmanagement::Account/{}", input.name)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::mybusinessaccountmanagement::Account"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for Admin
+// =============================================================================
+
+/// ResourceIdentifier implementation for Admin with MybusinessaccountmanagementAccountsAdminsCreateArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<MybusinessaccountmanagementAccountsAdminsCreateArgs> for Admin {
+    fn generate_resource_id(
+        &self,
+        input: &MybusinessaccountmanagementAccountsAdminsCreateArgs,
+    ) -> String {
+        format!("gcp::mybusinessaccountmanagement::Admin/{}", input.parent)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::mybusinessaccountmanagement::Admin"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for Empty
+// =============================================================================
+
+/// ResourceIdentifier implementation for Empty with MybusinessaccountmanagementAccountsAdminsDeleteArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<MybusinessaccountmanagementAccountsAdminsDeleteArgs> for Empty {
+    fn generate_resource_id(
+        &self,
+        input: &MybusinessaccountmanagementAccountsAdminsDeleteArgs,
+    ) -> String {
+        format!("gcp::mybusinessaccountmanagement::Empty/{}", input.name)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::mybusinessaccountmanagement::Empty"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for ListAccountAdminsResponse
+// =============================================================================
+
+/// ResourceIdentifier implementation for ListAccountAdminsResponse with MybusinessaccountmanagementAccountsAdminsListArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<MybusinessaccountmanagementAccountsAdminsListArgs>
+    for ListAccountAdminsResponse
+{
+    fn generate_resource_id(
+        &self,
+        input: &MybusinessaccountmanagementAccountsAdminsListArgs,
+    ) -> String {
+        format!(
+            "gcp::mybusinessaccountmanagement::ListAccountAdminsResponse/{}",
+            input.parent
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::mybusinessaccountmanagement::ListAccountAdminsResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for Admin
+// =============================================================================
+
+/// ResourceIdentifier implementation for Admin with MybusinessaccountmanagementAccountsAdminsPatchArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<MybusinessaccountmanagementAccountsAdminsPatchArgs> for Admin {
+    fn generate_resource_id(
+        &self,
+        input: &MybusinessaccountmanagementAccountsAdminsPatchArgs,
+    ) -> String {
+        format!("gcp::mybusinessaccountmanagement::Admin/{}", input.name)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::mybusinessaccountmanagement::Admin"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for Empty
+// =============================================================================
+
+/// ResourceIdentifier implementation for Empty with MybusinessaccountmanagementAccountsInvitationsAcceptArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<MybusinessaccountmanagementAccountsInvitationsAcceptArgs> for Empty {
+    fn generate_resource_id(
+        &self,
+        input: &MybusinessaccountmanagementAccountsInvitationsAcceptArgs,
+    ) -> String {
+        format!("gcp::mybusinessaccountmanagement::Empty/{}", input.name)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::mybusinessaccountmanagement::Empty"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for Empty
+// =============================================================================
+
+/// ResourceIdentifier implementation for Empty with MybusinessaccountmanagementAccountsInvitationsDeclineArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<MybusinessaccountmanagementAccountsInvitationsDeclineArgs> for Empty {
+    fn generate_resource_id(
+        &self,
+        input: &MybusinessaccountmanagementAccountsInvitationsDeclineArgs,
+    ) -> String {
+        format!("gcp::mybusinessaccountmanagement::Empty/{}", input.name)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::mybusinessaccountmanagement::Empty"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for ListInvitationsResponse
+// =============================================================================
+
+/// ResourceIdentifier implementation for ListInvitationsResponse with MybusinessaccountmanagementAccountsInvitationsListArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<MybusinessaccountmanagementAccountsInvitationsListArgs>
+    for ListInvitationsResponse
+{
+    fn generate_resource_id(
+        &self,
+        input: &MybusinessaccountmanagementAccountsInvitationsListArgs,
+    ) -> String {
+        format!(
+            "gcp::mybusinessaccountmanagement::ListInvitationsResponse/{}",
+            input.parent
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::mybusinessaccountmanagement::ListInvitationsResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for Empty
+// =============================================================================
+
+/// ResourceIdentifier implementation for Empty with MybusinessaccountmanagementLocationsTransferArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<MybusinessaccountmanagementLocationsTransferArgs> for Empty {
+    fn generate_resource_id(
+        &self,
+        input: &MybusinessaccountmanagementLocationsTransferArgs,
+    ) -> String {
+        format!("gcp::mybusinessaccountmanagement::Empty/{}", input.name)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::mybusinessaccountmanagement::Empty"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for Admin
+// =============================================================================
+
+/// ResourceIdentifier implementation for Admin with MybusinessaccountmanagementLocationsAdminsCreateArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<MybusinessaccountmanagementLocationsAdminsCreateArgs> for Admin {
+    fn generate_resource_id(
+        &self,
+        input: &MybusinessaccountmanagementLocationsAdminsCreateArgs,
+    ) -> String {
+        format!("gcp::mybusinessaccountmanagement::Admin/{}", input.parent)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::mybusinessaccountmanagement::Admin"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for Empty
+// =============================================================================
+
+/// ResourceIdentifier implementation for Empty with MybusinessaccountmanagementLocationsAdminsDeleteArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<MybusinessaccountmanagementLocationsAdminsDeleteArgs> for Empty {
+    fn generate_resource_id(
+        &self,
+        input: &MybusinessaccountmanagementLocationsAdminsDeleteArgs,
+    ) -> String {
+        format!("gcp::mybusinessaccountmanagement::Empty/{}", input.name)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::mybusinessaccountmanagement::Empty"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for ListLocationAdminsResponse
+// =============================================================================
+
+/// ResourceIdentifier implementation for ListLocationAdminsResponse with MybusinessaccountmanagementLocationsAdminsListArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<MybusinessaccountmanagementLocationsAdminsListArgs>
+    for ListLocationAdminsResponse
+{
+    fn generate_resource_id(
+        &self,
+        input: &MybusinessaccountmanagementLocationsAdminsListArgs,
+    ) -> String {
+        format!(
+            "gcp::mybusinessaccountmanagement::ListLocationAdminsResponse/{}",
+            input.parent
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::mybusinessaccountmanagement::ListLocationAdminsResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for Admin
+// =============================================================================
+
+/// ResourceIdentifier implementation for Admin with MybusinessaccountmanagementLocationsAdminsPatchArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<MybusinessaccountmanagementLocationsAdminsPatchArgs> for Admin {
+    fn generate_resource_id(
+        &self,
+        input: &MybusinessaccountmanagementLocationsAdminsPatchArgs,
+    ) -> String {
+        format!("gcp::mybusinessaccountmanagement::Admin/{}", input.name)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::mybusinessaccountmanagement::Admin"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
 }

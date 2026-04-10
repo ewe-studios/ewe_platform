@@ -783,7 +783,7 @@
       }
     }
   },
-  "revision": "20260330",
+  "revision": "20260402",
   "rootUrl": "https://cloudfunctions.googleapis.com/",
   "schemas": {
     "AbortFunctionUpgradeRequest": {

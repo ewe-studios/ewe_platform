@@ -7,7 +7,6 @@
 
 #![cfg(feature = "gcp")]
 
-
 use crate::providers::gcp::clients::types::*;
 use crate::providers::gcp::resources::*;
 use foundation_core::valtron::{
@@ -17,6 +16,7 @@ use foundation_core::valtron::{
 use foundation_core::wire::simple_http::client::{
     body_reader, ClientRequestBuilder, RequestIntro, SimpleHttpClient, SystemDnsResolver,
 };
+use foundation_db::state::resource_identifier::ResourceIdentifier;
 use foundation_macros::JsonHash;
 use serde::Serialize;
 
@@ -31,7 +31,10 @@ pub fn binaryauthorization_projects_get_policy_builder(
     name: &String,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
-    let endpoint_url = format!("https://binaryauthorization.googleapis.com/v1/projects/{}/policy",);
+    let endpoint_url = format!(
+        "https://binaryauthorization.googleapis.com/v1/projects/{}/policy",
+        name,
+    );
 
     // Build request
     let builder = client
@@ -174,7 +177,164 @@ pub fn binaryauthorization_projects_get_policy(
     binaryauthorization_projects_get_policy_execute(builder)
 }
 
-/// GET v1/projects/{projectsId}/attestors
+/// PUT v1/projects/{projectsId}/policy
+/// Creates or updates a project's policy, and returns a copy of the new policy. A policy is always updated as a whole, to avoid race conditions with concurrent policy enforcement (or management!) requests. Returns NOT_FOUND if the project does not exist, INVALID_ARGUMENT if the request is malformed.
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `binaryauthorization_projects_update_policy_execute()` to send, or `binaryauthorization_projects_update_policy` for simplest API.
+
+pub fn binaryauthorization_projects_update_policy_builder(
+    client: &SimpleHttpClient,
+    name: &String,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!(
+        "https://binaryauthorization.googleapis.com/v1/projects/{}/policy",
+        name,
+    );
+
+    // Build request
+    let builder = client
+        .put(&endpoint_url)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// PUT v1/projects/{projectsId}/policy
+/// Creates or updates a project's policy, and returns a copy of the new policy. A policy is always updated as a whole, to avoid race conditions with concurrent policy enforcement (or management!) requests. Returns NOT_FOUND if the project does not exist, INVALID_ARGUMENT if the request is malformed.
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `binaryauthorization_projects_update_policy_execute()` or `binaryauthorization_projects_update_policy`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `binaryauthorization_projects_update_policy_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn binaryauthorization_projects_update_policy_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<Policy>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: Policy = serde_json::from_str(&body)
+                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// PUT v1/projects/{projectsId}/policy
+/// Creates or updates a project's policy, and returns a copy of the new policy. A policy is always updated as a whole, to avoid race conditions with concurrent policy enforcement (or management!) requests. Returns NOT_FOUND if the project does not exist, INVALID_ARGUMENT if the request is malformed.
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `binaryauthorization_projects_update_policy_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `binaryauthorization_projects_update_policy_task()`.
+/// For the simplest API, use `binaryauthorization_projects_update_policy()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `binaryauthorization_projects_update_policy_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn binaryauthorization_projects_update_policy_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<Policy>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let task = binaryauthorization_projects_update_policy_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`binaryauthorization_projects_update_policy`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct BinaryauthorizationProjectsUpdatePolicyArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
+/// PUT v1/projects/{projectsId}/policy
+/// Creates or updates a project's policy, and returns a copy of the new policy. A policy is always updated as a whole, to avoid race conditions with concurrent policy enforcement (or management!) requests. Returns NOT_FOUND if the project does not exist, INVALID_ARGUMENT if the request is malformed.
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `binaryauthorization_projects_update_policy_builder()` + `binaryauthorization_projects_update_policy_execute()`.
+/// For task-level control, use `binaryauthorization_projects_update_policy_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn binaryauthorization_projects_update_policy(
+    client: &SimpleHttpClient,
+    args: &BinaryauthorizationProjectsUpdatePolicyArgs,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<Policy>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let builder = binaryauthorization_projects_update_policy_builder(client, &args.name)?;
+    binaryauthorization_projects_update_policy_execute(builder)
+}
+
+/// POST v1/projects/{projectsId}/attestors
 /// Creates an attestor, and returns a copy of the new attestor. Returns NOT_FOUND if the project does not exist, INVALID_ARGUMENT if the request is malformed, ALREADY_EXISTS if the attestor already exists.
 ///
 /// Returns `ClientRequestBuilder` for customization.
@@ -183,12 +343,13 @@ pub fn binaryauthorization_projects_get_policy(
 pub fn binaryauthorization_projects_attestors_create_builder(
     client: &SimpleHttpClient,
     parent: &String,
-    attestorId: &Option<String>,
-    body: &Attestor,
+    attestorId: &Option<Option<String>>,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
-    let endpoint_url =
-        format!("https://binaryauthorization.googleapis.com/v1/projects/{}/attestors",);
+    let endpoint_url = format!(
+        "https://binaryauthorization.googleapis.com/v1/projects/{}/attestors",
+        parent,
+    );
 
     // Build request
     let mut query_parts = Vec::new();
@@ -203,15 +364,13 @@ pub fn binaryauthorization_projects_attestors_create_builder(
     };
 
     let builder = client
-        .get(&url_with_query)
+        .post(&url_with_query)
         .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
 
-    builder
-        .body_json(body)
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+    Ok(builder)
 }
 
-/// GET v1/projects/{projectsId}/attestors
+/// POST v1/projects/{projectsId}/attestors
 /// Creates an attestor, and returns a copy of the new attestor. Returns NOT_FOUND if the project does not exist, INVALID_ARGUMENT if the request is malformed, ALREADY_EXISTS if the attestor already exists.
 ///
 /// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
@@ -285,7 +444,7 @@ pub fn binaryauthorization_projects_attestors_create_task(
         .map_pending(|_| ApiPending::Sending))
 }
 
-/// GET v1/projects/{projectsId}/attestors
+/// POST v1/projects/{projectsId}/attestors
 /// Creates an attestor, and returns a copy of the new attestor. Returns NOT_FOUND if the project does not exist, INVALID_ARGUMENT if the request is malformed, ALREADY_EXISTS if the attestor already exists.
 ///
 /// Takes a `ClientRequestBuilder`, builds and executes the request,
@@ -321,12 +480,10 @@ pub struct BinaryauthorizationProjectsAttestorsCreateArgs {
     /// Path parameter: parent
     pub parent: String,
     /// Query parameter: attestorId
-    pub attestorId: Option<String>,
-    /// Request body.
-    pub body: Attestor,
+    pub attestorId: Option<Option<String>>,
 }
 
-/// GET v1/projects/{projectsId}/attestors
+/// POST v1/projects/{projectsId}/attestors
 /// Creates an attestor, and returns a copy of the new attestor. Returns NOT_FOUND if the project does not exist, INVALID_ARGUMENT if the request is malformed, ALREADY_EXISTS if the attestor already exists.
 ///
 /// Simplest API - builds and executes the request in one call.
@@ -348,9 +505,2364 @@ pub fn binaryauthorization_projects_attestors_create(
         client,
         &args.parent,
         &args.attestorId,
-        &args.body,
     )?;
     binaryauthorization_projects_attestors_create_execute(builder)
+}
+
+/// DELETE v1/projects/{projectsId}/attestors/{attestorsId}
+/// Deletes an attestor. Returns NOT_FOUND if the attestor does not exist.
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `binaryauthorization_projects_attestors_delete_execute()` to send, or `binaryauthorization_projects_attestors_delete` for simplest API.
+
+pub fn binaryauthorization_projects_attestors_delete_builder(
+    client: &SimpleHttpClient,
+    name: &String,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!(
+        "https://binaryauthorization.googleapis.com/v1/projects/{}/attestors/{attestorsId}",
+        name,
+    );
+
+    // Build request
+    let builder = client
+        .delete(&endpoint_url)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// DELETE v1/projects/{projectsId}/attestors/{attestorsId}
+/// Deletes an attestor. Returns NOT_FOUND if the attestor does not exist.
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `binaryauthorization_projects_attestors_delete_execute()` or `binaryauthorization_projects_attestors_delete`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `binaryauthorization_projects_attestors_delete_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn binaryauthorization_projects_attestors_delete_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<Empty>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: Empty = serde_json::from_str(&body)
+                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// DELETE v1/projects/{projectsId}/attestors/{attestorsId}
+/// Deletes an attestor. Returns NOT_FOUND if the attestor does not exist.
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `binaryauthorization_projects_attestors_delete_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `binaryauthorization_projects_attestors_delete_task()`.
+/// For the simplest API, use `binaryauthorization_projects_attestors_delete()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `binaryauthorization_projects_attestors_delete_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn binaryauthorization_projects_attestors_delete_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<Empty>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let task = binaryauthorization_projects_attestors_delete_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`binaryauthorization_projects_attestors_delete`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct BinaryauthorizationProjectsAttestorsDeleteArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
+/// DELETE v1/projects/{projectsId}/attestors/{attestorsId}
+/// Deletes an attestor. Returns NOT_FOUND if the attestor does not exist.
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `binaryauthorization_projects_attestors_delete_builder()` + `binaryauthorization_projects_attestors_delete_execute()`.
+/// For task-level control, use `binaryauthorization_projects_attestors_delete_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn binaryauthorization_projects_attestors_delete(
+    client: &SimpleHttpClient,
+    args: &BinaryauthorizationProjectsAttestorsDeleteArgs,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<Empty>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let builder = binaryauthorization_projects_attestors_delete_builder(client, &args.name)?;
+    binaryauthorization_projects_attestors_delete_execute(builder)
+}
+
+/// GET v1/projects/{projectsId}/attestors/{attestorsId}
+/// Gets an attestor. Returns NOT_FOUND if the attestor does not exist.
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `binaryauthorization_projects_attestors_get_execute()` to send, or `binaryauthorization_projects_attestors_get` for simplest API.
+
+pub fn binaryauthorization_projects_attestors_get_builder(
+    client: &SimpleHttpClient,
+    name: &String,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!(
+        "https://binaryauthorization.googleapis.com/v1/projects/{}/attestors/{attestorsId}",
+        name,
+    );
+
+    // Build request
+    let builder = client
+        .get(&endpoint_url)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// GET v1/projects/{projectsId}/attestors/{attestorsId}
+/// Gets an attestor. Returns NOT_FOUND if the attestor does not exist.
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `binaryauthorization_projects_attestors_get_execute()` or `binaryauthorization_projects_attestors_get`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `binaryauthorization_projects_attestors_get_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn binaryauthorization_projects_attestors_get_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<Attestor>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: Attestor = serde_json::from_str(&body)
+                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// GET v1/projects/{projectsId}/attestors/{attestorsId}
+/// Gets an attestor. Returns NOT_FOUND if the attestor does not exist.
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `binaryauthorization_projects_attestors_get_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `binaryauthorization_projects_attestors_get_task()`.
+/// For the simplest API, use `binaryauthorization_projects_attestors_get()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `binaryauthorization_projects_attestors_get_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn binaryauthorization_projects_attestors_get_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<Attestor>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let task = binaryauthorization_projects_attestors_get_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`binaryauthorization_projects_attestors_get`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct BinaryauthorizationProjectsAttestorsGetArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
+/// GET v1/projects/{projectsId}/attestors/{attestorsId}
+/// Gets an attestor. Returns NOT_FOUND if the attestor does not exist.
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `binaryauthorization_projects_attestors_get_builder()` + `binaryauthorization_projects_attestors_get_execute()`.
+/// For task-level control, use `binaryauthorization_projects_attestors_get_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn binaryauthorization_projects_attestors_get(
+    client: &SimpleHttpClient,
+    args: &BinaryauthorizationProjectsAttestorsGetArgs,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<Attestor>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let builder = binaryauthorization_projects_attestors_get_builder(client, &args.name)?;
+    binaryauthorization_projects_attestors_get_execute(builder)
+}
+
+/// GET v1/projects/{projectsId}/attestors/{attestorsId}:getIamPolicy
+/// Gets the access control policy for a resource. Returns an empty policy if the resource exists and does not have a policy set.
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `binaryauthorization_projects_attestors_get_iam_policy_execute()` to send, or `binaryauthorization_projects_attestors_get_iam_policy` for simplest API.
+
+pub fn binaryauthorization_projects_attestors_get_iam_policy_builder(
+    client: &SimpleHttpClient,
+    resource: &String,
+    options_requestedPolicyVersion: &Option<Option<String>>,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!(
+        "https://binaryauthorization.googleapis.com/v1/projects/{}/attestors/{attestorsId}:getIamPolicy",
+        resource,
+    );
+
+    // Build request
+    let mut query_parts = Vec::new();
+    if let Some(val) = options_requestedPolicyVersion.as_ref() {
+        query_parts.push(format!("options.requestedPolicyVersion={}", val));
+    }
+
+    let url_with_query = if query_parts.is_empty() {
+        endpoint_url
+    } else {
+        format!("{}?{}", endpoint_url, query_parts.join("&"))
+    };
+
+    let builder = client
+        .get(&url_with_query)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// GET v1/projects/{projectsId}/attestors/{attestorsId}:getIamPolicy
+/// Gets the access control policy for a resource. Returns an empty policy if the resource exists and does not have a policy set.
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `binaryauthorization_projects_attestors_get_iam_policy_execute()` or `binaryauthorization_projects_attestors_get_iam_policy`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `binaryauthorization_projects_attestors_get_iam_policy_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn binaryauthorization_projects_attestors_get_iam_policy_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<IamPolicy>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: IamPolicy = serde_json::from_str(&body)
+                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// GET v1/projects/{projectsId}/attestors/{attestorsId}:getIamPolicy
+/// Gets the access control policy for a resource. Returns an empty policy if the resource exists and does not have a policy set.
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `binaryauthorization_projects_attestors_get_iam_policy_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `binaryauthorization_projects_attestors_get_iam_policy_task()`.
+/// For the simplest API, use `binaryauthorization_projects_attestors_get_iam_policy()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `binaryauthorization_projects_attestors_get_iam_policy_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn binaryauthorization_projects_attestors_get_iam_policy_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<IamPolicy>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let task = binaryauthorization_projects_attestors_get_iam_policy_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`binaryauthorization_projects_attestors_get_iam_policy`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct BinaryauthorizationProjectsAttestorsGetIamPolicyArgs {
+    /// Path parameter: resource
+    pub resource: String,
+    /// Query parameter: options_requestedPolicyVersion
+    pub options_requestedPolicyVersion: Option<Option<String>>,
+}
+
+/// GET v1/projects/{projectsId}/attestors/{attestorsId}:getIamPolicy
+/// Gets the access control policy for a resource. Returns an empty policy if the resource exists and does not have a policy set.
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `binaryauthorization_projects_attestors_get_iam_policy_builder()` + `binaryauthorization_projects_attestors_get_iam_policy_execute()`.
+/// For task-level control, use `binaryauthorization_projects_attestors_get_iam_policy_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn binaryauthorization_projects_attestors_get_iam_policy(
+    client: &SimpleHttpClient,
+    args: &BinaryauthorizationProjectsAttestorsGetIamPolicyArgs,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<IamPolicy>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let builder = binaryauthorization_projects_attestors_get_iam_policy_builder(
+        client,
+        &args.resource,
+        &args.options_requestedPolicyVersion,
+    )?;
+    binaryauthorization_projects_attestors_get_iam_policy_execute(builder)
+}
+
+/// GET v1/projects/{projectsId}/attestors
+/// Lists attestors. Returns INVALID_ARGUMENT if the project does not exist.
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `binaryauthorization_projects_attestors_list_execute()` to send, or `binaryauthorization_projects_attestors_list` for simplest API.
+
+pub fn binaryauthorization_projects_attestors_list_builder(
+    client: &SimpleHttpClient,
+    parent: &String,
+    pageSize: &Option<Option<String>>,
+    pageToken: &Option<Option<String>>,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!(
+        "https://binaryauthorization.googleapis.com/v1/projects/{}/attestors",
+        parent,
+    );
+
+    // Build request
+    let mut query_parts = Vec::new();
+    if let Some(val) = pageSize.as_ref() {
+        query_parts.push(format!("pageSize={}", val));
+    }
+    if let Some(val) = pageToken.as_ref() {
+        query_parts.push(format!("pageToken={}", val));
+    }
+
+    let url_with_query = if query_parts.is_empty() {
+        endpoint_url
+    } else {
+        format!("{}?{}", endpoint_url, query_parts.join("&"))
+    };
+
+    let builder = client
+        .get(&url_with_query)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// GET v1/projects/{projectsId}/attestors
+/// Lists attestors. Returns INVALID_ARGUMENT if the project does not exist.
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `binaryauthorization_projects_attestors_list_execute()` or `binaryauthorization_projects_attestors_list`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `binaryauthorization_projects_attestors_list_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn binaryauthorization_projects_attestors_list_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<ListAttestorsResponse>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: ListAttestorsResponse = serde_json::from_str(&body)
+                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// GET v1/projects/{projectsId}/attestors
+/// Lists attestors. Returns INVALID_ARGUMENT if the project does not exist.
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `binaryauthorization_projects_attestors_list_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `binaryauthorization_projects_attestors_list_task()`.
+/// For the simplest API, use `binaryauthorization_projects_attestors_list()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `binaryauthorization_projects_attestors_list_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn binaryauthorization_projects_attestors_list_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<ListAttestorsResponse>, ApiError>, P = ApiPending>
+        + Send
+        + 'static,
+    ApiError,
+> {
+    let task = binaryauthorization_projects_attestors_list_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`binaryauthorization_projects_attestors_list`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct BinaryauthorizationProjectsAttestorsListArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Query parameter: pageSize
+    pub pageSize: Option<Option<String>>,
+    /// Query parameter: pageToken
+    pub pageToken: Option<Option<String>>,
+}
+
+/// GET v1/projects/{projectsId}/attestors
+/// Lists attestors. Returns INVALID_ARGUMENT if the project does not exist.
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `binaryauthorization_projects_attestors_list_builder()` + `binaryauthorization_projects_attestors_list_execute()`.
+/// For task-level control, use `binaryauthorization_projects_attestors_list_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn binaryauthorization_projects_attestors_list(
+    client: &SimpleHttpClient,
+    args: &BinaryauthorizationProjectsAttestorsListArgs,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<ListAttestorsResponse>, ApiError>, P = ApiPending>
+        + Send
+        + 'static,
+    ApiError,
+> {
+    let builder = binaryauthorization_projects_attestors_list_builder(
+        client,
+        &args.parent,
+        &args.pageSize,
+        &args.pageToken,
+    )?;
+    binaryauthorization_projects_attestors_list_execute(builder)
+}
+
+/// POST v1/projects/{projectsId}/attestors/{attestorsId}:setIamPolicy
+/// Sets the access control policy on the specified resource. Replaces any existing policy. Can return NOT_FOUND, INVALID_ARGUMENT, and PERMISSION_DENIED errors.
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `binaryauthorization_projects_attestors_set_iam_policy_execute()` to send, or `binaryauthorization_projects_attestors_set_iam_policy` for simplest API.
+
+pub fn binaryauthorization_projects_attestors_set_iam_policy_builder(
+    client: &SimpleHttpClient,
+    resource: &String,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!(
+        "https://binaryauthorization.googleapis.com/v1/projects/{}/attestors/{attestorsId}:setIamPolicy",
+        resource,
+    );
+
+    // Build request
+    let builder = client
+        .post(&endpoint_url)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// POST v1/projects/{projectsId}/attestors/{attestorsId}:setIamPolicy
+/// Sets the access control policy on the specified resource. Replaces any existing policy. Can return NOT_FOUND, INVALID_ARGUMENT, and PERMISSION_DENIED errors.
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `binaryauthorization_projects_attestors_set_iam_policy_execute()` or `binaryauthorization_projects_attestors_set_iam_policy`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `binaryauthorization_projects_attestors_set_iam_policy_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn binaryauthorization_projects_attestors_set_iam_policy_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<IamPolicy>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: IamPolicy = serde_json::from_str(&body)
+                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// POST v1/projects/{projectsId}/attestors/{attestorsId}:setIamPolicy
+/// Sets the access control policy on the specified resource. Replaces any existing policy. Can return NOT_FOUND, INVALID_ARGUMENT, and PERMISSION_DENIED errors.
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `binaryauthorization_projects_attestors_set_iam_policy_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `binaryauthorization_projects_attestors_set_iam_policy_task()`.
+/// For the simplest API, use `binaryauthorization_projects_attestors_set_iam_policy()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `binaryauthorization_projects_attestors_set_iam_policy_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn binaryauthorization_projects_attestors_set_iam_policy_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<IamPolicy>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let task = binaryauthorization_projects_attestors_set_iam_policy_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`binaryauthorization_projects_attestors_set_iam_policy`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct BinaryauthorizationProjectsAttestorsSetIamPolicyArgs {
+    /// Path parameter: resource
+    pub resource: String,
+}
+
+/// POST v1/projects/{projectsId}/attestors/{attestorsId}:setIamPolicy
+/// Sets the access control policy on the specified resource. Replaces any existing policy. Can return NOT_FOUND, INVALID_ARGUMENT, and PERMISSION_DENIED errors.
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `binaryauthorization_projects_attestors_set_iam_policy_builder()` + `binaryauthorization_projects_attestors_set_iam_policy_execute()`.
+/// For task-level control, use `binaryauthorization_projects_attestors_set_iam_policy_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn binaryauthorization_projects_attestors_set_iam_policy(
+    client: &SimpleHttpClient,
+    args: &BinaryauthorizationProjectsAttestorsSetIamPolicyArgs,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<IamPolicy>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let builder =
+        binaryauthorization_projects_attestors_set_iam_policy_builder(client, &args.resource)?;
+    binaryauthorization_projects_attestors_set_iam_policy_execute(builder)
+}
+
+/// POST v1/projects/{projectsId}/attestors/{attestorsId}:testIamPermissions
+/// Returns permissions that a caller has on the specified resource. If the resource does not exist, this will return an empty set of permissions, not a NOT_FOUND error. Note: This operation is designed to be used for building permission-aware UIs and command-line tools, not for authorization checking. This operation may "fail open" without warning.
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `binaryauthorization_projects_attestors_test_iam_permissions_execute()` to send, or `binaryauthorization_projects_attestors_test_iam_permissions` for simplest API.
+
+pub fn binaryauthorization_projects_attestors_test_iam_permissions_builder(
+    client: &SimpleHttpClient,
+    resource: &String,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!(
+        "https://binaryauthorization.googleapis.com/v1/projects/{}/attestors/{attestorsId}:testIamPermissions",
+        resource,
+    );
+
+    // Build request
+    let builder = client
+        .post(&endpoint_url)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// POST v1/projects/{projectsId}/attestors/{attestorsId}:testIamPermissions
+/// Returns permissions that a caller has on the specified resource. If the resource does not exist, this will return an empty set of permissions, not a NOT_FOUND error. Note: This operation is designed to be used for building permission-aware UIs and command-line tools, not for authorization checking. This operation may "fail open" without warning.
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `binaryauthorization_projects_attestors_test_iam_permissions_execute()` or `binaryauthorization_projects_attestors_test_iam_permissions`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `binaryauthorization_projects_attestors_test_iam_permissions_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn binaryauthorization_projects_attestors_test_iam_permissions_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<TestIamPermissionsResponse>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: TestIamPermissionsResponse = serde_json::from_str(&body)
+                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// POST v1/projects/{projectsId}/attestors/{attestorsId}:testIamPermissions
+/// Returns permissions that a caller has on the specified resource. If the resource does not exist, this will return an empty set of permissions, not a NOT_FOUND error. Note: This operation is designed to be used for building permission-aware UIs and command-line tools, not for authorization checking. This operation may "fail open" without warning.
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `binaryauthorization_projects_attestors_test_iam_permissions_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `binaryauthorization_projects_attestors_test_iam_permissions_task()`.
+/// For the simplest API, use `binaryauthorization_projects_attestors_test_iam_permissions()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `binaryauthorization_projects_attestors_test_iam_permissions_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn binaryauthorization_projects_attestors_test_iam_permissions_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<
+            D = Result<ApiResponse<TestIamPermissionsResponse>, ApiError>,
+            P = ApiPending,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    let task = binaryauthorization_projects_attestors_test_iam_permissions_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`binaryauthorization_projects_attestors_test_iam_permissions`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct BinaryauthorizationProjectsAttestorsTestIamPermissionsArgs {
+    /// Path parameter: resource
+    pub resource: String,
+}
+
+/// POST v1/projects/{projectsId}/attestors/{attestorsId}:testIamPermissions
+/// Returns permissions that a caller has on the specified resource. If the resource does not exist, this will return an empty set of permissions, not a NOT_FOUND error. Note: This operation is designed to be used for building permission-aware UIs and command-line tools, not for authorization checking. This operation may "fail open" without warning.
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `binaryauthorization_projects_attestors_test_iam_permissions_builder()` + `binaryauthorization_projects_attestors_test_iam_permissions_execute()`.
+/// For task-level control, use `binaryauthorization_projects_attestors_test_iam_permissions_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn binaryauthorization_projects_attestors_test_iam_permissions(
+    client: &SimpleHttpClient,
+    args: &BinaryauthorizationProjectsAttestorsTestIamPermissionsArgs,
+) -> Result<
+    impl StreamIterator<
+            D = Result<ApiResponse<TestIamPermissionsResponse>, ApiError>,
+            P = ApiPending,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    let builder = binaryauthorization_projects_attestors_test_iam_permissions_builder(
+        client,
+        &args.resource,
+    )?;
+    binaryauthorization_projects_attestors_test_iam_permissions_execute(builder)
+}
+
+/// PUT v1/projects/{projectsId}/attestors/{attestorsId}
+/// Updates an attestor. Returns NOT_FOUND if the attestor does not exist.
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `binaryauthorization_projects_attestors_update_execute()` to send, or `binaryauthorization_projects_attestors_update` for simplest API.
+
+pub fn binaryauthorization_projects_attestors_update_builder(
+    client: &SimpleHttpClient,
+    name: &String,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!(
+        "https://binaryauthorization.googleapis.com/v1/projects/{}/attestors/{attestorsId}",
+        name,
+    );
+
+    // Build request
+    let builder = client
+        .put(&endpoint_url)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// PUT v1/projects/{projectsId}/attestors/{attestorsId}
+/// Updates an attestor. Returns NOT_FOUND if the attestor does not exist.
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `binaryauthorization_projects_attestors_update_execute()` or `binaryauthorization_projects_attestors_update`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `binaryauthorization_projects_attestors_update_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn binaryauthorization_projects_attestors_update_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<Attestor>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: Attestor = serde_json::from_str(&body)
+                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// PUT v1/projects/{projectsId}/attestors/{attestorsId}
+/// Updates an attestor. Returns NOT_FOUND if the attestor does not exist.
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `binaryauthorization_projects_attestors_update_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `binaryauthorization_projects_attestors_update_task()`.
+/// For the simplest API, use `binaryauthorization_projects_attestors_update()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `binaryauthorization_projects_attestors_update_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn binaryauthorization_projects_attestors_update_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<Attestor>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let task = binaryauthorization_projects_attestors_update_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`binaryauthorization_projects_attestors_update`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct BinaryauthorizationProjectsAttestorsUpdateArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
+/// PUT v1/projects/{projectsId}/attestors/{attestorsId}
+/// Updates an attestor. Returns NOT_FOUND if the attestor does not exist.
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `binaryauthorization_projects_attestors_update_builder()` + `binaryauthorization_projects_attestors_update_execute()`.
+/// For task-level control, use `binaryauthorization_projects_attestors_update_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn binaryauthorization_projects_attestors_update(
+    client: &SimpleHttpClient,
+    args: &BinaryauthorizationProjectsAttestorsUpdateArgs,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<Attestor>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let builder = binaryauthorization_projects_attestors_update_builder(client, &args.name)?;
+    binaryauthorization_projects_attestors_update_execute(builder)
+}
+
+/// POST v1/projects/{projectsId}/attestors/{attestorsId}:validateAttestationOccurrence
+/// Returns whether the given Attestation for the given image URI was signed by the given Attestor
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `binaryauthorization_projects_attestors_validate_attestation_occurrence_execute()` to send, or `binaryauthorization_projects_attestors_validate_attestation_occurrence` for simplest API.
+
+pub fn binaryauthorization_projects_attestors_validate_attestation_occurrence_builder(
+    client: &SimpleHttpClient,
+    attestor: &String,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!(
+        "https://binaryauthorization.googleapis.com/v1/projects/{}/attestors/{attestorsId}:validateAttestationOccurrence",
+        attestor,
+    );
+
+    // Build request
+    let builder = client
+        .post(&endpoint_url)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// POST v1/projects/{projectsId}/attestors/{attestorsId}:validateAttestationOccurrence
+/// Returns whether the given Attestation for the given image URI was signed by the given Attestor
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `binaryauthorization_projects_attestors_validate_attestation_occurrence_execute()` or `binaryauthorization_projects_attestors_validate_attestation_occurrence`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `binaryauthorization_projects_attestors_validate_attestation_occurrence_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn binaryauthorization_projects_attestors_validate_attestation_occurrence_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<ValidateAttestationOccurrenceResponse>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: ValidateAttestationOccurrenceResponse = serde_json::from_str(&body)
+                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// POST v1/projects/{projectsId}/attestors/{attestorsId}:validateAttestationOccurrence
+/// Returns whether the given Attestation for the given image URI was signed by the given Attestor
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `binaryauthorization_projects_attestors_validate_attestation_occurrence_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `binaryauthorization_projects_attestors_validate_attestation_occurrence_task()`.
+/// For the simplest API, use `binaryauthorization_projects_attestors_validate_attestation_occurrence()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `binaryauthorization_projects_attestors_validate_attestation_occurrence_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn binaryauthorization_projects_attestors_validate_attestation_occurrence_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<
+            D = Result<ApiResponse<ValidateAttestationOccurrenceResponse>, ApiError>,
+            P = ApiPending,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    let task =
+        binaryauthorization_projects_attestors_validate_attestation_occurrence_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`binaryauthorization_projects_attestors_validate_attestation_occurrence`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct BinaryauthorizationProjectsAttestorsValidateAttestationOccurrenceArgs {
+    /// Path parameter: attestor
+    pub attestor: String,
+}
+
+/// POST v1/projects/{projectsId}/attestors/{attestorsId}:validateAttestationOccurrence
+/// Returns whether the given Attestation for the given image URI was signed by the given Attestor
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `binaryauthorization_projects_attestors_validate_attestation_occurrence_builder()` + `binaryauthorization_projects_attestors_validate_attestation_occurrence_execute()`.
+/// For task-level control, use `binaryauthorization_projects_attestors_validate_attestation_occurrence_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn binaryauthorization_projects_attestors_validate_attestation_occurrence(
+    client: &SimpleHttpClient,
+    args: &BinaryauthorizationProjectsAttestorsValidateAttestationOccurrenceArgs,
+) -> Result<
+    impl StreamIterator<
+            D = Result<ApiResponse<ValidateAttestationOccurrenceResponse>, ApiError>,
+            P = ApiPending,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    let builder = binaryauthorization_projects_attestors_validate_attestation_occurrence_builder(
+        client,
+        &args.attestor,
+    )?;
+    binaryauthorization_projects_attestors_validate_attestation_occurrence_execute(builder)
+}
+
+/// POST v1/projects/{projectsId}/platforms/gke/policies/{policiesId}:evaluate
+/// Evaluates a Kubernetes object versus a GKE platform policy. Returns NOT_FOUND if the policy doesn't exist, INVALID_ARGUMENT if the policy or request is malformed and PERMISSION_DENIED if the client does not have sufficient permissions.
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `binaryauthorization_projects_platforms_gke_policies_evaluate_execute()` to send, or `binaryauthorization_projects_platforms_gke_policies_evaluate` for simplest API.
+
+pub fn binaryauthorization_projects_platforms_gke_policies_evaluate_builder(
+    client: &SimpleHttpClient,
+    name: &String,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!(
+        "https://binaryauthorization.googleapis.com/v1/projects/{}/platforms/gke/policies/{policiesId}:evaluate",
+        name,
+    );
+
+    // Build request
+    let builder = client
+        .post(&endpoint_url)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// POST v1/projects/{projectsId}/platforms/gke/policies/{policiesId}:evaluate
+/// Evaluates a Kubernetes object versus a GKE platform policy. Returns NOT_FOUND if the policy doesn't exist, INVALID_ARGUMENT if the policy or request is malformed and PERMISSION_DENIED if the client does not have sufficient permissions.
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `binaryauthorization_projects_platforms_gke_policies_evaluate_execute()` or `binaryauthorization_projects_platforms_gke_policies_evaluate`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `binaryauthorization_projects_platforms_gke_policies_evaluate_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn binaryauthorization_projects_platforms_gke_policies_evaluate_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<EvaluateGkePolicyResponse>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: EvaluateGkePolicyResponse = serde_json::from_str(&body)
+                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// POST v1/projects/{projectsId}/platforms/gke/policies/{policiesId}:evaluate
+/// Evaluates a Kubernetes object versus a GKE platform policy. Returns NOT_FOUND if the policy doesn't exist, INVALID_ARGUMENT if the policy or request is malformed and PERMISSION_DENIED if the client does not have sufficient permissions.
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `binaryauthorization_projects_platforms_gke_policies_evaluate_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `binaryauthorization_projects_platforms_gke_policies_evaluate_task()`.
+/// For the simplest API, use `binaryauthorization_projects_platforms_gke_policies_evaluate()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `binaryauthorization_projects_platforms_gke_policies_evaluate_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn binaryauthorization_projects_platforms_gke_policies_evaluate_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<EvaluateGkePolicyResponse>, ApiError>, P = ApiPending>
+        + Send
+        + 'static,
+    ApiError,
+> {
+    let task = binaryauthorization_projects_platforms_gke_policies_evaluate_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`binaryauthorization_projects_platforms_gke_policies_evaluate`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct BinaryauthorizationProjectsPlatformsGkePoliciesEvaluateArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
+/// POST v1/projects/{projectsId}/platforms/gke/policies/{policiesId}:evaluate
+/// Evaluates a Kubernetes object versus a GKE platform policy. Returns NOT_FOUND if the policy doesn't exist, INVALID_ARGUMENT if the policy or request is malformed and PERMISSION_DENIED if the client does not have sufficient permissions.
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `binaryauthorization_projects_platforms_gke_policies_evaluate_builder()` + `binaryauthorization_projects_platforms_gke_policies_evaluate_execute()`.
+/// For task-level control, use `binaryauthorization_projects_platforms_gke_policies_evaluate_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn binaryauthorization_projects_platforms_gke_policies_evaluate(
+    client: &SimpleHttpClient,
+    args: &BinaryauthorizationProjectsPlatformsGkePoliciesEvaluateArgs,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<EvaluateGkePolicyResponse>, ApiError>, P = ApiPending>
+        + Send
+        + 'static,
+    ApiError,
+> {
+    let builder =
+        binaryauthorization_projects_platforms_gke_policies_evaluate_builder(client, &args.name)?;
+    binaryauthorization_projects_platforms_gke_policies_evaluate_execute(builder)
+}
+
+/// POST v1/projects/{projectsId}/platforms/{platformsId}/policies
+/// Creates a platform policy, and returns a copy of it. Returns NOT_FOUND if the project or platform doesn't exist, INVALID_ARGUMENT if the request is malformed, ALREADY_EXISTS if the policy already exists, and INVALID_ARGUMENT if the policy contains a platform-specific policy that does not match the platform value specified in the URL.
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `binaryauthorization_projects_platforms_policies_create_execute()` to send, or `binaryauthorization_projects_platforms_policies_create` for simplest API.
+
+pub fn binaryauthorization_projects_platforms_policies_create_builder(
+    client: &SimpleHttpClient,
+    parent: &String,
+    policyId: &Option<Option<String>>,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!(
+        "https://binaryauthorization.googleapis.com/v1/projects/{}/platforms/{platformsId}/policies",
+        parent,
+    );
+
+    // Build request
+    let mut query_parts = Vec::new();
+    if let Some(val) = policyId.as_ref() {
+        query_parts.push(format!("policyId={}", val));
+    }
+
+    let url_with_query = if query_parts.is_empty() {
+        endpoint_url
+    } else {
+        format!("{}?{}", endpoint_url, query_parts.join("&"))
+    };
+
+    let builder = client
+        .post(&url_with_query)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// POST v1/projects/{projectsId}/platforms/{platformsId}/policies
+/// Creates a platform policy, and returns a copy of it. Returns NOT_FOUND if the project or platform doesn't exist, INVALID_ARGUMENT if the request is malformed, ALREADY_EXISTS if the policy already exists, and INVALID_ARGUMENT if the policy contains a platform-specific policy that does not match the platform value specified in the URL.
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `binaryauthorization_projects_platforms_policies_create_execute()` or `binaryauthorization_projects_platforms_policies_create`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `binaryauthorization_projects_platforms_policies_create_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn binaryauthorization_projects_platforms_policies_create_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<PlatformPolicy>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: PlatformPolicy = serde_json::from_str(&body)
+                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// POST v1/projects/{projectsId}/platforms/{platformsId}/policies
+/// Creates a platform policy, and returns a copy of it. Returns NOT_FOUND if the project or platform doesn't exist, INVALID_ARGUMENT if the request is malformed, ALREADY_EXISTS if the policy already exists, and INVALID_ARGUMENT if the policy contains a platform-specific policy that does not match the platform value specified in the URL.
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `binaryauthorization_projects_platforms_policies_create_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `binaryauthorization_projects_platforms_policies_create_task()`.
+/// For the simplest API, use `binaryauthorization_projects_platforms_policies_create()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `binaryauthorization_projects_platforms_policies_create_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn binaryauthorization_projects_platforms_policies_create_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<PlatformPolicy>, ApiError>, P = ApiPending>
+        + Send
+        + 'static,
+    ApiError,
+> {
+    let task = binaryauthorization_projects_platforms_policies_create_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`binaryauthorization_projects_platforms_policies_create`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct BinaryauthorizationProjectsPlatformsPoliciesCreateArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Query parameter: policyId
+    pub policyId: Option<Option<String>>,
+}
+
+/// POST v1/projects/{projectsId}/platforms/{platformsId}/policies
+/// Creates a platform policy, and returns a copy of it. Returns NOT_FOUND if the project or platform doesn't exist, INVALID_ARGUMENT if the request is malformed, ALREADY_EXISTS if the policy already exists, and INVALID_ARGUMENT if the policy contains a platform-specific policy that does not match the platform value specified in the URL.
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `binaryauthorization_projects_platforms_policies_create_builder()` + `binaryauthorization_projects_platforms_policies_create_execute()`.
+/// For task-level control, use `binaryauthorization_projects_platforms_policies_create_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn binaryauthorization_projects_platforms_policies_create(
+    client: &SimpleHttpClient,
+    args: &BinaryauthorizationProjectsPlatformsPoliciesCreateArgs,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<PlatformPolicy>, ApiError>, P = ApiPending>
+        + Send
+        + 'static,
+    ApiError,
+> {
+    let builder = binaryauthorization_projects_platforms_policies_create_builder(
+        client,
+        &args.parent,
+        &args.policyId,
+    )?;
+    binaryauthorization_projects_platforms_policies_create_execute(builder)
+}
+
+/// DELETE v1/projects/{projectsId}/platforms/{platformsId}/policies/{policiesId}
+/// Deletes a platform policy. Returns NOT_FOUND if the policy doesn't exist.
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `binaryauthorization_projects_platforms_policies_delete_execute()` to send, or `binaryauthorization_projects_platforms_policies_delete` for simplest API.
+
+pub fn binaryauthorization_projects_platforms_policies_delete_builder(
+    client: &SimpleHttpClient,
+    name: &String,
+    etag: &Option<Option<String>>,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!(
+        "https://binaryauthorization.googleapis.com/v1/projects/{}/platforms/{platformsId}/policies/{policiesId}",
+        name,
+    );
+
+    // Build request
+    let mut query_parts = Vec::new();
+    if let Some(val) = etag.as_ref() {
+        query_parts.push(format!("etag={}", val));
+    }
+
+    let url_with_query = if query_parts.is_empty() {
+        endpoint_url
+    } else {
+        format!("{}?{}", endpoint_url, query_parts.join("&"))
+    };
+
+    let builder = client
+        .delete(&url_with_query)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// DELETE v1/projects/{projectsId}/platforms/{platformsId}/policies/{policiesId}
+/// Deletes a platform policy. Returns NOT_FOUND if the policy doesn't exist.
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `binaryauthorization_projects_platforms_policies_delete_execute()` or `binaryauthorization_projects_platforms_policies_delete`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `binaryauthorization_projects_platforms_policies_delete_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn binaryauthorization_projects_platforms_policies_delete_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<Empty>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: Empty = serde_json::from_str(&body)
+                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// DELETE v1/projects/{projectsId}/platforms/{platformsId}/policies/{policiesId}
+/// Deletes a platform policy. Returns NOT_FOUND if the policy doesn't exist.
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `binaryauthorization_projects_platforms_policies_delete_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `binaryauthorization_projects_platforms_policies_delete_task()`.
+/// For the simplest API, use `binaryauthorization_projects_platforms_policies_delete()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `binaryauthorization_projects_platforms_policies_delete_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn binaryauthorization_projects_platforms_policies_delete_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<Empty>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let task = binaryauthorization_projects_platforms_policies_delete_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`binaryauthorization_projects_platforms_policies_delete`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct BinaryauthorizationProjectsPlatformsPoliciesDeleteArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Query parameter: etag
+    pub etag: Option<Option<String>>,
+}
+
+/// DELETE v1/projects/{projectsId}/platforms/{platformsId}/policies/{policiesId}
+/// Deletes a platform policy. Returns NOT_FOUND if the policy doesn't exist.
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `binaryauthorization_projects_platforms_policies_delete_builder()` + `binaryauthorization_projects_platforms_policies_delete_execute()`.
+/// For task-level control, use `binaryauthorization_projects_platforms_policies_delete_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn binaryauthorization_projects_platforms_policies_delete(
+    client: &SimpleHttpClient,
+    args: &BinaryauthorizationProjectsPlatformsPoliciesDeleteArgs,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<Empty>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let builder = binaryauthorization_projects_platforms_policies_delete_builder(
+        client, &args.name, &args.etag,
+    )?;
+    binaryauthorization_projects_platforms_policies_delete_execute(builder)
+}
+
+/// GET v1/projects/{projectsId}/platforms/{platformsId}/policies/{policiesId}
+/// Gets a platform policy. Returns NOT_FOUND if the policy doesn't exist.
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `binaryauthorization_projects_platforms_policies_get_execute()` to send, or `binaryauthorization_projects_platforms_policies_get` for simplest API.
+
+pub fn binaryauthorization_projects_platforms_policies_get_builder(
+    client: &SimpleHttpClient,
+    name: &String,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!(
+        "https://binaryauthorization.googleapis.com/v1/projects/{}/platforms/{platformsId}/policies/{policiesId}",
+        name,
+    );
+
+    // Build request
+    let builder = client
+        .get(&endpoint_url)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// GET v1/projects/{projectsId}/platforms/{platformsId}/policies/{policiesId}
+/// Gets a platform policy. Returns NOT_FOUND if the policy doesn't exist.
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `binaryauthorization_projects_platforms_policies_get_execute()` or `binaryauthorization_projects_platforms_policies_get`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `binaryauthorization_projects_platforms_policies_get_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn binaryauthorization_projects_platforms_policies_get_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<PlatformPolicy>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: PlatformPolicy = serde_json::from_str(&body)
+                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// GET v1/projects/{projectsId}/platforms/{platformsId}/policies/{policiesId}
+/// Gets a platform policy. Returns NOT_FOUND if the policy doesn't exist.
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `binaryauthorization_projects_platforms_policies_get_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `binaryauthorization_projects_platforms_policies_get_task()`.
+/// For the simplest API, use `binaryauthorization_projects_platforms_policies_get()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `binaryauthorization_projects_platforms_policies_get_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn binaryauthorization_projects_platforms_policies_get_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<PlatformPolicy>, ApiError>, P = ApiPending>
+        + Send
+        + 'static,
+    ApiError,
+> {
+    let task = binaryauthorization_projects_platforms_policies_get_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`binaryauthorization_projects_platforms_policies_get`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct BinaryauthorizationProjectsPlatformsPoliciesGetArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
+/// GET v1/projects/{projectsId}/platforms/{platformsId}/policies/{policiesId}
+/// Gets a platform policy. Returns NOT_FOUND if the policy doesn't exist.
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `binaryauthorization_projects_platforms_policies_get_builder()` + `binaryauthorization_projects_platforms_policies_get_execute()`.
+/// For task-level control, use `binaryauthorization_projects_platforms_policies_get_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn binaryauthorization_projects_platforms_policies_get(
+    client: &SimpleHttpClient,
+    args: &BinaryauthorizationProjectsPlatformsPoliciesGetArgs,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<PlatformPolicy>, ApiError>, P = ApiPending>
+        + Send
+        + 'static,
+    ApiError,
+> {
+    let builder = binaryauthorization_projects_platforms_policies_get_builder(client, &args.name)?;
+    binaryauthorization_projects_platforms_policies_get_execute(builder)
+}
+
+/// GET v1/projects/{projectsId}/platforms/{platformsId}/policies
+/// Lists platform policies owned by a project in the specified platform. Returns INVALID_ARGUMENT if the project or the platform doesn't exist.
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `binaryauthorization_projects_platforms_policies_list_execute()` to send, or `binaryauthorization_projects_platforms_policies_list` for simplest API.
+
+pub fn binaryauthorization_projects_platforms_policies_list_builder(
+    client: &SimpleHttpClient,
+    parent: &String,
+    pageSize: &Option<Option<String>>,
+    pageToken: &Option<Option<String>>,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!(
+        "https://binaryauthorization.googleapis.com/v1/projects/{}/platforms/{platformsId}/policies",
+        parent,
+    );
+
+    // Build request
+    let mut query_parts = Vec::new();
+    if let Some(val) = pageSize.as_ref() {
+        query_parts.push(format!("pageSize={}", val));
+    }
+    if let Some(val) = pageToken.as_ref() {
+        query_parts.push(format!("pageToken={}", val));
+    }
+
+    let url_with_query = if query_parts.is_empty() {
+        endpoint_url
+    } else {
+        format!("{}?{}", endpoint_url, query_parts.join("&"))
+    };
+
+    let builder = client
+        .get(&url_with_query)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// GET v1/projects/{projectsId}/platforms/{platformsId}/policies
+/// Lists platform policies owned by a project in the specified platform. Returns INVALID_ARGUMENT if the project or the platform doesn't exist.
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `binaryauthorization_projects_platforms_policies_list_execute()` or `binaryauthorization_projects_platforms_policies_list`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `binaryauthorization_projects_platforms_policies_list_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn binaryauthorization_projects_platforms_policies_list_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<ListPlatformPoliciesResponse>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: ListPlatformPoliciesResponse = serde_json::from_str(&body)
+                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// GET v1/projects/{projectsId}/platforms/{platformsId}/policies
+/// Lists platform policies owned by a project in the specified platform. Returns INVALID_ARGUMENT if the project or the platform doesn't exist.
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `binaryauthorization_projects_platforms_policies_list_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `binaryauthorization_projects_platforms_policies_list_task()`.
+/// For the simplest API, use `binaryauthorization_projects_platforms_policies_list()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `binaryauthorization_projects_platforms_policies_list_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn binaryauthorization_projects_platforms_policies_list_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<
+            D = Result<ApiResponse<ListPlatformPoliciesResponse>, ApiError>,
+            P = ApiPending,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    let task = binaryauthorization_projects_platforms_policies_list_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`binaryauthorization_projects_platforms_policies_list`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct BinaryauthorizationProjectsPlatformsPoliciesListArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Query parameter: pageSize
+    pub pageSize: Option<Option<String>>,
+    /// Query parameter: pageToken
+    pub pageToken: Option<Option<String>>,
+}
+
+/// GET v1/projects/{projectsId}/platforms/{platformsId}/policies
+/// Lists platform policies owned by a project in the specified platform. Returns INVALID_ARGUMENT if the project or the platform doesn't exist.
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `binaryauthorization_projects_platforms_policies_list_builder()` + `binaryauthorization_projects_platforms_policies_list_execute()`.
+/// For task-level control, use `binaryauthorization_projects_platforms_policies_list_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn binaryauthorization_projects_platforms_policies_list(
+    client: &SimpleHttpClient,
+    args: &BinaryauthorizationProjectsPlatformsPoliciesListArgs,
+) -> Result<
+    impl StreamIterator<
+            D = Result<ApiResponse<ListPlatformPoliciesResponse>, ApiError>,
+            P = ApiPending,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    let builder = binaryauthorization_projects_platforms_policies_list_builder(
+        client,
+        &args.parent,
+        &args.pageSize,
+        &args.pageToken,
+    )?;
+    binaryauthorization_projects_platforms_policies_list_execute(builder)
+}
+
+/// PUT v1/projects/{projectsId}/platforms/{platformsId}/policies/{policiesId}
+/// Replaces a platform policy. Returns NOT_FOUND if the policy doesn't exist.
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `binaryauthorization_projects_platforms_policies_replace_platform_policy_execute()` to send, or `binaryauthorization_projects_platforms_policies_replace_platform_policy` for simplest API.
+
+pub fn binaryauthorization_projects_platforms_policies_replace_platform_policy_builder(
+    client: &SimpleHttpClient,
+    name: &String,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!(
+        "https://binaryauthorization.googleapis.com/v1/projects/{}/platforms/{platformsId}/policies/{policiesId}",
+        name,
+    );
+
+    // Build request
+    let builder = client
+        .put(&endpoint_url)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// PUT v1/projects/{projectsId}/platforms/{platformsId}/policies/{policiesId}
+/// Replaces a platform policy. Returns NOT_FOUND if the policy doesn't exist.
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `binaryauthorization_projects_platforms_policies_replace_platform_policy_execute()` or `binaryauthorization_projects_platforms_policies_replace_platform_policy`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `binaryauthorization_projects_platforms_policies_replace_platform_policy_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn binaryauthorization_projects_platforms_policies_replace_platform_policy_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<PlatformPolicy>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: PlatformPolicy = serde_json::from_str(&body)
+                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// PUT v1/projects/{projectsId}/platforms/{platformsId}/policies/{policiesId}
+/// Replaces a platform policy. Returns NOT_FOUND if the policy doesn't exist.
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `binaryauthorization_projects_platforms_policies_replace_platform_policy_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `binaryauthorization_projects_platforms_policies_replace_platform_policy_task()`.
+/// For the simplest API, use `binaryauthorization_projects_platforms_policies_replace_platform_policy()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `binaryauthorization_projects_platforms_policies_replace_platform_policy_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn binaryauthorization_projects_platforms_policies_replace_platform_policy_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<PlatformPolicy>, ApiError>, P = ApiPending>
+        + Send
+        + 'static,
+    ApiError,
+> {
+    let task =
+        binaryauthorization_projects_platforms_policies_replace_platform_policy_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`binaryauthorization_projects_platforms_policies_replace_platform_policy`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct BinaryauthorizationProjectsPlatformsPoliciesReplacePlatformPolicyArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
+/// PUT v1/projects/{projectsId}/platforms/{platformsId}/policies/{policiesId}
+/// Replaces a platform policy. Returns NOT_FOUND if the policy doesn't exist.
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `binaryauthorization_projects_platforms_policies_replace_platform_policy_builder()` + `binaryauthorization_projects_platforms_policies_replace_platform_policy_execute()`.
+/// For task-level control, use `binaryauthorization_projects_platforms_policies_replace_platform_policy_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn binaryauthorization_projects_platforms_policies_replace_platform_policy(
+    client: &SimpleHttpClient,
+    args: &BinaryauthorizationProjectsPlatformsPoliciesReplacePlatformPolicyArgs,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<PlatformPolicy>, ApiError>, P = ApiPending>
+        + Send
+        + 'static,
+    ApiError,
+> {
+    let builder = binaryauthorization_projects_platforms_policies_replace_platform_policy_builder(
+        client, &args.name,
+    )?;
+    binaryauthorization_projects_platforms_policies_replace_platform_policy_execute(builder)
 }
 
 /// GET v1/projects/{projectsId}/policy:getIamPolicy
@@ -362,11 +2874,13 @@ pub fn binaryauthorization_projects_attestors_create(
 pub fn binaryauthorization_projects_policy_get_iam_policy_builder(
     client: &SimpleHttpClient,
     resource: &String,
-    options_requestedPolicyVersion: &Option<i32>,
+    options_requestedPolicyVersion: &Option<Option<String>>,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
-    let endpoint_url =
-        format!("https://binaryauthorization.googleapis.com/v1/projects/{}/policy:getIamPolicy",);
+    let endpoint_url = format!(
+        "https://binaryauthorization.googleapis.com/v1/projects/{}/policy:getIamPolicy",
+        resource,
+    );
 
     // Build request
     let mut query_parts = Vec::new();
@@ -497,7 +3011,7 @@ pub struct BinaryauthorizationProjectsPolicyGetIamPolicyArgs {
     /// Path parameter: resource
     pub resource: String,
     /// Query parameter: options_requestedPolicyVersion
-    pub options_requestedPolicyVersion: Option<i32>,
+    pub options_requestedPolicyVersion: Option<Option<String>>,
 }
 
 /// GET v1/projects/{projectsId}/policy:getIamPolicy
@@ -526,7 +3040,7 @@ pub fn binaryauthorization_projects_policy_get_iam_policy(
     binaryauthorization_projects_policy_get_iam_policy_execute(builder)
 }
 
-/// GET v1/projects/{projectsId}/policy:setIamPolicy
+/// POST v1/projects/{projectsId}/policy:setIamPolicy
 /// Sets the access control policy on the specified resource. Replaces any existing policy. Can return NOT_FOUND, INVALID_ARGUMENT, and PERMISSION_DENIED errors.
 ///
 /// Returns `ClientRequestBuilder` for customization.
@@ -535,23 +3049,22 @@ pub fn binaryauthorization_projects_policy_get_iam_policy(
 pub fn binaryauthorization_projects_policy_set_iam_policy_builder(
     client: &SimpleHttpClient,
     resource: &String,
-    body: &SetIamPolicyRequest,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
-    let endpoint_url =
-        format!("https://binaryauthorization.googleapis.com/v1/projects/{}/policy:setIamPolicy",);
+    let endpoint_url = format!(
+        "https://binaryauthorization.googleapis.com/v1/projects/{}/policy:setIamPolicy",
+        resource,
+    );
 
     // Build request
     let builder = client
-        .get(&endpoint_url)
+        .post(&endpoint_url)
         .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
 
-    builder
-        .body_json(body)
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+    Ok(builder)
 }
 
-/// GET v1/projects/{projectsId}/policy:setIamPolicy
+/// POST v1/projects/{projectsId}/policy:setIamPolicy
 /// Sets the access control policy on the specified resource. Replaces any existing policy. Can return NOT_FOUND, INVALID_ARGUMENT, and PERMISSION_DENIED errors.
 ///
 /// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
@@ -625,7 +3138,7 @@ pub fn binaryauthorization_projects_policy_set_iam_policy_task(
         .map_pending(|_| ApiPending::Sending))
 }
 
-/// GET v1/projects/{projectsId}/policy:setIamPolicy
+/// POST v1/projects/{projectsId}/policy:setIamPolicy
 /// Sets the access control policy on the specified resource. Replaces any existing policy. Can return NOT_FOUND, INVALID_ARGUMENT, and PERMISSION_DENIED errors.
 ///
 /// Takes a `ClientRequestBuilder`, builds and executes the request,
@@ -660,11 +3173,9 @@ pub fn binaryauthorization_projects_policy_set_iam_policy_execute(
 pub struct BinaryauthorizationProjectsPolicySetIamPolicyArgs {
     /// Path parameter: resource
     pub resource: String,
-    /// Request body.
-    pub body: SetIamPolicyRequest,
 }
 
-/// GET v1/projects/{projectsId}/policy:setIamPolicy
+/// POST v1/projects/{projectsId}/policy:setIamPolicy
 /// Sets the access control policy on the specified resource. Replaces any existing policy. Can return NOT_FOUND, INVALID_ARGUMENT, and PERMISSION_DENIED errors.
 ///
 /// Simplest API - builds and executes the request in one call.
@@ -682,15 +3193,12 @@ pub fn binaryauthorization_projects_policy_set_iam_policy(
     impl StreamIterator<D = Result<ApiResponse<IamPolicy>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = binaryauthorization_projects_policy_set_iam_policy_builder(
-        client,
-        &args.resource,
-        &args.body,
-    )?;
+    let builder =
+        binaryauthorization_projects_policy_set_iam_policy_builder(client, &args.resource)?;
     binaryauthorization_projects_policy_set_iam_policy_execute(builder)
 }
 
-/// GET v1/projects/{projectsId}/policy:testIamPermissions
+/// POST v1/projects/{projectsId}/policy:testIamPermissions
 /// Returns permissions that a caller has on the specified resource. If the resource does not exist, this will return an empty set of permissions, not a NOT_FOUND error. Note: This operation is designed to be used for building permission-aware UIs and command-line tools, not for authorization checking. This operation may "fail open" without warning.
 ///
 /// Returns `ClientRequestBuilder` for customization.
@@ -699,24 +3207,22 @@ pub fn binaryauthorization_projects_policy_set_iam_policy(
 pub fn binaryauthorization_projects_policy_test_iam_permissions_builder(
     client: &SimpleHttpClient,
     resource: &String,
-    body: &TestIamPermissionsRequest,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
         "https://binaryauthorization.googleapis.com/v1/projects/{}/policy:testIamPermissions",
+        resource,
     );
 
     // Build request
     let builder = client
-        .get(&endpoint_url)
+        .post(&endpoint_url)
         .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
 
-    builder
-        .body_json(body)
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+    Ok(builder)
 }
 
-/// GET v1/projects/{projectsId}/policy:testIamPermissions
+/// POST v1/projects/{projectsId}/policy:testIamPermissions
 /// Returns permissions that a caller has on the specified resource. If the resource does not exist, this will return an empty set of permissions, not a NOT_FOUND error. Note: This operation is designed to be used for building permission-aware UIs and command-line tools, not for authorization checking. This operation may "fail open" without warning.
 ///
 /// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
@@ -790,7 +3296,7 @@ pub fn binaryauthorization_projects_policy_test_iam_permissions_task(
         .map_pending(|_| ApiPending::Sending))
 }
 
-/// GET v1/projects/{projectsId}/policy:testIamPermissions
+/// POST v1/projects/{projectsId}/policy:testIamPermissions
 /// Returns permissions that a caller has on the specified resource. If the resource does not exist, this will return an empty set of permissions, not a NOT_FOUND error. Note: This operation is designed to be used for building permission-aware UIs and command-line tools, not for authorization checking. This operation may "fail open" without warning.
 ///
 /// Takes a `ClientRequestBuilder`, builds and executes the request,
@@ -829,11 +3335,9 @@ pub fn binaryauthorization_projects_policy_test_iam_permissions_execute(
 pub struct BinaryauthorizationProjectsPolicyTestIamPermissionsArgs {
     /// Path parameter: resource
     pub resource: String,
-    /// Request body.
-    pub body: TestIamPermissionsRequest,
 }
 
-/// GET v1/projects/{projectsId}/policy:testIamPermissions
+/// POST v1/projects/{projectsId}/policy:testIamPermissions
 /// Returns permissions that a caller has on the specified resource. If the resource does not exist, this will return an empty set of permissions, not a NOT_FOUND error. Note: This operation is designed to be used for building permission-aware UIs and command-line tools, not for authorization checking. This operation may "fail open" without warning.
 ///
 /// Simplest API - builds and executes the request in one call.
@@ -855,11 +3359,8 @@ pub fn binaryauthorization_projects_policy_test_iam_permissions(
         + 'static,
     ApiError,
 > {
-    let builder = binaryauthorization_projects_policy_test_iam_permissions_builder(
-        client,
-        &args.resource,
-        &args.body,
-    )?;
+    let builder =
+        binaryauthorization_projects_policy_test_iam_permissions_builder(client, &args.resource)?;
     binaryauthorization_projects_policy_test_iam_permissions_execute(builder)
 }
 
@@ -874,8 +3375,10 @@ pub fn binaryauthorization_systempolicy_get_policy_builder(
     name: &String,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
-    let endpoint_url =
-        format!("https://binaryauthorization.googleapis.com/v1/locations/{}/policy",);
+    let endpoint_url = format!(
+        "https://binaryauthorization.googleapis.com/v1/locations/{}/policy",
+        name,
+    );
 
     // Build request
     let builder = client
@@ -1016,4 +3519,565 @@ pub fn binaryauthorization_systempolicy_get_policy(
 > {
     let builder = binaryauthorization_systempolicy_get_policy_builder(client, &args.name)?;
     binaryauthorization_systempolicy_get_policy_execute(builder)
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for Policy
+// =============================================================================
+
+/// ResourceIdentifier implementation for Policy with BinaryauthorizationProjectsGetPolicyArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<BinaryauthorizationProjectsGetPolicyArgs> for Policy {
+    fn generate_resource_id(&self, input: &BinaryauthorizationProjectsGetPolicyArgs) -> String {
+        format!("gcp::binaryauthorization::Policy/{}", input.name)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::binaryauthorization::Policy"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for Policy
+// =============================================================================
+
+/// ResourceIdentifier implementation for Policy with BinaryauthorizationProjectsUpdatePolicyArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<BinaryauthorizationProjectsUpdatePolicyArgs> for Policy {
+    fn generate_resource_id(&self, input: &BinaryauthorizationProjectsUpdatePolicyArgs) -> String {
+        format!("gcp::binaryauthorization::Policy/{}", input.name)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::binaryauthorization::Policy"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for Attestor
+// =============================================================================
+
+/// ResourceIdentifier implementation for Attestor with BinaryauthorizationProjectsAttestorsCreateArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<BinaryauthorizationProjectsAttestorsCreateArgs> for Attestor {
+    fn generate_resource_id(
+        &self,
+        input: &BinaryauthorizationProjectsAttestorsCreateArgs,
+    ) -> String {
+        format!("gcp::binaryauthorization::Attestor/{}", input.parent)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::binaryauthorization::Attestor"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for Empty
+// =============================================================================
+
+/// ResourceIdentifier implementation for Empty with BinaryauthorizationProjectsAttestorsDeleteArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<BinaryauthorizationProjectsAttestorsDeleteArgs> for Empty {
+    fn generate_resource_id(
+        &self,
+        input: &BinaryauthorizationProjectsAttestorsDeleteArgs,
+    ) -> String {
+        format!("gcp::binaryauthorization::Empty/{}", input.name)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::binaryauthorization::Empty"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for Attestor
+// =============================================================================
+
+/// ResourceIdentifier implementation for Attestor with BinaryauthorizationProjectsAttestorsGetArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<BinaryauthorizationProjectsAttestorsGetArgs> for Attestor {
+    fn generate_resource_id(&self, input: &BinaryauthorizationProjectsAttestorsGetArgs) -> String {
+        format!("gcp::binaryauthorization::Attestor/{}", input.name)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::binaryauthorization::Attestor"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for IamPolicy
+// =============================================================================
+
+/// ResourceIdentifier implementation for IamPolicy with BinaryauthorizationProjectsAttestorsGetIamPolicyArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<BinaryauthorizationProjectsAttestorsGetIamPolicyArgs> for IamPolicy {
+    fn generate_resource_id(
+        &self,
+        input: &BinaryauthorizationProjectsAttestorsGetIamPolicyArgs,
+    ) -> String {
+        format!("gcp::binaryauthorization::IamPolicy/{}", input.resource)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::binaryauthorization::IamPolicy"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for ListAttestorsResponse
+// =============================================================================
+
+/// ResourceIdentifier implementation for ListAttestorsResponse with BinaryauthorizationProjectsAttestorsListArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<BinaryauthorizationProjectsAttestorsListArgs> for ListAttestorsResponse {
+    fn generate_resource_id(&self, input: &BinaryauthorizationProjectsAttestorsListArgs) -> String {
+        format!(
+            "gcp::binaryauthorization::ListAttestorsResponse/{}",
+            input.parent
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::binaryauthorization::ListAttestorsResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for IamPolicy
+// =============================================================================
+
+/// ResourceIdentifier implementation for IamPolicy with BinaryauthorizationProjectsAttestorsSetIamPolicyArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<BinaryauthorizationProjectsAttestorsSetIamPolicyArgs> for IamPolicy {
+    fn generate_resource_id(
+        &self,
+        input: &BinaryauthorizationProjectsAttestorsSetIamPolicyArgs,
+    ) -> String {
+        format!("gcp::binaryauthorization::IamPolicy/{}", input.resource)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::binaryauthorization::IamPolicy"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for TestIamPermissionsResponse
+// =============================================================================
+
+/// ResourceIdentifier implementation for TestIamPermissionsResponse with BinaryauthorizationProjectsAttestorsTestIamPermissionsArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<BinaryauthorizationProjectsAttestorsTestIamPermissionsArgs>
+    for TestIamPermissionsResponse
+{
+    fn generate_resource_id(
+        &self,
+        input: &BinaryauthorizationProjectsAttestorsTestIamPermissionsArgs,
+    ) -> String {
+        format!(
+            "gcp::binaryauthorization::TestIamPermissionsResponse/{}",
+            input.resource
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::binaryauthorization::TestIamPermissionsResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for Attestor
+// =============================================================================
+
+/// ResourceIdentifier implementation for Attestor with BinaryauthorizationProjectsAttestorsUpdateArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<BinaryauthorizationProjectsAttestorsUpdateArgs> for Attestor {
+    fn generate_resource_id(
+        &self,
+        input: &BinaryauthorizationProjectsAttestorsUpdateArgs,
+    ) -> String {
+        format!("gcp::binaryauthorization::Attestor/{}", input.name)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::binaryauthorization::Attestor"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for ValidateAttestationOccurrenceResponse
+// =============================================================================
+
+/// ResourceIdentifier implementation for ValidateAttestationOccurrenceResponse with BinaryauthorizationProjectsAttestorsValidateAttestationOccurrenceArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<BinaryauthorizationProjectsAttestorsValidateAttestationOccurrenceArgs>
+    for ValidateAttestationOccurrenceResponse
+{
+    fn generate_resource_id(
+        &self,
+        input: &BinaryauthorizationProjectsAttestorsValidateAttestationOccurrenceArgs,
+    ) -> String {
+        format!(
+            "gcp::binaryauthorization::ValidateAttestationOccurrenceResponse/{}",
+            input.attestor
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::binaryauthorization::ValidateAttestationOccurrenceResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for EvaluateGkePolicyResponse
+// =============================================================================
+
+/// ResourceIdentifier implementation for EvaluateGkePolicyResponse with BinaryauthorizationProjectsPlatformsGkePoliciesEvaluateArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<BinaryauthorizationProjectsPlatformsGkePoliciesEvaluateArgs>
+    for EvaluateGkePolicyResponse
+{
+    fn generate_resource_id(
+        &self,
+        input: &BinaryauthorizationProjectsPlatformsGkePoliciesEvaluateArgs,
+    ) -> String {
+        format!(
+            "gcp::binaryauthorization::EvaluateGkePolicyResponse/{}",
+            input.name
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::binaryauthorization::EvaluateGkePolicyResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for PlatformPolicy
+// =============================================================================
+
+/// ResourceIdentifier implementation for PlatformPolicy with BinaryauthorizationProjectsPlatformsPoliciesCreateArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<BinaryauthorizationProjectsPlatformsPoliciesCreateArgs> for PlatformPolicy {
+    fn generate_resource_id(
+        &self,
+        input: &BinaryauthorizationProjectsPlatformsPoliciesCreateArgs,
+    ) -> String {
+        format!("gcp::binaryauthorization::PlatformPolicy/{}", input.parent)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::binaryauthorization::PlatformPolicy"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for Empty
+// =============================================================================
+
+/// ResourceIdentifier implementation for Empty with BinaryauthorizationProjectsPlatformsPoliciesDeleteArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<BinaryauthorizationProjectsPlatformsPoliciesDeleteArgs> for Empty {
+    fn generate_resource_id(
+        &self,
+        input: &BinaryauthorizationProjectsPlatformsPoliciesDeleteArgs,
+    ) -> String {
+        format!("gcp::binaryauthorization::Empty/{}", input.name)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::binaryauthorization::Empty"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for PlatformPolicy
+// =============================================================================
+
+/// ResourceIdentifier implementation for PlatformPolicy with BinaryauthorizationProjectsPlatformsPoliciesGetArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<BinaryauthorizationProjectsPlatformsPoliciesGetArgs> for PlatformPolicy {
+    fn generate_resource_id(
+        &self,
+        input: &BinaryauthorizationProjectsPlatformsPoliciesGetArgs,
+    ) -> String {
+        format!("gcp::binaryauthorization::PlatformPolicy/{}", input.name)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::binaryauthorization::PlatformPolicy"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for ListPlatformPoliciesResponse
+// =============================================================================
+
+/// ResourceIdentifier implementation for ListPlatformPoliciesResponse with BinaryauthorizationProjectsPlatformsPoliciesListArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<BinaryauthorizationProjectsPlatformsPoliciesListArgs>
+    for ListPlatformPoliciesResponse
+{
+    fn generate_resource_id(
+        &self,
+        input: &BinaryauthorizationProjectsPlatformsPoliciesListArgs,
+    ) -> String {
+        format!(
+            "gcp::binaryauthorization::ListPlatformPoliciesResponse/{}",
+            input.parent
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::binaryauthorization::ListPlatformPoliciesResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for PlatformPolicy
+// =============================================================================
+
+/// ResourceIdentifier implementation for PlatformPolicy with BinaryauthorizationProjectsPlatformsPoliciesReplacePlatformPolicyArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<BinaryauthorizationProjectsPlatformsPoliciesReplacePlatformPolicyArgs>
+    for PlatformPolicy
+{
+    fn generate_resource_id(
+        &self,
+        input: &BinaryauthorizationProjectsPlatformsPoliciesReplacePlatformPolicyArgs,
+    ) -> String {
+        format!("gcp::binaryauthorization::PlatformPolicy/{}", input.name)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::binaryauthorization::PlatformPolicy"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for IamPolicy
+// =============================================================================
+
+/// ResourceIdentifier implementation for IamPolicy with BinaryauthorizationProjectsPolicyGetIamPolicyArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<BinaryauthorizationProjectsPolicyGetIamPolicyArgs> for IamPolicy {
+    fn generate_resource_id(
+        &self,
+        input: &BinaryauthorizationProjectsPolicyGetIamPolicyArgs,
+    ) -> String {
+        format!("gcp::binaryauthorization::IamPolicy/{}", input.resource)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::binaryauthorization::IamPolicy"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for IamPolicy
+// =============================================================================
+
+/// ResourceIdentifier implementation for IamPolicy with BinaryauthorizationProjectsPolicySetIamPolicyArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<BinaryauthorizationProjectsPolicySetIamPolicyArgs> for IamPolicy {
+    fn generate_resource_id(
+        &self,
+        input: &BinaryauthorizationProjectsPolicySetIamPolicyArgs,
+    ) -> String {
+        format!("gcp::binaryauthorization::IamPolicy/{}", input.resource)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::binaryauthorization::IamPolicy"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for TestIamPermissionsResponse
+// =============================================================================
+
+/// ResourceIdentifier implementation for TestIamPermissionsResponse with BinaryauthorizationProjectsPolicyTestIamPermissionsArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<BinaryauthorizationProjectsPolicyTestIamPermissionsArgs>
+    for TestIamPermissionsResponse
+{
+    fn generate_resource_id(
+        &self,
+        input: &BinaryauthorizationProjectsPolicyTestIamPermissionsArgs,
+    ) -> String {
+        format!(
+            "gcp::binaryauthorization::TestIamPermissionsResponse/{}",
+            input.resource
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::binaryauthorization::TestIamPermissionsResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for Policy
+// =============================================================================
+
+/// ResourceIdentifier implementation for Policy with BinaryauthorizationSystempolicyGetPolicyArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<BinaryauthorizationSystempolicyGetPolicyArgs> for Policy {
+    fn generate_resource_id(&self, input: &BinaryauthorizationSystempolicyGetPolicyArgs) -> String {
+        format!("gcp::binaryauthorization::Policy/{}", input.name)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::binaryauthorization::Policy"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
 }

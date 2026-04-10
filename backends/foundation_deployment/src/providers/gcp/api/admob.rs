@@ -12,12 +12,24 @@
 #![cfg(feature = "gcp")]
 
 use crate::providers::gcp::clients::admob::{
+    admob_accounts_get_builder, admob_accounts_get_task,
+    admob_accounts_list_builder, admob_accounts_list_task,
+    admob_accounts_ad_units_list_builder, admob_accounts_ad_units_list_task,
+    admob_accounts_apps_list_builder, admob_accounts_apps_list_task,
     admob_accounts_mediation_report_generate_builder, admob_accounts_mediation_report_generate_task,
     admob_accounts_network_report_generate_builder, admob_accounts_network_report_generate_task,
 };
 use crate::providers::gcp::clients::types::{ApiError, ApiPending};
 use crate::providers::gcp::clients::admob::GenerateMediationReportResponse;
 use crate::providers::gcp::clients::admob::GenerateNetworkReportResponse;
+use crate::providers::gcp::clients::admob::ListAdUnitsResponse;
+use crate::providers::gcp::clients::admob::ListAppsResponse;
+use crate::providers::gcp::clients::admob::ListPublisherAccountsResponse;
+use crate::providers::gcp::clients::admob::PublisherAccount;
+use crate::providers::gcp::clients::admob::AdmobAccountsAdUnitsListArgs;
+use crate::providers::gcp::clients::admob::AdmobAccountsAppsListArgs;
+use crate::providers::gcp::clients::admob::AdmobAccountsGetArgs;
+use crate::providers::gcp::clients::admob::AdmobAccountsListArgs;
 use crate::providers::gcp::clients::admob::AdmobAccountsMediationReportGenerateArgs;
 use crate::providers::gcp::clients::admob::AdmobAccountsNetworkReportGenerateArgs;
 use crate::provider_client::{ProviderClient, ProviderError};
@@ -59,6 +71,163 @@ where
             client,
             http_client: Arc::new(http_client),
         }
+    }
+
+    /// Admob accounts get.
+    ///
+    /// Read-only operation - no state tracking.
+    ///
+    /// # Arguments
+    ///
+    /// * `args` - Request arguments
+    ///
+    /// # Returns
+    ///
+    /// StreamIterator yielding the PublisherAccount result.
+    ///
+    /// # Errors
+    ///
+    /// Returns ProviderError if the API request fails.
+    pub fn admob_accounts_get(
+        &self,
+        args: &AdmobAccountsGetArgs,
+    ) -> Result<
+        impl StreamIterator<
+            D = Result<PublisherAccount, ProviderError<ApiError>>,
+            P = crate::providers::gcp::clients::types::ApiPending,
+        > + Send
+        + 'static,
+        ProviderError<ApiError>,
+    > {
+        let builder = admob_accounts_get_builder(
+            &self.http_client,
+            &args.name,
+        )
+        .map_err(ProviderError::Api)?;
+
+        let task = admob_accounts_get_task(builder)
+            .map_err(ProviderError::Api)?;
+
+        execute(task, None).map_err(|e: String| ProviderError::ExecuteFailed(e.to_string()))
+    }
+
+    /// Admob accounts list.
+    ///
+    /// Read-only operation - no state tracking.
+    ///
+    /// # Arguments
+    ///
+    /// * `args` - Request arguments
+    ///
+    /// # Returns
+    ///
+    /// StreamIterator yielding the ListPublisherAccountsResponse result.
+    ///
+    /// # Errors
+    ///
+    /// Returns ProviderError if the API request fails.
+    pub fn admob_accounts_list(
+        &self,
+        args: &AdmobAccountsListArgs,
+    ) -> Result<
+        impl StreamIterator<
+            D = Result<ListPublisherAccountsResponse, ProviderError<ApiError>>,
+            P = crate::providers::gcp::clients::types::ApiPending,
+        > + Send
+        + 'static,
+        ProviderError<ApiError>,
+    > {
+        let builder = admob_accounts_list_builder(
+            &self.http_client,
+            &args.pageSize,
+            &args.pageToken,
+        )
+        .map_err(ProviderError::Api)?;
+
+        let task = admob_accounts_list_task(builder)
+            .map_err(ProviderError::Api)?;
+
+        execute(task, None).map_err(|e: String| ProviderError::ExecuteFailed(e.to_string()))
+    }
+
+    /// Admob accounts ad units list.
+    ///
+    /// Read-only operation - no state tracking.
+    ///
+    /// # Arguments
+    ///
+    /// * `args` - Request arguments
+    ///
+    /// # Returns
+    ///
+    /// StreamIterator yielding the ListAdUnitsResponse result.
+    ///
+    /// # Errors
+    ///
+    /// Returns ProviderError if the API request fails.
+    pub fn admob_accounts_ad_units_list(
+        &self,
+        args: &AdmobAccountsAdUnitsListArgs,
+    ) -> Result<
+        impl StreamIterator<
+            D = Result<ListAdUnitsResponse, ProviderError<ApiError>>,
+            P = crate::providers::gcp::clients::types::ApiPending,
+        > + Send
+        + 'static,
+        ProviderError<ApiError>,
+    > {
+        let builder = admob_accounts_ad_units_list_builder(
+            &self.http_client,
+            &args.parent,
+            &args.pageSize,
+            &args.pageToken,
+        )
+        .map_err(ProviderError::Api)?;
+
+        let task = admob_accounts_ad_units_list_task(builder)
+            .map_err(ProviderError::Api)?;
+
+        execute(task, None).map_err(|e: String| ProviderError::ExecuteFailed(e.to_string()))
+    }
+
+    /// Admob accounts apps list.
+    ///
+    /// Read-only operation - no state tracking.
+    ///
+    /// # Arguments
+    ///
+    /// * `args` - Request arguments
+    ///
+    /// # Returns
+    ///
+    /// StreamIterator yielding the ListAppsResponse result.
+    ///
+    /// # Errors
+    ///
+    /// Returns ProviderError if the API request fails.
+    pub fn admob_accounts_apps_list(
+        &self,
+        args: &AdmobAccountsAppsListArgs,
+    ) -> Result<
+        impl StreamIterator<
+            D = Result<ListAppsResponse, ProviderError<ApiError>>,
+            P = crate::providers::gcp::clients::types::ApiPending,
+        > + Send
+        + 'static,
+        ProviderError<ApiError>,
+    > {
+        let builder = admob_accounts_apps_list_builder(
+            &self.http_client,
+            &args.parent,
+            &args.pageSize,
+            &args.pageToken,
+        )
+        .map_err(ProviderError::Api)?;
+
+        let task = admob_accounts_apps_list_task(builder)
+            .map_err(ProviderError::Api)?;
+
+        execute(task, None).map_err(|e: String| ProviderError::ExecuteFailed(e.to_string()))
     }
 
     /// Admob accounts mediation report generate.

@@ -7,7 +7,6 @@
 
 #![cfg(feature = "gcp")]
 
-
 use crate::providers::gcp::clients::types::*;
 use crate::providers::gcp::resources::*;
 use foundation_core::valtron::{
@@ -17,10 +16,11 @@ use foundation_core::valtron::{
 use foundation_core::wire::simple_http::client::{
     body_reader, ClientRequestBuilder, RequestIntro, SimpleHttpClient, SystemDnsResolver,
 };
+use foundation_db::state::resource_identifier::ResourceIdentifier;
 use foundation_macros::JsonHash;
 use serde::Serialize;
 
-/// GET v1/currentConditions:lookup
+/// POST v1/currentConditions:lookup
 /// The Current Conditions endpoint provides hourly air quality information in more than 100 countries, up to a 500 x 500 meters resolution. Includes over 70 local indexes and global air quality index and categories.
 ///
 /// Returns `ClientRequestBuilder` for customization.
@@ -28,22 +28,19 @@ use serde::Serialize;
 
 pub fn airquality_current_conditions_lookup_builder(
     client: &SimpleHttpClient,
-    body: &LookupCurrentConditionsRequest,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!("https://airquality.googleapis.com/v1/currentConditions:lookup",);
 
     // Build request
     let builder = client
-        .get(&endpoint_url)
+        .post(&endpoint_url)
         .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
 
-    builder
-        .body_json(body)
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+    Ok(builder)
 }
 
-/// GET v1/currentConditions:lookup
+/// POST v1/currentConditions:lookup
 /// The Current Conditions endpoint provides hourly air quality information in more than 100 countries, up to a 500 x 500 meters resolution. Includes over 70 local indexes and global air quality index and categories.
 ///
 /// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
@@ -117,7 +114,7 @@ pub fn airquality_current_conditions_lookup_task(
         .map_pending(|_| ApiPending::Sending))
 }
 
-/// GET v1/currentConditions:lookup
+/// POST v1/currentConditions:lookup
 /// The Current Conditions endpoint provides hourly air quality information in more than 100 countries, up to a 500 x 500 meters resolution. Includes over 70 local indexes and global air quality index and categories.
 ///
 /// Takes a `ClientRequestBuilder`, builds and executes the request,
@@ -151,14 +148,7 @@ pub fn airquality_current_conditions_lookup_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
-/// Arguments for [`airquality_current_conditions_lookup`].
-#[derive(Debug, Clone, Serialize, JsonHash)]
-pub struct AirqualityCurrentConditionsLookupArgs {
-    /// Request body.
-    pub body: LookupCurrentConditionsRequest,
-}
-
-/// GET v1/currentConditions:lookup
+/// POST v1/currentConditions:lookup
 /// The Current Conditions endpoint provides hourly air quality information in more than 100 countries, up to a 500 x 500 meters resolution. Includes over 70 local indexes and global air quality index and categories.
 ///
 /// Simplest API - builds and executes the request in one call.
@@ -171,7 +161,6 @@ pub struct AirqualityCurrentConditionsLookupArgs {
 
 pub fn airquality_current_conditions_lookup(
     client: &SimpleHttpClient,
-    args: &AirqualityCurrentConditionsLookupArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<LookupCurrentConditionsResponse>, ApiError>,
@@ -180,11 +169,11 @@ pub fn airquality_current_conditions_lookup(
         + 'static,
     ApiError,
 > {
-    let builder = airquality_current_conditions_lookup_builder(client, &args.body)?;
+    let builder = airquality_current_conditions_lookup_builder(client)?;
     airquality_current_conditions_lookup_execute(builder)
 }
 
-/// GET v1/forecast:lookup
+/// POST v1/forecast:lookup
 /// Returns air quality forecast for a specific location for a given time range.
 ///
 /// Returns `ClientRequestBuilder` for customization.
@@ -192,22 +181,19 @@ pub fn airquality_current_conditions_lookup(
 
 pub fn airquality_forecast_lookup_builder(
     client: &SimpleHttpClient,
-    body: &LookupForecastRequest,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!("https://airquality.googleapis.com/v1/forecast:lookup",);
 
     // Build request
     let builder = client
-        .get(&endpoint_url)
+        .post(&endpoint_url)
         .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
 
-    builder
-        .body_json(body)
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+    Ok(builder)
 }
 
-/// GET v1/forecast:lookup
+/// POST v1/forecast:lookup
 /// Returns air quality forecast for a specific location for a given time range.
 ///
 /// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
@@ -281,7 +267,7 @@ pub fn airquality_forecast_lookup_task(
         .map_pending(|_| ApiPending::Sending))
 }
 
-/// GET v1/forecast:lookup
+/// POST v1/forecast:lookup
 /// Returns air quality forecast for a specific location for a given time range.
 ///
 /// Takes a `ClientRequestBuilder`, builds and executes the request,
@@ -313,14 +299,7 @@ pub fn airquality_forecast_lookup_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
-/// Arguments for [`airquality_forecast_lookup`].
-#[derive(Debug, Clone, Serialize, JsonHash)]
-pub struct AirqualityForecastLookupArgs {
-    /// Request body.
-    pub body: LookupForecastRequest,
-}
-
-/// GET v1/forecast:lookup
+/// POST v1/forecast:lookup
 /// Returns air quality forecast for a specific location for a given time range.
 ///
 /// Simplest API - builds and executes the request in one call.
@@ -333,18 +312,17 @@ pub struct AirqualityForecastLookupArgs {
 
 pub fn airquality_forecast_lookup(
     client: &SimpleHttpClient,
-    args: &AirqualityForecastLookupArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<LookupForecastResponse>, ApiError>, P = ApiPending>
         + Send
         + 'static,
     ApiError,
 > {
-    let builder = airquality_forecast_lookup_builder(client, &args.body)?;
+    let builder = airquality_forecast_lookup_builder(client)?;
     airquality_forecast_lookup_execute(builder)
 }
 
-/// GET v1/history:lookup
+/// POST v1/history:lookup
 /// Returns air quality history for a specific location for a given time range.
 ///
 /// Returns `ClientRequestBuilder` for customization.
@@ -352,22 +330,19 @@ pub fn airquality_forecast_lookup(
 
 pub fn airquality_history_lookup_builder(
     client: &SimpleHttpClient,
-    body: &LookupHistoryRequest,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!("https://airquality.googleapis.com/v1/history:lookup",);
 
     // Build request
     let builder = client
-        .get(&endpoint_url)
+        .post(&endpoint_url)
         .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
 
-    builder
-        .body_json(body)
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+    Ok(builder)
 }
 
-/// GET v1/history:lookup
+/// POST v1/history:lookup
 /// Returns air quality history for a specific location for a given time range.
 ///
 /// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
@@ -441,7 +416,7 @@ pub fn airquality_history_lookup_task(
         .map_pending(|_| ApiPending::Sending))
 }
 
-/// GET v1/history:lookup
+/// POST v1/history:lookup
 /// Returns air quality history for a specific location for a given time range.
 ///
 /// Takes a `ClientRequestBuilder`, builds and executes the request,
@@ -473,14 +448,7 @@ pub fn airquality_history_lookup_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
-/// Arguments for [`airquality_history_lookup`].
-#[derive(Debug, Clone, Serialize, JsonHash)]
-pub struct AirqualityHistoryLookupArgs {
-    /// Request body.
-    pub body: LookupHistoryRequest,
-}
-
-/// GET v1/history:lookup
+/// POST v1/history:lookup
 /// Returns air quality history for a specific location for a given time range.
 ///
 /// Simplest API - builds and executes the request in one call.
@@ -493,14 +461,13 @@ pub struct AirqualityHistoryLookupArgs {
 
 pub fn airquality_history_lookup(
     client: &SimpleHttpClient,
-    args: &AirqualityHistoryLookupArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<LookupHistoryResponse>, ApiError>, P = ApiPending>
         + Send
         + 'static,
     ApiError,
 > {
-    let builder = airquality_history_lookup_builder(client, &args.body)?;
+    let builder = airquality_history_lookup_builder(client)?;
     airquality_history_lookup_execute(builder)
 }
 
@@ -513,9 +480,9 @@ pub fn airquality_history_lookup(
 pub fn airquality_map_types_heatmap_tiles_lookup_heatmap_tile_builder(
     client: &SimpleHttpClient,
     mapType: &String,
-    zoom: &i32,
-    x: &i32,
-    y: &i32,
+    zoom: &String,
+    x: &String,
+    y: &String,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
@@ -641,11 +608,11 @@ pub struct AirqualityMapTypesHeatmapTilesLookupHeatmapTileArgs {
     /// Path parameter: mapType
     pub mapType: String,
     /// Path parameter: zoom
-    pub zoom: i32,
+    pub zoom: String,
     /// Path parameter: x
-    pub x: i32,
+    pub x: String,
     /// Path parameter: y
-    pub y: i32,
+    pub y: String,
 }
 
 /// GET v1/mapTypes/{mapType}/heatmapTiles/{zoom}/{x}/{y}
@@ -674,4 +641,102 @@ pub fn airquality_map_types_heatmap_tiles_lookup_heatmap_tile(
         &args.y,
     )?;
     airquality_map_types_heatmap_tiles_lookup_heatmap_tile_execute(builder)
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for LookupCurrentConditionsResponse
+// =============================================================================
+
+/// ResourceIdentifier implementation for LookupCurrentConditionsResponse with AirqualityCurrentConditionsLookupArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<AirqualityCurrentConditionsLookupArgs> for LookupCurrentConditionsResponse {
+    fn generate_resource_id(&self, input: &AirqualityCurrentConditionsLookupArgs) -> String {
+        "gcp::airquality::LookupCurrentConditionsResponse".to_string()
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::airquality::LookupCurrentConditionsResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for LookupForecastResponse
+// =============================================================================
+
+/// ResourceIdentifier implementation for LookupForecastResponse with AirqualityForecastLookupArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<AirqualityForecastLookupArgs> for LookupForecastResponse {
+    fn generate_resource_id(&self, input: &AirqualityForecastLookupArgs) -> String {
+        "gcp::airquality::LookupForecastResponse".to_string()
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::airquality::LookupForecastResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for LookupHistoryResponse
+// =============================================================================
+
+/// ResourceIdentifier implementation for LookupHistoryResponse with AirqualityHistoryLookupArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<AirqualityHistoryLookupArgs> for LookupHistoryResponse {
+    fn generate_resource_id(&self, input: &AirqualityHistoryLookupArgs) -> String {
+        "gcp::airquality::LookupHistoryResponse".to_string()
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::airquality::LookupHistoryResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for HttpBody
+// =============================================================================
+
+/// ResourceIdentifier implementation for HttpBody with AirqualityMapTypesHeatmapTilesLookupHeatmapTileArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<AirqualityMapTypesHeatmapTilesLookupHeatmapTileArgs> for HttpBody {
+    fn generate_resource_id(
+        &self,
+        input: &AirqualityMapTypesHeatmapTilesLookupHeatmapTileArgs,
+    ) -> String {
+        format!(
+            "gcp::airquality::HttpBody/{}/{}/{}/{}",
+            input.mapType, input.zoom, input.x, input.y
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::airquality::HttpBody"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
 }

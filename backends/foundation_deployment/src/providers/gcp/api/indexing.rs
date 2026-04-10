@@ -12,10 +12,13 @@
 #![cfg(feature = "gcp")]
 
 use crate::providers::gcp::clients::indexing::{
+    indexing_url_notifications_get_metadata_builder, indexing_url_notifications_get_metadata_task,
     indexing_url_notifications_publish_builder, indexing_url_notifications_publish_task,
 };
 use crate::providers::gcp::clients::types::{ApiError, ApiPending};
 use crate::providers::gcp::clients::indexing::PublishUrlNotificationResponse;
+use crate::providers::gcp::clients::indexing::UrlNotificationMetadata;
+use crate::providers::gcp::clients::indexing::IndexingUrlNotificationsGetMetadataArgs;
 use crate::providers::gcp::clients::indexing::IndexingUrlNotificationsPublishArgs;
 use crate::provider_client::{ProviderClient, ProviderError};
 use foundation_core::valtron::{execute, StreamIterator};
@@ -56,6 +59,44 @@ where
             client,
             http_client: Arc::new(http_client),
         }
+    }
+
+    /// Indexing url notifications get metadata.
+    ///
+    /// Read-only operation - no state tracking.
+    ///
+    /// # Arguments
+    ///
+    /// * `args` - Request arguments
+    ///
+    /// # Returns
+    ///
+    /// StreamIterator yielding the UrlNotificationMetadata result.
+    ///
+    /// # Errors
+    ///
+    /// Returns ProviderError if the API request fails.
+    pub fn indexing_url_notifications_get_metadata(
+        &self,
+        args: &IndexingUrlNotificationsGetMetadataArgs,
+    ) -> Result<
+        impl StreamIterator<
+            D = Result<UrlNotificationMetadata, ProviderError<ApiError>>,
+            P = crate::providers::gcp::clients::types::ApiPending,
+        > + Send
+        + 'static,
+        ProviderError<ApiError>,
+    > {
+        let builder = indexing_url_notifications_get_metadata_builder(
+            &self.http_client,
+            &args.url,
+        )
+        .map_err(ProviderError::Api)?;
+
+        let task = indexing_url_notifications_get_metadata_task(builder)
+            .map_err(ProviderError::Api)?;
+
+        execute(task, None).map_err(|e: String| ProviderError::ExecuteFailed(e.to_string()))
     }
 
     /// Indexing url notifications publish.

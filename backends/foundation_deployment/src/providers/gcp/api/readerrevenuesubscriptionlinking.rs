@@ -13,12 +13,17 @@
 
 use crate::providers::gcp::clients::readerrevenuesubscriptionlinking::{
     readerrevenuesubscriptionlinking_publications_readers_delete_builder, readerrevenuesubscriptionlinking_publications_readers_delete_task,
+    readerrevenuesubscriptionlinking_publications_readers_get_builder, readerrevenuesubscriptionlinking_publications_readers_get_task,
+    readerrevenuesubscriptionlinking_publications_readers_get_entitlements_builder, readerrevenuesubscriptionlinking_publications_readers_get_entitlements_task,
     readerrevenuesubscriptionlinking_publications_readers_update_entitlements_builder, readerrevenuesubscriptionlinking_publications_readers_update_entitlements_task,
 };
 use crate::providers::gcp::clients::types::{ApiError, ApiPending};
 use crate::providers::gcp::clients::readerrevenuesubscriptionlinking::DeleteReaderResponse;
+use crate::providers::gcp::clients::readerrevenuesubscriptionlinking::Reader;
 use crate::providers::gcp::clients::readerrevenuesubscriptionlinking::ReaderEntitlements;
 use crate::providers::gcp::clients::readerrevenuesubscriptionlinking::ReaderrevenuesubscriptionlinkingPublicationsReadersDeleteArgs;
+use crate::providers::gcp::clients::readerrevenuesubscriptionlinking::ReaderrevenuesubscriptionlinkingPublicationsReadersGetArgs;
+use crate::providers::gcp::clients::readerrevenuesubscriptionlinking::ReaderrevenuesubscriptionlinkingPublicationsReadersGetEntitlementsArgs;
 use crate::providers::gcp::clients::readerrevenuesubscriptionlinking::ReaderrevenuesubscriptionlinkingPublicationsReadersUpdateEntitlementsArgs;
 use crate::provider_client::{ProviderClient, ProviderError};
 use foundation_core::valtron::{execute, StreamIterator};
@@ -103,6 +108,82 @@ where
         let store_task = StoreStateIdentifierTask::new(task, state_store, args, stage);
 
         execute(store_task, None).map_err(|e: String| ProviderError::ExecuteFailed(e.to_string()))
+    }
+
+    /// Readerrevenuesubscriptionlinking publications readers get.
+    ///
+    /// Read-only operation - no state tracking.
+    ///
+    /// # Arguments
+    ///
+    /// * `args` - Request arguments
+    ///
+    /// # Returns
+    ///
+    /// StreamIterator yielding the Reader result.
+    ///
+    /// # Errors
+    ///
+    /// Returns ProviderError if the API request fails.
+    pub fn readerrevenuesubscriptionlinking_publications_readers_get(
+        &self,
+        args: &ReaderrevenuesubscriptionlinkingPublicationsReadersGetArgs,
+    ) -> Result<
+        impl StreamIterator<
+            D = Result<Reader, ProviderError<ApiError>>,
+            P = crate::providers::gcp::clients::types::ApiPending,
+        > + Send
+        + 'static,
+        ProviderError<ApiError>,
+    > {
+        let builder = readerrevenuesubscriptionlinking_publications_readers_get_builder(
+            &self.http_client,
+            &args.name,
+        )
+        .map_err(ProviderError::Api)?;
+
+        let task = readerrevenuesubscriptionlinking_publications_readers_get_task(builder)
+            .map_err(ProviderError::Api)?;
+
+        execute(task, None).map_err(|e: String| ProviderError::ExecuteFailed(e.to_string()))
+    }
+
+    /// Readerrevenuesubscriptionlinking publications readers get entitlements.
+    ///
+    /// Read-only operation - no state tracking.
+    ///
+    /// # Arguments
+    ///
+    /// * `args` - Request arguments
+    ///
+    /// # Returns
+    ///
+    /// StreamIterator yielding the ReaderEntitlements result.
+    ///
+    /// # Errors
+    ///
+    /// Returns ProviderError if the API request fails.
+    pub fn readerrevenuesubscriptionlinking_publications_readers_get_entitlements(
+        &self,
+        args: &ReaderrevenuesubscriptionlinkingPublicationsReadersGetEntitlementsArgs,
+    ) -> Result<
+        impl StreamIterator<
+            D = Result<ReaderEntitlements, ProviderError<ApiError>>,
+            P = crate::providers::gcp::clients::types::ApiPending,
+        > + Send
+        + 'static,
+        ProviderError<ApiError>,
+    > {
+        let builder = readerrevenuesubscriptionlinking_publications_readers_get_entitlements_builder(
+            &self.http_client,
+            &args.name,
+        )
+        .map_err(ProviderError::Api)?;
+
+        let task = readerrevenuesubscriptionlinking_publications_readers_get_entitlements_task(builder)
+            .map_err(ProviderError::Api)?;
+
+        execute(task, None).map_err(|e: String| ProviderError::ExecuteFailed(e.to_string()))
     }
 
     /// Readerrevenuesubscriptionlinking publications readers update entitlements.

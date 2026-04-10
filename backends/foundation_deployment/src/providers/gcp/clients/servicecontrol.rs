@@ -7,7 +7,6 @@
 
 #![cfg(feature = "gcp")]
 
-
 use crate::providers::gcp::clients::types::*;
 use crate::providers::gcp::resources::*;
 use foundation_core::valtron::{
@@ -17,10 +16,11 @@ use foundation_core::valtron::{
 use foundation_core::wire::simple_http::client::{
     body_reader, ClientRequestBuilder, RequestIntro, SimpleHttpClient, SystemDnsResolver,
 };
+use foundation_db::state::resource_identifier::ResourceIdentifier;
 use foundation_macros::JsonHash;
 use serde::Serialize;
 
-/// GET v2/services/{serviceName}:check
+/// POST v2/services/{serviceName}:check
 /// This method provides admission control for services that are integrated with [Service Infrastructure](<https://cloud.google.`com/service-infrastructure`>). It checks whether an operation should be allowed based on the service configuration and relevant policies. It must be called before the operation is executed. For more information, see [Admission Control](<https://cloud.google.`com/service-infrastructure/docs/admission-control`>). NOTE: The admission control has an expected policy propagation delay of 60s. The caller **must** not depend on the most recent policy changes. NOTE: The admission control has a hard limit of 1 referenced resources per call. If an operation refers to more than 1 resources, the caller must call the Check method multiple times. This method requires the servicemanagement.services.check permission on the specified service. For more information, see [Service Control API Access Control](<https://cloud.google.`com/service-infrastructure/docs/service-control/access-control`>).
 ///
 /// Returns `ClientRequestBuilder` for customization.
@@ -29,7 +29,6 @@ use serde::Serialize;
 pub fn servicecontrol_services_check_builder(
     client: &SimpleHttpClient,
     serviceName: &String,
-    body: &CheckRequest,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
@@ -39,15 +38,13 @@ pub fn servicecontrol_services_check_builder(
 
     // Build request
     let builder = client
-        .get(&endpoint_url)
+        .post(&endpoint_url)
         .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
 
-    builder
-        .body_json(body)
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+    Ok(builder)
 }
 
-/// GET v2/services/{serviceName}:check
+/// POST v2/services/{serviceName}:check
 /// This method provides admission control for services that are integrated with [Service Infrastructure](<https://cloud.google.`com/service-infrastructure`>). It checks whether an operation should be allowed based on the service configuration and relevant policies. It must be called before the operation is executed. For more information, see [Admission Control](<https://cloud.google.`com/service-infrastructure/docs/admission-control`>). NOTE: The admission control has an expected policy propagation delay of 60s. The caller **must** not depend on the most recent policy changes. NOTE: The admission control has a hard limit of 1 referenced resources per call. If an operation refers to more than 1 resources, the caller must call the Check method multiple times. This method requires the servicemanagement.services.check permission on the specified service. For more information, see [Service Control API Access Control](<https://cloud.google.`com/service-infrastructure/docs/service-control/access-control`>).
 ///
 /// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
@@ -121,7 +118,7 @@ pub fn servicecontrol_services_check_task(
         .map_pending(|_| ApiPending::Sending))
 }
 
-/// GET v2/services/{serviceName}:check
+/// POST v2/services/{serviceName}:check
 /// This method provides admission control for services that are integrated with [Service Infrastructure](<https://cloud.google.`com/service-infrastructure`>). It checks whether an operation should be allowed based on the service configuration and relevant policies. It must be called before the operation is executed. For more information, see [Admission Control](<https://cloud.google.`com/service-infrastructure/docs/admission-control`>). NOTE: The admission control has an expected policy propagation delay of 60s. The caller **must** not depend on the most recent policy changes. NOTE: The admission control has a hard limit of 1 referenced resources per call. If an operation refers to more than 1 resources, the caller must call the Check method multiple times. This method requires the servicemanagement.services.check permission on the specified service. For more information, see [Service Control API Access Control](<https://cloud.google.`com/service-infrastructure/docs/service-control/access-control`>).
 ///
 /// Takes a `ClientRequestBuilder`, builds and executes the request,
@@ -158,11 +155,9 @@ pub fn servicecontrol_services_check_execute(
 pub struct ServicecontrolServicesCheckArgs {
     /// Path parameter: serviceName
     pub serviceName: String,
-    /// Request body.
-    pub body: CheckRequest,
 }
 
-/// GET v2/services/{serviceName}:check
+/// POST v2/services/{serviceName}:check
 /// This method provides admission control for services that are integrated with [Service Infrastructure](<https://cloud.google.`com/service-infrastructure`>). It checks whether an operation should be allowed based on the service configuration and relevant policies. It must be called before the operation is executed. For more information, see [Admission Control](<https://cloud.google.`com/service-infrastructure/docs/admission-control`>). NOTE: The admission control has an expected policy propagation delay of 60s. The caller **must** not depend on the most recent policy changes. NOTE: The admission control has a hard limit of 1 referenced resources per call. If an operation refers to more than 1 resources, the caller must call the Check method multiple times. This method requires the servicemanagement.services.check permission on the specified service. For more information, see [Service Control API Access Control](<https://cloud.google.`com/service-infrastructure/docs/service-control/access-control`>).
 ///
 /// Simplest API - builds and executes the request in one call.
@@ -182,11 +177,11 @@ pub fn servicecontrol_services_check(
         + 'static,
     ApiError,
 > {
-    let builder = servicecontrol_services_check_builder(client, &args.serviceName, &args.body)?;
+    let builder = servicecontrol_services_check_builder(client, &args.serviceName)?;
     servicecontrol_services_check_execute(builder)
 }
 
-/// GET v2/services/{serviceName}:report
+/// POST v2/services/{serviceName}:report
 /// This method provides telemetry reporting for services that are integrated with [Service Infrastructure](<https://cloud.google.`com/service-infrastructure`>). It reports a list of operations that have occurred on a service. It must be called after the operations have been executed. For more information, see [Telemetry Reporting](<https://cloud.google.`com/service-infrastructure/docs/telemetry-reporting`>). NOTE: The telemetry reporting has a hard limit of 100 operations and 1MB per Report call. This method requires the servicemanagement.services.report permission on the specified service. For more information, see [Service Control API Access Control](<https://cloud.google.`com/service-infrastructure/docs/service-control/access-control`>).
 ///
 /// Returns `ClientRequestBuilder` for customization.
@@ -195,7 +190,6 @@ pub fn servicecontrol_services_check(
 pub fn servicecontrol_services_report_builder(
     client: &SimpleHttpClient,
     serviceName: &String,
-    body: &ReportRequest,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
@@ -205,15 +199,13 @@ pub fn servicecontrol_services_report_builder(
 
     // Build request
     let builder = client
-        .get(&endpoint_url)
+        .post(&endpoint_url)
         .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
 
-    builder
-        .body_json(body)
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+    Ok(builder)
 }
 
-/// GET v2/services/{serviceName}:report
+/// POST v2/services/{serviceName}:report
 /// This method provides telemetry reporting for services that are integrated with [Service Infrastructure](<https://cloud.google.`com/service-infrastructure`>). It reports a list of operations that have occurred on a service. It must be called after the operations have been executed. For more information, see [Telemetry Reporting](<https://cloud.google.`com/service-infrastructure/docs/telemetry-reporting`>). NOTE: The telemetry reporting has a hard limit of 100 operations and 1MB per Report call. This method requires the servicemanagement.services.report permission on the specified service. For more information, see [Service Control API Access Control](<https://cloud.google.`com/service-infrastructure/docs/service-control/access-control`>).
 ///
 /// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
@@ -287,7 +279,7 @@ pub fn servicecontrol_services_report_task(
         .map_pending(|_| ApiPending::Sending))
 }
 
-/// GET v2/services/{serviceName}:report
+/// POST v2/services/{serviceName}:report
 /// This method provides telemetry reporting for services that are integrated with [Service Infrastructure](<https://cloud.google.`com/service-infrastructure`>). It reports a list of operations that have occurred on a service. It must be called after the operations have been executed. For more information, see [Telemetry Reporting](<https://cloud.google.`com/service-infrastructure/docs/telemetry-reporting`>). NOTE: The telemetry reporting has a hard limit of 100 operations and 1MB per Report call. This method requires the servicemanagement.services.report permission on the specified service. For more information, see [Service Control API Access Control](<https://cloud.google.`com/service-infrastructure/docs/service-control/access-control`>).
 ///
 /// Takes a `ClientRequestBuilder`, builds and executes the request,
@@ -324,11 +316,9 @@ pub fn servicecontrol_services_report_execute(
 pub struct ServicecontrolServicesReportArgs {
     /// Path parameter: serviceName
     pub serviceName: String,
-    /// Request body.
-    pub body: ReportRequest,
 }
 
-/// GET v2/services/{serviceName}:report
+/// POST v2/services/{serviceName}:report
 /// This method provides telemetry reporting for services that are integrated with [Service Infrastructure](<https://cloud.google.`com/service-infrastructure`>). It reports a list of operations that have occurred on a service. It must be called after the operations have been executed. For more information, see [Telemetry Reporting](<https://cloud.google.`com/service-infrastructure/docs/telemetry-reporting`>). NOTE: The telemetry reporting has a hard limit of 100 operations and 1MB per Report call. This method requires the servicemanagement.services.report permission on the specified service. For more information, see [Service Control API Access Control](<https://cloud.google.`com/service-infrastructure/docs/service-control/access-control`>).
 ///
 /// Simplest API - builds and executes the request in one call.
@@ -348,6 +338,52 @@ pub fn servicecontrol_services_report(
         + 'static,
     ApiError,
 > {
-    let builder = servicecontrol_services_report_builder(client, &args.serviceName, &args.body)?;
+    let builder = servicecontrol_services_report_builder(client, &args.serviceName)?;
     servicecontrol_services_report_execute(builder)
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for CheckResponse
+// =============================================================================
+
+/// ResourceIdentifier implementation for CheckResponse with ServicecontrolServicesCheckArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<ServicecontrolServicesCheckArgs> for CheckResponse {
+    fn generate_resource_id(&self, input: &ServicecontrolServicesCheckArgs) -> String {
+        format!("gcp::servicecontrol::CheckResponse/{}", input.serviceName)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::servicecontrol::CheckResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for ReportResponse
+// =============================================================================
+
+/// ResourceIdentifier implementation for ReportResponse with ServicecontrolServicesReportArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<ServicecontrolServicesReportArgs> for ReportResponse {
+    fn generate_resource_id(&self, input: &ServicecontrolServicesReportArgs) -> String {
+        format!("gcp::servicecontrol::ReportResponse/{}", input.serviceName)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::servicecontrol::ReportResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
 }

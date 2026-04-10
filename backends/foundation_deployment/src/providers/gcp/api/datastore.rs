@@ -24,14 +24,21 @@ use crate::providers::gcp::clients::datastore::{
     datastore_projects_run_query_builder, datastore_projects_run_query_task,
     datastore_projects_indexes_create_builder, datastore_projects_indexes_create_task,
     datastore_projects_indexes_delete_builder, datastore_projects_indexes_delete_task,
+    datastore_projects_indexes_get_builder, datastore_projects_indexes_get_task,
+    datastore_projects_indexes_list_builder, datastore_projects_indexes_list_task,
     datastore_projects_operations_cancel_builder, datastore_projects_operations_cancel_task,
     datastore_projects_operations_delete_builder, datastore_projects_operations_delete_task,
+    datastore_projects_operations_get_builder, datastore_projects_operations_get_task,
+    datastore_projects_operations_list_builder, datastore_projects_operations_list_task,
 };
 use crate::providers::gcp::clients::types::{ApiError, ApiPending};
 use crate::providers::gcp::clients::datastore::AllocateIdsResponse;
 use crate::providers::gcp::clients::datastore::BeginTransactionResponse;
 use crate::providers::gcp::clients::datastore::CommitResponse;
 use crate::providers::gcp::clients::datastore::Empty;
+use crate::providers::gcp::clients::datastore::GoogleDatastoreAdminV1Index;
+use crate::providers::gcp::clients::datastore::GoogleDatastoreAdminV1ListIndexesResponse;
+use crate::providers::gcp::clients::datastore::GoogleLongrunningListOperationsResponse;
 use crate::providers::gcp::clients::datastore::GoogleLongrunningOperation;
 use crate::providers::gcp::clients::datastore::LookupResponse;
 use crate::providers::gcp::clients::datastore::ReserveIdsResponse;
@@ -45,9 +52,13 @@ use crate::providers::gcp::clients::datastore::DatastoreProjectsExportArgs;
 use crate::providers::gcp::clients::datastore::DatastoreProjectsImportArgs;
 use crate::providers::gcp::clients::datastore::DatastoreProjectsIndexesCreateArgs;
 use crate::providers::gcp::clients::datastore::DatastoreProjectsIndexesDeleteArgs;
+use crate::providers::gcp::clients::datastore::DatastoreProjectsIndexesGetArgs;
+use crate::providers::gcp::clients::datastore::DatastoreProjectsIndexesListArgs;
 use crate::providers::gcp::clients::datastore::DatastoreProjectsLookupArgs;
 use crate::providers::gcp::clients::datastore::DatastoreProjectsOperationsCancelArgs;
 use crate::providers::gcp::clients::datastore::DatastoreProjectsOperationsDeleteArgs;
+use crate::providers::gcp::clients::datastore::DatastoreProjectsOperationsGetArgs;
+use crate::providers::gcp::clients::datastore::DatastoreProjectsOperationsListArgs;
 use crate::providers::gcp::clients::datastore::DatastoreProjectsReserveIdsArgs;
 use crate::providers::gcp::clients::datastore::DatastoreProjectsRollbackArgs;
 use crate::providers::gcp::clients::datastore::DatastoreProjectsRunAggregationQueryArgs;
@@ -224,7 +235,7 @@ where
 
     /// Datastore projects export.
     ///
-    /// Automatically stores the result in the state store on success.
+    /// Read-only operation - no state tracking.
     ///
     /// # Arguments
     ///
@@ -236,7 +247,7 @@ where
     ///
     /// # Errors
     ///
-    /// Returns ProviderError if the API request or state storage fails.
+    /// Returns ProviderError if the API request fails.
     pub fn datastore_projects_export(
         &self,
         args: &DatastoreProjectsExportArgs,
@@ -257,12 +268,7 @@ where
         let task = datastore_projects_export_task(builder)
             .map_err(ProviderError::Api)?;
 
-        let state_store = self.client.state_store.clone();
-        let stage = Some(self.client.stage.clone());
-
-        let store_task = StoreStateIdentifierTask::new(task, state_store, args, stage);
-
-        execute(store_task, None).map_err(|e: String| ProviderError::ExecuteFailed(e.to_string()))
+        execute(task, None).map_err(|e: String| ProviderError::ExecuteFailed(e.to_string()))
     }
 
     /// Datastore projects import.
@@ -439,7 +445,7 @@ where
 
     /// Datastore projects run aggregation query.
     ///
-    /// Automatically stores the result in the state store on success.
+    /// Read-only operation - no state tracking.
     ///
     /// # Arguments
     ///
@@ -451,7 +457,7 @@ where
     ///
     /// # Errors
     ///
-    /// Returns ProviderError if the API request or state storage fails.
+    /// Returns ProviderError if the API request fails.
     pub fn datastore_projects_run_aggregation_query(
         &self,
         args: &DatastoreProjectsRunAggregationQueryArgs,
@@ -472,17 +478,12 @@ where
         let task = datastore_projects_run_aggregation_query_task(builder)
             .map_err(ProviderError::Api)?;
 
-        let state_store = self.client.state_store.clone();
-        let stage = Some(self.client.stage.clone());
-
-        let store_task = StoreStateIdentifierTask::new(task, state_store, args, stage);
-
-        execute(store_task, None).map_err(|e: String| ProviderError::ExecuteFailed(e.to_string()))
+        execute(task, None).map_err(|e: String| ProviderError::ExecuteFailed(e.to_string()))
     }
 
     /// Datastore projects run query.
     ///
-    /// Automatically stores the result in the state store on success.
+    /// Read-only operation - no state tracking.
     ///
     /// # Arguments
     ///
@@ -494,7 +495,7 @@ where
     ///
     /// # Errors
     ///
-    /// Returns ProviderError if the API request or state storage fails.
+    /// Returns ProviderError if the API request fails.
     pub fn datastore_projects_run_query(
         &self,
         args: &DatastoreProjectsRunQueryArgs,
@@ -515,12 +516,7 @@ where
         let task = datastore_projects_run_query_task(builder)
             .map_err(ProviderError::Api)?;
 
-        let state_store = self.client.state_store.clone();
-        let stage = Some(self.client.stage.clone());
-
-        let store_task = StoreStateIdentifierTask::new(task, state_store, args, stage);
-
-        execute(store_task, None).map_err(|e: String| ProviderError::ExecuteFailed(e.to_string()))
+        execute(task, None).map_err(|e: String| ProviderError::ExecuteFailed(e.to_string()))
     }
 
     /// Datastore projects indexes create.
@@ -610,6 +606,86 @@ where
         execute(store_task, None).map_err(|e: String| ProviderError::ExecuteFailed(e.to_string()))
     }
 
+    /// Datastore projects indexes get.
+    ///
+    /// Read-only operation - no state tracking.
+    ///
+    /// # Arguments
+    ///
+    /// * `args` - Request arguments
+    ///
+    /// # Returns
+    ///
+    /// StreamIterator yielding the GoogleDatastoreAdminV1Index result.
+    ///
+    /// # Errors
+    ///
+    /// Returns ProviderError if the API request fails.
+    pub fn datastore_projects_indexes_get(
+        &self,
+        args: &DatastoreProjectsIndexesGetArgs,
+    ) -> Result<
+        impl StreamIterator<
+            D = Result<GoogleDatastoreAdminV1Index, ProviderError<ApiError>>,
+            P = crate::providers::gcp::clients::types::ApiPending,
+        > + Send
+        + 'static,
+        ProviderError<ApiError>,
+    > {
+        let builder = datastore_projects_indexes_get_builder(
+            &self.http_client,
+            &args.projectId,
+            &args.indexId,
+        )
+        .map_err(ProviderError::Api)?;
+
+        let task = datastore_projects_indexes_get_task(builder)
+            .map_err(ProviderError::Api)?;
+
+        execute(task, None).map_err(|e: String| ProviderError::ExecuteFailed(e.to_string()))
+    }
+
+    /// Datastore projects indexes list.
+    ///
+    /// Read-only operation - no state tracking.
+    ///
+    /// # Arguments
+    ///
+    /// * `args` - Request arguments
+    ///
+    /// # Returns
+    ///
+    /// StreamIterator yielding the GoogleDatastoreAdminV1ListIndexesResponse result.
+    ///
+    /// # Errors
+    ///
+    /// Returns ProviderError if the API request fails.
+    pub fn datastore_projects_indexes_list(
+        &self,
+        args: &DatastoreProjectsIndexesListArgs,
+    ) -> Result<
+        impl StreamIterator<
+            D = Result<GoogleDatastoreAdminV1ListIndexesResponse, ProviderError<ApiError>>,
+            P = crate::providers::gcp::clients::types::ApiPending,
+        > + Send
+        + 'static,
+        ProviderError<ApiError>,
+    > {
+        let builder = datastore_projects_indexes_list_builder(
+            &self.http_client,
+            &args.projectId,
+            &args.filter,
+            &args.pageSize,
+            &args.pageToken,
+        )
+        .map_err(ProviderError::Api)?;
+
+        let task = datastore_projects_indexes_list_task(builder)
+            .map_err(ProviderError::Api)?;
+
+        execute(task, None).map_err(|e: String| ProviderError::ExecuteFailed(e.to_string()))
+    }
+
     /// Datastore projects operations cancel.
     ///
     /// Automatically stores the result in the state store on success.
@@ -694,6 +770,86 @@ where
         let store_task = StoreStateIdentifierTask::new(task, state_store, args, stage);
 
         execute(store_task, None).map_err(|e: String| ProviderError::ExecuteFailed(e.to_string()))
+    }
+
+    /// Datastore projects operations get.
+    ///
+    /// Read-only operation - no state tracking.
+    ///
+    /// # Arguments
+    ///
+    /// * `args` - Request arguments
+    ///
+    /// # Returns
+    ///
+    /// StreamIterator yielding the GoogleLongrunningOperation result.
+    ///
+    /// # Errors
+    ///
+    /// Returns ProviderError if the API request fails.
+    pub fn datastore_projects_operations_get(
+        &self,
+        args: &DatastoreProjectsOperationsGetArgs,
+    ) -> Result<
+        impl StreamIterator<
+            D = Result<GoogleLongrunningOperation, ProviderError<ApiError>>,
+            P = crate::providers::gcp::clients::types::ApiPending,
+        > + Send
+        + 'static,
+        ProviderError<ApiError>,
+    > {
+        let builder = datastore_projects_operations_get_builder(
+            &self.http_client,
+            &args.name,
+        )
+        .map_err(ProviderError::Api)?;
+
+        let task = datastore_projects_operations_get_task(builder)
+            .map_err(ProviderError::Api)?;
+
+        execute(task, None).map_err(|e: String| ProviderError::ExecuteFailed(e.to_string()))
+    }
+
+    /// Datastore projects operations list.
+    ///
+    /// Read-only operation - no state tracking.
+    ///
+    /// # Arguments
+    ///
+    /// * `args` - Request arguments
+    ///
+    /// # Returns
+    ///
+    /// StreamIterator yielding the GoogleLongrunningListOperationsResponse result.
+    ///
+    /// # Errors
+    ///
+    /// Returns ProviderError if the API request fails.
+    pub fn datastore_projects_operations_list(
+        &self,
+        args: &DatastoreProjectsOperationsListArgs,
+    ) -> Result<
+        impl StreamIterator<
+            D = Result<GoogleLongrunningListOperationsResponse, ProviderError<ApiError>>,
+            P = crate::providers::gcp::clients::types::ApiPending,
+        > + Send
+        + 'static,
+        ProviderError<ApiError>,
+    > {
+        let builder = datastore_projects_operations_list_builder(
+            &self.http_client,
+            &args.name,
+            &args.filter,
+            &args.pageSize,
+            &args.pageToken,
+            &args.returnPartialSuccess,
+        )
+        .map_err(ProviderError::Api)?;
+
+        let task = datastore_projects_operations_list_task(builder)
+            .map_err(ProviderError::Api)?;
+
+        execute(task, None).map_err(|e: String| ProviderError::ExecuteFailed(e.to_string()))
     }
 
 }

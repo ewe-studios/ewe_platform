@@ -18,6 +18,9 @@ use crate::providers::gcp::clients::identitytoolkit::{
     identitytoolkit_relyingparty_email_link_signin_builder, identitytoolkit_relyingparty_email_link_signin_task,
     identitytoolkit_relyingparty_get_account_info_builder, identitytoolkit_relyingparty_get_account_info_task,
     identitytoolkit_relyingparty_get_oob_confirmation_code_builder, identitytoolkit_relyingparty_get_oob_confirmation_code_task,
+    identitytoolkit_relyingparty_get_project_config_builder, identitytoolkit_relyingparty_get_project_config_task,
+    identitytoolkit_relyingparty_get_public_keys_builder, identitytoolkit_relyingparty_get_public_keys_task,
+    identitytoolkit_relyingparty_get_recaptcha_param_builder, identitytoolkit_relyingparty_get_recaptcha_param_task,
     identitytoolkit_relyingparty_reset_password_builder, identitytoolkit_relyingparty_reset_password_task,
     identitytoolkit_relyingparty_send_verification_code_builder, identitytoolkit_relyingparty_send_verification_code_task,
     identitytoolkit_relyingparty_set_account_info_builder, identitytoolkit_relyingparty_set_account_info_task,
@@ -37,6 +40,9 @@ use crate::providers::gcp::clients::identitytoolkit::DownloadAccountResponse;
 use crate::providers::gcp::clients::identitytoolkit::EmailLinkSigninResponse;
 use crate::providers::gcp::clients::identitytoolkit::GetAccountInfoResponse;
 use crate::providers::gcp::clients::identitytoolkit::GetOobConfirmationCodeResponse;
+use crate::providers::gcp::clients::identitytoolkit::GetRecaptchaParamResponse;
+use crate::providers::gcp::clients::identitytoolkit::IdentitytoolkitRelyingpartyGetProjectConfigResponse;
+use crate::providers::gcp::clients::identitytoolkit::IdentitytoolkitRelyingpartyGetPublicKeysResponse;
 use crate::providers::gcp::clients::identitytoolkit::IdentitytoolkitRelyingpartySendVerificationCodeResponse;
 use crate::providers::gcp::clients::identitytoolkit::IdentitytoolkitRelyingpartySetProjectConfigResponse;
 use crate::providers::gcp::clients::identitytoolkit::IdentitytoolkitRelyingpartySignOutUserResponse;
@@ -54,6 +60,9 @@ use crate::providers::gcp::clients::identitytoolkit::IdentitytoolkitRelyingparty
 use crate::providers::gcp::clients::identitytoolkit::IdentitytoolkitRelyingpartyEmailLinkSigninArgs;
 use crate::providers::gcp::clients::identitytoolkit::IdentitytoolkitRelyingpartyGetAccountInfoArgs;
 use crate::providers::gcp::clients::identitytoolkit::IdentitytoolkitRelyingpartyGetOobConfirmationCodeArgs;
+use crate::providers::gcp::clients::identitytoolkit::IdentitytoolkitRelyingpartyGetProjectConfigArgs;
+use crate::providers::gcp::clients::identitytoolkit::IdentitytoolkitRelyingpartyGetPublicKeysArgs;
+use crate::providers::gcp::clients::identitytoolkit::IdentitytoolkitRelyingpartyGetRecaptchaParamArgs;
 use crate::providers::gcp::clients::identitytoolkit::IdentitytoolkitRelyingpartyResetPasswordArgs;
 use crate::providers::gcp::clients::identitytoolkit::IdentitytoolkitRelyingpartySendVerificationCodeArgs;
 use crate::providers::gcp::clients::identitytoolkit::IdentitytoolkitRelyingpartySetAccountInfoArgs;
@@ -276,7 +285,7 @@ where
 
     /// Identitytoolkit relyingparty get account info.
     ///
-    /// Automatically stores the result in the state store on success.
+    /// Read-only operation - no state tracking.
     ///
     /// # Arguments
     ///
@@ -288,7 +297,7 @@ where
     ///
     /// # Errors
     ///
-    /// Returns ProviderError if the API request or state storage fails.
+    /// Returns ProviderError if the API request fails.
     pub fn identitytoolkit_relyingparty_get_account_info(
         &self,
         args: &IdentitytoolkitRelyingpartyGetAccountInfoArgs,
@@ -308,17 +317,12 @@ where
         let task = identitytoolkit_relyingparty_get_account_info_task(builder)
             .map_err(ProviderError::Api)?;
 
-        let state_store = self.client.state_store.clone();
-        let stage = Some(self.client.stage.clone());
-
-        let store_task = StoreStateIdentifierTask::new(task, state_store, args, stage);
-
-        execute(store_task, None).map_err(|e: String| ProviderError::ExecuteFailed(e.to_string()))
+        execute(task, None).map_err(|e: String| ProviderError::ExecuteFailed(e.to_string()))
     }
 
     /// Identitytoolkit relyingparty get oob confirmation code.
     ///
-    /// Automatically stores the result in the state store on success.
+    /// Read-only operation - no state tracking.
     ///
     /// # Arguments
     ///
@@ -330,7 +334,7 @@ where
     ///
     /// # Errors
     ///
-    /// Returns ProviderError if the API request or state storage fails.
+    /// Returns ProviderError if the API request fails.
     pub fn identitytoolkit_relyingparty_get_oob_confirmation_code(
         &self,
         args: &IdentitytoolkitRelyingpartyGetOobConfirmationCodeArgs,
@@ -350,12 +354,120 @@ where
         let task = identitytoolkit_relyingparty_get_oob_confirmation_code_task(builder)
             .map_err(ProviderError::Api)?;
 
-        let state_store = self.client.state_store.clone();
-        let stage = Some(self.client.stage.clone());
+        execute(task, None).map_err(|e: String| ProviderError::ExecuteFailed(e.to_string()))
+    }
 
-        let store_task = StoreStateIdentifierTask::new(task, state_store, args, stage);
+    /// Identitytoolkit relyingparty get project config.
+    ///
+    /// Read-only operation - no state tracking.
+    ///
+    /// # Arguments
+    ///
+    /// * `args` - Request arguments
+    ///
+    /// # Returns
+    ///
+    /// StreamIterator yielding the IdentitytoolkitRelyingpartyGetProjectConfigResponse result.
+    ///
+    /// # Errors
+    ///
+    /// Returns ProviderError if the API request fails.
+    pub fn identitytoolkit_relyingparty_get_project_config(
+        &self,
+        args: &IdentitytoolkitRelyingpartyGetProjectConfigArgs,
+    ) -> Result<
+        impl StreamIterator<
+            D = Result<IdentitytoolkitRelyingpartyGetProjectConfigResponse, ProviderError<ApiError>>,
+            P = crate::providers::gcp::clients::types::ApiPending,
+        > + Send
+        + 'static,
+        ProviderError<ApiError>,
+    > {
+        let builder = identitytoolkit_relyingparty_get_project_config_builder(
+            &self.http_client,
+            &args.delegatedProjectNumber,
+            &args.projectNumber,
+        )
+        .map_err(ProviderError::Api)?;
 
-        execute(store_task, None).map_err(|e: String| ProviderError::ExecuteFailed(e.to_string()))
+        let task = identitytoolkit_relyingparty_get_project_config_task(builder)
+            .map_err(ProviderError::Api)?;
+
+        execute(task, None).map_err(|e: String| ProviderError::ExecuteFailed(e.to_string()))
+    }
+
+    /// Identitytoolkit relyingparty get public keys.
+    ///
+    /// Read-only operation - no state tracking.
+    ///
+    /// # Arguments
+    ///
+    /// * `args` - Request arguments
+    ///
+    /// # Returns
+    ///
+    /// StreamIterator yielding the IdentitytoolkitRelyingpartyGetPublicKeysResponse result.
+    ///
+    /// # Errors
+    ///
+    /// Returns ProviderError if the API request fails.
+    pub fn identitytoolkit_relyingparty_get_public_keys(
+        &self,
+        args: &IdentitytoolkitRelyingpartyGetPublicKeysArgs,
+    ) -> Result<
+        impl StreamIterator<
+            D = Result<IdentitytoolkitRelyingpartyGetPublicKeysResponse, ProviderError<ApiError>>,
+            P = crate::providers::gcp::clients::types::ApiPending,
+        > + Send
+        + 'static,
+        ProviderError<ApiError>,
+    > {
+        let builder = identitytoolkit_relyingparty_get_public_keys_builder(
+            &self.http_client,
+        )
+        .map_err(ProviderError::Api)?;
+
+        let task = identitytoolkit_relyingparty_get_public_keys_task(builder)
+            .map_err(ProviderError::Api)?;
+
+        execute(task, None).map_err(|e: String| ProviderError::ExecuteFailed(e.to_string()))
+    }
+
+    /// Identitytoolkit relyingparty get recaptcha param.
+    ///
+    /// Read-only operation - no state tracking.
+    ///
+    /// # Arguments
+    ///
+    /// * `args` - Request arguments
+    ///
+    /// # Returns
+    ///
+    /// StreamIterator yielding the GetRecaptchaParamResponse result.
+    ///
+    /// # Errors
+    ///
+    /// Returns ProviderError if the API request fails.
+    pub fn identitytoolkit_relyingparty_get_recaptcha_param(
+        &self,
+        args: &IdentitytoolkitRelyingpartyGetRecaptchaParamArgs,
+    ) -> Result<
+        impl StreamIterator<
+            D = Result<GetRecaptchaParamResponse, ProviderError<ApiError>>,
+            P = crate::providers::gcp::clients::types::ApiPending,
+        > + Send
+        + 'static,
+        ProviderError<ApiError>,
+    > {
+        let builder = identitytoolkit_relyingparty_get_recaptcha_param_builder(
+            &self.http_client,
+        )
+        .map_err(ProviderError::Api)?;
+
+        let task = identitytoolkit_relyingparty_get_recaptcha_param_task(builder)
+            .map_err(ProviderError::Api)?;
+
+        execute(task, None).map_err(|e: String| ProviderError::ExecuteFailed(e.to_string()))
     }
 
     /// Identitytoolkit relyingparty reset password.

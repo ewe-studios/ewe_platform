@@ -23,12 +23,16 @@ use crate::providers::gcp::clients::chromepolicy::{
     chromepolicy_customers_policies_networks_remove_network_builder, chromepolicy_customers_policies_networks_remove_network_task,
     chromepolicy_customers_policies_orgunits_batch_inherit_builder, chromepolicy_customers_policies_orgunits_batch_inherit_task,
     chromepolicy_customers_policies_orgunits_batch_modify_builder, chromepolicy_customers_policies_orgunits_batch_modify_task,
+    chromepolicy_customers_policy_schemas_get_builder, chromepolicy_customers_policy_schemas_get_task,
+    chromepolicy_customers_policy_schemas_list_builder, chromepolicy_customers_policy_schemas_list_task,
     chromepolicy_media_upload_builder, chromepolicy_media_upload_task,
 };
 use crate::providers::gcp::clients::types::{ApiError, ApiPending};
 use crate::providers::gcp::clients::chromepolicy::GoogleChromePolicyVersionsV1DefineCertificateResponse;
 use crate::providers::gcp::clients::chromepolicy::GoogleChromePolicyVersionsV1DefineNetworkResponse;
 use crate::providers::gcp::clients::chromepolicy::GoogleChromePolicyVersionsV1ListGroupPriorityOrderingResponse;
+use crate::providers::gcp::clients::chromepolicy::GoogleChromePolicyVersionsV1ListPolicySchemasResponse;
+use crate::providers::gcp::clients::chromepolicy::GoogleChromePolicyVersionsV1PolicySchema;
 use crate::providers::gcp::clients::chromepolicy::GoogleChromePolicyVersionsV1RemoveCertificateResponse;
 use crate::providers::gcp::clients::chromepolicy::GoogleChromePolicyVersionsV1RemoveNetworkResponse;
 use crate::providers::gcp::clients::chromepolicy::GoogleChromePolicyVersionsV1ResolveResponse;
@@ -45,6 +49,8 @@ use crate::providers::gcp::clients::chromepolicy::ChromepolicyCustomersPoliciesN
 use crate::providers::gcp::clients::chromepolicy::ChromepolicyCustomersPoliciesOrgunitsBatchInheritArgs;
 use crate::providers::gcp::clients::chromepolicy::ChromepolicyCustomersPoliciesOrgunitsBatchModifyArgs;
 use crate::providers::gcp::clients::chromepolicy::ChromepolicyCustomersPoliciesResolveArgs;
+use crate::providers::gcp::clients::chromepolicy::ChromepolicyCustomersPolicySchemasGetArgs;
+use crate::providers::gcp::clients::chromepolicy::ChromepolicyCustomersPolicySchemasListArgs;
 use crate::providers::gcp::clients::chromepolicy::ChromepolicyMediaUploadArgs;
 use crate::provider_client::{ProviderClient, ProviderError};
 use foundation_core::valtron::{execute, StreamIterator};
@@ -218,7 +224,7 @@ where
 
     /// Chromepolicy customers policies groups list group priority ordering.
     ///
-    /// Automatically stores the result in the state store on success.
+    /// Read-only operation - no state tracking.
     ///
     /// # Arguments
     ///
@@ -230,7 +236,7 @@ where
     ///
     /// # Errors
     ///
-    /// Returns ProviderError if the API request or state storage fails.
+    /// Returns ProviderError if the API request fails.
     pub fn chromepolicy_customers_policies_groups_list_group_priority_ordering(
         &self,
         args: &ChromepolicyCustomersPoliciesGroupsListGroupPriorityOrderingArgs,
@@ -251,12 +257,7 @@ where
         let task = chromepolicy_customers_policies_groups_list_group_priority_ordering_task(builder)
             .map_err(ProviderError::Api)?;
 
-        let state_store = self.client.state_store.clone();
-        let stage = Some(self.client.stage.clone());
-
-        let store_task = StoreStateIdentifierTask::new(task, state_store, args, stage);
-
-        execute(store_task, None).map_err(|e: String| ProviderError::ExecuteFailed(e.to_string()))
+        execute(task, None).map_err(|e: String| ProviderError::ExecuteFailed(e.to_string()))
     }
 
     /// Chromepolicy customers policies groups update group priority ordering.
@@ -558,6 +559,85 @@ where
         let store_task = StoreStateIdentifierTask::new(task, state_store, args, stage);
 
         execute(store_task, None).map_err(|e: String| ProviderError::ExecuteFailed(e.to_string()))
+    }
+
+    /// Chromepolicy customers policy schemas get.
+    ///
+    /// Read-only operation - no state tracking.
+    ///
+    /// # Arguments
+    ///
+    /// * `args` - Request arguments
+    ///
+    /// # Returns
+    ///
+    /// StreamIterator yielding the GoogleChromePolicyVersionsV1PolicySchema result.
+    ///
+    /// # Errors
+    ///
+    /// Returns ProviderError if the API request fails.
+    pub fn chromepolicy_customers_policy_schemas_get(
+        &self,
+        args: &ChromepolicyCustomersPolicySchemasGetArgs,
+    ) -> Result<
+        impl StreamIterator<
+            D = Result<GoogleChromePolicyVersionsV1PolicySchema, ProviderError<ApiError>>,
+            P = crate::providers::gcp::clients::types::ApiPending,
+        > + Send
+        + 'static,
+        ProviderError<ApiError>,
+    > {
+        let builder = chromepolicy_customers_policy_schemas_get_builder(
+            &self.http_client,
+            &args.name,
+        )
+        .map_err(ProviderError::Api)?;
+
+        let task = chromepolicy_customers_policy_schemas_get_task(builder)
+            .map_err(ProviderError::Api)?;
+
+        execute(task, None).map_err(|e: String| ProviderError::ExecuteFailed(e.to_string()))
+    }
+
+    /// Chromepolicy customers policy schemas list.
+    ///
+    /// Read-only operation - no state tracking.
+    ///
+    /// # Arguments
+    ///
+    /// * `args` - Request arguments
+    ///
+    /// # Returns
+    ///
+    /// StreamIterator yielding the GoogleChromePolicyVersionsV1ListPolicySchemasResponse result.
+    ///
+    /// # Errors
+    ///
+    /// Returns ProviderError if the API request fails.
+    pub fn chromepolicy_customers_policy_schemas_list(
+        &self,
+        args: &ChromepolicyCustomersPolicySchemasListArgs,
+    ) -> Result<
+        impl StreamIterator<
+            D = Result<GoogleChromePolicyVersionsV1ListPolicySchemasResponse, ProviderError<ApiError>>,
+            P = crate::providers::gcp::clients::types::ApiPending,
+        > + Send
+        + 'static,
+        ProviderError<ApiError>,
+    > {
+        let builder = chromepolicy_customers_policy_schemas_list_builder(
+            &self.http_client,
+            &args.parent,
+            &args.filter,
+            &args.pageSize,
+            &args.pageToken,
+        )
+        .map_err(ProviderError::Api)?;
+
+        let task = chromepolicy_customers_policy_schemas_list_task(builder)
+            .map_err(ProviderError::Api)?;
+
+        execute(task, None).map_err(|e: String| ProviderError::ExecuteFailed(e.to_string()))
     }
 
     /// Chromepolicy media upload.

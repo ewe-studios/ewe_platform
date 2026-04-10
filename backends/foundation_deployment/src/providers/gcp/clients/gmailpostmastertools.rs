@@ -7,7 +7,6 @@
 
 #![cfg(feature = "gcp")]
 
-
 use crate::providers::gcp::clients::types::*;
 use crate::providers::gcp::resources::*;
 use foundation_core::valtron::{
@@ -17,10 +16,11 @@ use foundation_core::valtron::{
 use foundation_core::wire::simple_http::client::{
     body_reader, ClientRequestBuilder, RequestIntro, SimpleHttpClient, SystemDnsResolver,
 };
+use foundation_db::state::resource_identifier::ResourceIdentifier;
 use foundation_macros::JsonHash;
 use serde::Serialize;
 
-/// GET v2/domainStats:batchQuery
+/// POST v2/domainStats:batchQuery
 /// Executes a batch of QueryDomainStats requests for multiple domains. Returns PERMISSION_DENIED if you don't have permission to access DomainStats for any of the requested domains.
 ///
 /// Returns `ClientRequestBuilder` for customization.
@@ -28,7 +28,6 @@ use serde::Serialize;
 
 pub fn gmailpostmastertools_domain_stats_batch_query_builder(
     client: &SimpleHttpClient,
-    body: &BatchQueryDomainStatsRequest,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url =
@@ -36,15 +35,13 @@ pub fn gmailpostmastertools_domain_stats_batch_query_builder(
 
     // Build request
     let builder = client
-        .get(&endpoint_url)
+        .post(&endpoint_url)
         .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
 
-    builder
-        .body_json(body)
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+    Ok(builder)
 }
 
-/// GET v2/domainStats:batchQuery
+/// POST v2/domainStats:batchQuery
 /// Executes a batch of QueryDomainStats requests for multiple domains. Returns PERMISSION_DENIED if you don't have permission to access DomainStats for any of the requested domains.
 ///
 /// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
@@ -118,7 +115,7 @@ pub fn gmailpostmastertools_domain_stats_batch_query_task(
         .map_pending(|_| ApiPending::Sending))
 }
 
-/// GET v2/domainStats:batchQuery
+/// POST v2/domainStats:batchQuery
 /// Executes a batch of QueryDomainStats requests for multiple domains. Returns PERMISSION_DENIED if you don't have permission to access DomainStats for any of the requested domains.
 ///
 /// Takes a `ClientRequestBuilder`, builds and executes the request,
@@ -152,14 +149,7 @@ pub fn gmailpostmastertools_domain_stats_batch_query_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
-/// Arguments for [`gmailpostmastertools_domain_stats_batch_query`].
-#[derive(Debug, Clone, Serialize, JsonHash)]
-pub struct GmailpostmastertoolsDomainStatsBatchQueryArgs {
-    /// Request body.
-    pub body: BatchQueryDomainStatsRequest,
-}
-
-/// GET v2/domainStats:batchQuery
+/// POST v2/domainStats:batchQuery
 /// Executes a batch of QueryDomainStats requests for multiple domains. Returns PERMISSION_DENIED if you don't have permission to access DomainStats for any of the requested domains.
 ///
 /// Simplest API - builds and executes the request in one call.
@@ -172,7 +162,6 @@ pub struct GmailpostmastertoolsDomainStatsBatchQueryArgs {
 
 pub fn gmailpostmastertools_domain_stats_batch_query(
     client: &SimpleHttpClient,
-    args: &GmailpostmastertoolsDomainStatsBatchQueryArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<BatchQueryDomainStatsResponse>, ApiError>,
@@ -181,7 +170,7 @@ pub fn gmailpostmastertools_domain_stats_batch_query(
         + 'static,
     ApiError,
 > {
-    let builder = gmailpostmastertools_domain_stats_batch_query_builder(client, &args.body)?;
+    let builder = gmailpostmastertools_domain_stats_batch_query_builder(client)?;
     gmailpostmastertools_domain_stats_batch_query_execute(builder)
 }
 
@@ -196,7 +185,10 @@ pub fn gmailpostmastertools_domains_get_builder(
     name: &String,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
-    let endpoint_url = format!("https://gmailpostmastertools.googleapis.com/v2/domains/{}",);
+    let endpoint_url = format!(
+        "https://gmailpostmastertools.googleapis.com/v2/domains/{}",
+        name,
+    );
 
     // Build request
     let builder = client
@@ -350,8 +342,10 @@ pub fn gmailpostmastertools_domains_get_compliance_status_builder(
     name: &String,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
-    let endpoint_url =
-        format!("https://gmailpostmastertools.googleapis.com/v2/domains/{}/complianceStatus",);
+    let endpoint_url = format!(
+        "https://gmailpostmastertools.googleapis.com/v2/domains/{}/complianceStatus",
+        name,
+    );
 
     // Build request
     let builder = client
@@ -506,8 +500,8 @@ pub fn gmailpostmastertools_domains_get_compliance_status(
 
 pub fn gmailpostmastertools_domains_list_builder(
     client: &SimpleHttpClient,
-    pageSize: &Option<i32>,
-    pageToken: &Option<String>,
+    pageSize: &Option<Option<String>>,
+    pageToken: &Option<Option<String>>,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!("https://gmailpostmastertools.googleapis.com/v2/domains",);
@@ -644,9 +638,9 @@ pub fn gmailpostmastertools_domains_list_execute(
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct GmailpostmastertoolsDomainsListArgs {
     /// Query parameter: pageSize
-    pub pageSize: Option<i32>,
+    pub pageSize: Option<Option<String>>,
     /// Query parameter: pageToken
-    pub pageToken: Option<String>,
+    pub pageToken: Option<Option<String>>,
 }
 
 /// GET v2/domains
@@ -674,7 +668,7 @@ pub fn gmailpostmastertools_domains_list(
     gmailpostmastertools_domains_list_execute(builder)
 }
 
-/// GET v2/domains/{domainsId}/domainStats:query
+/// POST v2/domains/{domainsId}/domainStats:query
 /// Retrieves a list of domain statistics for a given domain and time period. Returns statistics only for dates where data is available. Returns PERMISSION_DENIED if you don't have permission to access DomainStats for the domain.
 ///
 /// Returns `ClientRequestBuilder` for customization.
@@ -683,23 +677,22 @@ pub fn gmailpostmastertools_domains_list(
 pub fn gmailpostmastertools_domains_domain_stats_query_builder(
     client: &SimpleHttpClient,
     parent: &String,
-    body: &QueryDomainStatsRequest,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
-    let endpoint_url =
-        format!("https://gmailpostmastertools.googleapis.com/v2/domains/{}/domainStats:query",);
+    let endpoint_url = format!(
+        "https://gmailpostmastertools.googleapis.com/v2/domains/{}/domainStats:query",
+        parent,
+    );
 
     // Build request
     let builder = client
-        .get(&endpoint_url)
+        .post(&endpoint_url)
         .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
 
-    builder
-        .body_json(body)
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+    Ok(builder)
 }
 
-/// GET v2/domains/{domainsId}/domainStats:query
+/// POST v2/domains/{domainsId}/domainStats:query
 /// Retrieves a list of domain statistics for a given domain and time period. Returns statistics only for dates where data is available. Returns PERMISSION_DENIED if you don't have permission to access DomainStats for the domain.
 ///
 /// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
@@ -773,7 +766,7 @@ pub fn gmailpostmastertools_domains_domain_stats_query_task(
         .map_pending(|_| ApiPending::Sending))
 }
 
-/// GET v2/domains/{domainsId}/domainStats:query
+/// POST v2/domains/{domainsId}/domainStats:query
 /// Retrieves a list of domain statistics for a given domain and time period. Returns statistics only for dates where data is available. Returns PERMISSION_DENIED if you don't have permission to access DomainStats for the domain.
 ///
 /// Takes a `ClientRequestBuilder`, builds and executes the request,
@@ -810,11 +803,9 @@ pub fn gmailpostmastertools_domains_domain_stats_query_execute(
 pub struct GmailpostmastertoolsDomainsDomainStatsQueryArgs {
     /// Path parameter: parent
     pub parent: String,
-    /// Request body.
-    pub body: QueryDomainStatsRequest,
 }
 
-/// GET v2/domains/{domainsId}/domainStats:query
+/// POST v2/domains/{domainsId}/domainStats:query
 /// Retrieves a list of domain statistics for a given domain and time period. Returns statistics only for dates where data is available. Returns PERMISSION_DENIED if you don't have permission to access DomainStats for the domain.
 ///
 /// Simplest API - builds and executes the request in one call.
@@ -834,7 +825,142 @@ pub fn gmailpostmastertools_domains_domain_stats_query(
         + 'static,
     ApiError,
 > {
-    let builder =
-        gmailpostmastertools_domains_domain_stats_query_builder(client, &args.parent, &args.body)?;
+    let builder = gmailpostmastertools_domains_domain_stats_query_builder(client, &args.parent)?;
     gmailpostmastertools_domains_domain_stats_query_execute(builder)
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for BatchQueryDomainStatsResponse
+// =============================================================================
+
+/// ResourceIdentifier implementation for BatchQueryDomainStatsResponse with GmailpostmastertoolsDomainStatsBatchQueryArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<GmailpostmastertoolsDomainStatsBatchQueryArgs>
+    for BatchQueryDomainStatsResponse
+{
+    fn generate_resource_id(
+        &self,
+        input: &GmailpostmastertoolsDomainStatsBatchQueryArgs,
+    ) -> String {
+        "gcp::gmailpostmastertools::BatchQueryDomainStatsResponse".to_string()
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::gmailpostmastertools::BatchQueryDomainStatsResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for Domain
+// =============================================================================
+
+/// ResourceIdentifier implementation for Domain with GmailpostmastertoolsDomainsGetArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<GmailpostmastertoolsDomainsGetArgs> for Domain {
+    fn generate_resource_id(&self, input: &GmailpostmastertoolsDomainsGetArgs) -> String {
+        format!("gcp::gmailpostmastertools::Domain/{}", input.name)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::gmailpostmastertools::Domain"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for DomainComplianceStatus
+// =============================================================================
+
+/// ResourceIdentifier implementation for DomainComplianceStatus with GmailpostmastertoolsDomainsGetComplianceStatusArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<GmailpostmastertoolsDomainsGetComplianceStatusArgs>
+    for DomainComplianceStatus
+{
+    fn generate_resource_id(
+        &self,
+        input: &GmailpostmastertoolsDomainsGetComplianceStatusArgs,
+    ) -> String {
+        format!(
+            "gcp::gmailpostmastertools::DomainComplianceStatus/{}",
+            input.name
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::gmailpostmastertools::DomainComplianceStatus"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for ListDomainsResponse
+// =============================================================================
+
+/// ResourceIdentifier implementation for ListDomainsResponse with GmailpostmastertoolsDomainsListArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<GmailpostmastertoolsDomainsListArgs> for ListDomainsResponse {
+    fn generate_resource_id(&self, input: &GmailpostmastertoolsDomainsListArgs) -> String {
+        "gcp::gmailpostmastertools::ListDomainsResponse".to_string()
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::gmailpostmastertools::ListDomainsResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for QueryDomainStatsResponse
+// =============================================================================
+
+/// ResourceIdentifier implementation for QueryDomainStatsResponse with GmailpostmastertoolsDomainsDomainStatsQueryArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<GmailpostmastertoolsDomainsDomainStatsQueryArgs>
+    for QueryDomainStatsResponse
+{
+    fn generate_resource_id(
+        &self,
+        input: &GmailpostmastertoolsDomainsDomainStatsQueryArgs,
+    ) -> String {
+        format!(
+            "gcp::gmailpostmastertools::QueryDomainStatsResponse/{}",
+            input.parent
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::gmailpostmastertools::QueryDomainStatsResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
 }

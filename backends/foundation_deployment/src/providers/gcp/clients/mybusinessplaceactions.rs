@@ -7,7 +7,6 @@
 
 #![cfg(feature = "gcp")]
 
-
 use crate::providers::gcp::clients::types::*;
 use crate::providers::gcp::resources::*;
 use foundation_core::valtron::{
@@ -17,10 +16,11 @@ use foundation_core::valtron::{
 use foundation_core::wire::simple_http::client::{
     body_reader, ClientRequestBuilder, RequestIntro, SimpleHttpClient, SystemDnsResolver,
 };
+use foundation_db::state::resource_identifier::ResourceIdentifier;
 use foundation_macros::JsonHash;
 use serde::Serialize;
 
-/// GET v1/locations/{locationsId}/placeActionLinks
+/// POST v1/locations/{locationsId}/placeActionLinks
 /// Creates a place action link associated with the specified location, and returns it. The request is considered duplicate if the parent, place_action_link.uri and place_action_link.place_action_type are the same as a previous request.
 ///
 /// Returns `ClientRequestBuilder` for customization.
@@ -29,23 +29,22 @@ use serde::Serialize;
 pub fn mybusinessplaceactions_locations_place_action_links_create_builder(
     client: &SimpleHttpClient,
     parent: &String,
-    body: &PlaceActionLink,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
-    let endpoint_url =
-        format!("https://mybusinessplaceactions.googleapis.com/v1/locations/{}/placeActionLinks",);
+    let endpoint_url = format!(
+        "https://mybusinessplaceactions.googleapis.com/v1/locations/{}/placeActionLinks",
+        parent,
+    );
 
     // Build request
     let builder = client
-        .get(&endpoint_url)
+        .post(&endpoint_url)
         .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
 
-    builder
-        .body_json(body)
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+    Ok(builder)
 }
 
-/// GET v1/locations/{locationsId}/placeActionLinks
+/// POST v1/locations/{locationsId}/placeActionLinks
 /// Creates a place action link associated with the specified location, and returns it. The request is considered duplicate if the parent, place_action_link.uri and place_action_link.place_action_type are the same as a previous request.
 ///
 /// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
@@ -119,7 +118,7 @@ pub fn mybusinessplaceactions_locations_place_action_links_create_task(
         .map_pending(|_| ApiPending::Sending))
 }
 
-/// GET v1/locations/{locationsId}/placeActionLinks
+/// POST v1/locations/{locationsId}/placeActionLinks
 /// Creates a place action link associated with the specified location, and returns it. The request is considered duplicate if the parent, place_action_link.uri and place_action_link.place_action_type are the same as a previous request.
 ///
 /// Takes a `ClientRequestBuilder`, builds and executes the request,
@@ -156,11 +155,9 @@ pub fn mybusinessplaceactions_locations_place_action_links_create_execute(
 pub struct MybusinessplaceactionsLocationsPlaceActionLinksCreateArgs {
     /// Path parameter: parent
     pub parent: String,
-    /// Request body.
-    pub body: PlaceActionLink,
 }
 
-/// GET v1/locations/{locationsId}/placeActionLinks
+/// POST v1/locations/{locationsId}/placeActionLinks
 /// Creates a place action link associated with the specified location, and returns it. The request is considered duplicate if the parent, place_action_link.uri and place_action_link.place_action_type are the same as a previous request.
 ///
 /// Simplest API - builds and executes the request in one call.
@@ -180,12 +177,705 @@ pub fn mybusinessplaceactions_locations_place_action_links_create(
         + 'static,
     ApiError,
 > {
-    let builder = mybusinessplaceactions_locations_place_action_links_create_builder(
+    let builder =
+        mybusinessplaceactions_locations_place_action_links_create_builder(client, &args.parent)?;
+    mybusinessplaceactions_locations_place_action_links_create_execute(builder)
+}
+
+/// DELETE v1/locations/{locationsId}/placeActionLinks/{placeActionLinksId}
+/// Deletes a place action link from the specified location.
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `mybusinessplaceactions_locations_place_action_links_delete_execute()` to send, or `mybusinessplaceactions_locations_place_action_links_delete` for simplest API.
+
+pub fn mybusinessplaceactions_locations_place_action_links_delete_builder(
+    client: &SimpleHttpClient,
+    name: &String,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!(
+        "https://mybusinessplaceactions.googleapis.com/v1/locations/{}/placeActionLinks/{placeActionLinksId}",
+        name,
+    );
+
+    // Build request
+    let builder = client
+        .delete(&endpoint_url)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// DELETE v1/locations/{locationsId}/placeActionLinks/{placeActionLinksId}
+/// Deletes a place action link from the specified location.
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `mybusinessplaceactions_locations_place_action_links_delete_execute()` or `mybusinessplaceactions_locations_place_action_links_delete`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `mybusinessplaceactions_locations_place_action_links_delete_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn mybusinessplaceactions_locations_place_action_links_delete_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<Empty>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: Empty = serde_json::from_str(&body)
+                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// DELETE v1/locations/{locationsId}/placeActionLinks/{placeActionLinksId}
+/// Deletes a place action link from the specified location.
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `mybusinessplaceactions_locations_place_action_links_delete_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `mybusinessplaceactions_locations_place_action_links_delete_task()`.
+/// For the simplest API, use `mybusinessplaceactions_locations_place_action_links_delete()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `mybusinessplaceactions_locations_place_action_links_delete_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn mybusinessplaceactions_locations_place_action_links_delete_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<Empty>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let task = mybusinessplaceactions_locations_place_action_links_delete_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`mybusinessplaceactions_locations_place_action_links_delete`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct MybusinessplaceactionsLocationsPlaceActionLinksDeleteArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
+/// DELETE v1/locations/{locationsId}/placeActionLinks/{placeActionLinksId}
+/// Deletes a place action link from the specified location.
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `mybusinessplaceactions_locations_place_action_links_delete_builder()` + `mybusinessplaceactions_locations_place_action_links_delete_execute()`.
+/// For task-level control, use `mybusinessplaceactions_locations_place_action_links_delete_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn mybusinessplaceactions_locations_place_action_links_delete(
+    client: &SimpleHttpClient,
+    args: &MybusinessplaceactionsLocationsPlaceActionLinksDeleteArgs,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<Empty>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let builder =
+        mybusinessplaceactions_locations_place_action_links_delete_builder(client, &args.name)?;
+    mybusinessplaceactions_locations_place_action_links_delete_execute(builder)
+}
+
+/// GET v1/locations/{locationsId}/placeActionLinks/{placeActionLinksId}
+/// Gets the specified place action link.
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `mybusinessplaceactions_locations_place_action_links_get_execute()` to send, or `mybusinessplaceactions_locations_place_action_links_get` for simplest API.
+
+pub fn mybusinessplaceactions_locations_place_action_links_get_builder(
+    client: &SimpleHttpClient,
+    name: &String,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!(
+        "https://mybusinessplaceactions.googleapis.com/v1/locations/{}/placeActionLinks/{placeActionLinksId}",
+        name,
+    );
+
+    // Build request
+    let builder = client
+        .get(&endpoint_url)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// GET v1/locations/{locationsId}/placeActionLinks/{placeActionLinksId}
+/// Gets the specified place action link.
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `mybusinessplaceactions_locations_place_action_links_get_execute()` or `mybusinessplaceactions_locations_place_action_links_get`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `mybusinessplaceactions_locations_place_action_links_get_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn mybusinessplaceactions_locations_place_action_links_get_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<PlaceActionLink>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: PlaceActionLink = serde_json::from_str(&body)
+                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// GET v1/locations/{locationsId}/placeActionLinks/{placeActionLinksId}
+/// Gets the specified place action link.
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `mybusinessplaceactions_locations_place_action_links_get_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `mybusinessplaceactions_locations_place_action_links_get_task()`.
+/// For the simplest API, use `mybusinessplaceactions_locations_place_action_links_get()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `mybusinessplaceactions_locations_place_action_links_get_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn mybusinessplaceactions_locations_place_action_links_get_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<PlaceActionLink>, ApiError>, P = ApiPending>
+        + Send
+        + 'static,
+    ApiError,
+> {
+    let task = mybusinessplaceactions_locations_place_action_links_get_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`mybusinessplaceactions_locations_place_action_links_get`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct MybusinessplaceactionsLocationsPlaceActionLinksGetArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
+/// GET v1/locations/{locationsId}/placeActionLinks/{placeActionLinksId}
+/// Gets the specified place action link.
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `mybusinessplaceactions_locations_place_action_links_get_builder()` + `mybusinessplaceactions_locations_place_action_links_get_execute()`.
+/// For task-level control, use `mybusinessplaceactions_locations_place_action_links_get_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn mybusinessplaceactions_locations_place_action_links_get(
+    client: &SimpleHttpClient,
+    args: &MybusinessplaceactionsLocationsPlaceActionLinksGetArgs,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<PlaceActionLink>, ApiError>, P = ApiPending>
+        + Send
+        + 'static,
+    ApiError,
+> {
+    let builder =
+        mybusinessplaceactions_locations_place_action_links_get_builder(client, &args.name)?;
+    mybusinessplaceactions_locations_place_action_links_get_execute(builder)
+}
+
+/// GET v1/locations/{locationsId}/placeActionLinks
+/// Lists the place action links for the specified location.
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `mybusinessplaceactions_locations_place_action_links_list_execute()` to send, or `mybusinessplaceactions_locations_place_action_links_list` for simplest API.
+
+pub fn mybusinessplaceactions_locations_place_action_links_list_builder(
+    client: &SimpleHttpClient,
+    parent: &String,
+    filter: &Option<Option<String>>,
+    pageSize: &Option<Option<String>>,
+    pageToken: &Option<Option<String>>,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!(
+        "https://mybusinessplaceactions.googleapis.com/v1/locations/{}/placeActionLinks",
+        parent,
+    );
+
+    // Build request
+    let mut query_parts = Vec::new();
+    if let Some(val) = filter.as_ref() {
+        query_parts.push(format!("filter={}", val));
+    }
+    if let Some(val) = pageSize.as_ref() {
+        query_parts.push(format!("pageSize={}", val));
+    }
+    if let Some(val) = pageToken.as_ref() {
+        query_parts.push(format!("pageToken={}", val));
+    }
+
+    let url_with_query = if query_parts.is_empty() {
+        endpoint_url
+    } else {
+        format!("{}?{}", endpoint_url, query_parts.join("&"))
+    };
+
+    let builder = client
+        .get(&url_with_query)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// GET v1/locations/{locationsId}/placeActionLinks
+/// Lists the place action links for the specified location.
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `mybusinessplaceactions_locations_place_action_links_list_execute()` or `mybusinessplaceactions_locations_place_action_links_list`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `mybusinessplaceactions_locations_place_action_links_list_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn mybusinessplaceactions_locations_place_action_links_list_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<ListPlaceActionLinksResponse>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: ListPlaceActionLinksResponse = serde_json::from_str(&body)
+                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// GET v1/locations/{locationsId}/placeActionLinks
+/// Lists the place action links for the specified location.
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `mybusinessplaceactions_locations_place_action_links_list_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `mybusinessplaceactions_locations_place_action_links_list_task()`.
+/// For the simplest API, use `mybusinessplaceactions_locations_place_action_links_list()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `mybusinessplaceactions_locations_place_action_links_list_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn mybusinessplaceactions_locations_place_action_links_list_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<
+            D = Result<ApiResponse<ListPlaceActionLinksResponse>, ApiError>,
+            P = ApiPending,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    let task = mybusinessplaceactions_locations_place_action_links_list_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`mybusinessplaceactions_locations_place_action_links_list`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct MybusinessplaceactionsLocationsPlaceActionLinksListArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Query parameter: filter
+    pub filter: Option<Option<String>>,
+    /// Query parameter: pageSize
+    pub pageSize: Option<Option<String>>,
+    /// Query parameter: pageToken
+    pub pageToken: Option<Option<String>>,
+}
+
+/// GET v1/locations/{locationsId}/placeActionLinks
+/// Lists the place action links for the specified location.
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `mybusinessplaceactions_locations_place_action_links_list_builder()` + `mybusinessplaceactions_locations_place_action_links_list_execute()`.
+/// For task-level control, use `mybusinessplaceactions_locations_place_action_links_list_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn mybusinessplaceactions_locations_place_action_links_list(
+    client: &SimpleHttpClient,
+    args: &MybusinessplaceactionsLocationsPlaceActionLinksListArgs,
+) -> Result<
+    impl StreamIterator<
+            D = Result<ApiResponse<ListPlaceActionLinksResponse>, ApiError>,
+            P = ApiPending,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    let builder = mybusinessplaceactions_locations_place_action_links_list_builder(
         client,
         &args.parent,
-        &args.body,
+        &args.filter,
+        &args.pageSize,
+        &args.pageToken,
     )?;
-    mybusinessplaceactions_locations_place_action_links_create_execute(builder)
+    mybusinessplaceactions_locations_place_action_links_list_execute(builder)
+}
+
+/// PATCH v1/locations/{locationsId}/placeActionLinks/{placeActionLinksId}
+/// Updates the specified place action link and returns it.
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `mybusinessplaceactions_locations_place_action_links_patch_execute()` to send, or `mybusinessplaceactions_locations_place_action_links_patch` for simplest API.
+
+pub fn mybusinessplaceactions_locations_place_action_links_patch_builder(
+    client: &SimpleHttpClient,
+    name: &String,
+    updateMask: &Option<Option<String>>,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!(
+        "https://mybusinessplaceactions.googleapis.com/v1/locations/{}/placeActionLinks/{placeActionLinksId}",
+        name,
+    );
+
+    // Build request
+    let mut query_parts = Vec::new();
+    if let Some(val) = updateMask.as_ref() {
+        query_parts.push(format!("updateMask={}", val));
+    }
+
+    let url_with_query = if query_parts.is_empty() {
+        endpoint_url
+    } else {
+        format!("{}?{}", endpoint_url, query_parts.join("&"))
+    };
+
+    let builder = client
+        .patch(&url_with_query)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// PATCH v1/locations/{locationsId}/placeActionLinks/{placeActionLinksId}
+/// Updates the specified place action link and returns it.
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `mybusinessplaceactions_locations_place_action_links_patch_execute()` or `mybusinessplaceactions_locations_place_action_links_patch`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `mybusinessplaceactions_locations_place_action_links_patch_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn mybusinessplaceactions_locations_place_action_links_patch_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<PlaceActionLink>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: PlaceActionLink = serde_json::from_str(&body)
+                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// PATCH v1/locations/{locationsId}/placeActionLinks/{placeActionLinksId}
+/// Updates the specified place action link and returns it.
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `mybusinessplaceactions_locations_place_action_links_patch_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `mybusinessplaceactions_locations_place_action_links_patch_task()`.
+/// For the simplest API, use `mybusinessplaceactions_locations_place_action_links_patch()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `mybusinessplaceactions_locations_place_action_links_patch_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn mybusinessplaceactions_locations_place_action_links_patch_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<PlaceActionLink>, ApiError>, P = ApiPending>
+        + Send
+        + 'static,
+    ApiError,
+> {
+    let task = mybusinessplaceactions_locations_place_action_links_patch_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`mybusinessplaceactions_locations_place_action_links_patch`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct MybusinessplaceactionsLocationsPlaceActionLinksPatchArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Query parameter: updateMask
+    pub updateMask: Option<Option<String>>,
+}
+
+/// PATCH v1/locations/{locationsId}/placeActionLinks/{placeActionLinksId}
+/// Updates the specified place action link and returns it.
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `mybusinessplaceactions_locations_place_action_links_patch_builder()` + `mybusinessplaceactions_locations_place_action_links_patch_execute()`.
+/// For task-level control, use `mybusinessplaceactions_locations_place_action_links_patch_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn mybusinessplaceactions_locations_place_action_links_patch(
+    client: &SimpleHttpClient,
+    args: &MybusinessplaceactionsLocationsPlaceActionLinksPatchArgs,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<PlaceActionLink>, ApiError>, P = ApiPending>
+        + Send
+        + 'static,
+    ApiError,
+> {
+    let builder = mybusinessplaceactions_locations_place_action_links_patch_builder(
+        client,
+        &args.name,
+        &args.updateMask,
+    )?;
+    mybusinessplaceactions_locations_place_action_links_patch_execute(builder)
 }
 
 /// GET v1/placeActionTypeMetadata
@@ -196,10 +886,10 @@ pub fn mybusinessplaceactions_locations_place_action_links_create(
 
 pub fn mybusinessplaceactions_place_action_type_metadata_list_builder(
     client: &SimpleHttpClient,
-    filter: &Option<String>,
-    languageCode: &Option<String>,
-    pageSize: &Option<i32>,
-    pageToken: &Option<String>,
+    filter: &Option<Option<String>>,
+    languageCode: &Option<Option<String>>,
+    pageSize: &Option<Option<String>>,
+    pageToken: &Option<Option<String>>,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url =
@@ -345,13 +1035,13 @@ pub fn mybusinessplaceactions_place_action_type_metadata_list_execute(
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct MybusinessplaceactionsPlaceActionTypeMetadataListArgs {
     /// Query parameter: filter
-    pub filter: Option<String>,
+    pub filter: Option<Option<String>>,
     /// Query parameter: languageCode
-    pub languageCode: Option<String>,
+    pub languageCode: Option<Option<String>>,
     /// Query parameter: pageSize
-    pub pageSize: Option<i32>,
+    pub pageSize: Option<Option<String>>,
     /// Query parameter: pageToken
-    pub pageToken: Option<String>,
+    pub pageToken: Option<Option<String>>,
 }
 
 /// GET v1/placeActionTypeMetadata
@@ -384,4 +1074,182 @@ pub fn mybusinessplaceactions_place_action_type_metadata_list(
         &args.pageToken,
     )?;
     mybusinessplaceactions_place_action_type_metadata_list_execute(builder)
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for PlaceActionLink
+// =============================================================================
+
+/// ResourceIdentifier implementation for PlaceActionLink with MybusinessplaceactionsLocationsPlaceActionLinksCreateArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<MybusinessplaceactionsLocationsPlaceActionLinksCreateArgs>
+    for PlaceActionLink
+{
+    fn generate_resource_id(
+        &self,
+        input: &MybusinessplaceactionsLocationsPlaceActionLinksCreateArgs,
+    ) -> String {
+        format!(
+            "gcp::mybusinessplaceactions::PlaceActionLink/{}",
+            input.parent
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::mybusinessplaceactions::PlaceActionLink"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for Empty
+// =============================================================================
+
+/// ResourceIdentifier implementation for Empty with MybusinessplaceactionsLocationsPlaceActionLinksDeleteArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<MybusinessplaceactionsLocationsPlaceActionLinksDeleteArgs> for Empty {
+    fn generate_resource_id(
+        &self,
+        input: &MybusinessplaceactionsLocationsPlaceActionLinksDeleteArgs,
+    ) -> String {
+        format!("gcp::mybusinessplaceactions::Empty/{}", input.name)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::mybusinessplaceactions::Empty"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for PlaceActionLink
+// =============================================================================
+
+/// ResourceIdentifier implementation for PlaceActionLink with MybusinessplaceactionsLocationsPlaceActionLinksGetArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<MybusinessplaceactionsLocationsPlaceActionLinksGetArgs>
+    for PlaceActionLink
+{
+    fn generate_resource_id(
+        &self,
+        input: &MybusinessplaceactionsLocationsPlaceActionLinksGetArgs,
+    ) -> String {
+        format!(
+            "gcp::mybusinessplaceactions::PlaceActionLink/{}",
+            input.name
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::mybusinessplaceactions::PlaceActionLink"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for ListPlaceActionLinksResponse
+// =============================================================================
+
+/// ResourceIdentifier implementation for ListPlaceActionLinksResponse with MybusinessplaceactionsLocationsPlaceActionLinksListArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<MybusinessplaceactionsLocationsPlaceActionLinksListArgs>
+    for ListPlaceActionLinksResponse
+{
+    fn generate_resource_id(
+        &self,
+        input: &MybusinessplaceactionsLocationsPlaceActionLinksListArgs,
+    ) -> String {
+        format!(
+            "gcp::mybusinessplaceactions::ListPlaceActionLinksResponse/{}",
+            input.parent
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::mybusinessplaceactions::ListPlaceActionLinksResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for PlaceActionLink
+// =============================================================================
+
+/// ResourceIdentifier implementation for PlaceActionLink with MybusinessplaceactionsLocationsPlaceActionLinksPatchArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<MybusinessplaceactionsLocationsPlaceActionLinksPatchArgs>
+    for PlaceActionLink
+{
+    fn generate_resource_id(
+        &self,
+        input: &MybusinessplaceactionsLocationsPlaceActionLinksPatchArgs,
+    ) -> String {
+        format!(
+            "gcp::mybusinessplaceactions::PlaceActionLink/{}",
+            input.name
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::mybusinessplaceactions::PlaceActionLink"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for ListPlaceActionTypeMetadataResponse
+// =============================================================================
+
+/// ResourceIdentifier implementation for ListPlaceActionTypeMetadataResponse with MybusinessplaceactionsPlaceActionTypeMetadataListArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<MybusinessplaceactionsPlaceActionTypeMetadataListArgs>
+    for ListPlaceActionTypeMetadataResponse
+{
+    fn generate_resource_id(
+        &self,
+        input: &MybusinessplaceactionsPlaceActionTypeMetadataListArgs,
+    ) -> String {
+        "gcp::mybusinessplaceactions::ListPlaceActionTypeMetadataResponse".to_string()
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::mybusinessplaceactions::ListPlaceActionTypeMetadataResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
 }

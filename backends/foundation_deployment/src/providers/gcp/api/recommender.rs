@@ -12,28 +12,50 @@
 #![cfg(feature = "gcp")]
 
 use crate::providers::gcp::clients::recommender::{
+    recommender_billing_accounts_locations_insight_types_get_config_builder, recommender_billing_accounts_locations_insight_types_get_config_task,
     recommender_billing_accounts_locations_insight_types_update_config_builder, recommender_billing_accounts_locations_insight_types_update_config_task,
+    recommender_billing_accounts_locations_insight_types_insights_get_builder, recommender_billing_accounts_locations_insight_types_insights_get_task,
+    recommender_billing_accounts_locations_insight_types_insights_list_builder, recommender_billing_accounts_locations_insight_types_insights_list_task,
     recommender_billing_accounts_locations_insight_types_insights_mark_accepted_builder, recommender_billing_accounts_locations_insight_types_insights_mark_accepted_task,
+    recommender_billing_accounts_locations_recommenders_get_config_builder, recommender_billing_accounts_locations_recommenders_get_config_task,
     recommender_billing_accounts_locations_recommenders_update_config_builder, recommender_billing_accounts_locations_recommenders_update_config_task,
+    recommender_billing_accounts_locations_recommenders_recommendations_get_builder, recommender_billing_accounts_locations_recommenders_recommendations_get_task,
+    recommender_billing_accounts_locations_recommenders_recommendations_list_builder, recommender_billing_accounts_locations_recommenders_recommendations_list_task,
     recommender_billing_accounts_locations_recommenders_recommendations_mark_claimed_builder, recommender_billing_accounts_locations_recommenders_recommendations_mark_claimed_task,
     recommender_billing_accounts_locations_recommenders_recommendations_mark_dismissed_builder, recommender_billing_accounts_locations_recommenders_recommendations_mark_dismissed_task,
     recommender_billing_accounts_locations_recommenders_recommendations_mark_failed_builder, recommender_billing_accounts_locations_recommenders_recommendations_mark_failed_task,
     recommender_billing_accounts_locations_recommenders_recommendations_mark_succeeded_builder, recommender_billing_accounts_locations_recommenders_recommendations_mark_succeeded_task,
+    recommender_folders_locations_insight_types_insights_get_builder, recommender_folders_locations_insight_types_insights_get_task,
+    recommender_folders_locations_insight_types_insights_list_builder, recommender_folders_locations_insight_types_insights_list_task,
     recommender_folders_locations_insight_types_insights_mark_accepted_builder, recommender_folders_locations_insight_types_insights_mark_accepted_task,
+    recommender_folders_locations_recommenders_recommendations_get_builder, recommender_folders_locations_recommenders_recommendations_get_task,
+    recommender_folders_locations_recommenders_recommendations_list_builder, recommender_folders_locations_recommenders_recommendations_list_task,
     recommender_folders_locations_recommenders_recommendations_mark_claimed_builder, recommender_folders_locations_recommenders_recommendations_mark_claimed_task,
     recommender_folders_locations_recommenders_recommendations_mark_dismissed_builder, recommender_folders_locations_recommenders_recommendations_mark_dismissed_task,
     recommender_folders_locations_recommenders_recommendations_mark_failed_builder, recommender_folders_locations_recommenders_recommendations_mark_failed_task,
     recommender_folders_locations_recommenders_recommendations_mark_succeeded_builder, recommender_folders_locations_recommenders_recommendations_mark_succeeded_task,
+    recommender_organizations_locations_insight_types_get_config_builder, recommender_organizations_locations_insight_types_get_config_task,
     recommender_organizations_locations_insight_types_update_config_builder, recommender_organizations_locations_insight_types_update_config_task,
+    recommender_organizations_locations_insight_types_insights_get_builder, recommender_organizations_locations_insight_types_insights_get_task,
+    recommender_organizations_locations_insight_types_insights_list_builder, recommender_organizations_locations_insight_types_insights_list_task,
     recommender_organizations_locations_insight_types_insights_mark_accepted_builder, recommender_organizations_locations_insight_types_insights_mark_accepted_task,
+    recommender_organizations_locations_recommenders_get_config_builder, recommender_organizations_locations_recommenders_get_config_task,
     recommender_organizations_locations_recommenders_update_config_builder, recommender_organizations_locations_recommenders_update_config_task,
+    recommender_organizations_locations_recommenders_recommendations_get_builder, recommender_organizations_locations_recommenders_recommendations_get_task,
+    recommender_organizations_locations_recommenders_recommendations_list_builder, recommender_organizations_locations_recommenders_recommendations_list_task,
     recommender_organizations_locations_recommenders_recommendations_mark_claimed_builder, recommender_organizations_locations_recommenders_recommendations_mark_claimed_task,
     recommender_organizations_locations_recommenders_recommendations_mark_dismissed_builder, recommender_organizations_locations_recommenders_recommendations_mark_dismissed_task,
     recommender_organizations_locations_recommenders_recommendations_mark_failed_builder, recommender_organizations_locations_recommenders_recommendations_mark_failed_task,
     recommender_organizations_locations_recommenders_recommendations_mark_succeeded_builder, recommender_organizations_locations_recommenders_recommendations_mark_succeeded_task,
+    recommender_projects_locations_insight_types_get_config_builder, recommender_projects_locations_insight_types_get_config_task,
     recommender_projects_locations_insight_types_update_config_builder, recommender_projects_locations_insight_types_update_config_task,
+    recommender_projects_locations_insight_types_insights_get_builder, recommender_projects_locations_insight_types_insights_get_task,
+    recommender_projects_locations_insight_types_insights_list_builder, recommender_projects_locations_insight_types_insights_list_task,
     recommender_projects_locations_insight_types_insights_mark_accepted_builder, recommender_projects_locations_insight_types_insights_mark_accepted_task,
+    recommender_projects_locations_recommenders_get_config_builder, recommender_projects_locations_recommenders_get_config_task,
     recommender_projects_locations_recommenders_update_config_builder, recommender_projects_locations_recommenders_update_config_task,
+    recommender_projects_locations_recommenders_recommendations_get_builder, recommender_projects_locations_recommenders_recommendations_get_task,
+    recommender_projects_locations_recommenders_recommendations_list_builder, recommender_projects_locations_recommenders_recommendations_list_task,
     recommender_projects_locations_recommenders_recommendations_mark_claimed_builder, recommender_projects_locations_recommenders_recommendations_mark_claimed_task,
     recommender_projects_locations_recommenders_recommendations_mark_dismissed_builder, recommender_projects_locations_recommenders_recommendations_mark_dismissed_task,
     recommender_projects_locations_recommenders_recommendations_mark_failed_builder, recommender_projects_locations_recommenders_recommendations_mark_failed_task,
@@ -42,29 +64,53 @@ use crate::providers::gcp::clients::recommender::{
 use crate::providers::gcp::clients::types::{ApiError, ApiPending};
 use crate::providers::gcp::clients::recommender::GoogleCloudRecommenderV1Insight;
 use crate::providers::gcp::clients::recommender::GoogleCloudRecommenderV1InsightTypeConfig;
+use crate::providers::gcp::clients::recommender::GoogleCloudRecommenderV1ListInsightsResponse;
+use crate::providers::gcp::clients::recommender::GoogleCloudRecommenderV1ListRecommendationsResponse;
 use crate::providers::gcp::clients::recommender::GoogleCloudRecommenderV1Recommendation;
 use crate::providers::gcp::clients::recommender::GoogleCloudRecommenderV1RecommenderConfig;
+use crate::providers::gcp::clients::recommender::RecommenderBillingAccountsLocationsInsightTypesGetConfigArgs;
+use crate::providers::gcp::clients::recommender::RecommenderBillingAccountsLocationsInsightTypesInsightsGetArgs;
+use crate::providers::gcp::clients::recommender::RecommenderBillingAccountsLocationsInsightTypesInsightsListArgs;
 use crate::providers::gcp::clients::recommender::RecommenderBillingAccountsLocationsInsightTypesInsightsMarkAcceptedArgs;
 use crate::providers::gcp::clients::recommender::RecommenderBillingAccountsLocationsInsightTypesUpdateConfigArgs;
+use crate::providers::gcp::clients::recommender::RecommenderBillingAccountsLocationsRecommendersGetConfigArgs;
+use crate::providers::gcp::clients::recommender::RecommenderBillingAccountsLocationsRecommendersRecommendationsGetArgs;
+use crate::providers::gcp::clients::recommender::RecommenderBillingAccountsLocationsRecommendersRecommendationsListArgs;
 use crate::providers::gcp::clients::recommender::RecommenderBillingAccountsLocationsRecommendersRecommendationsMarkClaimedArgs;
 use crate::providers::gcp::clients::recommender::RecommenderBillingAccountsLocationsRecommendersRecommendationsMarkDismissedArgs;
 use crate::providers::gcp::clients::recommender::RecommenderBillingAccountsLocationsRecommendersRecommendationsMarkFailedArgs;
 use crate::providers::gcp::clients::recommender::RecommenderBillingAccountsLocationsRecommendersRecommendationsMarkSucceededArgs;
 use crate::providers::gcp::clients::recommender::RecommenderBillingAccountsLocationsRecommendersUpdateConfigArgs;
+use crate::providers::gcp::clients::recommender::RecommenderFoldersLocationsInsightTypesInsightsGetArgs;
+use crate::providers::gcp::clients::recommender::RecommenderFoldersLocationsInsightTypesInsightsListArgs;
 use crate::providers::gcp::clients::recommender::RecommenderFoldersLocationsInsightTypesInsightsMarkAcceptedArgs;
+use crate::providers::gcp::clients::recommender::RecommenderFoldersLocationsRecommendersRecommendationsGetArgs;
+use crate::providers::gcp::clients::recommender::RecommenderFoldersLocationsRecommendersRecommendationsListArgs;
 use crate::providers::gcp::clients::recommender::RecommenderFoldersLocationsRecommendersRecommendationsMarkClaimedArgs;
 use crate::providers::gcp::clients::recommender::RecommenderFoldersLocationsRecommendersRecommendationsMarkDismissedArgs;
 use crate::providers::gcp::clients::recommender::RecommenderFoldersLocationsRecommendersRecommendationsMarkFailedArgs;
 use crate::providers::gcp::clients::recommender::RecommenderFoldersLocationsRecommendersRecommendationsMarkSucceededArgs;
+use crate::providers::gcp::clients::recommender::RecommenderOrganizationsLocationsInsightTypesGetConfigArgs;
+use crate::providers::gcp::clients::recommender::RecommenderOrganizationsLocationsInsightTypesInsightsGetArgs;
+use crate::providers::gcp::clients::recommender::RecommenderOrganizationsLocationsInsightTypesInsightsListArgs;
 use crate::providers::gcp::clients::recommender::RecommenderOrganizationsLocationsInsightTypesInsightsMarkAcceptedArgs;
 use crate::providers::gcp::clients::recommender::RecommenderOrganizationsLocationsInsightTypesUpdateConfigArgs;
+use crate::providers::gcp::clients::recommender::RecommenderOrganizationsLocationsRecommendersGetConfigArgs;
+use crate::providers::gcp::clients::recommender::RecommenderOrganizationsLocationsRecommendersRecommendationsGetArgs;
+use crate::providers::gcp::clients::recommender::RecommenderOrganizationsLocationsRecommendersRecommendationsListArgs;
 use crate::providers::gcp::clients::recommender::RecommenderOrganizationsLocationsRecommendersRecommendationsMarkClaimedArgs;
 use crate::providers::gcp::clients::recommender::RecommenderOrganizationsLocationsRecommendersRecommendationsMarkDismissedArgs;
 use crate::providers::gcp::clients::recommender::RecommenderOrganizationsLocationsRecommendersRecommendationsMarkFailedArgs;
 use crate::providers::gcp::clients::recommender::RecommenderOrganizationsLocationsRecommendersRecommendationsMarkSucceededArgs;
 use crate::providers::gcp::clients::recommender::RecommenderOrganizationsLocationsRecommendersUpdateConfigArgs;
+use crate::providers::gcp::clients::recommender::RecommenderProjectsLocationsInsightTypesGetConfigArgs;
+use crate::providers::gcp::clients::recommender::RecommenderProjectsLocationsInsightTypesInsightsGetArgs;
+use crate::providers::gcp::clients::recommender::RecommenderProjectsLocationsInsightTypesInsightsListArgs;
 use crate::providers::gcp::clients::recommender::RecommenderProjectsLocationsInsightTypesInsightsMarkAcceptedArgs;
 use crate::providers::gcp::clients::recommender::RecommenderProjectsLocationsInsightTypesUpdateConfigArgs;
+use crate::providers::gcp::clients::recommender::RecommenderProjectsLocationsRecommendersGetConfigArgs;
+use crate::providers::gcp::clients::recommender::RecommenderProjectsLocationsRecommendersRecommendationsGetArgs;
+use crate::providers::gcp::clients::recommender::RecommenderProjectsLocationsRecommendersRecommendationsListArgs;
 use crate::providers::gcp::clients::recommender::RecommenderProjectsLocationsRecommendersRecommendationsMarkClaimedArgs;
 use crate::providers::gcp::clients::recommender::RecommenderProjectsLocationsRecommendersRecommendationsMarkDismissedArgs;
 use crate::providers::gcp::clients::recommender::RecommenderProjectsLocationsRecommendersRecommendationsMarkFailedArgs;
@@ -109,6 +155,44 @@ where
             client,
             http_client: Arc::new(http_client),
         }
+    }
+
+    /// Recommender billing accounts locations insight types get config.
+    ///
+    /// Read-only operation - no state tracking.
+    ///
+    /// # Arguments
+    ///
+    /// * `args` - Request arguments
+    ///
+    /// # Returns
+    ///
+    /// StreamIterator yielding the GoogleCloudRecommenderV1InsightTypeConfig result.
+    ///
+    /// # Errors
+    ///
+    /// Returns ProviderError if the API request fails.
+    pub fn recommender_billing_accounts_locations_insight_types_get_config(
+        &self,
+        args: &RecommenderBillingAccountsLocationsInsightTypesGetConfigArgs,
+    ) -> Result<
+        impl StreamIterator<
+            D = Result<GoogleCloudRecommenderV1InsightTypeConfig, ProviderError<ApiError>>,
+            P = crate::providers::gcp::clients::types::ApiPending,
+        > + Send
+        + 'static,
+        ProviderError<ApiError>,
+    > {
+        let builder = recommender_billing_accounts_locations_insight_types_get_config_builder(
+            &self.http_client,
+            &args.name,
+        )
+        .map_err(ProviderError::Api)?;
+
+        let task = recommender_billing_accounts_locations_insight_types_get_config_task(builder)
+            .map_err(ProviderError::Api)?;
+
+        execute(task, None).map_err(|e: String| ProviderError::ExecuteFailed(e.to_string()))
     }
 
     /// Recommender billing accounts locations insight types update config.
@@ -156,6 +240,85 @@ where
         execute(store_task, None).map_err(|e: String| ProviderError::ExecuteFailed(e.to_string()))
     }
 
+    /// Recommender billing accounts locations insight types insights get.
+    ///
+    /// Read-only operation - no state tracking.
+    ///
+    /// # Arguments
+    ///
+    /// * `args` - Request arguments
+    ///
+    /// # Returns
+    ///
+    /// StreamIterator yielding the GoogleCloudRecommenderV1Insight result.
+    ///
+    /// # Errors
+    ///
+    /// Returns ProviderError if the API request fails.
+    pub fn recommender_billing_accounts_locations_insight_types_insights_get(
+        &self,
+        args: &RecommenderBillingAccountsLocationsInsightTypesInsightsGetArgs,
+    ) -> Result<
+        impl StreamIterator<
+            D = Result<GoogleCloudRecommenderV1Insight, ProviderError<ApiError>>,
+            P = crate::providers::gcp::clients::types::ApiPending,
+        > + Send
+        + 'static,
+        ProviderError<ApiError>,
+    > {
+        let builder = recommender_billing_accounts_locations_insight_types_insights_get_builder(
+            &self.http_client,
+            &args.name,
+        )
+        .map_err(ProviderError::Api)?;
+
+        let task = recommender_billing_accounts_locations_insight_types_insights_get_task(builder)
+            .map_err(ProviderError::Api)?;
+
+        execute(task, None).map_err(|e: String| ProviderError::ExecuteFailed(e.to_string()))
+    }
+
+    /// Recommender billing accounts locations insight types insights list.
+    ///
+    /// Read-only operation - no state tracking.
+    ///
+    /// # Arguments
+    ///
+    /// * `args` - Request arguments
+    ///
+    /// # Returns
+    ///
+    /// StreamIterator yielding the GoogleCloudRecommenderV1ListInsightsResponse result.
+    ///
+    /// # Errors
+    ///
+    /// Returns ProviderError if the API request fails.
+    pub fn recommender_billing_accounts_locations_insight_types_insights_list(
+        &self,
+        args: &RecommenderBillingAccountsLocationsInsightTypesInsightsListArgs,
+    ) -> Result<
+        impl StreamIterator<
+            D = Result<GoogleCloudRecommenderV1ListInsightsResponse, ProviderError<ApiError>>,
+            P = crate::providers::gcp::clients::types::ApiPending,
+        > + Send
+        + 'static,
+        ProviderError<ApiError>,
+    > {
+        let builder = recommender_billing_accounts_locations_insight_types_insights_list_builder(
+            &self.http_client,
+            &args.parent,
+            &args.filter,
+            &args.pageSize,
+            &args.pageToken,
+        )
+        .map_err(ProviderError::Api)?;
+
+        let task = recommender_billing_accounts_locations_insight_types_insights_list_task(builder)
+            .map_err(ProviderError::Api)?;
+
+        execute(task, None).map_err(|e: String| ProviderError::ExecuteFailed(e.to_string()))
+    }
+
     /// Recommender billing accounts locations insight types insights mark accepted.
     ///
     /// Automatically stores the result in the state store on success.
@@ -197,6 +360,44 @@ where
         let store_task = StoreStateIdentifierTask::new(task, state_store, args, stage);
 
         execute(store_task, None).map_err(|e: String| ProviderError::ExecuteFailed(e.to_string()))
+    }
+
+    /// Recommender billing accounts locations recommenders get config.
+    ///
+    /// Read-only operation - no state tracking.
+    ///
+    /// # Arguments
+    ///
+    /// * `args` - Request arguments
+    ///
+    /// # Returns
+    ///
+    /// StreamIterator yielding the GoogleCloudRecommenderV1RecommenderConfig result.
+    ///
+    /// # Errors
+    ///
+    /// Returns ProviderError if the API request fails.
+    pub fn recommender_billing_accounts_locations_recommenders_get_config(
+        &self,
+        args: &RecommenderBillingAccountsLocationsRecommendersGetConfigArgs,
+    ) -> Result<
+        impl StreamIterator<
+            D = Result<GoogleCloudRecommenderV1RecommenderConfig, ProviderError<ApiError>>,
+            P = crate::providers::gcp::clients::types::ApiPending,
+        > + Send
+        + 'static,
+        ProviderError<ApiError>,
+    > {
+        let builder = recommender_billing_accounts_locations_recommenders_get_config_builder(
+            &self.http_client,
+            &args.name,
+        )
+        .map_err(ProviderError::Api)?;
+
+        let task = recommender_billing_accounts_locations_recommenders_get_config_task(builder)
+            .map_err(ProviderError::Api)?;
+
+        execute(task, None).map_err(|e: String| ProviderError::ExecuteFailed(e.to_string()))
     }
 
     /// Recommender billing accounts locations recommenders update config.
@@ -242,6 +443,85 @@ where
         let store_task = StoreStateIdentifierTask::new(task, state_store, args, stage);
 
         execute(store_task, None).map_err(|e: String| ProviderError::ExecuteFailed(e.to_string()))
+    }
+
+    /// Recommender billing accounts locations recommenders recommendations get.
+    ///
+    /// Read-only operation - no state tracking.
+    ///
+    /// # Arguments
+    ///
+    /// * `args` - Request arguments
+    ///
+    /// # Returns
+    ///
+    /// StreamIterator yielding the GoogleCloudRecommenderV1Recommendation result.
+    ///
+    /// # Errors
+    ///
+    /// Returns ProviderError if the API request fails.
+    pub fn recommender_billing_accounts_locations_recommenders_recommendations_get(
+        &self,
+        args: &RecommenderBillingAccountsLocationsRecommendersRecommendationsGetArgs,
+    ) -> Result<
+        impl StreamIterator<
+            D = Result<GoogleCloudRecommenderV1Recommendation, ProviderError<ApiError>>,
+            P = crate::providers::gcp::clients::types::ApiPending,
+        > + Send
+        + 'static,
+        ProviderError<ApiError>,
+    > {
+        let builder = recommender_billing_accounts_locations_recommenders_recommendations_get_builder(
+            &self.http_client,
+            &args.name,
+        )
+        .map_err(ProviderError::Api)?;
+
+        let task = recommender_billing_accounts_locations_recommenders_recommendations_get_task(builder)
+            .map_err(ProviderError::Api)?;
+
+        execute(task, None).map_err(|e: String| ProviderError::ExecuteFailed(e.to_string()))
+    }
+
+    /// Recommender billing accounts locations recommenders recommendations list.
+    ///
+    /// Read-only operation - no state tracking.
+    ///
+    /// # Arguments
+    ///
+    /// * `args` - Request arguments
+    ///
+    /// # Returns
+    ///
+    /// StreamIterator yielding the GoogleCloudRecommenderV1ListRecommendationsResponse result.
+    ///
+    /// # Errors
+    ///
+    /// Returns ProviderError if the API request fails.
+    pub fn recommender_billing_accounts_locations_recommenders_recommendations_list(
+        &self,
+        args: &RecommenderBillingAccountsLocationsRecommendersRecommendationsListArgs,
+    ) -> Result<
+        impl StreamIterator<
+            D = Result<GoogleCloudRecommenderV1ListRecommendationsResponse, ProviderError<ApiError>>,
+            P = crate::providers::gcp::clients::types::ApiPending,
+        > + Send
+        + 'static,
+        ProviderError<ApiError>,
+    > {
+        let builder = recommender_billing_accounts_locations_recommenders_recommendations_list_builder(
+            &self.http_client,
+            &args.parent,
+            &args.filter,
+            &args.pageSize,
+            &args.pageToken,
+        )
+        .map_err(ProviderError::Api)?;
+
+        let task = recommender_billing_accounts_locations_recommenders_recommendations_list_task(builder)
+            .map_err(ProviderError::Api)?;
+
+        execute(task, None).map_err(|e: String| ProviderError::ExecuteFailed(e.to_string()))
     }
 
     /// Recommender billing accounts locations recommenders recommendations mark claimed.
@@ -416,6 +696,85 @@ where
         execute(store_task, None).map_err(|e: String| ProviderError::ExecuteFailed(e.to_string()))
     }
 
+    /// Recommender folders locations insight types insights get.
+    ///
+    /// Read-only operation - no state tracking.
+    ///
+    /// # Arguments
+    ///
+    /// * `args` - Request arguments
+    ///
+    /// # Returns
+    ///
+    /// StreamIterator yielding the GoogleCloudRecommenderV1Insight result.
+    ///
+    /// # Errors
+    ///
+    /// Returns ProviderError if the API request fails.
+    pub fn recommender_folders_locations_insight_types_insights_get(
+        &self,
+        args: &RecommenderFoldersLocationsInsightTypesInsightsGetArgs,
+    ) -> Result<
+        impl StreamIterator<
+            D = Result<GoogleCloudRecommenderV1Insight, ProviderError<ApiError>>,
+            P = crate::providers::gcp::clients::types::ApiPending,
+        > + Send
+        + 'static,
+        ProviderError<ApiError>,
+    > {
+        let builder = recommender_folders_locations_insight_types_insights_get_builder(
+            &self.http_client,
+            &args.name,
+        )
+        .map_err(ProviderError::Api)?;
+
+        let task = recommender_folders_locations_insight_types_insights_get_task(builder)
+            .map_err(ProviderError::Api)?;
+
+        execute(task, None).map_err(|e: String| ProviderError::ExecuteFailed(e.to_string()))
+    }
+
+    /// Recommender folders locations insight types insights list.
+    ///
+    /// Read-only operation - no state tracking.
+    ///
+    /// # Arguments
+    ///
+    /// * `args` - Request arguments
+    ///
+    /// # Returns
+    ///
+    /// StreamIterator yielding the GoogleCloudRecommenderV1ListInsightsResponse result.
+    ///
+    /// # Errors
+    ///
+    /// Returns ProviderError if the API request fails.
+    pub fn recommender_folders_locations_insight_types_insights_list(
+        &self,
+        args: &RecommenderFoldersLocationsInsightTypesInsightsListArgs,
+    ) -> Result<
+        impl StreamIterator<
+            D = Result<GoogleCloudRecommenderV1ListInsightsResponse, ProviderError<ApiError>>,
+            P = crate::providers::gcp::clients::types::ApiPending,
+        > + Send
+        + 'static,
+        ProviderError<ApiError>,
+    > {
+        let builder = recommender_folders_locations_insight_types_insights_list_builder(
+            &self.http_client,
+            &args.parent,
+            &args.filter,
+            &args.pageSize,
+            &args.pageToken,
+        )
+        .map_err(ProviderError::Api)?;
+
+        let task = recommender_folders_locations_insight_types_insights_list_task(builder)
+            .map_err(ProviderError::Api)?;
+
+        execute(task, None).map_err(|e: String| ProviderError::ExecuteFailed(e.to_string()))
+    }
+
     /// Recommender folders locations insight types insights mark accepted.
     ///
     /// Automatically stores the result in the state store on success.
@@ -457,6 +816,85 @@ where
         let store_task = StoreStateIdentifierTask::new(task, state_store, args, stage);
 
         execute(store_task, None).map_err(|e: String| ProviderError::ExecuteFailed(e.to_string()))
+    }
+
+    /// Recommender folders locations recommenders recommendations get.
+    ///
+    /// Read-only operation - no state tracking.
+    ///
+    /// # Arguments
+    ///
+    /// * `args` - Request arguments
+    ///
+    /// # Returns
+    ///
+    /// StreamIterator yielding the GoogleCloudRecommenderV1Recommendation result.
+    ///
+    /// # Errors
+    ///
+    /// Returns ProviderError if the API request fails.
+    pub fn recommender_folders_locations_recommenders_recommendations_get(
+        &self,
+        args: &RecommenderFoldersLocationsRecommendersRecommendationsGetArgs,
+    ) -> Result<
+        impl StreamIterator<
+            D = Result<GoogleCloudRecommenderV1Recommendation, ProviderError<ApiError>>,
+            P = crate::providers::gcp::clients::types::ApiPending,
+        > + Send
+        + 'static,
+        ProviderError<ApiError>,
+    > {
+        let builder = recommender_folders_locations_recommenders_recommendations_get_builder(
+            &self.http_client,
+            &args.name,
+        )
+        .map_err(ProviderError::Api)?;
+
+        let task = recommender_folders_locations_recommenders_recommendations_get_task(builder)
+            .map_err(ProviderError::Api)?;
+
+        execute(task, None).map_err(|e: String| ProviderError::ExecuteFailed(e.to_string()))
+    }
+
+    /// Recommender folders locations recommenders recommendations list.
+    ///
+    /// Read-only operation - no state tracking.
+    ///
+    /// # Arguments
+    ///
+    /// * `args` - Request arguments
+    ///
+    /// # Returns
+    ///
+    /// StreamIterator yielding the GoogleCloudRecommenderV1ListRecommendationsResponse result.
+    ///
+    /// # Errors
+    ///
+    /// Returns ProviderError if the API request fails.
+    pub fn recommender_folders_locations_recommenders_recommendations_list(
+        &self,
+        args: &RecommenderFoldersLocationsRecommendersRecommendationsListArgs,
+    ) -> Result<
+        impl StreamIterator<
+            D = Result<GoogleCloudRecommenderV1ListRecommendationsResponse, ProviderError<ApiError>>,
+            P = crate::providers::gcp::clients::types::ApiPending,
+        > + Send
+        + 'static,
+        ProviderError<ApiError>,
+    > {
+        let builder = recommender_folders_locations_recommenders_recommendations_list_builder(
+            &self.http_client,
+            &args.parent,
+            &args.filter,
+            &args.pageSize,
+            &args.pageToken,
+        )
+        .map_err(ProviderError::Api)?;
+
+        let task = recommender_folders_locations_recommenders_recommendations_list_task(builder)
+            .map_err(ProviderError::Api)?;
+
+        execute(task, None).map_err(|e: String| ProviderError::ExecuteFailed(e.to_string()))
     }
 
     /// Recommender folders locations recommenders recommendations mark claimed.
@@ -631,6 +1069,44 @@ where
         execute(store_task, None).map_err(|e: String| ProviderError::ExecuteFailed(e.to_string()))
     }
 
+    /// Recommender organizations locations insight types get config.
+    ///
+    /// Read-only operation - no state tracking.
+    ///
+    /// # Arguments
+    ///
+    /// * `args` - Request arguments
+    ///
+    /// # Returns
+    ///
+    /// StreamIterator yielding the GoogleCloudRecommenderV1InsightTypeConfig result.
+    ///
+    /// # Errors
+    ///
+    /// Returns ProviderError if the API request fails.
+    pub fn recommender_organizations_locations_insight_types_get_config(
+        &self,
+        args: &RecommenderOrganizationsLocationsInsightTypesGetConfigArgs,
+    ) -> Result<
+        impl StreamIterator<
+            D = Result<GoogleCloudRecommenderV1InsightTypeConfig, ProviderError<ApiError>>,
+            P = crate::providers::gcp::clients::types::ApiPending,
+        > + Send
+        + 'static,
+        ProviderError<ApiError>,
+    > {
+        let builder = recommender_organizations_locations_insight_types_get_config_builder(
+            &self.http_client,
+            &args.name,
+        )
+        .map_err(ProviderError::Api)?;
+
+        let task = recommender_organizations_locations_insight_types_get_config_task(builder)
+            .map_err(ProviderError::Api)?;
+
+        execute(task, None).map_err(|e: String| ProviderError::ExecuteFailed(e.to_string()))
+    }
+
     /// Recommender organizations locations insight types update config.
     ///
     /// Automatically stores the result in the state store on success.
@@ -676,6 +1152,85 @@ where
         execute(store_task, None).map_err(|e: String| ProviderError::ExecuteFailed(e.to_string()))
     }
 
+    /// Recommender organizations locations insight types insights get.
+    ///
+    /// Read-only operation - no state tracking.
+    ///
+    /// # Arguments
+    ///
+    /// * `args` - Request arguments
+    ///
+    /// # Returns
+    ///
+    /// StreamIterator yielding the GoogleCloudRecommenderV1Insight result.
+    ///
+    /// # Errors
+    ///
+    /// Returns ProviderError if the API request fails.
+    pub fn recommender_organizations_locations_insight_types_insights_get(
+        &self,
+        args: &RecommenderOrganizationsLocationsInsightTypesInsightsGetArgs,
+    ) -> Result<
+        impl StreamIterator<
+            D = Result<GoogleCloudRecommenderV1Insight, ProviderError<ApiError>>,
+            P = crate::providers::gcp::clients::types::ApiPending,
+        > + Send
+        + 'static,
+        ProviderError<ApiError>,
+    > {
+        let builder = recommender_organizations_locations_insight_types_insights_get_builder(
+            &self.http_client,
+            &args.name,
+        )
+        .map_err(ProviderError::Api)?;
+
+        let task = recommender_organizations_locations_insight_types_insights_get_task(builder)
+            .map_err(ProviderError::Api)?;
+
+        execute(task, None).map_err(|e: String| ProviderError::ExecuteFailed(e.to_string()))
+    }
+
+    /// Recommender organizations locations insight types insights list.
+    ///
+    /// Read-only operation - no state tracking.
+    ///
+    /// # Arguments
+    ///
+    /// * `args` - Request arguments
+    ///
+    /// # Returns
+    ///
+    /// StreamIterator yielding the GoogleCloudRecommenderV1ListInsightsResponse result.
+    ///
+    /// # Errors
+    ///
+    /// Returns ProviderError if the API request fails.
+    pub fn recommender_organizations_locations_insight_types_insights_list(
+        &self,
+        args: &RecommenderOrganizationsLocationsInsightTypesInsightsListArgs,
+    ) -> Result<
+        impl StreamIterator<
+            D = Result<GoogleCloudRecommenderV1ListInsightsResponse, ProviderError<ApiError>>,
+            P = crate::providers::gcp::clients::types::ApiPending,
+        > + Send
+        + 'static,
+        ProviderError<ApiError>,
+    > {
+        let builder = recommender_organizations_locations_insight_types_insights_list_builder(
+            &self.http_client,
+            &args.parent,
+            &args.filter,
+            &args.pageSize,
+            &args.pageToken,
+        )
+        .map_err(ProviderError::Api)?;
+
+        let task = recommender_organizations_locations_insight_types_insights_list_task(builder)
+            .map_err(ProviderError::Api)?;
+
+        execute(task, None).map_err(|e: String| ProviderError::ExecuteFailed(e.to_string()))
+    }
+
     /// Recommender organizations locations insight types insights mark accepted.
     ///
     /// Automatically stores the result in the state store on success.
@@ -717,6 +1272,44 @@ where
         let store_task = StoreStateIdentifierTask::new(task, state_store, args, stage);
 
         execute(store_task, None).map_err(|e: String| ProviderError::ExecuteFailed(e.to_string()))
+    }
+
+    /// Recommender organizations locations recommenders get config.
+    ///
+    /// Read-only operation - no state tracking.
+    ///
+    /// # Arguments
+    ///
+    /// * `args` - Request arguments
+    ///
+    /// # Returns
+    ///
+    /// StreamIterator yielding the GoogleCloudRecommenderV1RecommenderConfig result.
+    ///
+    /// # Errors
+    ///
+    /// Returns ProviderError if the API request fails.
+    pub fn recommender_organizations_locations_recommenders_get_config(
+        &self,
+        args: &RecommenderOrganizationsLocationsRecommendersGetConfigArgs,
+    ) -> Result<
+        impl StreamIterator<
+            D = Result<GoogleCloudRecommenderV1RecommenderConfig, ProviderError<ApiError>>,
+            P = crate::providers::gcp::clients::types::ApiPending,
+        > + Send
+        + 'static,
+        ProviderError<ApiError>,
+    > {
+        let builder = recommender_organizations_locations_recommenders_get_config_builder(
+            &self.http_client,
+            &args.name,
+        )
+        .map_err(ProviderError::Api)?;
+
+        let task = recommender_organizations_locations_recommenders_get_config_task(builder)
+            .map_err(ProviderError::Api)?;
+
+        execute(task, None).map_err(|e: String| ProviderError::ExecuteFailed(e.to_string()))
     }
 
     /// Recommender organizations locations recommenders update config.
@@ -762,6 +1355,85 @@ where
         let store_task = StoreStateIdentifierTask::new(task, state_store, args, stage);
 
         execute(store_task, None).map_err(|e: String| ProviderError::ExecuteFailed(e.to_string()))
+    }
+
+    /// Recommender organizations locations recommenders recommendations get.
+    ///
+    /// Read-only operation - no state tracking.
+    ///
+    /// # Arguments
+    ///
+    /// * `args` - Request arguments
+    ///
+    /// # Returns
+    ///
+    /// StreamIterator yielding the GoogleCloudRecommenderV1Recommendation result.
+    ///
+    /// # Errors
+    ///
+    /// Returns ProviderError if the API request fails.
+    pub fn recommender_organizations_locations_recommenders_recommendations_get(
+        &self,
+        args: &RecommenderOrganizationsLocationsRecommendersRecommendationsGetArgs,
+    ) -> Result<
+        impl StreamIterator<
+            D = Result<GoogleCloudRecommenderV1Recommendation, ProviderError<ApiError>>,
+            P = crate::providers::gcp::clients::types::ApiPending,
+        > + Send
+        + 'static,
+        ProviderError<ApiError>,
+    > {
+        let builder = recommender_organizations_locations_recommenders_recommendations_get_builder(
+            &self.http_client,
+            &args.name,
+        )
+        .map_err(ProviderError::Api)?;
+
+        let task = recommender_organizations_locations_recommenders_recommendations_get_task(builder)
+            .map_err(ProviderError::Api)?;
+
+        execute(task, None).map_err(|e: String| ProviderError::ExecuteFailed(e.to_string()))
+    }
+
+    /// Recommender organizations locations recommenders recommendations list.
+    ///
+    /// Read-only operation - no state tracking.
+    ///
+    /// # Arguments
+    ///
+    /// * `args` - Request arguments
+    ///
+    /// # Returns
+    ///
+    /// StreamIterator yielding the GoogleCloudRecommenderV1ListRecommendationsResponse result.
+    ///
+    /// # Errors
+    ///
+    /// Returns ProviderError if the API request fails.
+    pub fn recommender_organizations_locations_recommenders_recommendations_list(
+        &self,
+        args: &RecommenderOrganizationsLocationsRecommendersRecommendationsListArgs,
+    ) -> Result<
+        impl StreamIterator<
+            D = Result<GoogleCloudRecommenderV1ListRecommendationsResponse, ProviderError<ApiError>>,
+            P = crate::providers::gcp::clients::types::ApiPending,
+        > + Send
+        + 'static,
+        ProviderError<ApiError>,
+    > {
+        let builder = recommender_organizations_locations_recommenders_recommendations_list_builder(
+            &self.http_client,
+            &args.parent,
+            &args.filter,
+            &args.pageSize,
+            &args.pageToken,
+        )
+        .map_err(ProviderError::Api)?;
+
+        let task = recommender_organizations_locations_recommenders_recommendations_list_task(builder)
+            .map_err(ProviderError::Api)?;
+
+        execute(task, None).map_err(|e: String| ProviderError::ExecuteFailed(e.to_string()))
     }
 
     /// Recommender organizations locations recommenders recommendations mark claimed.
@@ -936,6 +1608,44 @@ where
         execute(store_task, None).map_err(|e: String| ProviderError::ExecuteFailed(e.to_string()))
     }
 
+    /// Recommender projects locations insight types get config.
+    ///
+    /// Read-only operation - no state tracking.
+    ///
+    /// # Arguments
+    ///
+    /// * `args` - Request arguments
+    ///
+    /// # Returns
+    ///
+    /// StreamIterator yielding the GoogleCloudRecommenderV1InsightTypeConfig result.
+    ///
+    /// # Errors
+    ///
+    /// Returns ProviderError if the API request fails.
+    pub fn recommender_projects_locations_insight_types_get_config(
+        &self,
+        args: &RecommenderProjectsLocationsInsightTypesGetConfigArgs,
+    ) -> Result<
+        impl StreamIterator<
+            D = Result<GoogleCloudRecommenderV1InsightTypeConfig, ProviderError<ApiError>>,
+            P = crate::providers::gcp::clients::types::ApiPending,
+        > + Send
+        + 'static,
+        ProviderError<ApiError>,
+    > {
+        let builder = recommender_projects_locations_insight_types_get_config_builder(
+            &self.http_client,
+            &args.name,
+        )
+        .map_err(ProviderError::Api)?;
+
+        let task = recommender_projects_locations_insight_types_get_config_task(builder)
+            .map_err(ProviderError::Api)?;
+
+        execute(task, None).map_err(|e: String| ProviderError::ExecuteFailed(e.to_string()))
+    }
+
     /// Recommender projects locations insight types update config.
     ///
     /// Automatically stores the result in the state store on success.
@@ -981,6 +1691,85 @@ where
         execute(store_task, None).map_err(|e: String| ProviderError::ExecuteFailed(e.to_string()))
     }
 
+    /// Recommender projects locations insight types insights get.
+    ///
+    /// Read-only operation - no state tracking.
+    ///
+    /// # Arguments
+    ///
+    /// * `args` - Request arguments
+    ///
+    /// # Returns
+    ///
+    /// StreamIterator yielding the GoogleCloudRecommenderV1Insight result.
+    ///
+    /// # Errors
+    ///
+    /// Returns ProviderError if the API request fails.
+    pub fn recommender_projects_locations_insight_types_insights_get(
+        &self,
+        args: &RecommenderProjectsLocationsInsightTypesInsightsGetArgs,
+    ) -> Result<
+        impl StreamIterator<
+            D = Result<GoogleCloudRecommenderV1Insight, ProviderError<ApiError>>,
+            P = crate::providers::gcp::clients::types::ApiPending,
+        > + Send
+        + 'static,
+        ProviderError<ApiError>,
+    > {
+        let builder = recommender_projects_locations_insight_types_insights_get_builder(
+            &self.http_client,
+            &args.name,
+        )
+        .map_err(ProviderError::Api)?;
+
+        let task = recommender_projects_locations_insight_types_insights_get_task(builder)
+            .map_err(ProviderError::Api)?;
+
+        execute(task, None).map_err(|e: String| ProviderError::ExecuteFailed(e.to_string()))
+    }
+
+    /// Recommender projects locations insight types insights list.
+    ///
+    /// Read-only operation - no state tracking.
+    ///
+    /// # Arguments
+    ///
+    /// * `args` - Request arguments
+    ///
+    /// # Returns
+    ///
+    /// StreamIterator yielding the GoogleCloudRecommenderV1ListInsightsResponse result.
+    ///
+    /// # Errors
+    ///
+    /// Returns ProviderError if the API request fails.
+    pub fn recommender_projects_locations_insight_types_insights_list(
+        &self,
+        args: &RecommenderProjectsLocationsInsightTypesInsightsListArgs,
+    ) -> Result<
+        impl StreamIterator<
+            D = Result<GoogleCloudRecommenderV1ListInsightsResponse, ProviderError<ApiError>>,
+            P = crate::providers::gcp::clients::types::ApiPending,
+        > + Send
+        + 'static,
+        ProviderError<ApiError>,
+    > {
+        let builder = recommender_projects_locations_insight_types_insights_list_builder(
+            &self.http_client,
+            &args.parent,
+            &args.filter,
+            &args.pageSize,
+            &args.pageToken,
+        )
+        .map_err(ProviderError::Api)?;
+
+        let task = recommender_projects_locations_insight_types_insights_list_task(builder)
+            .map_err(ProviderError::Api)?;
+
+        execute(task, None).map_err(|e: String| ProviderError::ExecuteFailed(e.to_string()))
+    }
+
     /// Recommender projects locations insight types insights mark accepted.
     ///
     /// Automatically stores the result in the state store on success.
@@ -1022,6 +1811,44 @@ where
         let store_task = StoreStateIdentifierTask::new(task, state_store, args, stage);
 
         execute(store_task, None).map_err(|e: String| ProviderError::ExecuteFailed(e.to_string()))
+    }
+
+    /// Recommender projects locations recommenders get config.
+    ///
+    /// Read-only operation - no state tracking.
+    ///
+    /// # Arguments
+    ///
+    /// * `args` - Request arguments
+    ///
+    /// # Returns
+    ///
+    /// StreamIterator yielding the GoogleCloudRecommenderV1RecommenderConfig result.
+    ///
+    /// # Errors
+    ///
+    /// Returns ProviderError if the API request fails.
+    pub fn recommender_projects_locations_recommenders_get_config(
+        &self,
+        args: &RecommenderProjectsLocationsRecommendersGetConfigArgs,
+    ) -> Result<
+        impl StreamIterator<
+            D = Result<GoogleCloudRecommenderV1RecommenderConfig, ProviderError<ApiError>>,
+            P = crate::providers::gcp::clients::types::ApiPending,
+        > + Send
+        + 'static,
+        ProviderError<ApiError>,
+    > {
+        let builder = recommender_projects_locations_recommenders_get_config_builder(
+            &self.http_client,
+            &args.name,
+        )
+        .map_err(ProviderError::Api)?;
+
+        let task = recommender_projects_locations_recommenders_get_config_task(builder)
+            .map_err(ProviderError::Api)?;
+
+        execute(task, None).map_err(|e: String| ProviderError::ExecuteFailed(e.to_string()))
     }
 
     /// Recommender projects locations recommenders update config.
@@ -1067,6 +1894,85 @@ where
         let store_task = StoreStateIdentifierTask::new(task, state_store, args, stage);
 
         execute(store_task, None).map_err(|e: String| ProviderError::ExecuteFailed(e.to_string()))
+    }
+
+    /// Recommender projects locations recommenders recommendations get.
+    ///
+    /// Read-only operation - no state tracking.
+    ///
+    /// # Arguments
+    ///
+    /// * `args` - Request arguments
+    ///
+    /// # Returns
+    ///
+    /// StreamIterator yielding the GoogleCloudRecommenderV1Recommendation result.
+    ///
+    /// # Errors
+    ///
+    /// Returns ProviderError if the API request fails.
+    pub fn recommender_projects_locations_recommenders_recommendations_get(
+        &self,
+        args: &RecommenderProjectsLocationsRecommendersRecommendationsGetArgs,
+    ) -> Result<
+        impl StreamIterator<
+            D = Result<GoogleCloudRecommenderV1Recommendation, ProviderError<ApiError>>,
+            P = crate::providers::gcp::clients::types::ApiPending,
+        > + Send
+        + 'static,
+        ProviderError<ApiError>,
+    > {
+        let builder = recommender_projects_locations_recommenders_recommendations_get_builder(
+            &self.http_client,
+            &args.name,
+        )
+        .map_err(ProviderError::Api)?;
+
+        let task = recommender_projects_locations_recommenders_recommendations_get_task(builder)
+            .map_err(ProviderError::Api)?;
+
+        execute(task, None).map_err(|e: String| ProviderError::ExecuteFailed(e.to_string()))
+    }
+
+    /// Recommender projects locations recommenders recommendations list.
+    ///
+    /// Read-only operation - no state tracking.
+    ///
+    /// # Arguments
+    ///
+    /// * `args` - Request arguments
+    ///
+    /// # Returns
+    ///
+    /// StreamIterator yielding the GoogleCloudRecommenderV1ListRecommendationsResponse result.
+    ///
+    /// # Errors
+    ///
+    /// Returns ProviderError if the API request fails.
+    pub fn recommender_projects_locations_recommenders_recommendations_list(
+        &self,
+        args: &RecommenderProjectsLocationsRecommendersRecommendationsListArgs,
+    ) -> Result<
+        impl StreamIterator<
+            D = Result<GoogleCloudRecommenderV1ListRecommendationsResponse, ProviderError<ApiError>>,
+            P = crate::providers::gcp::clients::types::ApiPending,
+        > + Send
+        + 'static,
+        ProviderError<ApiError>,
+    > {
+        let builder = recommender_projects_locations_recommenders_recommendations_list_builder(
+            &self.http_client,
+            &args.parent,
+            &args.filter,
+            &args.pageSize,
+            &args.pageToken,
+        )
+        .map_err(ProviderError::Api)?;
+
+        let task = recommender_projects_locations_recommenders_recommendations_list_task(builder)
+            .map_err(ProviderError::Api)?;
+
+        execute(task, None).map_err(|e: String| ProviderError::ExecuteFailed(e.to_string()))
     }
 
     /// Recommender projects locations recommenders recommendations mark claimed.

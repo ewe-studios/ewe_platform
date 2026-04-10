@@ -7,7 +7,6 @@
 
 #![cfg(feature = "gcp")]
 
-
 use crate::providers::gcp::clients::types::*;
 use crate::providers::gcp::resources::*;
 use foundation_core::valtron::{
@@ -17,10 +16,190 @@ use foundation_core::valtron::{
 use foundation_core::wire::simple_http::client::{
     body_reader, ClientRequestBuilder, RequestIntro, SimpleHttpClient, SystemDnsResolver,
 };
+use foundation_db::state::resource_identifier::ResourceIdentifier;
 use foundation_macros::JsonHash;
 use serde::Serialize;
 
-/// GET v1/debug/datasources/{datasourcesId}/items:searchByViewUrl
+/// POST v1/debug/datasources/{datasourcesId}/items/{itemsId}:checkAccess
+/// Checks whether an item is accessible by specified principal. Principal must be a user; groups and domain values aren't supported. **Note:** This API requires an admin account to execute.
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `cloudsearch_debug_datasources_items_check_access_execute()` to send, or `cloudsearch_debug_datasources_items_check_access` for simplest API.
+
+pub fn cloudsearch_debug_datasources_items_check_access_builder(
+    client: &SimpleHttpClient,
+    name: &String,
+    debugOptions_enableDebugging: &Option<Option<String>>,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!(
+        "https://cloudsearch.googleapis.com/v1/debug/datasources/{}/items/{itemsId}:checkAccess",
+        name,
+    );
+
+    // Build request
+    let mut query_parts = Vec::new();
+    if let Some(val) = debugOptions_enableDebugging.as_ref() {
+        query_parts.push(format!("debugOptions.enableDebugging={}", val));
+    }
+
+    let url_with_query = if query_parts.is_empty() {
+        endpoint_url
+    } else {
+        format!("{}?{}", endpoint_url, query_parts.join("&"))
+    };
+
+    let builder = client
+        .post(&url_with_query)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// POST v1/debug/datasources/{datasourcesId}/items/{itemsId}:checkAccess
+/// Checks whether an item is accessible by specified principal. Principal must be a user; groups and domain values aren't supported. **Note:** This API requires an admin account to execute.
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `cloudsearch_debug_datasources_items_check_access_execute()` or `cloudsearch_debug_datasources_items_check_access`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `cloudsearch_debug_datasources_items_check_access_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn cloudsearch_debug_datasources_items_check_access_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<CheckAccessResponse>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: CheckAccessResponse = serde_json::from_str(&body)
+                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// POST v1/debug/datasources/{datasourcesId}/items/{itemsId}:checkAccess
+/// Checks whether an item is accessible by specified principal. Principal must be a user; groups and domain values aren't supported. **Note:** This API requires an admin account to execute.
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `cloudsearch_debug_datasources_items_check_access_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `cloudsearch_debug_datasources_items_check_access_task()`.
+/// For the simplest API, use `cloudsearch_debug_datasources_items_check_access()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `cloudsearch_debug_datasources_items_check_access_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn cloudsearch_debug_datasources_items_check_access_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<CheckAccessResponse>, ApiError>, P = ApiPending>
+        + Send
+        + 'static,
+    ApiError,
+> {
+    let task = cloudsearch_debug_datasources_items_check_access_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`cloudsearch_debug_datasources_items_check_access`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct CloudsearchDebugDatasourcesItemsCheckAccessArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Query parameter: debugOptions_enableDebugging
+    pub debugOptions_enableDebugging: Option<Option<String>>,
+}
+
+/// POST v1/debug/datasources/{datasourcesId}/items/{itemsId}:checkAccess
+/// Checks whether an item is accessible by specified principal. Principal must be a user; groups and domain values aren't supported. **Note:** This API requires an admin account to execute.
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `cloudsearch_debug_datasources_items_check_access_builder()` + `cloudsearch_debug_datasources_items_check_access_execute()`.
+/// For task-level control, use `cloudsearch_debug_datasources_items_check_access_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn cloudsearch_debug_datasources_items_check_access(
+    client: &SimpleHttpClient,
+    args: &CloudsearchDebugDatasourcesItemsCheckAccessArgs,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<CheckAccessResponse>, ApiError>, P = ApiPending>
+        + Send
+        + 'static,
+    ApiError,
+> {
+    let builder = cloudsearch_debug_datasources_items_check_access_builder(
+        client,
+        &args.name,
+        &args.debugOptions_enableDebugging,
+    )?;
+    cloudsearch_debug_datasources_items_check_access_execute(builder)
+}
+
+/// POST v1/debug/datasources/{datasourcesId}/items:searchByViewUrl
 /// Fetches the item whose `viewUrl` exactly matches that of the URL provided in the request. **Note:** This API requires an admin account to execute.
 ///
 /// Returns `ClientRequestBuilder` for customization.
@@ -29,24 +208,22 @@ use serde::Serialize;
 pub fn cloudsearch_debug_datasources_items_search_by_view_url_builder(
     client: &SimpleHttpClient,
     name: &String,
-    body: &SearchItemsByViewUrlRequest,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
         "https://cloudsearch.googleapis.com/v1/debug/datasources/{}/items:searchByViewUrl",
+        name,
     );
 
     // Build request
     let builder = client
-        .get(&endpoint_url)
+        .post(&endpoint_url)
         .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
 
-    builder
-        .body_json(body)
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+    Ok(builder)
 }
 
-/// GET v1/debug/datasources/{datasourcesId}/items:searchByViewUrl
+/// POST v1/debug/datasources/{datasourcesId}/items:searchByViewUrl
 /// Fetches the item whose `viewUrl` exactly matches that of the URL provided in the request. **Note:** This API requires an admin account to execute.
 ///
 /// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
@@ -120,7 +297,7 @@ pub fn cloudsearch_debug_datasources_items_search_by_view_url_task(
         .map_pending(|_| ApiPending::Sending))
 }
 
-/// GET v1/debug/datasources/{datasourcesId}/items:searchByViewUrl
+/// POST v1/debug/datasources/{datasourcesId}/items:searchByViewUrl
 /// Fetches the item whose `viewUrl` exactly matches that of the URL provided in the request. **Note:** This API requires an admin account to execute.
 ///
 /// Takes a `ClientRequestBuilder`, builds and executes the request,
@@ -159,11 +336,9 @@ pub fn cloudsearch_debug_datasources_items_search_by_view_url_execute(
 pub struct CloudsearchDebugDatasourcesItemsSearchByViewUrlArgs {
     /// Path parameter: name
     pub name: String,
-    /// Request body.
-    pub body: SearchItemsByViewUrlRequest,
 }
 
-/// GET v1/debug/datasources/{datasourcesId}/items:searchByViewUrl
+/// POST v1/debug/datasources/{datasourcesId}/items:searchByViewUrl
 /// Fetches the item whose `viewUrl` exactly matches that of the URL provided in the request. **Note:** This API requires an admin account to execute.
 ///
 /// Simplest API - builds and executes the request in one call.
@@ -185,10 +360,206 @@ pub fn cloudsearch_debug_datasources_items_search_by_view_url(
         + 'static,
     ApiError,
 > {
-    let builder = cloudsearch_debug_datasources_items_search_by_view_url_builder(
-        client, &args.name, &args.body,
-    )?;
+    let builder =
+        cloudsearch_debug_datasources_items_search_by_view_url_builder(client, &args.name)?;
     cloudsearch_debug_datasources_items_search_by_view_url_execute(builder)
+}
+
+/// GET v1/debug/datasources/{datasourcesId}/items/{itemsId}/unmappedids
+/// List all unmapped identities for a specific item. **Note:** This API requires an admin account to execute.
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `cloudsearch_debug_datasources_items_unmappedids_list_execute()` to send, or `cloudsearch_debug_datasources_items_unmappedids_list` for simplest API.
+
+pub fn cloudsearch_debug_datasources_items_unmappedids_list_builder(
+    client: &SimpleHttpClient,
+    parent: &String,
+    debugOptions_enableDebugging: &Option<Option<String>>,
+    pageSize: &Option<Option<String>>,
+    pageToken: &Option<Option<String>>,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!(
+        "https://cloudsearch.googleapis.com/v1/debug/datasources/{}/items/{itemsId}/unmappedids",
+        parent,
+    );
+
+    // Build request
+    let mut query_parts = Vec::new();
+    if let Some(val) = debugOptions_enableDebugging.as_ref() {
+        query_parts.push(format!("debugOptions.enableDebugging={}", val));
+    }
+    if let Some(val) = pageSize.as_ref() {
+        query_parts.push(format!("pageSize={}", val));
+    }
+    if let Some(val) = pageToken.as_ref() {
+        query_parts.push(format!("pageToken={}", val));
+    }
+
+    let url_with_query = if query_parts.is_empty() {
+        endpoint_url
+    } else {
+        format!("{}?{}", endpoint_url, query_parts.join("&"))
+    };
+
+    let builder = client
+        .get(&url_with_query)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// GET v1/debug/datasources/{datasourcesId}/items/{itemsId}/unmappedids
+/// List all unmapped identities for a specific item. **Note:** This API requires an admin account to execute.
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `cloudsearch_debug_datasources_items_unmappedids_list_execute()` or `cloudsearch_debug_datasources_items_unmappedids_list`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `cloudsearch_debug_datasources_items_unmappedids_list_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn cloudsearch_debug_datasources_items_unmappedids_list_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<ListUnmappedIdentitiesResponse>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: ListUnmappedIdentitiesResponse = serde_json::from_str(&body)
+                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// GET v1/debug/datasources/{datasourcesId}/items/{itemsId}/unmappedids
+/// List all unmapped identities for a specific item. **Note:** This API requires an admin account to execute.
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `cloudsearch_debug_datasources_items_unmappedids_list_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `cloudsearch_debug_datasources_items_unmappedids_list_task()`.
+/// For the simplest API, use `cloudsearch_debug_datasources_items_unmappedids_list()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `cloudsearch_debug_datasources_items_unmappedids_list_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn cloudsearch_debug_datasources_items_unmappedids_list_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<
+            D = Result<ApiResponse<ListUnmappedIdentitiesResponse>, ApiError>,
+            P = ApiPending,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    let task = cloudsearch_debug_datasources_items_unmappedids_list_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`cloudsearch_debug_datasources_items_unmappedids_list`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct CloudsearchDebugDatasourcesItemsUnmappedidsListArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Query parameter: debugOptions_enableDebugging
+    pub debugOptions_enableDebugging: Option<Option<String>>,
+    /// Query parameter: pageSize
+    pub pageSize: Option<Option<String>>,
+    /// Query parameter: pageToken
+    pub pageToken: Option<Option<String>>,
+}
+
+/// GET v1/debug/datasources/{datasourcesId}/items/{itemsId}/unmappedids
+/// List all unmapped identities for a specific item. **Note:** This API requires an admin account to execute.
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `cloudsearch_debug_datasources_items_unmappedids_list_builder()` + `cloudsearch_debug_datasources_items_unmappedids_list_execute()`.
+/// For task-level control, use `cloudsearch_debug_datasources_items_unmappedids_list_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn cloudsearch_debug_datasources_items_unmappedids_list(
+    client: &SimpleHttpClient,
+    args: &CloudsearchDebugDatasourcesItemsUnmappedidsListArgs,
+) -> Result<
+    impl StreamIterator<
+            D = Result<ApiResponse<ListUnmappedIdentitiesResponse>, ApiError>,
+            P = ApiPending,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    let builder = cloudsearch_debug_datasources_items_unmappedids_list_builder(
+        client,
+        &args.parent,
+        &args.debugOptions_enableDebugging,
+        &args.pageSize,
+        &args.pageToken,
+    )?;
+    cloudsearch_debug_datasources_items_unmappedids_list_execute(builder)
 }
 
 /// GET v1/debug/identitysources/{identitysourcesId}/items:forunmappedidentity
@@ -200,15 +571,16 @@ pub fn cloudsearch_debug_datasources_items_search_by_view_url(
 pub fn cloudsearch_debug_identitysources_items_list_forunmappedidentity_builder(
     client: &SimpleHttpClient,
     parent: &String,
-    debugOptions_enableDebugging: &Option<bool>,
-    groupResourceName: &Option<String>,
-    pageSize: &Option<i32>,
-    pageToken: &Option<String>,
-    userResourceName: &Option<String>,
+    debugOptions_enableDebugging: &Option<Option<String>>,
+    groupResourceName: &Option<Option<String>>,
+    pageSize: &Option<Option<String>>,
+    pageToken: &Option<Option<String>>,
+    userResourceName: &Option<Option<String>>,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
         "https://cloudsearch.googleapis.com/v1/debug/identitysources/{}/items:forunmappedidentity",
+        parent,
     );
 
     // Build request
@@ -356,15 +728,15 @@ pub struct CloudsearchDebugIdentitysourcesItemsListForunmappedidentityArgs {
     /// Path parameter: parent
     pub parent: String,
     /// Query parameter: debugOptions_enableDebugging
-    pub debugOptions_enableDebugging: Option<bool>,
+    pub debugOptions_enableDebugging: Option<Option<String>>,
     /// Query parameter: groupResourceName
-    pub groupResourceName: Option<String>,
+    pub groupResourceName: Option<Option<String>>,
     /// Query parameter: pageSize
-    pub pageSize: Option<i32>,
+    pub pageSize: Option<Option<String>>,
     /// Query parameter: pageToken
-    pub pageToken: Option<String>,
+    pub pageToken: Option<Option<String>>,
     /// Query parameter: userResourceName
-    pub userResourceName: Option<String>,
+    pub userResourceName: Option<Option<String>>,
 }
 
 /// GET v1/debug/identitysources/{identitysourcesId}/items:forunmappedidentity
@@ -410,14 +782,16 @@ pub fn cloudsearch_debug_identitysources_items_list_forunmappedidentity(
 pub fn cloudsearch_debug_identitysources_unmappedids_list_builder(
     client: &SimpleHttpClient,
     parent: &String,
-    debugOptions_enableDebugging: &Option<bool>,
-    pageSize: &Option<i32>,
-    pageToken: &Option<String>,
-    resolutionStatusCode: &Option<String>,
+    debugOptions_enableDebugging: &Option<Option<String>>,
+    pageSize: &Option<Option<String>>,
+    pageToken: &Option<Option<String>>,
+    resolutionStatusCode: &Option<Option<String>>,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
-    let endpoint_url =
-        format!("https://cloudsearch.googleapis.com/v1/debug/identitysources/{}/unmappedids",);
+    let endpoint_url = format!(
+        "https://cloudsearch.googleapis.com/v1/debug/identitysources/{}/unmappedids",
+        parent,
+    );
 
     // Build request
     let mut query_parts = Vec::new();
@@ -561,13 +935,13 @@ pub struct CloudsearchDebugIdentitysourcesUnmappedidsListArgs {
     /// Path parameter: parent
     pub parent: String,
     /// Query parameter: debugOptions_enableDebugging
-    pub debugOptions_enableDebugging: Option<bool>,
+    pub debugOptions_enableDebugging: Option<Option<String>>,
     /// Query parameter: pageSize
-    pub pageSize: Option<i32>,
+    pub pageSize: Option<Option<String>>,
     /// Query parameter: pageToken
-    pub pageToken: Option<String>,
+    pub pageToken: Option<Option<String>>,
     /// Query parameter: resolutionStatusCode
-    pub resolutionStatusCode: Option<String>,
+    pub resolutionStatusCode: Option<Option<String>>,
 }
 
 /// GET v1/debug/identitysources/{identitysourcesId}/unmappedids
@@ -603,7 +977,7 @@ pub fn cloudsearch_debug_identitysources_unmappedids_list(
     cloudsearch_debug_identitysources_unmappedids_list_execute(builder)
 }
 
-/// GET v1/indexing/datasources/{datasourcesId}/schema
+/// DELETE v1/indexing/datasources/{datasourcesId}/schema
 /// Deletes the schema of a data source. **Note:** This API requires an admin or service account to execute.
 ///
 /// Returns `ClientRequestBuilder` for customization.
@@ -612,11 +986,13 @@ pub fn cloudsearch_debug_identitysources_unmappedids_list(
 pub fn cloudsearch_indexing_datasources_delete_schema_builder(
     client: &SimpleHttpClient,
     name: &String,
-    debugOptions_enableDebugging: &Option<bool>,
+    debugOptions_enableDebugging: &Option<Option<String>>,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
-    let endpoint_url =
-        format!("https://cloudsearch.googleapis.com/v1/indexing/datasources/{}/schema",);
+    let endpoint_url = format!(
+        "https://cloudsearch.googleapis.com/v1/indexing/datasources/{}/schema",
+        name,
+    );
 
     // Build request
     let mut query_parts = Vec::new();
@@ -631,13 +1007,13 @@ pub fn cloudsearch_indexing_datasources_delete_schema_builder(
     };
 
     let builder = client
-        .get(&url_with_query)
+        .delete(&url_with_query)
         .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
 
     Ok(builder)
 }
 
-/// GET v1/indexing/datasources/{datasourcesId}/schema
+/// DELETE v1/indexing/datasources/{datasourcesId}/schema
 /// Deletes the schema of a data source. **Note:** This API requires an admin or service account to execute.
 ///
 /// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
@@ -711,7 +1087,7 @@ pub fn cloudsearch_indexing_datasources_delete_schema_task(
         .map_pending(|_| ApiPending::Sending))
 }
 
-/// GET v1/indexing/datasources/{datasourcesId}/schema
+/// DELETE v1/indexing/datasources/{datasourcesId}/schema
 /// Deletes the schema of a data source. **Note:** This API requires an admin or service account to execute.
 ///
 /// Takes a `ClientRequestBuilder`, builds and executes the request,
@@ -747,10 +1123,10 @@ pub struct CloudsearchIndexingDatasourcesDeleteSchemaArgs {
     /// Path parameter: name
     pub name: String,
     /// Query parameter: debugOptions_enableDebugging
-    pub debugOptions_enableDebugging: Option<bool>,
+    pub debugOptions_enableDebugging: Option<Option<String>>,
 }
 
-/// GET v1/indexing/datasources/{datasourcesId}/schema
+/// DELETE v1/indexing/datasources/{datasourcesId}/schema
 /// Deletes the schema of a data source. **Note:** This API requires an admin or service account to execute.
 ///
 /// Simplest API - builds and executes the request in one call.
@@ -776,7 +1152,535 @@ pub fn cloudsearch_indexing_datasources_delete_schema(
     cloudsearch_indexing_datasources_delete_schema_execute(builder)
 }
 
-/// GET v1/indexing/datasources/{datasourcesId}/items:deleteQueueItems
+/// GET v1/indexing/datasources/{datasourcesId}/schema
+/// Gets the schema of a data source. **Note:** This API requires an admin or service account to execute.
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `cloudsearch_indexing_datasources_get_schema_execute()` to send, or `cloudsearch_indexing_datasources_get_schema` for simplest API.
+
+pub fn cloudsearch_indexing_datasources_get_schema_builder(
+    client: &SimpleHttpClient,
+    name: &String,
+    debugOptions_enableDebugging: &Option<Option<String>>,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!(
+        "https://cloudsearch.googleapis.com/v1/indexing/datasources/{}/schema",
+        name,
+    );
+
+    // Build request
+    let mut query_parts = Vec::new();
+    if let Some(val) = debugOptions_enableDebugging.as_ref() {
+        query_parts.push(format!("debugOptions.enableDebugging={}", val));
+    }
+
+    let url_with_query = if query_parts.is_empty() {
+        endpoint_url
+    } else {
+        format!("{}?{}", endpoint_url, query_parts.join("&"))
+    };
+
+    let builder = client
+        .get(&url_with_query)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// GET v1/indexing/datasources/{datasourcesId}/schema
+/// Gets the schema of a data source. **Note:** This API requires an admin or service account to execute.
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `cloudsearch_indexing_datasources_get_schema_execute()` or `cloudsearch_indexing_datasources_get_schema`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `cloudsearch_indexing_datasources_get_schema_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn cloudsearch_indexing_datasources_get_schema_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<Schema>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: Schema = serde_json::from_str(&body)
+                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// GET v1/indexing/datasources/{datasourcesId}/schema
+/// Gets the schema of a data source. **Note:** This API requires an admin or service account to execute.
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `cloudsearch_indexing_datasources_get_schema_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `cloudsearch_indexing_datasources_get_schema_task()`.
+/// For the simplest API, use `cloudsearch_indexing_datasources_get_schema()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `cloudsearch_indexing_datasources_get_schema_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn cloudsearch_indexing_datasources_get_schema_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<Schema>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let task = cloudsearch_indexing_datasources_get_schema_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`cloudsearch_indexing_datasources_get_schema`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct CloudsearchIndexingDatasourcesGetSchemaArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Query parameter: debugOptions_enableDebugging
+    pub debugOptions_enableDebugging: Option<Option<String>>,
+}
+
+/// GET v1/indexing/datasources/{datasourcesId}/schema
+/// Gets the schema of a data source. **Note:** This API requires an admin or service account to execute.
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `cloudsearch_indexing_datasources_get_schema_builder()` + `cloudsearch_indexing_datasources_get_schema_execute()`.
+/// For task-level control, use `cloudsearch_indexing_datasources_get_schema_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn cloudsearch_indexing_datasources_get_schema(
+    client: &SimpleHttpClient,
+    args: &CloudsearchIndexingDatasourcesGetSchemaArgs,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<Schema>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let builder = cloudsearch_indexing_datasources_get_schema_builder(
+        client,
+        &args.name,
+        &args.debugOptions_enableDebugging,
+    )?;
+    cloudsearch_indexing_datasources_get_schema_execute(builder)
+}
+
+/// PUT v1/indexing/datasources/{datasourcesId}/schema
+/// Updates the schema of a data source. This method does not perform incremental updates to the schema. Instead, this method updates the schema by overwriting the entire schema. **Note:** This API requires an admin or service account to execute.
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `cloudsearch_indexing_datasources_update_schema_execute()` to send, or `cloudsearch_indexing_datasources_update_schema` for simplest API.
+
+pub fn cloudsearch_indexing_datasources_update_schema_builder(
+    client: &SimpleHttpClient,
+    name: &String,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!(
+        "https://cloudsearch.googleapis.com/v1/indexing/datasources/{}/schema",
+        name,
+    );
+
+    // Build request
+    let builder = client
+        .put(&endpoint_url)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// PUT v1/indexing/datasources/{datasourcesId}/schema
+/// Updates the schema of a data source. This method does not perform incremental updates to the schema. Instead, this method updates the schema by overwriting the entire schema. **Note:** This API requires an admin or service account to execute.
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `cloudsearch_indexing_datasources_update_schema_execute()` or `cloudsearch_indexing_datasources_update_schema`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `cloudsearch_indexing_datasources_update_schema_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn cloudsearch_indexing_datasources_update_schema_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<Operation>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: Operation = serde_json::from_str(&body)
+                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// PUT v1/indexing/datasources/{datasourcesId}/schema
+/// Updates the schema of a data source. This method does not perform incremental updates to the schema. Instead, this method updates the schema by overwriting the entire schema. **Note:** This API requires an admin or service account to execute.
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `cloudsearch_indexing_datasources_update_schema_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `cloudsearch_indexing_datasources_update_schema_task()`.
+/// For the simplest API, use `cloudsearch_indexing_datasources_update_schema()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `cloudsearch_indexing_datasources_update_schema_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn cloudsearch_indexing_datasources_update_schema_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<Operation>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let task = cloudsearch_indexing_datasources_update_schema_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`cloudsearch_indexing_datasources_update_schema`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct CloudsearchIndexingDatasourcesUpdateSchemaArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
+/// PUT v1/indexing/datasources/{datasourcesId}/schema
+/// Updates the schema of a data source. This method does not perform incremental updates to the schema. Instead, this method updates the schema by overwriting the entire schema. **Note:** This API requires an admin or service account to execute.
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `cloudsearch_indexing_datasources_update_schema_builder()` + `cloudsearch_indexing_datasources_update_schema_execute()`.
+/// For task-level control, use `cloudsearch_indexing_datasources_update_schema_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn cloudsearch_indexing_datasources_update_schema(
+    client: &SimpleHttpClient,
+    args: &CloudsearchIndexingDatasourcesUpdateSchemaArgs,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<Operation>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let builder = cloudsearch_indexing_datasources_update_schema_builder(client, &args.name)?;
+    cloudsearch_indexing_datasources_update_schema_execute(builder)
+}
+
+/// DELETE v1/indexing/datasources/{datasourcesId}/items/{itemsId}
+/// Deletes Item resource for the specified resource name. This API requires an admin or service account to execute. The service account used is the one whitelisted in the corresponding data source.
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `cloudsearch_indexing_datasources_items_delete_execute()` to send, or `cloudsearch_indexing_datasources_items_delete` for simplest API.
+
+pub fn cloudsearch_indexing_datasources_items_delete_builder(
+    client: &SimpleHttpClient,
+    name: &String,
+    connectorName: &Option<Option<String>>,
+    debugOptions_enableDebugging: &Option<Option<String>>,
+    mode: &Option<Option<String>>,
+    version: &Option<Option<String>>,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!(
+        "https://cloudsearch.googleapis.com/v1/indexing/datasources/{}/items/{itemsId}",
+        name,
+    );
+
+    // Build request
+    let mut query_parts = Vec::new();
+    if let Some(val) = connectorName.as_ref() {
+        query_parts.push(format!("connectorName={}", val));
+    }
+    if let Some(val) = debugOptions_enableDebugging.as_ref() {
+        query_parts.push(format!("debugOptions.enableDebugging={}", val));
+    }
+    if let Some(val) = mode.as_ref() {
+        query_parts.push(format!("mode={}", val));
+    }
+    if let Some(val) = version.as_ref() {
+        query_parts.push(format!("version={}", val));
+    }
+
+    let url_with_query = if query_parts.is_empty() {
+        endpoint_url
+    } else {
+        format!("{}?{}", endpoint_url, query_parts.join("&"))
+    };
+
+    let builder = client
+        .delete(&url_with_query)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// DELETE v1/indexing/datasources/{datasourcesId}/items/{itemsId}
+/// Deletes Item resource for the specified resource name. This API requires an admin or service account to execute. The service account used is the one whitelisted in the corresponding data source.
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `cloudsearch_indexing_datasources_items_delete_execute()` or `cloudsearch_indexing_datasources_items_delete`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `cloudsearch_indexing_datasources_items_delete_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn cloudsearch_indexing_datasources_items_delete_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<Operation>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: Operation = serde_json::from_str(&body)
+                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// DELETE v1/indexing/datasources/{datasourcesId}/items/{itemsId}
+/// Deletes Item resource for the specified resource name. This API requires an admin or service account to execute. The service account used is the one whitelisted in the corresponding data source.
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `cloudsearch_indexing_datasources_items_delete_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `cloudsearch_indexing_datasources_items_delete_task()`.
+/// For the simplest API, use `cloudsearch_indexing_datasources_items_delete()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `cloudsearch_indexing_datasources_items_delete_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn cloudsearch_indexing_datasources_items_delete_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<Operation>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let task = cloudsearch_indexing_datasources_items_delete_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`cloudsearch_indexing_datasources_items_delete`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct CloudsearchIndexingDatasourcesItemsDeleteArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Query parameter: connectorName
+    pub connectorName: Option<Option<String>>,
+    /// Query parameter: debugOptions_enableDebugging
+    pub debugOptions_enableDebugging: Option<Option<String>>,
+    /// Query parameter: mode
+    pub mode: Option<Option<String>>,
+    /// Query parameter: version
+    pub version: Option<Option<String>>,
+}
+
+/// DELETE v1/indexing/datasources/{datasourcesId}/items/{itemsId}
+/// Deletes Item resource for the specified resource name. This API requires an admin or service account to execute. The service account used is the one whitelisted in the corresponding data source.
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `cloudsearch_indexing_datasources_items_delete_builder()` + `cloudsearch_indexing_datasources_items_delete_execute()`.
+/// For task-level control, use `cloudsearch_indexing_datasources_items_delete_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn cloudsearch_indexing_datasources_items_delete(
+    client: &SimpleHttpClient,
+    args: &CloudsearchIndexingDatasourcesItemsDeleteArgs,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<Operation>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let builder = cloudsearch_indexing_datasources_items_delete_builder(
+        client,
+        &args.name,
+        &args.connectorName,
+        &args.debugOptions_enableDebugging,
+        &args.mode,
+        &args.version,
+    )?;
+    cloudsearch_indexing_datasources_items_delete_execute(builder)
+}
+
+/// POST v1/indexing/datasources/{datasourcesId}/items:deleteQueueItems
 /// Deletes all items in a queue. This method is useful for deleting stale items. This API requires an admin or service account to execute. The service account used is the one whitelisted in the corresponding data source.
 ///
 /// Returns `ClientRequestBuilder` for customization.
@@ -785,24 +1689,22 @@ pub fn cloudsearch_indexing_datasources_delete_schema(
 pub fn cloudsearch_indexing_datasources_items_delete_queue_items_builder(
     client: &SimpleHttpClient,
     name: &String,
-    body: &DeleteQueueItemsRequest,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
         "https://cloudsearch.googleapis.com/v1/indexing/datasources/{}/items:deleteQueueItems",
+        name,
     );
 
     // Build request
     let builder = client
-        .get(&endpoint_url)
+        .post(&endpoint_url)
         .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
 
-    builder
-        .body_json(body)
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+    Ok(builder)
 }
 
-/// GET v1/indexing/datasources/{datasourcesId}/items:deleteQueueItems
+/// POST v1/indexing/datasources/{datasourcesId}/items:deleteQueueItems
 /// Deletes all items in a queue. This method is useful for deleting stale items. This API requires an admin or service account to execute. The service account used is the one whitelisted in the corresponding data source.
 ///
 /// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
@@ -876,7 +1778,7 @@ pub fn cloudsearch_indexing_datasources_items_delete_queue_items_task(
         .map_pending(|_| ApiPending::Sending))
 }
 
-/// GET v1/indexing/datasources/{datasourcesId}/items:deleteQueueItems
+/// POST v1/indexing/datasources/{datasourcesId}/items:deleteQueueItems
 /// Deletes all items in a queue. This method is useful for deleting stale items. This API requires an admin or service account to execute. The service account used is the one whitelisted in the corresponding data source.
 ///
 /// Takes a `ClientRequestBuilder`, builds and executes the request,
@@ -911,11 +1813,9 @@ pub fn cloudsearch_indexing_datasources_items_delete_queue_items_execute(
 pub struct CloudsearchIndexingDatasourcesItemsDeleteQueueItemsArgs {
     /// Path parameter: name
     pub name: String,
-    /// Request body.
-    pub body: DeleteQueueItemsRequest,
 }
 
-/// GET v1/indexing/datasources/{datasourcesId}/items:deleteQueueItems
+/// POST v1/indexing/datasources/{datasourcesId}/items:deleteQueueItems
 /// Deletes all items in a queue. This method is useful for deleting stale items. This API requires an admin or service account to execute. The service account used is the one whitelisted in the corresponding data source.
 ///
 /// Simplest API - builds and executes the request in one call.
@@ -933,10 +1833,348 @@ pub fn cloudsearch_indexing_datasources_items_delete_queue_items(
     impl StreamIterator<D = Result<ApiResponse<Operation>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = cloudsearch_indexing_datasources_items_delete_queue_items_builder(
-        client, &args.name, &args.body,
-    )?;
+    let builder =
+        cloudsearch_indexing_datasources_items_delete_queue_items_builder(client, &args.name)?;
     cloudsearch_indexing_datasources_items_delete_queue_items_execute(builder)
+}
+
+/// GET v1/indexing/datasources/{datasourcesId}/items/{itemsId}
+/// Gets Item resource by item name. This API requires an admin or service account to execute. The service account used is the one whitelisted in the corresponding data source.
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `cloudsearch_indexing_datasources_items_get_execute()` to send, or `cloudsearch_indexing_datasources_items_get` for simplest API.
+
+pub fn cloudsearch_indexing_datasources_items_get_builder(
+    client: &SimpleHttpClient,
+    name: &String,
+    connectorName: &Option<Option<String>>,
+    debugOptions_enableDebugging: &Option<Option<String>>,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!(
+        "https://cloudsearch.googleapis.com/v1/indexing/datasources/{}/items/{itemsId}",
+        name,
+    );
+
+    // Build request
+    let mut query_parts = Vec::new();
+    if let Some(val) = connectorName.as_ref() {
+        query_parts.push(format!("connectorName={}", val));
+    }
+    if let Some(val) = debugOptions_enableDebugging.as_ref() {
+        query_parts.push(format!("debugOptions.enableDebugging={}", val));
+    }
+
+    let url_with_query = if query_parts.is_empty() {
+        endpoint_url
+    } else {
+        format!("{}?{}", endpoint_url, query_parts.join("&"))
+    };
+
+    let builder = client
+        .get(&url_with_query)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// GET v1/indexing/datasources/{datasourcesId}/items/{itemsId}
+/// Gets Item resource by item name. This API requires an admin or service account to execute. The service account used is the one whitelisted in the corresponding data source.
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `cloudsearch_indexing_datasources_items_get_execute()` or `cloudsearch_indexing_datasources_items_get`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `cloudsearch_indexing_datasources_items_get_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn cloudsearch_indexing_datasources_items_get_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<Item>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: Item = serde_json::from_str(&body)
+                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// GET v1/indexing/datasources/{datasourcesId}/items/{itemsId}
+/// Gets Item resource by item name. This API requires an admin or service account to execute. The service account used is the one whitelisted in the corresponding data source.
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `cloudsearch_indexing_datasources_items_get_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `cloudsearch_indexing_datasources_items_get_task()`.
+/// For the simplest API, use `cloudsearch_indexing_datasources_items_get()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `cloudsearch_indexing_datasources_items_get_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn cloudsearch_indexing_datasources_items_get_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<Item>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let task = cloudsearch_indexing_datasources_items_get_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`cloudsearch_indexing_datasources_items_get`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct CloudsearchIndexingDatasourcesItemsGetArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Query parameter: connectorName
+    pub connectorName: Option<Option<String>>,
+    /// Query parameter: debugOptions_enableDebugging
+    pub debugOptions_enableDebugging: Option<Option<String>>,
+}
+
+/// GET v1/indexing/datasources/{datasourcesId}/items/{itemsId}
+/// Gets Item resource by item name. This API requires an admin or service account to execute. The service account used is the one whitelisted in the corresponding data source.
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `cloudsearch_indexing_datasources_items_get_builder()` + `cloudsearch_indexing_datasources_items_get_execute()`.
+/// For task-level control, use `cloudsearch_indexing_datasources_items_get_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn cloudsearch_indexing_datasources_items_get(
+    client: &SimpleHttpClient,
+    args: &CloudsearchIndexingDatasourcesItemsGetArgs,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<Item>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let builder = cloudsearch_indexing_datasources_items_get_builder(
+        client,
+        &args.name,
+        &args.connectorName,
+        &args.debugOptions_enableDebugging,
+    )?;
+    cloudsearch_indexing_datasources_items_get_execute(builder)
+}
+
+/// POST v1/indexing/datasources/{datasourcesId}/items/{itemsId}:index
+/// Updates Item ACL, metadata, and content. It will insert the Item if it does not exist. This method does not support partial updates. Fields with no provided values are cleared out in the Cloud Search index. This API requires an admin or service account to execute. The service account used is the one whitelisted in the corresponding data source.
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `cloudsearch_indexing_datasources_items_index_execute()` to send, or `cloudsearch_indexing_datasources_items_index` for simplest API.
+
+pub fn cloudsearch_indexing_datasources_items_index_builder(
+    client: &SimpleHttpClient,
+    name: &String,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!(
+        "https://cloudsearch.googleapis.com/v1/indexing/datasources/{}/items/{itemsId}:index",
+        name,
+    );
+
+    // Build request
+    let builder = client
+        .post(&endpoint_url)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// POST v1/indexing/datasources/{datasourcesId}/items/{itemsId}:index
+/// Updates Item ACL, metadata, and content. It will insert the Item if it does not exist. This method does not support partial updates. Fields with no provided values are cleared out in the Cloud Search index. This API requires an admin or service account to execute. The service account used is the one whitelisted in the corresponding data source.
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `cloudsearch_indexing_datasources_items_index_execute()` or `cloudsearch_indexing_datasources_items_index`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `cloudsearch_indexing_datasources_items_index_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn cloudsearch_indexing_datasources_items_index_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<Operation>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: Operation = serde_json::from_str(&body)
+                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// POST v1/indexing/datasources/{datasourcesId}/items/{itemsId}:index
+/// Updates Item ACL, metadata, and content. It will insert the Item if it does not exist. This method does not support partial updates. Fields with no provided values are cleared out in the Cloud Search index. This API requires an admin or service account to execute. The service account used is the one whitelisted in the corresponding data source.
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `cloudsearch_indexing_datasources_items_index_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `cloudsearch_indexing_datasources_items_index_task()`.
+/// For the simplest API, use `cloudsearch_indexing_datasources_items_index()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `cloudsearch_indexing_datasources_items_index_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn cloudsearch_indexing_datasources_items_index_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<Operation>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let task = cloudsearch_indexing_datasources_items_index_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`cloudsearch_indexing_datasources_items_index`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct CloudsearchIndexingDatasourcesItemsIndexArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
+/// POST v1/indexing/datasources/{datasourcesId}/items/{itemsId}:index
+/// Updates Item ACL, metadata, and content. It will insert the Item if it does not exist. This method does not support partial updates. Fields with no provided values are cleared out in the Cloud Search index. This API requires an admin or service account to execute. The service account used is the one whitelisted in the corresponding data source.
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `cloudsearch_indexing_datasources_items_index_builder()` + `cloudsearch_indexing_datasources_items_index_execute()`.
+/// For task-level control, use `cloudsearch_indexing_datasources_items_index_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn cloudsearch_indexing_datasources_items_index(
+    client: &SimpleHttpClient,
+    args: &CloudsearchIndexingDatasourcesItemsIndexArgs,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<Operation>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let builder = cloudsearch_indexing_datasources_items_index_builder(client, &args.name)?;
+    cloudsearch_indexing_datasources_items_index_execute(builder)
 }
 
 /// GET v1/indexing/datasources/{datasourcesId}/items
@@ -948,15 +2186,17 @@ pub fn cloudsearch_indexing_datasources_items_delete_queue_items(
 pub fn cloudsearch_indexing_datasources_items_list_builder(
     client: &SimpleHttpClient,
     name: &String,
-    brief: &Option<bool>,
-    connectorName: &Option<String>,
-    debugOptions_enableDebugging: &Option<bool>,
-    pageSize: &Option<i32>,
-    pageToken: &Option<String>,
+    brief: &Option<Option<String>>,
+    connectorName: &Option<Option<String>>,
+    debugOptions_enableDebugging: &Option<Option<String>>,
+    pageSize: &Option<Option<String>>,
+    pageToken: &Option<Option<String>>,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
-    let endpoint_url =
-        format!("https://cloudsearch.googleapis.com/v1/indexing/datasources/{}/items",);
+    let endpoint_url = format!(
+        "https://cloudsearch.googleapis.com/v1/indexing/datasources/{}/items",
+        name,
+    );
 
     // Build request
     let mut query_parts = Vec::new();
@@ -1101,15 +2341,15 @@ pub struct CloudsearchIndexingDatasourcesItemsListArgs {
     /// Path parameter: name
     pub name: String,
     /// Query parameter: brief
-    pub brief: Option<bool>,
+    pub brief: Option<Option<String>>,
     /// Query parameter: connectorName
-    pub connectorName: Option<String>,
+    pub connectorName: Option<Option<String>>,
     /// Query parameter: debugOptions_enableDebugging
-    pub debugOptions_enableDebugging: Option<bool>,
+    pub debugOptions_enableDebugging: Option<Option<String>>,
     /// Query parameter: pageSize
-    pub pageSize: Option<i32>,
+    pub pageSize: Option<Option<String>>,
     /// Query parameter: pageToken
-    pub pageToken: Option<String>,
+    pub pageToken: Option<Option<String>>,
 }
 
 /// GET v1/indexing/datasources/{datasourcesId}/items
@@ -1144,7 +2384,7 @@ pub fn cloudsearch_indexing_datasources_items_list(
     cloudsearch_indexing_datasources_items_list_execute(builder)
 }
 
-/// GET v1/indexing/datasources/{datasourcesId}/items:poll
+/// POST v1/indexing/datasources/{datasourcesId}/items:poll
 /// Polls for unreserved items from the indexing queue and marks a set as reserved, starting with items that have the oldest timestamp from the highest priority ItemStatus. The priority order is as follows: `ERROR` MODIFIED NEW_ITEM ACCEPTED Reserving items ensures that polling from other threads cannot create overlapping sets. After handling the reserved items, the client should put items back into the unreserved state, either by calling index, or by calling push with the type REQUEUE. Items automatically become available (unreserved) after 4 hours even if no update or push method is called. This API requires an admin or service account to execute. The service account used is the one whitelisted in the corresponding data source.
 ///
 /// Returns `ClientRequestBuilder` for customization.
@@ -1153,23 +2393,22 @@ pub fn cloudsearch_indexing_datasources_items_list(
 pub fn cloudsearch_indexing_datasources_items_poll_builder(
     client: &SimpleHttpClient,
     name: &String,
-    body: &PollItemsRequest,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
-    let endpoint_url =
-        format!("https://cloudsearch.googleapis.com/v1/indexing/datasources/{}/items:poll",);
+    let endpoint_url = format!(
+        "https://cloudsearch.googleapis.com/v1/indexing/datasources/{}/items:poll",
+        name,
+    );
 
     // Build request
     let builder = client
-        .get(&endpoint_url)
+        .post(&endpoint_url)
         .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
 
-    builder
-        .body_json(body)
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+    Ok(builder)
 }
 
-/// GET v1/indexing/datasources/{datasourcesId}/items:poll
+/// POST v1/indexing/datasources/{datasourcesId}/items:poll
 /// Polls for unreserved items from the indexing queue and marks a set as reserved, starting with items that have the oldest timestamp from the highest priority ItemStatus. The priority order is as follows: `ERROR` MODIFIED NEW_ITEM ACCEPTED Reserving items ensures that polling from other threads cannot create overlapping sets. After handling the reserved items, the client should put items back into the unreserved state, either by calling index, or by calling push with the type REQUEUE. Items automatically become available (unreserved) after 4 hours even if no update or push method is called. This API requires an admin or service account to execute. The service account used is the one whitelisted in the corresponding data source.
 ///
 /// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
@@ -1243,7 +2482,7 @@ pub fn cloudsearch_indexing_datasources_items_poll_task(
         .map_pending(|_| ApiPending::Sending))
 }
 
-/// GET v1/indexing/datasources/{datasourcesId}/items:poll
+/// POST v1/indexing/datasources/{datasourcesId}/items:poll
 /// Polls for unreserved items from the indexing queue and marks a set as reserved, starting with items that have the oldest timestamp from the highest priority ItemStatus. The priority order is as follows: `ERROR` MODIFIED NEW_ITEM ACCEPTED Reserving items ensures that polling from other threads cannot create overlapping sets. After handling the reserved items, the client should put items back into the unreserved state, either by calling index, or by calling push with the type REQUEUE. Items automatically become available (unreserved) after 4 hours even if no update or push method is called. This API requires an admin or service account to execute. The service account used is the one whitelisted in the corresponding data source.
 ///
 /// Takes a `ClientRequestBuilder`, builds and executes the request,
@@ -1280,11 +2519,9 @@ pub fn cloudsearch_indexing_datasources_items_poll_execute(
 pub struct CloudsearchIndexingDatasourcesItemsPollArgs {
     /// Path parameter: name
     pub name: String,
-    /// Request body.
-    pub body: PollItemsRequest,
 }
 
-/// GET v1/indexing/datasources/{datasourcesId}/items:poll
+/// POST v1/indexing/datasources/{datasourcesId}/items:poll
 /// Polls for unreserved items from the indexing queue and marks a set as reserved, starting with items that have the oldest timestamp from the highest priority ItemStatus. The priority order is as follows: `ERROR` MODIFIED NEW_ITEM ACCEPTED Reserving items ensures that polling from other threads cannot create overlapping sets. After handling the reserved items, the client should put items back into the unreserved state, either by calling index, or by calling push with the type REQUEUE. Items automatically become available (unreserved) after 4 hours even if no update or push method is called. This API requires an admin or service account to execute. The service account used is the one whitelisted in the corresponding data source.
 ///
 /// Simplest API - builds and executes the request in one call.
@@ -1304,12 +2541,168 @@ pub fn cloudsearch_indexing_datasources_items_poll(
         + 'static,
     ApiError,
 > {
-    let builder =
-        cloudsearch_indexing_datasources_items_poll_builder(client, &args.name, &args.body)?;
+    let builder = cloudsearch_indexing_datasources_items_poll_builder(client, &args.name)?;
     cloudsearch_indexing_datasources_items_poll_execute(builder)
 }
 
-/// GET v1/indexing/datasources/{datasourcesId}/items:unreserve
+/// POST v1/indexing/datasources/{datasourcesId}/items/{itemsId}:push
+/// Pushes an item onto a queue for later polling and updating. This API requires an admin or service account to execute. The service account used is the one whitelisted in the corresponding data source.
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `cloudsearch_indexing_datasources_items_push_execute()` to send, or `cloudsearch_indexing_datasources_items_push` for simplest API.
+
+pub fn cloudsearch_indexing_datasources_items_push_builder(
+    client: &SimpleHttpClient,
+    name: &String,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!(
+        "https://cloudsearch.googleapis.com/v1/indexing/datasources/{}/items/{itemsId}:push",
+        name,
+    );
+
+    // Build request
+    let builder = client
+        .post(&endpoint_url)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// POST v1/indexing/datasources/{datasourcesId}/items/{itemsId}:push
+/// Pushes an item onto a queue for later polling and updating. This API requires an admin or service account to execute. The service account used is the one whitelisted in the corresponding data source.
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `cloudsearch_indexing_datasources_items_push_execute()` or `cloudsearch_indexing_datasources_items_push`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `cloudsearch_indexing_datasources_items_push_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn cloudsearch_indexing_datasources_items_push_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<Item>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: Item = serde_json::from_str(&body)
+                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// POST v1/indexing/datasources/{datasourcesId}/items/{itemsId}:push
+/// Pushes an item onto a queue for later polling and updating. This API requires an admin or service account to execute. The service account used is the one whitelisted in the corresponding data source.
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `cloudsearch_indexing_datasources_items_push_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `cloudsearch_indexing_datasources_items_push_task()`.
+/// For the simplest API, use `cloudsearch_indexing_datasources_items_push()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `cloudsearch_indexing_datasources_items_push_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn cloudsearch_indexing_datasources_items_push_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<Item>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let task = cloudsearch_indexing_datasources_items_push_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`cloudsearch_indexing_datasources_items_push`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct CloudsearchIndexingDatasourcesItemsPushArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
+/// POST v1/indexing/datasources/{datasourcesId}/items/{itemsId}:push
+/// Pushes an item onto a queue for later polling and updating. This API requires an admin or service account to execute. The service account used is the one whitelisted in the corresponding data source.
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `cloudsearch_indexing_datasources_items_push_builder()` + `cloudsearch_indexing_datasources_items_push_execute()`.
+/// For task-level control, use `cloudsearch_indexing_datasources_items_push_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn cloudsearch_indexing_datasources_items_push(
+    client: &SimpleHttpClient,
+    args: &CloudsearchIndexingDatasourcesItemsPushArgs,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<Item>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let builder = cloudsearch_indexing_datasources_items_push_builder(client, &args.name)?;
+    cloudsearch_indexing_datasources_items_push_execute(builder)
+}
+
+/// POST v1/indexing/datasources/{datasourcesId}/items:unreserve
 /// Unreserves all items from a queue, making them all eligible to be polled. This method is useful for resetting the indexing queue after a connector has been restarted. This API requires an admin or service account to execute. The service account used is the one whitelisted in the corresponding data source.
 ///
 /// Returns `ClientRequestBuilder` for customization.
@@ -1318,23 +2711,22 @@ pub fn cloudsearch_indexing_datasources_items_poll(
 pub fn cloudsearch_indexing_datasources_items_unreserve_builder(
     client: &SimpleHttpClient,
     name: &String,
-    body: &UnreserveItemsRequest,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
-    let endpoint_url =
-        format!("https://cloudsearch.googleapis.com/v1/indexing/datasources/{}/items:unreserve",);
+    let endpoint_url = format!(
+        "https://cloudsearch.googleapis.com/v1/indexing/datasources/{}/items:unreserve",
+        name,
+    );
 
     // Build request
     let builder = client
-        .get(&endpoint_url)
+        .post(&endpoint_url)
         .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
 
-    builder
-        .body_json(body)
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+    Ok(builder)
 }
 
-/// GET v1/indexing/datasources/{datasourcesId}/items:unreserve
+/// POST v1/indexing/datasources/{datasourcesId}/items:unreserve
 /// Unreserves all items from a queue, making them all eligible to be polled. This method is useful for resetting the indexing queue after a connector has been restarted. This API requires an admin or service account to execute. The service account used is the one whitelisted in the corresponding data source.
 ///
 /// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
@@ -1408,7 +2800,7 @@ pub fn cloudsearch_indexing_datasources_items_unreserve_task(
         .map_pending(|_| ApiPending::Sending))
 }
 
-/// GET v1/indexing/datasources/{datasourcesId}/items:unreserve
+/// POST v1/indexing/datasources/{datasourcesId}/items:unreserve
 /// Unreserves all items from a queue, making them all eligible to be polled. This method is useful for resetting the indexing queue after a connector has been restarted. This API requires an admin or service account to execute. The service account used is the one whitelisted in the corresponding data source.
 ///
 /// Takes a `ClientRequestBuilder`, builds and executes the request,
@@ -1443,11 +2835,9 @@ pub fn cloudsearch_indexing_datasources_items_unreserve_execute(
 pub struct CloudsearchIndexingDatasourcesItemsUnreserveArgs {
     /// Path parameter: name
     pub name: String,
-    /// Request body.
-    pub body: UnreserveItemsRequest,
 }
 
-/// GET v1/indexing/datasources/{datasourcesId}/items:unreserve
+/// POST v1/indexing/datasources/{datasourcesId}/items:unreserve
 /// Unreserves all items from a queue, making them all eligible to be polled. This method is useful for resetting the indexing queue after a connector has been restarted. This API requires an admin or service account to execute. The service account used is the one whitelisted in the corresponding data source.
 ///
 /// Simplest API - builds and executes the request in one call.
@@ -1465,12 +2855,172 @@ pub fn cloudsearch_indexing_datasources_items_unreserve(
     impl StreamIterator<D = Result<ApiResponse<Operation>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder =
-        cloudsearch_indexing_datasources_items_unreserve_builder(client, &args.name, &args.body)?;
+    let builder = cloudsearch_indexing_datasources_items_unreserve_builder(client, &args.name)?;
     cloudsearch_indexing_datasources_items_unreserve_execute(builder)
 }
 
-/// GET v1/media/{mediaId}
+/// POST v1/indexing/datasources/{datasourcesId}/items/{itemsId}:upload
+/// Creates an upload session for uploading item content. For items smaller than 100 KB, it's easier to embed the content inline within an index request. This API requires an admin or service account to execute. The service account used is the one whitelisted in the corresponding data source.
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `cloudsearch_indexing_datasources_items_upload_execute()` to send, or `cloudsearch_indexing_datasources_items_upload` for simplest API.
+
+pub fn cloudsearch_indexing_datasources_items_upload_builder(
+    client: &SimpleHttpClient,
+    name: &String,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!(
+        "https://cloudsearch.googleapis.com/v1/indexing/datasources/{}/items/{itemsId}:upload",
+        name,
+    );
+
+    // Build request
+    let builder = client
+        .post(&endpoint_url)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// POST v1/indexing/datasources/{datasourcesId}/items/{itemsId}:upload
+/// Creates an upload session for uploading item content. For items smaller than 100 KB, it's easier to embed the content inline within an index request. This API requires an admin or service account to execute. The service account used is the one whitelisted in the corresponding data source.
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `cloudsearch_indexing_datasources_items_upload_execute()` or `cloudsearch_indexing_datasources_items_upload`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `cloudsearch_indexing_datasources_items_upload_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn cloudsearch_indexing_datasources_items_upload_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<UploadItemRef>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: UploadItemRef = serde_json::from_str(&body)
+                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// POST v1/indexing/datasources/{datasourcesId}/items/{itemsId}:upload
+/// Creates an upload session for uploading item content. For items smaller than 100 KB, it's easier to embed the content inline within an index request. This API requires an admin or service account to execute. The service account used is the one whitelisted in the corresponding data source.
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `cloudsearch_indexing_datasources_items_upload_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `cloudsearch_indexing_datasources_items_upload_task()`.
+/// For the simplest API, use `cloudsearch_indexing_datasources_items_upload()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `cloudsearch_indexing_datasources_items_upload_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn cloudsearch_indexing_datasources_items_upload_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<UploadItemRef>, ApiError>, P = ApiPending>
+        + Send
+        + 'static,
+    ApiError,
+> {
+    let task = cloudsearch_indexing_datasources_items_upload_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`cloudsearch_indexing_datasources_items_upload`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct CloudsearchIndexingDatasourcesItemsUploadArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
+/// POST v1/indexing/datasources/{datasourcesId}/items/{itemsId}:upload
+/// Creates an upload session for uploading item content. For items smaller than 100 KB, it's easier to embed the content inline within an index request. This API requires an admin or service account to execute. The service account used is the one whitelisted in the corresponding data source.
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `cloudsearch_indexing_datasources_items_upload_builder()` + `cloudsearch_indexing_datasources_items_upload_execute()`.
+/// For task-level control, use `cloudsearch_indexing_datasources_items_upload_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn cloudsearch_indexing_datasources_items_upload(
+    client: &SimpleHttpClient,
+    args: &CloudsearchIndexingDatasourcesItemsUploadArgs,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<UploadItemRef>, ApiError>, P = ApiPending>
+        + Send
+        + 'static,
+    ApiError,
+> {
+    let builder = cloudsearch_indexing_datasources_items_upload_builder(client, &args.name)?;
+    cloudsearch_indexing_datasources_items_upload_execute(builder)
+}
+
+/// POST v1/media/{mediaId}
 /// Uploads media for indexing. The upload endpoint supports direct and resumable upload protocols and is intended for large items that can not be [inlined during index requests](<https://developers.google.`com/workspace/cloud-search/docs/reference/rest/v1/indexing`.datasources.items#itemcontent>). To index large content: 1. Call indexing.datasources.items.upload with the item name to begin an upload session and retrieve the UploadItemRef. 1. Call media.upload to upload the content, as a streaming request, using the same resource name from the UploadItemRef from step 1. 1. Call indexing.datasources.items.index to index the item. Populate the [ItemContent](/cloud-`search/docs/reference/rest/v1/indexing`.datasources.items#ItemContent) with the UploadItemRef from step 1. For additional information, see [Create a content connector using the REST API](<https://developers.google.`com/workspace/cloud-search/docs/guides/content-connector`#rest>). **Note:** This API requires a service account to execute.
 ///
 /// Returns `ClientRequestBuilder` for customization.
@@ -1479,22 +3029,22 @@ pub fn cloudsearch_indexing_datasources_items_unreserve(
 pub fn cloudsearch_media_upload_builder(
     client: &SimpleHttpClient,
     resourceName: &String,
-    body: &Media,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
-    let endpoint_url = format!("https://cloudsearch.googleapis.com/v1/media/{}",);
+    let endpoint_url = format!(
+        "https://cloudsearch.googleapis.com/v1/media/{}",
+        resourceName,
+    );
 
     // Build request
     let builder = client
-        .get(&endpoint_url)
+        .post(&endpoint_url)
         .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
 
-    builder
-        .body_json(body)
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+    Ok(builder)
 }
 
-/// GET v1/media/{mediaId}
+/// POST v1/media/{mediaId}
 /// Uploads media for indexing. The upload endpoint supports direct and resumable upload protocols and is intended for large items that can not be [inlined during index requests](<https://developers.google.`com/workspace/cloud-search/docs/reference/rest/v1/indexing`.datasources.items#itemcontent>). To index large content: 1. Call indexing.datasources.items.upload with the item name to begin an upload session and retrieve the UploadItemRef. 1. Call media.upload to upload the content, as a streaming request, using the same resource name from the UploadItemRef from step 1. 1. Call indexing.datasources.items.index to index the item. Populate the [ItemContent](/cloud-`search/docs/reference/rest/v1/indexing`.datasources.items#ItemContent) with the UploadItemRef from step 1. For additional information, see [Create a content connector using the REST API](<https://developers.google.`com/workspace/cloud-search/docs/guides/content-connector`#rest>). **Note:** This API requires a service account to execute.
 ///
 /// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
@@ -1568,7 +3118,7 @@ pub fn cloudsearch_media_upload_task(
         .map_pending(|_| ApiPending::Sending))
 }
 
-/// GET v1/media/{mediaId}
+/// POST v1/media/{mediaId}
 /// Uploads media for indexing. The upload endpoint supports direct and resumable upload protocols and is intended for large items that can not be [inlined during index requests](<https://developers.google.`com/workspace/cloud-search/docs/reference/rest/v1/indexing`.datasources.items#itemcontent>). To index large content: 1. Call indexing.datasources.items.upload with the item name to begin an upload session and retrieve the UploadItemRef. 1. Call media.upload to upload the content, as a streaming request, using the same resource name from the UploadItemRef from step 1. 1. Call indexing.datasources.items.index to index the item. Populate the [ItemContent](/cloud-`search/docs/reference/rest/v1/indexing`.datasources.items#ItemContent) with the UploadItemRef from step 1. For additional information, see [Create a content connector using the REST API](<https://developers.google.`com/workspace/cloud-search/docs/guides/content-connector`#rest>). **Note:** This API requires a service account to execute.
 ///
 /// Takes a `ClientRequestBuilder`, builds and executes the request,
@@ -1603,11 +3153,9 @@ pub fn cloudsearch_media_upload_execute(
 pub struct CloudsearchMediaUploadArgs {
     /// Path parameter: resourceName
     pub resourceName: String,
-    /// Request body.
-    pub body: Media,
 }
 
-/// GET v1/media/{mediaId}
+/// POST v1/media/{mediaId}
 /// Uploads media for indexing. The upload endpoint supports direct and resumable upload protocols and is intended for large items that can not be [inlined during index requests](<https://developers.google.`com/workspace/cloud-search/docs/reference/rest/v1/indexing`.datasources.items#itemcontent>). To index large content: 1. Call indexing.datasources.items.upload with the item name to begin an upload session and retrieve the UploadItemRef. 1. Call media.upload to upload the content, as a streaming request, using the same resource name from the UploadItemRef from step 1. 1. Call indexing.datasources.items.index to index the item. Populate the [ItemContent](/cloud-`search/docs/reference/rest/v1/indexing`.datasources.items#ItemContent) with the UploadItemRef from step 1. For additional information, see [Create a content connector using the REST API](<https://developers.google.`com/workspace/cloud-search/docs/guides/content-connector`#rest>). **Note:** This API requires a service account to execute.
 ///
 /// Simplest API - builds and executes the request in one call.
@@ -1625,7 +3173,7 @@ pub fn cloudsearch_media_upload(
     impl StreamIterator<D = Result<ApiResponse<Media>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = cloudsearch_media_upload_builder(client, &args.resourceName, &args.body)?;
+    let builder = cloudsearch_media_upload_builder(client, &args.resourceName)?;
     cloudsearch_media_upload_execute(builder)
 }
 
@@ -1640,7 +3188,7 @@ pub fn cloudsearch_operations_get_builder(
     name: &String,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
-    let endpoint_url = format!("https://cloudsearch.googleapis.com/v1/operations/{}",);
+    let endpoint_url = format!("https://cloudsearch.googleapis.com/v1/operations/{}", name,);
 
     // Build request
     let builder = client
@@ -1792,13 +3340,16 @@ pub fn cloudsearch_operations_get(
 pub fn cloudsearch_operations_lro_list_builder(
     client: &SimpleHttpClient,
     name: &String,
-    filter: &Option<String>,
-    pageSize: &Option<i32>,
-    pageToken: &Option<String>,
-    returnPartialSuccess: &Option<bool>,
+    filter: &Option<Option<String>>,
+    pageSize: &Option<Option<String>>,
+    pageToken: &Option<Option<String>>,
+    returnPartialSuccess: &Option<Option<String>>,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
-    let endpoint_url = format!("https://cloudsearch.googleapis.com/v1/operations/{}/lro",);
+    let endpoint_url = format!(
+        "https://cloudsearch.googleapis.com/v1/operations/{}/lro",
+        name,
+    );
 
     // Build request
     let mut query_parts = Vec::new();
@@ -1940,13 +3491,13 @@ pub struct CloudsearchOperationsLroListArgs {
     /// Path parameter: name
     pub name: String,
     /// Query parameter: filter
-    pub filter: Option<String>,
+    pub filter: Option<Option<String>>,
     /// Query parameter: pageSize
-    pub pageSize: Option<i32>,
+    pub pageSize: Option<Option<String>>,
     /// Query parameter: pageToken
-    pub pageToken: Option<String>,
+    pub pageToken: Option<Option<String>>,
     /// Query parameter: returnPartialSuccess
-    pub returnPartialSuccess: Option<bool>,
+    pub returnPartialSuccess: Option<Option<String>>,
 }
 
 /// GET v1/operations/{operationsId}/lro
@@ -1980,7 +3531,7 @@ pub fn cloudsearch_operations_lro_list(
     cloudsearch_operations_lro_list_execute(builder)
 }
 
-/// GET v1/query:removeActivity
+/// POST v1/query:removeActivity
 /// Provides functionality to remove logged activity for a user. Currently to be used only for Chat 1p clients **Note:** This API requires a standard end user account to execute. A service account can't perform Remove Activity requests directly; to use a service account to perform queries, set up [Google Workspace domain-wide delegation of authority](<https://developers.google.`com/workspace/cloud-search/docs/guides/delegation/`>).
 ///
 /// Returns `ClientRequestBuilder` for customization.
@@ -1988,22 +3539,19 @@ pub fn cloudsearch_operations_lro_list(
 
 pub fn cloudsearch_query_remove_activity_builder(
     client: &SimpleHttpClient,
-    body: &RemoveActivityRequest,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!("https://cloudsearch.googleapis.com/v1/query:removeActivity",);
 
     // Build request
     let builder = client
-        .get(&endpoint_url)
+        .post(&endpoint_url)
         .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
 
-    builder
-        .body_json(body)
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+    Ok(builder)
 }
 
-/// GET v1/query:removeActivity
+/// POST v1/query:removeActivity
 /// Provides functionality to remove logged activity for a user. Currently to be used only for Chat 1p clients **Note:** This API requires a standard end user account to execute. A service account can't perform Remove Activity requests directly; to use a service account to perform queries, set up [Google Workspace domain-wide delegation of authority](<https://developers.google.`com/workspace/cloud-search/docs/guides/delegation/`>).
 ///
 /// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
@@ -2077,7 +3625,7 @@ pub fn cloudsearch_query_remove_activity_task(
         .map_pending(|_| ApiPending::Sending))
 }
 
-/// GET v1/query:removeActivity
+/// POST v1/query:removeActivity
 /// Provides functionality to remove logged activity for a user. Currently to be used only for Chat 1p clients **Note:** This API requires a standard end user account to execute. A service account can't perform Remove Activity requests directly; to use a service account to perform queries, set up [Google Workspace domain-wide delegation of authority](<https://developers.google.`com/workspace/cloud-search/docs/guides/delegation/`>).
 ///
 /// Takes a `ClientRequestBuilder`, builds and executes the request,
@@ -2109,14 +3657,7 @@ pub fn cloudsearch_query_remove_activity_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
-/// Arguments for [`cloudsearch_query_remove_activity`].
-#[derive(Debug, Clone, Serialize, JsonHash)]
-pub struct CloudsearchQueryRemoveActivityArgs {
-    /// Request body.
-    pub body: RemoveActivityRequest,
-}
-
-/// GET v1/query:removeActivity
+/// POST v1/query:removeActivity
 /// Provides functionality to remove logged activity for a user. Currently to be used only for Chat 1p clients **Note:** This API requires a standard end user account to execute. A service account can't perform Remove Activity requests directly; to use a service account to perform queries, set up [Google Workspace domain-wide delegation of authority](<https://developers.google.`com/workspace/cloud-search/docs/guides/delegation/`>).
 ///
 /// Simplest API - builds and executes the request in one call.
@@ -2129,18 +3670,17 @@ pub struct CloudsearchQueryRemoveActivityArgs {
 
 pub fn cloudsearch_query_remove_activity(
     client: &SimpleHttpClient,
-    args: &CloudsearchQueryRemoveActivityArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<RemoveActivityResponse>, ApiError>, P = ApiPending>
         + Send
         + 'static,
     ApiError,
 > {
-    let builder = cloudsearch_query_remove_activity_builder(client, &args.body)?;
+    let builder = cloudsearch_query_remove_activity_builder(client)?;
     cloudsearch_query_remove_activity_execute(builder)
 }
 
-/// GET v1/query/search
+/// POST v1/query/search
 /// The Cloud Search Query API provides the search method, which returns the most relevant results from a user query. The results can come from Google Workspace apps, such as Gmail or Google Drive, or they can come from data that you have indexed from a third party. **Note:** This API requires a standard end user account to execute. A service account can't perform Query API requests directly; to use a service account to perform queries, set up [Google Workspace domain-wide delegation of authority](<https://developers.google.`com/workspace/cloud-search/docs/guides/delegation/`>).
 ///
 /// Returns `ClientRequestBuilder` for customization.
@@ -2148,22 +3688,19 @@ pub fn cloudsearch_query_remove_activity(
 
 pub fn cloudsearch_query_search_builder(
     client: &SimpleHttpClient,
-    body: &SearchRequest,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!("https://cloudsearch.googleapis.com/v1/query/search",);
 
     // Build request
     let builder = client
-        .get(&endpoint_url)
+        .post(&endpoint_url)
         .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
 
-    builder
-        .body_json(body)
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+    Ok(builder)
 }
 
-/// GET v1/query/search
+/// POST v1/query/search
 /// The Cloud Search Query API provides the search method, which returns the most relevant results from a user query. The results can come from Google Workspace apps, such as Gmail or Google Drive, or they can come from data that you have indexed from a third party. **Note:** This API requires a standard end user account to execute. A service account can't perform Query API requests directly; to use a service account to perform queries, set up [Google Workspace domain-wide delegation of authority](<https://developers.google.`com/workspace/cloud-search/docs/guides/delegation/`>).
 ///
 /// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
@@ -2237,7 +3774,7 @@ pub fn cloudsearch_query_search_task(
         .map_pending(|_| ApiPending::Sending))
 }
 
-/// GET v1/query/search
+/// POST v1/query/search
 /// The Cloud Search Query API provides the search method, which returns the most relevant results from a user query. The results can come from Google Workspace apps, such as Gmail or Google Drive, or they can come from data that you have indexed from a third party. **Note:** This API requires a standard end user account to execute. A service account can't perform Query API requests directly; to use a service account to perform queries, set up [Google Workspace domain-wide delegation of authority](<https://developers.google.`com/workspace/cloud-search/docs/guides/delegation/`>).
 ///
 /// Takes a `ClientRequestBuilder`, builds and executes the request,
@@ -2269,14 +3806,7 @@ pub fn cloudsearch_query_search_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
-/// Arguments for [`cloudsearch_query_search`].
-#[derive(Debug, Clone, Serialize, JsonHash)]
-pub struct CloudsearchQuerySearchArgs {
-    /// Request body.
-    pub body: SearchRequest,
-}
-
-/// GET v1/query/search
+/// POST v1/query/search
 /// The Cloud Search Query API provides the search method, which returns the most relevant results from a user query. The results can come from Google Workspace apps, such as Gmail or Google Drive, or they can come from data that you have indexed from a third party. **Note:** This API requires a standard end user account to execute. A service account can't perform Query API requests directly; to use a service account to perform queries, set up [Google Workspace domain-wide delegation of authority](<https://developers.google.`com/workspace/cloud-search/docs/guides/delegation/`>).
 ///
 /// Simplest API - builds and executes the request in one call.
@@ -2289,18 +3819,17 @@ pub struct CloudsearchQuerySearchArgs {
 
 pub fn cloudsearch_query_search(
     client: &SimpleHttpClient,
-    args: &CloudsearchQuerySearchArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<SearchResponse>, ApiError>, P = ApiPending>
         + Send
         + 'static,
     ApiError,
 > {
-    let builder = cloudsearch_query_search_builder(client, &args.body)?;
+    let builder = cloudsearch_query_search_builder(client)?;
     cloudsearch_query_search_execute(builder)
 }
 
-/// GET v1/query/suggest
+/// POST v1/query/suggest
 /// Provides suggestions for autocompleting the query. **Note:** This API requires a standard end user account to execute. A service account can't perform Query API requests directly; to use a service account to perform queries, set up [Google Workspace domain-wide delegation of authority](<https://developers.google.`com/workspace/cloud-search/docs/guides/delegation/`>).
 ///
 /// Returns `ClientRequestBuilder` for customization.
@@ -2308,22 +3837,19 @@ pub fn cloudsearch_query_search(
 
 pub fn cloudsearch_query_suggest_builder(
     client: &SimpleHttpClient,
-    body: &SuggestRequest,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!("https://cloudsearch.googleapis.com/v1/query/suggest",);
 
     // Build request
     let builder = client
-        .get(&endpoint_url)
+        .post(&endpoint_url)
         .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
 
-    builder
-        .body_json(body)
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+    Ok(builder)
 }
 
-/// GET v1/query/suggest
+/// POST v1/query/suggest
 /// Provides suggestions for autocompleting the query. **Note:** This API requires a standard end user account to execute. A service account can't perform Query API requests directly; to use a service account to perform queries, set up [Google Workspace domain-wide delegation of authority](<https://developers.google.`com/workspace/cloud-search/docs/guides/delegation/`>).
 ///
 /// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
@@ -2397,7 +3923,7 @@ pub fn cloudsearch_query_suggest_task(
         .map_pending(|_| ApiPending::Sending))
 }
 
-/// GET v1/query/suggest
+/// POST v1/query/suggest
 /// Provides suggestions for autocompleting the query. **Note:** This API requires a standard end user account to execute. A service account can't perform Query API requests directly; to use a service account to perform queries, set up [Google Workspace domain-wide delegation of authority](<https://developers.google.`com/workspace/cloud-search/docs/guides/delegation/`>).
 ///
 /// Takes a `ClientRequestBuilder`, builds and executes the request,
@@ -2429,14 +3955,7 @@ pub fn cloudsearch_query_suggest_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
-/// Arguments for [`cloudsearch_query_suggest`].
-#[derive(Debug, Clone, Serialize, JsonHash)]
-pub struct CloudsearchQuerySuggestArgs {
-    /// Request body.
-    pub body: SuggestRequest,
-}
-
-/// GET v1/query/suggest
+/// POST v1/query/suggest
 /// Provides suggestions for autocompleting the query. **Note:** This API requires a standard end user account to execute. A service account can't perform Query API requests directly; to use a service account to perform queries, set up [Google Workspace domain-wide delegation of authority](<https://developers.google.`com/workspace/cloud-search/docs/guides/delegation/`>).
 ///
 /// Simplest API - builds and executes the request in one call.
@@ -2449,14 +3968,13 @@ pub struct CloudsearchQuerySuggestArgs {
 
 pub fn cloudsearch_query_suggest(
     client: &SimpleHttpClient,
-    args: &CloudsearchQuerySuggestArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<SuggestResponse>, ApiError>, P = ApiPending>
         + Send
         + 'static,
     ApiError,
 > {
-    let builder = cloudsearch_query_suggest_builder(client, &args.body)?;
+    let builder = cloudsearch_query_suggest_builder(client)?;
     cloudsearch_query_suggest_execute(builder)
 }
 
@@ -2468,11 +3986,11 @@ pub fn cloudsearch_query_suggest(
 
 pub fn cloudsearch_query_sources_list_builder(
     client: &SimpleHttpClient,
-    pageToken: &Option<String>,
-    requestOptions_debugOptions_enableDebugging: &Option<bool>,
-    requestOptions_languageCode: &Option<String>,
-    requestOptions_searchApplicationId: &Option<String>,
-    requestOptions_timeZone: &Option<String>,
+    pageToken: &Option<Option<String>>,
+    requestOptions_debugOptions_enableDebugging: &Option<Option<String>>,
+    requestOptions_languageCode: &Option<Option<String>>,
+    requestOptions_searchApplicationId: &Option<Option<String>>,
+    requestOptions_timeZone: &Option<Option<String>>,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!("https://cloudsearch.googleapis.com/v1/query/sources",);
@@ -2621,15 +4139,15 @@ pub fn cloudsearch_query_sources_list_execute(
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct CloudsearchQuerySourcesListArgs {
     /// Query parameter: pageToken
-    pub pageToken: Option<String>,
+    pub pageToken: Option<Option<String>>,
     /// Query parameter: requestOptions_debugOptions_enableDebugging
-    pub requestOptions_debugOptions_enableDebugging: Option<bool>,
+    pub requestOptions_debugOptions_enableDebugging: Option<Option<String>>,
     /// Query parameter: requestOptions_languageCode
-    pub requestOptions_languageCode: Option<String>,
+    pub requestOptions_languageCode: Option<Option<String>>,
     /// Query parameter: requestOptions_searchApplicationId
-    pub requestOptions_searchApplicationId: Option<String>,
+    pub requestOptions_searchApplicationId: Option<Option<String>>,
     /// Query parameter: requestOptions_timeZone
-    pub requestOptions_timeZone: Option<String>,
+    pub requestOptions_timeZone: Option<Option<String>>,
 }
 
 /// GET v1/query/sources
@@ -2812,7 +4330,172 @@ pub fn cloudsearch_settings_get_customer(
     cloudsearch_settings_get_customer_execute(builder)
 }
 
-/// GET v1/settings/datasources
+/// PATCH v1/settings/customer
+/// Update customer settings. **Note:** This API requires an admin account to execute.
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `cloudsearch_settings_update_customer_execute()` to send, or `cloudsearch_settings_update_customer` for simplest API.
+
+pub fn cloudsearch_settings_update_customer_builder(
+    client: &SimpleHttpClient,
+    updateMask: &Option<Option<String>>,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!("https://cloudsearch.googleapis.com/v1/settings/customer",);
+
+    // Build request
+    let mut query_parts = Vec::new();
+    if let Some(val) = updateMask.as_ref() {
+        query_parts.push(format!("updateMask={}", val));
+    }
+
+    let url_with_query = if query_parts.is_empty() {
+        endpoint_url
+    } else {
+        format!("{}?{}", endpoint_url, query_parts.join("&"))
+    };
+
+    let builder = client
+        .patch(&url_with_query)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// PATCH v1/settings/customer
+/// Update customer settings. **Note:** This API requires an admin account to execute.
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `cloudsearch_settings_update_customer_execute()` or `cloudsearch_settings_update_customer`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `cloudsearch_settings_update_customer_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn cloudsearch_settings_update_customer_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<Operation>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: Operation = serde_json::from_str(&body)
+                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// PATCH v1/settings/customer
+/// Update customer settings. **Note:** This API requires an admin account to execute.
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `cloudsearch_settings_update_customer_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `cloudsearch_settings_update_customer_task()`.
+/// For the simplest API, use `cloudsearch_settings_update_customer()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `cloudsearch_settings_update_customer_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn cloudsearch_settings_update_customer_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<Operation>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let task = cloudsearch_settings_update_customer_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`cloudsearch_settings_update_customer`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct CloudsearchSettingsUpdateCustomerArgs {
+    /// Query parameter: updateMask
+    pub updateMask: Option<Option<String>>,
+}
+
+/// PATCH v1/settings/customer
+/// Update customer settings. **Note:** This API requires an admin account to execute.
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `cloudsearch_settings_update_customer_builder()` + `cloudsearch_settings_update_customer_execute()`.
+/// For task-level control, use `cloudsearch_settings_update_customer_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn cloudsearch_settings_update_customer(
+    client: &SimpleHttpClient,
+    args: &CloudsearchSettingsUpdateCustomerArgs,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<Operation>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let builder = cloudsearch_settings_update_customer_builder(client, &args.updateMask)?;
+    cloudsearch_settings_update_customer_execute(builder)
+}
+
+/// POST v1/settings/datasources
 /// Creates a datasource. **Note:** This API requires an admin account to execute.
 ///
 /// Returns `ClientRequestBuilder` for customization.
@@ -2820,22 +4503,19 @@ pub fn cloudsearch_settings_get_customer(
 
 pub fn cloudsearch_settings_datasources_create_builder(
     client: &SimpleHttpClient,
-    body: &DataSource,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!("https://cloudsearch.googleapis.com/v1/settings/datasources",);
 
     // Build request
     let builder = client
-        .get(&endpoint_url)
+        .post(&endpoint_url)
         .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
 
-    builder
-        .body_json(body)
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+    Ok(builder)
 }
 
-/// GET v1/settings/datasources
+/// POST v1/settings/datasources
 /// Creates a datasource. **Note:** This API requires an admin account to execute.
 ///
 /// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
@@ -2909,7 +4589,7 @@ pub fn cloudsearch_settings_datasources_create_task(
         .map_pending(|_| ApiPending::Sending))
 }
 
-/// GET v1/settings/datasources
+/// POST v1/settings/datasources
 /// Creates a datasource. **Note:** This API requires an admin account to execute.
 ///
 /// Takes a `ClientRequestBuilder`, builds and executes the request,
@@ -2939,14 +4619,7 @@ pub fn cloudsearch_settings_datasources_create_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
-/// Arguments for [`cloudsearch_settings_datasources_create`].
-#[derive(Debug, Clone, Serialize, JsonHash)]
-pub struct CloudsearchSettingsDatasourcesCreateArgs {
-    /// Request body.
-    pub body: DataSource,
-}
-
-/// GET v1/settings/datasources
+/// POST v1/settings/datasources
 /// Creates a datasource. **Note:** This API requires an admin account to execute.
 ///
 /// Simplest API - builds and executes the request in one call.
@@ -2959,16 +4632,15 @@ pub struct CloudsearchSettingsDatasourcesCreateArgs {
 
 pub fn cloudsearch_settings_datasources_create(
     client: &SimpleHttpClient,
-    args: &CloudsearchSettingsDatasourcesCreateArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Operation>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = cloudsearch_settings_datasources_create_builder(client, &args.body)?;
+    let builder = cloudsearch_settings_datasources_create_builder(client)?;
     cloudsearch_settings_datasources_create_execute(builder)
 }
 
-/// GET v1/settings/datasources/{datasourcesId}
+/// DELETE v1/settings/datasources/{datasourcesId}
 /// Deletes a datasource. **Note:** This API requires an admin account to execute.
 ///
 /// Returns `ClientRequestBuilder` for customization.
@@ -2977,10 +4649,13 @@ pub fn cloudsearch_settings_datasources_create(
 pub fn cloudsearch_settings_datasources_delete_builder(
     client: &SimpleHttpClient,
     name: &String,
-    debugOptions_enableDebugging: &Option<bool>,
+    debugOptions_enableDebugging: &Option<Option<String>>,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
-    let endpoint_url = format!("https://cloudsearch.googleapis.com/v1/settings/datasources/{}",);
+    let endpoint_url = format!(
+        "https://cloudsearch.googleapis.com/v1/settings/datasources/{}",
+        name,
+    );
 
     // Build request
     let mut query_parts = Vec::new();
@@ -2995,13 +4670,13 @@ pub fn cloudsearch_settings_datasources_delete_builder(
     };
 
     let builder = client
-        .get(&url_with_query)
+        .delete(&url_with_query)
         .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
 
     Ok(builder)
 }
 
-/// GET v1/settings/datasources/{datasourcesId}
+/// DELETE v1/settings/datasources/{datasourcesId}
 /// Deletes a datasource. **Note:** This API requires an admin account to execute.
 ///
 /// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
@@ -3075,7 +4750,7 @@ pub fn cloudsearch_settings_datasources_delete_task(
         .map_pending(|_| ApiPending::Sending))
 }
 
-/// GET v1/settings/datasources/{datasourcesId}
+/// DELETE v1/settings/datasources/{datasourcesId}
 /// Deletes a datasource. **Note:** This API requires an admin account to execute.
 ///
 /// Takes a `ClientRequestBuilder`, builds and executes the request,
@@ -3111,10 +4786,10 @@ pub struct CloudsearchSettingsDatasourcesDeleteArgs {
     /// Path parameter: name
     pub name: String,
     /// Query parameter: debugOptions_enableDebugging
-    pub debugOptions_enableDebugging: Option<bool>,
+    pub debugOptions_enableDebugging: Option<Option<String>>,
 }
 
-/// GET v1/settings/datasources/{datasourcesId}
+/// DELETE v1/settings/datasources/{datasourcesId}
 /// Deletes a datasource. **Note:** This API requires an admin account to execute.
 ///
 /// Simplest API - builds and executes the request in one call.
@@ -3140,7 +4815,707 @@ pub fn cloudsearch_settings_datasources_delete(
     cloudsearch_settings_datasources_delete_execute(builder)
 }
 
-/// GET v1/settings/searchapplications
+/// GET v1/settings/datasources/{datasourcesId}
+/// Gets a datasource. **Note:** This API requires an admin account to execute.
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `cloudsearch_settings_datasources_get_execute()` to send, or `cloudsearch_settings_datasources_get` for simplest API.
+
+pub fn cloudsearch_settings_datasources_get_builder(
+    client: &SimpleHttpClient,
+    name: &String,
+    debugOptions_enableDebugging: &Option<Option<String>>,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!(
+        "https://cloudsearch.googleapis.com/v1/settings/datasources/{}",
+        name,
+    );
+
+    // Build request
+    let mut query_parts = Vec::new();
+    if let Some(val) = debugOptions_enableDebugging.as_ref() {
+        query_parts.push(format!("debugOptions.enableDebugging={}", val));
+    }
+
+    let url_with_query = if query_parts.is_empty() {
+        endpoint_url
+    } else {
+        format!("{}?{}", endpoint_url, query_parts.join("&"))
+    };
+
+    let builder = client
+        .get(&url_with_query)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// GET v1/settings/datasources/{datasourcesId}
+/// Gets a datasource. **Note:** This API requires an admin account to execute.
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `cloudsearch_settings_datasources_get_execute()` or `cloudsearch_settings_datasources_get`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `cloudsearch_settings_datasources_get_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn cloudsearch_settings_datasources_get_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<DataSource>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: DataSource = serde_json::from_str(&body)
+                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// GET v1/settings/datasources/{datasourcesId}
+/// Gets a datasource. **Note:** This API requires an admin account to execute.
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `cloudsearch_settings_datasources_get_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `cloudsearch_settings_datasources_get_task()`.
+/// For the simplest API, use `cloudsearch_settings_datasources_get()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `cloudsearch_settings_datasources_get_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn cloudsearch_settings_datasources_get_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<DataSource>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let task = cloudsearch_settings_datasources_get_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`cloudsearch_settings_datasources_get`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct CloudsearchSettingsDatasourcesGetArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Query parameter: debugOptions_enableDebugging
+    pub debugOptions_enableDebugging: Option<Option<String>>,
+}
+
+/// GET v1/settings/datasources/{datasourcesId}
+/// Gets a datasource. **Note:** This API requires an admin account to execute.
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `cloudsearch_settings_datasources_get_builder()` + `cloudsearch_settings_datasources_get_execute()`.
+/// For task-level control, use `cloudsearch_settings_datasources_get_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn cloudsearch_settings_datasources_get(
+    client: &SimpleHttpClient,
+    args: &CloudsearchSettingsDatasourcesGetArgs,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<DataSource>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let builder = cloudsearch_settings_datasources_get_builder(
+        client,
+        &args.name,
+        &args.debugOptions_enableDebugging,
+    )?;
+    cloudsearch_settings_datasources_get_execute(builder)
+}
+
+/// GET v1/settings/datasources
+/// Lists datasources. **Note:** This API requires an admin account to execute.
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `cloudsearch_settings_datasources_list_execute()` to send, or `cloudsearch_settings_datasources_list` for simplest API.
+
+pub fn cloudsearch_settings_datasources_list_builder(
+    client: &SimpleHttpClient,
+    debugOptions_enableDebugging: &Option<Option<String>>,
+    pageSize: &Option<Option<String>>,
+    pageToken: &Option<Option<String>>,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!("https://cloudsearch.googleapis.com/v1/settings/datasources",);
+
+    // Build request
+    let mut query_parts = Vec::new();
+    if let Some(val) = debugOptions_enableDebugging.as_ref() {
+        query_parts.push(format!("debugOptions.enableDebugging={}", val));
+    }
+    if let Some(val) = pageSize.as_ref() {
+        query_parts.push(format!("pageSize={}", val));
+    }
+    if let Some(val) = pageToken.as_ref() {
+        query_parts.push(format!("pageToken={}", val));
+    }
+
+    let url_with_query = if query_parts.is_empty() {
+        endpoint_url
+    } else {
+        format!("{}?{}", endpoint_url, query_parts.join("&"))
+    };
+
+    let builder = client
+        .get(&url_with_query)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// GET v1/settings/datasources
+/// Lists datasources. **Note:** This API requires an admin account to execute.
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `cloudsearch_settings_datasources_list_execute()` or `cloudsearch_settings_datasources_list`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `cloudsearch_settings_datasources_list_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn cloudsearch_settings_datasources_list_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<ListDataSourceResponse>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: ListDataSourceResponse = serde_json::from_str(&body)
+                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// GET v1/settings/datasources
+/// Lists datasources. **Note:** This API requires an admin account to execute.
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `cloudsearch_settings_datasources_list_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `cloudsearch_settings_datasources_list_task()`.
+/// For the simplest API, use `cloudsearch_settings_datasources_list()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `cloudsearch_settings_datasources_list_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn cloudsearch_settings_datasources_list_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<ListDataSourceResponse>, ApiError>, P = ApiPending>
+        + Send
+        + 'static,
+    ApiError,
+> {
+    let task = cloudsearch_settings_datasources_list_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`cloudsearch_settings_datasources_list`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct CloudsearchSettingsDatasourcesListArgs {
+    /// Query parameter: debugOptions_enableDebugging
+    pub debugOptions_enableDebugging: Option<Option<String>>,
+    /// Query parameter: pageSize
+    pub pageSize: Option<Option<String>>,
+    /// Query parameter: pageToken
+    pub pageToken: Option<Option<String>>,
+}
+
+/// GET v1/settings/datasources
+/// Lists datasources. **Note:** This API requires an admin account to execute.
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `cloudsearch_settings_datasources_list_builder()` + `cloudsearch_settings_datasources_list_execute()`.
+/// For task-level control, use `cloudsearch_settings_datasources_list_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn cloudsearch_settings_datasources_list(
+    client: &SimpleHttpClient,
+    args: &CloudsearchSettingsDatasourcesListArgs,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<ListDataSourceResponse>, ApiError>, P = ApiPending>
+        + Send
+        + 'static,
+    ApiError,
+> {
+    let builder = cloudsearch_settings_datasources_list_builder(
+        client,
+        &args.debugOptions_enableDebugging,
+        &args.pageSize,
+        &args.pageToken,
+    )?;
+    cloudsearch_settings_datasources_list_execute(builder)
+}
+
+/// PATCH v1/settings/datasources/{datasourcesId}
+/// Updates a datasource. **Note:** This API requires an admin account to execute.
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `cloudsearch_settings_datasources_patch_execute()` to send, or `cloudsearch_settings_datasources_patch` for simplest API.
+
+pub fn cloudsearch_settings_datasources_patch_builder(
+    client: &SimpleHttpClient,
+    name: &String,
+    debugOptions_enableDebugging: &Option<Option<String>>,
+    updateMask: &Option<Option<String>>,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!(
+        "https://cloudsearch.googleapis.com/v1/settings/datasources/{}",
+        name,
+    );
+
+    // Build request
+    let mut query_parts = Vec::new();
+    if let Some(val) = debugOptions_enableDebugging.as_ref() {
+        query_parts.push(format!("debugOptions.enableDebugging={}", val));
+    }
+    if let Some(val) = updateMask.as_ref() {
+        query_parts.push(format!("updateMask={}", val));
+    }
+
+    let url_with_query = if query_parts.is_empty() {
+        endpoint_url
+    } else {
+        format!("{}?{}", endpoint_url, query_parts.join("&"))
+    };
+
+    let builder = client
+        .patch(&url_with_query)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// PATCH v1/settings/datasources/{datasourcesId}
+/// Updates a datasource. **Note:** This API requires an admin account to execute.
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `cloudsearch_settings_datasources_patch_execute()` or `cloudsearch_settings_datasources_patch`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `cloudsearch_settings_datasources_patch_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn cloudsearch_settings_datasources_patch_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<Operation>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: Operation = serde_json::from_str(&body)
+                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// PATCH v1/settings/datasources/{datasourcesId}
+/// Updates a datasource. **Note:** This API requires an admin account to execute.
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `cloudsearch_settings_datasources_patch_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `cloudsearch_settings_datasources_patch_task()`.
+/// For the simplest API, use `cloudsearch_settings_datasources_patch()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `cloudsearch_settings_datasources_patch_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn cloudsearch_settings_datasources_patch_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<Operation>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let task = cloudsearch_settings_datasources_patch_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`cloudsearch_settings_datasources_patch`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct CloudsearchSettingsDatasourcesPatchArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Query parameter: debugOptions_enableDebugging
+    pub debugOptions_enableDebugging: Option<Option<String>>,
+    /// Query parameter: updateMask
+    pub updateMask: Option<Option<String>>,
+}
+
+/// PATCH v1/settings/datasources/{datasourcesId}
+/// Updates a datasource. **Note:** This API requires an admin account to execute.
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `cloudsearch_settings_datasources_patch_builder()` + `cloudsearch_settings_datasources_patch_execute()`.
+/// For task-level control, use `cloudsearch_settings_datasources_patch_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn cloudsearch_settings_datasources_patch(
+    client: &SimpleHttpClient,
+    args: &CloudsearchSettingsDatasourcesPatchArgs,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<Operation>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let builder = cloudsearch_settings_datasources_patch_builder(
+        client,
+        &args.name,
+        &args.debugOptions_enableDebugging,
+        &args.updateMask,
+    )?;
+    cloudsearch_settings_datasources_patch_execute(builder)
+}
+
+/// PUT v1/settings/datasources/{datasourcesId}
+/// Updates a datasource. **Note:** This API requires an admin account to execute.
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `cloudsearch_settings_datasources_update_execute()` to send, or `cloudsearch_settings_datasources_update` for simplest API.
+
+pub fn cloudsearch_settings_datasources_update_builder(
+    client: &SimpleHttpClient,
+    name: &String,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!(
+        "https://cloudsearch.googleapis.com/v1/settings/datasources/{}",
+        name,
+    );
+
+    // Build request
+    let builder = client
+        .put(&endpoint_url)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// PUT v1/settings/datasources/{datasourcesId}
+/// Updates a datasource. **Note:** This API requires an admin account to execute.
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `cloudsearch_settings_datasources_update_execute()` or `cloudsearch_settings_datasources_update`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `cloudsearch_settings_datasources_update_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn cloudsearch_settings_datasources_update_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<Operation>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: Operation = serde_json::from_str(&body)
+                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// PUT v1/settings/datasources/{datasourcesId}
+/// Updates a datasource. **Note:** This API requires an admin account to execute.
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `cloudsearch_settings_datasources_update_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `cloudsearch_settings_datasources_update_task()`.
+/// For the simplest API, use `cloudsearch_settings_datasources_update()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `cloudsearch_settings_datasources_update_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn cloudsearch_settings_datasources_update_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<Operation>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let task = cloudsearch_settings_datasources_update_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`cloudsearch_settings_datasources_update`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct CloudsearchSettingsDatasourcesUpdateArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
+/// PUT v1/settings/datasources/{datasourcesId}
+/// Updates a datasource. **Note:** This API requires an admin account to execute.
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `cloudsearch_settings_datasources_update_builder()` + `cloudsearch_settings_datasources_update_execute()`.
+/// For task-level control, use `cloudsearch_settings_datasources_update_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn cloudsearch_settings_datasources_update(
+    client: &SimpleHttpClient,
+    args: &CloudsearchSettingsDatasourcesUpdateArgs,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<Operation>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let builder = cloudsearch_settings_datasources_update_builder(client, &args.name)?;
+    cloudsearch_settings_datasources_update_execute(builder)
+}
+
+/// POST v1/settings/searchapplications
 /// Creates a search application. **Note:** This API requires an admin account to execute.
 ///
 /// Returns `ClientRequestBuilder` for customization.
@@ -3148,7 +5523,6 @@ pub fn cloudsearch_settings_datasources_delete(
 
 pub fn cloudsearch_settings_searchapplications_create_builder(
     client: &SimpleHttpClient,
-    body: &SearchApplication,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url =
@@ -3156,15 +5530,13 @@ pub fn cloudsearch_settings_searchapplications_create_builder(
 
     // Build request
     let builder = client
-        .get(&endpoint_url)
+        .post(&endpoint_url)
         .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
 
-    builder
-        .body_json(body)
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+    Ok(builder)
 }
 
-/// GET v1/settings/searchapplications
+/// POST v1/settings/searchapplications
 /// Creates a search application. **Note:** This API requires an admin account to execute.
 ///
 /// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
@@ -3238,7 +5610,7 @@ pub fn cloudsearch_settings_searchapplications_create_task(
         .map_pending(|_| ApiPending::Sending))
 }
 
-/// GET v1/settings/searchapplications
+/// POST v1/settings/searchapplications
 /// Creates a search application. **Note:** This API requires an admin account to execute.
 ///
 /// Takes a `ClientRequestBuilder`, builds and executes the request,
@@ -3268,14 +5640,7 @@ pub fn cloudsearch_settings_searchapplications_create_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
-/// Arguments for [`cloudsearch_settings_searchapplications_create`].
-#[derive(Debug, Clone, Serialize, JsonHash)]
-pub struct CloudsearchSettingsSearchapplicationsCreateArgs {
-    /// Request body.
-    pub body: SearchApplication,
-}
-
-/// GET v1/settings/searchapplications
+/// POST v1/settings/searchapplications
 /// Creates a search application. **Note:** This API requires an admin account to execute.
 ///
 /// Simplest API - builds and executes the request in one call.
@@ -3288,16 +5653,15 @@ pub struct CloudsearchSettingsSearchapplicationsCreateArgs {
 
 pub fn cloudsearch_settings_searchapplications_create(
     client: &SimpleHttpClient,
-    args: &CloudsearchSettingsSearchapplicationsCreateArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Operation>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = cloudsearch_settings_searchapplications_create_builder(client, &args.body)?;
+    let builder = cloudsearch_settings_searchapplications_create_builder(client)?;
     cloudsearch_settings_searchapplications_create_execute(builder)
 }
 
-/// GET v1/settings/searchapplications/{searchapplicationsId}
+/// DELETE v1/settings/searchapplications/{searchapplicationsId}
 /// Deletes a search application. **Note:** This API requires an admin account to execute.
 ///
 /// Returns `ClientRequestBuilder` for customization.
@@ -3306,11 +5670,13 @@ pub fn cloudsearch_settings_searchapplications_create(
 pub fn cloudsearch_settings_searchapplications_delete_builder(
     client: &SimpleHttpClient,
     name: &String,
-    debugOptions_enableDebugging: &Option<bool>,
+    debugOptions_enableDebugging: &Option<Option<String>>,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
-    let endpoint_url =
-        format!("https://cloudsearch.googleapis.com/v1/settings/searchapplications/{}",);
+    let endpoint_url = format!(
+        "https://cloudsearch.googleapis.com/v1/settings/searchapplications/{}",
+        name,
+    );
 
     // Build request
     let mut query_parts = Vec::new();
@@ -3325,13 +5691,13 @@ pub fn cloudsearch_settings_searchapplications_delete_builder(
     };
 
     let builder = client
-        .get(&url_with_query)
+        .delete(&url_with_query)
         .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
 
     Ok(builder)
 }
 
-/// GET v1/settings/searchapplications/{searchapplicationsId}
+/// DELETE v1/settings/searchapplications/{searchapplicationsId}
 /// Deletes a search application. **Note:** This API requires an admin account to execute.
 ///
 /// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
@@ -3405,7 +5771,7 @@ pub fn cloudsearch_settings_searchapplications_delete_task(
         .map_pending(|_| ApiPending::Sending))
 }
 
-/// GET v1/settings/searchapplications/{searchapplicationsId}
+/// DELETE v1/settings/searchapplications/{searchapplicationsId}
 /// Deletes a search application. **Note:** This API requires an admin account to execute.
 ///
 /// Takes a `ClientRequestBuilder`, builds and executes the request,
@@ -3441,10 +5807,10 @@ pub struct CloudsearchSettingsSearchapplicationsDeleteArgs {
     /// Path parameter: name
     pub name: String,
     /// Query parameter: debugOptions_enableDebugging
-    pub debugOptions_enableDebugging: Option<bool>,
+    pub debugOptions_enableDebugging: Option<Option<String>>,
 }
 
-/// GET v1/settings/searchapplications/{searchapplicationsId}
+/// DELETE v1/settings/searchapplications/{searchapplicationsId}
 /// Deletes a search application. **Note:** This API requires an admin account to execute.
 ///
 /// Simplest API - builds and executes the request in one call.
@@ -3470,7 +5836,552 @@ pub fn cloudsearch_settings_searchapplications_delete(
     cloudsearch_settings_searchapplications_delete_execute(builder)
 }
 
-/// GET v1/settings/searchapplications/{searchapplicationsId}:reset
+/// GET v1/settings/searchapplications/{searchapplicationsId}
+/// Gets the specified search application. **Note:** This API requires an admin account to execute.
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `cloudsearch_settings_searchapplications_get_execute()` to send, or `cloudsearch_settings_searchapplications_get` for simplest API.
+
+pub fn cloudsearch_settings_searchapplications_get_builder(
+    client: &SimpleHttpClient,
+    name: &String,
+    debugOptions_enableDebugging: &Option<Option<String>>,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!(
+        "https://cloudsearch.googleapis.com/v1/settings/searchapplications/{}",
+        name,
+    );
+
+    // Build request
+    let mut query_parts = Vec::new();
+    if let Some(val) = debugOptions_enableDebugging.as_ref() {
+        query_parts.push(format!("debugOptions.enableDebugging={}", val));
+    }
+
+    let url_with_query = if query_parts.is_empty() {
+        endpoint_url
+    } else {
+        format!("{}?{}", endpoint_url, query_parts.join("&"))
+    };
+
+    let builder = client
+        .get(&url_with_query)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// GET v1/settings/searchapplications/{searchapplicationsId}
+/// Gets the specified search application. **Note:** This API requires an admin account to execute.
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `cloudsearch_settings_searchapplications_get_execute()` or `cloudsearch_settings_searchapplications_get`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `cloudsearch_settings_searchapplications_get_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn cloudsearch_settings_searchapplications_get_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<SearchApplication>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: SearchApplication = serde_json::from_str(&body)
+                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// GET v1/settings/searchapplications/{searchapplicationsId}
+/// Gets the specified search application. **Note:** This API requires an admin account to execute.
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `cloudsearch_settings_searchapplications_get_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `cloudsearch_settings_searchapplications_get_task()`.
+/// For the simplest API, use `cloudsearch_settings_searchapplications_get()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `cloudsearch_settings_searchapplications_get_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn cloudsearch_settings_searchapplications_get_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<SearchApplication>, ApiError>, P = ApiPending>
+        + Send
+        + 'static,
+    ApiError,
+> {
+    let task = cloudsearch_settings_searchapplications_get_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`cloudsearch_settings_searchapplications_get`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct CloudsearchSettingsSearchapplicationsGetArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Query parameter: debugOptions_enableDebugging
+    pub debugOptions_enableDebugging: Option<Option<String>>,
+}
+
+/// GET v1/settings/searchapplications/{searchapplicationsId}
+/// Gets the specified search application. **Note:** This API requires an admin account to execute.
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `cloudsearch_settings_searchapplications_get_builder()` + `cloudsearch_settings_searchapplications_get_execute()`.
+/// For task-level control, use `cloudsearch_settings_searchapplications_get_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn cloudsearch_settings_searchapplications_get(
+    client: &SimpleHttpClient,
+    args: &CloudsearchSettingsSearchapplicationsGetArgs,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<SearchApplication>, ApiError>, P = ApiPending>
+        + Send
+        + 'static,
+    ApiError,
+> {
+    let builder = cloudsearch_settings_searchapplications_get_builder(
+        client,
+        &args.name,
+        &args.debugOptions_enableDebugging,
+    )?;
+    cloudsearch_settings_searchapplications_get_execute(builder)
+}
+
+/// GET v1/settings/searchapplications
+/// Lists all search applications. **Note:** This API requires an admin account to execute.
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `cloudsearch_settings_searchapplications_list_execute()` to send, or `cloudsearch_settings_searchapplications_list` for simplest API.
+
+pub fn cloudsearch_settings_searchapplications_list_builder(
+    client: &SimpleHttpClient,
+    debugOptions_enableDebugging: &Option<Option<String>>,
+    pageSize: &Option<Option<String>>,
+    pageToken: &Option<Option<String>>,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url =
+        format!("https://cloudsearch.googleapis.com/v1/settings/searchapplications",);
+
+    // Build request
+    let mut query_parts = Vec::new();
+    if let Some(val) = debugOptions_enableDebugging.as_ref() {
+        query_parts.push(format!("debugOptions.enableDebugging={}", val));
+    }
+    if let Some(val) = pageSize.as_ref() {
+        query_parts.push(format!("pageSize={}", val));
+    }
+    if let Some(val) = pageToken.as_ref() {
+        query_parts.push(format!("pageToken={}", val));
+    }
+
+    let url_with_query = if query_parts.is_empty() {
+        endpoint_url
+    } else {
+        format!("{}?{}", endpoint_url, query_parts.join("&"))
+    };
+
+    let builder = client
+        .get(&url_with_query)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// GET v1/settings/searchapplications
+/// Lists all search applications. **Note:** This API requires an admin account to execute.
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `cloudsearch_settings_searchapplications_list_execute()` or `cloudsearch_settings_searchapplications_list`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `cloudsearch_settings_searchapplications_list_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn cloudsearch_settings_searchapplications_list_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<ListSearchApplicationsResponse>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: ListSearchApplicationsResponse = serde_json::from_str(&body)
+                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// GET v1/settings/searchapplications
+/// Lists all search applications. **Note:** This API requires an admin account to execute.
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `cloudsearch_settings_searchapplications_list_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `cloudsearch_settings_searchapplications_list_task()`.
+/// For the simplest API, use `cloudsearch_settings_searchapplications_list()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `cloudsearch_settings_searchapplications_list_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn cloudsearch_settings_searchapplications_list_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<
+            D = Result<ApiResponse<ListSearchApplicationsResponse>, ApiError>,
+            P = ApiPending,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    let task = cloudsearch_settings_searchapplications_list_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`cloudsearch_settings_searchapplications_list`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct CloudsearchSettingsSearchapplicationsListArgs {
+    /// Query parameter: debugOptions_enableDebugging
+    pub debugOptions_enableDebugging: Option<Option<String>>,
+    /// Query parameter: pageSize
+    pub pageSize: Option<Option<String>>,
+    /// Query parameter: pageToken
+    pub pageToken: Option<Option<String>>,
+}
+
+/// GET v1/settings/searchapplications
+/// Lists all search applications. **Note:** This API requires an admin account to execute.
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `cloudsearch_settings_searchapplications_list_builder()` + `cloudsearch_settings_searchapplications_list_execute()`.
+/// For task-level control, use `cloudsearch_settings_searchapplications_list_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn cloudsearch_settings_searchapplications_list(
+    client: &SimpleHttpClient,
+    args: &CloudsearchSettingsSearchapplicationsListArgs,
+) -> Result<
+    impl StreamIterator<
+            D = Result<ApiResponse<ListSearchApplicationsResponse>, ApiError>,
+            P = ApiPending,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    let builder = cloudsearch_settings_searchapplications_list_builder(
+        client,
+        &args.debugOptions_enableDebugging,
+        &args.pageSize,
+        &args.pageToken,
+    )?;
+    cloudsearch_settings_searchapplications_list_execute(builder)
+}
+
+/// PATCH v1/settings/searchapplications/{searchapplicationsId}
+/// Updates a search application. **Note:** This API requires an admin account to execute.
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `cloudsearch_settings_searchapplications_patch_execute()` to send, or `cloudsearch_settings_searchapplications_patch` for simplest API.
+
+pub fn cloudsearch_settings_searchapplications_patch_builder(
+    client: &SimpleHttpClient,
+    name: &String,
+    updateMask: &Option<Option<String>>,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!(
+        "https://cloudsearch.googleapis.com/v1/settings/searchapplications/{}",
+        name,
+    );
+
+    // Build request
+    let mut query_parts = Vec::new();
+    if let Some(val) = updateMask.as_ref() {
+        query_parts.push(format!("updateMask={}", val));
+    }
+
+    let url_with_query = if query_parts.is_empty() {
+        endpoint_url
+    } else {
+        format!("{}?{}", endpoint_url, query_parts.join("&"))
+    };
+
+    let builder = client
+        .patch(&url_with_query)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// PATCH v1/settings/searchapplications/{searchapplicationsId}
+/// Updates a search application. **Note:** This API requires an admin account to execute.
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `cloudsearch_settings_searchapplications_patch_execute()` or `cloudsearch_settings_searchapplications_patch`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `cloudsearch_settings_searchapplications_patch_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn cloudsearch_settings_searchapplications_patch_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<Operation>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: Operation = serde_json::from_str(&body)
+                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// PATCH v1/settings/searchapplications/{searchapplicationsId}
+/// Updates a search application. **Note:** This API requires an admin account to execute.
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `cloudsearch_settings_searchapplications_patch_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `cloudsearch_settings_searchapplications_patch_task()`.
+/// For the simplest API, use `cloudsearch_settings_searchapplications_patch()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `cloudsearch_settings_searchapplications_patch_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn cloudsearch_settings_searchapplications_patch_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<Operation>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let task = cloudsearch_settings_searchapplications_patch_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`cloudsearch_settings_searchapplications_patch`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct CloudsearchSettingsSearchapplicationsPatchArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Query parameter: updateMask
+    pub updateMask: Option<Option<String>>,
+}
+
+/// PATCH v1/settings/searchapplications/{searchapplicationsId}
+/// Updates a search application. **Note:** This API requires an admin account to execute.
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `cloudsearch_settings_searchapplications_patch_builder()` + `cloudsearch_settings_searchapplications_patch_execute()`.
+/// For task-level control, use `cloudsearch_settings_searchapplications_patch_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn cloudsearch_settings_searchapplications_patch(
+    client: &SimpleHttpClient,
+    args: &CloudsearchSettingsSearchapplicationsPatchArgs,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<Operation>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let builder = cloudsearch_settings_searchapplications_patch_builder(
+        client,
+        &args.name,
+        &args.updateMask,
+    )?;
+    cloudsearch_settings_searchapplications_patch_execute(builder)
+}
+
+/// POST v1/settings/searchapplications/{searchapplicationsId}:reset
 /// Resets a search application to default settings. This will return an empty response. **Note:** This API requires an admin account to execute.
 ///
 /// Returns `ClientRequestBuilder` for customization.
@@ -3479,23 +6390,22 @@ pub fn cloudsearch_settings_searchapplications_delete(
 pub fn cloudsearch_settings_searchapplications_reset_builder(
     client: &SimpleHttpClient,
     name: &String,
-    body: &ResetSearchApplicationRequest,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
-    let endpoint_url =
-        format!("https://cloudsearch.googleapis.com/v1/settings/searchapplications/{}:reset",);
+    let endpoint_url = format!(
+        "https://cloudsearch.googleapis.com/v1/settings/searchapplications/{}:reset",
+        name,
+    );
 
     // Build request
     let builder = client
-        .get(&endpoint_url)
+        .post(&endpoint_url)
         .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
 
-    builder
-        .body_json(body)
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+    Ok(builder)
 }
 
-/// GET v1/settings/searchapplications/{searchapplicationsId}:reset
+/// POST v1/settings/searchapplications/{searchapplicationsId}:reset
 /// Resets a search application to default settings. This will return an empty response. **Note:** This API requires an admin account to execute.
 ///
 /// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
@@ -3569,7 +6479,7 @@ pub fn cloudsearch_settings_searchapplications_reset_task(
         .map_pending(|_| ApiPending::Sending))
 }
 
-/// GET v1/settings/searchapplications/{searchapplicationsId}:reset
+/// POST v1/settings/searchapplications/{searchapplicationsId}:reset
 /// Resets a search application to default settings. This will return an empty response. **Note:** This API requires an admin account to execute.
 ///
 /// Takes a `ClientRequestBuilder`, builds and executes the request,
@@ -3604,11 +6514,9 @@ pub fn cloudsearch_settings_searchapplications_reset_execute(
 pub struct CloudsearchSettingsSearchapplicationsResetArgs {
     /// Path parameter: name
     pub name: String,
-    /// Request body.
-    pub body: ResetSearchApplicationRequest,
 }
 
-/// GET v1/settings/searchapplications/{searchapplicationsId}:reset
+/// POST v1/settings/searchapplications/{searchapplicationsId}:reset
 /// Resets a search application to default settings. This will return an empty response. **Note:** This API requires an admin account to execute.
 ///
 /// Simplest API - builds and executes the request in one call.
@@ -3626,9 +6534,183 @@ pub fn cloudsearch_settings_searchapplications_reset(
     impl StreamIterator<D = Result<ApiResponse<Operation>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder =
-        cloudsearch_settings_searchapplications_reset_builder(client, &args.name, &args.body)?;
+    let builder = cloudsearch_settings_searchapplications_reset_builder(client, &args.name)?;
     cloudsearch_settings_searchapplications_reset_execute(builder)
+}
+
+/// PUT v1/settings/searchapplications/{searchapplicationsId}
+/// Updates a search application. **Note:** This API requires an admin account to execute.
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `cloudsearch_settings_searchapplications_update_execute()` to send, or `cloudsearch_settings_searchapplications_update` for simplest API.
+
+pub fn cloudsearch_settings_searchapplications_update_builder(
+    client: &SimpleHttpClient,
+    name: &String,
+    updateMask: &Option<Option<String>>,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!(
+        "https://cloudsearch.googleapis.com/v1/settings/searchapplications/{}",
+        name,
+    );
+
+    // Build request
+    let mut query_parts = Vec::new();
+    if let Some(val) = updateMask.as_ref() {
+        query_parts.push(format!("updateMask={}", val));
+    }
+
+    let url_with_query = if query_parts.is_empty() {
+        endpoint_url
+    } else {
+        format!("{}?{}", endpoint_url, query_parts.join("&"))
+    };
+
+    let builder = client
+        .put(&url_with_query)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// PUT v1/settings/searchapplications/{searchapplicationsId}
+/// Updates a search application. **Note:** This API requires an admin account to execute.
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `cloudsearch_settings_searchapplications_update_execute()` or `cloudsearch_settings_searchapplications_update`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `cloudsearch_settings_searchapplications_update_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn cloudsearch_settings_searchapplications_update_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<Operation>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: Operation = serde_json::from_str(&body)
+                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// PUT v1/settings/searchapplications/{searchapplicationsId}
+/// Updates a search application. **Note:** This API requires an admin account to execute.
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `cloudsearch_settings_searchapplications_update_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `cloudsearch_settings_searchapplications_update_task()`.
+/// For the simplest API, use `cloudsearch_settings_searchapplications_update()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `cloudsearch_settings_searchapplications_update_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn cloudsearch_settings_searchapplications_update_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<Operation>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let task = cloudsearch_settings_searchapplications_update_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`cloudsearch_settings_searchapplications_update`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct CloudsearchSettingsSearchapplicationsUpdateArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Query parameter: updateMask
+    pub updateMask: Option<Option<String>>,
+}
+
+/// PUT v1/settings/searchapplications/{searchapplicationsId}
+/// Updates a search application. **Note:** This API requires an admin account to execute.
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `cloudsearch_settings_searchapplications_update_builder()` + `cloudsearch_settings_searchapplications_update_execute()`.
+/// For task-level control, use `cloudsearch_settings_searchapplications_update_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn cloudsearch_settings_searchapplications_update(
+    client: &SimpleHttpClient,
+    args: &CloudsearchSettingsSearchapplicationsUpdateArgs,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<Operation>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let builder = cloudsearch_settings_searchapplications_update_builder(
+        client,
+        &args.name,
+        &args.updateMask,
+    )?;
+    cloudsearch_settings_searchapplications_update_execute(builder)
 }
 
 /// GET v1/stats/index
@@ -3639,12 +6721,12 @@ pub fn cloudsearch_settings_searchapplications_reset(
 
 pub fn cloudsearch_stats_get_index_builder(
     client: &SimpleHttpClient,
-    fromDate_day: &Option<i32>,
-    fromDate_month: &Option<i32>,
-    fromDate_year: &Option<i32>,
-    toDate_day: &Option<i32>,
-    toDate_month: &Option<i32>,
-    toDate_year: &Option<i32>,
+    fromDate_day: &Option<Option<String>>,
+    fromDate_month: &Option<Option<String>>,
+    fromDate_year: &Option<Option<String>>,
+    toDate_day: &Option<Option<String>>,
+    toDate_month: &Option<Option<String>>,
+    toDate_year: &Option<Option<String>>,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!("https://cloudsearch.googleapis.com/v1/stats/index",);
@@ -3795,17 +6877,17 @@ pub fn cloudsearch_stats_get_index_execute(
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct CloudsearchStatsGetIndexArgs {
     /// Query parameter: fromDate_day
-    pub fromDate_day: Option<i32>,
+    pub fromDate_day: Option<Option<String>>,
     /// Query parameter: fromDate_month
-    pub fromDate_month: Option<i32>,
+    pub fromDate_month: Option<Option<String>>,
     /// Query parameter: fromDate_year
-    pub fromDate_year: Option<i32>,
+    pub fromDate_year: Option<Option<String>>,
     /// Query parameter: toDate_day
-    pub toDate_day: Option<i32>,
+    pub toDate_day: Option<Option<String>>,
     /// Query parameter: toDate_month
-    pub toDate_month: Option<i32>,
+    pub toDate_month: Option<Option<String>>,
     /// Query parameter: toDate_year
-    pub toDate_year: Option<i32>,
+    pub toDate_year: Option<Option<String>>,
 }
 
 /// GET v1/stats/index
@@ -3850,12 +6932,12 @@ pub fn cloudsearch_stats_get_index(
 
 pub fn cloudsearch_stats_get_query_builder(
     client: &SimpleHttpClient,
-    fromDate_day: &Option<i32>,
-    fromDate_month: &Option<i32>,
-    fromDate_year: &Option<i32>,
-    toDate_day: &Option<i32>,
-    toDate_month: &Option<i32>,
-    toDate_year: &Option<i32>,
+    fromDate_day: &Option<Option<String>>,
+    fromDate_month: &Option<Option<String>>,
+    fromDate_year: &Option<Option<String>>,
+    toDate_day: &Option<Option<String>>,
+    toDate_month: &Option<Option<String>>,
+    toDate_year: &Option<Option<String>>,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!("https://cloudsearch.googleapis.com/v1/stats/query",);
@@ -4006,17 +7088,17 @@ pub fn cloudsearch_stats_get_query_execute(
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct CloudsearchStatsGetQueryArgs {
     /// Query parameter: fromDate_day
-    pub fromDate_day: Option<i32>,
+    pub fromDate_day: Option<Option<String>>,
     /// Query parameter: fromDate_month
-    pub fromDate_month: Option<i32>,
+    pub fromDate_month: Option<Option<String>>,
     /// Query parameter: fromDate_year
-    pub fromDate_year: Option<i32>,
+    pub fromDate_year: Option<Option<String>>,
     /// Query parameter: toDate_day
-    pub toDate_day: Option<i32>,
+    pub toDate_day: Option<Option<String>>,
     /// Query parameter: toDate_month
-    pub toDate_month: Option<i32>,
+    pub toDate_month: Option<Option<String>>,
     /// Query parameter: toDate_year
-    pub toDate_year: Option<i32>,
+    pub toDate_year: Option<Option<String>>,
 }
 
 /// GET v1/stats/query
@@ -4061,12 +7143,12 @@ pub fn cloudsearch_stats_get_query(
 
 pub fn cloudsearch_stats_get_searchapplication_builder(
     client: &SimpleHttpClient,
-    endDate_day: &Option<i32>,
-    endDate_month: &Option<i32>,
-    endDate_year: &Option<i32>,
-    startDate_day: &Option<i32>,
-    startDate_month: &Option<i32>,
-    startDate_year: &Option<i32>,
+    endDate_day: &Option<Option<String>>,
+    endDate_month: &Option<Option<String>>,
+    endDate_year: &Option<Option<String>>,
+    startDate_day: &Option<Option<String>>,
+    startDate_month: &Option<Option<String>>,
+    startDate_year: &Option<Option<String>>,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!("https://cloudsearch.googleapis.com/v1/stats/searchapplication",);
@@ -4217,17 +7299,17 @@ pub fn cloudsearch_stats_get_searchapplication_execute(
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct CloudsearchStatsGetSearchapplicationArgs {
     /// Query parameter: endDate_day
-    pub endDate_day: Option<i32>,
+    pub endDate_day: Option<Option<String>>,
     /// Query parameter: endDate_month
-    pub endDate_month: Option<i32>,
+    pub endDate_month: Option<Option<String>>,
     /// Query parameter: endDate_year
-    pub endDate_year: Option<i32>,
+    pub endDate_year: Option<Option<String>>,
     /// Query parameter: startDate_day
-    pub startDate_day: Option<i32>,
+    pub startDate_day: Option<Option<String>>,
     /// Query parameter: startDate_month
-    pub startDate_month: Option<i32>,
+    pub startDate_month: Option<Option<String>>,
     /// Query parameter: startDate_year
-    pub startDate_year: Option<i32>,
+    pub startDate_year: Option<Option<String>>,
 }
 
 /// GET v1/stats/searchapplication
@@ -4272,12 +7354,12 @@ pub fn cloudsearch_stats_get_searchapplication(
 
 pub fn cloudsearch_stats_get_session_builder(
     client: &SimpleHttpClient,
-    fromDate_day: &Option<i32>,
-    fromDate_month: &Option<i32>,
-    fromDate_year: &Option<i32>,
-    toDate_day: &Option<i32>,
-    toDate_month: &Option<i32>,
-    toDate_year: &Option<i32>,
+    fromDate_day: &Option<Option<String>>,
+    fromDate_month: &Option<Option<String>>,
+    fromDate_year: &Option<Option<String>>,
+    toDate_day: &Option<Option<String>>,
+    toDate_month: &Option<Option<String>>,
+    toDate_year: &Option<Option<String>>,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!("https://cloudsearch.googleapis.com/v1/stats/session",);
@@ -4428,17 +7510,17 @@ pub fn cloudsearch_stats_get_session_execute(
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct CloudsearchStatsGetSessionArgs {
     /// Query parameter: fromDate_day
-    pub fromDate_day: Option<i32>,
+    pub fromDate_day: Option<Option<String>>,
     /// Query parameter: fromDate_month
-    pub fromDate_month: Option<i32>,
+    pub fromDate_month: Option<Option<String>>,
     /// Query parameter: fromDate_year
-    pub fromDate_year: Option<i32>,
+    pub fromDate_year: Option<Option<String>>,
     /// Query parameter: toDate_day
-    pub toDate_day: Option<i32>,
+    pub toDate_day: Option<Option<String>>,
     /// Query parameter: toDate_month
-    pub toDate_month: Option<i32>,
+    pub toDate_month: Option<Option<String>>,
     /// Query parameter: toDate_year
-    pub toDate_year: Option<i32>,
+    pub toDate_year: Option<Option<String>>,
 }
 
 /// GET v1/stats/session
@@ -4483,12 +7565,12 @@ pub fn cloudsearch_stats_get_session(
 
 pub fn cloudsearch_stats_get_user_builder(
     client: &SimpleHttpClient,
-    fromDate_day: &Option<i32>,
-    fromDate_month: &Option<i32>,
-    fromDate_year: &Option<i32>,
-    toDate_day: &Option<i32>,
-    toDate_month: &Option<i32>,
-    toDate_year: &Option<i32>,
+    fromDate_day: &Option<Option<String>>,
+    fromDate_month: &Option<Option<String>>,
+    fromDate_year: &Option<Option<String>>,
+    toDate_day: &Option<Option<String>>,
+    toDate_month: &Option<Option<String>>,
+    toDate_year: &Option<Option<String>>,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!("https://cloudsearch.googleapis.com/v1/stats/user",);
@@ -4639,17 +7721,17 @@ pub fn cloudsearch_stats_get_user_execute(
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct CloudsearchStatsGetUserArgs {
     /// Query parameter: fromDate_day
-    pub fromDate_day: Option<i32>,
+    pub fromDate_day: Option<Option<String>>,
     /// Query parameter: fromDate_month
-    pub fromDate_month: Option<i32>,
+    pub fromDate_month: Option<Option<String>>,
     /// Query parameter: fromDate_year
-    pub fromDate_year: Option<i32>,
+    pub fromDate_year: Option<Option<String>>,
     /// Query parameter: toDate_day
-    pub toDate_day: Option<i32>,
+    pub toDate_day: Option<Option<String>>,
     /// Query parameter: toDate_month
-    pub toDate_month: Option<i32>,
+    pub toDate_month: Option<Option<String>>,
     /// Query parameter: toDate_year
-    pub toDate_year: Option<i32>,
+    pub toDate_year: Option<Option<String>>,
 }
 
 /// GET v1/stats/user
@@ -4695,15 +7777,18 @@ pub fn cloudsearch_stats_get_user(
 pub fn cloudsearch_stats_index_datasources_get_builder(
     client: &SimpleHttpClient,
     name: &String,
-    fromDate_day: &Option<i32>,
-    fromDate_month: &Option<i32>,
-    fromDate_year: &Option<i32>,
-    toDate_day: &Option<i32>,
-    toDate_month: &Option<i32>,
-    toDate_year: &Option<i32>,
+    fromDate_day: &Option<Option<String>>,
+    fromDate_month: &Option<Option<String>>,
+    fromDate_year: &Option<Option<String>>,
+    toDate_day: &Option<Option<String>>,
+    toDate_month: &Option<Option<String>>,
+    toDate_year: &Option<Option<String>>,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
-    let endpoint_url = format!("https://cloudsearch.googleapis.com/v1/stats/index/datasources/{}",);
+    let endpoint_url = format!(
+        "https://cloudsearch.googleapis.com/v1/stats/index/datasources/{}",
+        name,
+    );
 
     // Build request
     let mut query_parts = Vec::new();
@@ -4853,17 +7938,17 @@ pub struct CloudsearchStatsIndexDatasourcesGetArgs {
     /// Path parameter: name
     pub name: String,
     /// Query parameter: fromDate_day
-    pub fromDate_day: Option<i32>,
+    pub fromDate_day: Option<Option<String>>,
     /// Query parameter: fromDate_month
-    pub fromDate_month: Option<i32>,
+    pub fromDate_month: Option<Option<String>>,
     /// Query parameter: fromDate_year
-    pub fromDate_year: Option<i32>,
+    pub fromDate_year: Option<Option<String>>,
     /// Query parameter: toDate_day
-    pub toDate_day: Option<i32>,
+    pub toDate_day: Option<Option<String>>,
     /// Query parameter: toDate_month
-    pub toDate_month: Option<i32>,
+    pub toDate_month: Option<Option<String>>,
     /// Query parameter: toDate_year
-    pub toDate_year: Option<i32>,
+    pub toDate_year: Option<Option<String>>,
 }
 
 /// GET v1/stats/index/datasources/{datasourcesId}
@@ -4910,16 +7995,18 @@ pub fn cloudsearch_stats_index_datasources_get(
 pub fn cloudsearch_stats_query_searchapplications_get_builder(
     client: &SimpleHttpClient,
     name: &String,
-    fromDate_day: &Option<i32>,
-    fromDate_month: &Option<i32>,
-    fromDate_year: &Option<i32>,
-    toDate_day: &Option<i32>,
-    toDate_month: &Option<i32>,
-    toDate_year: &Option<i32>,
+    fromDate_day: &Option<Option<String>>,
+    fromDate_month: &Option<Option<String>>,
+    fromDate_year: &Option<Option<String>>,
+    toDate_day: &Option<Option<String>>,
+    toDate_month: &Option<Option<String>>,
+    toDate_year: &Option<Option<String>>,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
-    let endpoint_url =
-        format!("https://cloudsearch.googleapis.com/v1/stats/query/searchapplications/{}",);
+    let endpoint_url = format!(
+        "https://cloudsearch.googleapis.com/v1/stats/query/searchapplications/{}",
+        name,
+    );
 
     // Build request
     let mut query_parts = Vec::new();
@@ -5069,17 +8156,17 @@ pub struct CloudsearchStatsQuerySearchapplicationsGetArgs {
     /// Path parameter: name
     pub name: String,
     /// Query parameter: fromDate_day
-    pub fromDate_day: Option<i32>,
+    pub fromDate_day: Option<Option<String>>,
     /// Query parameter: fromDate_month
-    pub fromDate_month: Option<i32>,
+    pub fromDate_month: Option<Option<String>>,
     /// Query parameter: fromDate_year
-    pub fromDate_year: Option<i32>,
+    pub fromDate_year: Option<Option<String>>,
     /// Query parameter: toDate_day
-    pub toDate_day: Option<i32>,
+    pub toDate_day: Option<Option<String>>,
     /// Query parameter: toDate_month
-    pub toDate_month: Option<i32>,
+    pub toDate_month: Option<Option<String>>,
     /// Query parameter: toDate_year
-    pub toDate_year: Option<i32>,
+    pub toDate_year: Option<Option<String>>,
 }
 
 /// GET v1/stats/query/searchapplications/{searchapplicationsId}
@@ -5126,16 +8213,18 @@ pub fn cloudsearch_stats_query_searchapplications_get(
 pub fn cloudsearch_stats_session_searchapplications_get_builder(
     client: &SimpleHttpClient,
     name: &String,
-    fromDate_day: &Option<i32>,
-    fromDate_month: &Option<i32>,
-    fromDate_year: &Option<i32>,
-    toDate_day: &Option<i32>,
-    toDate_month: &Option<i32>,
-    toDate_year: &Option<i32>,
+    fromDate_day: &Option<Option<String>>,
+    fromDate_month: &Option<Option<String>>,
+    fromDate_year: &Option<Option<String>>,
+    toDate_day: &Option<Option<String>>,
+    toDate_month: &Option<Option<String>>,
+    toDate_year: &Option<Option<String>>,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
-    let endpoint_url =
-        format!("https://cloudsearch.googleapis.com/v1/stats/session/searchapplications/{}",);
+    let endpoint_url = format!(
+        "https://cloudsearch.googleapis.com/v1/stats/session/searchapplications/{}",
+        name,
+    );
 
     // Build request
     let mut query_parts = Vec::new();
@@ -5285,17 +8374,17 @@ pub struct CloudsearchStatsSessionSearchapplicationsGetArgs {
     /// Path parameter: name
     pub name: String,
     /// Query parameter: fromDate_day
-    pub fromDate_day: Option<i32>,
+    pub fromDate_day: Option<Option<String>>,
     /// Query parameter: fromDate_month
-    pub fromDate_month: Option<i32>,
+    pub fromDate_month: Option<Option<String>>,
     /// Query parameter: fromDate_year
-    pub fromDate_year: Option<i32>,
+    pub fromDate_year: Option<Option<String>>,
     /// Query parameter: toDate_day
-    pub toDate_day: Option<i32>,
+    pub toDate_day: Option<Option<String>>,
     /// Query parameter: toDate_month
-    pub toDate_month: Option<i32>,
+    pub toDate_month: Option<Option<String>>,
     /// Query parameter: toDate_year
-    pub toDate_year: Option<i32>,
+    pub toDate_year: Option<Option<String>>,
 }
 
 /// GET v1/stats/session/searchapplications/{searchapplicationsId}
@@ -5342,16 +8431,18 @@ pub fn cloudsearch_stats_session_searchapplications_get(
 pub fn cloudsearch_stats_user_searchapplications_get_builder(
     client: &SimpleHttpClient,
     name: &String,
-    fromDate_day: &Option<i32>,
-    fromDate_month: &Option<i32>,
-    fromDate_year: &Option<i32>,
-    toDate_day: &Option<i32>,
-    toDate_month: &Option<i32>,
-    toDate_year: &Option<i32>,
+    fromDate_day: &Option<Option<String>>,
+    fromDate_month: &Option<Option<String>>,
+    fromDate_year: &Option<Option<String>>,
+    toDate_day: &Option<Option<String>>,
+    toDate_month: &Option<Option<String>>,
+    toDate_year: &Option<Option<String>>,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
-    let endpoint_url =
-        format!("https://cloudsearch.googleapis.com/v1/stats/user/searchapplications/{}",);
+    let endpoint_url = format!(
+        "https://cloudsearch.googleapis.com/v1/stats/user/searchapplications/{}",
+        name,
+    );
 
     // Build request
     let mut query_parts = Vec::new();
@@ -5501,17 +8592,17 @@ pub struct CloudsearchStatsUserSearchapplicationsGetArgs {
     /// Path parameter: name
     pub name: String,
     /// Query parameter: fromDate_day
-    pub fromDate_day: Option<i32>,
+    pub fromDate_day: Option<Option<String>>,
     /// Query parameter: fromDate_month
-    pub fromDate_month: Option<i32>,
+    pub fromDate_month: Option<Option<String>>,
     /// Query parameter: fromDate_year
-    pub fromDate_year: Option<i32>,
+    pub fromDate_year: Option<Option<String>>,
     /// Query parameter: toDate_day
-    pub toDate_day: Option<i32>,
+    pub toDate_day: Option<Option<String>>,
     /// Query parameter: toDate_month
-    pub toDate_month: Option<i32>,
+    pub toDate_month: Option<Option<String>>,
     /// Query parameter: toDate_year
-    pub toDate_year: Option<i32>,
+    pub toDate_year: Option<Option<String>>,
 }
 
 /// GET v1/stats/user/searchapplications/{searchapplicationsId}
@@ -5549,7 +8640,7 @@ pub fn cloudsearch_stats_user_searchapplications_get(
     cloudsearch_stats_user_searchapplications_get_execute(builder)
 }
 
-/// GET v1:initializeCustomer
+/// POST v1:initializeCustomer
 /// Enables third party support in Google Cloud Search. **Note:** This API requires an admin account to execute.
 ///
 /// Returns `ClientRequestBuilder` for customization.
@@ -5557,22 +8648,19 @@ pub fn cloudsearch_stats_user_searchapplications_get(
 
 pub fn cloudsearch_initialize_customer_builder(
     client: &SimpleHttpClient,
-    body: &InitializeCustomerRequest,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!("https://cloudsearch.googleapis.com/v1:initializeCustomer",);
 
     // Build request
     let builder = client
-        .get(&endpoint_url)
+        .post(&endpoint_url)
         .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
 
-    builder
-        .body_json(body)
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+    Ok(builder)
 }
 
-/// GET v1:initializeCustomer
+/// POST v1:initializeCustomer
 /// Enables third party support in Google Cloud Search. **Note:** This API requires an admin account to execute.
 ///
 /// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
@@ -5646,7 +8734,7 @@ pub fn cloudsearch_initialize_customer_task(
         .map_pending(|_| ApiPending::Sending))
 }
 
-/// GET v1:initializeCustomer
+/// POST v1:initializeCustomer
 /// Enables third party support in Google Cloud Search. **Note:** This API requires an admin account to execute.
 ///
 /// Takes a `ClientRequestBuilder`, builds and executes the request,
@@ -5676,14 +8764,7 @@ pub fn cloudsearch_initialize_customer_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
-/// Arguments for [`cloudsearch_initialize_customer`].
-#[derive(Debug, Clone, Serialize, JsonHash)]
-pub struct CloudsearchInitializeCustomerArgs {
-    /// Request body.
-    pub body: InitializeCustomerRequest,
-}
-
-/// GET v1:initializeCustomer
+/// POST v1:initializeCustomer
 /// Enables third party support in Google Cloud Search. **Note:** This API requires an admin account to execute.
 ///
 /// Simplest API - builds and executes the request in one call.
@@ -5696,11 +8777,1241 @@ pub struct CloudsearchInitializeCustomerArgs {
 
 pub fn cloudsearch_initialize_customer(
     client: &SimpleHttpClient,
-    args: &CloudsearchInitializeCustomerArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Operation>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = cloudsearch_initialize_customer_builder(client, &args.body)?;
+    let builder = cloudsearch_initialize_customer_builder(client)?;
     cloudsearch_initialize_customer_execute(builder)
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for CheckAccessResponse
+// =============================================================================
+
+/// ResourceIdentifier implementation for CheckAccessResponse with CloudsearchDebugDatasourcesItemsCheckAccessArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<CloudsearchDebugDatasourcesItemsCheckAccessArgs> for CheckAccessResponse {
+    fn generate_resource_id(
+        &self,
+        input: &CloudsearchDebugDatasourcesItemsCheckAccessArgs,
+    ) -> String {
+        format!("gcp::cloudsearch::CheckAccessResponse/{}", input.name)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::cloudsearch::CheckAccessResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for SearchItemsByViewUrlResponse
+// =============================================================================
+
+/// ResourceIdentifier implementation for SearchItemsByViewUrlResponse with CloudsearchDebugDatasourcesItemsSearchByViewUrlArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<CloudsearchDebugDatasourcesItemsSearchByViewUrlArgs>
+    for SearchItemsByViewUrlResponse
+{
+    fn generate_resource_id(
+        &self,
+        input: &CloudsearchDebugDatasourcesItemsSearchByViewUrlArgs,
+    ) -> String {
+        format!(
+            "gcp::cloudsearch::SearchItemsByViewUrlResponse/{}",
+            input.name
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::cloudsearch::SearchItemsByViewUrlResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for ListUnmappedIdentitiesResponse
+// =============================================================================
+
+/// ResourceIdentifier implementation for ListUnmappedIdentitiesResponse with CloudsearchDebugDatasourcesItemsUnmappedidsListArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<CloudsearchDebugDatasourcesItemsUnmappedidsListArgs>
+    for ListUnmappedIdentitiesResponse
+{
+    fn generate_resource_id(
+        &self,
+        input: &CloudsearchDebugDatasourcesItemsUnmappedidsListArgs,
+    ) -> String {
+        format!(
+            "gcp::cloudsearch::ListUnmappedIdentitiesResponse/{}",
+            input.parent
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::cloudsearch::ListUnmappedIdentitiesResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for ListItemNamesForUnmappedIdentityResponse
+// =============================================================================
+
+/// ResourceIdentifier implementation for ListItemNamesForUnmappedIdentityResponse with CloudsearchDebugIdentitysourcesItemsListForunmappedidentityArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<CloudsearchDebugIdentitysourcesItemsListForunmappedidentityArgs>
+    for ListItemNamesForUnmappedIdentityResponse
+{
+    fn generate_resource_id(
+        &self,
+        input: &CloudsearchDebugIdentitysourcesItemsListForunmappedidentityArgs,
+    ) -> String {
+        format!(
+            "gcp::cloudsearch::ListItemNamesForUnmappedIdentityResponse/{}",
+            input.parent
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::cloudsearch::ListItemNamesForUnmappedIdentityResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for ListUnmappedIdentitiesResponse
+// =============================================================================
+
+/// ResourceIdentifier implementation for ListUnmappedIdentitiesResponse with CloudsearchDebugIdentitysourcesUnmappedidsListArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<CloudsearchDebugIdentitysourcesUnmappedidsListArgs>
+    for ListUnmappedIdentitiesResponse
+{
+    fn generate_resource_id(
+        &self,
+        input: &CloudsearchDebugIdentitysourcesUnmappedidsListArgs,
+    ) -> String {
+        format!(
+            "gcp::cloudsearch::ListUnmappedIdentitiesResponse/{}",
+            input.parent
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::cloudsearch::ListUnmappedIdentitiesResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for Operation
+// =============================================================================
+
+/// ResourceIdentifier implementation for Operation with CloudsearchIndexingDatasourcesDeleteSchemaArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<CloudsearchIndexingDatasourcesDeleteSchemaArgs> for Operation {
+    fn generate_resource_id(
+        &self,
+        input: &CloudsearchIndexingDatasourcesDeleteSchemaArgs,
+    ) -> String {
+        format!("gcp::cloudsearch::Operation/{}", input.name)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::cloudsearch::Operation"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for Schema
+// =============================================================================
+
+/// ResourceIdentifier implementation for Schema with CloudsearchIndexingDatasourcesGetSchemaArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<CloudsearchIndexingDatasourcesGetSchemaArgs> for Schema {
+    fn generate_resource_id(&self, input: &CloudsearchIndexingDatasourcesGetSchemaArgs) -> String {
+        format!("gcp::cloudsearch::Schema/{}", input.name)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::cloudsearch::Schema"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for Operation
+// =============================================================================
+
+/// ResourceIdentifier implementation for Operation with CloudsearchIndexingDatasourcesUpdateSchemaArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<CloudsearchIndexingDatasourcesUpdateSchemaArgs> for Operation {
+    fn generate_resource_id(
+        &self,
+        input: &CloudsearchIndexingDatasourcesUpdateSchemaArgs,
+    ) -> String {
+        format!("gcp::cloudsearch::Operation/{}", input.name)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::cloudsearch::Operation"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for Operation
+// =============================================================================
+
+/// ResourceIdentifier implementation for Operation with CloudsearchIndexingDatasourcesItemsDeleteArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<CloudsearchIndexingDatasourcesItemsDeleteArgs> for Operation {
+    fn generate_resource_id(
+        &self,
+        input: &CloudsearchIndexingDatasourcesItemsDeleteArgs,
+    ) -> String {
+        format!("gcp::cloudsearch::Operation/{}", input.name)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::cloudsearch::Operation"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for Operation
+// =============================================================================
+
+/// ResourceIdentifier implementation for Operation with CloudsearchIndexingDatasourcesItemsDeleteQueueItemsArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<CloudsearchIndexingDatasourcesItemsDeleteQueueItemsArgs> for Operation {
+    fn generate_resource_id(
+        &self,
+        input: &CloudsearchIndexingDatasourcesItemsDeleteQueueItemsArgs,
+    ) -> String {
+        format!("gcp::cloudsearch::Operation/{}", input.name)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::cloudsearch::Operation"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for Item
+// =============================================================================
+
+/// ResourceIdentifier implementation for Item with CloudsearchIndexingDatasourcesItemsGetArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<CloudsearchIndexingDatasourcesItemsGetArgs> for Item {
+    fn generate_resource_id(&self, input: &CloudsearchIndexingDatasourcesItemsGetArgs) -> String {
+        format!("gcp::cloudsearch::Item/{}", input.name)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::cloudsearch::Item"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for Operation
+// =============================================================================
+
+/// ResourceIdentifier implementation for Operation with CloudsearchIndexingDatasourcesItemsIndexArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<CloudsearchIndexingDatasourcesItemsIndexArgs> for Operation {
+    fn generate_resource_id(&self, input: &CloudsearchIndexingDatasourcesItemsIndexArgs) -> String {
+        format!("gcp::cloudsearch::Operation/{}", input.name)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::cloudsearch::Operation"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for ListItemsResponse
+// =============================================================================
+
+/// ResourceIdentifier implementation for ListItemsResponse with CloudsearchIndexingDatasourcesItemsListArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<CloudsearchIndexingDatasourcesItemsListArgs> for ListItemsResponse {
+    fn generate_resource_id(&self, input: &CloudsearchIndexingDatasourcesItemsListArgs) -> String {
+        format!("gcp::cloudsearch::ListItemsResponse/{}", input.name)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::cloudsearch::ListItemsResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for PollItemsResponse
+// =============================================================================
+
+/// ResourceIdentifier implementation for PollItemsResponse with CloudsearchIndexingDatasourcesItemsPollArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<CloudsearchIndexingDatasourcesItemsPollArgs> for PollItemsResponse {
+    fn generate_resource_id(&self, input: &CloudsearchIndexingDatasourcesItemsPollArgs) -> String {
+        format!("gcp::cloudsearch::PollItemsResponse/{}", input.name)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::cloudsearch::PollItemsResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for Item
+// =============================================================================
+
+/// ResourceIdentifier implementation for Item with CloudsearchIndexingDatasourcesItemsPushArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<CloudsearchIndexingDatasourcesItemsPushArgs> for Item {
+    fn generate_resource_id(&self, input: &CloudsearchIndexingDatasourcesItemsPushArgs) -> String {
+        format!("gcp::cloudsearch::Item/{}", input.name)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::cloudsearch::Item"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for Operation
+// =============================================================================
+
+/// ResourceIdentifier implementation for Operation with CloudsearchIndexingDatasourcesItemsUnreserveArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<CloudsearchIndexingDatasourcesItemsUnreserveArgs> for Operation {
+    fn generate_resource_id(
+        &self,
+        input: &CloudsearchIndexingDatasourcesItemsUnreserveArgs,
+    ) -> String {
+        format!("gcp::cloudsearch::Operation/{}", input.name)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::cloudsearch::Operation"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for UploadItemRef
+// =============================================================================
+
+/// ResourceIdentifier implementation for UploadItemRef with CloudsearchIndexingDatasourcesItemsUploadArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<CloudsearchIndexingDatasourcesItemsUploadArgs> for UploadItemRef {
+    fn generate_resource_id(
+        &self,
+        input: &CloudsearchIndexingDatasourcesItemsUploadArgs,
+    ) -> String {
+        format!("gcp::cloudsearch::UploadItemRef/{}", input.name)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::cloudsearch::UploadItemRef"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for Media
+// =============================================================================
+
+/// ResourceIdentifier implementation for Media with CloudsearchMediaUploadArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<CloudsearchMediaUploadArgs> for Media {
+    fn generate_resource_id(&self, input: &CloudsearchMediaUploadArgs) -> String {
+        format!("gcp::cloudsearch::Media/{}", input.resourceName)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::cloudsearch::Media"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for Operation
+// =============================================================================
+
+/// ResourceIdentifier implementation for Operation with CloudsearchOperationsGetArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<CloudsearchOperationsGetArgs> for Operation {
+    fn generate_resource_id(&self, input: &CloudsearchOperationsGetArgs) -> String {
+        format!("gcp::cloudsearch::Operation/{}", input.name)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::cloudsearch::Operation"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for ListOperationsResponse
+// =============================================================================
+
+/// ResourceIdentifier implementation for ListOperationsResponse with CloudsearchOperationsLroListArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<CloudsearchOperationsLroListArgs> for ListOperationsResponse {
+    fn generate_resource_id(&self, input: &CloudsearchOperationsLroListArgs) -> String {
+        format!("gcp::cloudsearch::ListOperationsResponse/{}", input.name)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::cloudsearch::ListOperationsResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for RemoveActivityResponse
+// =============================================================================
+
+/// ResourceIdentifier implementation for RemoveActivityResponse with CloudsearchQueryRemoveActivityArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<CloudsearchQueryRemoveActivityArgs> for RemoveActivityResponse {
+    fn generate_resource_id(&self, input: &CloudsearchQueryRemoveActivityArgs) -> String {
+        "gcp::cloudsearch::RemoveActivityResponse".to_string()
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::cloudsearch::RemoveActivityResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for SearchResponse
+// =============================================================================
+
+/// ResourceIdentifier implementation for SearchResponse with CloudsearchQuerySearchArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<CloudsearchQuerySearchArgs> for SearchResponse {
+    fn generate_resource_id(&self, input: &CloudsearchQuerySearchArgs) -> String {
+        "gcp::cloudsearch::SearchResponse".to_string()
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::cloudsearch::SearchResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for SuggestResponse
+// =============================================================================
+
+/// ResourceIdentifier implementation for SuggestResponse with CloudsearchQuerySuggestArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<CloudsearchQuerySuggestArgs> for SuggestResponse {
+    fn generate_resource_id(&self, input: &CloudsearchQuerySuggestArgs) -> String {
+        "gcp::cloudsearch::SuggestResponse".to_string()
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::cloudsearch::SuggestResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for ListQuerySourcesResponse
+// =============================================================================
+
+/// ResourceIdentifier implementation for ListQuerySourcesResponse with CloudsearchQuerySourcesListArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<CloudsearchQuerySourcesListArgs> for ListQuerySourcesResponse {
+    fn generate_resource_id(&self, input: &CloudsearchQuerySourcesListArgs) -> String {
+        "gcp::cloudsearch::ListQuerySourcesResponse".to_string()
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::cloudsearch::ListQuerySourcesResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for CustomerSettings
+// =============================================================================
+
+/// ResourceIdentifier implementation for CustomerSettings with CloudsearchSettingsGetCustomerArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<CloudsearchSettingsGetCustomerArgs> for CustomerSettings {
+    fn generate_resource_id(&self, input: &CloudsearchSettingsGetCustomerArgs) -> String {
+        "gcp::cloudsearch::CustomerSettings".to_string()
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::cloudsearch::CustomerSettings"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for Operation
+// =============================================================================
+
+/// ResourceIdentifier implementation for Operation with CloudsearchSettingsUpdateCustomerArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<CloudsearchSettingsUpdateCustomerArgs> for Operation {
+    fn generate_resource_id(&self, input: &CloudsearchSettingsUpdateCustomerArgs) -> String {
+        "gcp::cloudsearch::Operation".to_string()
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::cloudsearch::Operation"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for Operation
+// =============================================================================
+
+/// ResourceIdentifier implementation for Operation with CloudsearchSettingsDatasourcesCreateArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<CloudsearchSettingsDatasourcesCreateArgs> for Operation {
+    fn generate_resource_id(&self, input: &CloudsearchSettingsDatasourcesCreateArgs) -> String {
+        "gcp::cloudsearch::Operation".to_string()
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::cloudsearch::Operation"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for Operation
+// =============================================================================
+
+/// ResourceIdentifier implementation for Operation with CloudsearchSettingsDatasourcesDeleteArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<CloudsearchSettingsDatasourcesDeleteArgs> for Operation {
+    fn generate_resource_id(&self, input: &CloudsearchSettingsDatasourcesDeleteArgs) -> String {
+        format!("gcp::cloudsearch::Operation/{}", input.name)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::cloudsearch::Operation"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for DataSource
+// =============================================================================
+
+/// ResourceIdentifier implementation for DataSource with CloudsearchSettingsDatasourcesGetArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<CloudsearchSettingsDatasourcesGetArgs> for DataSource {
+    fn generate_resource_id(&self, input: &CloudsearchSettingsDatasourcesGetArgs) -> String {
+        format!("gcp::cloudsearch::DataSource/{}", input.name)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::cloudsearch::DataSource"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for ListDataSourceResponse
+// =============================================================================
+
+/// ResourceIdentifier implementation for ListDataSourceResponse with CloudsearchSettingsDatasourcesListArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<CloudsearchSettingsDatasourcesListArgs> for ListDataSourceResponse {
+    fn generate_resource_id(&self, input: &CloudsearchSettingsDatasourcesListArgs) -> String {
+        "gcp::cloudsearch::ListDataSourceResponse".to_string()
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::cloudsearch::ListDataSourceResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for Operation
+// =============================================================================
+
+/// ResourceIdentifier implementation for Operation with CloudsearchSettingsDatasourcesPatchArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<CloudsearchSettingsDatasourcesPatchArgs> for Operation {
+    fn generate_resource_id(&self, input: &CloudsearchSettingsDatasourcesPatchArgs) -> String {
+        format!("gcp::cloudsearch::Operation/{}", input.name)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::cloudsearch::Operation"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for Operation
+// =============================================================================
+
+/// ResourceIdentifier implementation for Operation with CloudsearchSettingsDatasourcesUpdateArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<CloudsearchSettingsDatasourcesUpdateArgs> for Operation {
+    fn generate_resource_id(&self, input: &CloudsearchSettingsDatasourcesUpdateArgs) -> String {
+        format!("gcp::cloudsearch::Operation/{}", input.name)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::cloudsearch::Operation"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for Operation
+// =============================================================================
+
+/// ResourceIdentifier implementation for Operation with CloudsearchSettingsSearchapplicationsCreateArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<CloudsearchSettingsSearchapplicationsCreateArgs> for Operation {
+    fn generate_resource_id(
+        &self,
+        input: &CloudsearchSettingsSearchapplicationsCreateArgs,
+    ) -> String {
+        "gcp::cloudsearch::Operation".to_string()
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::cloudsearch::Operation"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for Operation
+// =============================================================================
+
+/// ResourceIdentifier implementation for Operation with CloudsearchSettingsSearchapplicationsDeleteArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<CloudsearchSettingsSearchapplicationsDeleteArgs> for Operation {
+    fn generate_resource_id(
+        &self,
+        input: &CloudsearchSettingsSearchapplicationsDeleteArgs,
+    ) -> String {
+        format!("gcp::cloudsearch::Operation/{}", input.name)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::cloudsearch::Operation"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for SearchApplication
+// =============================================================================
+
+/// ResourceIdentifier implementation for SearchApplication with CloudsearchSettingsSearchapplicationsGetArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<CloudsearchSettingsSearchapplicationsGetArgs> for SearchApplication {
+    fn generate_resource_id(&self, input: &CloudsearchSettingsSearchapplicationsGetArgs) -> String {
+        format!("gcp::cloudsearch::SearchApplication/{}", input.name)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::cloudsearch::SearchApplication"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for ListSearchApplicationsResponse
+// =============================================================================
+
+/// ResourceIdentifier implementation for ListSearchApplicationsResponse with CloudsearchSettingsSearchapplicationsListArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<CloudsearchSettingsSearchapplicationsListArgs>
+    for ListSearchApplicationsResponse
+{
+    fn generate_resource_id(
+        &self,
+        input: &CloudsearchSettingsSearchapplicationsListArgs,
+    ) -> String {
+        "gcp::cloudsearch::ListSearchApplicationsResponse".to_string()
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::cloudsearch::ListSearchApplicationsResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for Operation
+// =============================================================================
+
+/// ResourceIdentifier implementation for Operation with CloudsearchSettingsSearchapplicationsPatchArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<CloudsearchSettingsSearchapplicationsPatchArgs> for Operation {
+    fn generate_resource_id(
+        &self,
+        input: &CloudsearchSettingsSearchapplicationsPatchArgs,
+    ) -> String {
+        format!("gcp::cloudsearch::Operation/{}", input.name)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::cloudsearch::Operation"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for Operation
+// =============================================================================
+
+/// ResourceIdentifier implementation for Operation with CloudsearchSettingsSearchapplicationsResetArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<CloudsearchSettingsSearchapplicationsResetArgs> for Operation {
+    fn generate_resource_id(
+        &self,
+        input: &CloudsearchSettingsSearchapplicationsResetArgs,
+    ) -> String {
+        format!("gcp::cloudsearch::Operation/{}", input.name)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::cloudsearch::Operation"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for Operation
+// =============================================================================
+
+/// ResourceIdentifier implementation for Operation with CloudsearchSettingsSearchapplicationsUpdateArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<CloudsearchSettingsSearchapplicationsUpdateArgs> for Operation {
+    fn generate_resource_id(
+        &self,
+        input: &CloudsearchSettingsSearchapplicationsUpdateArgs,
+    ) -> String {
+        format!("gcp::cloudsearch::Operation/{}", input.name)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::cloudsearch::Operation"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for GetCustomerIndexStatsResponse
+// =============================================================================
+
+/// ResourceIdentifier implementation for GetCustomerIndexStatsResponse with CloudsearchStatsGetIndexArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<CloudsearchStatsGetIndexArgs> for GetCustomerIndexStatsResponse {
+    fn generate_resource_id(&self, input: &CloudsearchStatsGetIndexArgs) -> String {
+        "gcp::cloudsearch::GetCustomerIndexStatsResponse".to_string()
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::cloudsearch::GetCustomerIndexStatsResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for GetCustomerQueryStatsResponse
+// =============================================================================
+
+/// ResourceIdentifier implementation for GetCustomerQueryStatsResponse with CloudsearchStatsGetQueryArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<CloudsearchStatsGetQueryArgs> for GetCustomerQueryStatsResponse {
+    fn generate_resource_id(&self, input: &CloudsearchStatsGetQueryArgs) -> String {
+        "gcp::cloudsearch::GetCustomerQueryStatsResponse".to_string()
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::cloudsearch::GetCustomerQueryStatsResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for GetCustomerSearchApplicationStatsResponse
+// =============================================================================
+
+/// ResourceIdentifier implementation for GetCustomerSearchApplicationStatsResponse with CloudsearchStatsGetSearchapplicationArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<CloudsearchStatsGetSearchapplicationArgs>
+    for GetCustomerSearchApplicationStatsResponse
+{
+    fn generate_resource_id(&self, input: &CloudsearchStatsGetSearchapplicationArgs) -> String {
+        "gcp::cloudsearch::GetCustomerSearchApplicationStatsResponse".to_string()
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::cloudsearch::GetCustomerSearchApplicationStatsResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for GetCustomerSessionStatsResponse
+// =============================================================================
+
+/// ResourceIdentifier implementation for GetCustomerSessionStatsResponse with CloudsearchStatsGetSessionArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<CloudsearchStatsGetSessionArgs> for GetCustomerSessionStatsResponse {
+    fn generate_resource_id(&self, input: &CloudsearchStatsGetSessionArgs) -> String {
+        "gcp::cloudsearch::GetCustomerSessionStatsResponse".to_string()
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::cloudsearch::GetCustomerSessionStatsResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for GetCustomerUserStatsResponse
+// =============================================================================
+
+/// ResourceIdentifier implementation for GetCustomerUserStatsResponse with CloudsearchStatsGetUserArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<CloudsearchStatsGetUserArgs> for GetCustomerUserStatsResponse {
+    fn generate_resource_id(&self, input: &CloudsearchStatsGetUserArgs) -> String {
+        "gcp::cloudsearch::GetCustomerUserStatsResponse".to_string()
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::cloudsearch::GetCustomerUserStatsResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for GetDataSourceIndexStatsResponse
+// =============================================================================
+
+/// ResourceIdentifier implementation for GetDataSourceIndexStatsResponse with CloudsearchStatsIndexDatasourcesGetArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<CloudsearchStatsIndexDatasourcesGetArgs>
+    for GetDataSourceIndexStatsResponse
+{
+    fn generate_resource_id(&self, input: &CloudsearchStatsIndexDatasourcesGetArgs) -> String {
+        format!(
+            "gcp::cloudsearch::GetDataSourceIndexStatsResponse/{}",
+            input.name
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::cloudsearch::GetDataSourceIndexStatsResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for GetSearchApplicationQueryStatsResponse
+// =============================================================================
+
+/// ResourceIdentifier implementation for GetSearchApplicationQueryStatsResponse with CloudsearchStatsQuerySearchapplicationsGetArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<CloudsearchStatsQuerySearchapplicationsGetArgs>
+    for GetSearchApplicationQueryStatsResponse
+{
+    fn generate_resource_id(
+        &self,
+        input: &CloudsearchStatsQuerySearchapplicationsGetArgs,
+    ) -> String {
+        format!(
+            "gcp::cloudsearch::GetSearchApplicationQueryStatsResponse/{}",
+            input.name
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::cloudsearch::GetSearchApplicationQueryStatsResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for GetSearchApplicationSessionStatsResponse
+// =============================================================================
+
+/// ResourceIdentifier implementation for GetSearchApplicationSessionStatsResponse with CloudsearchStatsSessionSearchapplicationsGetArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<CloudsearchStatsSessionSearchapplicationsGetArgs>
+    for GetSearchApplicationSessionStatsResponse
+{
+    fn generate_resource_id(
+        &self,
+        input: &CloudsearchStatsSessionSearchapplicationsGetArgs,
+    ) -> String {
+        format!(
+            "gcp::cloudsearch::GetSearchApplicationSessionStatsResponse/{}",
+            input.name
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::cloudsearch::GetSearchApplicationSessionStatsResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for GetSearchApplicationUserStatsResponse
+// =============================================================================
+
+/// ResourceIdentifier implementation for GetSearchApplicationUserStatsResponse with CloudsearchStatsUserSearchapplicationsGetArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<CloudsearchStatsUserSearchapplicationsGetArgs>
+    for GetSearchApplicationUserStatsResponse
+{
+    fn generate_resource_id(
+        &self,
+        input: &CloudsearchStatsUserSearchapplicationsGetArgs,
+    ) -> String {
+        format!(
+            "gcp::cloudsearch::GetSearchApplicationUserStatsResponse/{}",
+            input.name
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::cloudsearch::GetSearchApplicationUserStatsResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for Operation
+// =============================================================================
+
+/// ResourceIdentifier implementation for Operation with CloudsearchInitializeCustomerArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<CloudsearchInitializeCustomerArgs> for Operation {
+    fn generate_resource_id(&self, input: &CloudsearchInitializeCustomerArgs) -> String {
+        "gcp::cloudsearch::Operation".to_string()
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::cloudsearch::Operation"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
 }

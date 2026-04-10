@@ -7,7 +7,6 @@
 
 #![cfg(feature = "gcp")]
 
-
 use crate::providers::gcp::clients::types::*;
 use crate::providers::gcp::resources::*;
 use foundation_core::valtron::{
@@ -17,10 +16,11 @@ use foundation_core::valtron::{
 use foundation_core::wire::simple_http::client::{
     body_reader, ClientRequestBuilder, RequestIntro, SimpleHttpClient, SystemDnsResolver,
 };
+use foundation_db::state::resource_identifier::ResourceIdentifier;
 use foundation_macros::JsonHash;
 use serde::Serialize;
 
-/// GET v1/presentations/{presentationId}:batchUpdate
+/// POST v1/presentations/{presentationId}:batchUpdate
 /// Applies one or more updates to the presentation. Each request is validated before being applied. If any request is not valid, then the entire request will fail and nothing will be applied. Some requests have replies to give you some information about how they are applied. Other requests do not need to return information; these each return an empty reply. The order of replies matches that of the requests. For example, suppose you call `batchUpdate` with four updates, and only the third one returns information. The response would have two empty replies: the reply to the third request, and another empty reply, in that order. Because other users may be editing the presentation, the presentation might not exactly reflect your changes: your changes may be altered with respect to collaborator changes. If there are no collaborators, the presentation should reflect your changes. In any case, the updates in your request are guaranteed to be applied together atomically.
 ///
 /// Returns `ClientRequestBuilder` for customization.
@@ -29,7 +29,6 @@ use serde::Serialize;
 pub fn slides_presentations_batch_update_builder(
     client: &SimpleHttpClient,
     presentationId: &String,
-    body: &BatchUpdatePresentationRequest,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
@@ -39,15 +38,13 @@ pub fn slides_presentations_batch_update_builder(
 
     // Build request
     let builder = client
-        .get(&endpoint_url)
+        .post(&endpoint_url)
         .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
 
-    builder
-        .body_json(body)
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+    Ok(builder)
 }
 
-/// GET v1/presentations/{presentationId}:batchUpdate
+/// POST v1/presentations/{presentationId}:batchUpdate
 /// Applies one or more updates to the presentation. Each request is validated before being applied. If any request is not valid, then the entire request will fail and nothing will be applied. Some requests have replies to give you some information about how they are applied. Other requests do not need to return information; these each return an empty reply. The order of replies matches that of the requests. For example, suppose you call `batchUpdate` with four updates, and only the third one returns information. The response would have two empty replies: the reply to the third request, and another empty reply, in that order. Because other users may be editing the presentation, the presentation might not exactly reflect your changes: your changes may be altered with respect to collaborator changes. If there are no collaborators, the presentation should reflect your changes. In any case, the updates in your request are guaranteed to be applied together atomically.
 ///
 /// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
@@ -121,7 +118,7 @@ pub fn slides_presentations_batch_update_task(
         .map_pending(|_| ApiPending::Sending))
 }
 
-/// GET v1/presentations/{presentationId}:batchUpdate
+/// POST v1/presentations/{presentationId}:batchUpdate
 /// Applies one or more updates to the presentation. Each request is validated before being applied. If any request is not valid, then the entire request will fail and nothing will be applied. Some requests have replies to give you some information about how they are applied. Other requests do not need to return information; these each return an empty reply. The order of replies matches that of the requests. For example, suppose you call `batchUpdate` with four updates, and only the third one returns information. The response would have two empty replies: the reply to the third request, and another empty reply, in that order. Because other users may be editing the presentation, the presentation might not exactly reflect your changes: your changes may be altered with respect to collaborator changes. If there are no collaborators, the presentation should reflect your changes. In any case, the updates in your request are guaranteed to be applied together atomically.
 ///
 /// Takes a `ClientRequestBuilder`, builds and executes the request,
@@ -160,11 +157,9 @@ pub fn slides_presentations_batch_update_execute(
 pub struct SlidesPresentationsBatchUpdateArgs {
     /// Path parameter: presentationId
     pub presentationId: String,
-    /// Request body.
-    pub body: BatchUpdatePresentationRequest,
 }
 
-/// GET v1/presentations/{presentationId}:batchUpdate
+/// POST v1/presentations/{presentationId}:batchUpdate
 /// Applies one or more updates to the presentation. Each request is validated before being applied. If any request is not valid, then the entire request will fail and nothing will be applied. Some requests have replies to give you some information about how they are applied. Other requests do not need to return information; these each return an empty reply. The order of replies matches that of the requests. For example, suppose you call `batchUpdate` with four updates, and only the third one returns information. The response would have two empty replies: the reply to the third request, and another empty reply, in that order. Because other users may be editing the presentation, the presentation might not exactly reflect your changes: your changes may be altered with respect to collaborator changes. If there are no collaborators, the presentation should reflect your changes. In any case, the updates in your request are guaranteed to be applied together atomically.
 ///
 /// Simplest API - builds and executes the request in one call.
@@ -186,12 +181,11 @@ pub fn slides_presentations_batch_update(
         + 'static,
     ApiError,
 > {
-    let builder =
-        slides_presentations_batch_update_builder(client, &args.presentationId, &args.body)?;
+    let builder = slides_presentations_batch_update_builder(client, &args.presentationId)?;
     slides_presentations_batch_update_execute(builder)
 }
 
-/// GET v1/presentations
+/// POST v1/presentations
 /// Creates a blank presentation using the title given in the request. If a `presentationId` is provided, it is used as the ID of the new presentation. Otherwise, a new ID is generated. Other fields in the request, including any provided content, are ignored. Returns the created presentation.
 ///
 /// Returns `ClientRequestBuilder` for customization.
@@ -199,22 +193,19 @@ pub fn slides_presentations_batch_update(
 
 pub fn slides_presentations_create_builder(
     client: &SimpleHttpClient,
-    body: &Presentation,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!("https://slides.googleapis.com/v1/presentations",);
 
     // Build request
     let builder = client
-        .get(&endpoint_url)
+        .post(&endpoint_url)
         .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
 
-    builder
-        .body_json(body)
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+    Ok(builder)
 }
 
-/// GET v1/presentations
+/// POST v1/presentations
 /// Creates a blank presentation using the title given in the request. If a `presentationId` is provided, it is used as the ID of the new presentation. Otherwise, a new ID is generated. Other fields in the request, including any provided content, are ignored. Returns the created presentation.
 ///
 /// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
@@ -288,7 +279,7 @@ pub fn slides_presentations_create_task(
         .map_pending(|_| ApiPending::Sending))
 }
 
-/// GET v1/presentations
+/// POST v1/presentations
 /// Creates a blank presentation using the title given in the request. If a `presentationId` is provided, it is used as the ID of the new presentation. Otherwise, a new ID is generated. Other fields in the request, including any provided content, are ignored. Returns the created presentation.
 ///
 /// Takes a `ClientRequestBuilder`, builds and executes the request,
@@ -320,14 +311,7 @@ pub fn slides_presentations_create_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
-/// Arguments for [`slides_presentations_create`].
-#[derive(Debug, Clone, Serialize, JsonHash)]
-pub struct SlidesPresentationsCreateArgs {
-    /// Request body.
-    pub body: Presentation,
-}
-
-/// GET v1/presentations
+/// POST v1/presentations
 /// Creates a blank presentation using the title given in the request. If a `presentationId` is provided, it is used as the ID of the new presentation. Otherwise, a new ID is generated. Other fields in the request, including any provided content, are ignored. Returns the created presentation.
 ///
 /// Simplest API - builds and executes the request in one call.
@@ -340,14 +324,13 @@ pub struct SlidesPresentationsCreateArgs {
 
 pub fn slides_presentations_create(
     client: &SimpleHttpClient,
-    args: &SlidesPresentationsCreateArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Presentation>, ApiError>, P = ApiPending>
         + Send
         + 'static,
     ApiError,
 > {
-    let builder = slides_presentations_create_builder(client, &args.body)?;
+    let builder = slides_presentations_create_builder(client)?;
     slides_presentations_create_execute(builder)
 }
 
@@ -362,7 +345,10 @@ pub fn slides_presentations_get_builder(
     presentationId: &String,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
-    let endpoint_url = format!("https://slides.googleapis.com/v1/presentations/{}",);
+    let endpoint_url = format!(
+        "https://slides.googleapis.com/v1/presentations/{}",
+        presentationId,
+    );
 
     // Build request
     let builder = client
@@ -680,8 +666,8 @@ pub fn slides_presentations_pages_get_thumbnail_builder(
     client: &SimpleHttpClient,
     presentationId: &String,
     pageObjectId: &String,
-    thumbnailProperties_mimeType: &Option<String>,
-    thumbnailProperties_thumbnailSize: &Option<String>,
+    thumbnailProperties_mimeType: &Option<Option<String>>,
+    thumbnailProperties_thumbnailSize: &Option<Option<String>>,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
@@ -823,9 +809,9 @@ pub struct SlidesPresentationsPagesGetThumbnailArgs {
     /// Path parameter: pageObjectId
     pub pageObjectId: String,
     /// Query parameter: thumbnailProperties_mimeType
-    pub thumbnailProperties_mimeType: Option<String>,
+    pub thumbnailProperties_mimeType: Option<Option<String>>,
     /// Query parameter: thumbnailProperties_thumbnailSize
-    pub thumbnailProperties_thumbnailSize: Option<String>,
+    pub thumbnailProperties_thumbnailSize: Option<Option<String>>,
 }
 
 /// GET v1/presentations/{presentationId}/pages/{pageObjectId}/thumbnail
@@ -854,4 +840,128 @@ pub fn slides_presentations_pages_get_thumbnail(
         &args.thumbnailProperties_thumbnailSize,
     )?;
     slides_presentations_pages_get_thumbnail_execute(builder)
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for BatchUpdatePresentationResponse
+// =============================================================================
+
+/// ResourceIdentifier implementation for BatchUpdatePresentationResponse with SlidesPresentationsBatchUpdateArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<SlidesPresentationsBatchUpdateArgs> for BatchUpdatePresentationResponse {
+    fn generate_resource_id(&self, input: &SlidesPresentationsBatchUpdateArgs) -> String {
+        format!(
+            "gcp::slides::BatchUpdatePresentationResponse/{}",
+            input.presentationId
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::slides::BatchUpdatePresentationResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for Presentation
+// =============================================================================
+
+/// ResourceIdentifier implementation for Presentation with SlidesPresentationsCreateArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<SlidesPresentationsCreateArgs> for Presentation {
+    fn generate_resource_id(&self, input: &SlidesPresentationsCreateArgs) -> String {
+        "gcp::slides::Presentation".to_string()
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::slides::Presentation"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for Presentation
+// =============================================================================
+
+/// ResourceIdentifier implementation for Presentation with SlidesPresentationsGetArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<SlidesPresentationsGetArgs> for Presentation {
+    fn generate_resource_id(&self, input: &SlidesPresentationsGetArgs) -> String {
+        format!("gcp::slides::Presentation/{}", input.presentationId)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::slides::Presentation"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for Page
+// =============================================================================
+
+/// ResourceIdentifier implementation for Page with SlidesPresentationsPagesGetArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<SlidesPresentationsPagesGetArgs> for Page {
+    fn generate_resource_id(&self, input: &SlidesPresentationsPagesGetArgs) -> String {
+        format!(
+            "gcp::slides::Page/{}/{}",
+            input.presentationId, input.pageObjectId
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::slides::Page"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for Thumbnail
+// =============================================================================
+
+/// ResourceIdentifier implementation for Thumbnail with SlidesPresentationsPagesGetThumbnailArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<SlidesPresentationsPagesGetThumbnailArgs> for Thumbnail {
+    fn generate_resource_id(&self, input: &SlidesPresentationsPagesGetThumbnailArgs) -> String {
+        format!(
+            "gcp::slides::Thumbnail/{}/{}",
+            input.presentationId, input.pageObjectId
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::slides::Thumbnail"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
 }

@@ -7,7 +7,6 @@
 
 #![cfg(feature = "gcp")]
 
-
 use crate::providers::gcp::clients::types::*;
 use crate::providers::gcp::resources::*;
 use foundation_core::valtron::{
@@ -17,6 +16,7 @@ use foundation_core::valtron::{
 use foundation_core::wire::simple_http::client::{
     body_reader, ClientRequestBuilder, RequestIntro, SimpleHttpClient, SystemDnsResolver,
 };
+use foundation_db::state::resource_identifier::ResourceIdentifier;
 use foundation_macros::JsonHash;
 use serde::Serialize;
 
@@ -29,13 +29,15 @@ use serde::Serialize;
 pub fn playdeveloperreporting_anomalies_list_builder(
     client: &SimpleHttpClient,
     parent: &String,
-    filter: &Option<String>,
-    pageSize: &Option<i32>,
-    pageToken: &Option<String>,
+    filter: &Option<Option<String>>,
+    pageSize: &Option<Option<String>>,
+    pageToken: &Option<Option<String>>,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
-    let endpoint_url =
-        format!("https://playdeveloperreporting.googleapis.com/v1beta1/apps/{}/anomalies",);
+    let endpoint_url = format!(
+        "https://playdeveloperreporting.googleapis.com/v1beta1/apps/{}/anomalies",
+        parent,
+    );
 
     // Build request
     let mut query_parts = Vec::new();
@@ -183,11 +185,11 @@ pub struct PlaydeveloperreportingAnomaliesListArgs {
     /// Path parameter: parent
     pub parent: String,
     /// Query parameter: filter
-    pub filter: Option<String>,
+    pub filter: Option<Option<String>>,
     /// Query parameter: pageSize
-    pub pageSize: Option<i32>,
+    pub pageSize: Option<Option<String>>,
     /// Query parameter: pageToken
-    pub pageToken: Option<String>,
+    pub pageToken: Option<Option<String>>,
 }
 
 /// GET v1beta1/apps/{appsId}/anomalies
@@ -238,6 +240,7 @@ pub fn playdeveloperreporting_apps_fetch_release_filter_options_builder(
     // Build URL
     let endpoint_url = format!(
         "https://playdeveloperreporting.googleapis.com/v1beta1/apps/{}:fetchReleaseFilterOptions",
+        name,
     );
 
     // Build request
@@ -408,8 +411,8 @@ pub fn playdeveloperreporting_apps_fetch_release_filter_options(
 
 pub fn playdeveloperreporting_apps_search_builder(
     client: &SimpleHttpClient,
-    pageSize: &Option<i32>,
-    pageToken: &Option<String>,
+    pageSize: &Option<Option<String>>,
+    pageToken: &Option<Option<String>>,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url =
@@ -556,9 +559,9 @@ pub fn playdeveloperreporting_apps_search_execute(
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct PlaydeveloperreportingAppsSearchArgs {
     /// Query parameter: pageSize
-    pub pageSize: Option<i32>,
+    pub pageSize: Option<Option<String>>,
     /// Query parameter: pageToken
-    pub pageToken: Option<String>,
+    pub pageToken: Option<Option<String>>,
 }
 
 /// GET v1beta1/apps:search
@@ -602,8 +605,10 @@ pub fn playdeveloperreporting_vitals_anrrate_get_builder(
     name: &String,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
-    let endpoint_url =
-        format!("https://playdeveloperreporting.googleapis.com/v1beta1/apps/{}/anrRateMetricSet",);
+    let endpoint_url = format!(
+        "https://playdeveloperreporting.googleapis.com/v1beta1/apps/{}/anrRateMetricSet",
+        name,
+    );
 
     // Build request
     let builder = client
@@ -758,7 +763,7 @@ pub fn playdeveloperreporting_vitals_anrrate_get(
     playdeveloperreporting_vitals_anrrate_get_execute(builder)
 }
 
-/// GET v1beta1/apps/{appsId}/anrRateMetricSet:query
+/// POST v1beta1/apps/{appsId}/anrRateMetricSet:query
 /// Queries the metrics in the metric set.
 ///
 /// Returns `ClientRequestBuilder` for customization.
@@ -767,24 +772,22 @@ pub fn playdeveloperreporting_vitals_anrrate_get(
 pub fn playdeveloperreporting_vitals_anrrate_query_builder(
     client: &SimpleHttpClient,
     name: &String,
-    body: &GooglePlayDeveloperReportingV1beta1QueryAnrRateMetricSetRequest,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
         "https://playdeveloperreporting.googleapis.com/v1beta1/apps/{}/anrRateMetricSet:query",
+        name,
     );
 
     // Build request
     let builder = client
-        .get(&endpoint_url)
+        .post(&endpoint_url)
         .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
 
-    builder
-        .body_json(body)
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+    Ok(builder)
 }
 
-/// GET v1beta1/apps/{appsId}/anrRateMetricSet:query
+/// POST v1beta1/apps/{appsId}/anrRateMetricSet:query
 /// Queries the metrics in the metric set.
 ///
 /// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
@@ -862,7 +865,7 @@ pub fn playdeveloperreporting_vitals_anrrate_query_task(
         .map_pending(|_| ApiPending::Sending))
 }
 
-/// GET v1beta1/apps/{appsId}/anrRateMetricSet:query
+/// POST v1beta1/apps/{appsId}/anrRateMetricSet:query
 /// Queries the metrics in the metric set.
 ///
 /// Takes a `ClientRequestBuilder`, builds and executes the request,
@@ -904,11 +907,9 @@ pub fn playdeveloperreporting_vitals_anrrate_query_execute(
 pub struct PlaydeveloperreportingVitalsAnrrateQueryArgs {
     /// Path parameter: name
     pub name: String,
-    /// Request body.
-    pub body: GooglePlayDeveloperReportingV1beta1QueryAnrRateMetricSetRequest,
 }
 
-/// GET v1beta1/apps/{appsId}/anrRateMetricSet:query
+/// POST v1beta1/apps/{appsId}/anrRateMetricSet:query
 /// Queries the metrics in the metric set.
 ///
 /// Simplest API - builds and executes the request in one call.
@@ -933,8 +934,7 @@ pub fn playdeveloperreporting_vitals_anrrate_query(
         + 'static,
     ApiError,
 > {
-    let builder =
-        playdeveloperreporting_vitals_anrrate_query_builder(client, &args.name, &args.body)?;
+    let builder = playdeveloperreporting_vitals_anrrate_query_builder(client, &args.name)?;
     playdeveloperreporting_vitals_anrrate_query_execute(builder)
 }
 
@@ -951,6 +951,7 @@ pub fn playdeveloperreporting_vitals_crashrate_get_builder(
     // Build URL
     let endpoint_url = format!(
         "https://playdeveloperreporting.googleapis.com/v1beta1/apps/{}/crashRateMetricSet",
+        name,
     );
 
     // Build request
@@ -1112,7 +1113,7 @@ pub fn playdeveloperreporting_vitals_crashrate_get(
     playdeveloperreporting_vitals_crashrate_get_execute(builder)
 }
 
-/// GET v1beta1/apps/{appsId}/crashRateMetricSet:query
+/// POST v1beta1/apps/{appsId}/crashRateMetricSet:query
 /// Queries the metrics in the metric set.
 ///
 /// Returns `ClientRequestBuilder` for customization.
@@ -1121,24 +1122,22 @@ pub fn playdeveloperreporting_vitals_crashrate_get(
 pub fn playdeveloperreporting_vitals_crashrate_query_builder(
     client: &SimpleHttpClient,
     name: &String,
-    body: &GooglePlayDeveloperReportingV1beta1QueryCrashRateMetricSetRequest,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
         "https://playdeveloperreporting.googleapis.com/v1beta1/apps/{}/crashRateMetricSet:query",
+        name,
     );
 
     // Build request
     let builder = client
-        .get(&endpoint_url)
+        .post(&endpoint_url)
         .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
 
-    builder
-        .body_json(body)
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+    Ok(builder)
 }
 
-/// GET v1beta1/apps/{appsId}/crashRateMetricSet:query
+/// POST v1beta1/apps/{appsId}/crashRateMetricSet:query
 /// Queries the metrics in the metric set.
 ///
 /// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
@@ -1216,7 +1215,7 @@ pub fn playdeveloperreporting_vitals_crashrate_query_task(
         .map_pending(|_| ApiPending::Sending))
 }
 
-/// GET v1beta1/apps/{appsId}/crashRateMetricSet:query
+/// POST v1beta1/apps/{appsId}/crashRateMetricSet:query
 /// Queries the metrics in the metric set.
 ///
 /// Takes a `ClientRequestBuilder`, builds and executes the request,
@@ -1258,11 +1257,9 @@ pub fn playdeveloperreporting_vitals_crashrate_query_execute(
 pub struct PlaydeveloperreportingVitalsCrashrateQueryArgs {
     /// Path parameter: name
     pub name: String,
-    /// Request body.
-    pub body: GooglePlayDeveloperReportingV1beta1QueryCrashRateMetricSetRequest,
 }
 
-/// GET v1beta1/apps/{appsId}/crashRateMetricSet:query
+/// POST v1beta1/apps/{appsId}/crashRateMetricSet:query
 /// Queries the metrics in the metric set.
 ///
 /// Simplest API - builds and executes the request in one call.
@@ -1287,8 +1284,7 @@ pub fn playdeveloperreporting_vitals_crashrate_query(
         + 'static,
     ApiError,
 > {
-    let builder =
-        playdeveloperreporting_vitals_crashrate_query_builder(client, &args.name, &args.body)?;
+    let builder = playdeveloperreporting_vitals_crashrate_query_builder(client, &args.name)?;
     playdeveloperreporting_vitals_crashrate_query_execute(builder)
 }
 
@@ -1305,6 +1301,7 @@ pub fn playdeveloperreporting_vitals_errors_counts_get_builder(
     // Build URL
     let endpoint_url = format!(
         "https://playdeveloperreporting.googleapis.com/v1beta1/apps/{}/errorCountMetricSet",
+        name,
     );
 
     // Build request
@@ -1466,7 +1463,7 @@ pub fn playdeveloperreporting_vitals_errors_counts_get(
     playdeveloperreporting_vitals_errors_counts_get_execute(builder)
 }
 
-/// GET v1beta1/apps/{appsId}/errorCountMetricSet:query
+/// POST v1beta1/apps/{appsId}/errorCountMetricSet:query
 /// Queries the metrics in the metrics set.
 ///
 /// Returns `ClientRequestBuilder` for customization.
@@ -1475,24 +1472,22 @@ pub fn playdeveloperreporting_vitals_errors_counts_get(
 pub fn playdeveloperreporting_vitals_errors_counts_query_builder(
     client: &SimpleHttpClient,
     name: &String,
-    body: &GooglePlayDeveloperReportingV1beta1QueryErrorCountMetricSetRequest,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
         "https://playdeveloperreporting.googleapis.com/v1beta1/apps/{}/errorCountMetricSet:query",
+        name,
     );
 
     // Build request
     let builder = client
-        .get(&endpoint_url)
+        .post(&endpoint_url)
         .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
 
-    builder
-        .body_json(body)
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+    Ok(builder)
 }
 
-/// GET v1beta1/apps/{appsId}/errorCountMetricSet:query
+/// POST v1beta1/apps/{appsId}/errorCountMetricSet:query
 /// Queries the metrics in the metrics set.
 ///
 /// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
@@ -1570,7 +1565,7 @@ pub fn playdeveloperreporting_vitals_errors_counts_query_task(
         .map_pending(|_| ApiPending::Sending))
 }
 
-/// GET v1beta1/apps/{appsId}/errorCountMetricSet:query
+/// POST v1beta1/apps/{appsId}/errorCountMetricSet:query
 /// Queries the metrics in the metrics set.
 ///
 /// Takes a `ClientRequestBuilder`, builds and executes the request,
@@ -1612,11 +1607,9 @@ pub fn playdeveloperreporting_vitals_errors_counts_query_execute(
 pub struct PlaydeveloperreportingVitalsErrorsCountsQueryArgs {
     /// Path parameter: name
     pub name: String,
-    /// Request body.
-    pub body: GooglePlayDeveloperReportingV1beta1QueryErrorCountMetricSetRequest,
 }
 
-/// GET v1beta1/apps/{appsId}/errorCountMetricSet:query
+/// POST v1beta1/apps/{appsId}/errorCountMetricSet:query
 /// Queries the metrics in the metrics set.
 ///
 /// Simplest API - builds and executes the request in one call.
@@ -1641,8 +1634,7 @@ pub fn playdeveloperreporting_vitals_errors_counts_query(
         + 'static,
     ApiError,
 > {
-    let builder =
-        playdeveloperreporting_vitals_errors_counts_query_builder(client, &args.name, &args.body)?;
+    let builder = playdeveloperreporting_vitals_errors_counts_query_builder(client, &args.name)?;
     playdeveloperreporting_vitals_errors_counts_query_execute(builder)
 }
 
@@ -1655,35 +1647,36 @@ pub fn playdeveloperreporting_vitals_errors_counts_query(
 pub fn playdeveloperreporting_vitals_errors_issues_search_builder(
     client: &SimpleHttpClient,
     parent: &String,
-    filter: &Option<String>,
-    interval_endTime_day: &Option<i32>,
-    interval_endTime_hours: &Option<i32>,
-    interval_endTime_minutes: &Option<i32>,
-    interval_endTime_month: &Option<i32>,
-    interval_endTime_nanos: &Option<i32>,
-    interval_endTime_seconds: &Option<i32>,
-    interval_endTime_timeZone_id: &Option<String>,
-    interval_endTime_timeZone_version: &Option<String>,
-    interval_endTime_utcOffset: &Option<String>,
-    interval_endTime_year: &Option<i32>,
-    interval_startTime_day: &Option<i32>,
-    interval_startTime_hours: &Option<i32>,
-    interval_startTime_minutes: &Option<i32>,
-    interval_startTime_month: &Option<i32>,
-    interval_startTime_nanos: &Option<i32>,
-    interval_startTime_seconds: &Option<i32>,
-    interval_startTime_timeZone_id: &Option<String>,
-    interval_startTime_timeZone_version: &Option<String>,
-    interval_startTime_utcOffset: &Option<String>,
-    interval_startTime_year: &Option<i32>,
-    orderBy: &Option<String>,
-    pageSize: &Option<i32>,
-    pageToken: &Option<String>,
-    sampleErrorReportLimit: &Option<i32>,
+    filter: &Option<Option<String>>,
+    interval_endTime_day: &Option<Option<String>>,
+    interval_endTime_hours: &Option<Option<String>>,
+    interval_endTime_minutes: &Option<Option<String>>,
+    interval_endTime_month: &Option<Option<String>>,
+    interval_endTime_nanos: &Option<Option<String>>,
+    interval_endTime_seconds: &Option<Option<String>>,
+    interval_endTime_timeZone_id: &Option<Option<String>>,
+    interval_endTime_timeZone_version: &Option<Option<String>>,
+    interval_endTime_utcOffset: &Option<Option<String>>,
+    interval_endTime_year: &Option<Option<String>>,
+    interval_startTime_day: &Option<Option<String>>,
+    interval_startTime_hours: &Option<Option<String>>,
+    interval_startTime_minutes: &Option<Option<String>>,
+    interval_startTime_month: &Option<Option<String>>,
+    interval_startTime_nanos: &Option<Option<String>>,
+    interval_startTime_seconds: &Option<Option<String>>,
+    interval_startTime_timeZone_id: &Option<Option<String>>,
+    interval_startTime_timeZone_version: &Option<Option<String>>,
+    interval_startTime_utcOffset: &Option<Option<String>>,
+    interval_startTime_year: &Option<Option<String>>,
+    orderBy: &Option<Option<String>>,
+    pageSize: &Option<Option<String>>,
+    pageToken: &Option<Option<String>>,
+    sampleErrorReportLimit: &Option<Option<String>>,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
         "https://playdeveloperreporting.googleapis.com/v1beta1/apps/{}/errorIssues:search",
+        parent,
     );
 
     // Build request
@@ -1898,55 +1891,55 @@ pub struct PlaydeveloperreportingVitalsErrorsIssuesSearchArgs {
     /// Path parameter: parent
     pub parent: String,
     /// Query parameter: filter
-    pub filter: Option<String>,
+    pub filter: Option<Option<String>>,
     /// Query parameter: interval_endTime_day
-    pub interval_endTime_day: Option<i32>,
+    pub interval_endTime_day: Option<Option<String>>,
     /// Query parameter: interval_endTime_hours
-    pub interval_endTime_hours: Option<i32>,
+    pub interval_endTime_hours: Option<Option<String>>,
     /// Query parameter: interval_endTime_minutes
-    pub interval_endTime_minutes: Option<i32>,
+    pub interval_endTime_minutes: Option<Option<String>>,
     /// Query parameter: interval_endTime_month
-    pub interval_endTime_month: Option<i32>,
+    pub interval_endTime_month: Option<Option<String>>,
     /// Query parameter: interval_endTime_nanos
-    pub interval_endTime_nanos: Option<i32>,
+    pub interval_endTime_nanos: Option<Option<String>>,
     /// Query parameter: interval_endTime_seconds
-    pub interval_endTime_seconds: Option<i32>,
+    pub interval_endTime_seconds: Option<Option<String>>,
     /// Query parameter: interval_endTime_timeZone_id
-    pub interval_endTime_timeZone_id: Option<String>,
+    pub interval_endTime_timeZone_id: Option<Option<String>>,
     /// Query parameter: interval_endTime_timeZone_version
-    pub interval_endTime_timeZone_version: Option<String>,
+    pub interval_endTime_timeZone_version: Option<Option<String>>,
     /// Query parameter: interval_endTime_utcOffset
-    pub interval_endTime_utcOffset: Option<String>,
+    pub interval_endTime_utcOffset: Option<Option<String>>,
     /// Query parameter: interval_endTime_year
-    pub interval_endTime_year: Option<i32>,
+    pub interval_endTime_year: Option<Option<String>>,
     /// Query parameter: interval_startTime_day
-    pub interval_startTime_day: Option<i32>,
+    pub interval_startTime_day: Option<Option<String>>,
     /// Query parameter: interval_startTime_hours
-    pub interval_startTime_hours: Option<i32>,
+    pub interval_startTime_hours: Option<Option<String>>,
     /// Query parameter: interval_startTime_minutes
-    pub interval_startTime_minutes: Option<i32>,
+    pub interval_startTime_minutes: Option<Option<String>>,
     /// Query parameter: interval_startTime_month
-    pub interval_startTime_month: Option<i32>,
+    pub interval_startTime_month: Option<Option<String>>,
     /// Query parameter: interval_startTime_nanos
-    pub interval_startTime_nanos: Option<i32>,
+    pub interval_startTime_nanos: Option<Option<String>>,
     /// Query parameter: interval_startTime_seconds
-    pub interval_startTime_seconds: Option<i32>,
+    pub interval_startTime_seconds: Option<Option<String>>,
     /// Query parameter: interval_startTime_timeZone_id
-    pub interval_startTime_timeZone_id: Option<String>,
+    pub interval_startTime_timeZone_id: Option<Option<String>>,
     /// Query parameter: interval_startTime_timeZone_version
-    pub interval_startTime_timeZone_version: Option<String>,
+    pub interval_startTime_timeZone_version: Option<Option<String>>,
     /// Query parameter: interval_startTime_utcOffset
-    pub interval_startTime_utcOffset: Option<String>,
+    pub interval_startTime_utcOffset: Option<Option<String>>,
     /// Query parameter: interval_startTime_year
-    pub interval_startTime_year: Option<i32>,
+    pub interval_startTime_year: Option<Option<String>>,
     /// Query parameter: orderBy
-    pub orderBy: Option<String>,
+    pub orderBy: Option<Option<String>>,
     /// Query parameter: pageSize
-    pub pageSize: Option<i32>,
+    pub pageSize: Option<Option<String>>,
     /// Query parameter: pageToken
-    pub pageToken: Option<String>,
+    pub pageToken: Option<Option<String>>,
     /// Query parameter: sampleErrorReportLimit
-    pub sampleErrorReportLimit: Option<i32>,
+    pub sampleErrorReportLimit: Option<Option<String>>,
 }
 
 /// GET v1beta1/apps/{appsId}/errorIssues:search
@@ -2015,33 +2008,34 @@ pub fn playdeveloperreporting_vitals_errors_issues_search(
 pub fn playdeveloperreporting_vitals_errors_reports_search_builder(
     client: &SimpleHttpClient,
     parent: &String,
-    filter: &Option<String>,
-    interval_endTime_day: &Option<i32>,
-    interval_endTime_hours: &Option<i32>,
-    interval_endTime_minutes: &Option<i32>,
-    interval_endTime_month: &Option<i32>,
-    interval_endTime_nanos: &Option<i32>,
-    interval_endTime_seconds: &Option<i32>,
-    interval_endTime_timeZone_id: &Option<String>,
-    interval_endTime_timeZone_version: &Option<String>,
-    interval_endTime_utcOffset: &Option<String>,
-    interval_endTime_year: &Option<i32>,
-    interval_startTime_day: &Option<i32>,
-    interval_startTime_hours: &Option<i32>,
-    interval_startTime_minutes: &Option<i32>,
-    interval_startTime_month: &Option<i32>,
-    interval_startTime_nanos: &Option<i32>,
-    interval_startTime_seconds: &Option<i32>,
-    interval_startTime_timeZone_id: &Option<String>,
-    interval_startTime_timeZone_version: &Option<String>,
-    interval_startTime_utcOffset: &Option<String>,
-    interval_startTime_year: &Option<i32>,
-    pageSize: &Option<i32>,
-    pageToken: &Option<String>,
+    filter: &Option<Option<String>>,
+    interval_endTime_day: &Option<Option<String>>,
+    interval_endTime_hours: &Option<Option<String>>,
+    interval_endTime_minutes: &Option<Option<String>>,
+    interval_endTime_month: &Option<Option<String>>,
+    interval_endTime_nanos: &Option<Option<String>>,
+    interval_endTime_seconds: &Option<Option<String>>,
+    interval_endTime_timeZone_id: &Option<Option<String>>,
+    interval_endTime_timeZone_version: &Option<Option<String>>,
+    interval_endTime_utcOffset: &Option<Option<String>>,
+    interval_endTime_year: &Option<Option<String>>,
+    interval_startTime_day: &Option<Option<String>>,
+    interval_startTime_hours: &Option<Option<String>>,
+    interval_startTime_minutes: &Option<Option<String>>,
+    interval_startTime_month: &Option<Option<String>>,
+    interval_startTime_nanos: &Option<Option<String>>,
+    interval_startTime_seconds: &Option<Option<String>>,
+    interval_startTime_timeZone_id: &Option<Option<String>>,
+    interval_startTime_timeZone_version: &Option<Option<String>>,
+    interval_startTime_utcOffset: &Option<Option<String>>,
+    interval_startTime_year: &Option<Option<String>>,
+    pageSize: &Option<Option<String>>,
+    pageToken: &Option<Option<String>>,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
         "https://playdeveloperreporting.googleapis.com/v1beta1/apps/{}/errorReports:search",
+        parent,
     );
 
     // Build request
@@ -2250,51 +2244,51 @@ pub struct PlaydeveloperreportingVitalsErrorsReportsSearchArgs {
     /// Path parameter: parent
     pub parent: String,
     /// Query parameter: filter
-    pub filter: Option<String>,
+    pub filter: Option<Option<String>>,
     /// Query parameter: interval_endTime_day
-    pub interval_endTime_day: Option<i32>,
+    pub interval_endTime_day: Option<Option<String>>,
     /// Query parameter: interval_endTime_hours
-    pub interval_endTime_hours: Option<i32>,
+    pub interval_endTime_hours: Option<Option<String>>,
     /// Query parameter: interval_endTime_minutes
-    pub interval_endTime_minutes: Option<i32>,
+    pub interval_endTime_minutes: Option<Option<String>>,
     /// Query parameter: interval_endTime_month
-    pub interval_endTime_month: Option<i32>,
+    pub interval_endTime_month: Option<Option<String>>,
     /// Query parameter: interval_endTime_nanos
-    pub interval_endTime_nanos: Option<i32>,
+    pub interval_endTime_nanos: Option<Option<String>>,
     /// Query parameter: interval_endTime_seconds
-    pub interval_endTime_seconds: Option<i32>,
+    pub interval_endTime_seconds: Option<Option<String>>,
     /// Query parameter: interval_endTime_timeZone_id
-    pub interval_endTime_timeZone_id: Option<String>,
+    pub interval_endTime_timeZone_id: Option<Option<String>>,
     /// Query parameter: interval_endTime_timeZone_version
-    pub interval_endTime_timeZone_version: Option<String>,
+    pub interval_endTime_timeZone_version: Option<Option<String>>,
     /// Query parameter: interval_endTime_utcOffset
-    pub interval_endTime_utcOffset: Option<String>,
+    pub interval_endTime_utcOffset: Option<Option<String>>,
     /// Query parameter: interval_endTime_year
-    pub interval_endTime_year: Option<i32>,
+    pub interval_endTime_year: Option<Option<String>>,
     /// Query parameter: interval_startTime_day
-    pub interval_startTime_day: Option<i32>,
+    pub interval_startTime_day: Option<Option<String>>,
     /// Query parameter: interval_startTime_hours
-    pub interval_startTime_hours: Option<i32>,
+    pub interval_startTime_hours: Option<Option<String>>,
     /// Query parameter: interval_startTime_minutes
-    pub interval_startTime_minutes: Option<i32>,
+    pub interval_startTime_minutes: Option<Option<String>>,
     /// Query parameter: interval_startTime_month
-    pub interval_startTime_month: Option<i32>,
+    pub interval_startTime_month: Option<Option<String>>,
     /// Query parameter: interval_startTime_nanos
-    pub interval_startTime_nanos: Option<i32>,
+    pub interval_startTime_nanos: Option<Option<String>>,
     /// Query parameter: interval_startTime_seconds
-    pub interval_startTime_seconds: Option<i32>,
+    pub interval_startTime_seconds: Option<Option<String>>,
     /// Query parameter: interval_startTime_timeZone_id
-    pub interval_startTime_timeZone_id: Option<String>,
+    pub interval_startTime_timeZone_id: Option<Option<String>>,
     /// Query parameter: interval_startTime_timeZone_version
-    pub interval_startTime_timeZone_version: Option<String>,
+    pub interval_startTime_timeZone_version: Option<Option<String>>,
     /// Query parameter: interval_startTime_utcOffset
-    pub interval_startTime_utcOffset: Option<String>,
+    pub interval_startTime_utcOffset: Option<Option<String>>,
     /// Query parameter: interval_startTime_year
-    pub interval_startTime_year: Option<i32>,
+    pub interval_startTime_year: Option<Option<String>>,
     /// Query parameter: pageSize
-    pub pageSize: Option<i32>,
+    pub pageSize: Option<Option<String>>,
     /// Query parameter: pageToken
-    pub pageToken: Option<String>,
+    pub pageToken: Option<Option<String>>,
 }
 
 /// GET v1beta1/apps/{appsId}/errorReports:search
@@ -2365,6 +2359,7 @@ pub fn playdeveloperreporting_vitals_excessivewakeuprate_get_builder(
     // Build URL
     let endpoint_url = format!(
         "https://playdeveloperreporting.googleapis.com/v1beta1/apps/{}/excessiveWakeupRateMetricSet",
+        name,
     );
 
     // Build request
@@ -2527,7 +2522,7 @@ pub fn playdeveloperreporting_vitals_excessivewakeuprate_get(
     playdeveloperreporting_vitals_excessivewakeuprate_get_execute(builder)
 }
 
-/// GET v1beta1/apps/{appsId}/excessiveWakeupRateMetricSet:query
+/// POST v1beta1/apps/{appsId}/excessiveWakeupRateMetricSet:query
 /// Queries the metrics in the metric set.
 ///
 /// Returns `ClientRequestBuilder` for customization.
@@ -2536,24 +2531,22 @@ pub fn playdeveloperreporting_vitals_excessivewakeuprate_get(
 pub fn playdeveloperreporting_vitals_excessivewakeuprate_query_builder(
     client: &SimpleHttpClient,
     name: &String,
-    body: &GooglePlayDeveloperReportingV1beta1QueryExcessiveWakeupRateMetricSetRequest,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
         "https://playdeveloperreporting.googleapis.com/v1beta1/apps/{}/excessiveWakeupRateMetricSet:query",
+        name,
     );
 
     // Build request
     let builder = client
-        .get(&endpoint_url)
+        .post(&endpoint_url)
         .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
 
-    builder
-        .body_json(body)
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+    Ok(builder)
 }
 
-/// GET v1beta1/apps/{appsId}/excessiveWakeupRateMetricSet:query
+/// POST v1beta1/apps/{appsId}/excessiveWakeupRateMetricSet:query
 /// Queries the metrics in the metric set.
 ///
 /// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
@@ -2627,7 +2620,7 @@ pub fn playdeveloperreporting_vitals_excessivewakeuprate_query_task(
         .map_pending(|_| ApiPending::Sending))
 }
 
-/// GET v1beta1/apps/{appsId}/excessiveWakeupRateMetricSet:query
+/// POST v1beta1/apps/{appsId}/excessiveWakeupRateMetricSet:query
 /// Queries the metrics in the metric set.
 ///
 /// Takes a `ClientRequestBuilder`, builds and executes the request,
@@ -2671,11 +2664,9 @@ pub fn playdeveloperreporting_vitals_excessivewakeuprate_query_execute(
 pub struct PlaydeveloperreportingVitalsExcessivewakeuprateQueryArgs {
     /// Path parameter: name
     pub name: String,
-    /// Request body.
-    pub body: GooglePlayDeveloperReportingV1beta1QueryExcessiveWakeupRateMetricSetRequest,
 }
 
-/// GET v1beta1/apps/{appsId}/excessiveWakeupRateMetricSet:query
+/// POST v1beta1/apps/{appsId}/excessiveWakeupRateMetricSet:query
 /// Queries the metrics in the metric set.
 ///
 /// Simplest API - builds and executes the request in one call.
@@ -2702,9 +2693,8 @@ pub fn playdeveloperreporting_vitals_excessivewakeuprate_query(
         + 'static,
     ApiError,
 > {
-    let builder = playdeveloperreporting_vitals_excessivewakeuprate_query_builder(
-        client, &args.name, &args.body,
-    )?;
+    let builder =
+        playdeveloperreporting_vitals_excessivewakeuprate_query_builder(client, &args.name)?;
     playdeveloperreporting_vitals_excessivewakeuprate_query_execute(builder)
 }
 
@@ -2719,8 +2709,10 @@ pub fn playdeveloperreporting_vitals_lmkrate_get_builder(
     name: &String,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
-    let endpoint_url =
-        format!("https://playdeveloperreporting.googleapis.com/v1beta1/apps/{}/lmkRateMetricSet",);
+    let endpoint_url = format!(
+        "https://playdeveloperreporting.googleapis.com/v1beta1/apps/{}/lmkRateMetricSet",
+        name,
+    );
 
     // Build request
     let builder = client
@@ -2875,7 +2867,7 @@ pub fn playdeveloperreporting_vitals_lmkrate_get(
     playdeveloperreporting_vitals_lmkrate_get_execute(builder)
 }
 
-/// GET v1beta1/apps/{appsId}/lmkRateMetricSet:query
+/// POST v1beta1/apps/{appsId}/lmkRateMetricSet:query
 /// Queries the metrics in the metric set.
 ///
 /// Returns `ClientRequestBuilder` for customization.
@@ -2884,24 +2876,22 @@ pub fn playdeveloperreporting_vitals_lmkrate_get(
 pub fn playdeveloperreporting_vitals_lmkrate_query_builder(
     client: &SimpleHttpClient,
     name: &String,
-    body: &GooglePlayDeveloperReportingV1beta1QueryLmkRateMetricSetRequest,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
         "https://playdeveloperreporting.googleapis.com/v1beta1/apps/{}/lmkRateMetricSet:query",
+        name,
     );
 
     // Build request
     let builder = client
-        .get(&endpoint_url)
+        .post(&endpoint_url)
         .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
 
-    builder
-        .body_json(body)
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+    Ok(builder)
 }
 
-/// GET v1beta1/apps/{appsId}/lmkRateMetricSet:query
+/// POST v1beta1/apps/{appsId}/lmkRateMetricSet:query
 /// Queries the metrics in the metric set.
 ///
 /// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
@@ -2979,7 +2969,7 @@ pub fn playdeveloperreporting_vitals_lmkrate_query_task(
         .map_pending(|_| ApiPending::Sending))
 }
 
-/// GET v1beta1/apps/{appsId}/lmkRateMetricSet:query
+/// POST v1beta1/apps/{appsId}/lmkRateMetricSet:query
 /// Queries the metrics in the metric set.
 ///
 /// Takes a `ClientRequestBuilder`, builds and executes the request,
@@ -3021,11 +3011,9 @@ pub fn playdeveloperreporting_vitals_lmkrate_query_execute(
 pub struct PlaydeveloperreportingVitalsLmkrateQueryArgs {
     /// Path parameter: name
     pub name: String,
-    /// Request body.
-    pub body: GooglePlayDeveloperReportingV1beta1QueryLmkRateMetricSetRequest,
 }
 
-/// GET v1beta1/apps/{appsId}/lmkRateMetricSet:query
+/// POST v1beta1/apps/{appsId}/lmkRateMetricSet:query
 /// Queries the metrics in the metric set.
 ///
 /// Simplest API - builds and executes the request in one call.
@@ -3050,8 +3038,7 @@ pub fn playdeveloperreporting_vitals_lmkrate_query(
         + 'static,
     ApiError,
 > {
-    let builder =
-        playdeveloperreporting_vitals_lmkrate_query_builder(client, &args.name, &args.body)?;
+    let builder = playdeveloperreporting_vitals_lmkrate_query_builder(client, &args.name)?;
     playdeveloperreporting_vitals_lmkrate_query_execute(builder)
 }
 
@@ -3068,6 +3055,7 @@ pub fn playdeveloperreporting_vitals_slowrenderingrate_get_builder(
     // Build URL
     let endpoint_url = format!(
         "https://playdeveloperreporting.googleapis.com/v1beta1/apps/{}/slowRenderingRateMetricSet",
+        name,
     );
 
     // Build request
@@ -3229,7 +3217,7 @@ pub fn playdeveloperreporting_vitals_slowrenderingrate_get(
     playdeveloperreporting_vitals_slowrenderingrate_get_execute(builder)
 }
 
-/// GET v1beta1/apps/{appsId}/slowRenderingRateMetricSet:query
+/// POST v1beta1/apps/{appsId}/slowRenderingRateMetricSet:query
 /// Queries the metrics in the metric set.
 ///
 /// Returns `ClientRequestBuilder` for customization.
@@ -3238,24 +3226,22 @@ pub fn playdeveloperreporting_vitals_slowrenderingrate_get(
 pub fn playdeveloperreporting_vitals_slowrenderingrate_query_builder(
     client: &SimpleHttpClient,
     name: &String,
-    body: &GooglePlayDeveloperReportingV1beta1QuerySlowRenderingRateMetricSetRequest,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
         "https://playdeveloperreporting.googleapis.com/v1beta1/apps/{}/slowRenderingRateMetricSet:query",
+        name,
     );
 
     // Build request
     let builder = client
-        .get(&endpoint_url)
+        .post(&endpoint_url)
         .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
 
-    builder
-        .body_json(body)
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+    Ok(builder)
 }
 
-/// GET v1beta1/apps/{appsId}/slowRenderingRateMetricSet:query
+/// POST v1beta1/apps/{appsId}/slowRenderingRateMetricSet:query
 /// Queries the metrics in the metric set.
 ///
 /// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
@@ -3329,7 +3315,7 @@ pub fn playdeveloperreporting_vitals_slowrenderingrate_query_task(
         .map_pending(|_| ApiPending::Sending))
 }
 
-/// GET v1beta1/apps/{appsId}/slowRenderingRateMetricSet:query
+/// POST v1beta1/apps/{appsId}/slowRenderingRateMetricSet:query
 /// Queries the metrics in the metric set.
 ///
 /// Takes a `ClientRequestBuilder`, builds and executes the request,
@@ -3373,11 +3359,9 @@ pub fn playdeveloperreporting_vitals_slowrenderingrate_query_execute(
 pub struct PlaydeveloperreportingVitalsSlowrenderingrateQueryArgs {
     /// Path parameter: name
     pub name: String,
-    /// Request body.
-    pub body: GooglePlayDeveloperReportingV1beta1QuerySlowRenderingRateMetricSetRequest,
 }
 
-/// GET v1beta1/apps/{appsId}/slowRenderingRateMetricSet:query
+/// POST v1beta1/apps/{appsId}/slowRenderingRateMetricSet:query
 /// Queries the metrics in the metric set.
 ///
 /// Simplest API - builds and executes the request in one call.
@@ -3404,9 +3388,8 @@ pub fn playdeveloperreporting_vitals_slowrenderingrate_query(
         + 'static,
     ApiError,
 > {
-    let builder = playdeveloperreporting_vitals_slowrenderingrate_query_builder(
-        client, &args.name, &args.body,
-    )?;
+    let builder =
+        playdeveloperreporting_vitals_slowrenderingrate_query_builder(client, &args.name)?;
     playdeveloperreporting_vitals_slowrenderingrate_query_execute(builder)
 }
 
@@ -3423,6 +3406,7 @@ pub fn playdeveloperreporting_vitals_slowstartrate_get_builder(
     // Build URL
     let endpoint_url = format!(
         "https://playdeveloperreporting.googleapis.com/v1beta1/apps/{}/slowStartRateMetricSet",
+        name,
     );
 
     // Build request
@@ -3584,7 +3568,7 @@ pub fn playdeveloperreporting_vitals_slowstartrate_get(
     playdeveloperreporting_vitals_slowstartrate_get_execute(builder)
 }
 
-/// GET v1beta1/apps/{appsId}/slowStartRateMetricSet:query
+/// POST v1beta1/apps/{appsId}/slowStartRateMetricSet:query
 /// Queries the metrics in the metric set.
 ///
 /// Returns `ClientRequestBuilder` for customization.
@@ -3593,24 +3577,22 @@ pub fn playdeveloperreporting_vitals_slowstartrate_get(
 pub fn playdeveloperreporting_vitals_slowstartrate_query_builder(
     client: &SimpleHttpClient,
     name: &String,
-    body: &GooglePlayDeveloperReportingV1beta1QuerySlowStartRateMetricSetRequest,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
         "https://playdeveloperreporting.googleapis.com/v1beta1/apps/{}/slowStartRateMetricSet:query",
+        name,
     );
 
     // Build request
     let builder = client
-        .get(&endpoint_url)
+        .post(&endpoint_url)
         .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
 
-    builder
-        .body_json(body)
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+    Ok(builder)
 }
 
-/// GET v1beta1/apps/{appsId}/slowStartRateMetricSet:query
+/// POST v1beta1/apps/{appsId}/slowStartRateMetricSet:query
 /// Queries the metrics in the metric set.
 ///
 /// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
@@ -3687,7 +3669,7 @@ pub fn playdeveloperreporting_vitals_slowstartrate_query_task(
         .map_pending(|_| ApiPending::Sending))
 }
 
-/// GET v1beta1/apps/{appsId}/slowStartRateMetricSet:query
+/// POST v1beta1/apps/{appsId}/slowStartRateMetricSet:query
 /// Queries the metrics in the metric set.
 ///
 /// Takes a `ClientRequestBuilder`, builds and executes the request,
@@ -3729,11 +3711,9 @@ pub fn playdeveloperreporting_vitals_slowstartrate_query_execute(
 pub struct PlaydeveloperreportingVitalsSlowstartrateQueryArgs {
     /// Path parameter: name
     pub name: String,
-    /// Request body.
-    pub body: GooglePlayDeveloperReportingV1beta1QuerySlowStartRateMetricSetRequest,
 }
 
-/// GET v1beta1/apps/{appsId}/slowStartRateMetricSet:query
+/// POST v1beta1/apps/{appsId}/slowStartRateMetricSet:query
 /// Queries the metrics in the metric set.
 ///
 /// Simplest API - builds and executes the request in one call.
@@ -3758,8 +3738,7 @@ pub fn playdeveloperreporting_vitals_slowstartrate_query(
         + 'static,
     ApiError,
 > {
-    let builder =
-        playdeveloperreporting_vitals_slowstartrate_query_builder(client, &args.name, &args.body)?;
+    let builder = playdeveloperreporting_vitals_slowstartrate_query_builder(client, &args.name)?;
     playdeveloperreporting_vitals_slowstartrate_query_execute(builder)
 }
 
@@ -3776,6 +3755,7 @@ pub fn playdeveloperreporting_vitals_stuckbackgroundwakelockrate_get_builder(
     // Build URL
     let endpoint_url = format!(
         "https://playdeveloperreporting.googleapis.com/v1beta1/apps/{}/stuckBackgroundWakelockRateMetricSet",
+        name,
     );
 
     // Build request
@@ -3938,7 +3918,7 @@ pub fn playdeveloperreporting_vitals_stuckbackgroundwakelockrate_get(
     playdeveloperreporting_vitals_stuckbackgroundwakelockrate_get_execute(builder)
 }
 
-/// GET v1beta1/apps/{appsId}/stuckBackgroundWakelockRateMetricSet:query
+/// POST v1beta1/apps/{appsId}/stuckBackgroundWakelockRateMetricSet:query
 /// Queries the metrics in the metric set.
 ///
 /// Returns `ClientRequestBuilder` for customization.
@@ -3947,24 +3927,22 @@ pub fn playdeveloperreporting_vitals_stuckbackgroundwakelockrate_get(
 pub fn playdeveloperreporting_vitals_stuckbackgroundwakelockrate_query_builder(
     client: &SimpleHttpClient,
     name: &String,
-    body: &GooglePlayDeveloperReportingV1beta1QueryStuckBackgroundWakelockRateMetricSetRequest,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
         "https://playdeveloperreporting.googleapis.com/v1beta1/apps/{}/stuckBackgroundWakelockRateMetricSet:query",
+        name,
     );
 
     // Build request
     let builder = client
-        .get(&endpoint_url)
+        .post(&endpoint_url)
         .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
 
-    builder
-        .body_json(body)
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+    Ok(builder)
 }
 
-/// GET v1beta1/apps/{appsId}/stuckBackgroundWakelockRateMetricSet:query
+/// POST v1beta1/apps/{appsId}/stuckBackgroundWakelockRateMetricSet:query
 /// Queries the metrics in the metric set.
 ///
 /// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
@@ -4032,7 +4010,7 @@ pub fn playdeveloperreporting_vitals_stuckbackgroundwakelockrate_query_task(
         .map_pending(|_| ApiPending::Sending))
 }
 
-/// GET v1beta1/apps/{appsId}/stuckBackgroundWakelockRateMetricSet:query
+/// POST v1beta1/apps/{appsId}/stuckBackgroundWakelockRateMetricSet:query
 /// Queries the metrics in the metric set.
 ///
 /// Takes a `ClientRequestBuilder`, builds and executes the request,
@@ -4070,11 +4048,9 @@ pub fn playdeveloperreporting_vitals_stuckbackgroundwakelockrate_query_execute(
 pub struct PlaydeveloperreportingVitalsStuckbackgroundwakelockrateQueryArgs {
     /// Path parameter: name
     pub name: String,
-    /// Request body.
-    pub body: GooglePlayDeveloperReportingV1beta1QueryStuckBackgroundWakelockRateMetricSetRequest,
 }
 
-/// GET v1beta1/apps/{appsId}/stuckBackgroundWakelockRateMetricSet:query
+/// POST v1beta1/apps/{appsId}/stuckBackgroundWakelockRateMetricSet:query
 /// Queries the metrics in the metric set.
 ///
 /// Simplest API - builds and executes the request in one call.
@@ -4096,7 +4072,583 @@ pub fn playdeveloperreporting_vitals_stuckbackgroundwakelockrate_query(
     ApiError,
 >{
     let builder = playdeveloperreporting_vitals_stuckbackgroundwakelockrate_query_builder(
-        client, &args.name, &args.body,
+        client, &args.name,
     )?;
     playdeveloperreporting_vitals_stuckbackgroundwakelockrate_query_execute(builder)
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for GooglePlayDeveloperReportingV1beta1ListAnomaliesResponse
+// =============================================================================
+
+/// ResourceIdentifier implementation for GooglePlayDeveloperReportingV1beta1ListAnomaliesResponse with PlaydeveloperreportingAnomaliesListArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<PlaydeveloperreportingAnomaliesListArgs>
+    for GooglePlayDeveloperReportingV1beta1ListAnomaliesResponse
+{
+    fn generate_resource_id(&self, input: &PlaydeveloperreportingAnomaliesListArgs) -> String {
+        format!("gcp::playdeveloperreporting::GooglePlayDeveloperReportingV1beta1ListAnomaliesResponse/{}", input.parent)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::playdeveloperreporting::GooglePlayDeveloperReportingV1beta1ListAnomaliesResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for GooglePlayDeveloperReportingV1beta1ReleaseFilterOptions
+// =============================================================================
+
+/// ResourceIdentifier implementation for GooglePlayDeveloperReportingV1beta1ReleaseFilterOptions with PlaydeveloperreportingAppsFetchReleaseFilterOptionsArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<PlaydeveloperreportingAppsFetchReleaseFilterOptionsArgs>
+    for GooglePlayDeveloperReportingV1beta1ReleaseFilterOptions
+{
+    fn generate_resource_id(
+        &self,
+        input: &PlaydeveloperreportingAppsFetchReleaseFilterOptionsArgs,
+    ) -> String {
+        format!("gcp::playdeveloperreporting::GooglePlayDeveloperReportingV1beta1ReleaseFilterOptions/{}", input.name)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::playdeveloperreporting::GooglePlayDeveloperReportingV1beta1ReleaseFilterOptions"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for GooglePlayDeveloperReportingV1beta1SearchAccessibleAppsResponse
+// =============================================================================
+
+/// ResourceIdentifier implementation for GooglePlayDeveloperReportingV1beta1SearchAccessibleAppsResponse with PlaydeveloperreportingAppsSearchArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<PlaydeveloperreportingAppsSearchArgs>
+    for GooglePlayDeveloperReportingV1beta1SearchAccessibleAppsResponse
+{
+    fn generate_resource_id(&self, input: &PlaydeveloperreportingAppsSearchArgs) -> String {
+        "gcp::playdeveloperreporting::GooglePlayDeveloperReportingV1beta1SearchAccessibleAppsResponse".to_string()
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::playdeveloperreporting::GooglePlayDeveloperReportingV1beta1SearchAccessibleAppsResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for GooglePlayDeveloperReportingV1beta1AnrRateMetricSet
+// =============================================================================
+
+/// ResourceIdentifier implementation for GooglePlayDeveloperReportingV1beta1AnrRateMetricSet with PlaydeveloperreportingVitalsAnrrateGetArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<PlaydeveloperreportingVitalsAnrrateGetArgs>
+    for GooglePlayDeveloperReportingV1beta1AnrRateMetricSet
+{
+    fn generate_resource_id(&self, input: &PlaydeveloperreportingVitalsAnrrateGetArgs) -> String {
+        format!(
+            "gcp::playdeveloperreporting::GooglePlayDeveloperReportingV1beta1AnrRateMetricSet/{}",
+            input.name
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::playdeveloperreporting::GooglePlayDeveloperReportingV1beta1AnrRateMetricSet"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for GooglePlayDeveloperReportingV1beta1QueryAnrRateMetricSetResponse
+// =============================================================================
+
+/// ResourceIdentifier implementation for GooglePlayDeveloperReportingV1beta1QueryAnrRateMetricSetResponse with PlaydeveloperreportingVitalsAnrrateQueryArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<PlaydeveloperreportingVitalsAnrrateQueryArgs>
+    for GooglePlayDeveloperReportingV1beta1QueryAnrRateMetricSetResponse
+{
+    fn generate_resource_id(&self, input: &PlaydeveloperreportingVitalsAnrrateQueryArgs) -> String {
+        format!("gcp::playdeveloperreporting::GooglePlayDeveloperReportingV1beta1QueryAnrRateMetricSetResponse/{}", input.name)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::playdeveloperreporting::GooglePlayDeveloperReportingV1beta1QueryAnrRateMetricSetResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for GooglePlayDeveloperReportingV1beta1CrashRateMetricSet
+// =============================================================================
+
+/// ResourceIdentifier implementation for GooglePlayDeveloperReportingV1beta1CrashRateMetricSet with PlaydeveloperreportingVitalsCrashrateGetArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<PlaydeveloperreportingVitalsCrashrateGetArgs>
+    for GooglePlayDeveloperReportingV1beta1CrashRateMetricSet
+{
+    fn generate_resource_id(&self, input: &PlaydeveloperreportingVitalsCrashrateGetArgs) -> String {
+        format!(
+            "gcp::playdeveloperreporting::GooglePlayDeveloperReportingV1beta1CrashRateMetricSet/{}",
+            input.name
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::playdeveloperreporting::GooglePlayDeveloperReportingV1beta1CrashRateMetricSet"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for GooglePlayDeveloperReportingV1beta1QueryCrashRateMetricSetResponse
+// =============================================================================
+
+/// ResourceIdentifier implementation for GooglePlayDeveloperReportingV1beta1QueryCrashRateMetricSetResponse with PlaydeveloperreportingVitalsCrashrateQueryArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<PlaydeveloperreportingVitalsCrashrateQueryArgs>
+    for GooglePlayDeveloperReportingV1beta1QueryCrashRateMetricSetResponse
+{
+    fn generate_resource_id(
+        &self,
+        input: &PlaydeveloperreportingVitalsCrashrateQueryArgs,
+    ) -> String {
+        format!("gcp::playdeveloperreporting::GooglePlayDeveloperReportingV1beta1QueryCrashRateMetricSetResponse/{}", input.name)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::playdeveloperreporting::GooglePlayDeveloperReportingV1beta1QueryCrashRateMetricSetResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for GooglePlayDeveloperReportingV1beta1ErrorCountMetricSet
+// =============================================================================
+
+/// ResourceIdentifier implementation for GooglePlayDeveloperReportingV1beta1ErrorCountMetricSet with PlaydeveloperreportingVitalsErrorsCountsGetArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<PlaydeveloperreportingVitalsErrorsCountsGetArgs>
+    for GooglePlayDeveloperReportingV1beta1ErrorCountMetricSet
+{
+    fn generate_resource_id(
+        &self,
+        input: &PlaydeveloperreportingVitalsErrorsCountsGetArgs,
+    ) -> String {
+        format!("gcp::playdeveloperreporting::GooglePlayDeveloperReportingV1beta1ErrorCountMetricSet/{}", input.name)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::playdeveloperreporting::GooglePlayDeveloperReportingV1beta1ErrorCountMetricSet"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for GooglePlayDeveloperReportingV1beta1QueryErrorCountMetricSetResponse
+// =============================================================================
+
+/// ResourceIdentifier implementation for GooglePlayDeveloperReportingV1beta1QueryErrorCountMetricSetResponse with PlaydeveloperreportingVitalsErrorsCountsQueryArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<PlaydeveloperreportingVitalsErrorsCountsQueryArgs>
+    for GooglePlayDeveloperReportingV1beta1QueryErrorCountMetricSetResponse
+{
+    fn generate_resource_id(
+        &self,
+        input: &PlaydeveloperreportingVitalsErrorsCountsQueryArgs,
+    ) -> String {
+        format!("gcp::playdeveloperreporting::GooglePlayDeveloperReportingV1beta1QueryErrorCountMetricSetResponse/{}", input.name)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::playdeveloperreporting::GooglePlayDeveloperReportingV1beta1QueryErrorCountMetricSetResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for GooglePlayDeveloperReportingV1beta1SearchErrorIssuesResponse
+// =============================================================================
+
+/// ResourceIdentifier implementation for GooglePlayDeveloperReportingV1beta1SearchErrorIssuesResponse with PlaydeveloperreportingVitalsErrorsIssuesSearchArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<PlaydeveloperreportingVitalsErrorsIssuesSearchArgs>
+    for GooglePlayDeveloperReportingV1beta1SearchErrorIssuesResponse
+{
+    fn generate_resource_id(
+        &self,
+        input: &PlaydeveloperreportingVitalsErrorsIssuesSearchArgs,
+    ) -> String {
+        format!("gcp::playdeveloperreporting::GooglePlayDeveloperReportingV1beta1SearchErrorIssuesResponse/{}", input.parent)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::playdeveloperreporting::GooglePlayDeveloperReportingV1beta1SearchErrorIssuesResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for GooglePlayDeveloperReportingV1beta1SearchErrorReportsResponse
+// =============================================================================
+
+/// ResourceIdentifier implementation for GooglePlayDeveloperReportingV1beta1SearchErrorReportsResponse with PlaydeveloperreportingVitalsErrorsReportsSearchArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<PlaydeveloperreportingVitalsErrorsReportsSearchArgs>
+    for GooglePlayDeveloperReportingV1beta1SearchErrorReportsResponse
+{
+    fn generate_resource_id(
+        &self,
+        input: &PlaydeveloperreportingVitalsErrorsReportsSearchArgs,
+    ) -> String {
+        format!("gcp::playdeveloperreporting::GooglePlayDeveloperReportingV1beta1SearchErrorReportsResponse/{}", input.parent)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::playdeveloperreporting::GooglePlayDeveloperReportingV1beta1SearchErrorReportsResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for GooglePlayDeveloperReportingV1beta1ExcessiveWakeupRateMetricSet
+// =============================================================================
+
+/// ResourceIdentifier implementation for GooglePlayDeveloperReportingV1beta1ExcessiveWakeupRateMetricSet with PlaydeveloperreportingVitalsExcessivewakeuprateGetArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<PlaydeveloperreportingVitalsExcessivewakeuprateGetArgs>
+    for GooglePlayDeveloperReportingV1beta1ExcessiveWakeupRateMetricSet
+{
+    fn generate_resource_id(
+        &self,
+        input: &PlaydeveloperreportingVitalsExcessivewakeuprateGetArgs,
+    ) -> String {
+        format!("gcp::playdeveloperreporting::GooglePlayDeveloperReportingV1beta1ExcessiveWakeupRateMetricSet/{}", input.name)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::playdeveloperreporting::GooglePlayDeveloperReportingV1beta1ExcessiveWakeupRateMetricSet"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for GooglePlayDeveloperReportingV1beta1QueryExcessiveWakeupRateMetricSetResponse
+// =============================================================================
+
+/// ResourceIdentifier implementation for GooglePlayDeveloperReportingV1beta1QueryExcessiveWakeupRateMetricSetResponse with PlaydeveloperreportingVitalsExcessivewakeuprateQueryArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<PlaydeveloperreportingVitalsExcessivewakeuprateQueryArgs>
+    for GooglePlayDeveloperReportingV1beta1QueryExcessiveWakeupRateMetricSetResponse
+{
+    fn generate_resource_id(
+        &self,
+        input: &PlaydeveloperreportingVitalsExcessivewakeuprateQueryArgs,
+    ) -> String {
+        format!("gcp::playdeveloperreporting::GooglePlayDeveloperReportingV1beta1QueryExcessiveWakeupRateMetricSetResponse/{}", input.name)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::playdeveloperreporting::GooglePlayDeveloperReportingV1beta1QueryExcessiveWakeupRateMetricSetResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for GooglePlayDeveloperReportingV1beta1LmkRateMetricSet
+// =============================================================================
+
+/// ResourceIdentifier implementation for GooglePlayDeveloperReportingV1beta1LmkRateMetricSet with PlaydeveloperreportingVitalsLmkrateGetArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<PlaydeveloperreportingVitalsLmkrateGetArgs>
+    for GooglePlayDeveloperReportingV1beta1LmkRateMetricSet
+{
+    fn generate_resource_id(&self, input: &PlaydeveloperreportingVitalsLmkrateGetArgs) -> String {
+        format!(
+            "gcp::playdeveloperreporting::GooglePlayDeveloperReportingV1beta1LmkRateMetricSet/{}",
+            input.name
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::playdeveloperreporting::GooglePlayDeveloperReportingV1beta1LmkRateMetricSet"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for GooglePlayDeveloperReportingV1beta1QueryLmkRateMetricSetResponse
+// =============================================================================
+
+/// ResourceIdentifier implementation for GooglePlayDeveloperReportingV1beta1QueryLmkRateMetricSetResponse with PlaydeveloperreportingVitalsLmkrateQueryArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<PlaydeveloperreportingVitalsLmkrateQueryArgs>
+    for GooglePlayDeveloperReportingV1beta1QueryLmkRateMetricSetResponse
+{
+    fn generate_resource_id(&self, input: &PlaydeveloperreportingVitalsLmkrateQueryArgs) -> String {
+        format!("gcp::playdeveloperreporting::GooglePlayDeveloperReportingV1beta1QueryLmkRateMetricSetResponse/{}", input.name)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::playdeveloperreporting::GooglePlayDeveloperReportingV1beta1QueryLmkRateMetricSetResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for GooglePlayDeveloperReportingV1beta1SlowRenderingRateMetricSet
+// =============================================================================
+
+/// ResourceIdentifier implementation for GooglePlayDeveloperReportingV1beta1SlowRenderingRateMetricSet with PlaydeveloperreportingVitalsSlowrenderingrateGetArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<PlaydeveloperreportingVitalsSlowrenderingrateGetArgs>
+    for GooglePlayDeveloperReportingV1beta1SlowRenderingRateMetricSet
+{
+    fn generate_resource_id(
+        &self,
+        input: &PlaydeveloperreportingVitalsSlowrenderingrateGetArgs,
+    ) -> String {
+        format!("gcp::playdeveloperreporting::GooglePlayDeveloperReportingV1beta1SlowRenderingRateMetricSet/{}", input.name)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::playdeveloperreporting::GooglePlayDeveloperReportingV1beta1SlowRenderingRateMetricSet"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for GooglePlayDeveloperReportingV1beta1QuerySlowRenderingRateMetricSetResponse
+// =============================================================================
+
+/// ResourceIdentifier implementation for GooglePlayDeveloperReportingV1beta1QuerySlowRenderingRateMetricSetResponse with PlaydeveloperreportingVitalsSlowrenderingrateQueryArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<PlaydeveloperreportingVitalsSlowrenderingrateQueryArgs>
+    for GooglePlayDeveloperReportingV1beta1QuerySlowRenderingRateMetricSetResponse
+{
+    fn generate_resource_id(
+        &self,
+        input: &PlaydeveloperreportingVitalsSlowrenderingrateQueryArgs,
+    ) -> String {
+        format!("gcp::playdeveloperreporting::GooglePlayDeveloperReportingV1beta1QuerySlowRenderingRateMetricSetResponse/{}", input.name)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::playdeveloperreporting::GooglePlayDeveloperReportingV1beta1QuerySlowRenderingRateMetricSetResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for GooglePlayDeveloperReportingV1beta1SlowStartRateMetricSet
+// =============================================================================
+
+/// ResourceIdentifier implementation for GooglePlayDeveloperReportingV1beta1SlowStartRateMetricSet with PlaydeveloperreportingVitalsSlowstartrateGetArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<PlaydeveloperreportingVitalsSlowstartrateGetArgs>
+    for GooglePlayDeveloperReportingV1beta1SlowStartRateMetricSet
+{
+    fn generate_resource_id(
+        &self,
+        input: &PlaydeveloperreportingVitalsSlowstartrateGetArgs,
+    ) -> String {
+        format!("gcp::playdeveloperreporting::GooglePlayDeveloperReportingV1beta1SlowStartRateMetricSet/{}", input.name)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::playdeveloperreporting::GooglePlayDeveloperReportingV1beta1SlowStartRateMetricSet"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for GooglePlayDeveloperReportingV1beta1QuerySlowStartRateMetricSetResponse
+// =============================================================================
+
+/// ResourceIdentifier implementation for GooglePlayDeveloperReportingV1beta1QuerySlowStartRateMetricSetResponse with PlaydeveloperreportingVitalsSlowstartrateQueryArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<PlaydeveloperreportingVitalsSlowstartrateQueryArgs>
+    for GooglePlayDeveloperReportingV1beta1QuerySlowStartRateMetricSetResponse
+{
+    fn generate_resource_id(
+        &self,
+        input: &PlaydeveloperreportingVitalsSlowstartrateQueryArgs,
+    ) -> String {
+        format!("gcp::playdeveloperreporting::GooglePlayDeveloperReportingV1beta1QuerySlowStartRateMetricSetResponse/{}", input.name)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::playdeveloperreporting::GooglePlayDeveloperReportingV1beta1QuerySlowStartRateMetricSetResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for GooglePlayDeveloperReportingV1beta1StuckBackgroundWakelockRateMetricSet
+// =============================================================================
+
+/// ResourceIdentifier implementation for GooglePlayDeveloperReportingV1beta1StuckBackgroundWakelockRateMetricSet with PlaydeveloperreportingVitalsStuckbackgroundwakelockrateGetArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<PlaydeveloperreportingVitalsStuckbackgroundwakelockrateGetArgs>
+    for GooglePlayDeveloperReportingV1beta1StuckBackgroundWakelockRateMetricSet
+{
+    fn generate_resource_id(
+        &self,
+        input: &PlaydeveloperreportingVitalsStuckbackgroundwakelockrateGetArgs,
+    ) -> String {
+        format!("gcp::playdeveloperreporting::GooglePlayDeveloperReportingV1beta1StuckBackgroundWakelockRateMetricSet/{}", input.name)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::playdeveloperreporting::GooglePlayDeveloperReportingV1beta1StuckBackgroundWakelockRateMetricSet"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for GooglePlayDeveloperReportingV1beta1QueryStuckBackgroundWakelockRateMetricSetResponse
+// =============================================================================
+
+/// ResourceIdentifier implementation for GooglePlayDeveloperReportingV1beta1QueryStuckBackgroundWakelockRateMetricSetResponse with PlaydeveloperreportingVitalsStuckbackgroundwakelockrateQueryArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<PlaydeveloperreportingVitalsStuckbackgroundwakelockrateQueryArgs>
+    for GooglePlayDeveloperReportingV1beta1QueryStuckBackgroundWakelockRateMetricSetResponse
+{
+    fn generate_resource_id(
+        &self,
+        input: &PlaydeveloperreportingVitalsStuckbackgroundwakelockrateQueryArgs,
+    ) -> String {
+        format!("gcp::playdeveloperreporting::GooglePlayDeveloperReportingV1beta1QueryStuckBackgroundWakelockRateMetricSetResponse/{}", input.name)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::playdeveloperreporting::GooglePlayDeveloperReportingV1beta1QueryStuckBackgroundWakelockRateMetricSetResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
 }

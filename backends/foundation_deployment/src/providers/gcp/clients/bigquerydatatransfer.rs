@@ -7,7 +7,6 @@
 
 #![cfg(feature = "gcp")]
 
-
 use crate::providers::gcp::clients::types::*;
 use crate::providers::gcp::resources::*;
 use foundation_core::valtron::{
@@ -17,10 +16,11 @@ use foundation_core::valtron::{
 use foundation_core::wire::simple_http::client::{
     body_reader, ClientRequestBuilder, RequestIntro, SimpleHttpClient, SystemDnsResolver,
 };
+use foundation_db::state::resource_identifier::ResourceIdentifier;
 use foundation_macros::JsonHash;
 use serde::Serialize;
 
-/// GET v1/projects/{projectsId}:enrollDataSources
+/// POST v1/projects/{projectsId}:enrollDataSources
 /// Enroll data sources in a user project. This allows users to create transfer configurations for these data sources. They will also appear in the ListDataSources RPC and as such, will appear in the [BigQuery UI](<https://console.cloud.google.`com/bigquery`>), and the documents can be found in the public guide for [BigQuery Web UI](<https://cloud.google.`com/bigquery/bigquery-web-ui`>) and [Data Transfer Service](<https://cloud.google.`com/bigquery/docs/working-with-transfers`>).
 ///
 /// Returns `ClientRequestBuilder` for customization.
@@ -29,23 +29,22 @@ use serde::Serialize;
 pub fn bigquerydatatransfer_projects_enroll_data_sources_builder(
     client: &SimpleHttpClient,
     name: &String,
-    body: &EnrollDataSourcesRequest,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
-    let endpoint_url =
-        format!("https://bigquerydatatransfer.googleapis.com/v1/projects/{}:enrollDataSources",);
+    let endpoint_url = format!(
+        "https://bigquerydatatransfer.googleapis.com/v1/projects/{}:enrollDataSources",
+        name,
+    );
 
     // Build request
     let builder = client
-        .get(&endpoint_url)
+        .post(&endpoint_url)
         .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
 
-    builder
-        .body_json(body)
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+    Ok(builder)
 }
 
-/// GET v1/projects/{projectsId}:enrollDataSources
+/// POST v1/projects/{projectsId}:enrollDataSources
 /// Enroll data sources in a user project. This allows users to create transfer configurations for these data sources. They will also appear in the ListDataSources RPC and as such, will appear in the [BigQuery UI](<https://console.cloud.google.`com/bigquery`>), and the documents can be found in the public guide for [BigQuery Web UI](<https://cloud.google.`com/bigquery/bigquery-web-ui`>) and [Data Transfer Service](<https://cloud.google.`com/bigquery/docs/working-with-transfers`>).
 ///
 /// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
@@ -119,7 +118,7 @@ pub fn bigquerydatatransfer_projects_enroll_data_sources_task(
         .map_pending(|_| ApiPending::Sending))
 }
 
-/// GET v1/projects/{projectsId}:enrollDataSources
+/// POST v1/projects/{projectsId}:enrollDataSources
 /// Enroll data sources in a user project. This allows users to create transfer configurations for these data sources. They will also appear in the ListDataSources RPC and as such, will appear in the [BigQuery UI](<https://console.cloud.google.`com/bigquery`>), and the documents can be found in the public guide for [BigQuery Web UI](<https://cloud.google.`com/bigquery/bigquery-web-ui`>) and [Data Transfer Service](<https://cloud.google.`com/bigquery/docs/working-with-transfers`>).
 ///
 /// Takes a `ClientRequestBuilder`, builds and executes the request,
@@ -154,11 +153,9 @@ pub fn bigquerydatatransfer_projects_enroll_data_sources_execute(
 pub struct BigquerydatatransferProjectsEnrollDataSourcesArgs {
     /// Path parameter: name
     pub name: String,
-    /// Request body.
-    pub body: EnrollDataSourcesRequest,
 }
 
-/// GET v1/projects/{projectsId}:enrollDataSources
+/// POST v1/projects/{projectsId}:enrollDataSources
 /// Enroll data sources in a user project. This allows users to create transfer configurations for these data sources. They will also appear in the ListDataSources RPC and as such, will appear in the [BigQuery UI](<https://console.cloud.google.`com/bigquery`>), and the documents can be found in the public guide for [BigQuery Web UI](<https://cloud.google.`com/bigquery/bigquery-web-ui`>) and [Data Transfer Service](<https://cloud.google.`com/bigquery/docs/working-with-transfers`>).
 ///
 /// Simplest API - builds and executes the request in one call.
@@ -176,9 +173,327 @@ pub fn bigquerydatatransfer_projects_enroll_data_sources(
     impl StreamIterator<D = Result<ApiResponse<Empty>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder =
-        bigquerydatatransfer_projects_enroll_data_sources_builder(client, &args.name, &args.body)?;
+    let builder = bigquerydatatransfer_projects_enroll_data_sources_builder(client, &args.name)?;
     bigquerydatatransfer_projects_enroll_data_sources_execute(builder)
+}
+
+/// POST v1/projects/{projectsId}/dataSources/{dataSourcesId}:checkValidCreds
+/// Returns `true` if valid credentials exist for the given data source and requesting user.
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `bigquerydatatransfer_projects_data_sources_check_valid_creds_execute()` to send, or `bigquerydatatransfer_projects_data_sources_check_valid_creds` for simplest API.
+
+pub fn bigquerydatatransfer_projects_data_sources_check_valid_creds_builder(
+    client: &SimpleHttpClient,
+    name: &String,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!(
+        "https://bigquerydatatransfer.googleapis.com/v1/projects/{}/dataSources/{dataSourcesId}:checkValidCreds",
+        name,
+    );
+
+    // Build request
+    let builder = client
+        .post(&endpoint_url)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// POST v1/projects/{projectsId}/dataSources/{dataSourcesId}:checkValidCreds
+/// Returns `true` if valid credentials exist for the given data source and requesting user.
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `bigquerydatatransfer_projects_data_sources_check_valid_creds_execute()` or `bigquerydatatransfer_projects_data_sources_check_valid_creds`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `bigquerydatatransfer_projects_data_sources_check_valid_creds_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn bigquerydatatransfer_projects_data_sources_check_valid_creds_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<CheckValidCredsResponse>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: CheckValidCredsResponse = serde_json::from_str(&body)
+                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// POST v1/projects/{projectsId}/dataSources/{dataSourcesId}:checkValidCreds
+/// Returns `true` if valid credentials exist for the given data source and requesting user.
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `bigquerydatatransfer_projects_data_sources_check_valid_creds_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `bigquerydatatransfer_projects_data_sources_check_valid_creds_task()`.
+/// For the simplest API, use `bigquerydatatransfer_projects_data_sources_check_valid_creds()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `bigquerydatatransfer_projects_data_sources_check_valid_creds_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn bigquerydatatransfer_projects_data_sources_check_valid_creds_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<CheckValidCredsResponse>, ApiError>, P = ApiPending>
+        + Send
+        + 'static,
+    ApiError,
+> {
+    let task = bigquerydatatransfer_projects_data_sources_check_valid_creds_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`bigquerydatatransfer_projects_data_sources_check_valid_creds`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct BigquerydatatransferProjectsDataSourcesCheckValidCredsArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
+/// POST v1/projects/{projectsId}/dataSources/{dataSourcesId}:checkValidCreds
+/// Returns `true` if valid credentials exist for the given data source and requesting user.
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `bigquerydatatransfer_projects_data_sources_check_valid_creds_builder()` + `bigquerydatatransfer_projects_data_sources_check_valid_creds_execute()`.
+/// For task-level control, use `bigquerydatatransfer_projects_data_sources_check_valid_creds_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn bigquerydatatransfer_projects_data_sources_check_valid_creds(
+    client: &SimpleHttpClient,
+    args: &BigquerydatatransferProjectsDataSourcesCheckValidCredsArgs,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<CheckValidCredsResponse>, ApiError>, P = ApiPending>
+        + Send
+        + 'static,
+    ApiError,
+> {
+    let builder =
+        bigquerydatatransfer_projects_data_sources_check_valid_creds_builder(client, &args.name)?;
+    bigquerydatatransfer_projects_data_sources_check_valid_creds_execute(builder)
+}
+
+/// GET v1/projects/{projectsId}/dataSources/{dataSourcesId}
+/// Retrieves a supported data source and returns its settings.
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `bigquerydatatransfer_projects_data_sources_get_execute()` to send, or `bigquerydatatransfer_projects_data_sources_get` for simplest API.
+
+pub fn bigquerydatatransfer_projects_data_sources_get_builder(
+    client: &SimpleHttpClient,
+    name: &String,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!(
+        "https://bigquerydatatransfer.googleapis.com/v1/projects/{}/dataSources/{dataSourcesId}",
+        name,
+    );
+
+    // Build request
+    let builder = client
+        .get(&endpoint_url)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// GET v1/projects/{projectsId}/dataSources/{dataSourcesId}
+/// Retrieves a supported data source and returns its settings.
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `bigquerydatatransfer_projects_data_sources_get_execute()` or `bigquerydatatransfer_projects_data_sources_get`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `bigquerydatatransfer_projects_data_sources_get_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn bigquerydatatransfer_projects_data_sources_get_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<DataSource>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: DataSource = serde_json::from_str(&body)
+                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// GET v1/projects/{projectsId}/dataSources/{dataSourcesId}
+/// Retrieves a supported data source and returns its settings.
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `bigquerydatatransfer_projects_data_sources_get_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `bigquerydatatransfer_projects_data_sources_get_task()`.
+/// For the simplest API, use `bigquerydatatransfer_projects_data_sources_get()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `bigquerydatatransfer_projects_data_sources_get_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn bigquerydatatransfer_projects_data_sources_get_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<DataSource>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let task = bigquerydatatransfer_projects_data_sources_get_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`bigquerydatatransfer_projects_data_sources_get`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct BigquerydatatransferProjectsDataSourcesGetArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
+/// GET v1/projects/{projectsId}/dataSources/{dataSourcesId}
+/// Retrieves a supported data source and returns its settings.
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `bigquerydatatransfer_projects_data_sources_get_builder()` + `bigquerydatatransfer_projects_data_sources_get_execute()`.
+/// For task-level control, use `bigquerydatatransfer_projects_data_sources_get_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn bigquerydatatransfer_projects_data_sources_get(
+    client: &SimpleHttpClient,
+    args: &BigquerydatatransferProjectsDataSourcesGetArgs,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<DataSource>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let builder = bigquerydatatransfer_projects_data_sources_get_builder(client, &args.name)?;
+    bigquerydatatransfer_projects_data_sources_get_execute(builder)
 }
 
 /// GET v1/projects/{projectsId}/dataSources
@@ -190,12 +505,14 @@ pub fn bigquerydatatransfer_projects_enroll_data_sources(
 pub fn bigquerydatatransfer_projects_data_sources_list_builder(
     client: &SimpleHttpClient,
     parent: &String,
-    pageSize: &Option<i32>,
-    pageToken: &Option<String>,
+    pageSize: &Option<Option<String>>,
+    pageToken: &Option<Option<String>>,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
-    let endpoint_url =
-        format!("https://bigquerydatatransfer.googleapis.com/v1/projects/{}/dataSources",);
+    let endpoint_url = format!(
+        "https://bigquerydatatransfer.googleapis.com/v1/projects/{}/dataSources",
+        parent,
+    );
 
     // Build request
     let mut query_parts = Vec::new();
@@ -331,9 +648,9 @@ pub struct BigquerydatatransferProjectsDataSourcesListArgs {
     /// Path parameter: parent
     pub parent: String,
     /// Query parameter: pageSize
-    pub pageSize: Option<i32>,
+    pub pageSize: Option<Option<String>>,
     /// Query parameter: pageToken
-    pub pageToken: Option<String>,
+    pub pageToken: Option<Option<String>>,
 }
 
 /// GET v1/projects/{projectsId}/dataSources
@@ -365,6 +682,321 @@ pub fn bigquerydatatransfer_projects_data_sources_list(
     bigquerydatatransfer_projects_data_sources_list_execute(builder)
 }
 
+/// POST v1/projects/{projectsId}/locations/{locationsId}:enrollDataSources
+/// Enroll data sources in a user project. This allows users to create transfer configurations for these data sources. They will also appear in the ListDataSources RPC and as such, will appear in the [BigQuery UI](<https://console.cloud.google.`com/bigquery`>), and the documents can be found in the public guide for [BigQuery Web UI](<https://cloud.google.`com/bigquery/bigquery-web-ui`>) and [Data Transfer Service](<https://cloud.google.`com/bigquery/docs/working-with-transfers`>).
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `bigquerydatatransfer_projects_locations_enroll_data_sources_execute()` to send, or `bigquerydatatransfer_projects_locations_enroll_data_sources` for simplest API.
+
+pub fn bigquerydatatransfer_projects_locations_enroll_data_sources_builder(
+    client: &SimpleHttpClient,
+    name: &String,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!(
+        "https://bigquerydatatransfer.googleapis.com/v1/projects/{}/locations/{locationsId}:enrollDataSources",
+        name,
+    );
+
+    // Build request
+    let builder = client
+        .post(&endpoint_url)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// POST v1/projects/{projectsId}/locations/{locationsId}:enrollDataSources
+/// Enroll data sources in a user project. This allows users to create transfer configurations for these data sources. They will also appear in the ListDataSources RPC and as such, will appear in the [BigQuery UI](<https://console.cloud.google.`com/bigquery`>), and the documents can be found in the public guide for [BigQuery Web UI](<https://cloud.google.`com/bigquery/bigquery-web-ui`>) and [Data Transfer Service](<https://cloud.google.`com/bigquery/docs/working-with-transfers`>).
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `bigquerydatatransfer_projects_locations_enroll_data_sources_execute()` or `bigquerydatatransfer_projects_locations_enroll_data_sources`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `bigquerydatatransfer_projects_locations_enroll_data_sources_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn bigquerydatatransfer_projects_locations_enroll_data_sources_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<Empty>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: Empty = serde_json::from_str(&body)
+                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// POST v1/projects/{projectsId}/locations/{locationsId}:enrollDataSources
+/// Enroll data sources in a user project. This allows users to create transfer configurations for these data sources. They will also appear in the ListDataSources RPC and as such, will appear in the [BigQuery UI](<https://console.cloud.google.`com/bigquery`>), and the documents can be found in the public guide for [BigQuery Web UI](<https://cloud.google.`com/bigquery/bigquery-web-ui`>) and [Data Transfer Service](<https://cloud.google.`com/bigquery/docs/working-with-transfers`>).
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `bigquerydatatransfer_projects_locations_enroll_data_sources_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `bigquerydatatransfer_projects_locations_enroll_data_sources_task()`.
+/// For the simplest API, use `bigquerydatatransfer_projects_locations_enroll_data_sources()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `bigquerydatatransfer_projects_locations_enroll_data_sources_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn bigquerydatatransfer_projects_locations_enroll_data_sources_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<Empty>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let task = bigquerydatatransfer_projects_locations_enroll_data_sources_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`bigquerydatatransfer_projects_locations_enroll_data_sources`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct BigquerydatatransferProjectsLocationsEnrollDataSourcesArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
+/// POST v1/projects/{projectsId}/locations/{locationsId}:enrollDataSources
+/// Enroll data sources in a user project. This allows users to create transfer configurations for these data sources. They will also appear in the ListDataSources RPC and as such, will appear in the [BigQuery UI](<https://console.cloud.google.`com/bigquery`>), and the documents can be found in the public guide for [BigQuery Web UI](<https://cloud.google.`com/bigquery/bigquery-web-ui`>) and [Data Transfer Service](<https://cloud.google.`com/bigquery/docs/working-with-transfers`>).
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `bigquerydatatransfer_projects_locations_enroll_data_sources_builder()` + `bigquerydatatransfer_projects_locations_enroll_data_sources_execute()`.
+/// For task-level control, use `bigquerydatatransfer_projects_locations_enroll_data_sources_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn bigquerydatatransfer_projects_locations_enroll_data_sources(
+    client: &SimpleHttpClient,
+    args: &BigquerydatatransferProjectsLocationsEnrollDataSourcesArgs,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<Empty>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let builder =
+        bigquerydatatransfer_projects_locations_enroll_data_sources_builder(client, &args.name)?;
+    bigquerydatatransfer_projects_locations_enroll_data_sources_execute(builder)
+}
+
+/// GET v1/projects/{projectsId}/locations/{locationsId}
+/// Gets information about a location.
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `bigquerydatatransfer_projects_locations_get_execute()` to send, or `bigquerydatatransfer_projects_locations_get` for simplest API.
+
+pub fn bigquerydatatransfer_projects_locations_get_builder(
+    client: &SimpleHttpClient,
+    name: &String,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!(
+        "https://bigquerydatatransfer.googleapis.com/v1/projects/{}/locations/{locationsId}",
+        name,
+    );
+
+    // Build request
+    let builder = client
+        .get(&endpoint_url)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// GET v1/projects/{projectsId}/locations/{locationsId}
+/// Gets information about a location.
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `bigquerydatatransfer_projects_locations_get_execute()` or `bigquerydatatransfer_projects_locations_get`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `bigquerydatatransfer_projects_locations_get_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn bigquerydatatransfer_projects_locations_get_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<Location>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: Location = serde_json::from_str(&body)
+                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// GET v1/projects/{projectsId}/locations/{locationsId}
+/// Gets information about a location.
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `bigquerydatatransfer_projects_locations_get_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `bigquerydatatransfer_projects_locations_get_task()`.
+/// For the simplest API, use `bigquerydatatransfer_projects_locations_get()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `bigquerydatatransfer_projects_locations_get_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn bigquerydatatransfer_projects_locations_get_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<Location>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let task = bigquerydatatransfer_projects_locations_get_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`bigquerydatatransfer_projects_locations_get`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct BigquerydatatransferProjectsLocationsGetArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
+/// GET v1/projects/{projectsId}/locations/{locationsId}
+/// Gets information about a location.
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `bigquerydatatransfer_projects_locations_get_builder()` + `bigquerydatatransfer_projects_locations_get_execute()`.
+/// For task-level control, use `bigquerydatatransfer_projects_locations_get_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn bigquerydatatransfer_projects_locations_get(
+    client: &SimpleHttpClient,
+    args: &BigquerydatatransferProjectsLocationsGetArgs,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<Location>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let builder = bigquerydatatransfer_projects_locations_get_builder(client, &args.name)?;
+    bigquerydatatransfer_projects_locations_get_execute(builder)
+}
+
 /// GET v1/projects/{projectsId}/locations
 /// Lists information about the supported locations for this service. This method lists locations based on the resource scope provided in the [ListLocationsRequest.name] field: * **Global locations**: If name is empty, the method lists the public locations available to all projects. * **Project-specific locations**: If name follows the format `projects/{project}`, the method lists locations visible to that specific project. This includes public, private, or other project-specific locations enabled for the project. For `gRPC` and client library implementations, the resource name is passed as the name field. For direct service calls, the resource name is incorporated into the request path based on the specific service implementation and version.
 ///
@@ -374,14 +1006,16 @@ pub fn bigquerydatatransfer_projects_data_sources_list(
 pub fn bigquerydatatransfer_projects_locations_list_builder(
     client: &SimpleHttpClient,
     name: &String,
-    extraLocationTypes: &Option<String>,
-    filter: &Option<String>,
-    pageSize: &Option<i32>,
-    pageToken: &Option<String>,
+    extraLocationTypes: &Option<Option<String>>,
+    filter: &Option<Option<String>>,
+    pageSize: &Option<Option<String>>,
+    pageToken: &Option<Option<String>>,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
-    let endpoint_url =
-        format!("https://bigquerydatatransfer.googleapis.com/v1/projects/{}/locations",);
+    let endpoint_url = format!(
+        "https://bigquerydatatransfer.googleapis.com/v1/projects/{}/locations",
+        name,
+    );
 
     // Build request
     let mut query_parts = Vec::new();
@@ -523,13 +1157,13 @@ pub struct BigquerydatatransferProjectsLocationsListArgs {
     /// Path parameter: name
     pub name: String,
     /// Query parameter: extraLocationTypes
-    pub extraLocationTypes: Option<String>,
+    pub extraLocationTypes: Option<Option<String>>,
     /// Query parameter: filter
-    pub filter: Option<String>,
+    pub filter: Option<Option<String>>,
     /// Query parameter: pageSize
-    pub pageSize: Option<i32>,
+    pub pageSize: Option<Option<String>>,
     /// Query parameter: pageToken
-    pub pageToken: Option<String>,
+    pub pageToken: Option<Option<String>>,
 }
 
 /// GET v1/projects/{projectsId}/locations
@@ -563,23 +1197,690 @@ pub fn bigquerydatatransfer_projects_locations_list(
     bigquerydatatransfer_projects_locations_list_execute(builder)
 }
 
-/// GET v1/projects/{projectsId}/transferConfigs
+/// POST v1/projects/{projectsId}/locations/{locationsId}:unenrollDataSources
+/// Unenroll data sources in a user project. This allows users to remove transfer configurations for these data sources. They will no longer appear in the ListDataSources RPC and will also no longer appear in the [BigQuery UI](<https://console.cloud.google.`com/bigquery`>). Data transfers configurations of unenrolled data sources will not be scheduled.
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `bigquerydatatransfer_projects_locations_unenroll_data_sources_execute()` to send, or `bigquerydatatransfer_projects_locations_unenroll_data_sources` for simplest API.
+
+pub fn bigquerydatatransfer_projects_locations_unenroll_data_sources_builder(
+    client: &SimpleHttpClient,
+    name: &String,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!(
+        "https://bigquerydatatransfer.googleapis.com/v1/projects/{}/locations/{locationsId}:unenrollDataSources",
+        name,
+    );
+
+    // Build request
+    let builder = client
+        .post(&endpoint_url)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// POST v1/projects/{projectsId}/locations/{locationsId}:unenrollDataSources
+/// Unenroll data sources in a user project. This allows users to remove transfer configurations for these data sources. They will no longer appear in the ListDataSources RPC and will also no longer appear in the [BigQuery UI](<https://console.cloud.google.`com/bigquery`>). Data transfers configurations of unenrolled data sources will not be scheduled.
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `bigquerydatatransfer_projects_locations_unenroll_data_sources_execute()` or `bigquerydatatransfer_projects_locations_unenroll_data_sources`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `bigquerydatatransfer_projects_locations_unenroll_data_sources_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn bigquerydatatransfer_projects_locations_unenroll_data_sources_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<Empty>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: Empty = serde_json::from_str(&body)
+                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// POST v1/projects/{projectsId}/locations/{locationsId}:unenrollDataSources
+/// Unenroll data sources in a user project. This allows users to remove transfer configurations for these data sources. They will no longer appear in the ListDataSources RPC and will also no longer appear in the [BigQuery UI](<https://console.cloud.google.`com/bigquery`>). Data transfers configurations of unenrolled data sources will not be scheduled.
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `bigquerydatatransfer_projects_locations_unenroll_data_sources_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `bigquerydatatransfer_projects_locations_unenroll_data_sources_task()`.
+/// For the simplest API, use `bigquerydatatransfer_projects_locations_unenroll_data_sources()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `bigquerydatatransfer_projects_locations_unenroll_data_sources_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn bigquerydatatransfer_projects_locations_unenroll_data_sources_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<Empty>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let task = bigquerydatatransfer_projects_locations_unenroll_data_sources_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`bigquerydatatransfer_projects_locations_unenroll_data_sources`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct BigquerydatatransferProjectsLocationsUnenrollDataSourcesArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
+/// POST v1/projects/{projectsId}/locations/{locationsId}:unenrollDataSources
+/// Unenroll data sources in a user project. This allows users to remove transfer configurations for these data sources. They will no longer appear in the ListDataSources RPC and will also no longer appear in the [BigQuery UI](<https://console.cloud.google.`com/bigquery`>). Data transfers configurations of unenrolled data sources will not be scheduled.
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `bigquerydatatransfer_projects_locations_unenroll_data_sources_builder()` + `bigquerydatatransfer_projects_locations_unenroll_data_sources_execute()`.
+/// For task-level control, use `bigquerydatatransfer_projects_locations_unenroll_data_sources_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn bigquerydatatransfer_projects_locations_unenroll_data_sources(
+    client: &SimpleHttpClient,
+    args: &BigquerydatatransferProjectsLocationsUnenrollDataSourcesArgs,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<Empty>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let builder =
+        bigquerydatatransfer_projects_locations_unenroll_data_sources_builder(client, &args.name)?;
+    bigquerydatatransfer_projects_locations_unenroll_data_sources_execute(builder)
+}
+
+/// POST v1/projects/{projectsId}/locations/{locationsId}/dataSources/{dataSourcesId}:checkValidCreds
+/// Returns `true` if valid credentials exist for the given data source and requesting user.
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `bigquerydatatransfer_projects_locations_data_sources_check_valid_creds_execute()` to send, or `bigquerydatatransfer_projects_locations_data_sources_check_valid_creds` for simplest API.
+
+pub fn bigquerydatatransfer_projects_locations_data_sources_check_valid_creds_builder(
+    client: &SimpleHttpClient,
+    name: &String,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!(
+        "https://bigquerydatatransfer.googleapis.com/v1/projects/{}/locations/{locationsId}/dataSources/{dataSourcesId}:checkValidCreds",
+        name,
+    );
+
+    // Build request
+    let builder = client
+        .post(&endpoint_url)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// POST v1/projects/{projectsId}/locations/{locationsId}/dataSources/{dataSourcesId}:checkValidCreds
+/// Returns `true` if valid credentials exist for the given data source and requesting user.
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `bigquerydatatransfer_projects_locations_data_sources_check_valid_creds_execute()` or `bigquerydatatransfer_projects_locations_data_sources_check_valid_creds`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `bigquerydatatransfer_projects_locations_data_sources_check_valid_creds_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn bigquerydatatransfer_projects_locations_data_sources_check_valid_creds_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<CheckValidCredsResponse>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: CheckValidCredsResponse = serde_json::from_str(&body)
+                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// POST v1/projects/{projectsId}/locations/{locationsId}/dataSources/{dataSourcesId}:checkValidCreds
+/// Returns `true` if valid credentials exist for the given data source and requesting user.
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `bigquerydatatransfer_projects_locations_data_sources_check_valid_creds_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `bigquerydatatransfer_projects_locations_data_sources_check_valid_creds_task()`.
+/// For the simplest API, use `bigquerydatatransfer_projects_locations_data_sources_check_valid_creds()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `bigquerydatatransfer_projects_locations_data_sources_check_valid_creds_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn bigquerydatatransfer_projects_locations_data_sources_check_valid_creds_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<CheckValidCredsResponse>, ApiError>, P = ApiPending>
+        + Send
+        + 'static,
+    ApiError,
+> {
+    let task =
+        bigquerydatatransfer_projects_locations_data_sources_check_valid_creds_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`bigquerydatatransfer_projects_locations_data_sources_check_valid_creds`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct BigquerydatatransferProjectsLocationsDataSourcesCheckValidCredsArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
+/// POST v1/projects/{projectsId}/locations/{locationsId}/dataSources/{dataSourcesId}:checkValidCreds
+/// Returns `true` if valid credentials exist for the given data source and requesting user.
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `bigquerydatatransfer_projects_locations_data_sources_check_valid_creds_builder()` + `bigquerydatatransfer_projects_locations_data_sources_check_valid_creds_execute()`.
+/// For task-level control, use `bigquerydatatransfer_projects_locations_data_sources_check_valid_creds_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn bigquerydatatransfer_projects_locations_data_sources_check_valid_creds(
+    client: &SimpleHttpClient,
+    args: &BigquerydatatransferProjectsLocationsDataSourcesCheckValidCredsArgs,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<CheckValidCredsResponse>, ApiError>, P = ApiPending>
+        + Send
+        + 'static,
+    ApiError,
+> {
+    let builder = bigquerydatatransfer_projects_locations_data_sources_check_valid_creds_builder(
+        client, &args.name,
+    )?;
+    bigquerydatatransfer_projects_locations_data_sources_check_valid_creds_execute(builder)
+}
+
+/// GET v1/projects/{projectsId}/locations/{locationsId}/dataSources/{dataSourcesId}
+/// Retrieves a supported data source and returns its settings.
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `bigquerydatatransfer_projects_locations_data_sources_get_execute()` to send, or `bigquerydatatransfer_projects_locations_data_sources_get` for simplest API.
+
+pub fn bigquerydatatransfer_projects_locations_data_sources_get_builder(
+    client: &SimpleHttpClient,
+    name: &String,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!(
+        "https://bigquerydatatransfer.googleapis.com/v1/projects/{}/locations/{locationsId}/dataSources/{dataSourcesId}",
+        name,
+    );
+
+    // Build request
+    let builder = client
+        .get(&endpoint_url)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// GET v1/projects/{projectsId}/locations/{locationsId}/dataSources/{dataSourcesId}
+/// Retrieves a supported data source and returns its settings.
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `bigquerydatatransfer_projects_locations_data_sources_get_execute()` or `bigquerydatatransfer_projects_locations_data_sources_get`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `bigquerydatatransfer_projects_locations_data_sources_get_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn bigquerydatatransfer_projects_locations_data_sources_get_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<DataSource>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: DataSource = serde_json::from_str(&body)
+                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// GET v1/projects/{projectsId}/locations/{locationsId}/dataSources/{dataSourcesId}
+/// Retrieves a supported data source and returns its settings.
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `bigquerydatatransfer_projects_locations_data_sources_get_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `bigquerydatatransfer_projects_locations_data_sources_get_task()`.
+/// For the simplest API, use `bigquerydatatransfer_projects_locations_data_sources_get()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `bigquerydatatransfer_projects_locations_data_sources_get_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn bigquerydatatransfer_projects_locations_data_sources_get_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<DataSource>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let task = bigquerydatatransfer_projects_locations_data_sources_get_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`bigquerydatatransfer_projects_locations_data_sources_get`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct BigquerydatatransferProjectsLocationsDataSourcesGetArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
+/// GET v1/projects/{projectsId}/locations/{locationsId}/dataSources/{dataSourcesId}
+/// Retrieves a supported data source and returns its settings.
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `bigquerydatatransfer_projects_locations_data_sources_get_builder()` + `bigquerydatatransfer_projects_locations_data_sources_get_execute()`.
+/// For task-level control, use `bigquerydatatransfer_projects_locations_data_sources_get_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn bigquerydatatransfer_projects_locations_data_sources_get(
+    client: &SimpleHttpClient,
+    args: &BigquerydatatransferProjectsLocationsDataSourcesGetArgs,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<DataSource>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let builder =
+        bigquerydatatransfer_projects_locations_data_sources_get_builder(client, &args.name)?;
+    bigquerydatatransfer_projects_locations_data_sources_get_execute(builder)
+}
+
+/// GET v1/projects/{projectsId}/locations/{locationsId}/dataSources
+/// Lists supported data sources and returns their settings.
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `bigquerydatatransfer_projects_locations_data_sources_list_execute()` to send, or `bigquerydatatransfer_projects_locations_data_sources_list` for simplest API.
+
+pub fn bigquerydatatransfer_projects_locations_data_sources_list_builder(
+    client: &SimpleHttpClient,
+    parent: &String,
+    pageSize: &Option<Option<String>>,
+    pageToken: &Option<Option<String>>,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!(
+        "https://bigquerydatatransfer.googleapis.com/v1/projects/{}/locations/{locationsId}/dataSources",
+        parent,
+    );
+
+    // Build request
+    let mut query_parts = Vec::new();
+    if let Some(val) = pageSize.as_ref() {
+        query_parts.push(format!("pageSize={}", val));
+    }
+    if let Some(val) = pageToken.as_ref() {
+        query_parts.push(format!("pageToken={}", val));
+    }
+
+    let url_with_query = if query_parts.is_empty() {
+        endpoint_url
+    } else {
+        format!("{}?{}", endpoint_url, query_parts.join("&"))
+    };
+
+    let builder = client
+        .get(&url_with_query)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// GET v1/projects/{projectsId}/locations/{locationsId}/dataSources
+/// Lists supported data sources and returns their settings.
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `bigquerydatatransfer_projects_locations_data_sources_list_execute()` or `bigquerydatatransfer_projects_locations_data_sources_list`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `bigquerydatatransfer_projects_locations_data_sources_list_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn bigquerydatatransfer_projects_locations_data_sources_list_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<ListDataSourcesResponse>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: ListDataSourcesResponse = serde_json::from_str(&body)
+                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// GET v1/projects/{projectsId}/locations/{locationsId}/dataSources
+/// Lists supported data sources and returns their settings.
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `bigquerydatatransfer_projects_locations_data_sources_list_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `bigquerydatatransfer_projects_locations_data_sources_list_task()`.
+/// For the simplest API, use `bigquerydatatransfer_projects_locations_data_sources_list()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `bigquerydatatransfer_projects_locations_data_sources_list_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn bigquerydatatransfer_projects_locations_data_sources_list_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<ListDataSourcesResponse>, ApiError>, P = ApiPending>
+        + Send
+        + 'static,
+    ApiError,
+> {
+    let task = bigquerydatatransfer_projects_locations_data_sources_list_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`bigquerydatatransfer_projects_locations_data_sources_list`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct BigquerydatatransferProjectsLocationsDataSourcesListArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Query parameter: pageSize
+    pub pageSize: Option<Option<String>>,
+    /// Query parameter: pageToken
+    pub pageToken: Option<Option<String>>,
+}
+
+/// GET v1/projects/{projectsId}/locations/{locationsId}/dataSources
+/// Lists supported data sources and returns their settings.
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `bigquerydatatransfer_projects_locations_data_sources_list_builder()` + `bigquerydatatransfer_projects_locations_data_sources_list_execute()`.
+/// For task-level control, use `bigquerydatatransfer_projects_locations_data_sources_list_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn bigquerydatatransfer_projects_locations_data_sources_list(
+    client: &SimpleHttpClient,
+    args: &BigquerydatatransferProjectsLocationsDataSourcesListArgs,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<ListDataSourcesResponse>, ApiError>, P = ApiPending>
+        + Send
+        + 'static,
+    ApiError,
+> {
+    let builder = bigquerydatatransfer_projects_locations_data_sources_list_builder(
+        client,
+        &args.parent,
+        &args.pageSize,
+        &args.pageToken,
+    )?;
+    bigquerydatatransfer_projects_locations_data_sources_list_execute(builder)
+}
+
+/// POST v1/projects/{projectsId}/locations/{locationsId}/transferConfigs
 /// Creates a new data transfer configuration.
 ///
 /// Returns `ClientRequestBuilder` for customization.
-/// Use `bigquerydatatransfer_projects_transfer_configs_create_execute()` to send, or `bigquerydatatransfer_projects_transfer_configs_create` for simplest API.
+/// Use `bigquerydatatransfer_projects_locations_transfer_configs_create_execute()` to send, or `bigquerydatatransfer_projects_locations_transfer_configs_create` for simplest API.
 
-pub fn bigquerydatatransfer_projects_transfer_configs_create_builder(
+pub fn bigquerydatatransfer_projects_locations_transfer_configs_create_builder(
     client: &SimpleHttpClient,
     parent: &String,
-    authorizationCode: &Option<String>,
-    serviceAccountName: &Option<String>,
-    versionInfo: &Option<String>,
-    body: &TransferConfig,
+    authorizationCode: &Option<Option<String>>,
+    serviceAccountName: &Option<Option<String>>,
+    versionInfo: &Option<Option<String>>,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
-    let endpoint_url =
-        format!("https://bigquerydatatransfer.googleapis.com/v1/projects/{}/transferConfigs",);
+    let endpoint_url = format!(
+        "https://bigquerydatatransfer.googleapis.com/v1/projects/{}/locations/{locationsId}/transferConfigs",
+        parent,
+    );
 
     // Build request
     let mut query_parts = Vec::new();
@@ -600,15 +1901,2350 @@ pub fn bigquerydatatransfer_projects_transfer_configs_create_builder(
     };
 
     let builder = client
+        .post(&url_with_query)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// POST v1/projects/{projectsId}/locations/{locationsId}/transferConfigs
+/// Creates a new data transfer configuration.
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `bigquerydatatransfer_projects_locations_transfer_configs_create_execute()` or `bigquerydatatransfer_projects_locations_transfer_configs_create`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `bigquerydatatransfer_projects_locations_transfer_configs_create_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn bigquerydatatransfer_projects_locations_transfer_configs_create_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<TransferConfig>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: TransferConfig = serde_json::from_str(&body)
+                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// POST v1/projects/{projectsId}/locations/{locationsId}/transferConfigs
+/// Creates a new data transfer configuration.
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `bigquerydatatransfer_projects_locations_transfer_configs_create_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `bigquerydatatransfer_projects_locations_transfer_configs_create_task()`.
+/// For the simplest API, use `bigquerydatatransfer_projects_locations_transfer_configs_create()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `bigquerydatatransfer_projects_locations_transfer_configs_create_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn bigquerydatatransfer_projects_locations_transfer_configs_create_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<TransferConfig>, ApiError>, P = ApiPending>
+        + Send
+        + 'static,
+    ApiError,
+> {
+    let task = bigquerydatatransfer_projects_locations_transfer_configs_create_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`bigquerydatatransfer_projects_locations_transfer_configs_create`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct BigquerydatatransferProjectsLocationsTransferConfigsCreateArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Query parameter: authorizationCode
+    pub authorizationCode: Option<Option<String>>,
+    /// Query parameter: serviceAccountName
+    pub serviceAccountName: Option<Option<String>>,
+    /// Query parameter: versionInfo
+    pub versionInfo: Option<Option<String>>,
+}
+
+/// POST v1/projects/{projectsId}/locations/{locationsId}/transferConfigs
+/// Creates a new data transfer configuration.
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `bigquerydatatransfer_projects_locations_transfer_configs_create_builder()` + `bigquerydatatransfer_projects_locations_transfer_configs_create_execute()`.
+/// For task-level control, use `bigquerydatatransfer_projects_locations_transfer_configs_create_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn bigquerydatatransfer_projects_locations_transfer_configs_create(
+    client: &SimpleHttpClient,
+    args: &BigquerydatatransferProjectsLocationsTransferConfigsCreateArgs,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<TransferConfig>, ApiError>, P = ApiPending>
+        + Send
+        + 'static,
+    ApiError,
+> {
+    let builder = bigquerydatatransfer_projects_locations_transfer_configs_create_builder(
+        client,
+        &args.parent,
+        &args.authorizationCode,
+        &args.serviceAccountName,
+        &args.versionInfo,
+    )?;
+    bigquerydatatransfer_projects_locations_transfer_configs_create_execute(builder)
+}
+
+/// DELETE v1/projects/{projectsId}/locations/{locationsId}/transferConfigs/{transferConfigsId}
+/// Deletes a data transfer configuration, including any associated transfer runs and logs.
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `bigquerydatatransfer_projects_locations_transfer_configs_delete_execute()` to send, or `bigquerydatatransfer_projects_locations_transfer_configs_delete` for simplest API.
+
+pub fn bigquerydatatransfer_projects_locations_transfer_configs_delete_builder(
+    client: &SimpleHttpClient,
+    name: &String,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!(
+        "https://bigquerydatatransfer.googleapis.com/v1/projects/{}/locations/{locationsId}/transferConfigs/{transferConfigsId}",
+        name,
+    );
+
+    // Build request
+    let builder = client
+        .delete(&endpoint_url)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// DELETE v1/projects/{projectsId}/locations/{locationsId}/transferConfigs/{transferConfigsId}
+/// Deletes a data transfer configuration, including any associated transfer runs and logs.
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `bigquerydatatransfer_projects_locations_transfer_configs_delete_execute()` or `bigquerydatatransfer_projects_locations_transfer_configs_delete`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `bigquerydatatransfer_projects_locations_transfer_configs_delete_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn bigquerydatatransfer_projects_locations_transfer_configs_delete_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<Empty>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: Empty = serde_json::from_str(&body)
+                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// DELETE v1/projects/{projectsId}/locations/{locationsId}/transferConfigs/{transferConfigsId}
+/// Deletes a data transfer configuration, including any associated transfer runs and logs.
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `bigquerydatatransfer_projects_locations_transfer_configs_delete_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `bigquerydatatransfer_projects_locations_transfer_configs_delete_task()`.
+/// For the simplest API, use `bigquerydatatransfer_projects_locations_transfer_configs_delete()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `bigquerydatatransfer_projects_locations_transfer_configs_delete_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn bigquerydatatransfer_projects_locations_transfer_configs_delete_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<Empty>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let task = bigquerydatatransfer_projects_locations_transfer_configs_delete_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`bigquerydatatransfer_projects_locations_transfer_configs_delete`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct BigquerydatatransferProjectsLocationsTransferConfigsDeleteArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
+/// DELETE v1/projects/{projectsId}/locations/{locationsId}/transferConfigs/{transferConfigsId}
+/// Deletes a data transfer configuration, including any associated transfer runs and logs.
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `bigquerydatatransfer_projects_locations_transfer_configs_delete_builder()` + `bigquerydatatransfer_projects_locations_transfer_configs_delete_execute()`.
+/// For task-level control, use `bigquerydatatransfer_projects_locations_transfer_configs_delete_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn bigquerydatatransfer_projects_locations_transfer_configs_delete(
+    client: &SimpleHttpClient,
+    args: &BigquerydatatransferProjectsLocationsTransferConfigsDeleteArgs,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<Empty>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let builder = bigquerydatatransfer_projects_locations_transfer_configs_delete_builder(
+        client, &args.name,
+    )?;
+    bigquerydatatransfer_projects_locations_transfer_configs_delete_execute(builder)
+}
+
+/// GET v1/projects/{projectsId}/locations/{locationsId}/transferConfigs/{transferConfigsId}
+/// Returns information about a data transfer config.
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `bigquerydatatransfer_projects_locations_transfer_configs_get_execute()` to send, or `bigquerydatatransfer_projects_locations_transfer_configs_get` for simplest API.
+
+pub fn bigquerydatatransfer_projects_locations_transfer_configs_get_builder(
+    client: &SimpleHttpClient,
+    name: &String,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!(
+        "https://bigquerydatatransfer.googleapis.com/v1/projects/{}/locations/{locationsId}/transferConfigs/{transferConfigsId}",
+        name,
+    );
+
+    // Build request
+    let builder = client
+        .get(&endpoint_url)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// GET v1/projects/{projectsId}/locations/{locationsId}/transferConfigs/{transferConfigsId}
+/// Returns information about a data transfer config.
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `bigquerydatatransfer_projects_locations_transfer_configs_get_execute()` or `bigquerydatatransfer_projects_locations_transfer_configs_get`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `bigquerydatatransfer_projects_locations_transfer_configs_get_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn bigquerydatatransfer_projects_locations_transfer_configs_get_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<TransferConfig>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: TransferConfig = serde_json::from_str(&body)
+                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// GET v1/projects/{projectsId}/locations/{locationsId}/transferConfigs/{transferConfigsId}
+/// Returns information about a data transfer config.
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `bigquerydatatransfer_projects_locations_transfer_configs_get_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `bigquerydatatransfer_projects_locations_transfer_configs_get_task()`.
+/// For the simplest API, use `bigquerydatatransfer_projects_locations_transfer_configs_get()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `bigquerydatatransfer_projects_locations_transfer_configs_get_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn bigquerydatatransfer_projects_locations_transfer_configs_get_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<TransferConfig>, ApiError>, P = ApiPending>
+        + Send
+        + 'static,
+    ApiError,
+> {
+    let task = bigquerydatatransfer_projects_locations_transfer_configs_get_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`bigquerydatatransfer_projects_locations_transfer_configs_get`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct BigquerydatatransferProjectsLocationsTransferConfigsGetArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
+/// GET v1/projects/{projectsId}/locations/{locationsId}/transferConfigs/{transferConfigsId}
+/// Returns information about a data transfer config.
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `bigquerydatatransfer_projects_locations_transfer_configs_get_builder()` + `bigquerydatatransfer_projects_locations_transfer_configs_get_execute()`.
+/// For task-level control, use `bigquerydatatransfer_projects_locations_transfer_configs_get_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn bigquerydatatransfer_projects_locations_transfer_configs_get(
+    client: &SimpleHttpClient,
+    args: &BigquerydatatransferProjectsLocationsTransferConfigsGetArgs,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<TransferConfig>, ApiError>, P = ApiPending>
+        + Send
+        + 'static,
+    ApiError,
+> {
+    let builder =
+        bigquerydatatransfer_projects_locations_transfer_configs_get_builder(client, &args.name)?;
+    bigquerydatatransfer_projects_locations_transfer_configs_get_execute(builder)
+}
+
+/// GET v1/projects/{projectsId}/locations/{locationsId}/transferConfigs
+/// Returns information about all transfer configs owned by a project in the specified location.
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `bigquerydatatransfer_projects_locations_transfer_configs_list_execute()` to send, or `bigquerydatatransfer_projects_locations_transfer_configs_list` for simplest API.
+
+pub fn bigquerydatatransfer_projects_locations_transfer_configs_list_builder(
+    client: &SimpleHttpClient,
+    parent: &String,
+    dataSourceIds: &Option<Option<String>>,
+    pageSize: &Option<Option<String>>,
+    pageToken: &Option<Option<String>>,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!(
+        "https://bigquerydatatransfer.googleapis.com/v1/projects/{}/locations/{locationsId}/transferConfigs",
+        parent,
+    );
+
+    // Build request
+    let mut query_parts = Vec::new();
+    if let Some(val) = dataSourceIds.as_ref() {
+        query_parts.push(format!("dataSourceIds={}", val));
+    }
+    if let Some(val) = pageSize.as_ref() {
+        query_parts.push(format!("pageSize={}", val));
+    }
+    if let Some(val) = pageToken.as_ref() {
+        query_parts.push(format!("pageToken={}", val));
+    }
+
+    let url_with_query = if query_parts.is_empty() {
+        endpoint_url
+    } else {
+        format!("{}?{}", endpoint_url, query_parts.join("&"))
+    };
+
+    let builder = client
         .get(&url_with_query)
         .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
 
-    builder
-        .body_json(body)
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+    Ok(builder)
 }
 
-/// GET v1/projects/{projectsId}/transferConfigs
+/// GET v1/projects/{projectsId}/locations/{locationsId}/transferConfigs
+/// Returns information about all transfer configs owned by a project in the specified location.
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `bigquerydatatransfer_projects_locations_transfer_configs_list_execute()` or `bigquerydatatransfer_projects_locations_transfer_configs_list`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `bigquerydatatransfer_projects_locations_transfer_configs_list_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn bigquerydatatransfer_projects_locations_transfer_configs_list_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<ListTransferConfigsResponse>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: ListTransferConfigsResponse = serde_json::from_str(&body)
+                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// GET v1/projects/{projectsId}/locations/{locationsId}/transferConfigs
+/// Returns information about all transfer configs owned by a project in the specified location.
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `bigquerydatatransfer_projects_locations_transfer_configs_list_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `bigquerydatatransfer_projects_locations_transfer_configs_list_task()`.
+/// For the simplest API, use `bigquerydatatransfer_projects_locations_transfer_configs_list()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `bigquerydatatransfer_projects_locations_transfer_configs_list_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn bigquerydatatransfer_projects_locations_transfer_configs_list_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<
+            D = Result<ApiResponse<ListTransferConfigsResponse>, ApiError>,
+            P = ApiPending,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    let task = bigquerydatatransfer_projects_locations_transfer_configs_list_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`bigquerydatatransfer_projects_locations_transfer_configs_list`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct BigquerydatatransferProjectsLocationsTransferConfigsListArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Query parameter: dataSourceIds
+    pub dataSourceIds: Option<Option<String>>,
+    /// Query parameter: pageSize
+    pub pageSize: Option<Option<String>>,
+    /// Query parameter: pageToken
+    pub pageToken: Option<Option<String>>,
+}
+
+/// GET v1/projects/{projectsId}/locations/{locationsId}/transferConfigs
+/// Returns information about all transfer configs owned by a project in the specified location.
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `bigquerydatatransfer_projects_locations_transfer_configs_list_builder()` + `bigquerydatatransfer_projects_locations_transfer_configs_list_execute()`.
+/// For task-level control, use `bigquerydatatransfer_projects_locations_transfer_configs_list_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn bigquerydatatransfer_projects_locations_transfer_configs_list(
+    client: &SimpleHttpClient,
+    args: &BigquerydatatransferProjectsLocationsTransferConfigsListArgs,
+) -> Result<
+    impl StreamIterator<
+            D = Result<ApiResponse<ListTransferConfigsResponse>, ApiError>,
+            P = ApiPending,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    let builder = bigquerydatatransfer_projects_locations_transfer_configs_list_builder(
+        client,
+        &args.parent,
+        &args.dataSourceIds,
+        &args.pageSize,
+        &args.pageToken,
+    )?;
+    bigquerydatatransfer_projects_locations_transfer_configs_list_execute(builder)
+}
+
+/// PATCH v1/projects/{projectsId}/locations/{locationsId}/transferConfigs/{transferConfigsId}
+/// Updates a data transfer configuration. All fields must be set, even if they are not updated.
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `bigquerydatatransfer_projects_locations_transfer_configs_patch_execute()` to send, or `bigquerydatatransfer_projects_locations_transfer_configs_patch` for simplest API.
+
+pub fn bigquerydatatransfer_projects_locations_transfer_configs_patch_builder(
+    client: &SimpleHttpClient,
+    name: &String,
+    authorizationCode: &Option<Option<String>>,
+    serviceAccountName: &Option<Option<String>>,
+    updateMask: &Option<Option<String>>,
+    versionInfo: &Option<Option<String>>,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!(
+        "https://bigquerydatatransfer.googleapis.com/v1/projects/{}/locations/{locationsId}/transferConfigs/{transferConfigsId}",
+        name,
+    );
+
+    // Build request
+    let mut query_parts = Vec::new();
+    if let Some(val) = authorizationCode.as_ref() {
+        query_parts.push(format!("authorizationCode={}", val));
+    }
+    if let Some(val) = serviceAccountName.as_ref() {
+        query_parts.push(format!("serviceAccountName={}", val));
+    }
+    if let Some(val) = updateMask.as_ref() {
+        query_parts.push(format!("updateMask={}", val));
+    }
+    if let Some(val) = versionInfo.as_ref() {
+        query_parts.push(format!("versionInfo={}", val));
+    }
+
+    let url_with_query = if query_parts.is_empty() {
+        endpoint_url
+    } else {
+        format!("{}?{}", endpoint_url, query_parts.join("&"))
+    };
+
+    let builder = client
+        .patch(&url_with_query)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// PATCH v1/projects/{projectsId}/locations/{locationsId}/transferConfigs/{transferConfigsId}
+/// Updates a data transfer configuration. All fields must be set, even if they are not updated.
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `bigquerydatatransfer_projects_locations_transfer_configs_patch_execute()` or `bigquerydatatransfer_projects_locations_transfer_configs_patch`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `bigquerydatatransfer_projects_locations_transfer_configs_patch_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn bigquerydatatransfer_projects_locations_transfer_configs_patch_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<TransferConfig>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: TransferConfig = serde_json::from_str(&body)
+                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// PATCH v1/projects/{projectsId}/locations/{locationsId}/transferConfigs/{transferConfigsId}
+/// Updates a data transfer configuration. All fields must be set, even if they are not updated.
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `bigquerydatatransfer_projects_locations_transfer_configs_patch_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `bigquerydatatransfer_projects_locations_transfer_configs_patch_task()`.
+/// For the simplest API, use `bigquerydatatransfer_projects_locations_transfer_configs_patch()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `bigquerydatatransfer_projects_locations_transfer_configs_patch_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn bigquerydatatransfer_projects_locations_transfer_configs_patch_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<TransferConfig>, ApiError>, P = ApiPending>
+        + Send
+        + 'static,
+    ApiError,
+> {
+    let task = bigquerydatatransfer_projects_locations_transfer_configs_patch_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`bigquerydatatransfer_projects_locations_transfer_configs_patch`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct BigquerydatatransferProjectsLocationsTransferConfigsPatchArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Query parameter: authorizationCode
+    pub authorizationCode: Option<Option<String>>,
+    /// Query parameter: serviceAccountName
+    pub serviceAccountName: Option<Option<String>>,
+    /// Query parameter: updateMask
+    pub updateMask: Option<Option<String>>,
+    /// Query parameter: versionInfo
+    pub versionInfo: Option<Option<String>>,
+}
+
+/// PATCH v1/projects/{projectsId}/locations/{locationsId}/transferConfigs/{transferConfigsId}
+/// Updates a data transfer configuration. All fields must be set, even if they are not updated.
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `bigquerydatatransfer_projects_locations_transfer_configs_patch_builder()` + `bigquerydatatransfer_projects_locations_transfer_configs_patch_execute()`.
+/// For task-level control, use `bigquerydatatransfer_projects_locations_transfer_configs_patch_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn bigquerydatatransfer_projects_locations_transfer_configs_patch(
+    client: &SimpleHttpClient,
+    args: &BigquerydatatransferProjectsLocationsTransferConfigsPatchArgs,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<TransferConfig>, ApiError>, P = ApiPending>
+        + Send
+        + 'static,
+    ApiError,
+> {
+    let builder = bigquerydatatransfer_projects_locations_transfer_configs_patch_builder(
+        client,
+        &args.name,
+        &args.authorizationCode,
+        &args.serviceAccountName,
+        &args.updateMask,
+        &args.versionInfo,
+    )?;
+    bigquerydatatransfer_projects_locations_transfer_configs_patch_execute(builder)
+}
+
+/// POST v1/projects/{projectsId}/locations/{locationsId}/transferConfigs/{transferConfigsId}:scheduleRuns
+/// Creates transfer runs for a time range [start_time, end_time]. For each date - or whatever granularity the data source supports - in the range, one transfer run is created. Note that runs are created per UTC time in the time range. DEPRECATED: use StartManualTransferRuns instead.
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `bigquerydatatransfer_projects_locations_transfer_configs_schedule_runs_execute()` to send, or `bigquerydatatransfer_projects_locations_transfer_configs_schedule_runs` for simplest API.
+
+pub fn bigquerydatatransfer_projects_locations_transfer_configs_schedule_runs_builder(
+    client: &SimpleHttpClient,
+    parent: &String,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!(
+        "https://bigquerydatatransfer.googleapis.com/v1/projects/{}/locations/{locationsId}/transferConfigs/{transferConfigsId}:scheduleRuns",
+        parent,
+    );
+
+    // Build request
+    let builder = client
+        .post(&endpoint_url)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// POST v1/projects/{projectsId}/locations/{locationsId}/transferConfigs/{transferConfigsId}:scheduleRuns
+/// Creates transfer runs for a time range [start_time, end_time]. For each date - or whatever granularity the data source supports - in the range, one transfer run is created. Note that runs are created per UTC time in the time range. DEPRECATED: use StartManualTransferRuns instead.
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `bigquerydatatransfer_projects_locations_transfer_configs_schedule_runs_execute()` or `bigquerydatatransfer_projects_locations_transfer_configs_schedule_runs`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `bigquerydatatransfer_projects_locations_transfer_configs_schedule_runs_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn bigquerydatatransfer_projects_locations_transfer_configs_schedule_runs_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<ScheduleTransferRunsResponse>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: ScheduleTransferRunsResponse = serde_json::from_str(&body)
+                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// POST v1/projects/{projectsId}/locations/{locationsId}/transferConfigs/{transferConfigsId}:scheduleRuns
+/// Creates transfer runs for a time range [start_time, end_time]. For each date - or whatever granularity the data source supports - in the range, one transfer run is created. Note that runs are created per UTC time in the time range. DEPRECATED: use StartManualTransferRuns instead.
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `bigquerydatatransfer_projects_locations_transfer_configs_schedule_runs_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `bigquerydatatransfer_projects_locations_transfer_configs_schedule_runs_task()`.
+/// For the simplest API, use `bigquerydatatransfer_projects_locations_transfer_configs_schedule_runs()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `bigquerydatatransfer_projects_locations_transfer_configs_schedule_runs_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn bigquerydatatransfer_projects_locations_transfer_configs_schedule_runs_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<
+            D = Result<ApiResponse<ScheduleTransferRunsResponse>, ApiError>,
+            P = ApiPending,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    let task =
+        bigquerydatatransfer_projects_locations_transfer_configs_schedule_runs_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`bigquerydatatransfer_projects_locations_transfer_configs_schedule_runs`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct BigquerydatatransferProjectsLocationsTransferConfigsScheduleRunsArgs {
+    /// Path parameter: parent
+    pub parent: String,
+}
+
+/// POST v1/projects/{projectsId}/locations/{locationsId}/transferConfigs/{transferConfigsId}:scheduleRuns
+/// Creates transfer runs for a time range [start_time, end_time]. For each date - or whatever granularity the data source supports - in the range, one transfer run is created. Note that runs are created per UTC time in the time range. DEPRECATED: use StartManualTransferRuns instead.
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `bigquerydatatransfer_projects_locations_transfer_configs_schedule_runs_builder()` + `bigquerydatatransfer_projects_locations_transfer_configs_schedule_runs_execute()`.
+/// For task-level control, use `bigquerydatatransfer_projects_locations_transfer_configs_schedule_runs_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn bigquerydatatransfer_projects_locations_transfer_configs_schedule_runs(
+    client: &SimpleHttpClient,
+    args: &BigquerydatatransferProjectsLocationsTransferConfigsScheduleRunsArgs,
+) -> Result<
+    impl StreamIterator<
+            D = Result<ApiResponse<ScheduleTransferRunsResponse>, ApiError>,
+            P = ApiPending,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    let builder = bigquerydatatransfer_projects_locations_transfer_configs_schedule_runs_builder(
+        client,
+        &args.parent,
+    )?;
+    bigquerydatatransfer_projects_locations_transfer_configs_schedule_runs_execute(builder)
+}
+
+/// POST v1/projects/{projectsId}/locations/{locationsId}/transferConfigs/{transferConfigsId}:startManualRuns
+/// Manually initiates transfer runs. You can schedule these runs in two ways: 1. For a specific point in time using the 'requested_run_time' parameter. 2. For a period between 'start_time' (inclusive) and 'end_time' (exclusive). If scheduling a single run, it is set to execute immediately (schedule_time equals the current time). When scheduling multiple runs within a time range, the first run starts now, and subsequent runs are delayed by 15 seconds each.
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `bigquerydatatransfer_projects_locations_transfer_configs_start_manual_runs_execute()` to send, or `bigquerydatatransfer_projects_locations_transfer_configs_start_manual_runs` for simplest API.
+
+pub fn bigquerydatatransfer_projects_locations_transfer_configs_start_manual_runs_builder(
+    client: &SimpleHttpClient,
+    parent: &String,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!(
+        "https://bigquerydatatransfer.googleapis.com/v1/projects/{}/locations/{locationsId}/transferConfigs/{transferConfigsId}:startManualRuns",
+        parent,
+    );
+
+    // Build request
+    let builder = client
+        .post(&endpoint_url)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// POST v1/projects/{projectsId}/locations/{locationsId}/transferConfigs/{transferConfigsId}:startManualRuns
+/// Manually initiates transfer runs. You can schedule these runs in two ways: 1. For a specific point in time using the 'requested_run_time' parameter. 2. For a period between 'start_time' (inclusive) and 'end_time' (exclusive). If scheduling a single run, it is set to execute immediately (schedule_time equals the current time). When scheduling multiple runs within a time range, the first run starts now, and subsequent runs are delayed by 15 seconds each.
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `bigquerydatatransfer_projects_locations_transfer_configs_start_manual_runs_execute()` or `bigquerydatatransfer_projects_locations_transfer_configs_start_manual_runs`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `bigquerydatatransfer_projects_locations_transfer_configs_start_manual_runs_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn bigquerydatatransfer_projects_locations_transfer_configs_start_manual_runs_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<StartManualTransferRunsResponse>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: StartManualTransferRunsResponse = serde_json::from_str(&body)
+                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// POST v1/projects/{projectsId}/locations/{locationsId}/transferConfigs/{transferConfigsId}:startManualRuns
+/// Manually initiates transfer runs. You can schedule these runs in two ways: 1. For a specific point in time using the 'requested_run_time' parameter. 2. For a period between 'start_time' (inclusive) and 'end_time' (exclusive). If scheduling a single run, it is set to execute immediately (schedule_time equals the current time). When scheduling multiple runs within a time range, the first run starts now, and subsequent runs are delayed by 15 seconds each.
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `bigquerydatatransfer_projects_locations_transfer_configs_start_manual_runs_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `bigquerydatatransfer_projects_locations_transfer_configs_start_manual_runs_task()`.
+/// For the simplest API, use `bigquerydatatransfer_projects_locations_transfer_configs_start_manual_runs()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `bigquerydatatransfer_projects_locations_transfer_configs_start_manual_runs_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn bigquerydatatransfer_projects_locations_transfer_configs_start_manual_runs_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<
+            D = Result<ApiResponse<StartManualTransferRunsResponse>, ApiError>,
+            P = ApiPending,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    let task =
+        bigquerydatatransfer_projects_locations_transfer_configs_start_manual_runs_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`bigquerydatatransfer_projects_locations_transfer_configs_start_manual_runs`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct BigquerydatatransferProjectsLocationsTransferConfigsStartManualRunsArgs {
+    /// Path parameter: parent
+    pub parent: String,
+}
+
+/// POST v1/projects/{projectsId}/locations/{locationsId}/transferConfigs/{transferConfigsId}:startManualRuns
+/// Manually initiates transfer runs. You can schedule these runs in two ways: 1. For a specific point in time using the 'requested_run_time' parameter. 2. For a period between 'start_time' (inclusive) and 'end_time' (exclusive). If scheduling a single run, it is set to execute immediately (schedule_time equals the current time). When scheduling multiple runs within a time range, the first run starts now, and subsequent runs are delayed by 15 seconds each.
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `bigquerydatatransfer_projects_locations_transfer_configs_start_manual_runs_builder()` + `bigquerydatatransfer_projects_locations_transfer_configs_start_manual_runs_execute()`.
+/// For task-level control, use `bigquerydatatransfer_projects_locations_transfer_configs_start_manual_runs_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn bigquerydatatransfer_projects_locations_transfer_configs_start_manual_runs(
+    client: &SimpleHttpClient,
+    args: &BigquerydatatransferProjectsLocationsTransferConfigsStartManualRunsArgs,
+) -> Result<
+    impl StreamIterator<
+            D = Result<ApiResponse<StartManualTransferRunsResponse>, ApiError>,
+            P = ApiPending,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    let builder =
+        bigquerydatatransfer_projects_locations_transfer_configs_start_manual_runs_builder(
+            client,
+            &args.parent,
+        )?;
+    bigquerydatatransfer_projects_locations_transfer_configs_start_manual_runs_execute(builder)
+}
+
+/// DELETE v1/projects/{projectsId}/locations/{locationsId}/transferConfigs/{transferConfigsId}/runs/{runsId}
+/// Deletes the specified transfer run.
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `bigquerydatatransfer_projects_locations_transfer_configs_runs_delete_execute()` to send, or `bigquerydatatransfer_projects_locations_transfer_configs_runs_delete` for simplest API.
+
+pub fn bigquerydatatransfer_projects_locations_transfer_configs_runs_delete_builder(
+    client: &SimpleHttpClient,
+    name: &String,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!(
+        "https://bigquerydatatransfer.googleapis.com/v1/projects/{}/locations/{locationsId}/transferConfigs/{transferConfigsId}/runs/{runsId}",
+        name,
+    );
+
+    // Build request
+    let builder = client
+        .delete(&endpoint_url)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// DELETE v1/projects/{projectsId}/locations/{locationsId}/transferConfigs/{transferConfigsId}/runs/{runsId}
+/// Deletes the specified transfer run.
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `bigquerydatatransfer_projects_locations_transfer_configs_runs_delete_execute()` or `bigquerydatatransfer_projects_locations_transfer_configs_runs_delete`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `bigquerydatatransfer_projects_locations_transfer_configs_runs_delete_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn bigquerydatatransfer_projects_locations_transfer_configs_runs_delete_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<Empty>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: Empty = serde_json::from_str(&body)
+                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// DELETE v1/projects/{projectsId}/locations/{locationsId}/transferConfigs/{transferConfigsId}/runs/{runsId}
+/// Deletes the specified transfer run.
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `bigquerydatatransfer_projects_locations_transfer_configs_runs_delete_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `bigquerydatatransfer_projects_locations_transfer_configs_runs_delete_task()`.
+/// For the simplest API, use `bigquerydatatransfer_projects_locations_transfer_configs_runs_delete()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `bigquerydatatransfer_projects_locations_transfer_configs_runs_delete_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn bigquerydatatransfer_projects_locations_transfer_configs_runs_delete_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<Empty>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let task = bigquerydatatransfer_projects_locations_transfer_configs_runs_delete_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`bigquerydatatransfer_projects_locations_transfer_configs_runs_delete`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct BigquerydatatransferProjectsLocationsTransferConfigsRunsDeleteArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
+/// DELETE v1/projects/{projectsId}/locations/{locationsId}/transferConfigs/{transferConfigsId}/runs/{runsId}
+/// Deletes the specified transfer run.
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `bigquerydatatransfer_projects_locations_transfer_configs_runs_delete_builder()` + `bigquerydatatransfer_projects_locations_transfer_configs_runs_delete_execute()`.
+/// For task-level control, use `bigquerydatatransfer_projects_locations_transfer_configs_runs_delete_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn bigquerydatatransfer_projects_locations_transfer_configs_runs_delete(
+    client: &SimpleHttpClient,
+    args: &BigquerydatatransferProjectsLocationsTransferConfigsRunsDeleteArgs,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<Empty>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let builder = bigquerydatatransfer_projects_locations_transfer_configs_runs_delete_builder(
+        client, &args.name,
+    )?;
+    bigquerydatatransfer_projects_locations_transfer_configs_runs_delete_execute(builder)
+}
+
+/// GET v1/projects/{projectsId}/locations/{locationsId}/transferConfigs/{transferConfigsId}/runs/{runsId}
+/// Returns information about the particular transfer run.
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `bigquerydatatransfer_projects_locations_transfer_configs_runs_get_execute()` to send, or `bigquerydatatransfer_projects_locations_transfer_configs_runs_get` for simplest API.
+
+pub fn bigquerydatatransfer_projects_locations_transfer_configs_runs_get_builder(
+    client: &SimpleHttpClient,
+    name: &String,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!(
+        "https://bigquerydatatransfer.googleapis.com/v1/projects/{}/locations/{locationsId}/transferConfigs/{transferConfigsId}/runs/{runsId}",
+        name,
+    );
+
+    // Build request
+    let builder = client
+        .get(&endpoint_url)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// GET v1/projects/{projectsId}/locations/{locationsId}/transferConfigs/{transferConfigsId}/runs/{runsId}
+/// Returns information about the particular transfer run.
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `bigquerydatatransfer_projects_locations_transfer_configs_runs_get_execute()` or `bigquerydatatransfer_projects_locations_transfer_configs_runs_get`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `bigquerydatatransfer_projects_locations_transfer_configs_runs_get_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn bigquerydatatransfer_projects_locations_transfer_configs_runs_get_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<TransferRun>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: TransferRun = serde_json::from_str(&body)
+                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// GET v1/projects/{projectsId}/locations/{locationsId}/transferConfigs/{transferConfigsId}/runs/{runsId}
+/// Returns information about the particular transfer run.
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `bigquerydatatransfer_projects_locations_transfer_configs_runs_get_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `bigquerydatatransfer_projects_locations_transfer_configs_runs_get_task()`.
+/// For the simplest API, use `bigquerydatatransfer_projects_locations_transfer_configs_runs_get()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `bigquerydatatransfer_projects_locations_transfer_configs_runs_get_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn bigquerydatatransfer_projects_locations_transfer_configs_runs_get_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<TransferRun>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let task = bigquerydatatransfer_projects_locations_transfer_configs_runs_get_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`bigquerydatatransfer_projects_locations_transfer_configs_runs_get`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct BigquerydatatransferProjectsLocationsTransferConfigsRunsGetArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
+/// GET v1/projects/{projectsId}/locations/{locationsId}/transferConfigs/{transferConfigsId}/runs/{runsId}
+/// Returns information about the particular transfer run.
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `bigquerydatatransfer_projects_locations_transfer_configs_runs_get_builder()` + `bigquerydatatransfer_projects_locations_transfer_configs_runs_get_execute()`.
+/// For task-level control, use `bigquerydatatransfer_projects_locations_transfer_configs_runs_get_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn bigquerydatatransfer_projects_locations_transfer_configs_runs_get(
+    client: &SimpleHttpClient,
+    args: &BigquerydatatransferProjectsLocationsTransferConfigsRunsGetArgs,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<TransferRun>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let builder = bigquerydatatransfer_projects_locations_transfer_configs_runs_get_builder(
+        client, &args.name,
+    )?;
+    bigquerydatatransfer_projects_locations_transfer_configs_runs_get_execute(builder)
+}
+
+/// GET v1/projects/{projectsId}/locations/{locationsId}/transferConfigs/{transferConfigsId}/runs
+/// Returns information about running and completed transfer runs.
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `bigquerydatatransfer_projects_locations_transfer_configs_runs_list_execute()` to send, or `bigquerydatatransfer_projects_locations_transfer_configs_runs_list` for simplest API.
+
+pub fn bigquerydatatransfer_projects_locations_transfer_configs_runs_list_builder(
+    client: &SimpleHttpClient,
+    parent: &String,
+    pageSize: &Option<Option<String>>,
+    pageToken: &Option<Option<String>>,
+    runAttempt: &Option<Option<String>>,
+    states: &Option<Option<String>>,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!(
+        "https://bigquerydatatransfer.googleapis.com/v1/projects/{}/locations/{locationsId}/transferConfigs/{transferConfigsId}/runs",
+        parent,
+    );
+
+    // Build request
+    let mut query_parts = Vec::new();
+    if let Some(val) = pageSize.as_ref() {
+        query_parts.push(format!("pageSize={}", val));
+    }
+    if let Some(val) = pageToken.as_ref() {
+        query_parts.push(format!("pageToken={}", val));
+    }
+    if let Some(val) = runAttempt.as_ref() {
+        query_parts.push(format!("runAttempt={}", val));
+    }
+    if let Some(val) = states.as_ref() {
+        query_parts.push(format!("states={}", val));
+    }
+
+    let url_with_query = if query_parts.is_empty() {
+        endpoint_url
+    } else {
+        format!("{}?{}", endpoint_url, query_parts.join("&"))
+    };
+
+    let builder = client
+        .get(&url_with_query)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// GET v1/projects/{projectsId}/locations/{locationsId}/transferConfigs/{transferConfigsId}/runs
+/// Returns information about running and completed transfer runs.
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `bigquerydatatransfer_projects_locations_transfer_configs_runs_list_execute()` or `bigquerydatatransfer_projects_locations_transfer_configs_runs_list`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `bigquerydatatransfer_projects_locations_transfer_configs_runs_list_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn bigquerydatatransfer_projects_locations_transfer_configs_runs_list_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<ListTransferRunsResponse>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: ListTransferRunsResponse = serde_json::from_str(&body)
+                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// GET v1/projects/{projectsId}/locations/{locationsId}/transferConfigs/{transferConfigsId}/runs
+/// Returns information about running and completed transfer runs.
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `bigquerydatatransfer_projects_locations_transfer_configs_runs_list_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `bigquerydatatransfer_projects_locations_transfer_configs_runs_list_task()`.
+/// For the simplest API, use `bigquerydatatransfer_projects_locations_transfer_configs_runs_list()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `bigquerydatatransfer_projects_locations_transfer_configs_runs_list_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn bigquerydatatransfer_projects_locations_transfer_configs_runs_list_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<ListTransferRunsResponse>, ApiError>, P = ApiPending>
+        + Send
+        + 'static,
+    ApiError,
+> {
+    let task = bigquerydatatransfer_projects_locations_transfer_configs_runs_list_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`bigquerydatatransfer_projects_locations_transfer_configs_runs_list`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct BigquerydatatransferProjectsLocationsTransferConfigsRunsListArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Query parameter: pageSize
+    pub pageSize: Option<Option<String>>,
+    /// Query parameter: pageToken
+    pub pageToken: Option<Option<String>>,
+    /// Query parameter: runAttempt
+    pub runAttempt: Option<Option<String>>,
+    /// Query parameter: states
+    pub states: Option<Option<String>>,
+}
+
+/// GET v1/projects/{projectsId}/locations/{locationsId}/transferConfigs/{transferConfigsId}/runs
+/// Returns information about running and completed transfer runs.
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `bigquerydatatransfer_projects_locations_transfer_configs_runs_list_builder()` + `bigquerydatatransfer_projects_locations_transfer_configs_runs_list_execute()`.
+/// For task-level control, use `bigquerydatatransfer_projects_locations_transfer_configs_runs_list_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn bigquerydatatransfer_projects_locations_transfer_configs_runs_list(
+    client: &SimpleHttpClient,
+    args: &BigquerydatatransferProjectsLocationsTransferConfigsRunsListArgs,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<ListTransferRunsResponse>, ApiError>, P = ApiPending>
+        + Send
+        + 'static,
+    ApiError,
+> {
+    let builder = bigquerydatatransfer_projects_locations_transfer_configs_runs_list_builder(
+        client,
+        &args.parent,
+        &args.pageSize,
+        &args.pageToken,
+        &args.runAttempt,
+        &args.states,
+    )?;
+    bigquerydatatransfer_projects_locations_transfer_configs_runs_list_execute(builder)
+}
+
+/// GET v1/projects/{projectsId}/locations/{locationsId}/transferConfigs/{transferConfigsId}/runs/{runsId}/transferLogs
+/// Returns log messages for the transfer run.
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `bigquerydatatransfer_projects_locations_transfer_configs_runs_transfer_logs_list_execute()` to send, or `bigquerydatatransfer_projects_locations_transfer_configs_runs_transfer_logs_list` for simplest API.
+
+pub fn bigquerydatatransfer_projects_locations_transfer_configs_runs_transfer_logs_list_builder(
+    client: &SimpleHttpClient,
+    parent: &String,
+    messageTypes: &Option<Option<String>>,
+    pageSize: &Option<Option<String>>,
+    pageToken: &Option<Option<String>>,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!(
+        "https://bigquerydatatransfer.googleapis.com/v1/projects/{}/locations/{locationsId}/transferConfigs/{transferConfigsId}/runs/{runsId}/transferLogs",
+        parent,
+    );
+
+    // Build request
+    let mut query_parts = Vec::new();
+    if let Some(val) = messageTypes.as_ref() {
+        query_parts.push(format!("messageTypes={}", val));
+    }
+    if let Some(val) = pageSize.as_ref() {
+        query_parts.push(format!("pageSize={}", val));
+    }
+    if let Some(val) = pageToken.as_ref() {
+        query_parts.push(format!("pageToken={}", val));
+    }
+
+    let url_with_query = if query_parts.is_empty() {
+        endpoint_url
+    } else {
+        format!("{}?{}", endpoint_url, query_parts.join("&"))
+    };
+
+    let builder = client
+        .get(&url_with_query)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// GET v1/projects/{projectsId}/locations/{locationsId}/transferConfigs/{transferConfigsId}/runs/{runsId}/transferLogs
+/// Returns log messages for the transfer run.
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `bigquerydatatransfer_projects_locations_transfer_configs_runs_transfer_logs_list_execute()` or `bigquerydatatransfer_projects_locations_transfer_configs_runs_transfer_logs_list`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `bigquerydatatransfer_projects_locations_transfer_configs_runs_transfer_logs_list_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn bigquerydatatransfer_projects_locations_transfer_configs_runs_transfer_logs_list_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<ListTransferLogsResponse>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: ListTransferLogsResponse = serde_json::from_str(&body)
+                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// GET v1/projects/{projectsId}/locations/{locationsId}/transferConfigs/{transferConfigsId}/runs/{runsId}/transferLogs
+/// Returns log messages for the transfer run.
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `bigquerydatatransfer_projects_locations_transfer_configs_runs_transfer_logs_list_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `bigquerydatatransfer_projects_locations_transfer_configs_runs_transfer_logs_list_task()`.
+/// For the simplest API, use `bigquerydatatransfer_projects_locations_transfer_configs_runs_transfer_logs_list()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `bigquerydatatransfer_projects_locations_transfer_configs_runs_transfer_logs_list_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn bigquerydatatransfer_projects_locations_transfer_configs_runs_transfer_logs_list_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<ListTransferLogsResponse>, ApiError>, P = ApiPending>
+        + Send
+        + 'static,
+    ApiError,
+> {
+    let task =
+        bigquerydatatransfer_projects_locations_transfer_configs_runs_transfer_logs_list_task(
+            builder,
+        )?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`bigquerydatatransfer_projects_locations_transfer_configs_runs_transfer_logs_list`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct BigquerydatatransferProjectsLocationsTransferConfigsRunsTransferLogsListArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Query parameter: messageTypes
+    pub messageTypes: Option<Option<String>>,
+    /// Query parameter: pageSize
+    pub pageSize: Option<Option<String>>,
+    /// Query parameter: pageToken
+    pub pageToken: Option<Option<String>>,
+}
+
+/// GET v1/projects/{projectsId}/locations/{locationsId}/transferConfigs/{transferConfigsId}/runs/{runsId}/transferLogs
+/// Returns log messages for the transfer run.
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `bigquerydatatransfer_projects_locations_transfer_configs_runs_transfer_logs_list_builder()` + `bigquerydatatransfer_projects_locations_transfer_configs_runs_transfer_logs_list_execute()`.
+/// For task-level control, use `bigquerydatatransfer_projects_locations_transfer_configs_runs_transfer_logs_list_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn bigquerydatatransfer_projects_locations_transfer_configs_runs_transfer_logs_list(
+    client: &SimpleHttpClient,
+    args: &BigquerydatatransferProjectsLocationsTransferConfigsRunsTransferLogsListArgs,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<ListTransferLogsResponse>, ApiError>, P = ApiPending>
+        + Send
+        + 'static,
+    ApiError,
+> {
+    let builder =
+        bigquerydatatransfer_projects_locations_transfer_configs_runs_transfer_logs_list_builder(
+            client,
+            &args.parent,
+            &args.messageTypes,
+            &args.pageSize,
+            &args.pageToken,
+        )?;
+    bigquerydatatransfer_projects_locations_transfer_configs_runs_transfer_logs_list_execute(
+        builder,
+    )
+}
+
+/// GET v1/projects/{projectsId}/locations/{locationsId}/transferConfigs/{transferConfigsId}/transferResources/{transferResourcesId}
+/// Returns a transfer resource.
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `bigquerydatatransfer_projects_locations_transfer_configs_transfer_resources_get_execute()` to send, or `bigquerydatatransfer_projects_locations_transfer_configs_transfer_resources_get` for simplest API.
+
+pub fn bigquerydatatransfer_projects_locations_transfer_configs_transfer_resources_get_builder(
+    client: &SimpleHttpClient,
+    name: &String,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!(
+        "https://bigquerydatatransfer.googleapis.com/v1/projects/{}/locations/{locationsId}/transferConfigs/{transferConfigsId}/transferResources/{transferResourcesId}",
+        name,
+    );
+
+    // Build request
+    let builder = client
+        .get(&endpoint_url)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// GET v1/projects/{projectsId}/locations/{locationsId}/transferConfigs/{transferConfigsId}/transferResources/{transferResourcesId}
+/// Returns a transfer resource.
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `bigquerydatatransfer_projects_locations_transfer_configs_transfer_resources_get_execute()` or `bigquerydatatransfer_projects_locations_transfer_configs_transfer_resources_get`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `bigquerydatatransfer_projects_locations_transfer_configs_transfer_resources_get_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn bigquerydatatransfer_projects_locations_transfer_configs_transfer_resources_get_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<TransferResource>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: TransferResource = serde_json::from_str(&body)
+                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// GET v1/projects/{projectsId}/locations/{locationsId}/transferConfigs/{transferConfigsId}/transferResources/{transferResourcesId}
+/// Returns a transfer resource.
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `bigquerydatatransfer_projects_locations_transfer_configs_transfer_resources_get_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `bigquerydatatransfer_projects_locations_transfer_configs_transfer_resources_get_task()`.
+/// For the simplest API, use `bigquerydatatransfer_projects_locations_transfer_configs_transfer_resources_get()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `bigquerydatatransfer_projects_locations_transfer_configs_transfer_resources_get_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn bigquerydatatransfer_projects_locations_transfer_configs_transfer_resources_get_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<TransferResource>, ApiError>, P = ApiPending>
+        + Send
+        + 'static,
+    ApiError,
+> {
+    let task =
+        bigquerydatatransfer_projects_locations_transfer_configs_transfer_resources_get_task(
+            builder,
+        )?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`bigquerydatatransfer_projects_locations_transfer_configs_transfer_resources_get`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct BigquerydatatransferProjectsLocationsTransferConfigsTransferResourcesGetArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
+/// GET v1/projects/{projectsId}/locations/{locationsId}/transferConfigs/{transferConfigsId}/transferResources/{transferResourcesId}
+/// Returns a transfer resource.
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `bigquerydatatransfer_projects_locations_transfer_configs_transfer_resources_get_builder()` + `bigquerydatatransfer_projects_locations_transfer_configs_transfer_resources_get_execute()`.
+/// For task-level control, use `bigquerydatatransfer_projects_locations_transfer_configs_transfer_resources_get_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn bigquerydatatransfer_projects_locations_transfer_configs_transfer_resources_get(
+    client: &SimpleHttpClient,
+    args: &BigquerydatatransferProjectsLocationsTransferConfigsTransferResourcesGetArgs,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<TransferResource>, ApiError>, P = ApiPending>
+        + Send
+        + 'static,
+    ApiError,
+> {
+    let builder =
+        bigquerydatatransfer_projects_locations_transfer_configs_transfer_resources_get_builder(
+            client, &args.name,
+        )?;
+    bigquerydatatransfer_projects_locations_transfer_configs_transfer_resources_get_execute(builder)
+}
+
+/// GET v1/projects/{projectsId}/locations/{locationsId}/transferConfigs/{transferConfigsId}/transferResources
+/// Returns information about transfer resources.
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `bigquerydatatransfer_projects_locations_transfer_configs_transfer_resources_list_execute()` to send, or `bigquerydatatransfer_projects_locations_transfer_configs_transfer_resources_list` for simplest API.
+
+pub fn bigquerydatatransfer_projects_locations_transfer_configs_transfer_resources_list_builder(
+    client: &SimpleHttpClient,
+    parent: &String,
+    filter: &Option<Option<String>>,
+    pageSize: &Option<Option<String>>,
+    pageToken: &Option<Option<String>>,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!(
+        "https://bigquerydatatransfer.googleapis.com/v1/projects/{}/locations/{locationsId}/transferConfigs/{transferConfigsId}/transferResources",
+        parent,
+    );
+
+    // Build request
+    let mut query_parts = Vec::new();
+    if let Some(val) = filter.as_ref() {
+        query_parts.push(format!("filter={}", val));
+    }
+    if let Some(val) = pageSize.as_ref() {
+        query_parts.push(format!("pageSize={}", val));
+    }
+    if let Some(val) = pageToken.as_ref() {
+        query_parts.push(format!("pageToken={}", val));
+    }
+
+    let url_with_query = if query_parts.is_empty() {
+        endpoint_url
+    } else {
+        format!("{}?{}", endpoint_url, query_parts.join("&"))
+    };
+
+    let builder = client
+        .get(&url_with_query)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// GET v1/projects/{projectsId}/locations/{locationsId}/transferConfigs/{transferConfigsId}/transferResources
+/// Returns information about transfer resources.
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `bigquerydatatransfer_projects_locations_transfer_configs_transfer_resources_list_execute()` or `bigquerydatatransfer_projects_locations_transfer_configs_transfer_resources_list`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `bigquerydatatransfer_projects_locations_transfer_configs_transfer_resources_list_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn bigquerydatatransfer_projects_locations_transfer_configs_transfer_resources_list_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<ListTransferResourcesResponse>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: ListTransferResourcesResponse = serde_json::from_str(&body)
+                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// GET v1/projects/{projectsId}/locations/{locationsId}/transferConfigs/{transferConfigsId}/transferResources
+/// Returns information about transfer resources.
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `bigquerydatatransfer_projects_locations_transfer_configs_transfer_resources_list_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `bigquerydatatransfer_projects_locations_transfer_configs_transfer_resources_list_task()`.
+/// For the simplest API, use `bigquerydatatransfer_projects_locations_transfer_configs_transfer_resources_list()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `bigquerydatatransfer_projects_locations_transfer_configs_transfer_resources_list_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn bigquerydatatransfer_projects_locations_transfer_configs_transfer_resources_list_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<
+            D = Result<ApiResponse<ListTransferResourcesResponse>, ApiError>,
+            P = ApiPending,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    let task =
+        bigquerydatatransfer_projects_locations_transfer_configs_transfer_resources_list_task(
+            builder,
+        )?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`bigquerydatatransfer_projects_locations_transfer_configs_transfer_resources_list`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct BigquerydatatransferProjectsLocationsTransferConfigsTransferResourcesListArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Query parameter: filter
+    pub filter: Option<Option<String>>,
+    /// Query parameter: pageSize
+    pub pageSize: Option<Option<String>>,
+    /// Query parameter: pageToken
+    pub pageToken: Option<Option<String>>,
+}
+
+/// GET v1/projects/{projectsId}/locations/{locationsId}/transferConfigs/{transferConfigsId}/transferResources
+/// Returns information about transfer resources.
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `bigquerydatatransfer_projects_locations_transfer_configs_transfer_resources_list_builder()` + `bigquerydatatransfer_projects_locations_transfer_configs_transfer_resources_list_execute()`.
+/// For task-level control, use `bigquerydatatransfer_projects_locations_transfer_configs_transfer_resources_list_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn bigquerydatatransfer_projects_locations_transfer_configs_transfer_resources_list(
+    client: &SimpleHttpClient,
+    args: &BigquerydatatransferProjectsLocationsTransferConfigsTransferResourcesListArgs,
+) -> Result<
+    impl StreamIterator<
+            D = Result<ApiResponse<ListTransferResourcesResponse>, ApiError>,
+            P = ApiPending,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    let builder =
+        bigquerydatatransfer_projects_locations_transfer_configs_transfer_resources_list_builder(
+            client,
+            &args.parent,
+            &args.filter,
+            &args.pageSize,
+            &args.pageToken,
+        )?;
+    bigquerydatatransfer_projects_locations_transfer_configs_transfer_resources_list_execute(
+        builder,
+    )
+}
+
+/// POST v1/projects/{projectsId}/transferConfigs
+/// Creates a new data transfer configuration.
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `bigquerydatatransfer_projects_transfer_configs_create_execute()` to send, or `bigquerydatatransfer_projects_transfer_configs_create` for simplest API.
+
+pub fn bigquerydatatransfer_projects_transfer_configs_create_builder(
+    client: &SimpleHttpClient,
+    parent: &String,
+    authorizationCode: &Option<Option<String>>,
+    serviceAccountName: &Option<Option<String>>,
+    versionInfo: &Option<Option<String>>,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!(
+        "https://bigquerydatatransfer.googleapis.com/v1/projects/{}/transferConfigs",
+        parent,
+    );
+
+    // Build request
+    let mut query_parts = Vec::new();
+    if let Some(val) = authorizationCode.as_ref() {
+        query_parts.push(format!("authorizationCode={}", val));
+    }
+    if let Some(val) = serviceAccountName.as_ref() {
+        query_parts.push(format!("serviceAccountName={}", val));
+    }
+    if let Some(val) = versionInfo.as_ref() {
+        query_parts.push(format!("versionInfo={}", val));
+    }
+
+    let url_with_query = if query_parts.is_empty() {
+        endpoint_url
+    } else {
+        format!("{}?{}", endpoint_url, query_parts.join("&"))
+    };
+
+    let builder = client
+        .post(&url_with_query)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// POST v1/projects/{projectsId}/transferConfigs
 /// Creates a new data transfer configuration.
 ///
 /// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
@@ -682,7 +4318,7 @@ pub fn bigquerydatatransfer_projects_transfer_configs_create_task(
         .map_pending(|_| ApiPending::Sending))
 }
 
-/// GET v1/projects/{projectsId}/transferConfigs
+/// POST v1/projects/{projectsId}/transferConfigs
 /// Creates a new data transfer configuration.
 ///
 /// Takes a `ClientRequestBuilder`, builds and executes the request,
@@ -720,16 +4356,14 @@ pub struct BigquerydatatransferProjectsTransferConfigsCreateArgs {
     /// Path parameter: parent
     pub parent: String,
     /// Query parameter: authorizationCode
-    pub authorizationCode: Option<String>,
+    pub authorizationCode: Option<Option<String>>,
     /// Query parameter: serviceAccountName
-    pub serviceAccountName: Option<String>,
+    pub serviceAccountName: Option<Option<String>>,
     /// Query parameter: versionInfo
-    pub versionInfo: Option<String>,
-    /// Request body.
-    pub body: TransferConfig,
+    pub versionInfo: Option<Option<String>>,
 }
 
-/// GET v1/projects/{projectsId}/transferConfigs
+/// POST v1/projects/{projectsId}/transferConfigs
 /// Creates a new data transfer configuration.
 ///
 /// Simplest API - builds and executes the request in one call.
@@ -755,7 +4389,3187 @@ pub fn bigquerydatatransfer_projects_transfer_configs_create(
         &args.authorizationCode,
         &args.serviceAccountName,
         &args.versionInfo,
-        &args.body,
     )?;
     bigquerydatatransfer_projects_transfer_configs_create_execute(builder)
+}
+
+/// DELETE v1/projects/{projectsId}/transferConfigs/{transferConfigsId}
+/// Deletes a data transfer configuration, including any associated transfer runs and logs.
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `bigquerydatatransfer_projects_transfer_configs_delete_execute()` to send, or `bigquerydatatransfer_projects_transfer_configs_delete` for simplest API.
+
+pub fn bigquerydatatransfer_projects_transfer_configs_delete_builder(
+    client: &SimpleHttpClient,
+    name: &String,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!(
+        "https://bigquerydatatransfer.googleapis.com/v1/projects/{}/transferConfigs/{transferConfigsId}",
+        name,
+    );
+
+    // Build request
+    let builder = client
+        .delete(&endpoint_url)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// DELETE v1/projects/{projectsId}/transferConfigs/{transferConfigsId}
+/// Deletes a data transfer configuration, including any associated transfer runs and logs.
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `bigquerydatatransfer_projects_transfer_configs_delete_execute()` or `bigquerydatatransfer_projects_transfer_configs_delete`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `bigquerydatatransfer_projects_transfer_configs_delete_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn bigquerydatatransfer_projects_transfer_configs_delete_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<Empty>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: Empty = serde_json::from_str(&body)
+                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// DELETE v1/projects/{projectsId}/transferConfigs/{transferConfigsId}
+/// Deletes a data transfer configuration, including any associated transfer runs and logs.
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `bigquerydatatransfer_projects_transfer_configs_delete_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `bigquerydatatransfer_projects_transfer_configs_delete_task()`.
+/// For the simplest API, use `bigquerydatatransfer_projects_transfer_configs_delete()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `bigquerydatatransfer_projects_transfer_configs_delete_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn bigquerydatatransfer_projects_transfer_configs_delete_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<Empty>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let task = bigquerydatatransfer_projects_transfer_configs_delete_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`bigquerydatatransfer_projects_transfer_configs_delete`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct BigquerydatatransferProjectsTransferConfigsDeleteArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
+/// DELETE v1/projects/{projectsId}/transferConfigs/{transferConfigsId}
+/// Deletes a data transfer configuration, including any associated transfer runs and logs.
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `bigquerydatatransfer_projects_transfer_configs_delete_builder()` + `bigquerydatatransfer_projects_transfer_configs_delete_execute()`.
+/// For task-level control, use `bigquerydatatransfer_projects_transfer_configs_delete_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn bigquerydatatransfer_projects_transfer_configs_delete(
+    client: &SimpleHttpClient,
+    args: &BigquerydatatransferProjectsTransferConfigsDeleteArgs,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<Empty>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let builder =
+        bigquerydatatransfer_projects_transfer_configs_delete_builder(client, &args.name)?;
+    bigquerydatatransfer_projects_transfer_configs_delete_execute(builder)
+}
+
+/// GET v1/projects/{projectsId}/transferConfigs/{transferConfigsId}
+/// Returns information about a data transfer config.
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `bigquerydatatransfer_projects_transfer_configs_get_execute()` to send, or `bigquerydatatransfer_projects_transfer_configs_get` for simplest API.
+
+pub fn bigquerydatatransfer_projects_transfer_configs_get_builder(
+    client: &SimpleHttpClient,
+    name: &String,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!(
+        "https://bigquerydatatransfer.googleapis.com/v1/projects/{}/transferConfigs/{transferConfigsId}",
+        name,
+    );
+
+    // Build request
+    let builder = client
+        .get(&endpoint_url)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// GET v1/projects/{projectsId}/transferConfigs/{transferConfigsId}
+/// Returns information about a data transfer config.
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `bigquerydatatransfer_projects_transfer_configs_get_execute()` or `bigquerydatatransfer_projects_transfer_configs_get`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `bigquerydatatransfer_projects_transfer_configs_get_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn bigquerydatatransfer_projects_transfer_configs_get_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<TransferConfig>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: TransferConfig = serde_json::from_str(&body)
+                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// GET v1/projects/{projectsId}/transferConfigs/{transferConfigsId}
+/// Returns information about a data transfer config.
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `bigquerydatatransfer_projects_transfer_configs_get_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `bigquerydatatransfer_projects_transfer_configs_get_task()`.
+/// For the simplest API, use `bigquerydatatransfer_projects_transfer_configs_get()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `bigquerydatatransfer_projects_transfer_configs_get_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn bigquerydatatransfer_projects_transfer_configs_get_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<TransferConfig>, ApiError>, P = ApiPending>
+        + Send
+        + 'static,
+    ApiError,
+> {
+    let task = bigquerydatatransfer_projects_transfer_configs_get_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`bigquerydatatransfer_projects_transfer_configs_get`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct BigquerydatatransferProjectsTransferConfigsGetArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
+/// GET v1/projects/{projectsId}/transferConfigs/{transferConfigsId}
+/// Returns information about a data transfer config.
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `bigquerydatatransfer_projects_transfer_configs_get_builder()` + `bigquerydatatransfer_projects_transfer_configs_get_execute()`.
+/// For task-level control, use `bigquerydatatransfer_projects_transfer_configs_get_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn bigquerydatatransfer_projects_transfer_configs_get(
+    client: &SimpleHttpClient,
+    args: &BigquerydatatransferProjectsTransferConfigsGetArgs,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<TransferConfig>, ApiError>, P = ApiPending>
+        + Send
+        + 'static,
+    ApiError,
+> {
+    let builder = bigquerydatatransfer_projects_transfer_configs_get_builder(client, &args.name)?;
+    bigquerydatatransfer_projects_transfer_configs_get_execute(builder)
+}
+
+/// GET v1/projects/{projectsId}/transferConfigs
+/// Returns information about all transfer configs owned by a project in the specified location.
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `bigquerydatatransfer_projects_transfer_configs_list_execute()` to send, or `bigquerydatatransfer_projects_transfer_configs_list` for simplest API.
+
+pub fn bigquerydatatransfer_projects_transfer_configs_list_builder(
+    client: &SimpleHttpClient,
+    parent: &String,
+    dataSourceIds: &Option<Option<String>>,
+    pageSize: &Option<Option<String>>,
+    pageToken: &Option<Option<String>>,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!(
+        "https://bigquerydatatransfer.googleapis.com/v1/projects/{}/transferConfigs",
+        parent,
+    );
+
+    // Build request
+    let mut query_parts = Vec::new();
+    if let Some(val) = dataSourceIds.as_ref() {
+        query_parts.push(format!("dataSourceIds={}", val));
+    }
+    if let Some(val) = pageSize.as_ref() {
+        query_parts.push(format!("pageSize={}", val));
+    }
+    if let Some(val) = pageToken.as_ref() {
+        query_parts.push(format!("pageToken={}", val));
+    }
+
+    let url_with_query = if query_parts.is_empty() {
+        endpoint_url
+    } else {
+        format!("{}?{}", endpoint_url, query_parts.join("&"))
+    };
+
+    let builder = client
+        .get(&url_with_query)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// GET v1/projects/{projectsId}/transferConfigs
+/// Returns information about all transfer configs owned by a project in the specified location.
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `bigquerydatatransfer_projects_transfer_configs_list_execute()` or `bigquerydatatransfer_projects_transfer_configs_list`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `bigquerydatatransfer_projects_transfer_configs_list_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn bigquerydatatransfer_projects_transfer_configs_list_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<ListTransferConfigsResponse>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: ListTransferConfigsResponse = serde_json::from_str(&body)
+                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// GET v1/projects/{projectsId}/transferConfigs
+/// Returns information about all transfer configs owned by a project in the specified location.
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `bigquerydatatransfer_projects_transfer_configs_list_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `bigquerydatatransfer_projects_transfer_configs_list_task()`.
+/// For the simplest API, use `bigquerydatatransfer_projects_transfer_configs_list()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `bigquerydatatransfer_projects_transfer_configs_list_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn bigquerydatatransfer_projects_transfer_configs_list_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<
+            D = Result<ApiResponse<ListTransferConfigsResponse>, ApiError>,
+            P = ApiPending,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    let task = bigquerydatatransfer_projects_transfer_configs_list_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`bigquerydatatransfer_projects_transfer_configs_list`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct BigquerydatatransferProjectsTransferConfigsListArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Query parameter: dataSourceIds
+    pub dataSourceIds: Option<Option<String>>,
+    /// Query parameter: pageSize
+    pub pageSize: Option<Option<String>>,
+    /// Query parameter: pageToken
+    pub pageToken: Option<Option<String>>,
+}
+
+/// GET v1/projects/{projectsId}/transferConfigs
+/// Returns information about all transfer configs owned by a project in the specified location.
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `bigquerydatatransfer_projects_transfer_configs_list_builder()` + `bigquerydatatransfer_projects_transfer_configs_list_execute()`.
+/// For task-level control, use `bigquerydatatransfer_projects_transfer_configs_list_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn bigquerydatatransfer_projects_transfer_configs_list(
+    client: &SimpleHttpClient,
+    args: &BigquerydatatransferProjectsTransferConfigsListArgs,
+) -> Result<
+    impl StreamIterator<
+            D = Result<ApiResponse<ListTransferConfigsResponse>, ApiError>,
+            P = ApiPending,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    let builder = bigquerydatatransfer_projects_transfer_configs_list_builder(
+        client,
+        &args.parent,
+        &args.dataSourceIds,
+        &args.pageSize,
+        &args.pageToken,
+    )?;
+    bigquerydatatransfer_projects_transfer_configs_list_execute(builder)
+}
+
+/// PATCH v1/projects/{projectsId}/transferConfigs/{transferConfigsId}
+/// Updates a data transfer configuration. All fields must be set, even if they are not updated.
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `bigquerydatatransfer_projects_transfer_configs_patch_execute()` to send, or `bigquerydatatransfer_projects_transfer_configs_patch` for simplest API.
+
+pub fn bigquerydatatransfer_projects_transfer_configs_patch_builder(
+    client: &SimpleHttpClient,
+    name: &String,
+    authorizationCode: &Option<Option<String>>,
+    serviceAccountName: &Option<Option<String>>,
+    updateMask: &Option<Option<String>>,
+    versionInfo: &Option<Option<String>>,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!(
+        "https://bigquerydatatransfer.googleapis.com/v1/projects/{}/transferConfigs/{transferConfigsId}",
+        name,
+    );
+
+    // Build request
+    let mut query_parts = Vec::new();
+    if let Some(val) = authorizationCode.as_ref() {
+        query_parts.push(format!("authorizationCode={}", val));
+    }
+    if let Some(val) = serviceAccountName.as_ref() {
+        query_parts.push(format!("serviceAccountName={}", val));
+    }
+    if let Some(val) = updateMask.as_ref() {
+        query_parts.push(format!("updateMask={}", val));
+    }
+    if let Some(val) = versionInfo.as_ref() {
+        query_parts.push(format!("versionInfo={}", val));
+    }
+
+    let url_with_query = if query_parts.is_empty() {
+        endpoint_url
+    } else {
+        format!("{}?{}", endpoint_url, query_parts.join("&"))
+    };
+
+    let builder = client
+        .patch(&url_with_query)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// PATCH v1/projects/{projectsId}/transferConfigs/{transferConfigsId}
+/// Updates a data transfer configuration. All fields must be set, even if they are not updated.
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `bigquerydatatransfer_projects_transfer_configs_patch_execute()` or `bigquerydatatransfer_projects_transfer_configs_patch`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `bigquerydatatransfer_projects_transfer_configs_patch_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn bigquerydatatransfer_projects_transfer_configs_patch_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<TransferConfig>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: TransferConfig = serde_json::from_str(&body)
+                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// PATCH v1/projects/{projectsId}/transferConfigs/{transferConfigsId}
+/// Updates a data transfer configuration. All fields must be set, even if they are not updated.
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `bigquerydatatransfer_projects_transfer_configs_patch_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `bigquerydatatransfer_projects_transfer_configs_patch_task()`.
+/// For the simplest API, use `bigquerydatatransfer_projects_transfer_configs_patch()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `bigquerydatatransfer_projects_transfer_configs_patch_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn bigquerydatatransfer_projects_transfer_configs_patch_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<TransferConfig>, ApiError>, P = ApiPending>
+        + Send
+        + 'static,
+    ApiError,
+> {
+    let task = bigquerydatatransfer_projects_transfer_configs_patch_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`bigquerydatatransfer_projects_transfer_configs_patch`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct BigquerydatatransferProjectsTransferConfigsPatchArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Query parameter: authorizationCode
+    pub authorizationCode: Option<Option<String>>,
+    /// Query parameter: serviceAccountName
+    pub serviceAccountName: Option<Option<String>>,
+    /// Query parameter: updateMask
+    pub updateMask: Option<Option<String>>,
+    /// Query parameter: versionInfo
+    pub versionInfo: Option<Option<String>>,
+}
+
+/// PATCH v1/projects/{projectsId}/transferConfigs/{transferConfigsId}
+/// Updates a data transfer configuration. All fields must be set, even if they are not updated.
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `bigquerydatatransfer_projects_transfer_configs_patch_builder()` + `bigquerydatatransfer_projects_transfer_configs_patch_execute()`.
+/// For task-level control, use `bigquerydatatransfer_projects_transfer_configs_patch_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn bigquerydatatransfer_projects_transfer_configs_patch(
+    client: &SimpleHttpClient,
+    args: &BigquerydatatransferProjectsTransferConfigsPatchArgs,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<TransferConfig>, ApiError>, P = ApiPending>
+        + Send
+        + 'static,
+    ApiError,
+> {
+    let builder = bigquerydatatransfer_projects_transfer_configs_patch_builder(
+        client,
+        &args.name,
+        &args.authorizationCode,
+        &args.serviceAccountName,
+        &args.updateMask,
+        &args.versionInfo,
+    )?;
+    bigquerydatatransfer_projects_transfer_configs_patch_execute(builder)
+}
+
+/// POST v1/projects/{projectsId}/transferConfigs/{transferConfigsId}:scheduleRuns
+/// Creates transfer runs for a time range [start_time, end_time]. For each date - or whatever granularity the data source supports - in the range, one transfer run is created. Note that runs are created per UTC time in the time range. DEPRECATED: use StartManualTransferRuns instead.
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `bigquerydatatransfer_projects_transfer_configs_schedule_runs_execute()` to send, or `bigquerydatatransfer_projects_transfer_configs_schedule_runs` for simplest API.
+
+pub fn bigquerydatatransfer_projects_transfer_configs_schedule_runs_builder(
+    client: &SimpleHttpClient,
+    parent: &String,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!(
+        "https://bigquerydatatransfer.googleapis.com/v1/projects/{}/transferConfigs/{transferConfigsId}:scheduleRuns",
+        parent,
+    );
+
+    // Build request
+    let builder = client
+        .post(&endpoint_url)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// POST v1/projects/{projectsId}/transferConfigs/{transferConfigsId}:scheduleRuns
+/// Creates transfer runs for a time range [start_time, end_time]. For each date - or whatever granularity the data source supports - in the range, one transfer run is created. Note that runs are created per UTC time in the time range. DEPRECATED: use StartManualTransferRuns instead.
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `bigquerydatatransfer_projects_transfer_configs_schedule_runs_execute()` or `bigquerydatatransfer_projects_transfer_configs_schedule_runs`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `bigquerydatatransfer_projects_transfer_configs_schedule_runs_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn bigquerydatatransfer_projects_transfer_configs_schedule_runs_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<ScheduleTransferRunsResponse>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: ScheduleTransferRunsResponse = serde_json::from_str(&body)
+                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// POST v1/projects/{projectsId}/transferConfigs/{transferConfigsId}:scheduleRuns
+/// Creates transfer runs for a time range [start_time, end_time]. For each date - or whatever granularity the data source supports - in the range, one transfer run is created. Note that runs are created per UTC time in the time range. DEPRECATED: use StartManualTransferRuns instead.
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `bigquerydatatransfer_projects_transfer_configs_schedule_runs_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `bigquerydatatransfer_projects_transfer_configs_schedule_runs_task()`.
+/// For the simplest API, use `bigquerydatatransfer_projects_transfer_configs_schedule_runs()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `bigquerydatatransfer_projects_transfer_configs_schedule_runs_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn bigquerydatatransfer_projects_transfer_configs_schedule_runs_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<
+            D = Result<ApiResponse<ScheduleTransferRunsResponse>, ApiError>,
+            P = ApiPending,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    let task = bigquerydatatransfer_projects_transfer_configs_schedule_runs_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`bigquerydatatransfer_projects_transfer_configs_schedule_runs`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct BigquerydatatransferProjectsTransferConfigsScheduleRunsArgs {
+    /// Path parameter: parent
+    pub parent: String,
+}
+
+/// POST v1/projects/{projectsId}/transferConfigs/{transferConfigsId}:scheduleRuns
+/// Creates transfer runs for a time range [start_time, end_time]. For each date - or whatever granularity the data source supports - in the range, one transfer run is created. Note that runs are created per UTC time in the time range. DEPRECATED: use StartManualTransferRuns instead.
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `bigquerydatatransfer_projects_transfer_configs_schedule_runs_builder()` + `bigquerydatatransfer_projects_transfer_configs_schedule_runs_execute()`.
+/// For task-level control, use `bigquerydatatransfer_projects_transfer_configs_schedule_runs_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn bigquerydatatransfer_projects_transfer_configs_schedule_runs(
+    client: &SimpleHttpClient,
+    args: &BigquerydatatransferProjectsTransferConfigsScheduleRunsArgs,
+) -> Result<
+    impl StreamIterator<
+            D = Result<ApiResponse<ScheduleTransferRunsResponse>, ApiError>,
+            P = ApiPending,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    let builder =
+        bigquerydatatransfer_projects_transfer_configs_schedule_runs_builder(client, &args.parent)?;
+    bigquerydatatransfer_projects_transfer_configs_schedule_runs_execute(builder)
+}
+
+/// POST v1/projects/{projectsId}/transferConfigs/{transferConfigsId}:startManualRuns
+/// Manually initiates transfer runs. You can schedule these runs in two ways: 1. For a specific point in time using the 'requested_run_time' parameter. 2. For a period between 'start_time' (inclusive) and 'end_time' (exclusive). If scheduling a single run, it is set to execute immediately (schedule_time equals the current time). When scheduling multiple runs within a time range, the first run starts now, and subsequent runs are delayed by 15 seconds each.
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `bigquerydatatransfer_projects_transfer_configs_start_manual_runs_execute()` to send, or `bigquerydatatransfer_projects_transfer_configs_start_manual_runs` for simplest API.
+
+pub fn bigquerydatatransfer_projects_transfer_configs_start_manual_runs_builder(
+    client: &SimpleHttpClient,
+    parent: &String,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!(
+        "https://bigquerydatatransfer.googleapis.com/v1/projects/{}/transferConfigs/{transferConfigsId}:startManualRuns",
+        parent,
+    );
+
+    // Build request
+    let builder = client
+        .post(&endpoint_url)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// POST v1/projects/{projectsId}/transferConfigs/{transferConfigsId}:startManualRuns
+/// Manually initiates transfer runs. You can schedule these runs in two ways: 1. For a specific point in time using the 'requested_run_time' parameter. 2. For a period between 'start_time' (inclusive) and 'end_time' (exclusive). If scheduling a single run, it is set to execute immediately (schedule_time equals the current time). When scheduling multiple runs within a time range, the first run starts now, and subsequent runs are delayed by 15 seconds each.
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `bigquerydatatransfer_projects_transfer_configs_start_manual_runs_execute()` or `bigquerydatatransfer_projects_transfer_configs_start_manual_runs`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `bigquerydatatransfer_projects_transfer_configs_start_manual_runs_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn bigquerydatatransfer_projects_transfer_configs_start_manual_runs_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<StartManualTransferRunsResponse>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: StartManualTransferRunsResponse = serde_json::from_str(&body)
+                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// POST v1/projects/{projectsId}/transferConfigs/{transferConfigsId}:startManualRuns
+/// Manually initiates transfer runs. You can schedule these runs in two ways: 1. For a specific point in time using the 'requested_run_time' parameter. 2. For a period between 'start_time' (inclusive) and 'end_time' (exclusive). If scheduling a single run, it is set to execute immediately (schedule_time equals the current time). When scheduling multiple runs within a time range, the first run starts now, and subsequent runs are delayed by 15 seconds each.
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `bigquerydatatransfer_projects_transfer_configs_start_manual_runs_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `bigquerydatatransfer_projects_transfer_configs_start_manual_runs_task()`.
+/// For the simplest API, use `bigquerydatatransfer_projects_transfer_configs_start_manual_runs()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `bigquerydatatransfer_projects_transfer_configs_start_manual_runs_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn bigquerydatatransfer_projects_transfer_configs_start_manual_runs_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<
+            D = Result<ApiResponse<StartManualTransferRunsResponse>, ApiError>,
+            P = ApiPending,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    let task = bigquerydatatransfer_projects_transfer_configs_start_manual_runs_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`bigquerydatatransfer_projects_transfer_configs_start_manual_runs`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct BigquerydatatransferProjectsTransferConfigsStartManualRunsArgs {
+    /// Path parameter: parent
+    pub parent: String,
+}
+
+/// POST v1/projects/{projectsId}/transferConfigs/{transferConfigsId}:startManualRuns
+/// Manually initiates transfer runs. You can schedule these runs in two ways: 1. For a specific point in time using the 'requested_run_time' parameter. 2. For a period between 'start_time' (inclusive) and 'end_time' (exclusive). If scheduling a single run, it is set to execute immediately (schedule_time equals the current time). When scheduling multiple runs within a time range, the first run starts now, and subsequent runs are delayed by 15 seconds each.
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `bigquerydatatransfer_projects_transfer_configs_start_manual_runs_builder()` + `bigquerydatatransfer_projects_transfer_configs_start_manual_runs_execute()`.
+/// For task-level control, use `bigquerydatatransfer_projects_transfer_configs_start_manual_runs_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn bigquerydatatransfer_projects_transfer_configs_start_manual_runs(
+    client: &SimpleHttpClient,
+    args: &BigquerydatatransferProjectsTransferConfigsStartManualRunsArgs,
+) -> Result<
+    impl StreamIterator<
+            D = Result<ApiResponse<StartManualTransferRunsResponse>, ApiError>,
+            P = ApiPending,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    let builder = bigquerydatatransfer_projects_transfer_configs_start_manual_runs_builder(
+        client,
+        &args.parent,
+    )?;
+    bigquerydatatransfer_projects_transfer_configs_start_manual_runs_execute(builder)
+}
+
+/// DELETE v1/projects/{projectsId}/transferConfigs/{transferConfigsId}/runs/{runsId}
+/// Deletes the specified transfer run.
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `bigquerydatatransfer_projects_transfer_configs_runs_delete_execute()` to send, or `bigquerydatatransfer_projects_transfer_configs_runs_delete` for simplest API.
+
+pub fn bigquerydatatransfer_projects_transfer_configs_runs_delete_builder(
+    client: &SimpleHttpClient,
+    name: &String,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!(
+        "https://bigquerydatatransfer.googleapis.com/v1/projects/{}/transferConfigs/{transferConfigsId}/runs/{runsId}",
+        name,
+    );
+
+    // Build request
+    let builder = client
+        .delete(&endpoint_url)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// DELETE v1/projects/{projectsId}/transferConfigs/{transferConfigsId}/runs/{runsId}
+/// Deletes the specified transfer run.
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `bigquerydatatransfer_projects_transfer_configs_runs_delete_execute()` or `bigquerydatatransfer_projects_transfer_configs_runs_delete`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `bigquerydatatransfer_projects_transfer_configs_runs_delete_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn bigquerydatatransfer_projects_transfer_configs_runs_delete_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<Empty>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: Empty = serde_json::from_str(&body)
+                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// DELETE v1/projects/{projectsId}/transferConfigs/{transferConfigsId}/runs/{runsId}
+/// Deletes the specified transfer run.
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `bigquerydatatransfer_projects_transfer_configs_runs_delete_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `bigquerydatatransfer_projects_transfer_configs_runs_delete_task()`.
+/// For the simplest API, use `bigquerydatatransfer_projects_transfer_configs_runs_delete()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `bigquerydatatransfer_projects_transfer_configs_runs_delete_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn bigquerydatatransfer_projects_transfer_configs_runs_delete_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<Empty>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let task = bigquerydatatransfer_projects_transfer_configs_runs_delete_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`bigquerydatatransfer_projects_transfer_configs_runs_delete`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct BigquerydatatransferProjectsTransferConfigsRunsDeleteArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
+/// DELETE v1/projects/{projectsId}/transferConfigs/{transferConfigsId}/runs/{runsId}
+/// Deletes the specified transfer run.
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `bigquerydatatransfer_projects_transfer_configs_runs_delete_builder()` + `bigquerydatatransfer_projects_transfer_configs_runs_delete_execute()`.
+/// For task-level control, use `bigquerydatatransfer_projects_transfer_configs_runs_delete_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn bigquerydatatransfer_projects_transfer_configs_runs_delete(
+    client: &SimpleHttpClient,
+    args: &BigquerydatatransferProjectsTransferConfigsRunsDeleteArgs,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<Empty>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let builder =
+        bigquerydatatransfer_projects_transfer_configs_runs_delete_builder(client, &args.name)?;
+    bigquerydatatransfer_projects_transfer_configs_runs_delete_execute(builder)
+}
+
+/// GET v1/projects/{projectsId}/transferConfigs/{transferConfigsId}/runs/{runsId}
+/// Returns information about the particular transfer run.
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `bigquerydatatransfer_projects_transfer_configs_runs_get_execute()` to send, or `bigquerydatatransfer_projects_transfer_configs_runs_get` for simplest API.
+
+pub fn bigquerydatatransfer_projects_transfer_configs_runs_get_builder(
+    client: &SimpleHttpClient,
+    name: &String,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!(
+        "https://bigquerydatatransfer.googleapis.com/v1/projects/{}/transferConfigs/{transferConfigsId}/runs/{runsId}",
+        name,
+    );
+
+    // Build request
+    let builder = client
+        .get(&endpoint_url)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// GET v1/projects/{projectsId}/transferConfigs/{transferConfigsId}/runs/{runsId}
+/// Returns information about the particular transfer run.
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `bigquerydatatransfer_projects_transfer_configs_runs_get_execute()` or `bigquerydatatransfer_projects_transfer_configs_runs_get`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `bigquerydatatransfer_projects_transfer_configs_runs_get_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn bigquerydatatransfer_projects_transfer_configs_runs_get_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<TransferRun>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: TransferRun = serde_json::from_str(&body)
+                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// GET v1/projects/{projectsId}/transferConfigs/{transferConfigsId}/runs/{runsId}
+/// Returns information about the particular transfer run.
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `bigquerydatatransfer_projects_transfer_configs_runs_get_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `bigquerydatatransfer_projects_transfer_configs_runs_get_task()`.
+/// For the simplest API, use `bigquerydatatransfer_projects_transfer_configs_runs_get()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `bigquerydatatransfer_projects_transfer_configs_runs_get_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn bigquerydatatransfer_projects_transfer_configs_runs_get_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<TransferRun>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let task = bigquerydatatransfer_projects_transfer_configs_runs_get_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`bigquerydatatransfer_projects_transfer_configs_runs_get`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct BigquerydatatransferProjectsTransferConfigsRunsGetArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
+/// GET v1/projects/{projectsId}/transferConfigs/{transferConfigsId}/runs/{runsId}
+/// Returns information about the particular transfer run.
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `bigquerydatatransfer_projects_transfer_configs_runs_get_builder()` + `bigquerydatatransfer_projects_transfer_configs_runs_get_execute()`.
+/// For task-level control, use `bigquerydatatransfer_projects_transfer_configs_runs_get_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn bigquerydatatransfer_projects_transfer_configs_runs_get(
+    client: &SimpleHttpClient,
+    args: &BigquerydatatransferProjectsTransferConfigsRunsGetArgs,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<TransferRun>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let builder =
+        bigquerydatatransfer_projects_transfer_configs_runs_get_builder(client, &args.name)?;
+    bigquerydatatransfer_projects_transfer_configs_runs_get_execute(builder)
+}
+
+/// GET v1/projects/{projectsId}/transferConfigs/{transferConfigsId}/runs
+/// Returns information about running and completed transfer runs.
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `bigquerydatatransfer_projects_transfer_configs_runs_list_execute()` to send, or `bigquerydatatransfer_projects_transfer_configs_runs_list` for simplest API.
+
+pub fn bigquerydatatransfer_projects_transfer_configs_runs_list_builder(
+    client: &SimpleHttpClient,
+    parent: &String,
+    pageSize: &Option<Option<String>>,
+    pageToken: &Option<Option<String>>,
+    runAttempt: &Option<Option<String>>,
+    states: &Option<Option<String>>,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!(
+        "https://bigquerydatatransfer.googleapis.com/v1/projects/{}/transferConfigs/{transferConfigsId}/runs",
+        parent,
+    );
+
+    // Build request
+    let mut query_parts = Vec::new();
+    if let Some(val) = pageSize.as_ref() {
+        query_parts.push(format!("pageSize={}", val));
+    }
+    if let Some(val) = pageToken.as_ref() {
+        query_parts.push(format!("pageToken={}", val));
+    }
+    if let Some(val) = runAttempt.as_ref() {
+        query_parts.push(format!("runAttempt={}", val));
+    }
+    if let Some(val) = states.as_ref() {
+        query_parts.push(format!("states={}", val));
+    }
+
+    let url_with_query = if query_parts.is_empty() {
+        endpoint_url
+    } else {
+        format!("{}?{}", endpoint_url, query_parts.join("&"))
+    };
+
+    let builder = client
+        .get(&url_with_query)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// GET v1/projects/{projectsId}/transferConfigs/{transferConfigsId}/runs
+/// Returns information about running and completed transfer runs.
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `bigquerydatatransfer_projects_transfer_configs_runs_list_execute()` or `bigquerydatatransfer_projects_transfer_configs_runs_list`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `bigquerydatatransfer_projects_transfer_configs_runs_list_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn bigquerydatatransfer_projects_transfer_configs_runs_list_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<ListTransferRunsResponse>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: ListTransferRunsResponse = serde_json::from_str(&body)
+                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// GET v1/projects/{projectsId}/transferConfigs/{transferConfigsId}/runs
+/// Returns information about running and completed transfer runs.
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `bigquerydatatransfer_projects_transfer_configs_runs_list_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `bigquerydatatransfer_projects_transfer_configs_runs_list_task()`.
+/// For the simplest API, use `bigquerydatatransfer_projects_transfer_configs_runs_list()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `bigquerydatatransfer_projects_transfer_configs_runs_list_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn bigquerydatatransfer_projects_transfer_configs_runs_list_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<ListTransferRunsResponse>, ApiError>, P = ApiPending>
+        + Send
+        + 'static,
+    ApiError,
+> {
+    let task = bigquerydatatransfer_projects_transfer_configs_runs_list_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`bigquerydatatransfer_projects_transfer_configs_runs_list`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct BigquerydatatransferProjectsTransferConfigsRunsListArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Query parameter: pageSize
+    pub pageSize: Option<Option<String>>,
+    /// Query parameter: pageToken
+    pub pageToken: Option<Option<String>>,
+    /// Query parameter: runAttempt
+    pub runAttempt: Option<Option<String>>,
+    /// Query parameter: states
+    pub states: Option<Option<String>>,
+}
+
+/// GET v1/projects/{projectsId}/transferConfigs/{transferConfigsId}/runs
+/// Returns information about running and completed transfer runs.
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `bigquerydatatransfer_projects_transfer_configs_runs_list_builder()` + `bigquerydatatransfer_projects_transfer_configs_runs_list_execute()`.
+/// For task-level control, use `bigquerydatatransfer_projects_transfer_configs_runs_list_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn bigquerydatatransfer_projects_transfer_configs_runs_list(
+    client: &SimpleHttpClient,
+    args: &BigquerydatatransferProjectsTransferConfigsRunsListArgs,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<ListTransferRunsResponse>, ApiError>, P = ApiPending>
+        + Send
+        + 'static,
+    ApiError,
+> {
+    let builder = bigquerydatatransfer_projects_transfer_configs_runs_list_builder(
+        client,
+        &args.parent,
+        &args.pageSize,
+        &args.pageToken,
+        &args.runAttempt,
+        &args.states,
+    )?;
+    bigquerydatatransfer_projects_transfer_configs_runs_list_execute(builder)
+}
+
+/// GET v1/projects/{projectsId}/transferConfigs/{transferConfigsId}/runs/{runsId}/transferLogs
+/// Returns log messages for the transfer run.
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `bigquerydatatransfer_projects_transfer_configs_runs_transfer_logs_list_execute()` to send, or `bigquerydatatransfer_projects_transfer_configs_runs_transfer_logs_list` for simplest API.
+
+pub fn bigquerydatatransfer_projects_transfer_configs_runs_transfer_logs_list_builder(
+    client: &SimpleHttpClient,
+    parent: &String,
+    messageTypes: &Option<Option<String>>,
+    pageSize: &Option<Option<String>>,
+    pageToken: &Option<Option<String>>,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!(
+        "https://bigquerydatatransfer.googleapis.com/v1/projects/{}/transferConfigs/{transferConfigsId}/runs/{runsId}/transferLogs",
+        parent,
+    );
+
+    // Build request
+    let mut query_parts = Vec::new();
+    if let Some(val) = messageTypes.as_ref() {
+        query_parts.push(format!("messageTypes={}", val));
+    }
+    if let Some(val) = pageSize.as_ref() {
+        query_parts.push(format!("pageSize={}", val));
+    }
+    if let Some(val) = pageToken.as_ref() {
+        query_parts.push(format!("pageToken={}", val));
+    }
+
+    let url_with_query = if query_parts.is_empty() {
+        endpoint_url
+    } else {
+        format!("{}?{}", endpoint_url, query_parts.join("&"))
+    };
+
+    let builder = client
+        .get(&url_with_query)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// GET v1/projects/{projectsId}/transferConfigs/{transferConfigsId}/runs/{runsId}/transferLogs
+/// Returns log messages for the transfer run.
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `bigquerydatatransfer_projects_transfer_configs_runs_transfer_logs_list_execute()` or `bigquerydatatransfer_projects_transfer_configs_runs_transfer_logs_list`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `bigquerydatatransfer_projects_transfer_configs_runs_transfer_logs_list_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn bigquerydatatransfer_projects_transfer_configs_runs_transfer_logs_list_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<ListTransferLogsResponse>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: ListTransferLogsResponse = serde_json::from_str(&body)
+                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// GET v1/projects/{projectsId}/transferConfigs/{transferConfigsId}/runs/{runsId}/transferLogs
+/// Returns log messages for the transfer run.
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `bigquerydatatransfer_projects_transfer_configs_runs_transfer_logs_list_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `bigquerydatatransfer_projects_transfer_configs_runs_transfer_logs_list_task()`.
+/// For the simplest API, use `bigquerydatatransfer_projects_transfer_configs_runs_transfer_logs_list()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `bigquerydatatransfer_projects_transfer_configs_runs_transfer_logs_list_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn bigquerydatatransfer_projects_transfer_configs_runs_transfer_logs_list_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<ListTransferLogsResponse>, ApiError>, P = ApiPending>
+        + Send
+        + 'static,
+    ApiError,
+> {
+    let task =
+        bigquerydatatransfer_projects_transfer_configs_runs_transfer_logs_list_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`bigquerydatatransfer_projects_transfer_configs_runs_transfer_logs_list`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct BigquerydatatransferProjectsTransferConfigsRunsTransferLogsListArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Query parameter: messageTypes
+    pub messageTypes: Option<Option<String>>,
+    /// Query parameter: pageSize
+    pub pageSize: Option<Option<String>>,
+    /// Query parameter: pageToken
+    pub pageToken: Option<Option<String>>,
+}
+
+/// GET v1/projects/{projectsId}/transferConfigs/{transferConfigsId}/runs/{runsId}/transferLogs
+/// Returns log messages for the transfer run.
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `bigquerydatatransfer_projects_transfer_configs_runs_transfer_logs_list_builder()` + `bigquerydatatransfer_projects_transfer_configs_runs_transfer_logs_list_execute()`.
+/// For task-level control, use `bigquerydatatransfer_projects_transfer_configs_runs_transfer_logs_list_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn bigquerydatatransfer_projects_transfer_configs_runs_transfer_logs_list(
+    client: &SimpleHttpClient,
+    args: &BigquerydatatransferProjectsTransferConfigsRunsTransferLogsListArgs,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<ListTransferLogsResponse>, ApiError>, P = ApiPending>
+        + Send
+        + 'static,
+    ApiError,
+> {
+    let builder = bigquerydatatransfer_projects_transfer_configs_runs_transfer_logs_list_builder(
+        client,
+        &args.parent,
+        &args.messageTypes,
+        &args.pageSize,
+        &args.pageToken,
+    )?;
+    bigquerydatatransfer_projects_transfer_configs_runs_transfer_logs_list_execute(builder)
+}
+
+/// GET v1/projects/{projectsId}/transferConfigs/{transferConfigsId}/transferResources/{transferResourcesId}
+/// Returns a transfer resource.
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `bigquerydatatransfer_projects_transfer_configs_transfer_resources_get_execute()` to send, or `bigquerydatatransfer_projects_transfer_configs_transfer_resources_get` for simplest API.
+
+pub fn bigquerydatatransfer_projects_transfer_configs_transfer_resources_get_builder(
+    client: &SimpleHttpClient,
+    name: &String,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!(
+        "https://bigquerydatatransfer.googleapis.com/v1/projects/{}/transferConfigs/{transferConfigsId}/transferResources/{transferResourcesId}",
+        name,
+    );
+
+    // Build request
+    let builder = client
+        .get(&endpoint_url)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// GET v1/projects/{projectsId}/transferConfigs/{transferConfigsId}/transferResources/{transferResourcesId}
+/// Returns a transfer resource.
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `bigquerydatatransfer_projects_transfer_configs_transfer_resources_get_execute()` or `bigquerydatatransfer_projects_transfer_configs_transfer_resources_get`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `bigquerydatatransfer_projects_transfer_configs_transfer_resources_get_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn bigquerydatatransfer_projects_transfer_configs_transfer_resources_get_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<TransferResource>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: TransferResource = serde_json::from_str(&body)
+                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// GET v1/projects/{projectsId}/transferConfigs/{transferConfigsId}/transferResources/{transferResourcesId}
+/// Returns a transfer resource.
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `bigquerydatatransfer_projects_transfer_configs_transfer_resources_get_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `bigquerydatatransfer_projects_transfer_configs_transfer_resources_get_task()`.
+/// For the simplest API, use `bigquerydatatransfer_projects_transfer_configs_transfer_resources_get()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `bigquerydatatransfer_projects_transfer_configs_transfer_resources_get_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn bigquerydatatransfer_projects_transfer_configs_transfer_resources_get_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<TransferResource>, ApiError>, P = ApiPending>
+        + Send
+        + 'static,
+    ApiError,
+> {
+    let task = bigquerydatatransfer_projects_transfer_configs_transfer_resources_get_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`bigquerydatatransfer_projects_transfer_configs_transfer_resources_get`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct BigquerydatatransferProjectsTransferConfigsTransferResourcesGetArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
+/// GET v1/projects/{projectsId}/transferConfigs/{transferConfigsId}/transferResources/{transferResourcesId}
+/// Returns a transfer resource.
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `bigquerydatatransfer_projects_transfer_configs_transfer_resources_get_builder()` + `bigquerydatatransfer_projects_transfer_configs_transfer_resources_get_execute()`.
+/// For task-level control, use `bigquerydatatransfer_projects_transfer_configs_transfer_resources_get_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn bigquerydatatransfer_projects_transfer_configs_transfer_resources_get(
+    client: &SimpleHttpClient,
+    args: &BigquerydatatransferProjectsTransferConfigsTransferResourcesGetArgs,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<TransferResource>, ApiError>, P = ApiPending>
+        + Send
+        + 'static,
+    ApiError,
+> {
+    let builder = bigquerydatatransfer_projects_transfer_configs_transfer_resources_get_builder(
+        client, &args.name,
+    )?;
+    bigquerydatatransfer_projects_transfer_configs_transfer_resources_get_execute(builder)
+}
+
+/// GET v1/projects/{projectsId}/transferConfigs/{transferConfigsId}/transferResources
+/// Returns information about transfer resources.
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `bigquerydatatransfer_projects_transfer_configs_transfer_resources_list_execute()` to send, or `bigquerydatatransfer_projects_transfer_configs_transfer_resources_list` for simplest API.
+
+pub fn bigquerydatatransfer_projects_transfer_configs_transfer_resources_list_builder(
+    client: &SimpleHttpClient,
+    parent: &String,
+    filter: &Option<Option<String>>,
+    pageSize: &Option<Option<String>>,
+    pageToken: &Option<Option<String>>,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!(
+        "https://bigquerydatatransfer.googleapis.com/v1/projects/{}/transferConfigs/{transferConfigsId}/transferResources",
+        parent,
+    );
+
+    // Build request
+    let mut query_parts = Vec::new();
+    if let Some(val) = filter.as_ref() {
+        query_parts.push(format!("filter={}", val));
+    }
+    if let Some(val) = pageSize.as_ref() {
+        query_parts.push(format!("pageSize={}", val));
+    }
+    if let Some(val) = pageToken.as_ref() {
+        query_parts.push(format!("pageToken={}", val));
+    }
+
+    let url_with_query = if query_parts.is_empty() {
+        endpoint_url
+    } else {
+        format!("{}?{}", endpoint_url, query_parts.join("&"))
+    };
+
+    let builder = client
+        .get(&url_with_query)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// GET v1/projects/{projectsId}/transferConfigs/{transferConfigsId}/transferResources
+/// Returns information about transfer resources.
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `bigquerydatatransfer_projects_transfer_configs_transfer_resources_list_execute()` or `bigquerydatatransfer_projects_transfer_configs_transfer_resources_list`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `bigquerydatatransfer_projects_transfer_configs_transfer_resources_list_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn bigquerydatatransfer_projects_transfer_configs_transfer_resources_list_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<ListTransferResourcesResponse>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: ListTransferResourcesResponse = serde_json::from_str(&body)
+                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// GET v1/projects/{projectsId}/transferConfigs/{transferConfigsId}/transferResources
+/// Returns information about transfer resources.
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `bigquerydatatransfer_projects_transfer_configs_transfer_resources_list_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `bigquerydatatransfer_projects_transfer_configs_transfer_resources_list_task()`.
+/// For the simplest API, use `bigquerydatatransfer_projects_transfer_configs_transfer_resources_list()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `bigquerydatatransfer_projects_transfer_configs_transfer_resources_list_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn bigquerydatatransfer_projects_transfer_configs_transfer_resources_list_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<
+            D = Result<ApiResponse<ListTransferResourcesResponse>, ApiError>,
+            P = ApiPending,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    let task =
+        bigquerydatatransfer_projects_transfer_configs_transfer_resources_list_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`bigquerydatatransfer_projects_transfer_configs_transfer_resources_list`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct BigquerydatatransferProjectsTransferConfigsTransferResourcesListArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Query parameter: filter
+    pub filter: Option<Option<String>>,
+    /// Query parameter: pageSize
+    pub pageSize: Option<Option<String>>,
+    /// Query parameter: pageToken
+    pub pageToken: Option<Option<String>>,
+}
+
+/// GET v1/projects/{projectsId}/transferConfigs/{transferConfigsId}/transferResources
+/// Returns information about transfer resources.
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `bigquerydatatransfer_projects_transfer_configs_transfer_resources_list_builder()` + `bigquerydatatransfer_projects_transfer_configs_transfer_resources_list_execute()`.
+/// For task-level control, use `bigquerydatatransfer_projects_transfer_configs_transfer_resources_list_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn bigquerydatatransfer_projects_transfer_configs_transfer_resources_list(
+    client: &SimpleHttpClient,
+    args: &BigquerydatatransferProjectsTransferConfigsTransferResourcesListArgs,
+) -> Result<
+    impl StreamIterator<
+            D = Result<ApiResponse<ListTransferResourcesResponse>, ApiError>,
+            P = ApiPending,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    let builder = bigquerydatatransfer_projects_transfer_configs_transfer_resources_list_builder(
+        client,
+        &args.parent,
+        &args.filter,
+        &args.pageSize,
+        &args.pageToken,
+    )?;
+    bigquerydatatransfer_projects_transfer_configs_transfer_resources_list_execute(builder)
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for Empty
+// =============================================================================
+
+/// ResourceIdentifier implementation for Empty with BigquerydatatransferProjectsEnrollDataSourcesArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<BigquerydatatransferProjectsEnrollDataSourcesArgs> for Empty {
+    fn generate_resource_id(
+        &self,
+        input: &BigquerydatatransferProjectsEnrollDataSourcesArgs,
+    ) -> String {
+        format!("gcp::bigquerydatatransfer::Empty/{}", input.name)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::bigquerydatatransfer::Empty"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for CheckValidCredsResponse
+// =============================================================================
+
+/// ResourceIdentifier implementation for CheckValidCredsResponse with BigquerydatatransferProjectsDataSourcesCheckValidCredsArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<BigquerydatatransferProjectsDataSourcesCheckValidCredsArgs>
+    for CheckValidCredsResponse
+{
+    fn generate_resource_id(
+        &self,
+        input: &BigquerydatatransferProjectsDataSourcesCheckValidCredsArgs,
+    ) -> String {
+        format!(
+            "gcp::bigquerydatatransfer::CheckValidCredsResponse/{}",
+            input.name
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::bigquerydatatransfer::CheckValidCredsResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for DataSource
+// =============================================================================
+
+/// ResourceIdentifier implementation for DataSource with BigquerydatatransferProjectsDataSourcesGetArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<BigquerydatatransferProjectsDataSourcesGetArgs> for DataSource {
+    fn generate_resource_id(
+        &self,
+        input: &BigquerydatatransferProjectsDataSourcesGetArgs,
+    ) -> String {
+        format!("gcp::bigquerydatatransfer::DataSource/{}", input.name)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::bigquerydatatransfer::DataSource"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for ListDataSourcesResponse
+// =============================================================================
+
+/// ResourceIdentifier implementation for ListDataSourcesResponse with BigquerydatatransferProjectsDataSourcesListArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<BigquerydatatransferProjectsDataSourcesListArgs>
+    for ListDataSourcesResponse
+{
+    fn generate_resource_id(
+        &self,
+        input: &BigquerydatatransferProjectsDataSourcesListArgs,
+    ) -> String {
+        format!(
+            "gcp::bigquerydatatransfer::ListDataSourcesResponse/{}",
+            input.parent
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::bigquerydatatransfer::ListDataSourcesResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for Empty
+// =============================================================================
+
+/// ResourceIdentifier implementation for Empty with BigquerydatatransferProjectsLocationsEnrollDataSourcesArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<BigquerydatatransferProjectsLocationsEnrollDataSourcesArgs> for Empty {
+    fn generate_resource_id(
+        &self,
+        input: &BigquerydatatransferProjectsLocationsEnrollDataSourcesArgs,
+    ) -> String {
+        format!("gcp::bigquerydatatransfer::Empty/{}", input.name)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::bigquerydatatransfer::Empty"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for Location
+// =============================================================================
+
+/// ResourceIdentifier implementation for Location with BigquerydatatransferProjectsLocationsGetArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<BigquerydatatransferProjectsLocationsGetArgs> for Location {
+    fn generate_resource_id(&self, input: &BigquerydatatransferProjectsLocationsGetArgs) -> String {
+        format!("gcp::bigquerydatatransfer::Location/{}", input.name)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::bigquerydatatransfer::Location"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for ListLocationsResponse
+// =============================================================================
+
+/// ResourceIdentifier implementation for ListLocationsResponse with BigquerydatatransferProjectsLocationsListArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<BigquerydatatransferProjectsLocationsListArgs> for ListLocationsResponse {
+    fn generate_resource_id(
+        &self,
+        input: &BigquerydatatransferProjectsLocationsListArgs,
+    ) -> String {
+        format!(
+            "gcp::bigquerydatatransfer::ListLocationsResponse/{}",
+            input.name
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::bigquerydatatransfer::ListLocationsResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for Empty
+// =============================================================================
+
+/// ResourceIdentifier implementation for Empty with BigquerydatatransferProjectsLocationsUnenrollDataSourcesArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<BigquerydatatransferProjectsLocationsUnenrollDataSourcesArgs> for Empty {
+    fn generate_resource_id(
+        &self,
+        input: &BigquerydatatransferProjectsLocationsUnenrollDataSourcesArgs,
+    ) -> String {
+        format!("gcp::bigquerydatatransfer::Empty/{}", input.name)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::bigquerydatatransfer::Empty"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for CheckValidCredsResponse
+// =============================================================================
+
+/// ResourceIdentifier implementation for CheckValidCredsResponse with BigquerydatatransferProjectsLocationsDataSourcesCheckValidCredsArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<BigquerydatatransferProjectsLocationsDataSourcesCheckValidCredsArgs>
+    for CheckValidCredsResponse
+{
+    fn generate_resource_id(
+        &self,
+        input: &BigquerydatatransferProjectsLocationsDataSourcesCheckValidCredsArgs,
+    ) -> String {
+        format!(
+            "gcp::bigquerydatatransfer::CheckValidCredsResponse/{}",
+            input.name
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::bigquerydatatransfer::CheckValidCredsResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for DataSource
+// =============================================================================
+
+/// ResourceIdentifier implementation for DataSource with BigquerydatatransferProjectsLocationsDataSourcesGetArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<BigquerydatatransferProjectsLocationsDataSourcesGetArgs> for DataSource {
+    fn generate_resource_id(
+        &self,
+        input: &BigquerydatatransferProjectsLocationsDataSourcesGetArgs,
+    ) -> String {
+        format!("gcp::bigquerydatatransfer::DataSource/{}", input.name)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::bigquerydatatransfer::DataSource"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for ListDataSourcesResponse
+// =============================================================================
+
+/// ResourceIdentifier implementation for ListDataSourcesResponse with BigquerydatatransferProjectsLocationsDataSourcesListArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<BigquerydatatransferProjectsLocationsDataSourcesListArgs>
+    for ListDataSourcesResponse
+{
+    fn generate_resource_id(
+        &self,
+        input: &BigquerydatatransferProjectsLocationsDataSourcesListArgs,
+    ) -> String {
+        format!(
+            "gcp::bigquerydatatransfer::ListDataSourcesResponse/{}",
+            input.parent
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::bigquerydatatransfer::ListDataSourcesResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for TransferConfig
+// =============================================================================
+
+/// ResourceIdentifier implementation for TransferConfig with BigquerydatatransferProjectsLocationsTransferConfigsCreateArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<BigquerydatatransferProjectsLocationsTransferConfigsCreateArgs>
+    for TransferConfig
+{
+    fn generate_resource_id(
+        &self,
+        input: &BigquerydatatransferProjectsLocationsTransferConfigsCreateArgs,
+    ) -> String {
+        format!("gcp::bigquerydatatransfer::TransferConfig/{}", input.parent)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::bigquerydatatransfer::TransferConfig"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for Empty
+// =============================================================================
+
+/// ResourceIdentifier implementation for Empty with BigquerydatatransferProjectsLocationsTransferConfigsDeleteArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<BigquerydatatransferProjectsLocationsTransferConfigsDeleteArgs> for Empty {
+    fn generate_resource_id(
+        &self,
+        input: &BigquerydatatransferProjectsLocationsTransferConfigsDeleteArgs,
+    ) -> String {
+        format!("gcp::bigquerydatatransfer::Empty/{}", input.name)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::bigquerydatatransfer::Empty"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for TransferConfig
+// =============================================================================
+
+/// ResourceIdentifier implementation for TransferConfig with BigquerydatatransferProjectsLocationsTransferConfigsGetArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<BigquerydatatransferProjectsLocationsTransferConfigsGetArgs>
+    for TransferConfig
+{
+    fn generate_resource_id(
+        &self,
+        input: &BigquerydatatransferProjectsLocationsTransferConfigsGetArgs,
+    ) -> String {
+        format!("gcp::bigquerydatatransfer::TransferConfig/{}", input.name)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::bigquerydatatransfer::TransferConfig"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for ListTransferConfigsResponse
+// =============================================================================
+
+/// ResourceIdentifier implementation for ListTransferConfigsResponse with BigquerydatatransferProjectsLocationsTransferConfigsListArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<BigquerydatatransferProjectsLocationsTransferConfigsListArgs>
+    for ListTransferConfigsResponse
+{
+    fn generate_resource_id(
+        &self,
+        input: &BigquerydatatransferProjectsLocationsTransferConfigsListArgs,
+    ) -> String {
+        format!(
+            "gcp::bigquerydatatransfer::ListTransferConfigsResponse/{}",
+            input.parent
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::bigquerydatatransfer::ListTransferConfigsResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for TransferConfig
+// =============================================================================
+
+/// ResourceIdentifier implementation for TransferConfig with BigquerydatatransferProjectsLocationsTransferConfigsPatchArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<BigquerydatatransferProjectsLocationsTransferConfigsPatchArgs>
+    for TransferConfig
+{
+    fn generate_resource_id(
+        &self,
+        input: &BigquerydatatransferProjectsLocationsTransferConfigsPatchArgs,
+    ) -> String {
+        format!("gcp::bigquerydatatransfer::TransferConfig/{}", input.name)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::bigquerydatatransfer::TransferConfig"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for ScheduleTransferRunsResponse
+// =============================================================================
+
+/// ResourceIdentifier implementation for ScheduleTransferRunsResponse with BigquerydatatransferProjectsLocationsTransferConfigsScheduleRunsArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<BigquerydatatransferProjectsLocationsTransferConfigsScheduleRunsArgs>
+    for ScheduleTransferRunsResponse
+{
+    fn generate_resource_id(
+        &self,
+        input: &BigquerydatatransferProjectsLocationsTransferConfigsScheduleRunsArgs,
+    ) -> String {
+        format!(
+            "gcp::bigquerydatatransfer::ScheduleTransferRunsResponse/{}",
+            input.parent
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::bigquerydatatransfer::ScheduleTransferRunsResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for StartManualTransferRunsResponse
+// =============================================================================
+
+/// ResourceIdentifier implementation for StartManualTransferRunsResponse with BigquerydatatransferProjectsLocationsTransferConfigsStartManualRunsArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<BigquerydatatransferProjectsLocationsTransferConfigsStartManualRunsArgs>
+    for StartManualTransferRunsResponse
+{
+    fn generate_resource_id(
+        &self,
+        input: &BigquerydatatransferProjectsLocationsTransferConfigsStartManualRunsArgs,
+    ) -> String {
+        format!(
+            "gcp::bigquerydatatransfer::StartManualTransferRunsResponse/{}",
+            input.parent
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::bigquerydatatransfer::StartManualTransferRunsResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for Empty
+// =============================================================================
+
+/// ResourceIdentifier implementation for Empty with BigquerydatatransferProjectsLocationsTransferConfigsRunsDeleteArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<BigquerydatatransferProjectsLocationsTransferConfigsRunsDeleteArgs>
+    for Empty
+{
+    fn generate_resource_id(
+        &self,
+        input: &BigquerydatatransferProjectsLocationsTransferConfigsRunsDeleteArgs,
+    ) -> String {
+        format!("gcp::bigquerydatatransfer::Empty/{}", input.name)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::bigquerydatatransfer::Empty"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for TransferRun
+// =============================================================================
+
+/// ResourceIdentifier implementation for TransferRun with BigquerydatatransferProjectsLocationsTransferConfigsRunsGetArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<BigquerydatatransferProjectsLocationsTransferConfigsRunsGetArgs>
+    for TransferRun
+{
+    fn generate_resource_id(
+        &self,
+        input: &BigquerydatatransferProjectsLocationsTransferConfigsRunsGetArgs,
+    ) -> String {
+        format!("gcp::bigquerydatatransfer::TransferRun/{}", input.name)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::bigquerydatatransfer::TransferRun"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for ListTransferRunsResponse
+// =============================================================================
+
+/// ResourceIdentifier implementation for ListTransferRunsResponse with BigquerydatatransferProjectsLocationsTransferConfigsRunsListArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<BigquerydatatransferProjectsLocationsTransferConfigsRunsListArgs>
+    for ListTransferRunsResponse
+{
+    fn generate_resource_id(
+        &self,
+        input: &BigquerydatatransferProjectsLocationsTransferConfigsRunsListArgs,
+    ) -> String {
+        format!(
+            "gcp::bigquerydatatransfer::ListTransferRunsResponse/{}",
+            input.parent
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::bigquerydatatransfer::ListTransferRunsResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for ListTransferLogsResponse
+// =============================================================================
+
+/// ResourceIdentifier implementation for ListTransferLogsResponse with BigquerydatatransferProjectsLocationsTransferConfigsRunsTransferLogsListArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl
+    ResourceIdentifier<BigquerydatatransferProjectsLocationsTransferConfigsRunsTransferLogsListArgs>
+    for ListTransferLogsResponse
+{
+    fn generate_resource_id(
+        &self,
+        input: &BigquerydatatransferProjectsLocationsTransferConfigsRunsTransferLogsListArgs,
+    ) -> String {
+        format!(
+            "gcp::bigquerydatatransfer::ListTransferLogsResponse/{}",
+            input.parent
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::bigquerydatatransfer::ListTransferLogsResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for TransferResource
+// =============================================================================
+
+/// ResourceIdentifier implementation for TransferResource with BigquerydatatransferProjectsLocationsTransferConfigsTransferResourcesGetArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl
+    ResourceIdentifier<BigquerydatatransferProjectsLocationsTransferConfigsTransferResourcesGetArgs>
+    for TransferResource
+{
+    fn generate_resource_id(
+        &self,
+        input: &BigquerydatatransferProjectsLocationsTransferConfigsTransferResourcesGetArgs,
+    ) -> String {
+        format!("gcp::bigquerydatatransfer::TransferResource/{}", input.name)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::bigquerydatatransfer::TransferResource"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for ListTransferResourcesResponse
+// =============================================================================
+
+/// ResourceIdentifier implementation for ListTransferResourcesResponse with BigquerydatatransferProjectsLocationsTransferConfigsTransferResourcesListArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl
+    ResourceIdentifier<
+        BigquerydatatransferProjectsLocationsTransferConfigsTransferResourcesListArgs,
+    > for ListTransferResourcesResponse
+{
+    fn generate_resource_id(
+        &self,
+        input: &BigquerydatatransferProjectsLocationsTransferConfigsTransferResourcesListArgs,
+    ) -> String {
+        format!(
+            "gcp::bigquerydatatransfer::ListTransferResourcesResponse/{}",
+            input.parent
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::bigquerydatatransfer::ListTransferResourcesResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for TransferConfig
+// =============================================================================
+
+/// ResourceIdentifier implementation for TransferConfig with BigquerydatatransferProjectsTransferConfigsCreateArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<BigquerydatatransferProjectsTransferConfigsCreateArgs> for TransferConfig {
+    fn generate_resource_id(
+        &self,
+        input: &BigquerydatatransferProjectsTransferConfigsCreateArgs,
+    ) -> String {
+        format!("gcp::bigquerydatatransfer::TransferConfig/{}", input.parent)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::bigquerydatatransfer::TransferConfig"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for Empty
+// =============================================================================
+
+/// ResourceIdentifier implementation for Empty with BigquerydatatransferProjectsTransferConfigsDeleteArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<BigquerydatatransferProjectsTransferConfigsDeleteArgs> for Empty {
+    fn generate_resource_id(
+        &self,
+        input: &BigquerydatatransferProjectsTransferConfigsDeleteArgs,
+    ) -> String {
+        format!("gcp::bigquerydatatransfer::Empty/{}", input.name)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::bigquerydatatransfer::Empty"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for TransferConfig
+// =============================================================================
+
+/// ResourceIdentifier implementation for TransferConfig with BigquerydatatransferProjectsTransferConfigsGetArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<BigquerydatatransferProjectsTransferConfigsGetArgs> for TransferConfig {
+    fn generate_resource_id(
+        &self,
+        input: &BigquerydatatransferProjectsTransferConfigsGetArgs,
+    ) -> String {
+        format!("gcp::bigquerydatatransfer::TransferConfig/{}", input.name)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::bigquerydatatransfer::TransferConfig"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for ListTransferConfigsResponse
+// =============================================================================
+
+/// ResourceIdentifier implementation for ListTransferConfigsResponse with BigquerydatatransferProjectsTransferConfigsListArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<BigquerydatatransferProjectsTransferConfigsListArgs>
+    for ListTransferConfigsResponse
+{
+    fn generate_resource_id(
+        &self,
+        input: &BigquerydatatransferProjectsTransferConfigsListArgs,
+    ) -> String {
+        format!(
+            "gcp::bigquerydatatransfer::ListTransferConfigsResponse/{}",
+            input.parent
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::bigquerydatatransfer::ListTransferConfigsResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for TransferConfig
+// =============================================================================
+
+/// ResourceIdentifier implementation for TransferConfig with BigquerydatatransferProjectsTransferConfigsPatchArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<BigquerydatatransferProjectsTransferConfigsPatchArgs> for TransferConfig {
+    fn generate_resource_id(
+        &self,
+        input: &BigquerydatatransferProjectsTransferConfigsPatchArgs,
+    ) -> String {
+        format!("gcp::bigquerydatatransfer::TransferConfig/{}", input.name)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::bigquerydatatransfer::TransferConfig"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for ScheduleTransferRunsResponse
+// =============================================================================
+
+/// ResourceIdentifier implementation for ScheduleTransferRunsResponse with BigquerydatatransferProjectsTransferConfigsScheduleRunsArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<BigquerydatatransferProjectsTransferConfigsScheduleRunsArgs>
+    for ScheduleTransferRunsResponse
+{
+    fn generate_resource_id(
+        &self,
+        input: &BigquerydatatransferProjectsTransferConfigsScheduleRunsArgs,
+    ) -> String {
+        format!(
+            "gcp::bigquerydatatransfer::ScheduleTransferRunsResponse/{}",
+            input.parent
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::bigquerydatatransfer::ScheduleTransferRunsResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for StartManualTransferRunsResponse
+// =============================================================================
+
+/// ResourceIdentifier implementation for StartManualTransferRunsResponse with BigquerydatatransferProjectsTransferConfigsStartManualRunsArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<BigquerydatatransferProjectsTransferConfigsStartManualRunsArgs>
+    for StartManualTransferRunsResponse
+{
+    fn generate_resource_id(
+        &self,
+        input: &BigquerydatatransferProjectsTransferConfigsStartManualRunsArgs,
+    ) -> String {
+        format!(
+            "gcp::bigquerydatatransfer::StartManualTransferRunsResponse/{}",
+            input.parent
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::bigquerydatatransfer::StartManualTransferRunsResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for Empty
+// =============================================================================
+
+/// ResourceIdentifier implementation for Empty with BigquerydatatransferProjectsTransferConfigsRunsDeleteArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<BigquerydatatransferProjectsTransferConfigsRunsDeleteArgs> for Empty {
+    fn generate_resource_id(
+        &self,
+        input: &BigquerydatatransferProjectsTransferConfigsRunsDeleteArgs,
+    ) -> String {
+        format!("gcp::bigquerydatatransfer::Empty/{}", input.name)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::bigquerydatatransfer::Empty"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for TransferRun
+// =============================================================================
+
+/// ResourceIdentifier implementation for TransferRun with BigquerydatatransferProjectsTransferConfigsRunsGetArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<BigquerydatatransferProjectsTransferConfigsRunsGetArgs> for TransferRun {
+    fn generate_resource_id(
+        &self,
+        input: &BigquerydatatransferProjectsTransferConfigsRunsGetArgs,
+    ) -> String {
+        format!("gcp::bigquerydatatransfer::TransferRun/{}", input.name)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::bigquerydatatransfer::TransferRun"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for ListTransferRunsResponse
+// =============================================================================
+
+/// ResourceIdentifier implementation for ListTransferRunsResponse with BigquerydatatransferProjectsTransferConfigsRunsListArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<BigquerydatatransferProjectsTransferConfigsRunsListArgs>
+    for ListTransferRunsResponse
+{
+    fn generate_resource_id(
+        &self,
+        input: &BigquerydatatransferProjectsTransferConfigsRunsListArgs,
+    ) -> String {
+        format!(
+            "gcp::bigquerydatatransfer::ListTransferRunsResponse/{}",
+            input.parent
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::bigquerydatatransfer::ListTransferRunsResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for ListTransferLogsResponse
+// =============================================================================
+
+/// ResourceIdentifier implementation for ListTransferLogsResponse with BigquerydatatransferProjectsTransferConfigsRunsTransferLogsListArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<BigquerydatatransferProjectsTransferConfigsRunsTransferLogsListArgs>
+    for ListTransferLogsResponse
+{
+    fn generate_resource_id(
+        &self,
+        input: &BigquerydatatransferProjectsTransferConfigsRunsTransferLogsListArgs,
+    ) -> String {
+        format!(
+            "gcp::bigquerydatatransfer::ListTransferLogsResponse/{}",
+            input.parent
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::bigquerydatatransfer::ListTransferLogsResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for TransferResource
+// =============================================================================
+
+/// ResourceIdentifier implementation for TransferResource with BigquerydatatransferProjectsTransferConfigsTransferResourcesGetArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<BigquerydatatransferProjectsTransferConfigsTransferResourcesGetArgs>
+    for TransferResource
+{
+    fn generate_resource_id(
+        &self,
+        input: &BigquerydatatransferProjectsTransferConfigsTransferResourcesGetArgs,
+    ) -> String {
+        format!("gcp::bigquerydatatransfer::TransferResource/{}", input.name)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::bigquerydatatransfer::TransferResource"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for ListTransferResourcesResponse
+// =============================================================================
+
+/// ResourceIdentifier implementation for ListTransferResourcesResponse with BigquerydatatransferProjectsTransferConfigsTransferResourcesListArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<BigquerydatatransferProjectsTransferConfigsTransferResourcesListArgs>
+    for ListTransferResourcesResponse
+{
+    fn generate_resource_id(
+        &self,
+        input: &BigquerydatatransferProjectsTransferConfigsTransferResourcesListArgs,
+    ) -> String {
+        format!(
+            "gcp::bigquerydatatransfer::ListTransferResourcesResponse/{}",
+            input.parent
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::bigquerydatatransfer::ListTransferResourcesResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
 }

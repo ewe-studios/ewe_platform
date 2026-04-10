@@ -7,7 +7,6 @@
 
 #![cfg(feature = "gcp")]
 
-
 use crate::providers::gcp::clients::types::*;
 use crate::providers::gcp::resources::*;
 use foundation_core::valtron::{
@@ -17,10 +16,11 @@ use foundation_core::valtron::{
 use foundation_core::wire::simple_http::client::{
     body_reader, ClientRequestBuilder, RequestIntro, SimpleHttpClient, SystemDnsResolver,
 };
+use foundation_db::state::resource_identifier::ResourceIdentifier;
 use foundation_macros::JsonHash;
 use serde::Serialize;
 
-/// GET b/{bucket}/anywhereCaches/{anywhereCacheId}/disable
+/// POST b/{bucket}/anywhereCaches/{anywhereCacheId}/disable
 /// Disables an Anywhere Cache instance.
 ///
 /// Returns `ClientRequestBuilder` for customization.
@@ -39,13 +39,13 @@ pub fn storage_anywhere_caches_disable_builder(
 
     // Build request
     let builder = client
-        .get(&endpoint_url)
+        .post(&endpoint_url)
         .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
 
     Ok(builder)
 }
 
-/// GET b/{bucket}/anywhereCaches/{anywhereCacheId}/disable
+/// POST b/{bucket}/anywhereCaches/{anywhereCacheId}/disable
 /// Disables an Anywhere Cache instance.
 ///
 /// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
@@ -119,7 +119,7 @@ pub fn storage_anywhere_caches_disable_task(
         .map_pending(|_| ApiPending::Sending))
 }
 
-/// GET b/{bucket}/anywhereCaches/{anywhereCacheId}/disable
+/// POST b/{bucket}/anywhereCaches/{anywhereCacheId}/disable
 /// Disables an Anywhere Cache instance.
 ///
 /// Takes a `ClientRequestBuilder`, builds and executes the request,
@@ -160,7 +160,7 @@ pub struct StorageAnywhereCachesDisableArgs {
     pub anywhereCacheId: String,
 }
 
-/// GET b/{bucket}/anywhereCaches/{anywhereCacheId}/disable
+/// POST b/{bucket}/anywhereCaches/{anywhereCacheId}/disable
 /// Disables an Anywhere Cache instance.
 ///
 /// Simplest API - builds and executes the request in one call.
@@ -349,7 +349,7 @@ pub fn storage_anywhere_caches_get(
     storage_anywhere_caches_get_execute(builder)
 }
 
-/// GET b/{bucket}/anywhereCaches
+/// POST b/{bucket}/anywhereCaches
 /// Creates an Anywhere Cache instance.
 ///
 /// Returns `ClientRequestBuilder` for customization.
@@ -358,7 +358,6 @@ pub fn storage_anywhere_caches_get(
 pub fn storage_anywhere_caches_insert_builder(
     client: &SimpleHttpClient,
     bucket: &String,
-    body: &AnywhereCache,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
@@ -368,15 +367,13 @@ pub fn storage_anywhere_caches_insert_builder(
 
     // Build request
     let builder = client
-        .get(&endpoint_url)
+        .post(&endpoint_url)
         .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
 
-    builder
-        .body_json(body)
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+    Ok(builder)
 }
 
-/// GET b/{bucket}/anywhereCaches
+/// POST b/{bucket}/anywhereCaches
 /// Creates an Anywhere Cache instance.
 ///
 /// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
@@ -450,7 +447,7 @@ pub fn storage_anywhere_caches_insert_task(
         .map_pending(|_| ApiPending::Sending))
 }
 
-/// GET b/{bucket}/anywhereCaches
+/// POST b/{bucket}/anywhereCaches
 /// Creates an Anywhere Cache instance.
 ///
 /// Takes a `ClientRequestBuilder`, builds and executes the request,
@@ -489,11 +486,9 @@ pub fn storage_anywhere_caches_insert_execute(
 pub struct StorageAnywhereCachesInsertArgs {
     /// Path parameter: bucket
     pub bucket: String,
-    /// Request body.
-    pub body: AnywhereCache,
 }
 
-/// GET b/{bucket}/anywhereCaches
+/// POST b/{bucket}/anywhereCaches
 /// Creates an Anywhere Cache instance.
 ///
 /// Simplest API - builds and executes the request in one call.
@@ -515,11 +510,197 @@ pub fn storage_anywhere_caches_insert(
         + 'static,
     ApiError,
 > {
-    let builder = storage_anywhere_caches_insert_builder(client, &args.bucket, &args.body)?;
+    let builder = storage_anywhere_caches_insert_builder(client, &args.bucket)?;
     storage_anywhere_caches_insert_execute(builder)
 }
 
-/// GET b/{bucket}/anywhereCaches/{anywhereCacheId}/pause
+/// GET b/{bucket}/anywhereCaches
+/// Returns a list of Anywhere Cache instances of the bucket matching the criteria.
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `storage_anywhere_caches_list_execute()` to send, or `storage_anywhere_caches_list` for simplest API.
+
+pub fn storage_anywhere_caches_list_builder(
+    client: &SimpleHttpClient,
+    bucket: &String,
+    pageSize: &Option<Option<String>>,
+    pageToken: &Option<Option<String>>,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!(
+        "https://storage.googleapis.com/storage/v1/b/{}/anywhereCaches",
+        bucket,
+    );
+
+    // Build request
+    let mut query_parts = Vec::new();
+    if let Some(val) = pageSize.as_ref() {
+        query_parts.push(format!("pageSize={}", val));
+    }
+    if let Some(val) = pageToken.as_ref() {
+        query_parts.push(format!("pageToken={}", val));
+    }
+
+    let url_with_query = if query_parts.is_empty() {
+        endpoint_url
+    } else {
+        format!("{}?{}", endpoint_url, query_parts.join("&"))
+    };
+
+    let builder = client
+        .get(&url_with_query)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// GET b/{bucket}/anywhereCaches
+/// Returns a list of Anywhere Cache instances of the bucket matching the criteria.
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `storage_anywhere_caches_list_execute()` or `storage_anywhere_caches_list`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `storage_anywhere_caches_list_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn storage_anywhere_caches_list_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<AnywhereCaches>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: AnywhereCaches = serde_json::from_str(&body)
+                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// GET b/{bucket}/anywhereCaches
+/// Returns a list of Anywhere Cache instances of the bucket matching the criteria.
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `storage_anywhere_caches_list_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `storage_anywhere_caches_list_task()`.
+/// For the simplest API, use `storage_anywhere_caches_list()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `storage_anywhere_caches_list_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn storage_anywhere_caches_list_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<AnywhereCaches>, ApiError>, P = ApiPending>
+        + Send
+        + 'static,
+    ApiError,
+> {
+    let task = storage_anywhere_caches_list_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`storage_anywhere_caches_list`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct StorageAnywhereCachesListArgs {
+    /// Path parameter: bucket
+    pub bucket: String,
+    /// Query parameter: pageSize
+    pub pageSize: Option<Option<String>>,
+    /// Query parameter: pageToken
+    pub pageToken: Option<Option<String>>,
+}
+
+/// GET b/{bucket}/anywhereCaches
+/// Returns a list of Anywhere Cache instances of the bucket matching the criteria.
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `storage_anywhere_caches_list_builder()` + `storage_anywhere_caches_list_execute()`.
+/// For task-level control, use `storage_anywhere_caches_list_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn storage_anywhere_caches_list(
+    client: &SimpleHttpClient,
+    args: &StorageAnywhereCachesListArgs,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<AnywhereCaches>, ApiError>, P = ApiPending>
+        + Send
+        + 'static,
+    ApiError,
+> {
+    let builder = storage_anywhere_caches_list_builder(
+        client,
+        &args.bucket,
+        &args.pageSize,
+        &args.pageToken,
+    )?;
+    storage_anywhere_caches_list_execute(builder)
+}
+
+/// POST b/{bucket}/anywhereCaches/{anywhereCacheId}/pause
 /// Pauses an Anywhere Cache instance.
 ///
 /// Returns `ClientRequestBuilder` for customization.
@@ -538,13 +719,13 @@ pub fn storage_anywhere_caches_pause_builder(
 
     // Build request
     let builder = client
-        .get(&endpoint_url)
+        .post(&endpoint_url)
         .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
 
     Ok(builder)
 }
 
-/// GET b/{bucket}/anywhereCaches/{anywhereCacheId}/pause
+/// POST b/{bucket}/anywhereCaches/{anywhereCacheId}/pause
 /// Pauses an Anywhere Cache instance.
 ///
 /// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
@@ -618,7 +799,7 @@ pub fn storage_anywhere_caches_pause_task(
         .map_pending(|_| ApiPending::Sending))
 }
 
-/// GET b/{bucket}/anywhereCaches/{anywhereCacheId}/pause
+/// POST b/{bucket}/anywhereCaches/{anywhereCacheId}/pause
 /// Pauses an Anywhere Cache instance.
 ///
 /// Takes a `ClientRequestBuilder`, builds and executes the request,
@@ -659,7 +840,7 @@ pub struct StorageAnywhereCachesPauseArgs {
     pub anywhereCacheId: String,
 }
 
-/// GET b/{bucket}/anywhereCaches/{anywhereCacheId}/pause
+/// POST b/{bucket}/anywhereCaches/{anywhereCacheId}/pause
 /// Pauses an Anywhere Cache instance.
 ///
 /// Simplest API - builds and executes the request in one call.
@@ -684,7 +865,7 @@ pub fn storage_anywhere_caches_pause(
     storage_anywhere_caches_pause_execute(builder)
 }
 
-/// GET b/{bucket}/anywhereCaches/{anywhereCacheId}/resume
+/// POST b/{bucket}/anywhereCaches/{anywhereCacheId}/resume
 /// Resumes a paused or disabled Anywhere Cache instance.
 ///
 /// Returns `ClientRequestBuilder` for customization.
@@ -703,13 +884,13 @@ pub fn storage_anywhere_caches_resume_builder(
 
     // Build request
     let builder = client
-        .get(&endpoint_url)
+        .post(&endpoint_url)
         .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
 
     Ok(builder)
 }
 
-/// GET b/{bucket}/anywhereCaches/{anywhereCacheId}/resume
+/// POST b/{bucket}/anywhereCaches/{anywhereCacheId}/resume
 /// Resumes a paused or disabled Anywhere Cache instance.
 ///
 /// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
@@ -783,7 +964,7 @@ pub fn storage_anywhere_caches_resume_task(
         .map_pending(|_| ApiPending::Sending))
 }
 
-/// GET b/{bucket}/anywhereCaches/{anywhereCacheId}/resume
+/// POST b/{bucket}/anywhereCaches/{anywhereCacheId}/resume
 /// Resumes a paused or disabled Anywhere Cache instance.
 ///
 /// Takes a `ClientRequestBuilder`, builds and executes the request,
@@ -824,7 +1005,7 @@ pub struct StorageAnywhereCachesResumeArgs {
     pub anywhereCacheId: String,
 }
 
-/// GET b/{bucket}/anywhereCaches/{anywhereCacheId}/resume
+/// POST b/{bucket}/anywhereCaches/{anywhereCacheId}/resume
 /// Resumes a paused or disabled Anywhere Cache instance.
 ///
 /// Simplest API - builds and executes the request in one call.
@@ -849,7 +1030,176 @@ pub fn storage_anywhere_caches_resume(
     storage_anywhere_caches_resume_execute(builder)
 }
 
-/// GET b/{bucket}/acl/{entity}
+/// PATCH b/{bucket}/anywhereCaches/{anywhereCacheId}
+/// Updates the config(ttl and `admissionPolicy`) of an Anywhere Cache instance.
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `storage_anywhere_caches_update_execute()` to send, or `storage_anywhere_caches_update` for simplest API.
+
+pub fn storage_anywhere_caches_update_builder(
+    client: &SimpleHttpClient,
+    bucket: &String,
+    anywhereCacheId: &String,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!(
+        "https://storage.googleapis.com/storage/v1/b/{}/anywhereCaches/{}",
+        bucket, anywhereCacheId,
+    );
+
+    // Build request
+    let builder = client
+        .patch(&endpoint_url)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// PATCH b/{bucket}/anywhereCaches/{anywhereCacheId}
+/// Updates the config(ttl and `admissionPolicy`) of an Anywhere Cache instance.
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `storage_anywhere_caches_update_execute()` or `storage_anywhere_caches_update`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `storage_anywhere_caches_update_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn storage_anywhere_caches_update_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<GoogleLongrunningOperation>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: GoogleLongrunningOperation = serde_json::from_str(&body)
+                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// PATCH b/{bucket}/anywhereCaches/{anywhereCacheId}
+/// Updates the config(ttl and `admissionPolicy`) of an Anywhere Cache instance.
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `storage_anywhere_caches_update_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `storage_anywhere_caches_update_task()`.
+/// For the simplest API, use `storage_anywhere_caches_update()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `storage_anywhere_caches_update_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn storage_anywhere_caches_update_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<
+            D = Result<ApiResponse<GoogleLongrunningOperation>, ApiError>,
+            P = ApiPending,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    let task = storage_anywhere_caches_update_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`storage_anywhere_caches_update`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct StorageAnywhereCachesUpdateArgs {
+    /// Path parameter: bucket
+    pub bucket: String,
+    /// Path parameter: anywhereCacheId
+    pub anywhereCacheId: String,
+}
+
+/// PATCH b/{bucket}/anywhereCaches/{anywhereCacheId}
+/// Updates the config(ttl and `admissionPolicy`) of an Anywhere Cache instance.
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `storage_anywhere_caches_update_builder()` + `storage_anywhere_caches_update_execute()`.
+/// For task-level control, use `storage_anywhere_caches_update_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn storage_anywhere_caches_update(
+    client: &SimpleHttpClient,
+    args: &StorageAnywhereCachesUpdateArgs,
+) -> Result<
+    impl StreamIterator<
+            D = Result<ApiResponse<GoogleLongrunningOperation>, ApiError>,
+            P = ApiPending,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    let builder =
+        storage_anywhere_caches_update_builder(client, &args.bucket, &args.anywhereCacheId)?;
+    storage_anywhere_caches_update_execute(builder)
+}
+
+/// DELETE b/{bucket}/acl/{entity}
 /// Permanently deletes the ACL entry for the specified entity on the specified bucket.
 ///
 /// Returns `ClientRequestBuilder` for customization.
@@ -859,7 +1209,7 @@ pub fn storage_bucket_access_controls_delete_builder(
     client: &SimpleHttpClient,
     bucket: &String,
     entity: &String,
-    userProject: &Option<String>,
+    userProject: &Option<Option<String>>,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
@@ -880,13 +1230,13 @@ pub fn storage_bucket_access_controls_delete_builder(
     };
 
     let builder = client
-        .get(&url_with_query)
+        .delete(&url_with_query)
         .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
 
     Ok(builder)
 }
 
-/// GET b/{bucket}/acl/{entity}
+/// DELETE b/{bucket}/acl/{entity}
 /// Permanently deletes the ACL entry for the specified entity on the specified bucket.
 ///
 /// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
@@ -957,7 +1307,7 @@ pub fn storage_bucket_access_controls_delete_task(
         .map_pending(|_| ApiPending::Sending))
 }
 
-/// GET b/{bucket}/acl/{entity}
+/// DELETE b/{bucket}/acl/{entity}
 /// Permanently deletes the ACL entry for the specified entity on the specified bucket.
 ///
 /// Takes a `ClientRequestBuilder`, builds and executes the request,
@@ -995,10 +1345,10 @@ pub struct StorageBucketAccessControlsDeleteArgs {
     /// Path parameter: entity
     pub entity: String,
     /// Query parameter: userProject
-    pub userProject: Option<String>,
+    pub userProject: Option<Option<String>>,
 }
 
-/// GET b/{bucket}/acl/{entity}
+/// DELETE b/{bucket}/acl/{entity}
 /// Permanently deletes the ACL entry for the specified entity on the specified bucket.
 ///
 /// Simplest API - builds and executes the request in one call.
@@ -1025,20 +1375,23 @@ pub fn storage_bucket_access_controls_delete(
     storage_bucket_access_controls_delete_execute(builder)
 }
 
-/// GET b/{bucket}/acl
-/// Creates a new ACL entry on the specified bucket.
+/// GET b/{bucket}/acl/{entity}
+/// Returns the ACL entry for the specified entity on the specified bucket.
 ///
 /// Returns `ClientRequestBuilder` for customization.
-/// Use `storage_bucket_access_controls_insert_execute()` to send, or `storage_bucket_access_controls_insert` for simplest API.
+/// Use `storage_bucket_access_controls_get_execute()` to send, or `storage_bucket_access_controls_get` for simplest API.
 
-pub fn storage_bucket_access_controls_insert_builder(
+pub fn storage_bucket_access_controls_get_builder(
     client: &SimpleHttpClient,
     bucket: &String,
-    userProject: &Option<String>,
-    body: &BucketAccessControl,
+    entity: &String,
+    userProject: &Option<Option<String>>,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
-    let endpoint_url = format!("https://storage.googleapis.com/storage/v1/b/{}/acl", bucket,);
+    let endpoint_url = format!(
+        "https://storage.googleapis.com/storage/v1/b/{}/acl/{}",
+        bucket, entity,
+    );
 
     // Build request
     let mut query_parts = Vec::new();
@@ -1056,12 +1409,189 @@ pub fn storage_bucket_access_controls_insert_builder(
         .get(&url_with_query)
         .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
 
-    builder
-        .body_json(body)
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+    Ok(builder)
 }
 
-/// GET b/{bucket}/acl
+/// GET b/{bucket}/acl/{entity}
+/// Returns the ACL entry for the specified entity on the specified bucket.
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `storage_bucket_access_controls_get_execute()` or `storage_bucket_access_controls_get`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `storage_bucket_access_controls_get_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn storage_bucket_access_controls_get_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<BucketAccessControl>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: BucketAccessControl = serde_json::from_str(&body)
+                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// GET b/{bucket}/acl/{entity}
+/// Returns the ACL entry for the specified entity on the specified bucket.
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `storage_bucket_access_controls_get_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `storage_bucket_access_controls_get_task()`.
+/// For the simplest API, use `storage_bucket_access_controls_get()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `storage_bucket_access_controls_get_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn storage_bucket_access_controls_get_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<BucketAccessControl>, ApiError>, P = ApiPending>
+        + Send
+        + 'static,
+    ApiError,
+> {
+    let task = storage_bucket_access_controls_get_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`storage_bucket_access_controls_get`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct StorageBucketAccessControlsGetArgs {
+    /// Path parameter: bucket
+    pub bucket: String,
+    /// Path parameter: entity
+    pub entity: String,
+    /// Query parameter: userProject
+    pub userProject: Option<Option<String>>,
+}
+
+/// GET b/{bucket}/acl/{entity}
+/// Returns the ACL entry for the specified entity on the specified bucket.
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `storage_bucket_access_controls_get_builder()` + `storage_bucket_access_controls_get_execute()`.
+/// For task-level control, use `storage_bucket_access_controls_get_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn storage_bucket_access_controls_get(
+    client: &SimpleHttpClient,
+    args: &StorageBucketAccessControlsGetArgs,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<BucketAccessControl>, ApiError>, P = ApiPending>
+        + Send
+        + 'static,
+    ApiError,
+> {
+    let builder = storage_bucket_access_controls_get_builder(
+        client,
+        &args.bucket,
+        &args.entity,
+        &args.userProject,
+    )?;
+    storage_bucket_access_controls_get_execute(builder)
+}
+
+/// POST b/{bucket}/acl
+/// Creates a new ACL entry on the specified bucket.
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `storage_bucket_access_controls_insert_execute()` to send, or `storage_bucket_access_controls_insert` for simplest API.
+
+pub fn storage_bucket_access_controls_insert_builder(
+    client: &SimpleHttpClient,
+    bucket: &String,
+    userProject: &Option<Option<String>>,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!("https://storage.googleapis.com/storage/v1/b/{}/acl", bucket,);
+
+    // Build request
+    let mut query_parts = Vec::new();
+    if let Some(val) = userProject.as_ref() {
+        query_parts.push(format!("userProject={}", val));
+    }
+
+    let url_with_query = if query_parts.is_empty() {
+        endpoint_url
+    } else {
+        format!("{}?{}", endpoint_url, query_parts.join("&"))
+    };
+
+    let builder = client
+        .post(&url_with_query)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// POST b/{bucket}/acl
 /// Creates a new ACL entry on the specified bucket.
 ///
 /// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
@@ -1135,7 +1665,7 @@ pub fn storage_bucket_access_controls_insert_task(
         .map_pending(|_| ApiPending::Sending))
 }
 
-/// GET b/{bucket}/acl
+/// POST b/{bucket}/acl
 /// Creates a new ACL entry on the specified bucket.
 ///
 /// Takes a `ClientRequestBuilder`, builds and executes the request,
@@ -1173,12 +1703,10 @@ pub struct StorageBucketAccessControlsInsertArgs {
     /// Path parameter: bucket
     pub bucket: String,
     /// Query parameter: userProject
-    pub userProject: Option<String>,
-    /// Request body.
-    pub body: BucketAccessControl,
+    pub userProject: Option<Option<String>>,
 }
 
-/// GET b/{bucket}/acl
+/// POST b/{bucket}/acl
 /// Creates a new ACL entry on the specified bucket.
 ///
 /// Simplest API - builds and executes the request in one call.
@@ -1198,16 +1726,551 @@ pub fn storage_bucket_access_controls_insert(
         + 'static,
     ApiError,
 > {
-    let builder = storage_bucket_access_controls_insert_builder(
-        client,
-        &args.bucket,
-        &args.userProject,
-        &args.body,
-    )?;
+    let builder =
+        storage_bucket_access_controls_insert_builder(client, &args.bucket, &args.userProject)?;
     storage_bucket_access_controls_insert_execute(builder)
 }
 
-/// GET b/{bucket}
+/// GET b/{bucket}/acl
+/// Retrieves ACL entries on the specified bucket.
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `storage_bucket_access_controls_list_execute()` to send, or `storage_bucket_access_controls_list` for simplest API.
+
+pub fn storage_bucket_access_controls_list_builder(
+    client: &SimpleHttpClient,
+    bucket: &String,
+    userProject: &Option<Option<String>>,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!("https://storage.googleapis.com/storage/v1/b/{}/acl", bucket,);
+
+    // Build request
+    let mut query_parts = Vec::new();
+    if let Some(val) = userProject.as_ref() {
+        query_parts.push(format!("userProject={}", val));
+    }
+
+    let url_with_query = if query_parts.is_empty() {
+        endpoint_url
+    } else {
+        format!("{}?{}", endpoint_url, query_parts.join("&"))
+    };
+
+    let builder = client
+        .get(&url_with_query)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// GET b/{bucket}/acl
+/// Retrieves ACL entries on the specified bucket.
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `storage_bucket_access_controls_list_execute()` or `storage_bucket_access_controls_list`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `storage_bucket_access_controls_list_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn storage_bucket_access_controls_list_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<BucketAccessControls>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: BucketAccessControls = serde_json::from_str(&body)
+                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// GET b/{bucket}/acl
+/// Retrieves ACL entries on the specified bucket.
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `storage_bucket_access_controls_list_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `storage_bucket_access_controls_list_task()`.
+/// For the simplest API, use `storage_bucket_access_controls_list()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `storage_bucket_access_controls_list_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn storage_bucket_access_controls_list_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<BucketAccessControls>, ApiError>, P = ApiPending>
+        + Send
+        + 'static,
+    ApiError,
+> {
+    let task = storage_bucket_access_controls_list_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`storage_bucket_access_controls_list`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct StorageBucketAccessControlsListArgs {
+    /// Path parameter: bucket
+    pub bucket: String,
+    /// Query parameter: userProject
+    pub userProject: Option<Option<String>>,
+}
+
+/// GET b/{bucket}/acl
+/// Retrieves ACL entries on the specified bucket.
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `storage_bucket_access_controls_list_builder()` + `storage_bucket_access_controls_list_execute()`.
+/// For task-level control, use `storage_bucket_access_controls_list_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn storage_bucket_access_controls_list(
+    client: &SimpleHttpClient,
+    args: &StorageBucketAccessControlsListArgs,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<BucketAccessControls>, ApiError>, P = ApiPending>
+        + Send
+        + 'static,
+    ApiError,
+> {
+    let builder =
+        storage_bucket_access_controls_list_builder(client, &args.bucket, &args.userProject)?;
+    storage_bucket_access_controls_list_execute(builder)
+}
+
+/// PATCH b/{bucket}/acl/{entity}
+/// Patches an ACL entry on the specified bucket.
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `storage_bucket_access_controls_patch_execute()` to send, or `storage_bucket_access_controls_patch` for simplest API.
+
+pub fn storage_bucket_access_controls_patch_builder(
+    client: &SimpleHttpClient,
+    bucket: &String,
+    entity: &String,
+    userProject: &Option<Option<String>>,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!(
+        "https://storage.googleapis.com/storage/v1/b/{}/acl/{}",
+        bucket, entity,
+    );
+
+    // Build request
+    let mut query_parts = Vec::new();
+    if let Some(val) = userProject.as_ref() {
+        query_parts.push(format!("userProject={}", val));
+    }
+
+    let url_with_query = if query_parts.is_empty() {
+        endpoint_url
+    } else {
+        format!("{}?{}", endpoint_url, query_parts.join("&"))
+    };
+
+    let builder = client
+        .patch(&url_with_query)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// PATCH b/{bucket}/acl/{entity}
+/// Patches an ACL entry on the specified bucket.
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `storage_bucket_access_controls_patch_execute()` or `storage_bucket_access_controls_patch`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `storage_bucket_access_controls_patch_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn storage_bucket_access_controls_patch_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<BucketAccessControl>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: BucketAccessControl = serde_json::from_str(&body)
+                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// PATCH b/{bucket}/acl/{entity}
+/// Patches an ACL entry on the specified bucket.
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `storage_bucket_access_controls_patch_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `storage_bucket_access_controls_patch_task()`.
+/// For the simplest API, use `storage_bucket_access_controls_patch()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `storage_bucket_access_controls_patch_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn storage_bucket_access_controls_patch_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<BucketAccessControl>, ApiError>, P = ApiPending>
+        + Send
+        + 'static,
+    ApiError,
+> {
+    let task = storage_bucket_access_controls_patch_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`storage_bucket_access_controls_patch`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct StorageBucketAccessControlsPatchArgs {
+    /// Path parameter: bucket
+    pub bucket: String,
+    /// Path parameter: entity
+    pub entity: String,
+    /// Query parameter: userProject
+    pub userProject: Option<Option<String>>,
+}
+
+/// PATCH b/{bucket}/acl/{entity}
+/// Patches an ACL entry on the specified bucket.
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `storage_bucket_access_controls_patch_builder()` + `storage_bucket_access_controls_patch_execute()`.
+/// For task-level control, use `storage_bucket_access_controls_patch_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn storage_bucket_access_controls_patch(
+    client: &SimpleHttpClient,
+    args: &StorageBucketAccessControlsPatchArgs,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<BucketAccessControl>, ApiError>, P = ApiPending>
+        + Send
+        + 'static,
+    ApiError,
+> {
+    let builder = storage_bucket_access_controls_patch_builder(
+        client,
+        &args.bucket,
+        &args.entity,
+        &args.userProject,
+    )?;
+    storage_bucket_access_controls_patch_execute(builder)
+}
+
+/// PUT b/{bucket}/acl/{entity}
+/// Updates an ACL entry on the specified bucket.
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `storage_bucket_access_controls_update_execute()` to send, or `storage_bucket_access_controls_update` for simplest API.
+
+pub fn storage_bucket_access_controls_update_builder(
+    client: &SimpleHttpClient,
+    bucket: &String,
+    entity: &String,
+    userProject: &Option<Option<String>>,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!(
+        "https://storage.googleapis.com/storage/v1/b/{}/acl/{}",
+        bucket, entity,
+    );
+
+    // Build request
+    let mut query_parts = Vec::new();
+    if let Some(val) = userProject.as_ref() {
+        query_parts.push(format!("userProject={}", val));
+    }
+
+    let url_with_query = if query_parts.is_empty() {
+        endpoint_url
+    } else {
+        format!("{}?{}", endpoint_url, query_parts.join("&"))
+    };
+
+    let builder = client
+        .put(&url_with_query)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// PUT b/{bucket}/acl/{entity}
+/// Updates an ACL entry on the specified bucket.
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `storage_bucket_access_controls_update_execute()` or `storage_bucket_access_controls_update`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `storage_bucket_access_controls_update_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn storage_bucket_access_controls_update_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<BucketAccessControl>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: BucketAccessControl = serde_json::from_str(&body)
+                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// PUT b/{bucket}/acl/{entity}
+/// Updates an ACL entry on the specified bucket.
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `storage_bucket_access_controls_update_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `storage_bucket_access_controls_update_task()`.
+/// For the simplest API, use `storage_bucket_access_controls_update()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `storage_bucket_access_controls_update_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn storage_bucket_access_controls_update_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<BucketAccessControl>, ApiError>, P = ApiPending>
+        + Send
+        + 'static,
+    ApiError,
+> {
+    let task = storage_bucket_access_controls_update_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`storage_bucket_access_controls_update`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct StorageBucketAccessControlsUpdateArgs {
+    /// Path parameter: bucket
+    pub bucket: String,
+    /// Path parameter: entity
+    pub entity: String,
+    /// Query parameter: userProject
+    pub userProject: Option<Option<String>>,
+}
+
+/// PUT b/{bucket}/acl/{entity}
+/// Updates an ACL entry on the specified bucket.
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `storage_bucket_access_controls_update_builder()` + `storage_bucket_access_controls_update_execute()`.
+/// For task-level control, use `storage_bucket_access_controls_update_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn storage_bucket_access_controls_update(
+    client: &SimpleHttpClient,
+    args: &StorageBucketAccessControlsUpdateArgs,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<BucketAccessControl>, ApiError>, P = ApiPending>
+        + Send
+        + 'static,
+    ApiError,
+> {
+    let builder = storage_bucket_access_controls_update_builder(
+        client,
+        &args.bucket,
+        &args.entity,
+        &args.userProject,
+    )?;
+    storage_bucket_access_controls_update_execute(builder)
+}
+
+/// DELETE b/{bucket}
 /// Deletes an empty bucket. Deletions are permanent unless soft delete is enabled on the bucket.
 ///
 /// Returns `ClientRequestBuilder` for customization.
@@ -1216,9 +2279,9 @@ pub fn storage_bucket_access_controls_insert(
 pub fn storage_buckets_delete_builder(
     client: &SimpleHttpClient,
     bucket: &String,
-    ifMetagenerationMatch: &Option<String>,
-    ifMetagenerationNotMatch: &Option<String>,
-    userProject: &Option<String>,
+    ifMetagenerationMatch: &Option<Option<String>>,
+    ifMetagenerationNotMatch: &Option<Option<String>>,
+    userProject: &Option<Option<String>>,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!("https://storage.googleapis.com/storage/v1/b/{}", bucket,);
@@ -1242,13 +2305,13 @@ pub fn storage_buckets_delete_builder(
     };
 
     let builder = client
-        .get(&url_with_query)
+        .delete(&url_with_query)
         .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
 
     Ok(builder)
 }
 
-/// GET b/{bucket}
+/// DELETE b/{bucket}
 /// Deletes an empty bucket. Deletions are permanent unless soft delete is enabled on the bucket.
 ///
 /// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
@@ -1319,7 +2382,7 @@ pub fn storage_buckets_delete_task(
         .map_pending(|_| ApiPending::Sending))
 }
 
-/// GET b/{bucket}
+/// DELETE b/{bucket}
 /// Deletes an empty bucket. Deletions are permanent unless soft delete is enabled on the bucket.
 ///
 /// Takes a `ClientRequestBuilder`, builds and executes the request,
@@ -1355,14 +2418,14 @@ pub struct StorageBucketsDeleteArgs {
     /// Path parameter: bucket
     pub bucket: String,
     /// Query parameter: ifMetagenerationMatch
-    pub ifMetagenerationMatch: Option<String>,
+    pub ifMetagenerationMatch: Option<Option<String>>,
     /// Query parameter: ifMetagenerationNotMatch
-    pub ifMetagenerationNotMatch: Option<String>,
+    pub ifMetagenerationNotMatch: Option<Option<String>>,
     /// Query parameter: userProject
-    pub userProject: Option<String>,
+    pub userProject: Option<Option<String>>,
 }
 
-/// GET b/{bucket}
+/// DELETE b/{bucket}
 /// Deletes an empty bucket. Deletions are permanent unless soft delete is enabled on the bucket.
 ///
 /// Simplest API - builds and executes the request in one call.
@@ -1390,6 +2453,213 @@ pub fn storage_buckets_delete(
     storage_buckets_delete_execute(builder)
 }
 
+/// GET b/{bucket}
+/// Returns metadata for the specified bucket.
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `storage_buckets_get_execute()` to send, or `storage_buckets_get` for simplest API.
+
+pub fn storage_buckets_get_builder(
+    client: &SimpleHttpClient,
+    bucket: &String,
+    generation: &Option<Option<String>>,
+    ifMetagenerationMatch: &Option<Option<String>>,
+    ifMetagenerationNotMatch: &Option<Option<String>>,
+    projection: &Option<Option<String>>,
+    softDeleted: &Option<Option<String>>,
+    userProject: &Option<Option<String>>,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!("https://storage.googleapis.com/storage/v1/b/{}", bucket,);
+
+    // Build request
+    let mut query_parts = Vec::new();
+    if let Some(val) = generation.as_ref() {
+        query_parts.push(format!("generation={}", val));
+    }
+    if let Some(val) = ifMetagenerationMatch.as_ref() {
+        query_parts.push(format!("ifMetagenerationMatch={}", val));
+    }
+    if let Some(val) = ifMetagenerationNotMatch.as_ref() {
+        query_parts.push(format!("ifMetagenerationNotMatch={}", val));
+    }
+    if let Some(val) = projection.as_ref() {
+        query_parts.push(format!("projection={}", val));
+    }
+    if let Some(val) = softDeleted.as_ref() {
+        query_parts.push(format!("softDeleted={}", val));
+    }
+    if let Some(val) = userProject.as_ref() {
+        query_parts.push(format!("userProject={}", val));
+    }
+
+    let url_with_query = if query_parts.is_empty() {
+        endpoint_url
+    } else {
+        format!("{}?{}", endpoint_url, query_parts.join("&"))
+    };
+
+    let builder = client
+        .get(&url_with_query)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// GET b/{bucket}
+/// Returns metadata for the specified bucket.
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `storage_buckets_get_execute()` or `storage_buckets_get`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `storage_buckets_get_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn storage_buckets_get_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<Bucket>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: Bucket = serde_json::from_str(&body)
+                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// GET b/{bucket}
+/// Returns metadata for the specified bucket.
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `storage_buckets_get_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `storage_buckets_get_task()`.
+/// For the simplest API, use `storage_buckets_get()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `storage_buckets_get_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn storage_buckets_get_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<Bucket>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let task = storage_buckets_get_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`storage_buckets_get`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct StorageBucketsGetArgs {
+    /// Path parameter: bucket
+    pub bucket: String,
+    /// Query parameter: generation
+    pub generation: Option<Option<String>>,
+    /// Query parameter: ifMetagenerationMatch
+    pub ifMetagenerationMatch: Option<Option<String>>,
+    /// Query parameter: ifMetagenerationNotMatch
+    pub ifMetagenerationNotMatch: Option<Option<String>>,
+    /// Query parameter: projection
+    pub projection: Option<Option<String>>,
+    /// Query parameter: softDeleted
+    pub softDeleted: Option<Option<String>>,
+    /// Query parameter: userProject
+    pub userProject: Option<Option<String>>,
+}
+
+/// GET b/{bucket}
+/// Returns metadata for the specified bucket.
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `storage_buckets_get_builder()` + `storage_buckets_get_execute()`.
+/// For task-level control, use `storage_buckets_get_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn storage_buckets_get(
+    client: &SimpleHttpClient,
+    args: &StorageBucketsGetArgs,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<Bucket>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let builder = storage_buckets_get_builder(
+        client,
+        &args.bucket,
+        &args.generation,
+        &args.ifMetagenerationMatch,
+        &args.ifMetagenerationNotMatch,
+        &args.projection,
+        &args.softDeleted,
+        &args.userProject,
+    )?;
+    storage_buckets_get_execute(builder)
+}
+
 /// GET b/{bucket}/iam
 /// Returns an IAM policy for the specified bucket.
 ///
@@ -1399,8 +2669,8 @@ pub fn storage_buckets_delete(
 pub fn storage_buckets_get_iam_policy_builder(
     client: &SimpleHttpClient,
     bucket: &String,
-    optionsRequestedPolicyVersion: &Option<i32>,
-    userProject: &Option<String>,
+    optionsRequestedPolicyVersion: &Option<Option<String>>,
+    userProject: &Option<Option<String>>,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!("https://storage.googleapis.com/storage/v1/b/{}/iam", bucket,);
@@ -1537,9 +2807,9 @@ pub struct StorageBucketsGetIamPolicyArgs {
     /// Path parameter: bucket
     pub bucket: String,
     /// Query parameter: optionsRequestedPolicyVersion
-    pub optionsRequestedPolicyVersion: Option<i32>,
+    pub optionsRequestedPolicyVersion: Option<Option<String>>,
     /// Query parameter: userProject
-    pub userProject: Option<String>,
+    pub userProject: Option<Option<String>>,
 }
 
 /// GET b/{bucket}/iam
@@ -1578,7 +2848,7 @@ pub fn storage_buckets_get_iam_policy(
 pub fn storage_buckets_get_storage_layout_builder(
     client: &SimpleHttpClient,
     bucket: &String,
-    prefix: &Option<String>,
+    prefix: &Option<Option<String>>,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
@@ -1717,7 +2987,7 @@ pub struct StorageBucketsGetStorageLayoutArgs {
     /// Path parameter: bucket
     pub bucket: String,
     /// Query parameter: prefix
-    pub prefix: Option<String>,
+    pub prefix: Option<Option<String>>,
 }
 
 /// GET b/{bucket}/storageLayout
@@ -1744,7 +3014,816 @@ pub fn storage_buckets_get_storage_layout(
     storage_buckets_get_storage_layout_execute(builder)
 }
 
-/// GET b/{bucket}/relocate
+/// POST b
+/// Creates a new bucket.
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `storage_buckets_insert_execute()` to send, or `storage_buckets_insert` for simplest API.
+
+pub fn storage_buckets_insert_builder(
+    client: &SimpleHttpClient,
+    enableObjectRetention: &Option<Option<String>>,
+    predefinedAcl: &Option<Option<String>>,
+    predefinedDefaultObjectAcl: &Option<Option<String>>,
+    project: &Option<Option<String>>,
+    projection: &Option<Option<String>>,
+    userProject: &Option<Option<String>>,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!("https://storage.googleapis.com/storage/v1/b",);
+
+    // Build request
+    let mut query_parts = Vec::new();
+    if let Some(val) = enableObjectRetention.as_ref() {
+        query_parts.push(format!("enableObjectRetention={}", val));
+    }
+    if let Some(val) = predefinedAcl.as_ref() {
+        query_parts.push(format!("predefinedAcl={}", val));
+    }
+    if let Some(val) = predefinedDefaultObjectAcl.as_ref() {
+        query_parts.push(format!("predefinedDefaultObjectAcl={}", val));
+    }
+    if let Some(val) = project.as_ref() {
+        query_parts.push(format!("project={}", val));
+    }
+    if let Some(val) = projection.as_ref() {
+        query_parts.push(format!("projection={}", val));
+    }
+    if let Some(val) = userProject.as_ref() {
+        query_parts.push(format!("userProject={}", val));
+    }
+
+    let url_with_query = if query_parts.is_empty() {
+        endpoint_url
+    } else {
+        format!("{}?{}", endpoint_url, query_parts.join("&"))
+    };
+
+    let builder = client
+        .post(&url_with_query)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// POST b
+/// Creates a new bucket.
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `storage_buckets_insert_execute()` or `storage_buckets_insert`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `storage_buckets_insert_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn storage_buckets_insert_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<Bucket>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: Bucket = serde_json::from_str(&body)
+                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// POST b
+/// Creates a new bucket.
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `storage_buckets_insert_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `storage_buckets_insert_task()`.
+/// For the simplest API, use `storage_buckets_insert()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `storage_buckets_insert_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn storage_buckets_insert_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<Bucket>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let task = storage_buckets_insert_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`storage_buckets_insert`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct StorageBucketsInsertArgs {
+    /// Query parameter: enableObjectRetention
+    pub enableObjectRetention: Option<Option<String>>,
+    /// Query parameter: predefinedAcl
+    pub predefinedAcl: Option<Option<String>>,
+    /// Query parameter: predefinedDefaultObjectAcl
+    pub predefinedDefaultObjectAcl: Option<Option<String>>,
+    /// Query parameter: project
+    pub project: Option<Option<String>>,
+    /// Query parameter: projection
+    pub projection: Option<Option<String>>,
+    /// Query parameter: userProject
+    pub userProject: Option<Option<String>>,
+}
+
+/// POST b
+/// Creates a new bucket.
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `storage_buckets_insert_builder()` + `storage_buckets_insert_execute()`.
+/// For task-level control, use `storage_buckets_insert_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn storage_buckets_insert(
+    client: &SimpleHttpClient,
+    args: &StorageBucketsInsertArgs,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<Bucket>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let builder = storage_buckets_insert_builder(
+        client,
+        &args.enableObjectRetention,
+        &args.predefinedAcl,
+        &args.predefinedDefaultObjectAcl,
+        &args.project,
+        &args.projection,
+        &args.userProject,
+    )?;
+    storage_buckets_insert_execute(builder)
+}
+
+/// GET b
+/// Retrieves a list of buckets for a given project.
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `storage_buckets_list_execute()` to send, or `storage_buckets_list` for simplest API.
+
+pub fn storage_buckets_list_builder(
+    client: &SimpleHttpClient,
+    maxResults: &Option<Option<String>>,
+    pageToken: &Option<Option<String>>,
+    prefix: &Option<Option<String>>,
+    project: &Option<Option<String>>,
+    projection: &Option<Option<String>>,
+    returnPartialSuccess: &Option<Option<String>>,
+    softDeleted: &Option<Option<String>>,
+    userProject: &Option<Option<String>>,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!("https://storage.googleapis.com/storage/v1/b",);
+
+    // Build request
+    let mut query_parts = Vec::new();
+    if let Some(val) = maxResults.as_ref() {
+        query_parts.push(format!("maxResults={}", val));
+    }
+    if let Some(val) = pageToken.as_ref() {
+        query_parts.push(format!("pageToken={}", val));
+    }
+    if let Some(val) = prefix.as_ref() {
+        query_parts.push(format!("prefix={}", val));
+    }
+    if let Some(val) = project.as_ref() {
+        query_parts.push(format!("project={}", val));
+    }
+    if let Some(val) = projection.as_ref() {
+        query_parts.push(format!("projection={}", val));
+    }
+    if let Some(val) = returnPartialSuccess.as_ref() {
+        query_parts.push(format!("returnPartialSuccess={}", val));
+    }
+    if let Some(val) = softDeleted.as_ref() {
+        query_parts.push(format!("softDeleted={}", val));
+    }
+    if let Some(val) = userProject.as_ref() {
+        query_parts.push(format!("userProject={}", val));
+    }
+
+    let url_with_query = if query_parts.is_empty() {
+        endpoint_url
+    } else {
+        format!("{}?{}", endpoint_url, query_parts.join("&"))
+    };
+
+    let builder = client
+        .get(&url_with_query)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// GET b
+/// Retrieves a list of buckets for a given project.
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `storage_buckets_list_execute()` or `storage_buckets_list`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `storage_buckets_list_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn storage_buckets_list_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<Buckets>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: Buckets = serde_json::from_str(&body)
+                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// GET b
+/// Retrieves a list of buckets for a given project.
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `storage_buckets_list_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `storage_buckets_list_task()`.
+/// For the simplest API, use `storage_buckets_list()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `storage_buckets_list_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn storage_buckets_list_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<Buckets>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let task = storage_buckets_list_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`storage_buckets_list`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct StorageBucketsListArgs {
+    /// Query parameter: maxResults
+    pub maxResults: Option<Option<String>>,
+    /// Query parameter: pageToken
+    pub pageToken: Option<Option<String>>,
+    /// Query parameter: prefix
+    pub prefix: Option<Option<String>>,
+    /// Query parameter: project
+    pub project: Option<Option<String>>,
+    /// Query parameter: projection
+    pub projection: Option<Option<String>>,
+    /// Query parameter: returnPartialSuccess
+    pub returnPartialSuccess: Option<Option<String>>,
+    /// Query parameter: softDeleted
+    pub softDeleted: Option<Option<String>>,
+    /// Query parameter: userProject
+    pub userProject: Option<Option<String>>,
+}
+
+/// GET b
+/// Retrieves a list of buckets for a given project.
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `storage_buckets_list_builder()` + `storage_buckets_list_execute()`.
+/// For task-level control, use `storage_buckets_list_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn storage_buckets_list(
+    client: &SimpleHttpClient,
+    args: &StorageBucketsListArgs,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<Buckets>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let builder = storage_buckets_list_builder(
+        client,
+        &args.maxResults,
+        &args.pageToken,
+        &args.prefix,
+        &args.project,
+        &args.projection,
+        &args.returnPartialSuccess,
+        &args.softDeleted,
+        &args.userProject,
+    )?;
+    storage_buckets_list_execute(builder)
+}
+
+/// POST b/{bucket}/lockRetentionPolicy
+/// Locks retention policy on a bucket.
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `storage_buckets_lock_retention_policy_execute()` to send, or `storage_buckets_lock_retention_policy` for simplest API.
+
+pub fn storage_buckets_lock_retention_policy_builder(
+    client: &SimpleHttpClient,
+    bucket: &String,
+    ifMetagenerationMatch: &Option<Option<String>>,
+    userProject: &Option<Option<String>>,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!(
+        "https://storage.googleapis.com/storage/v1/b/{}/lockRetentionPolicy",
+        bucket,
+    );
+
+    // Build request
+    let mut query_parts = Vec::new();
+    if let Some(val) = ifMetagenerationMatch.as_ref() {
+        query_parts.push(format!("ifMetagenerationMatch={}", val));
+    }
+    if let Some(val) = userProject.as_ref() {
+        query_parts.push(format!("userProject={}", val));
+    }
+
+    let url_with_query = if query_parts.is_empty() {
+        endpoint_url
+    } else {
+        format!("{}?{}", endpoint_url, query_parts.join("&"))
+    };
+
+    let builder = client
+        .post(&url_with_query)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// POST b/{bucket}/lockRetentionPolicy
+/// Locks retention policy on a bucket.
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `storage_buckets_lock_retention_policy_execute()` or `storage_buckets_lock_retention_policy`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `storage_buckets_lock_retention_policy_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn storage_buckets_lock_retention_policy_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<Bucket>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: Bucket = serde_json::from_str(&body)
+                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// POST b/{bucket}/lockRetentionPolicy
+/// Locks retention policy on a bucket.
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `storage_buckets_lock_retention_policy_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `storage_buckets_lock_retention_policy_task()`.
+/// For the simplest API, use `storage_buckets_lock_retention_policy()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `storage_buckets_lock_retention_policy_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn storage_buckets_lock_retention_policy_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<Bucket>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let task = storage_buckets_lock_retention_policy_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`storage_buckets_lock_retention_policy`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct StorageBucketsLockRetentionPolicyArgs {
+    /// Path parameter: bucket
+    pub bucket: String,
+    /// Query parameter: ifMetagenerationMatch
+    pub ifMetagenerationMatch: Option<Option<String>>,
+    /// Query parameter: userProject
+    pub userProject: Option<Option<String>>,
+}
+
+/// POST b/{bucket}/lockRetentionPolicy
+/// Locks retention policy on a bucket.
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `storage_buckets_lock_retention_policy_builder()` + `storage_buckets_lock_retention_policy_execute()`.
+/// For task-level control, use `storage_buckets_lock_retention_policy_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn storage_buckets_lock_retention_policy(
+    client: &SimpleHttpClient,
+    args: &StorageBucketsLockRetentionPolicyArgs,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<Bucket>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let builder = storage_buckets_lock_retention_policy_builder(
+        client,
+        &args.bucket,
+        &args.ifMetagenerationMatch,
+        &args.userProject,
+    )?;
+    storage_buckets_lock_retention_policy_execute(builder)
+}
+
+/// PATCH b/{bucket}
+/// Patches a bucket. Changes to the bucket will be readable immediately after writing, but configuration changes may take time to propagate.
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `storage_buckets_patch_execute()` to send, or `storage_buckets_patch` for simplest API.
+
+pub fn storage_buckets_patch_builder(
+    client: &SimpleHttpClient,
+    bucket: &String,
+    ifMetagenerationMatch: &Option<Option<String>>,
+    ifMetagenerationNotMatch: &Option<Option<String>>,
+    predefinedAcl: &Option<Option<String>>,
+    predefinedDefaultObjectAcl: &Option<Option<String>>,
+    projection: &Option<Option<String>>,
+    userProject: &Option<Option<String>>,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!("https://storage.googleapis.com/storage/v1/b/{}", bucket,);
+
+    // Build request
+    let mut query_parts = Vec::new();
+    if let Some(val) = ifMetagenerationMatch.as_ref() {
+        query_parts.push(format!("ifMetagenerationMatch={}", val));
+    }
+    if let Some(val) = ifMetagenerationNotMatch.as_ref() {
+        query_parts.push(format!("ifMetagenerationNotMatch={}", val));
+    }
+    if let Some(val) = predefinedAcl.as_ref() {
+        query_parts.push(format!("predefinedAcl={}", val));
+    }
+    if let Some(val) = predefinedDefaultObjectAcl.as_ref() {
+        query_parts.push(format!("predefinedDefaultObjectAcl={}", val));
+    }
+    if let Some(val) = projection.as_ref() {
+        query_parts.push(format!("projection={}", val));
+    }
+    if let Some(val) = userProject.as_ref() {
+        query_parts.push(format!("userProject={}", val));
+    }
+
+    let url_with_query = if query_parts.is_empty() {
+        endpoint_url
+    } else {
+        format!("{}?{}", endpoint_url, query_parts.join("&"))
+    };
+
+    let builder = client
+        .patch(&url_with_query)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// PATCH b/{bucket}
+/// Patches a bucket. Changes to the bucket will be readable immediately after writing, but configuration changes may take time to propagate.
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `storage_buckets_patch_execute()` or `storage_buckets_patch`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `storage_buckets_patch_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn storage_buckets_patch_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<Bucket>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: Bucket = serde_json::from_str(&body)
+                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// PATCH b/{bucket}
+/// Patches a bucket. Changes to the bucket will be readable immediately after writing, but configuration changes may take time to propagate.
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `storage_buckets_patch_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `storage_buckets_patch_task()`.
+/// For the simplest API, use `storage_buckets_patch()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `storage_buckets_patch_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn storage_buckets_patch_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<Bucket>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let task = storage_buckets_patch_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`storage_buckets_patch`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct StorageBucketsPatchArgs {
+    /// Path parameter: bucket
+    pub bucket: String,
+    /// Query parameter: ifMetagenerationMatch
+    pub ifMetagenerationMatch: Option<Option<String>>,
+    /// Query parameter: ifMetagenerationNotMatch
+    pub ifMetagenerationNotMatch: Option<Option<String>>,
+    /// Query parameter: predefinedAcl
+    pub predefinedAcl: Option<Option<String>>,
+    /// Query parameter: predefinedDefaultObjectAcl
+    pub predefinedDefaultObjectAcl: Option<Option<String>>,
+    /// Query parameter: projection
+    pub projection: Option<Option<String>>,
+    /// Query parameter: userProject
+    pub userProject: Option<Option<String>>,
+}
+
+/// PATCH b/{bucket}
+/// Patches a bucket. Changes to the bucket will be readable immediately after writing, but configuration changes may take time to propagate.
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `storage_buckets_patch_builder()` + `storage_buckets_patch_execute()`.
+/// For task-level control, use `storage_buckets_patch_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn storage_buckets_patch(
+    client: &SimpleHttpClient,
+    args: &StorageBucketsPatchArgs,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<Bucket>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let builder = storage_buckets_patch_builder(
+        client,
+        &args.bucket,
+        &args.ifMetagenerationMatch,
+        &args.ifMetagenerationNotMatch,
+        &args.predefinedAcl,
+        &args.predefinedDefaultObjectAcl,
+        &args.projection,
+        &args.userProject,
+    )?;
+    storage_buckets_patch_execute(builder)
+}
+
+/// POST b/{bucket}/relocate
 /// Initiates a long-running Relocate Bucket operation on the specified bucket.
 ///
 /// Returns `ClientRequestBuilder` for customization.
@@ -1753,7 +3832,6 @@ pub fn storage_buckets_get_storage_layout(
 pub fn storage_buckets_relocate_builder(
     client: &SimpleHttpClient,
     bucket: &String,
-    body: &RelocateBucketRequest,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
@@ -1763,15 +3841,13 @@ pub fn storage_buckets_relocate_builder(
 
     // Build request
     let builder = client
-        .get(&endpoint_url)
+        .post(&endpoint_url)
         .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
 
-    builder
-        .body_json(body)
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+    Ok(builder)
 }
 
-/// GET b/{bucket}/relocate
+/// POST b/{bucket}/relocate
 /// Initiates a long-running Relocate Bucket operation on the specified bucket.
 ///
 /// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
@@ -1845,7 +3921,7 @@ pub fn storage_buckets_relocate_task(
         .map_pending(|_| ApiPending::Sending))
 }
 
-/// GET b/{bucket}/relocate
+/// POST b/{bucket}/relocate
 /// Initiates a long-running Relocate Bucket operation on the specified bucket.
 ///
 /// Takes a `ClientRequestBuilder`, builds and executes the request,
@@ -1884,11 +3960,9 @@ pub fn storage_buckets_relocate_execute(
 pub struct StorageBucketsRelocateArgs {
     /// Path parameter: bucket
     pub bucket: String,
-    /// Request body.
-    pub body: RelocateBucketRequest,
 }
 
-/// GET b/{bucket}/relocate
+/// POST b/{bucket}/relocate
 /// Initiates a long-running Relocate Bucket operation on the specified bucket.
 ///
 /// Simplest API - builds and executes the request in one call.
@@ -1910,11 +3984,765 @@ pub fn storage_buckets_relocate(
         + 'static,
     ApiError,
 > {
-    let builder = storage_buckets_relocate_builder(client, &args.bucket, &args.body)?;
+    let builder = storage_buckets_relocate_builder(client, &args.bucket)?;
     storage_buckets_relocate_execute(builder)
 }
 
-/// GET channels/stop
+/// POST b/{bucket}/restore
+/// Restores a soft-deleted bucket.
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `storage_buckets_restore_execute()` to send, or `storage_buckets_restore` for simplest API.
+
+pub fn storage_buckets_restore_builder(
+    client: &SimpleHttpClient,
+    bucket: &String,
+    generation: &Option<Option<String>>,
+    projection: &Option<Option<String>>,
+    userProject: &Option<Option<String>>,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!(
+        "https://storage.googleapis.com/storage/v1/b/{}/restore",
+        bucket,
+    );
+
+    // Build request
+    let mut query_parts = Vec::new();
+    if let Some(val) = generation.as_ref() {
+        query_parts.push(format!("generation={}", val));
+    }
+    if let Some(val) = projection.as_ref() {
+        query_parts.push(format!("projection={}", val));
+    }
+    if let Some(val) = userProject.as_ref() {
+        query_parts.push(format!("userProject={}", val));
+    }
+
+    let url_with_query = if query_parts.is_empty() {
+        endpoint_url
+    } else {
+        format!("{}?{}", endpoint_url, query_parts.join("&"))
+    };
+
+    let builder = client
+        .post(&url_with_query)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// POST b/{bucket}/restore
+/// Restores a soft-deleted bucket.
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `storage_buckets_restore_execute()` or `storage_buckets_restore`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `storage_buckets_restore_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn storage_buckets_restore_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<Bucket>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: Bucket = serde_json::from_str(&body)
+                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// POST b/{bucket}/restore
+/// Restores a soft-deleted bucket.
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `storage_buckets_restore_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `storage_buckets_restore_task()`.
+/// For the simplest API, use `storage_buckets_restore()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `storage_buckets_restore_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn storage_buckets_restore_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<Bucket>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let task = storage_buckets_restore_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`storage_buckets_restore`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct StorageBucketsRestoreArgs {
+    /// Path parameter: bucket
+    pub bucket: String,
+    /// Query parameter: generation
+    pub generation: Option<Option<String>>,
+    /// Query parameter: projection
+    pub projection: Option<Option<String>>,
+    /// Query parameter: userProject
+    pub userProject: Option<Option<String>>,
+}
+
+/// POST b/{bucket}/restore
+/// Restores a soft-deleted bucket.
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `storage_buckets_restore_builder()` + `storage_buckets_restore_execute()`.
+/// For task-level control, use `storage_buckets_restore_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn storage_buckets_restore(
+    client: &SimpleHttpClient,
+    args: &StorageBucketsRestoreArgs,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<Bucket>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let builder = storage_buckets_restore_builder(
+        client,
+        &args.bucket,
+        &args.generation,
+        &args.projection,
+        &args.userProject,
+    )?;
+    storage_buckets_restore_execute(builder)
+}
+
+/// PUT b/{bucket}/iam
+/// Updates an IAM policy for the specified bucket.
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `storage_buckets_set_iam_policy_execute()` to send, or `storage_buckets_set_iam_policy` for simplest API.
+
+pub fn storage_buckets_set_iam_policy_builder(
+    client: &SimpleHttpClient,
+    bucket: &String,
+    userProject: &Option<Option<String>>,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!("https://storage.googleapis.com/storage/v1/b/{}/iam", bucket,);
+
+    // Build request
+    let mut query_parts = Vec::new();
+    if let Some(val) = userProject.as_ref() {
+        query_parts.push(format!("userProject={}", val));
+    }
+
+    let url_with_query = if query_parts.is_empty() {
+        endpoint_url
+    } else {
+        format!("{}?{}", endpoint_url, query_parts.join("&"))
+    };
+
+    let builder = client
+        .put(&url_with_query)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// PUT b/{bucket}/iam
+/// Updates an IAM policy for the specified bucket.
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `storage_buckets_set_iam_policy_execute()` or `storage_buckets_set_iam_policy`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `storage_buckets_set_iam_policy_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn storage_buckets_set_iam_policy_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<Policy>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: Policy = serde_json::from_str(&body)
+                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// PUT b/{bucket}/iam
+/// Updates an IAM policy for the specified bucket.
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `storage_buckets_set_iam_policy_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `storage_buckets_set_iam_policy_task()`.
+/// For the simplest API, use `storage_buckets_set_iam_policy()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `storage_buckets_set_iam_policy_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn storage_buckets_set_iam_policy_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<Policy>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let task = storage_buckets_set_iam_policy_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`storage_buckets_set_iam_policy`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct StorageBucketsSetIamPolicyArgs {
+    /// Path parameter: bucket
+    pub bucket: String,
+    /// Query parameter: userProject
+    pub userProject: Option<Option<String>>,
+}
+
+/// PUT b/{bucket}/iam
+/// Updates an IAM policy for the specified bucket.
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `storage_buckets_set_iam_policy_builder()` + `storage_buckets_set_iam_policy_execute()`.
+/// For task-level control, use `storage_buckets_set_iam_policy_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn storage_buckets_set_iam_policy(
+    client: &SimpleHttpClient,
+    args: &StorageBucketsSetIamPolicyArgs,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<Policy>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let builder = storage_buckets_set_iam_policy_builder(client, &args.bucket, &args.userProject)?;
+    storage_buckets_set_iam_policy_execute(builder)
+}
+
+/// GET b/{bucket}/iam/testPermissions
+/// Tests a set of permissions on the given bucket to see which, if any, are held by the caller.
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `storage_buckets_test_iam_permissions_execute()` to send, or `storage_buckets_test_iam_permissions` for simplest API.
+
+pub fn storage_buckets_test_iam_permissions_builder(
+    client: &SimpleHttpClient,
+    bucket: &String,
+    permissions: &Option<Option<String>>,
+    userProject: &Option<Option<String>>,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!(
+        "https://storage.googleapis.com/storage/v1/b/{}/iam/testPermissions",
+        bucket,
+    );
+
+    // Build request
+    let mut query_parts = Vec::new();
+    if let Some(val) = permissions.as_ref() {
+        query_parts.push(format!("permissions={}", val));
+    }
+    if let Some(val) = userProject.as_ref() {
+        query_parts.push(format!("userProject={}", val));
+    }
+
+    let url_with_query = if query_parts.is_empty() {
+        endpoint_url
+    } else {
+        format!("{}?{}", endpoint_url, query_parts.join("&"))
+    };
+
+    let builder = client
+        .get(&url_with_query)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// GET b/{bucket}/iam/testPermissions
+/// Tests a set of permissions on the given bucket to see which, if any, are held by the caller.
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `storage_buckets_test_iam_permissions_execute()` or `storage_buckets_test_iam_permissions`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `storage_buckets_test_iam_permissions_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn storage_buckets_test_iam_permissions_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<TestIamPermissionsResponse>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: TestIamPermissionsResponse = serde_json::from_str(&body)
+                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// GET b/{bucket}/iam/testPermissions
+/// Tests a set of permissions on the given bucket to see which, if any, are held by the caller.
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `storage_buckets_test_iam_permissions_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `storage_buckets_test_iam_permissions_task()`.
+/// For the simplest API, use `storage_buckets_test_iam_permissions()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `storage_buckets_test_iam_permissions_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn storage_buckets_test_iam_permissions_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<
+            D = Result<ApiResponse<TestIamPermissionsResponse>, ApiError>,
+            P = ApiPending,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    let task = storage_buckets_test_iam_permissions_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`storage_buckets_test_iam_permissions`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct StorageBucketsTestIamPermissionsArgs {
+    /// Path parameter: bucket
+    pub bucket: String,
+    /// Query parameter: permissions
+    pub permissions: Option<Option<String>>,
+    /// Query parameter: userProject
+    pub userProject: Option<Option<String>>,
+}
+
+/// GET b/{bucket}/iam/testPermissions
+/// Tests a set of permissions on the given bucket to see which, if any, are held by the caller.
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `storage_buckets_test_iam_permissions_builder()` + `storage_buckets_test_iam_permissions_execute()`.
+/// For task-level control, use `storage_buckets_test_iam_permissions_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn storage_buckets_test_iam_permissions(
+    client: &SimpleHttpClient,
+    args: &StorageBucketsTestIamPermissionsArgs,
+) -> Result<
+    impl StreamIterator<
+            D = Result<ApiResponse<TestIamPermissionsResponse>, ApiError>,
+            P = ApiPending,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    let builder = storage_buckets_test_iam_permissions_builder(
+        client,
+        &args.bucket,
+        &args.permissions,
+        &args.userProject,
+    )?;
+    storage_buckets_test_iam_permissions_execute(builder)
+}
+
+/// PUT b/{bucket}
+/// Updates a bucket. Changes to the bucket will be readable immediately after writing, but configuration changes may take time to propagate.
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `storage_buckets_update_execute()` to send, or `storage_buckets_update` for simplest API.
+
+pub fn storage_buckets_update_builder(
+    client: &SimpleHttpClient,
+    bucket: &String,
+    ifMetagenerationMatch: &Option<Option<String>>,
+    ifMetagenerationNotMatch: &Option<Option<String>>,
+    predefinedAcl: &Option<Option<String>>,
+    predefinedDefaultObjectAcl: &Option<Option<String>>,
+    projection: &Option<Option<String>>,
+    userProject: &Option<Option<String>>,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!("https://storage.googleapis.com/storage/v1/b/{}", bucket,);
+
+    // Build request
+    let mut query_parts = Vec::new();
+    if let Some(val) = ifMetagenerationMatch.as_ref() {
+        query_parts.push(format!("ifMetagenerationMatch={}", val));
+    }
+    if let Some(val) = ifMetagenerationNotMatch.as_ref() {
+        query_parts.push(format!("ifMetagenerationNotMatch={}", val));
+    }
+    if let Some(val) = predefinedAcl.as_ref() {
+        query_parts.push(format!("predefinedAcl={}", val));
+    }
+    if let Some(val) = predefinedDefaultObjectAcl.as_ref() {
+        query_parts.push(format!("predefinedDefaultObjectAcl={}", val));
+    }
+    if let Some(val) = projection.as_ref() {
+        query_parts.push(format!("projection={}", val));
+    }
+    if let Some(val) = userProject.as_ref() {
+        query_parts.push(format!("userProject={}", val));
+    }
+
+    let url_with_query = if query_parts.is_empty() {
+        endpoint_url
+    } else {
+        format!("{}?{}", endpoint_url, query_parts.join("&"))
+    };
+
+    let builder = client
+        .put(&url_with_query)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// PUT b/{bucket}
+/// Updates a bucket. Changes to the bucket will be readable immediately after writing, but configuration changes may take time to propagate.
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `storage_buckets_update_execute()` or `storage_buckets_update`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `storage_buckets_update_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn storage_buckets_update_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<Bucket>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: Bucket = serde_json::from_str(&body)
+                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// PUT b/{bucket}
+/// Updates a bucket. Changes to the bucket will be readable immediately after writing, but configuration changes may take time to propagate.
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `storage_buckets_update_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `storage_buckets_update_task()`.
+/// For the simplest API, use `storage_buckets_update()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `storage_buckets_update_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn storage_buckets_update_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<Bucket>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let task = storage_buckets_update_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`storage_buckets_update`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct StorageBucketsUpdateArgs {
+    /// Path parameter: bucket
+    pub bucket: String,
+    /// Query parameter: ifMetagenerationMatch
+    pub ifMetagenerationMatch: Option<Option<String>>,
+    /// Query parameter: ifMetagenerationNotMatch
+    pub ifMetagenerationNotMatch: Option<Option<String>>,
+    /// Query parameter: predefinedAcl
+    pub predefinedAcl: Option<Option<String>>,
+    /// Query parameter: predefinedDefaultObjectAcl
+    pub predefinedDefaultObjectAcl: Option<Option<String>>,
+    /// Query parameter: projection
+    pub projection: Option<Option<String>>,
+    /// Query parameter: userProject
+    pub userProject: Option<Option<String>>,
+}
+
+/// PUT b/{bucket}
+/// Updates a bucket. Changes to the bucket will be readable immediately after writing, but configuration changes may take time to propagate.
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `storage_buckets_update_builder()` + `storage_buckets_update_execute()`.
+/// For task-level control, use `storage_buckets_update_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn storage_buckets_update(
+    client: &SimpleHttpClient,
+    args: &StorageBucketsUpdateArgs,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<Bucket>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let builder = storage_buckets_update_builder(
+        client,
+        &args.bucket,
+        &args.ifMetagenerationMatch,
+        &args.ifMetagenerationNotMatch,
+        &args.predefinedAcl,
+        &args.predefinedDefaultObjectAcl,
+        &args.projection,
+        &args.userProject,
+    )?;
+    storage_buckets_update_execute(builder)
+}
+
+/// POST channels/stop
 /// Stop watching resources through this channel
 ///
 /// Returns `ClientRequestBuilder` for customization.
@@ -1922,22 +4750,19 @@ pub fn storage_buckets_relocate(
 
 pub fn storage_channels_stop_builder(
     client: &SimpleHttpClient,
-    body: &Channel,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!("https://storage.googleapis.com/storage/v1/channels/stop",);
 
     // Build request
     let builder = client
-        .get(&endpoint_url)
+        .post(&endpoint_url)
         .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
 
-    builder
-        .body_json(body)
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+    Ok(builder)
 }
 
-/// GET channels/stop
+/// POST channels/stop
 /// Stop watching resources through this channel
 ///
 /// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
@@ -2008,7 +4833,7 @@ pub fn storage_channels_stop_task(
         .map_pending(|_| ApiPending::Sending))
 }
 
-/// GET channels/stop
+/// POST channels/stop
 /// Stop watching resources through this channel
 ///
 /// Takes a `ClientRequestBuilder`, builds and executes the request,
@@ -2038,14 +4863,7 @@ pub fn storage_channels_stop_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
-/// Arguments for [`storage_channels_stop`].
-#[derive(Debug, Clone, Serialize, JsonHash)]
-pub struct StorageChannelsStopArgs {
-    /// Request body.
-    pub body: Channel,
-}
-
-/// GET channels/stop
+/// POST channels/stop
 /// Stop watching resources through this channel
 ///
 /// Simplest API - builds and executes the request in one call.
@@ -2058,16 +4876,15 @@ pub struct StorageChannelsStopArgs {
 
 pub fn storage_channels_stop(
     client: &SimpleHttpClient,
-    args: &StorageChannelsStopArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<()>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = storage_channels_stop_builder(client, &args.body)?;
+    let builder = storage_channels_stop_builder(client)?;
     storage_channels_stop_execute(builder)
 }
 
-/// GET b/{bucket}/defaultObjectAcl/{entity}
+/// DELETE b/{bucket}/defaultObjectAcl/{entity}
 /// Permanently deletes the default object ACL entry for the specified entity on the specified bucket.
 ///
 /// Returns `ClientRequestBuilder` for customization.
@@ -2077,7 +4894,7 @@ pub fn storage_default_object_access_controls_delete_builder(
     client: &SimpleHttpClient,
     bucket: &String,
     entity: &String,
-    userProject: &Option<String>,
+    userProject: &Option<Option<String>>,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
@@ -2098,13 +4915,13 @@ pub fn storage_default_object_access_controls_delete_builder(
     };
 
     let builder = client
-        .get(&url_with_query)
+        .delete(&url_with_query)
         .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
 
     Ok(builder)
 }
 
-/// GET b/{bucket}/defaultObjectAcl/{entity}
+/// DELETE b/{bucket}/defaultObjectAcl/{entity}
 /// Permanently deletes the default object ACL entry for the specified entity on the specified bucket.
 ///
 /// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
@@ -2175,7 +4992,7 @@ pub fn storage_default_object_access_controls_delete_task(
         .map_pending(|_| ApiPending::Sending))
 }
 
-/// GET b/{bucket}/defaultObjectAcl/{entity}
+/// DELETE b/{bucket}/defaultObjectAcl/{entity}
 /// Permanently deletes the default object ACL entry for the specified entity on the specified bucket.
 ///
 /// Takes a `ClientRequestBuilder`, builds and executes the request,
@@ -2213,10 +5030,10 @@ pub struct StorageDefaultObjectAccessControlsDeleteArgs {
     /// Path parameter: entity
     pub entity: String,
     /// Query parameter: userProject
-    pub userProject: Option<String>,
+    pub userProject: Option<Option<String>>,
 }
 
-/// GET b/{bucket}/defaultObjectAcl/{entity}
+/// DELETE b/{bucket}/defaultObjectAcl/{entity}
 /// Permanently deletes the default object ACL entry for the specified entity on the specified bucket.
 ///
 /// Simplest API - builds and executes the request in one call.
@@ -2243,7 +5060,190 @@ pub fn storage_default_object_access_controls_delete(
     storage_default_object_access_controls_delete_execute(builder)
 }
 
-/// GET b/{bucket}/defaultObjectAcl
+/// GET b/{bucket}/defaultObjectAcl/{entity}
+/// Returns the default object ACL entry for the specified entity on the specified bucket.
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `storage_default_object_access_controls_get_execute()` to send, or `storage_default_object_access_controls_get` for simplest API.
+
+pub fn storage_default_object_access_controls_get_builder(
+    client: &SimpleHttpClient,
+    bucket: &String,
+    entity: &String,
+    userProject: &Option<Option<String>>,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!(
+        "https://storage.googleapis.com/storage/v1/b/{}/defaultObjectAcl/{}",
+        bucket, entity,
+    );
+
+    // Build request
+    let mut query_parts = Vec::new();
+    if let Some(val) = userProject.as_ref() {
+        query_parts.push(format!("userProject={}", val));
+    }
+
+    let url_with_query = if query_parts.is_empty() {
+        endpoint_url
+    } else {
+        format!("{}?{}", endpoint_url, query_parts.join("&"))
+    };
+
+    let builder = client
+        .get(&url_with_query)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// GET b/{bucket}/defaultObjectAcl/{entity}
+/// Returns the default object ACL entry for the specified entity on the specified bucket.
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `storage_default_object_access_controls_get_execute()` or `storage_default_object_access_controls_get`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `storage_default_object_access_controls_get_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn storage_default_object_access_controls_get_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<ObjectAccessControl>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: ObjectAccessControl = serde_json::from_str(&body)
+                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// GET b/{bucket}/defaultObjectAcl/{entity}
+/// Returns the default object ACL entry for the specified entity on the specified bucket.
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `storage_default_object_access_controls_get_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `storage_default_object_access_controls_get_task()`.
+/// For the simplest API, use `storage_default_object_access_controls_get()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `storage_default_object_access_controls_get_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn storage_default_object_access_controls_get_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<ObjectAccessControl>, ApiError>, P = ApiPending>
+        + Send
+        + 'static,
+    ApiError,
+> {
+    let task = storage_default_object_access_controls_get_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`storage_default_object_access_controls_get`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct StorageDefaultObjectAccessControlsGetArgs {
+    /// Path parameter: bucket
+    pub bucket: String,
+    /// Path parameter: entity
+    pub entity: String,
+    /// Query parameter: userProject
+    pub userProject: Option<Option<String>>,
+}
+
+/// GET b/{bucket}/defaultObjectAcl/{entity}
+/// Returns the default object ACL entry for the specified entity on the specified bucket.
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `storage_default_object_access_controls_get_builder()` + `storage_default_object_access_controls_get_execute()`.
+/// For task-level control, use `storage_default_object_access_controls_get_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn storage_default_object_access_controls_get(
+    client: &SimpleHttpClient,
+    args: &StorageDefaultObjectAccessControlsGetArgs,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<ObjectAccessControl>, ApiError>, P = ApiPending>
+        + Send
+        + 'static,
+    ApiError,
+> {
+    let builder = storage_default_object_access_controls_get_builder(
+        client,
+        &args.bucket,
+        &args.entity,
+        &args.userProject,
+    )?;
+    storage_default_object_access_controls_get_execute(builder)
+}
+
+/// POST b/{bucket}/defaultObjectAcl
 /// Creates a new default object ACL entry on the specified bucket.
 ///
 /// Returns `ClientRequestBuilder` for customization.
@@ -2252,8 +5252,7 @@ pub fn storage_default_object_access_controls_delete(
 pub fn storage_default_object_access_controls_insert_builder(
     client: &SimpleHttpClient,
     bucket: &String,
-    userProject: &Option<String>,
-    body: &ObjectAccessControl,
+    userProject: &Option<Option<String>>,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
@@ -2274,15 +5273,13 @@ pub fn storage_default_object_access_controls_insert_builder(
     };
 
     let builder = client
-        .get(&url_with_query)
+        .post(&url_with_query)
         .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
 
-    builder
-        .body_json(body)
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+    Ok(builder)
 }
 
-/// GET b/{bucket}/defaultObjectAcl
+/// POST b/{bucket}/defaultObjectAcl
 /// Creates a new default object ACL entry on the specified bucket.
 ///
 /// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
@@ -2356,7 +5353,7 @@ pub fn storage_default_object_access_controls_insert_task(
         .map_pending(|_| ApiPending::Sending))
 }
 
-/// GET b/{bucket}/defaultObjectAcl
+/// POST b/{bucket}/defaultObjectAcl
 /// Creates a new default object ACL entry on the specified bucket.
 ///
 /// Takes a `ClientRequestBuilder`, builds and executes the request,
@@ -2394,12 +5391,10 @@ pub struct StorageDefaultObjectAccessControlsInsertArgs {
     /// Path parameter: bucket
     pub bucket: String,
     /// Query parameter: userProject
-    pub userProject: Option<String>,
-    /// Request body.
-    pub body: ObjectAccessControl,
+    pub userProject: Option<Option<String>>,
 }
 
-/// GET b/{bucket}/defaultObjectAcl
+/// POST b/{bucket}/defaultObjectAcl
 /// Creates a new default object ACL entry on the specified bucket.
 ///
 /// Simplest API - builds and executes the request in one call.
@@ -2423,12 +5418,570 @@ pub fn storage_default_object_access_controls_insert(
         client,
         &args.bucket,
         &args.userProject,
-        &args.body,
     )?;
     storage_default_object_access_controls_insert_execute(builder)
 }
 
-/// GET b/{bucket}/folders/{folder}
+/// GET b/{bucket}/defaultObjectAcl
+/// Retrieves default object ACL entries on the specified bucket.
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `storage_default_object_access_controls_list_execute()` to send, or `storage_default_object_access_controls_list` for simplest API.
+
+pub fn storage_default_object_access_controls_list_builder(
+    client: &SimpleHttpClient,
+    bucket: &String,
+    ifMetagenerationMatch: &Option<Option<String>>,
+    ifMetagenerationNotMatch: &Option<Option<String>>,
+    userProject: &Option<Option<String>>,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!(
+        "https://storage.googleapis.com/storage/v1/b/{}/defaultObjectAcl",
+        bucket,
+    );
+
+    // Build request
+    let mut query_parts = Vec::new();
+    if let Some(val) = ifMetagenerationMatch.as_ref() {
+        query_parts.push(format!("ifMetagenerationMatch={}", val));
+    }
+    if let Some(val) = ifMetagenerationNotMatch.as_ref() {
+        query_parts.push(format!("ifMetagenerationNotMatch={}", val));
+    }
+    if let Some(val) = userProject.as_ref() {
+        query_parts.push(format!("userProject={}", val));
+    }
+
+    let url_with_query = if query_parts.is_empty() {
+        endpoint_url
+    } else {
+        format!("{}?{}", endpoint_url, query_parts.join("&"))
+    };
+
+    let builder = client
+        .get(&url_with_query)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// GET b/{bucket}/defaultObjectAcl
+/// Retrieves default object ACL entries on the specified bucket.
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `storage_default_object_access_controls_list_execute()` or `storage_default_object_access_controls_list`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `storage_default_object_access_controls_list_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn storage_default_object_access_controls_list_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<ObjectAccessControls>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: ObjectAccessControls = serde_json::from_str(&body)
+                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// GET b/{bucket}/defaultObjectAcl
+/// Retrieves default object ACL entries on the specified bucket.
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `storage_default_object_access_controls_list_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `storage_default_object_access_controls_list_task()`.
+/// For the simplest API, use `storage_default_object_access_controls_list()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `storage_default_object_access_controls_list_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn storage_default_object_access_controls_list_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<ObjectAccessControls>, ApiError>, P = ApiPending>
+        + Send
+        + 'static,
+    ApiError,
+> {
+    let task = storage_default_object_access_controls_list_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`storage_default_object_access_controls_list`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct StorageDefaultObjectAccessControlsListArgs {
+    /// Path parameter: bucket
+    pub bucket: String,
+    /// Query parameter: ifMetagenerationMatch
+    pub ifMetagenerationMatch: Option<Option<String>>,
+    /// Query parameter: ifMetagenerationNotMatch
+    pub ifMetagenerationNotMatch: Option<Option<String>>,
+    /// Query parameter: userProject
+    pub userProject: Option<Option<String>>,
+}
+
+/// GET b/{bucket}/defaultObjectAcl
+/// Retrieves default object ACL entries on the specified bucket.
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `storage_default_object_access_controls_list_builder()` + `storage_default_object_access_controls_list_execute()`.
+/// For task-level control, use `storage_default_object_access_controls_list_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn storage_default_object_access_controls_list(
+    client: &SimpleHttpClient,
+    args: &StorageDefaultObjectAccessControlsListArgs,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<ObjectAccessControls>, ApiError>, P = ApiPending>
+        + Send
+        + 'static,
+    ApiError,
+> {
+    let builder = storage_default_object_access_controls_list_builder(
+        client,
+        &args.bucket,
+        &args.ifMetagenerationMatch,
+        &args.ifMetagenerationNotMatch,
+        &args.userProject,
+    )?;
+    storage_default_object_access_controls_list_execute(builder)
+}
+
+/// PATCH b/{bucket}/defaultObjectAcl/{entity}
+/// Patches a default object ACL entry on the specified bucket.
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `storage_default_object_access_controls_patch_execute()` to send, or `storage_default_object_access_controls_patch` for simplest API.
+
+pub fn storage_default_object_access_controls_patch_builder(
+    client: &SimpleHttpClient,
+    bucket: &String,
+    entity: &String,
+    userProject: &Option<Option<String>>,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!(
+        "https://storage.googleapis.com/storage/v1/b/{}/defaultObjectAcl/{}",
+        bucket, entity,
+    );
+
+    // Build request
+    let mut query_parts = Vec::new();
+    if let Some(val) = userProject.as_ref() {
+        query_parts.push(format!("userProject={}", val));
+    }
+
+    let url_with_query = if query_parts.is_empty() {
+        endpoint_url
+    } else {
+        format!("{}?{}", endpoint_url, query_parts.join("&"))
+    };
+
+    let builder = client
+        .patch(&url_with_query)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// PATCH b/{bucket}/defaultObjectAcl/{entity}
+/// Patches a default object ACL entry on the specified bucket.
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `storage_default_object_access_controls_patch_execute()` or `storage_default_object_access_controls_patch`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `storage_default_object_access_controls_patch_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn storage_default_object_access_controls_patch_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<ObjectAccessControl>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: ObjectAccessControl = serde_json::from_str(&body)
+                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// PATCH b/{bucket}/defaultObjectAcl/{entity}
+/// Patches a default object ACL entry on the specified bucket.
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `storage_default_object_access_controls_patch_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `storage_default_object_access_controls_patch_task()`.
+/// For the simplest API, use `storage_default_object_access_controls_patch()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `storage_default_object_access_controls_patch_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn storage_default_object_access_controls_patch_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<ObjectAccessControl>, ApiError>, P = ApiPending>
+        + Send
+        + 'static,
+    ApiError,
+> {
+    let task = storage_default_object_access_controls_patch_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`storage_default_object_access_controls_patch`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct StorageDefaultObjectAccessControlsPatchArgs {
+    /// Path parameter: bucket
+    pub bucket: String,
+    /// Path parameter: entity
+    pub entity: String,
+    /// Query parameter: userProject
+    pub userProject: Option<Option<String>>,
+}
+
+/// PATCH b/{bucket}/defaultObjectAcl/{entity}
+/// Patches a default object ACL entry on the specified bucket.
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `storage_default_object_access_controls_patch_builder()` + `storage_default_object_access_controls_patch_execute()`.
+/// For task-level control, use `storage_default_object_access_controls_patch_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn storage_default_object_access_controls_patch(
+    client: &SimpleHttpClient,
+    args: &StorageDefaultObjectAccessControlsPatchArgs,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<ObjectAccessControl>, ApiError>, P = ApiPending>
+        + Send
+        + 'static,
+    ApiError,
+> {
+    let builder = storage_default_object_access_controls_patch_builder(
+        client,
+        &args.bucket,
+        &args.entity,
+        &args.userProject,
+    )?;
+    storage_default_object_access_controls_patch_execute(builder)
+}
+
+/// PUT b/{bucket}/defaultObjectAcl/{entity}
+/// Updates a default object ACL entry on the specified bucket.
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `storage_default_object_access_controls_update_execute()` to send, or `storage_default_object_access_controls_update` for simplest API.
+
+pub fn storage_default_object_access_controls_update_builder(
+    client: &SimpleHttpClient,
+    bucket: &String,
+    entity: &String,
+    userProject: &Option<Option<String>>,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!(
+        "https://storage.googleapis.com/storage/v1/b/{}/defaultObjectAcl/{}",
+        bucket, entity,
+    );
+
+    // Build request
+    let mut query_parts = Vec::new();
+    if let Some(val) = userProject.as_ref() {
+        query_parts.push(format!("userProject={}", val));
+    }
+
+    let url_with_query = if query_parts.is_empty() {
+        endpoint_url
+    } else {
+        format!("{}?{}", endpoint_url, query_parts.join("&"))
+    };
+
+    let builder = client
+        .put(&url_with_query)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// PUT b/{bucket}/defaultObjectAcl/{entity}
+/// Updates a default object ACL entry on the specified bucket.
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `storage_default_object_access_controls_update_execute()` or `storage_default_object_access_controls_update`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `storage_default_object_access_controls_update_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn storage_default_object_access_controls_update_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<ObjectAccessControl>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: ObjectAccessControl = serde_json::from_str(&body)
+                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// PUT b/{bucket}/defaultObjectAcl/{entity}
+/// Updates a default object ACL entry on the specified bucket.
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `storage_default_object_access_controls_update_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `storage_default_object_access_controls_update_task()`.
+/// For the simplest API, use `storage_default_object_access_controls_update()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `storage_default_object_access_controls_update_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn storage_default_object_access_controls_update_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<ObjectAccessControl>, ApiError>, P = ApiPending>
+        + Send
+        + 'static,
+    ApiError,
+> {
+    let task = storage_default_object_access_controls_update_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`storage_default_object_access_controls_update`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct StorageDefaultObjectAccessControlsUpdateArgs {
+    /// Path parameter: bucket
+    pub bucket: String,
+    /// Path parameter: entity
+    pub entity: String,
+    /// Query parameter: userProject
+    pub userProject: Option<Option<String>>,
+}
+
+/// PUT b/{bucket}/defaultObjectAcl/{entity}
+/// Updates a default object ACL entry on the specified bucket.
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `storage_default_object_access_controls_update_builder()` + `storage_default_object_access_controls_update_execute()`.
+/// For task-level control, use `storage_default_object_access_controls_update_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn storage_default_object_access_controls_update(
+    client: &SimpleHttpClient,
+    args: &StorageDefaultObjectAccessControlsUpdateArgs,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<ObjectAccessControl>, ApiError>, P = ApiPending>
+        + Send
+        + 'static,
+    ApiError,
+> {
+    let builder = storage_default_object_access_controls_update_builder(
+        client,
+        &args.bucket,
+        &args.entity,
+        &args.userProject,
+    )?;
+    storage_default_object_access_controls_update_execute(builder)
+}
+
+/// DELETE b/{bucket}/folders/{folder}
 /// Permanently deletes a folder. Only applicable to buckets with hierarchical namespace enabled.
 ///
 /// Returns `ClientRequestBuilder` for customization.
@@ -2438,8 +5991,8 @@ pub fn storage_folders_delete_builder(
     client: &SimpleHttpClient,
     bucket: &String,
     folder: &String,
-    ifMetagenerationMatch: &Option<String>,
-    ifMetagenerationNotMatch: &Option<String>,
+    ifMetagenerationMatch: &Option<Option<String>>,
+    ifMetagenerationNotMatch: &Option<Option<String>>,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
@@ -2463,13 +6016,13 @@ pub fn storage_folders_delete_builder(
     };
 
     let builder = client
-        .get(&url_with_query)
+        .delete(&url_with_query)
         .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
 
     Ok(builder)
 }
 
-/// GET b/{bucket}/folders/{folder}
+/// DELETE b/{bucket}/folders/{folder}
 /// Permanently deletes a folder. Only applicable to buckets with hierarchical namespace enabled.
 ///
 /// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
@@ -2540,7 +6093,7 @@ pub fn storage_folders_delete_task(
         .map_pending(|_| ApiPending::Sending))
 }
 
-/// GET b/{bucket}/folders/{folder}
+/// DELETE b/{bucket}/folders/{folder}
 /// Permanently deletes a folder. Only applicable to buckets with hierarchical namespace enabled.
 ///
 /// Takes a `ClientRequestBuilder`, builds and executes the request,
@@ -2578,12 +6131,12 @@ pub struct StorageFoldersDeleteArgs {
     /// Path parameter: folder
     pub folder: String,
     /// Query parameter: ifMetagenerationMatch
-    pub ifMetagenerationMatch: Option<String>,
+    pub ifMetagenerationMatch: Option<Option<String>>,
     /// Query parameter: ifMetagenerationNotMatch
-    pub ifMetagenerationNotMatch: Option<String>,
+    pub ifMetagenerationNotMatch: Option<Option<String>>,
 }
 
-/// GET b/{bucket}/folders/{folder}
+/// DELETE b/{bucket}/folders/{folder}
 /// Permanently deletes a folder. Only applicable to buckets with hierarchical namespace enabled.
 ///
 /// Simplest API - builds and executes the request in one call.
@@ -2611,7 +6164,7 @@ pub fn storage_folders_delete(
     storage_folders_delete_execute(builder)
 }
 
-/// GET b/{bucket}/folders/{folder}/deleteRecursive
+/// POST b/{bucket}/folders/{folder}/deleteRecursive
 /// Deletes a folder recursively. Only applicable to buckets with hierarchical namespace enabled.
 ///
 /// Returns `ClientRequestBuilder` for customization.
@@ -2621,8 +6174,8 @@ pub fn storage_folders_delete_recursive_builder(
     client: &SimpleHttpClient,
     bucket: &String,
     folder: &String,
-    ifMetagenerationMatch: &Option<String>,
-    ifMetagenerationNotMatch: &Option<String>,
+    ifMetagenerationMatch: &Option<Option<String>>,
+    ifMetagenerationNotMatch: &Option<Option<String>>,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
@@ -2646,13 +6199,13 @@ pub fn storage_folders_delete_recursive_builder(
     };
 
     let builder = client
-        .get(&url_with_query)
+        .post(&url_with_query)
         .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
 
     Ok(builder)
 }
 
-/// GET b/{bucket}/folders/{folder}/deleteRecursive
+/// POST b/{bucket}/folders/{folder}/deleteRecursive
 /// Deletes a folder recursively. Only applicable to buckets with hierarchical namespace enabled.
 ///
 /// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
@@ -2726,7 +6279,7 @@ pub fn storage_folders_delete_recursive_task(
         .map_pending(|_| ApiPending::Sending))
 }
 
-/// GET b/{bucket}/folders/{folder}/deleteRecursive
+/// POST b/{bucket}/folders/{folder}/deleteRecursive
 /// Deletes a folder recursively. Only applicable to buckets with hierarchical namespace enabled.
 ///
 /// Takes a `ClientRequestBuilder`, builds and executes the request,
@@ -2768,12 +6321,12 @@ pub struct StorageFoldersDeleteRecursiveArgs {
     /// Path parameter: folder
     pub folder: String,
     /// Query parameter: ifMetagenerationMatch
-    pub ifMetagenerationMatch: Option<String>,
+    pub ifMetagenerationMatch: Option<Option<String>>,
     /// Query parameter: ifMetagenerationNotMatch
-    pub ifMetagenerationNotMatch: Option<String>,
+    pub ifMetagenerationNotMatch: Option<Option<String>>,
 }
 
-/// GET b/{bucket}/folders/{folder}/deleteRecursive
+/// POST b/{bucket}/folders/{folder}/deleteRecursive
 /// Deletes a folder recursively. Only applicable to buckets with hierarchical namespace enabled.
 ///
 /// Simplest API - builds and executes the request in one call.
@@ -2805,7 +6358,193 @@ pub fn storage_folders_delete_recursive(
     storage_folders_delete_recursive_execute(builder)
 }
 
-/// GET b/{bucket}/folders
+/// GET b/{bucket}/folders/{folder}
+/// Returns metadata for the specified folder. Only applicable to buckets with hierarchical namespace enabled.
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `storage_folders_get_execute()` to send, or `storage_folders_get` for simplest API.
+
+pub fn storage_folders_get_builder(
+    client: &SimpleHttpClient,
+    bucket: &String,
+    folder: &String,
+    ifMetagenerationMatch: &Option<Option<String>>,
+    ifMetagenerationNotMatch: &Option<Option<String>>,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!(
+        "https://storage.googleapis.com/storage/v1/b/{}/folders/{}",
+        bucket, folder,
+    );
+
+    // Build request
+    let mut query_parts = Vec::new();
+    if let Some(val) = ifMetagenerationMatch.as_ref() {
+        query_parts.push(format!("ifMetagenerationMatch={}", val));
+    }
+    if let Some(val) = ifMetagenerationNotMatch.as_ref() {
+        query_parts.push(format!("ifMetagenerationNotMatch={}", val));
+    }
+
+    let url_with_query = if query_parts.is_empty() {
+        endpoint_url
+    } else {
+        format!("{}?{}", endpoint_url, query_parts.join("&"))
+    };
+
+    let builder = client
+        .get(&url_with_query)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// GET b/{bucket}/folders/{folder}
+/// Returns metadata for the specified folder. Only applicable to buckets with hierarchical namespace enabled.
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `storage_folders_get_execute()` or `storage_folders_get`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `storage_folders_get_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn storage_folders_get_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<Folder>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: Folder = serde_json::from_str(&body)
+                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// GET b/{bucket}/folders/{folder}
+/// Returns metadata for the specified folder. Only applicable to buckets with hierarchical namespace enabled.
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `storage_folders_get_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `storage_folders_get_task()`.
+/// For the simplest API, use `storage_folders_get()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `storage_folders_get_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn storage_folders_get_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<Folder>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let task = storage_folders_get_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`storage_folders_get`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct StorageFoldersGetArgs {
+    /// Path parameter: bucket
+    pub bucket: String,
+    /// Path parameter: folder
+    pub folder: String,
+    /// Query parameter: ifMetagenerationMatch
+    pub ifMetagenerationMatch: Option<Option<String>>,
+    /// Query parameter: ifMetagenerationNotMatch
+    pub ifMetagenerationNotMatch: Option<Option<String>>,
+}
+
+/// GET b/{bucket}/folders/{folder}
+/// Returns metadata for the specified folder. Only applicable to buckets with hierarchical namespace enabled.
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `storage_folders_get_builder()` + `storage_folders_get_execute()`.
+/// For task-level control, use `storage_folders_get_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn storage_folders_get(
+    client: &SimpleHttpClient,
+    args: &StorageFoldersGetArgs,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<Folder>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let builder = storage_folders_get_builder(
+        client,
+        &args.bucket,
+        &args.folder,
+        &args.ifMetagenerationMatch,
+        &args.ifMetagenerationNotMatch,
+    )?;
+    storage_folders_get_execute(builder)
+}
+
+/// POST b/{bucket}/folders
 /// Creates a new folder. Only applicable to buckets with hierarchical namespace enabled.
 ///
 /// Returns `ClientRequestBuilder` for customization.
@@ -2814,8 +6553,7 @@ pub fn storage_folders_delete_recursive(
 pub fn storage_folders_insert_builder(
     client: &SimpleHttpClient,
     bucket: &String,
-    recursive: &Option<bool>,
-    body: &Folder,
+    recursive: &Option<Option<String>>,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
@@ -2836,15 +6574,13 @@ pub fn storage_folders_insert_builder(
     };
 
     let builder = client
-        .get(&url_with_query)
+        .post(&url_with_query)
         .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
 
-    builder
-        .body_json(body)
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+    Ok(builder)
 }
 
-/// GET b/{bucket}/folders
+/// POST b/{bucket}/folders
 /// Creates a new folder. Only applicable to buckets with hierarchical namespace enabled.
 ///
 /// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
@@ -2918,7 +6654,7 @@ pub fn storage_folders_insert_task(
         .map_pending(|_| ApiPending::Sending))
 }
 
-/// GET b/{bucket}/folders
+/// POST b/{bucket}/folders
 /// Creates a new folder. Only applicable to buckets with hierarchical namespace enabled.
 ///
 /// Takes a `ClientRequestBuilder`, builds and executes the request,
@@ -2954,12 +6690,10 @@ pub struct StorageFoldersInsertArgs {
     /// Path parameter: bucket
     pub bucket: String,
     /// Query parameter: recursive
-    pub recursive: Option<bool>,
-    /// Request body.
-    pub body: Folder,
+    pub recursive: Option<Option<String>>,
 }
 
-/// GET b/{bucket}/folders
+/// POST b/{bucket}/folders
 /// Creates a new folder. Only applicable to buckets with hierarchical namespace enabled.
 ///
 /// Simplest API - builds and executes the request in one call.
@@ -2977,12 +6711,221 @@ pub fn storage_folders_insert(
     impl StreamIterator<D = Result<ApiResponse<Folder>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder =
-        storage_folders_insert_builder(client, &args.bucket, &args.recursive, &args.body)?;
+    let builder = storage_folders_insert_builder(client, &args.bucket, &args.recursive)?;
     storage_folders_insert_execute(builder)
 }
 
-/// GET b/{bucket}/folders/{sourceFolder}/renameTo/folders/{destinationFolder}
+/// GET b/{bucket}/folders
+/// Retrieves a list of folders matching the criteria. Only applicable to buckets with hierarchical namespace enabled.
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `storage_folders_list_execute()` to send, or `storage_folders_list` for simplest API.
+
+pub fn storage_folders_list_builder(
+    client: &SimpleHttpClient,
+    bucket: &String,
+    delimiter: &Option<Option<String>>,
+    endOffset: &Option<Option<String>>,
+    pageSize: &Option<Option<String>>,
+    pageToken: &Option<Option<String>>,
+    prefix: &Option<Option<String>>,
+    startOffset: &Option<Option<String>>,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!(
+        "https://storage.googleapis.com/storage/v1/b/{}/folders",
+        bucket,
+    );
+
+    // Build request
+    let mut query_parts = Vec::new();
+    if let Some(val) = delimiter.as_ref() {
+        query_parts.push(format!("delimiter={}", val));
+    }
+    if let Some(val) = endOffset.as_ref() {
+        query_parts.push(format!("endOffset={}", val));
+    }
+    if let Some(val) = pageSize.as_ref() {
+        query_parts.push(format!("pageSize={}", val));
+    }
+    if let Some(val) = pageToken.as_ref() {
+        query_parts.push(format!("pageToken={}", val));
+    }
+    if let Some(val) = prefix.as_ref() {
+        query_parts.push(format!("prefix={}", val));
+    }
+    if let Some(val) = startOffset.as_ref() {
+        query_parts.push(format!("startOffset={}", val));
+    }
+
+    let url_with_query = if query_parts.is_empty() {
+        endpoint_url
+    } else {
+        format!("{}?{}", endpoint_url, query_parts.join("&"))
+    };
+
+    let builder = client
+        .get(&url_with_query)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// GET b/{bucket}/folders
+/// Retrieves a list of folders matching the criteria. Only applicable to buckets with hierarchical namespace enabled.
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `storage_folders_list_execute()` or `storage_folders_list`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `storage_folders_list_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn storage_folders_list_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<Folders>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: Folders = serde_json::from_str(&body)
+                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// GET b/{bucket}/folders
+/// Retrieves a list of folders matching the criteria. Only applicable to buckets with hierarchical namespace enabled.
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `storage_folders_list_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `storage_folders_list_task()`.
+/// For the simplest API, use `storage_folders_list()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `storage_folders_list_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn storage_folders_list_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<Folders>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let task = storage_folders_list_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`storage_folders_list`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct StorageFoldersListArgs {
+    /// Path parameter: bucket
+    pub bucket: String,
+    /// Query parameter: delimiter
+    pub delimiter: Option<Option<String>>,
+    /// Query parameter: endOffset
+    pub endOffset: Option<Option<String>>,
+    /// Query parameter: pageSize
+    pub pageSize: Option<Option<String>>,
+    /// Query parameter: pageToken
+    pub pageToken: Option<Option<String>>,
+    /// Query parameter: prefix
+    pub prefix: Option<Option<String>>,
+    /// Query parameter: startOffset
+    pub startOffset: Option<Option<String>>,
+}
+
+/// GET b/{bucket}/folders
+/// Retrieves a list of folders matching the criteria. Only applicable to buckets with hierarchical namespace enabled.
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `storage_folders_list_builder()` + `storage_folders_list_execute()`.
+/// For task-level control, use `storage_folders_list_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn storage_folders_list(
+    client: &SimpleHttpClient,
+    args: &StorageFoldersListArgs,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<Folders>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let builder = storage_folders_list_builder(
+        client,
+        &args.bucket,
+        &args.delimiter,
+        &args.endOffset,
+        &args.pageSize,
+        &args.pageToken,
+        &args.prefix,
+        &args.startOffset,
+    )?;
+    storage_folders_list_execute(builder)
+}
+
+/// POST b/{bucket}/folders/{sourceFolder}/renameTo/folders/{destinationFolder}
 /// Renames a source folder to a destination folder. Only applicable to buckets with hierarchical namespace enabled.
 ///
 /// Returns `ClientRequestBuilder` for customization.
@@ -2993,8 +6936,8 @@ pub fn storage_folders_rename_builder(
     bucket: &String,
     sourceFolder: &String,
     destinationFolder: &String,
-    ifSourceMetagenerationMatch: &Option<String>,
-    ifSourceMetagenerationNotMatch: &Option<String>,
+    ifSourceMetagenerationMatch: &Option<Option<String>>,
+    ifSourceMetagenerationNotMatch: &Option<Option<String>>,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
@@ -3018,13 +6961,13 @@ pub fn storage_folders_rename_builder(
     };
 
     let builder = client
-        .get(&url_with_query)
+        .post(&url_with_query)
         .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
 
     Ok(builder)
 }
 
-/// GET b/{bucket}/folders/{sourceFolder}/renameTo/folders/{destinationFolder}
+/// POST b/{bucket}/folders/{sourceFolder}/renameTo/folders/{destinationFolder}
 /// Renames a source folder to a destination folder. Only applicable to buckets with hierarchical namespace enabled.
 ///
 /// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
@@ -3098,7 +7041,7 @@ pub fn storage_folders_rename_task(
         .map_pending(|_| ApiPending::Sending))
 }
 
-/// GET b/{bucket}/folders/{sourceFolder}/renameTo/folders/{destinationFolder}
+/// POST b/{bucket}/folders/{sourceFolder}/renameTo/folders/{destinationFolder}
 /// Renames a source folder to a destination folder. Only applicable to buckets with hierarchical namespace enabled.
 ///
 /// Takes a `ClientRequestBuilder`, builds and executes the request,
@@ -3142,12 +7085,12 @@ pub struct StorageFoldersRenameArgs {
     /// Path parameter: destinationFolder
     pub destinationFolder: String,
     /// Query parameter: ifSourceMetagenerationMatch
-    pub ifSourceMetagenerationMatch: Option<String>,
+    pub ifSourceMetagenerationMatch: Option<Option<String>>,
     /// Query parameter: ifSourceMetagenerationNotMatch
-    pub ifSourceMetagenerationNotMatch: Option<String>,
+    pub ifSourceMetagenerationNotMatch: Option<Option<String>>,
 }
 
-/// GET b/{bucket}/folders/{sourceFolder}/renameTo/folders/{destinationFolder}
+/// POST b/{bucket}/folders/{sourceFolder}/renameTo/folders/{destinationFolder}
 /// Renames a source folder to a destination folder. Only applicable to buckets with hierarchical namespace enabled.
 ///
 /// Simplest API - builds and executes the request in one call.
@@ -3180,7 +7123,7 @@ pub fn storage_folders_rename(
     storage_folders_rename_execute(builder)
 }
 
-/// GET b/{bucket}/managedFolders/{managedFolder}
+/// DELETE b/{bucket}/managedFolders/{managedFolder}
 /// Permanently deletes a managed folder.
 ///
 /// Returns `ClientRequestBuilder` for customization.
@@ -3190,9 +7133,9 @@ pub fn storage_managed_folders_delete_builder(
     client: &SimpleHttpClient,
     bucket: &String,
     managedFolder: &String,
-    allowNonEmpty: &Option<bool>,
-    ifMetagenerationMatch: &Option<String>,
-    ifMetagenerationNotMatch: &Option<String>,
+    allowNonEmpty: &Option<Option<String>>,
+    ifMetagenerationMatch: &Option<Option<String>>,
+    ifMetagenerationNotMatch: &Option<Option<String>>,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
@@ -3219,13 +7162,13 @@ pub fn storage_managed_folders_delete_builder(
     };
 
     let builder = client
-        .get(&url_with_query)
+        .delete(&url_with_query)
         .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
 
     Ok(builder)
 }
 
-/// GET b/{bucket}/managedFolders/{managedFolder}
+/// DELETE b/{bucket}/managedFolders/{managedFolder}
 /// Permanently deletes a managed folder.
 ///
 /// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
@@ -3296,7 +7239,7 @@ pub fn storage_managed_folders_delete_task(
         .map_pending(|_| ApiPending::Sending))
 }
 
-/// GET b/{bucket}/managedFolders/{managedFolder}
+/// DELETE b/{bucket}/managedFolders/{managedFolder}
 /// Permanently deletes a managed folder.
 ///
 /// Takes a `ClientRequestBuilder`, builds and executes the request,
@@ -3334,14 +7277,14 @@ pub struct StorageManagedFoldersDeleteArgs {
     /// Path parameter: managedFolder
     pub managedFolder: String,
     /// Query parameter: allowNonEmpty
-    pub allowNonEmpty: Option<bool>,
+    pub allowNonEmpty: Option<Option<String>>,
     /// Query parameter: ifMetagenerationMatch
-    pub ifMetagenerationMatch: Option<String>,
+    pub ifMetagenerationMatch: Option<Option<String>>,
     /// Query parameter: ifMetagenerationNotMatch
-    pub ifMetagenerationNotMatch: Option<String>,
+    pub ifMetagenerationNotMatch: Option<Option<String>>,
 }
 
-/// GET b/{bucket}/managedFolders/{managedFolder}
+/// DELETE b/{bucket}/managedFolders/{managedFolder}
 /// Permanently deletes a managed folder.
 ///
 /// Simplest API - builds and executes the request in one call.
@@ -3370,6 +7313,196 @@ pub fn storage_managed_folders_delete(
     storage_managed_folders_delete_execute(builder)
 }
 
+/// GET b/{bucket}/managedFolders/{managedFolder}
+/// Returns metadata of the specified managed folder.
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `storage_managed_folders_get_execute()` to send, or `storage_managed_folders_get` for simplest API.
+
+pub fn storage_managed_folders_get_builder(
+    client: &SimpleHttpClient,
+    bucket: &String,
+    managedFolder: &String,
+    ifMetagenerationMatch: &Option<Option<String>>,
+    ifMetagenerationNotMatch: &Option<Option<String>>,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!(
+        "https://storage.googleapis.com/storage/v1/b/{}/managedFolders/{}",
+        bucket, managedFolder,
+    );
+
+    // Build request
+    let mut query_parts = Vec::new();
+    if let Some(val) = ifMetagenerationMatch.as_ref() {
+        query_parts.push(format!("ifMetagenerationMatch={}", val));
+    }
+    if let Some(val) = ifMetagenerationNotMatch.as_ref() {
+        query_parts.push(format!("ifMetagenerationNotMatch={}", val));
+    }
+
+    let url_with_query = if query_parts.is_empty() {
+        endpoint_url
+    } else {
+        format!("{}?{}", endpoint_url, query_parts.join("&"))
+    };
+
+    let builder = client
+        .get(&url_with_query)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// GET b/{bucket}/managedFolders/{managedFolder}
+/// Returns metadata of the specified managed folder.
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `storage_managed_folders_get_execute()` or `storage_managed_folders_get`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `storage_managed_folders_get_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn storage_managed_folders_get_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<ManagedFolder>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: ManagedFolder = serde_json::from_str(&body)
+                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// GET b/{bucket}/managedFolders/{managedFolder}
+/// Returns metadata of the specified managed folder.
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `storage_managed_folders_get_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `storage_managed_folders_get_task()`.
+/// For the simplest API, use `storage_managed_folders_get()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `storage_managed_folders_get_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn storage_managed_folders_get_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<ManagedFolder>, ApiError>, P = ApiPending>
+        + Send
+        + 'static,
+    ApiError,
+> {
+    let task = storage_managed_folders_get_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`storage_managed_folders_get`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct StorageManagedFoldersGetArgs {
+    /// Path parameter: bucket
+    pub bucket: String,
+    /// Path parameter: managedFolder
+    pub managedFolder: String,
+    /// Query parameter: ifMetagenerationMatch
+    pub ifMetagenerationMatch: Option<Option<String>>,
+    /// Query parameter: ifMetagenerationNotMatch
+    pub ifMetagenerationNotMatch: Option<Option<String>>,
+}
+
+/// GET b/{bucket}/managedFolders/{managedFolder}
+/// Returns metadata of the specified managed folder.
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `storage_managed_folders_get_builder()` + `storage_managed_folders_get_execute()`.
+/// For task-level control, use `storage_managed_folders_get_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn storage_managed_folders_get(
+    client: &SimpleHttpClient,
+    args: &StorageManagedFoldersGetArgs,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<ManagedFolder>, ApiError>, P = ApiPending>
+        + Send
+        + 'static,
+    ApiError,
+> {
+    let builder = storage_managed_folders_get_builder(
+        client,
+        &args.bucket,
+        &args.managedFolder,
+        &args.ifMetagenerationMatch,
+        &args.ifMetagenerationNotMatch,
+    )?;
+    storage_managed_folders_get_execute(builder)
+}
+
 /// GET b/{bucket}/managedFolders/{managedFolder}/iam
 /// Returns an IAM policy for the specified managed folder.
 ///
@@ -3380,8 +7513,8 @@ pub fn storage_managed_folders_get_iam_policy_builder(
     client: &SimpleHttpClient,
     bucket: &String,
     managedFolder: &String,
-    optionsRequestedPolicyVersion: &Option<i32>,
-    userProject: &Option<String>,
+    optionsRequestedPolicyVersion: &Option<Option<String>>,
+    userProject: &Option<Option<String>>,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
@@ -3523,9 +7656,9 @@ pub struct StorageManagedFoldersGetIamPolicyArgs {
     /// Path parameter: managedFolder
     pub managedFolder: String,
     /// Query parameter: optionsRequestedPolicyVersion
-    pub optionsRequestedPolicyVersion: Option<i32>,
+    pub optionsRequestedPolicyVersion: Option<Option<String>>,
     /// Query parameter: userProject
-    pub userProject: Option<String>,
+    pub userProject: Option<Option<String>>,
 }
 
 /// GET b/{bucket}/managedFolders/{managedFolder}/iam
@@ -3556,7 +7689,7 @@ pub fn storage_managed_folders_get_iam_policy(
     storage_managed_folders_get_iam_policy_execute(builder)
 }
 
-/// GET b/{bucket}/managedFolders
+/// POST b/{bucket}/managedFolders
 /// Creates a new managed folder.
 ///
 /// Returns `ClientRequestBuilder` for customization.
@@ -3565,7 +7698,6 @@ pub fn storage_managed_folders_get_iam_policy(
 pub fn storage_managed_folders_insert_builder(
     client: &SimpleHttpClient,
     bucket: &String,
-    body: &ManagedFolder,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
@@ -3575,15 +7707,13 @@ pub fn storage_managed_folders_insert_builder(
 
     // Build request
     let builder = client
-        .get(&endpoint_url)
+        .post(&endpoint_url)
         .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
 
-    builder
-        .body_json(body)
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+    Ok(builder)
 }
 
-/// GET b/{bucket}/managedFolders
+/// POST b/{bucket}/managedFolders
 /// Creates a new managed folder.
 ///
 /// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
@@ -3657,7 +7787,7 @@ pub fn storage_managed_folders_insert_task(
         .map_pending(|_| ApiPending::Sending))
 }
 
-/// GET b/{bucket}/managedFolders
+/// POST b/{bucket}/managedFolders
 /// Creates a new managed folder.
 ///
 /// Takes a `ClientRequestBuilder`, builds and executes the request,
@@ -3694,11 +7824,9 @@ pub fn storage_managed_folders_insert_execute(
 pub struct StorageManagedFoldersInsertArgs {
     /// Path parameter: bucket
     pub bucket: String,
-    /// Request body.
-    pub body: ManagedFolder,
 }
 
-/// GET b/{bucket}/managedFolders
+/// POST b/{bucket}/managedFolders
 /// Creates a new managed folder.
 ///
 /// Simplest API - builds and executes the request in one call.
@@ -3718,11 +7846,577 @@ pub fn storage_managed_folders_insert(
         + 'static,
     ApiError,
 > {
-    let builder = storage_managed_folders_insert_builder(client, &args.bucket, &args.body)?;
+    let builder = storage_managed_folders_insert_builder(client, &args.bucket)?;
     storage_managed_folders_insert_execute(builder)
 }
 
-/// GET b/{bucket}/notificationConfigs/{notification}
+/// GET b/{bucket}/managedFolders
+/// Lists managed folders in the given bucket.
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `storage_managed_folders_list_execute()` to send, or `storage_managed_folders_list` for simplest API.
+
+pub fn storage_managed_folders_list_builder(
+    client: &SimpleHttpClient,
+    bucket: &String,
+    pageSize: &Option<Option<String>>,
+    pageToken: &Option<Option<String>>,
+    prefix: &Option<Option<String>>,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!(
+        "https://storage.googleapis.com/storage/v1/b/{}/managedFolders",
+        bucket,
+    );
+
+    // Build request
+    let mut query_parts = Vec::new();
+    if let Some(val) = pageSize.as_ref() {
+        query_parts.push(format!("pageSize={}", val));
+    }
+    if let Some(val) = pageToken.as_ref() {
+        query_parts.push(format!("pageToken={}", val));
+    }
+    if let Some(val) = prefix.as_ref() {
+        query_parts.push(format!("prefix={}", val));
+    }
+
+    let url_with_query = if query_parts.is_empty() {
+        endpoint_url
+    } else {
+        format!("{}?{}", endpoint_url, query_parts.join("&"))
+    };
+
+    let builder = client
+        .get(&url_with_query)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// GET b/{bucket}/managedFolders
+/// Lists managed folders in the given bucket.
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `storage_managed_folders_list_execute()` or `storage_managed_folders_list`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `storage_managed_folders_list_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn storage_managed_folders_list_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<ManagedFolders>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: ManagedFolders = serde_json::from_str(&body)
+                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// GET b/{bucket}/managedFolders
+/// Lists managed folders in the given bucket.
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `storage_managed_folders_list_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `storage_managed_folders_list_task()`.
+/// For the simplest API, use `storage_managed_folders_list()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `storage_managed_folders_list_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn storage_managed_folders_list_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<ManagedFolders>, ApiError>, P = ApiPending>
+        + Send
+        + 'static,
+    ApiError,
+> {
+    let task = storage_managed_folders_list_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`storage_managed_folders_list`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct StorageManagedFoldersListArgs {
+    /// Path parameter: bucket
+    pub bucket: String,
+    /// Query parameter: pageSize
+    pub pageSize: Option<Option<String>>,
+    /// Query parameter: pageToken
+    pub pageToken: Option<Option<String>>,
+    /// Query parameter: prefix
+    pub prefix: Option<Option<String>>,
+}
+
+/// GET b/{bucket}/managedFolders
+/// Lists managed folders in the given bucket.
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `storage_managed_folders_list_builder()` + `storage_managed_folders_list_execute()`.
+/// For task-level control, use `storage_managed_folders_list_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn storage_managed_folders_list(
+    client: &SimpleHttpClient,
+    args: &StorageManagedFoldersListArgs,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<ManagedFolders>, ApiError>, P = ApiPending>
+        + Send
+        + 'static,
+    ApiError,
+> {
+    let builder = storage_managed_folders_list_builder(
+        client,
+        &args.bucket,
+        &args.pageSize,
+        &args.pageToken,
+        &args.prefix,
+    )?;
+    storage_managed_folders_list_execute(builder)
+}
+
+/// PUT b/{bucket}/managedFolders/{managedFolder}/iam
+/// Updates an IAM policy for the specified managed folder.
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `storage_managed_folders_set_iam_policy_execute()` to send, or `storage_managed_folders_set_iam_policy` for simplest API.
+
+pub fn storage_managed_folders_set_iam_policy_builder(
+    client: &SimpleHttpClient,
+    bucket: &String,
+    managedFolder: &String,
+    userProject: &Option<Option<String>>,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!(
+        "https://storage.googleapis.com/storage/v1/b/{}/managedFolders/{}/iam",
+        bucket, managedFolder,
+    );
+
+    // Build request
+    let mut query_parts = Vec::new();
+    if let Some(val) = userProject.as_ref() {
+        query_parts.push(format!("userProject={}", val));
+    }
+
+    let url_with_query = if query_parts.is_empty() {
+        endpoint_url
+    } else {
+        format!("{}?{}", endpoint_url, query_parts.join("&"))
+    };
+
+    let builder = client
+        .put(&url_with_query)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// PUT b/{bucket}/managedFolders/{managedFolder}/iam
+/// Updates an IAM policy for the specified managed folder.
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `storage_managed_folders_set_iam_policy_execute()` or `storage_managed_folders_set_iam_policy`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `storage_managed_folders_set_iam_policy_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn storage_managed_folders_set_iam_policy_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<Policy>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: Policy = serde_json::from_str(&body)
+                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// PUT b/{bucket}/managedFolders/{managedFolder}/iam
+/// Updates an IAM policy for the specified managed folder.
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `storage_managed_folders_set_iam_policy_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `storage_managed_folders_set_iam_policy_task()`.
+/// For the simplest API, use `storage_managed_folders_set_iam_policy()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `storage_managed_folders_set_iam_policy_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn storage_managed_folders_set_iam_policy_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<Policy>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let task = storage_managed_folders_set_iam_policy_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`storage_managed_folders_set_iam_policy`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct StorageManagedFoldersSetIamPolicyArgs {
+    /// Path parameter: bucket
+    pub bucket: String,
+    /// Path parameter: managedFolder
+    pub managedFolder: String,
+    /// Query parameter: userProject
+    pub userProject: Option<Option<String>>,
+}
+
+/// PUT b/{bucket}/managedFolders/{managedFolder}/iam
+/// Updates an IAM policy for the specified managed folder.
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `storage_managed_folders_set_iam_policy_builder()` + `storage_managed_folders_set_iam_policy_execute()`.
+/// For task-level control, use `storage_managed_folders_set_iam_policy_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn storage_managed_folders_set_iam_policy(
+    client: &SimpleHttpClient,
+    args: &StorageManagedFoldersSetIamPolicyArgs,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<Policy>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let builder = storage_managed_folders_set_iam_policy_builder(
+        client,
+        &args.bucket,
+        &args.managedFolder,
+        &args.userProject,
+    )?;
+    storage_managed_folders_set_iam_policy_execute(builder)
+}
+
+/// GET b/{bucket}/managedFolders/{managedFolder}/iam/testPermissions
+/// Tests a set of permissions on the given managed folder to see which, if any, are held by the caller.
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `storage_managed_folders_test_iam_permissions_execute()` to send, or `storage_managed_folders_test_iam_permissions` for simplest API.
+
+pub fn storage_managed_folders_test_iam_permissions_builder(
+    client: &SimpleHttpClient,
+    bucket: &String,
+    managedFolder: &String,
+    permissions: &Option<Option<String>>,
+    userProject: &Option<Option<String>>,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!(
+        "https://storage.googleapis.com/storage/v1/b/{}/managedFolders/{}/iam/testPermissions",
+        bucket, managedFolder,
+    );
+
+    // Build request
+    let mut query_parts = Vec::new();
+    if let Some(val) = permissions.as_ref() {
+        query_parts.push(format!("permissions={}", val));
+    }
+    if let Some(val) = userProject.as_ref() {
+        query_parts.push(format!("userProject={}", val));
+    }
+
+    let url_with_query = if query_parts.is_empty() {
+        endpoint_url
+    } else {
+        format!("{}?{}", endpoint_url, query_parts.join("&"))
+    };
+
+    let builder = client
+        .get(&url_with_query)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// GET b/{bucket}/managedFolders/{managedFolder}/iam/testPermissions
+/// Tests a set of permissions on the given managed folder to see which, if any, are held by the caller.
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `storage_managed_folders_test_iam_permissions_execute()` or `storage_managed_folders_test_iam_permissions`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `storage_managed_folders_test_iam_permissions_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn storage_managed_folders_test_iam_permissions_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<TestIamPermissionsResponse>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: TestIamPermissionsResponse = serde_json::from_str(&body)
+                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// GET b/{bucket}/managedFolders/{managedFolder}/iam/testPermissions
+/// Tests a set of permissions on the given managed folder to see which, if any, are held by the caller.
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `storage_managed_folders_test_iam_permissions_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `storage_managed_folders_test_iam_permissions_task()`.
+/// For the simplest API, use `storage_managed_folders_test_iam_permissions()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `storage_managed_folders_test_iam_permissions_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn storage_managed_folders_test_iam_permissions_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<
+            D = Result<ApiResponse<TestIamPermissionsResponse>, ApiError>,
+            P = ApiPending,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    let task = storage_managed_folders_test_iam_permissions_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`storage_managed_folders_test_iam_permissions`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct StorageManagedFoldersTestIamPermissionsArgs {
+    /// Path parameter: bucket
+    pub bucket: String,
+    /// Path parameter: managedFolder
+    pub managedFolder: String,
+    /// Query parameter: permissions
+    pub permissions: Option<Option<String>>,
+    /// Query parameter: userProject
+    pub userProject: Option<Option<String>>,
+}
+
+/// GET b/{bucket}/managedFolders/{managedFolder}/iam/testPermissions
+/// Tests a set of permissions on the given managed folder to see which, if any, are held by the caller.
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `storage_managed_folders_test_iam_permissions_builder()` + `storage_managed_folders_test_iam_permissions_execute()`.
+/// For task-level control, use `storage_managed_folders_test_iam_permissions_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn storage_managed_folders_test_iam_permissions(
+    client: &SimpleHttpClient,
+    args: &StorageManagedFoldersTestIamPermissionsArgs,
+) -> Result<
+    impl StreamIterator<
+            D = Result<ApiResponse<TestIamPermissionsResponse>, ApiError>,
+            P = ApiPending,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    let builder = storage_managed_folders_test_iam_permissions_builder(
+        client,
+        &args.bucket,
+        &args.managedFolder,
+        &args.permissions,
+        &args.userProject,
+    )?;
+    storage_managed_folders_test_iam_permissions_execute(builder)
+}
+
+/// DELETE b/{bucket}/notificationConfigs/{notification}
 /// Permanently deletes a notification subscription.
 ///
 /// Returns `ClientRequestBuilder` for customization.
@@ -3732,7 +8426,7 @@ pub fn storage_notifications_delete_builder(
     client: &SimpleHttpClient,
     bucket: &String,
     notification: &String,
-    userProject: &Option<String>,
+    userProject: &Option<Option<String>>,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
@@ -3753,13 +8447,13 @@ pub fn storage_notifications_delete_builder(
     };
 
     let builder = client
-        .get(&url_with_query)
+        .delete(&url_with_query)
         .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
 
     Ok(builder)
 }
 
-/// GET b/{bucket}/notificationConfigs/{notification}
+/// DELETE b/{bucket}/notificationConfigs/{notification}
 /// Permanently deletes a notification subscription.
 ///
 /// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
@@ -3830,7 +8524,7 @@ pub fn storage_notifications_delete_task(
         .map_pending(|_| ApiPending::Sending))
 }
 
-/// GET b/{bucket}/notificationConfigs/{notification}
+/// DELETE b/{bucket}/notificationConfigs/{notification}
 /// Permanently deletes a notification subscription.
 ///
 /// Takes a `ClientRequestBuilder`, builds and executes the request,
@@ -3868,10 +8562,10 @@ pub struct StorageNotificationsDeleteArgs {
     /// Path parameter: notification
     pub notification: String,
     /// Query parameter: userProject
-    pub userProject: Option<String>,
+    pub userProject: Option<Option<String>>,
 }
 
-/// GET b/{bucket}/notificationConfigs/{notification}
+/// DELETE b/{bucket}/notificationConfigs/{notification}
 /// Permanently deletes a notification subscription.
 ///
 /// Simplest API - builds and executes the request in one call.
@@ -3898,7 +8592,190 @@ pub fn storage_notifications_delete(
     storage_notifications_delete_execute(builder)
 }
 
-/// GET b/{bucket}/notificationConfigs
+/// GET b/{bucket}/notificationConfigs/{notification}
+/// View a notification configuration.
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `storage_notifications_get_execute()` to send, or `storage_notifications_get` for simplest API.
+
+pub fn storage_notifications_get_builder(
+    client: &SimpleHttpClient,
+    bucket: &String,
+    notification: &String,
+    userProject: &Option<Option<String>>,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!(
+        "https://storage.googleapis.com/storage/v1/b/{}/notificationConfigs/{}",
+        bucket, notification,
+    );
+
+    // Build request
+    let mut query_parts = Vec::new();
+    if let Some(val) = userProject.as_ref() {
+        query_parts.push(format!("userProject={}", val));
+    }
+
+    let url_with_query = if query_parts.is_empty() {
+        endpoint_url
+    } else {
+        format!("{}?{}", endpoint_url, query_parts.join("&"))
+    };
+
+    let builder = client
+        .get(&url_with_query)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// GET b/{bucket}/notificationConfigs/{notification}
+/// View a notification configuration.
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `storage_notifications_get_execute()` or `storage_notifications_get`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `storage_notifications_get_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn storage_notifications_get_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<Notification>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: Notification = serde_json::from_str(&body)
+                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// GET b/{bucket}/notificationConfigs/{notification}
+/// View a notification configuration.
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `storage_notifications_get_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `storage_notifications_get_task()`.
+/// For the simplest API, use `storage_notifications_get()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `storage_notifications_get_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn storage_notifications_get_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<Notification>, ApiError>, P = ApiPending>
+        + Send
+        + 'static,
+    ApiError,
+> {
+    let task = storage_notifications_get_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`storage_notifications_get`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct StorageNotificationsGetArgs {
+    /// Path parameter: bucket
+    pub bucket: String,
+    /// Path parameter: notification
+    pub notification: String,
+    /// Query parameter: userProject
+    pub userProject: Option<Option<String>>,
+}
+
+/// GET b/{bucket}/notificationConfigs/{notification}
+/// View a notification configuration.
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `storage_notifications_get_builder()` + `storage_notifications_get_execute()`.
+/// For task-level control, use `storage_notifications_get_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn storage_notifications_get(
+    client: &SimpleHttpClient,
+    args: &StorageNotificationsGetArgs,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<Notification>, ApiError>, P = ApiPending>
+        + Send
+        + 'static,
+    ApiError,
+> {
+    let builder = storage_notifications_get_builder(
+        client,
+        &args.bucket,
+        &args.notification,
+        &args.userProject,
+    )?;
+    storage_notifications_get_execute(builder)
+}
+
+/// POST b/{bucket}/notificationConfigs
 /// Creates a notification subscription for a given bucket.
 ///
 /// Returns `ClientRequestBuilder` for customization.
@@ -3907,8 +8784,7 @@ pub fn storage_notifications_delete(
 pub fn storage_notifications_insert_builder(
     client: &SimpleHttpClient,
     bucket: &String,
-    userProject: &Option<String>,
-    body: &Notification,
+    userProject: &Option<Option<String>>,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
@@ -3929,15 +8805,13 @@ pub fn storage_notifications_insert_builder(
     };
 
     let builder = client
-        .get(&url_with_query)
+        .post(&url_with_query)
         .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
 
-    builder
-        .body_json(body)
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+    Ok(builder)
 }
 
-/// GET b/{bucket}/notificationConfigs
+/// POST b/{bucket}/notificationConfigs
 /// Creates a notification subscription for a given bucket.
 ///
 /// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
@@ -4011,7 +8885,7 @@ pub fn storage_notifications_insert_task(
         .map_pending(|_| ApiPending::Sending))
 }
 
-/// GET b/{bucket}/notificationConfigs
+/// POST b/{bucket}/notificationConfigs
 /// Creates a notification subscription for a given bucket.
 ///
 /// Takes a `ClientRequestBuilder`, builds and executes the request,
@@ -4049,12 +8923,10 @@ pub struct StorageNotificationsInsertArgs {
     /// Path parameter: bucket
     pub bucket: String,
     /// Query parameter: userProject
-    pub userProject: Option<String>,
-    /// Request body.
-    pub body: Notification,
+    pub userProject: Option<Option<String>>,
 }
 
-/// GET b/{bucket}/notificationConfigs
+/// POST b/{bucket}/notificationConfigs
 /// Creates a notification subscription for a given bucket.
 ///
 /// Simplest API - builds and executes the request in one call.
@@ -4074,12 +8946,186 @@ pub fn storage_notifications_insert(
         + 'static,
     ApiError,
 > {
-    let builder =
-        storage_notifications_insert_builder(client, &args.bucket, &args.userProject, &args.body)?;
+    let builder = storage_notifications_insert_builder(client, &args.bucket, &args.userProject)?;
     storage_notifications_insert_execute(builder)
 }
 
-/// GET b/{bucket}/o/{object}/acl/{entity}
+/// GET b/{bucket}/notificationConfigs
+/// Retrieves a list of notification subscriptions for a given bucket.
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `storage_notifications_list_execute()` to send, or `storage_notifications_list` for simplest API.
+
+pub fn storage_notifications_list_builder(
+    client: &SimpleHttpClient,
+    bucket: &String,
+    userProject: &Option<Option<String>>,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!(
+        "https://storage.googleapis.com/storage/v1/b/{}/notificationConfigs",
+        bucket,
+    );
+
+    // Build request
+    let mut query_parts = Vec::new();
+    if let Some(val) = userProject.as_ref() {
+        query_parts.push(format!("userProject={}", val));
+    }
+
+    let url_with_query = if query_parts.is_empty() {
+        endpoint_url
+    } else {
+        format!("{}?{}", endpoint_url, query_parts.join("&"))
+    };
+
+    let builder = client
+        .get(&url_with_query)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// GET b/{bucket}/notificationConfigs
+/// Retrieves a list of notification subscriptions for a given bucket.
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `storage_notifications_list_execute()` or `storage_notifications_list`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `storage_notifications_list_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn storage_notifications_list_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<Notifications>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: Notifications = serde_json::from_str(&body)
+                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// GET b/{bucket}/notificationConfigs
+/// Retrieves a list of notification subscriptions for a given bucket.
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `storage_notifications_list_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `storage_notifications_list_task()`.
+/// For the simplest API, use `storage_notifications_list()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `storage_notifications_list_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn storage_notifications_list_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<Notifications>, ApiError>, P = ApiPending>
+        + Send
+        + 'static,
+    ApiError,
+> {
+    let task = storage_notifications_list_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`storage_notifications_list`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct StorageNotificationsListArgs {
+    /// Path parameter: bucket
+    pub bucket: String,
+    /// Query parameter: userProject
+    pub userProject: Option<Option<String>>,
+}
+
+/// GET b/{bucket}/notificationConfigs
+/// Retrieves a list of notification subscriptions for a given bucket.
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `storage_notifications_list_builder()` + `storage_notifications_list_execute()`.
+/// For task-level control, use `storage_notifications_list_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn storage_notifications_list(
+    client: &SimpleHttpClient,
+    args: &StorageNotificationsListArgs,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<Notifications>, ApiError>, P = ApiPending>
+        + Send
+        + 'static,
+    ApiError,
+> {
+    let builder = storage_notifications_list_builder(client, &args.bucket, &args.userProject)?;
+    storage_notifications_list_execute(builder)
+}
+
+/// DELETE b/{bucket}/o/{object}/acl/{entity}
 /// Permanently deletes the ACL entry for the specified entity on the specified object.
 ///
 /// Returns `ClientRequestBuilder` for customization.
@@ -4090,8 +9136,8 @@ pub fn storage_object_access_controls_delete_builder(
     bucket: &String,
     object: &String,
     entity: &String,
-    generation: &Option<String>,
-    userProject: &Option<String>,
+    generation: &Option<Option<String>>,
+    userProject: &Option<Option<String>>,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
@@ -4115,13 +9161,13 @@ pub fn storage_object_access_controls_delete_builder(
     };
 
     let builder = client
-        .get(&url_with_query)
+        .delete(&url_with_query)
         .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
 
     Ok(builder)
 }
 
-/// GET b/{bucket}/o/{object}/acl/{entity}
+/// DELETE b/{bucket}/o/{object}/acl/{entity}
 /// Permanently deletes the ACL entry for the specified entity on the specified object.
 ///
 /// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
@@ -4192,7 +9238,7 @@ pub fn storage_object_access_controls_delete_task(
         .map_pending(|_| ApiPending::Sending))
 }
 
-/// GET b/{bucket}/o/{object}/acl/{entity}
+/// DELETE b/{bucket}/o/{object}/acl/{entity}
 /// Permanently deletes the ACL entry for the specified entity on the specified object.
 ///
 /// Takes a `ClientRequestBuilder`, builds and executes the request,
@@ -4232,12 +9278,12 @@ pub struct StorageObjectAccessControlsDeleteArgs {
     /// Path parameter: entity
     pub entity: String,
     /// Query parameter: generation
-    pub generation: Option<String>,
+    pub generation: Option<Option<String>>,
     /// Query parameter: userProject
-    pub userProject: Option<String>,
+    pub userProject: Option<Option<String>>,
 }
 
-/// GET b/{bucket}/o/{object}/acl/{entity}
+/// DELETE b/{bucket}/o/{object}/acl/{entity}
 /// Permanently deletes the ACL entry for the specified entity on the specified object.
 ///
 /// Simplest API - builds and executes the request in one call.
@@ -4266,7 +9312,201 @@ pub fn storage_object_access_controls_delete(
     storage_object_access_controls_delete_execute(builder)
 }
 
-/// GET b/{bucket}/o/{object}/acl
+/// GET b/{bucket}/o/{object}/acl/{entity}
+/// Returns the ACL entry for the specified entity on the specified object.
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `storage_object_access_controls_get_execute()` to send, or `storage_object_access_controls_get` for simplest API.
+
+pub fn storage_object_access_controls_get_builder(
+    client: &SimpleHttpClient,
+    bucket: &String,
+    object: &String,
+    entity: &String,
+    generation: &Option<Option<String>>,
+    userProject: &Option<Option<String>>,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!(
+        "https://storage.googleapis.com/storage/v1/b/{}/o/{}/acl/{}",
+        bucket, object, entity,
+    );
+
+    // Build request
+    let mut query_parts = Vec::new();
+    if let Some(val) = generation.as_ref() {
+        query_parts.push(format!("generation={}", val));
+    }
+    if let Some(val) = userProject.as_ref() {
+        query_parts.push(format!("userProject={}", val));
+    }
+
+    let url_with_query = if query_parts.is_empty() {
+        endpoint_url
+    } else {
+        format!("{}?{}", endpoint_url, query_parts.join("&"))
+    };
+
+    let builder = client
+        .get(&url_with_query)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// GET b/{bucket}/o/{object}/acl/{entity}
+/// Returns the ACL entry for the specified entity on the specified object.
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `storage_object_access_controls_get_execute()` or `storage_object_access_controls_get`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `storage_object_access_controls_get_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn storage_object_access_controls_get_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<ObjectAccessControl>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: ObjectAccessControl = serde_json::from_str(&body)
+                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// GET b/{bucket}/o/{object}/acl/{entity}
+/// Returns the ACL entry for the specified entity on the specified object.
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `storage_object_access_controls_get_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `storage_object_access_controls_get_task()`.
+/// For the simplest API, use `storage_object_access_controls_get()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `storage_object_access_controls_get_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn storage_object_access_controls_get_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<ObjectAccessControl>, ApiError>, P = ApiPending>
+        + Send
+        + 'static,
+    ApiError,
+> {
+    let task = storage_object_access_controls_get_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`storage_object_access_controls_get`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct StorageObjectAccessControlsGetArgs {
+    /// Path parameter: bucket
+    pub bucket: String,
+    /// Path parameter: object
+    pub object: String,
+    /// Path parameter: entity
+    pub entity: String,
+    /// Query parameter: generation
+    pub generation: Option<Option<String>>,
+    /// Query parameter: userProject
+    pub userProject: Option<Option<String>>,
+}
+
+/// GET b/{bucket}/o/{object}/acl/{entity}
+/// Returns the ACL entry for the specified entity on the specified object.
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `storage_object_access_controls_get_builder()` + `storage_object_access_controls_get_execute()`.
+/// For task-level control, use `storage_object_access_controls_get_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn storage_object_access_controls_get(
+    client: &SimpleHttpClient,
+    args: &StorageObjectAccessControlsGetArgs,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<ObjectAccessControl>, ApiError>, P = ApiPending>
+        + Send
+        + 'static,
+    ApiError,
+> {
+    let builder = storage_object_access_controls_get_builder(
+        client,
+        &args.bucket,
+        &args.object,
+        &args.entity,
+        &args.generation,
+        &args.userProject,
+    )?;
+    storage_object_access_controls_get_execute(builder)
+}
+
+/// POST b/{bucket}/o/{object}/acl
 /// Creates a new ACL entry on the specified object.
 ///
 /// Returns `ClientRequestBuilder` for customization.
@@ -4276,9 +9516,8 @@ pub fn storage_object_access_controls_insert_builder(
     client: &SimpleHttpClient,
     bucket: &String,
     object: &String,
-    generation: &Option<String>,
-    userProject: &Option<String>,
-    body: &ObjectAccessControl,
+    generation: &Option<Option<String>>,
+    userProject: &Option<Option<String>>,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
@@ -4302,15 +9541,13 @@ pub fn storage_object_access_controls_insert_builder(
     };
 
     let builder = client
-        .get(&url_with_query)
+        .post(&url_with_query)
         .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
 
-    builder
-        .body_json(body)
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+    Ok(builder)
 }
 
-/// GET b/{bucket}/o/{object}/acl
+/// POST b/{bucket}/o/{object}/acl
 /// Creates a new ACL entry on the specified object.
 ///
 /// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
@@ -4384,7 +9621,7 @@ pub fn storage_object_access_controls_insert_task(
         .map_pending(|_| ApiPending::Sending))
 }
 
-/// GET b/{bucket}/o/{object}/acl
+/// POST b/{bucket}/o/{object}/acl
 /// Creates a new ACL entry on the specified object.
 ///
 /// Takes a `ClientRequestBuilder`, builds and executes the request,
@@ -4424,14 +9661,12 @@ pub struct StorageObjectAccessControlsInsertArgs {
     /// Path parameter: object
     pub object: String,
     /// Query parameter: generation
-    pub generation: Option<String>,
+    pub generation: Option<Option<String>>,
     /// Query parameter: userProject
-    pub userProject: Option<String>,
-    /// Request body.
-    pub body: ObjectAccessControl,
+    pub userProject: Option<Option<String>>,
 }
 
-/// GET b/{bucket}/o/{object}/acl
+/// POST b/{bucket}/o/{object}/acl
 /// Creates a new ACL entry on the specified object.
 ///
 /// Simplest API - builds and executes the request in one call.
@@ -4457,12 +9692,589 @@ pub fn storage_object_access_controls_insert(
         &args.object,
         &args.generation,
         &args.userProject,
-        &args.body,
     )?;
     storage_object_access_controls_insert_execute(builder)
 }
 
-/// GET b/{bucket}/o/bulkRestore
+/// GET b/{bucket}/o/{object}/acl
+/// Retrieves ACL entries on the specified object.
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `storage_object_access_controls_list_execute()` to send, or `storage_object_access_controls_list` for simplest API.
+
+pub fn storage_object_access_controls_list_builder(
+    client: &SimpleHttpClient,
+    bucket: &String,
+    object: &String,
+    generation: &Option<Option<String>>,
+    userProject: &Option<Option<String>>,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!(
+        "https://storage.googleapis.com/storage/v1/b/{}/o/{}/acl",
+        bucket, object,
+    );
+
+    // Build request
+    let mut query_parts = Vec::new();
+    if let Some(val) = generation.as_ref() {
+        query_parts.push(format!("generation={}", val));
+    }
+    if let Some(val) = userProject.as_ref() {
+        query_parts.push(format!("userProject={}", val));
+    }
+
+    let url_with_query = if query_parts.is_empty() {
+        endpoint_url
+    } else {
+        format!("{}?{}", endpoint_url, query_parts.join("&"))
+    };
+
+    let builder = client
+        .get(&url_with_query)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// GET b/{bucket}/o/{object}/acl
+/// Retrieves ACL entries on the specified object.
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `storage_object_access_controls_list_execute()` or `storage_object_access_controls_list`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `storage_object_access_controls_list_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn storage_object_access_controls_list_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<ObjectAccessControls>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: ObjectAccessControls = serde_json::from_str(&body)
+                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// GET b/{bucket}/o/{object}/acl
+/// Retrieves ACL entries on the specified object.
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `storage_object_access_controls_list_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `storage_object_access_controls_list_task()`.
+/// For the simplest API, use `storage_object_access_controls_list()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `storage_object_access_controls_list_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn storage_object_access_controls_list_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<ObjectAccessControls>, ApiError>, P = ApiPending>
+        + Send
+        + 'static,
+    ApiError,
+> {
+    let task = storage_object_access_controls_list_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`storage_object_access_controls_list`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct StorageObjectAccessControlsListArgs {
+    /// Path parameter: bucket
+    pub bucket: String,
+    /// Path parameter: object
+    pub object: String,
+    /// Query parameter: generation
+    pub generation: Option<Option<String>>,
+    /// Query parameter: userProject
+    pub userProject: Option<Option<String>>,
+}
+
+/// GET b/{bucket}/o/{object}/acl
+/// Retrieves ACL entries on the specified object.
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `storage_object_access_controls_list_builder()` + `storage_object_access_controls_list_execute()`.
+/// For task-level control, use `storage_object_access_controls_list_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn storage_object_access_controls_list(
+    client: &SimpleHttpClient,
+    args: &StorageObjectAccessControlsListArgs,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<ObjectAccessControls>, ApiError>, P = ApiPending>
+        + Send
+        + 'static,
+    ApiError,
+> {
+    let builder = storage_object_access_controls_list_builder(
+        client,
+        &args.bucket,
+        &args.object,
+        &args.generation,
+        &args.userProject,
+    )?;
+    storage_object_access_controls_list_execute(builder)
+}
+
+/// PATCH b/{bucket}/o/{object}/acl/{entity}
+/// Patches an ACL entry on the specified object.
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `storage_object_access_controls_patch_execute()` to send, or `storage_object_access_controls_patch` for simplest API.
+
+pub fn storage_object_access_controls_patch_builder(
+    client: &SimpleHttpClient,
+    bucket: &String,
+    object: &String,
+    entity: &String,
+    generation: &Option<Option<String>>,
+    userProject: &Option<Option<String>>,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!(
+        "https://storage.googleapis.com/storage/v1/b/{}/o/{}/acl/{}",
+        bucket, object, entity,
+    );
+
+    // Build request
+    let mut query_parts = Vec::new();
+    if let Some(val) = generation.as_ref() {
+        query_parts.push(format!("generation={}", val));
+    }
+    if let Some(val) = userProject.as_ref() {
+        query_parts.push(format!("userProject={}", val));
+    }
+
+    let url_with_query = if query_parts.is_empty() {
+        endpoint_url
+    } else {
+        format!("{}?{}", endpoint_url, query_parts.join("&"))
+    };
+
+    let builder = client
+        .patch(&url_with_query)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// PATCH b/{bucket}/o/{object}/acl/{entity}
+/// Patches an ACL entry on the specified object.
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `storage_object_access_controls_patch_execute()` or `storage_object_access_controls_patch`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `storage_object_access_controls_patch_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn storage_object_access_controls_patch_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<ObjectAccessControl>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: ObjectAccessControl = serde_json::from_str(&body)
+                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// PATCH b/{bucket}/o/{object}/acl/{entity}
+/// Patches an ACL entry on the specified object.
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `storage_object_access_controls_patch_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `storage_object_access_controls_patch_task()`.
+/// For the simplest API, use `storage_object_access_controls_patch()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `storage_object_access_controls_patch_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn storage_object_access_controls_patch_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<ObjectAccessControl>, ApiError>, P = ApiPending>
+        + Send
+        + 'static,
+    ApiError,
+> {
+    let task = storage_object_access_controls_patch_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`storage_object_access_controls_patch`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct StorageObjectAccessControlsPatchArgs {
+    /// Path parameter: bucket
+    pub bucket: String,
+    /// Path parameter: object
+    pub object: String,
+    /// Path parameter: entity
+    pub entity: String,
+    /// Query parameter: generation
+    pub generation: Option<Option<String>>,
+    /// Query parameter: userProject
+    pub userProject: Option<Option<String>>,
+}
+
+/// PATCH b/{bucket}/o/{object}/acl/{entity}
+/// Patches an ACL entry on the specified object.
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `storage_object_access_controls_patch_builder()` + `storage_object_access_controls_patch_execute()`.
+/// For task-level control, use `storage_object_access_controls_patch_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn storage_object_access_controls_patch(
+    client: &SimpleHttpClient,
+    args: &StorageObjectAccessControlsPatchArgs,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<ObjectAccessControl>, ApiError>, P = ApiPending>
+        + Send
+        + 'static,
+    ApiError,
+> {
+    let builder = storage_object_access_controls_patch_builder(
+        client,
+        &args.bucket,
+        &args.object,
+        &args.entity,
+        &args.generation,
+        &args.userProject,
+    )?;
+    storage_object_access_controls_patch_execute(builder)
+}
+
+/// PUT b/{bucket}/o/{object}/acl/{entity}
+/// Updates an ACL entry on the specified object.
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `storage_object_access_controls_update_execute()` to send, or `storage_object_access_controls_update` for simplest API.
+
+pub fn storage_object_access_controls_update_builder(
+    client: &SimpleHttpClient,
+    bucket: &String,
+    object: &String,
+    entity: &String,
+    generation: &Option<Option<String>>,
+    userProject: &Option<Option<String>>,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!(
+        "https://storage.googleapis.com/storage/v1/b/{}/o/{}/acl/{}",
+        bucket, object, entity,
+    );
+
+    // Build request
+    let mut query_parts = Vec::new();
+    if let Some(val) = generation.as_ref() {
+        query_parts.push(format!("generation={}", val));
+    }
+    if let Some(val) = userProject.as_ref() {
+        query_parts.push(format!("userProject={}", val));
+    }
+
+    let url_with_query = if query_parts.is_empty() {
+        endpoint_url
+    } else {
+        format!("{}?{}", endpoint_url, query_parts.join("&"))
+    };
+
+    let builder = client
+        .put(&url_with_query)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// PUT b/{bucket}/o/{object}/acl/{entity}
+/// Updates an ACL entry on the specified object.
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `storage_object_access_controls_update_execute()` or `storage_object_access_controls_update`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `storage_object_access_controls_update_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn storage_object_access_controls_update_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<ObjectAccessControl>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: ObjectAccessControl = serde_json::from_str(&body)
+                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// PUT b/{bucket}/o/{object}/acl/{entity}
+/// Updates an ACL entry on the specified object.
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `storage_object_access_controls_update_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `storage_object_access_controls_update_task()`.
+/// For the simplest API, use `storage_object_access_controls_update()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `storage_object_access_controls_update_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn storage_object_access_controls_update_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<ObjectAccessControl>, ApiError>, P = ApiPending>
+        + Send
+        + 'static,
+    ApiError,
+> {
+    let task = storage_object_access_controls_update_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`storage_object_access_controls_update`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct StorageObjectAccessControlsUpdateArgs {
+    /// Path parameter: bucket
+    pub bucket: String,
+    /// Path parameter: object
+    pub object: String,
+    /// Path parameter: entity
+    pub entity: String,
+    /// Query parameter: generation
+    pub generation: Option<Option<String>>,
+    /// Query parameter: userProject
+    pub userProject: Option<Option<String>>,
+}
+
+/// PUT b/{bucket}/o/{object}/acl/{entity}
+/// Updates an ACL entry on the specified object.
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `storage_object_access_controls_update_builder()` + `storage_object_access_controls_update_execute()`.
+/// For task-level control, use `storage_object_access_controls_update_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn storage_object_access_controls_update(
+    client: &SimpleHttpClient,
+    args: &StorageObjectAccessControlsUpdateArgs,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<ObjectAccessControl>, ApiError>, P = ApiPending>
+        + Send
+        + 'static,
+    ApiError,
+> {
+    let builder = storage_object_access_controls_update_builder(
+        client,
+        &args.bucket,
+        &args.object,
+        &args.entity,
+        &args.generation,
+        &args.userProject,
+    )?;
+    storage_object_access_controls_update_execute(builder)
+}
+
+/// POST b/{bucket}/o/bulkRestore
 /// Initiates a long-running bulk restore operation on the specified bucket.
 ///
 /// Returns `ClientRequestBuilder` for customization.
@@ -4471,7 +10283,6 @@ pub fn storage_object_access_controls_insert(
 pub fn storage_objects_bulk_restore_builder(
     client: &SimpleHttpClient,
     bucket: &String,
-    body: &BulkRestoreObjectsRequest,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
@@ -4481,15 +10292,13 @@ pub fn storage_objects_bulk_restore_builder(
 
     // Build request
     let builder = client
-        .get(&endpoint_url)
+        .post(&endpoint_url)
         .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
 
-    builder
-        .body_json(body)
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+    Ok(builder)
 }
 
-/// GET b/{bucket}/o/bulkRestore
+/// POST b/{bucket}/o/bulkRestore
 /// Initiates a long-running bulk restore operation on the specified bucket.
 ///
 /// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
@@ -4563,7 +10372,7 @@ pub fn storage_objects_bulk_restore_task(
         .map_pending(|_| ApiPending::Sending))
 }
 
-/// GET b/{bucket}/o/bulkRestore
+/// POST b/{bucket}/o/bulkRestore
 /// Initiates a long-running bulk restore operation on the specified bucket.
 ///
 /// Takes a `ClientRequestBuilder`, builds and executes the request,
@@ -4602,11 +10411,9 @@ pub fn storage_objects_bulk_restore_execute(
 pub struct StorageObjectsBulkRestoreArgs {
     /// Path parameter: bucket
     pub bucket: String,
-    /// Request body.
-    pub body: BulkRestoreObjectsRequest,
 }
 
-/// GET b/{bucket}/o/bulkRestore
+/// POST b/{bucket}/o/bulkRestore
 /// Initiates a long-running bulk restore operation on the specified bucket.
 ///
 /// Simplest API - builds and executes the request in one call.
@@ -4628,11 +10435,11 @@ pub fn storage_objects_bulk_restore(
         + 'static,
     ApiError,
 > {
-    let builder = storage_objects_bulk_restore_builder(client, &args.bucket, &args.body)?;
+    let builder = storage_objects_bulk_restore_builder(client, &args.bucket)?;
     storage_objects_bulk_restore_execute(builder)
 }
 
-/// GET b/{destinationBucket}/o/{destinationObject}/compose
+/// POST b/{destinationBucket}/o/{destinationObject}/compose
 /// Concatenates a list of existing objects into a new object in the same bucket.
 ///
 /// Returns `ClientRequestBuilder` for customization.
@@ -4642,13 +10449,12 @@ pub fn storage_objects_compose_builder(
     client: &SimpleHttpClient,
     destinationBucket: &String,
     destinationObject: &String,
-    destinationPredefinedAcl: &Option<String>,
-    dropContextGroups: &Option<String>,
-    ifGenerationMatch: &Option<String>,
-    ifMetagenerationMatch: &Option<String>,
-    kmsKeyName: &Option<String>,
-    userProject: &Option<String>,
-    body: &ComposeRequest,
+    destinationPredefinedAcl: &Option<Option<String>>,
+    dropContextGroups: &Option<Option<String>>,
+    ifGenerationMatch: &Option<Option<String>>,
+    ifMetagenerationMatch: &Option<Option<String>>,
+    kmsKeyName: &Option<Option<String>>,
+    userProject: &Option<Option<String>>,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
@@ -4684,15 +10490,13 @@ pub fn storage_objects_compose_builder(
     };
 
     let builder = client
-        .get(&url_with_query)
+        .post(&url_with_query)
         .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
 
-    builder
-        .body_json(body)
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+    Ok(builder)
 }
 
-/// GET b/{destinationBucket}/o/{destinationObject}/compose
+/// POST b/{destinationBucket}/o/{destinationObject}/compose
 /// Concatenates a list of existing objects into a new object in the same bucket.
 ///
 /// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
@@ -4766,7 +10570,7 @@ pub fn storage_objects_compose_task(
         .map_pending(|_| ApiPending::Sending))
 }
 
-/// GET b/{destinationBucket}/o/{destinationObject}/compose
+/// POST b/{destinationBucket}/o/{destinationObject}/compose
 /// Concatenates a list of existing objects into a new object in the same bucket.
 ///
 /// Takes a `ClientRequestBuilder`, builds and executes the request,
@@ -4804,22 +10608,20 @@ pub struct StorageObjectsComposeArgs {
     /// Path parameter: destinationObject
     pub destinationObject: String,
     /// Query parameter: destinationPredefinedAcl
-    pub destinationPredefinedAcl: Option<String>,
+    pub destinationPredefinedAcl: Option<Option<String>>,
     /// Query parameter: dropContextGroups
-    pub dropContextGroups: Option<String>,
+    pub dropContextGroups: Option<Option<String>>,
     /// Query parameter: ifGenerationMatch
-    pub ifGenerationMatch: Option<String>,
+    pub ifGenerationMatch: Option<Option<String>>,
     /// Query parameter: ifMetagenerationMatch
-    pub ifMetagenerationMatch: Option<String>,
+    pub ifMetagenerationMatch: Option<Option<String>>,
     /// Query parameter: kmsKeyName
-    pub kmsKeyName: Option<String>,
+    pub kmsKeyName: Option<Option<String>>,
     /// Query parameter: userProject
-    pub userProject: Option<String>,
-    /// Request body.
-    pub body: ComposeRequest,
+    pub userProject: Option<Option<String>>,
 }
 
-/// GET b/{destinationBucket}/o/{destinationObject}/compose
+/// POST b/{destinationBucket}/o/{destinationObject}/compose
 /// Concatenates a list of existing objects into a new object in the same bucket.
 ///
 /// Simplest API - builds and executes the request in one call.
@@ -4847,12 +10649,11 @@ pub fn storage_objects_compose(
         &args.ifMetagenerationMatch,
         &args.kmsKeyName,
         &args.userProject,
-        &args.body,
     )?;
     storage_objects_compose_execute(builder)
 }
 
-/// GET b/{sourceBucket}/o/{sourceObject}/copyTo/b/{destinationBucket}/o/{destinationObject}
+/// POST b/{sourceBucket}/o/{sourceObject}/copyTo/b/{destinationBucket}/o/{destinationObject}
 /// Copies a source object to a destination object. Optionally overrides metadata.
 ///
 /// Returns `ClientRequestBuilder` for customization.
@@ -4864,20 +10665,19 @@ pub fn storage_objects_copy_builder(
     sourceObject: &String,
     destinationBucket: &String,
     destinationObject: &String,
-    destinationKmsKeyName: &Option<String>,
-    destinationPredefinedAcl: &Option<String>,
-    ifGenerationMatch: &Option<String>,
-    ifGenerationNotMatch: &Option<String>,
-    ifMetagenerationMatch: &Option<String>,
-    ifMetagenerationNotMatch: &Option<String>,
-    ifSourceGenerationMatch: &Option<String>,
-    ifSourceGenerationNotMatch: &Option<String>,
-    ifSourceMetagenerationMatch: &Option<String>,
-    ifSourceMetagenerationNotMatch: &Option<String>,
-    projection: &Option<String>,
-    sourceGeneration: &Option<String>,
-    userProject: &Option<String>,
-    body: &Object,
+    destinationKmsKeyName: &Option<Option<String>>,
+    destinationPredefinedAcl: &Option<Option<String>>,
+    ifGenerationMatch: &Option<Option<String>>,
+    ifGenerationNotMatch: &Option<Option<String>>,
+    ifMetagenerationMatch: &Option<Option<String>>,
+    ifMetagenerationNotMatch: &Option<Option<String>>,
+    ifSourceGenerationMatch: &Option<Option<String>>,
+    ifSourceGenerationNotMatch: &Option<Option<String>>,
+    ifSourceMetagenerationMatch: &Option<Option<String>>,
+    ifSourceMetagenerationNotMatch: &Option<Option<String>>,
+    projection: &Option<Option<String>>,
+    sourceGeneration: &Option<Option<String>>,
+    userProject: &Option<Option<String>>,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
@@ -4934,15 +10734,13 @@ pub fn storage_objects_copy_builder(
     };
 
     let builder = client
-        .get(&url_with_query)
+        .post(&url_with_query)
         .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
 
-    builder
-        .body_json(body)
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+    Ok(builder)
 }
 
-/// GET b/{sourceBucket}/o/{sourceObject}/copyTo/b/{destinationBucket}/o/{destinationObject}
+/// POST b/{sourceBucket}/o/{sourceObject}/copyTo/b/{destinationBucket}/o/{destinationObject}
 /// Copies a source object to a destination object. Optionally overrides metadata.
 ///
 /// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
@@ -5016,7 +10814,7 @@ pub fn storage_objects_copy_task(
         .map_pending(|_| ApiPending::Sending))
 }
 
-/// GET b/{sourceBucket}/o/{sourceObject}/copyTo/b/{destinationBucket}/o/{destinationObject}
+/// POST b/{sourceBucket}/o/{sourceObject}/copyTo/b/{destinationBucket}/o/{destinationObject}
 /// Copies a source object to a destination object. Optionally overrides metadata.
 ///
 /// Takes a `ClientRequestBuilder`, builds and executes the request,
@@ -5058,36 +10856,34 @@ pub struct StorageObjectsCopyArgs {
     /// Path parameter: destinationObject
     pub destinationObject: String,
     /// Query parameter: destinationKmsKeyName
-    pub destinationKmsKeyName: Option<String>,
+    pub destinationKmsKeyName: Option<Option<String>>,
     /// Query parameter: destinationPredefinedAcl
-    pub destinationPredefinedAcl: Option<String>,
+    pub destinationPredefinedAcl: Option<Option<String>>,
     /// Query parameter: ifGenerationMatch
-    pub ifGenerationMatch: Option<String>,
+    pub ifGenerationMatch: Option<Option<String>>,
     /// Query parameter: ifGenerationNotMatch
-    pub ifGenerationNotMatch: Option<String>,
+    pub ifGenerationNotMatch: Option<Option<String>>,
     /// Query parameter: ifMetagenerationMatch
-    pub ifMetagenerationMatch: Option<String>,
+    pub ifMetagenerationMatch: Option<Option<String>>,
     /// Query parameter: ifMetagenerationNotMatch
-    pub ifMetagenerationNotMatch: Option<String>,
+    pub ifMetagenerationNotMatch: Option<Option<String>>,
     /// Query parameter: ifSourceGenerationMatch
-    pub ifSourceGenerationMatch: Option<String>,
+    pub ifSourceGenerationMatch: Option<Option<String>>,
     /// Query parameter: ifSourceGenerationNotMatch
-    pub ifSourceGenerationNotMatch: Option<String>,
+    pub ifSourceGenerationNotMatch: Option<Option<String>>,
     /// Query parameter: ifSourceMetagenerationMatch
-    pub ifSourceMetagenerationMatch: Option<String>,
+    pub ifSourceMetagenerationMatch: Option<Option<String>>,
     /// Query parameter: ifSourceMetagenerationNotMatch
-    pub ifSourceMetagenerationNotMatch: Option<String>,
+    pub ifSourceMetagenerationNotMatch: Option<Option<String>>,
     /// Query parameter: projection
-    pub projection: Option<String>,
+    pub projection: Option<Option<String>>,
     /// Query parameter: sourceGeneration
-    pub sourceGeneration: Option<String>,
+    pub sourceGeneration: Option<Option<String>>,
     /// Query parameter: userProject
-    pub userProject: Option<String>,
-    /// Request body.
-    pub body: Object,
+    pub userProject: Option<Option<String>>,
 }
 
-/// GET b/{sourceBucket}/o/{sourceObject}/copyTo/b/{destinationBucket}/o/{destinationObject}
+/// POST b/{sourceBucket}/o/{sourceObject}/copyTo/b/{destinationBucket}/o/{destinationObject}
 /// Copies a source object to a destination object. Optionally overrides metadata.
 ///
 /// Simplest API - builds and executes the request in one call.
@@ -5124,12 +10920,11 @@ pub fn storage_objects_copy(
         &args.projection,
         &args.sourceGeneration,
         &args.userProject,
-        &args.body,
     )?;
     storage_objects_copy_execute(builder)
 }
 
-/// GET b/{bucket}/o/{object}
+/// DELETE b/{bucket}/o/{object}
 /// Deletes an object and its metadata. Deletions are permanent if versioning is not enabled for the bucket, or if the generation parameter is used.
 ///
 /// Returns `ClientRequestBuilder` for customization.
@@ -5139,12 +10934,12 @@ pub fn storage_objects_delete_builder(
     client: &SimpleHttpClient,
     bucket: &String,
     object: &String,
-    generation: &Option<String>,
-    ifGenerationMatch: &Option<String>,
-    ifGenerationNotMatch: &Option<String>,
-    ifMetagenerationMatch: &Option<String>,
-    ifMetagenerationNotMatch: &Option<String>,
-    userProject: &Option<String>,
+    generation: &Option<Option<String>>,
+    ifGenerationMatch: &Option<Option<String>>,
+    ifGenerationNotMatch: &Option<Option<String>>,
+    ifMetagenerationMatch: &Option<Option<String>>,
+    ifMetagenerationNotMatch: &Option<Option<String>>,
+    userProject: &Option<Option<String>>,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
@@ -5180,13 +10975,13 @@ pub fn storage_objects_delete_builder(
     };
 
     let builder = client
-        .get(&url_with_query)
+        .delete(&url_with_query)
         .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
 
     Ok(builder)
 }
 
-/// GET b/{bucket}/o/{object}
+/// DELETE b/{bucket}/o/{object}
 /// Deletes an object and its metadata. Deletions are permanent if versioning is not enabled for the bucket, or if the generation parameter is used.
 ///
 /// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
@@ -5257,7 +11052,7 @@ pub fn storage_objects_delete_task(
         .map_pending(|_| ApiPending::Sending))
 }
 
-/// GET b/{bucket}/o/{object}
+/// DELETE b/{bucket}/o/{object}
 /// Deletes an object and its metadata. Deletions are permanent if versioning is not enabled for the bucket, or if the generation parameter is used.
 ///
 /// Takes a `ClientRequestBuilder`, builds and executes the request,
@@ -5295,20 +11090,20 @@ pub struct StorageObjectsDeleteArgs {
     /// Path parameter: object
     pub object: String,
     /// Query parameter: generation
-    pub generation: Option<String>,
+    pub generation: Option<Option<String>>,
     /// Query parameter: ifGenerationMatch
-    pub ifGenerationMatch: Option<String>,
+    pub ifGenerationMatch: Option<Option<String>>,
     /// Query parameter: ifGenerationNotMatch
-    pub ifGenerationNotMatch: Option<String>,
+    pub ifGenerationNotMatch: Option<Option<String>>,
     /// Query parameter: ifMetagenerationMatch
-    pub ifMetagenerationMatch: Option<String>,
+    pub ifMetagenerationMatch: Option<Option<String>>,
     /// Query parameter: ifMetagenerationNotMatch
-    pub ifMetagenerationNotMatch: Option<String>,
+    pub ifMetagenerationNotMatch: Option<Option<String>>,
     /// Query parameter: userProject
-    pub userProject: Option<String>,
+    pub userProject: Option<Option<String>>,
 }
 
-/// GET b/{bucket}/o/{object}
+/// DELETE b/{bucket}/o/{object}
 /// Deletes an object and its metadata. Deletions are permanent if versioning is not enabled for the bucket, or if the generation parameter is used.
 ///
 /// Simplest API - builds and executes the request in one call.
@@ -5340,6 +11135,241 @@ pub fn storage_objects_delete(
     storage_objects_delete_execute(builder)
 }
 
+/// GET b/{bucket}/o/{object}
+/// Retrieves an object or its metadata.
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `storage_objects_get_execute()` to send, or `storage_objects_get` for simplest API.
+
+pub fn storage_objects_get_builder(
+    client: &SimpleHttpClient,
+    bucket: &String,
+    object: &String,
+    generation: &Option<Option<String>>,
+    ifGenerationMatch: &Option<Option<String>>,
+    ifGenerationNotMatch: &Option<Option<String>>,
+    ifMetagenerationMatch: &Option<Option<String>>,
+    ifMetagenerationNotMatch: &Option<Option<String>>,
+    projection: &Option<Option<String>>,
+    restoreToken: &Option<Option<String>>,
+    softDeleted: &Option<Option<String>>,
+    userProject: &Option<Option<String>>,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!(
+        "https://storage.googleapis.com/storage/v1/b/{}/o/{}",
+        bucket, object,
+    );
+
+    // Build request
+    let mut query_parts = Vec::new();
+    if let Some(val) = generation.as_ref() {
+        query_parts.push(format!("generation={}", val));
+    }
+    if let Some(val) = ifGenerationMatch.as_ref() {
+        query_parts.push(format!("ifGenerationMatch={}", val));
+    }
+    if let Some(val) = ifGenerationNotMatch.as_ref() {
+        query_parts.push(format!("ifGenerationNotMatch={}", val));
+    }
+    if let Some(val) = ifMetagenerationMatch.as_ref() {
+        query_parts.push(format!("ifMetagenerationMatch={}", val));
+    }
+    if let Some(val) = ifMetagenerationNotMatch.as_ref() {
+        query_parts.push(format!("ifMetagenerationNotMatch={}", val));
+    }
+    if let Some(val) = projection.as_ref() {
+        query_parts.push(format!("projection={}", val));
+    }
+    if let Some(val) = restoreToken.as_ref() {
+        query_parts.push(format!("restoreToken={}", val));
+    }
+    if let Some(val) = softDeleted.as_ref() {
+        query_parts.push(format!("softDeleted={}", val));
+    }
+    if let Some(val) = userProject.as_ref() {
+        query_parts.push(format!("userProject={}", val));
+    }
+
+    let url_with_query = if query_parts.is_empty() {
+        endpoint_url
+    } else {
+        format!("{}?{}", endpoint_url, query_parts.join("&"))
+    };
+
+    let builder = client
+        .get(&url_with_query)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// GET b/{bucket}/o/{object}
+/// Retrieves an object or its metadata.
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `storage_objects_get_execute()` or `storage_objects_get`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `storage_objects_get_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn storage_objects_get_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<Object>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: Object = serde_json::from_str(&body)
+                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// GET b/{bucket}/o/{object}
+/// Retrieves an object or its metadata.
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `storage_objects_get_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `storage_objects_get_task()`.
+/// For the simplest API, use `storage_objects_get()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `storage_objects_get_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn storage_objects_get_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<Object>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let task = storage_objects_get_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`storage_objects_get`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct StorageObjectsGetArgs {
+    /// Path parameter: bucket
+    pub bucket: String,
+    /// Path parameter: object
+    pub object: String,
+    /// Query parameter: generation
+    pub generation: Option<Option<String>>,
+    /// Query parameter: ifGenerationMatch
+    pub ifGenerationMatch: Option<Option<String>>,
+    /// Query parameter: ifGenerationNotMatch
+    pub ifGenerationNotMatch: Option<Option<String>>,
+    /// Query parameter: ifMetagenerationMatch
+    pub ifMetagenerationMatch: Option<Option<String>>,
+    /// Query parameter: ifMetagenerationNotMatch
+    pub ifMetagenerationNotMatch: Option<Option<String>>,
+    /// Query parameter: projection
+    pub projection: Option<Option<String>>,
+    /// Query parameter: restoreToken
+    pub restoreToken: Option<Option<String>>,
+    /// Query parameter: softDeleted
+    pub softDeleted: Option<Option<String>>,
+    /// Query parameter: userProject
+    pub userProject: Option<Option<String>>,
+}
+
+/// GET b/{bucket}/o/{object}
+/// Retrieves an object or its metadata.
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `storage_objects_get_builder()` + `storage_objects_get_execute()`.
+/// For task-level control, use `storage_objects_get_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn storage_objects_get(
+    client: &SimpleHttpClient,
+    args: &StorageObjectsGetArgs,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<Object>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let builder = storage_objects_get_builder(
+        client,
+        &args.bucket,
+        &args.object,
+        &args.generation,
+        &args.ifGenerationMatch,
+        &args.ifGenerationNotMatch,
+        &args.ifMetagenerationMatch,
+        &args.ifMetagenerationNotMatch,
+        &args.projection,
+        &args.restoreToken,
+        &args.softDeleted,
+        &args.userProject,
+    )?;
+    storage_objects_get_execute(builder)
+}
+
 /// GET b/{bucket}/o/{object}/iam
 /// Returns an IAM policy for the specified object.
 ///
@@ -5350,8 +11380,8 @@ pub fn storage_objects_get_iam_policy_builder(
     client: &SimpleHttpClient,
     bucket: &String,
     object: &String,
-    generation: &Option<String>,
-    userProject: &Option<String>,
+    generation: &Option<Option<String>>,
+    userProject: &Option<Option<String>>,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
@@ -5493,9 +11523,9 @@ pub struct StorageObjectsGetIamPolicyArgs {
     /// Path parameter: object
     pub object: String,
     /// Query parameter: generation
-    pub generation: Option<String>,
+    pub generation: Option<Option<String>>,
     /// Query parameter: userProject
-    pub userProject: Option<String>,
+    pub userProject: Option<Option<String>>,
 }
 
 /// GET b/{bucket}/o/{object}/iam
@@ -5526,7 +11556,7 @@ pub fn storage_objects_get_iam_policy(
     storage_objects_get_iam_policy_execute(builder)
 }
 
-/// GET b/{bucket}/o
+/// POST b/{bucket}/o
 /// Stores a new object and metadata.
 ///
 /// Returns `ClientRequestBuilder` for customization.
@@ -5535,17 +11565,16 @@ pub fn storage_objects_get_iam_policy(
 pub fn storage_objects_insert_builder(
     client: &SimpleHttpClient,
     bucket: &String,
-    contentEncoding: &Option<String>,
-    ifGenerationMatch: &Option<String>,
-    ifGenerationNotMatch: &Option<String>,
-    ifMetagenerationMatch: &Option<String>,
-    ifMetagenerationNotMatch: &Option<String>,
-    kmsKeyName: &Option<String>,
-    name: &Option<String>,
-    predefinedAcl: &Option<String>,
-    projection: &Option<String>,
-    userProject: &Option<String>,
-    body: &Object,
+    contentEncoding: &Option<Option<String>>,
+    ifGenerationMatch: &Option<Option<String>>,
+    ifGenerationNotMatch: &Option<Option<String>>,
+    ifMetagenerationMatch: &Option<Option<String>>,
+    ifMetagenerationNotMatch: &Option<Option<String>>,
+    kmsKeyName: &Option<Option<String>>,
+    name: &Option<Option<String>>,
+    predefinedAcl: &Option<Option<String>>,
+    projection: &Option<Option<String>>,
+    userProject: &Option<Option<String>>,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!("https://storage.googleapis.com/storage/v1/b/{}/o", bucket,);
@@ -5590,15 +11619,13 @@ pub fn storage_objects_insert_builder(
     };
 
     let builder = client
-        .get(&url_with_query)
+        .post(&url_with_query)
         .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
 
-    builder
-        .body_json(body)
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+    Ok(builder)
 }
 
-/// GET b/{bucket}/o
+/// POST b/{bucket}/o
 /// Stores a new object and metadata.
 ///
 /// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
@@ -5672,7 +11699,7 @@ pub fn storage_objects_insert_task(
         .map_pending(|_| ApiPending::Sending))
 }
 
-/// GET b/{bucket}/o
+/// POST b/{bucket}/o
 /// Stores a new object and metadata.
 ///
 /// Takes a `ClientRequestBuilder`, builds and executes the request,
@@ -5708,30 +11735,28 @@ pub struct StorageObjectsInsertArgs {
     /// Path parameter: bucket
     pub bucket: String,
     /// Query parameter: contentEncoding
-    pub contentEncoding: Option<String>,
+    pub contentEncoding: Option<Option<String>>,
     /// Query parameter: ifGenerationMatch
-    pub ifGenerationMatch: Option<String>,
+    pub ifGenerationMatch: Option<Option<String>>,
     /// Query parameter: ifGenerationNotMatch
-    pub ifGenerationNotMatch: Option<String>,
+    pub ifGenerationNotMatch: Option<Option<String>>,
     /// Query parameter: ifMetagenerationMatch
-    pub ifMetagenerationMatch: Option<String>,
+    pub ifMetagenerationMatch: Option<Option<String>>,
     /// Query parameter: ifMetagenerationNotMatch
-    pub ifMetagenerationNotMatch: Option<String>,
+    pub ifMetagenerationNotMatch: Option<Option<String>>,
     /// Query parameter: kmsKeyName
-    pub kmsKeyName: Option<String>,
+    pub kmsKeyName: Option<Option<String>>,
     /// Query parameter: name
-    pub name: Option<String>,
+    pub name: Option<Option<String>>,
     /// Query parameter: predefinedAcl
-    pub predefinedAcl: Option<String>,
+    pub predefinedAcl: Option<Option<String>>,
     /// Query parameter: projection
-    pub projection: Option<String>,
+    pub projection: Option<Option<String>>,
     /// Query parameter: userProject
-    pub userProject: Option<String>,
-    /// Request body.
-    pub body: Object,
+    pub userProject: Option<Option<String>>,
 }
 
-/// GET b/{bucket}/o
+/// POST b/{bucket}/o
 /// Stores a new object and metadata.
 ///
 /// Simplest API - builds and executes the request in one call.
@@ -5762,12 +11787,274 @@ pub fn storage_objects_insert(
         &args.predefinedAcl,
         &args.projection,
         &args.userProject,
-        &args.body,
     )?;
     storage_objects_insert_execute(builder)
 }
 
-/// GET b/{bucket}/o/{sourceObject}/moveTo/o/{destinationObject}
+/// GET b/{bucket}/o
+/// Retrieves a list of objects matching the criteria.
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `storage_objects_list_execute()` to send, or `storage_objects_list` for simplest API.
+
+pub fn storage_objects_list_builder(
+    client: &SimpleHttpClient,
+    bucket: &String,
+    delimiter: &Option<Option<String>>,
+    endOffset: &Option<Option<String>>,
+    filter: &Option<Option<String>>,
+    includeFoldersAsPrefixes: &Option<Option<String>>,
+    includeTrailingDelimiter: &Option<Option<String>>,
+    matchGlob: &Option<Option<String>>,
+    maxResults: &Option<Option<String>>,
+    pageToken: &Option<Option<String>>,
+    prefix: &Option<Option<String>>,
+    projection: &Option<Option<String>>,
+    softDeleted: &Option<Option<String>>,
+    startOffset: &Option<Option<String>>,
+    userProject: &Option<Option<String>>,
+    versions: &Option<Option<String>>,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!("https://storage.googleapis.com/storage/v1/b/{}/o", bucket,);
+
+    // Build request
+    let mut query_parts = Vec::new();
+    if let Some(val) = delimiter.as_ref() {
+        query_parts.push(format!("delimiter={}", val));
+    }
+    if let Some(val) = endOffset.as_ref() {
+        query_parts.push(format!("endOffset={}", val));
+    }
+    if let Some(val) = filter.as_ref() {
+        query_parts.push(format!("filter={}", val));
+    }
+    if let Some(val) = includeFoldersAsPrefixes.as_ref() {
+        query_parts.push(format!("includeFoldersAsPrefixes={}", val));
+    }
+    if let Some(val) = includeTrailingDelimiter.as_ref() {
+        query_parts.push(format!("includeTrailingDelimiter={}", val));
+    }
+    if let Some(val) = matchGlob.as_ref() {
+        query_parts.push(format!("matchGlob={}", val));
+    }
+    if let Some(val) = maxResults.as_ref() {
+        query_parts.push(format!("maxResults={}", val));
+    }
+    if let Some(val) = pageToken.as_ref() {
+        query_parts.push(format!("pageToken={}", val));
+    }
+    if let Some(val) = prefix.as_ref() {
+        query_parts.push(format!("prefix={}", val));
+    }
+    if let Some(val) = projection.as_ref() {
+        query_parts.push(format!("projection={}", val));
+    }
+    if let Some(val) = softDeleted.as_ref() {
+        query_parts.push(format!("softDeleted={}", val));
+    }
+    if let Some(val) = startOffset.as_ref() {
+        query_parts.push(format!("startOffset={}", val));
+    }
+    if let Some(val) = userProject.as_ref() {
+        query_parts.push(format!("userProject={}", val));
+    }
+    if let Some(val) = versions.as_ref() {
+        query_parts.push(format!("versions={}", val));
+    }
+
+    let url_with_query = if query_parts.is_empty() {
+        endpoint_url
+    } else {
+        format!("{}?{}", endpoint_url, query_parts.join("&"))
+    };
+
+    let builder = client
+        .get(&url_with_query)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// GET b/{bucket}/o
+/// Retrieves a list of objects matching the criteria.
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `storage_objects_list_execute()` or `storage_objects_list`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `storage_objects_list_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn storage_objects_list_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<Objects>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: Objects = serde_json::from_str(&body)
+                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// GET b/{bucket}/o
+/// Retrieves a list of objects matching the criteria.
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `storage_objects_list_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `storage_objects_list_task()`.
+/// For the simplest API, use `storage_objects_list()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `storage_objects_list_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn storage_objects_list_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<Objects>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let task = storage_objects_list_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`storage_objects_list`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct StorageObjectsListArgs {
+    /// Path parameter: bucket
+    pub bucket: String,
+    /// Query parameter: delimiter
+    pub delimiter: Option<Option<String>>,
+    /// Query parameter: endOffset
+    pub endOffset: Option<Option<String>>,
+    /// Query parameter: filter
+    pub filter: Option<Option<String>>,
+    /// Query parameter: includeFoldersAsPrefixes
+    pub includeFoldersAsPrefixes: Option<Option<String>>,
+    /// Query parameter: includeTrailingDelimiter
+    pub includeTrailingDelimiter: Option<Option<String>>,
+    /// Query parameter: matchGlob
+    pub matchGlob: Option<Option<String>>,
+    /// Query parameter: maxResults
+    pub maxResults: Option<Option<String>>,
+    /// Query parameter: pageToken
+    pub pageToken: Option<Option<String>>,
+    /// Query parameter: prefix
+    pub prefix: Option<Option<String>>,
+    /// Query parameter: projection
+    pub projection: Option<Option<String>>,
+    /// Query parameter: softDeleted
+    pub softDeleted: Option<Option<String>>,
+    /// Query parameter: startOffset
+    pub startOffset: Option<Option<String>>,
+    /// Query parameter: userProject
+    pub userProject: Option<Option<String>>,
+    /// Query parameter: versions
+    pub versions: Option<Option<String>>,
+}
+
+/// GET b/{bucket}/o
+/// Retrieves a list of objects matching the criteria.
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `storage_objects_list_builder()` + `storage_objects_list_execute()`.
+/// For task-level control, use `storage_objects_list_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn storage_objects_list(
+    client: &SimpleHttpClient,
+    args: &StorageObjectsListArgs,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<Objects>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let builder = storage_objects_list_builder(
+        client,
+        &args.bucket,
+        &args.delimiter,
+        &args.endOffset,
+        &args.filter,
+        &args.includeFoldersAsPrefixes,
+        &args.includeTrailingDelimiter,
+        &args.matchGlob,
+        &args.maxResults,
+        &args.pageToken,
+        &args.prefix,
+        &args.projection,
+        &args.softDeleted,
+        &args.startOffset,
+        &args.userProject,
+        &args.versions,
+    )?;
+    storage_objects_list_execute(builder)
+}
+
+/// POST b/{bucket}/o/{sourceObject}/moveTo/o/{destinationObject}
 /// Moves the source object to the destination object in the same bucket.
 ///
 /// Returns `ClientRequestBuilder` for customization.
@@ -5778,16 +12065,16 @@ pub fn storage_objects_move_builder(
     bucket: &String,
     sourceObject: &String,
     destinationObject: &String,
-    ifGenerationMatch: &Option<String>,
-    ifGenerationNotMatch: &Option<String>,
-    ifMetagenerationMatch: &Option<String>,
-    ifMetagenerationNotMatch: &Option<String>,
-    ifSourceGenerationMatch: &Option<String>,
-    ifSourceGenerationNotMatch: &Option<String>,
-    ifSourceMetagenerationMatch: &Option<String>,
-    ifSourceMetagenerationNotMatch: &Option<String>,
-    projection: &Option<String>,
-    userProject: &Option<String>,
+    ifGenerationMatch: &Option<Option<String>>,
+    ifGenerationNotMatch: &Option<Option<String>>,
+    ifMetagenerationMatch: &Option<Option<String>>,
+    ifMetagenerationNotMatch: &Option<Option<String>>,
+    ifSourceGenerationMatch: &Option<Option<String>>,
+    ifSourceGenerationNotMatch: &Option<Option<String>>,
+    ifSourceMetagenerationMatch: &Option<Option<String>>,
+    ifSourceMetagenerationNotMatch: &Option<Option<String>>,
+    projection: &Option<Option<String>>,
+    userProject: &Option<Option<String>>,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
@@ -5835,13 +12122,13 @@ pub fn storage_objects_move_builder(
     };
 
     let builder = client
-        .get(&url_with_query)
+        .post(&url_with_query)
         .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
 
     Ok(builder)
 }
 
-/// GET b/{bucket}/o/{sourceObject}/moveTo/o/{destinationObject}
+/// POST b/{bucket}/o/{sourceObject}/moveTo/o/{destinationObject}
 /// Moves the source object to the destination object in the same bucket.
 ///
 /// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
@@ -5915,7 +12202,7 @@ pub fn storage_objects_move_task(
         .map_pending(|_| ApiPending::Sending))
 }
 
-/// GET b/{bucket}/o/{sourceObject}/moveTo/o/{destinationObject}
+/// POST b/{bucket}/o/{sourceObject}/moveTo/o/{destinationObject}
 /// Moves the source object to the destination object in the same bucket.
 ///
 /// Takes a `ClientRequestBuilder`, builds and executes the request,
@@ -5955,28 +12242,28 @@ pub struct StorageObjectsMoveArgs {
     /// Path parameter: destinationObject
     pub destinationObject: String,
     /// Query parameter: ifGenerationMatch
-    pub ifGenerationMatch: Option<String>,
+    pub ifGenerationMatch: Option<Option<String>>,
     /// Query parameter: ifGenerationNotMatch
-    pub ifGenerationNotMatch: Option<String>,
+    pub ifGenerationNotMatch: Option<Option<String>>,
     /// Query parameter: ifMetagenerationMatch
-    pub ifMetagenerationMatch: Option<String>,
+    pub ifMetagenerationMatch: Option<Option<String>>,
     /// Query parameter: ifMetagenerationNotMatch
-    pub ifMetagenerationNotMatch: Option<String>,
+    pub ifMetagenerationNotMatch: Option<Option<String>>,
     /// Query parameter: ifSourceGenerationMatch
-    pub ifSourceGenerationMatch: Option<String>,
+    pub ifSourceGenerationMatch: Option<Option<String>>,
     /// Query parameter: ifSourceGenerationNotMatch
-    pub ifSourceGenerationNotMatch: Option<String>,
+    pub ifSourceGenerationNotMatch: Option<Option<String>>,
     /// Query parameter: ifSourceMetagenerationMatch
-    pub ifSourceMetagenerationMatch: Option<String>,
+    pub ifSourceMetagenerationMatch: Option<Option<String>>,
     /// Query parameter: ifSourceMetagenerationNotMatch
-    pub ifSourceMetagenerationNotMatch: Option<String>,
+    pub ifSourceMetagenerationNotMatch: Option<Option<String>>,
     /// Query parameter: projection
-    pub projection: Option<String>,
+    pub projection: Option<Option<String>>,
     /// Query parameter: userProject
-    pub userProject: Option<String>,
+    pub userProject: Option<Option<String>>,
 }
 
-/// GET b/{bucket}/o/{sourceObject}/moveTo/o/{destinationObject}
+/// POST b/{bucket}/o/{sourceObject}/moveTo/o/{destinationObject}
 /// Moves the source object to the destination object in the same bucket.
 ///
 /// Simplest API - builds and executes the request in one call.
@@ -6013,7 +12300,477 @@ pub fn storage_objects_move(
     storage_objects_move_execute(builder)
 }
 
-/// GET b/{sourceBucket}/o/{sourceObject}/rewriteTo/b/{destinationBucket}/o/{destinationObject}
+/// PATCH b/{bucket}/o/{object}
+/// Patches an object's metadata.
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `storage_objects_patch_execute()` to send, or `storage_objects_patch` for simplest API.
+
+pub fn storage_objects_patch_builder(
+    client: &SimpleHttpClient,
+    bucket: &String,
+    object: &String,
+    generation: &Option<Option<String>>,
+    ifGenerationMatch: &Option<Option<String>>,
+    ifGenerationNotMatch: &Option<Option<String>>,
+    ifMetagenerationMatch: &Option<Option<String>>,
+    ifMetagenerationNotMatch: &Option<Option<String>>,
+    overrideUnlockedRetention: &Option<Option<String>>,
+    predefinedAcl: &Option<Option<String>>,
+    projection: &Option<Option<String>>,
+    userProject: &Option<Option<String>>,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!(
+        "https://storage.googleapis.com/storage/v1/b/{}/o/{}",
+        bucket, object,
+    );
+
+    // Build request
+    let mut query_parts = Vec::new();
+    if let Some(val) = generation.as_ref() {
+        query_parts.push(format!("generation={}", val));
+    }
+    if let Some(val) = ifGenerationMatch.as_ref() {
+        query_parts.push(format!("ifGenerationMatch={}", val));
+    }
+    if let Some(val) = ifGenerationNotMatch.as_ref() {
+        query_parts.push(format!("ifGenerationNotMatch={}", val));
+    }
+    if let Some(val) = ifMetagenerationMatch.as_ref() {
+        query_parts.push(format!("ifMetagenerationMatch={}", val));
+    }
+    if let Some(val) = ifMetagenerationNotMatch.as_ref() {
+        query_parts.push(format!("ifMetagenerationNotMatch={}", val));
+    }
+    if let Some(val) = overrideUnlockedRetention.as_ref() {
+        query_parts.push(format!("overrideUnlockedRetention={}", val));
+    }
+    if let Some(val) = predefinedAcl.as_ref() {
+        query_parts.push(format!("predefinedAcl={}", val));
+    }
+    if let Some(val) = projection.as_ref() {
+        query_parts.push(format!("projection={}", val));
+    }
+    if let Some(val) = userProject.as_ref() {
+        query_parts.push(format!("userProject={}", val));
+    }
+
+    let url_with_query = if query_parts.is_empty() {
+        endpoint_url
+    } else {
+        format!("{}?{}", endpoint_url, query_parts.join("&"))
+    };
+
+    let builder = client
+        .patch(&url_with_query)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// PATCH b/{bucket}/o/{object}
+/// Patches an object's metadata.
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `storage_objects_patch_execute()` or `storage_objects_patch`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `storage_objects_patch_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn storage_objects_patch_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<Object>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: Object = serde_json::from_str(&body)
+                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// PATCH b/{bucket}/o/{object}
+/// Patches an object's metadata.
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `storage_objects_patch_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `storage_objects_patch_task()`.
+/// For the simplest API, use `storage_objects_patch()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `storage_objects_patch_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn storage_objects_patch_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<Object>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let task = storage_objects_patch_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`storage_objects_patch`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct StorageObjectsPatchArgs {
+    /// Path parameter: bucket
+    pub bucket: String,
+    /// Path parameter: object
+    pub object: String,
+    /// Query parameter: generation
+    pub generation: Option<Option<String>>,
+    /// Query parameter: ifGenerationMatch
+    pub ifGenerationMatch: Option<Option<String>>,
+    /// Query parameter: ifGenerationNotMatch
+    pub ifGenerationNotMatch: Option<Option<String>>,
+    /// Query parameter: ifMetagenerationMatch
+    pub ifMetagenerationMatch: Option<Option<String>>,
+    /// Query parameter: ifMetagenerationNotMatch
+    pub ifMetagenerationNotMatch: Option<Option<String>>,
+    /// Query parameter: overrideUnlockedRetention
+    pub overrideUnlockedRetention: Option<Option<String>>,
+    /// Query parameter: predefinedAcl
+    pub predefinedAcl: Option<Option<String>>,
+    /// Query parameter: projection
+    pub projection: Option<Option<String>>,
+    /// Query parameter: userProject
+    pub userProject: Option<Option<String>>,
+}
+
+/// PATCH b/{bucket}/o/{object}
+/// Patches an object's metadata.
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `storage_objects_patch_builder()` + `storage_objects_patch_execute()`.
+/// For task-level control, use `storage_objects_patch_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn storage_objects_patch(
+    client: &SimpleHttpClient,
+    args: &StorageObjectsPatchArgs,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<Object>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let builder = storage_objects_patch_builder(
+        client,
+        &args.bucket,
+        &args.object,
+        &args.generation,
+        &args.ifGenerationMatch,
+        &args.ifGenerationNotMatch,
+        &args.ifMetagenerationMatch,
+        &args.ifMetagenerationNotMatch,
+        &args.overrideUnlockedRetention,
+        &args.predefinedAcl,
+        &args.projection,
+        &args.userProject,
+    )?;
+    storage_objects_patch_execute(builder)
+}
+
+/// POST b/{bucket}/o/{object}/restore
+/// Restores a soft-deleted object.
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `storage_objects_restore_execute()` to send, or `storage_objects_restore` for simplest API.
+
+pub fn storage_objects_restore_builder(
+    client: &SimpleHttpClient,
+    bucket: &String,
+    object: &String,
+    copySourceAcl: &Option<Option<String>>,
+    generation: &Option<Option<String>>,
+    ifGenerationMatch: &Option<Option<String>>,
+    ifGenerationNotMatch: &Option<Option<String>>,
+    ifMetagenerationMatch: &Option<Option<String>>,
+    ifMetagenerationNotMatch: &Option<Option<String>>,
+    projection: &Option<Option<String>>,
+    restoreToken: &Option<Option<String>>,
+    userProject: &Option<Option<String>>,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!(
+        "https://storage.googleapis.com/storage/v1/b/{}/o/{}/restore",
+        bucket, object,
+    );
+
+    // Build request
+    let mut query_parts = Vec::new();
+    if let Some(val) = copySourceAcl.as_ref() {
+        query_parts.push(format!("copySourceAcl={}", val));
+    }
+    if let Some(val) = generation.as_ref() {
+        query_parts.push(format!("generation={}", val));
+    }
+    if let Some(val) = ifGenerationMatch.as_ref() {
+        query_parts.push(format!("ifGenerationMatch={}", val));
+    }
+    if let Some(val) = ifGenerationNotMatch.as_ref() {
+        query_parts.push(format!("ifGenerationNotMatch={}", val));
+    }
+    if let Some(val) = ifMetagenerationMatch.as_ref() {
+        query_parts.push(format!("ifMetagenerationMatch={}", val));
+    }
+    if let Some(val) = ifMetagenerationNotMatch.as_ref() {
+        query_parts.push(format!("ifMetagenerationNotMatch={}", val));
+    }
+    if let Some(val) = projection.as_ref() {
+        query_parts.push(format!("projection={}", val));
+    }
+    if let Some(val) = restoreToken.as_ref() {
+        query_parts.push(format!("restoreToken={}", val));
+    }
+    if let Some(val) = userProject.as_ref() {
+        query_parts.push(format!("userProject={}", val));
+    }
+
+    let url_with_query = if query_parts.is_empty() {
+        endpoint_url
+    } else {
+        format!("{}?{}", endpoint_url, query_parts.join("&"))
+    };
+
+    let builder = client
+        .post(&url_with_query)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// POST b/{bucket}/o/{object}/restore
+/// Restores a soft-deleted object.
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `storage_objects_restore_execute()` or `storage_objects_restore`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `storage_objects_restore_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn storage_objects_restore_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<Object>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: Object = serde_json::from_str(&body)
+                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// POST b/{bucket}/o/{object}/restore
+/// Restores a soft-deleted object.
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `storage_objects_restore_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `storage_objects_restore_task()`.
+/// For the simplest API, use `storage_objects_restore()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `storage_objects_restore_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn storage_objects_restore_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<Object>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let task = storage_objects_restore_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`storage_objects_restore`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct StorageObjectsRestoreArgs {
+    /// Path parameter: bucket
+    pub bucket: String,
+    /// Path parameter: object
+    pub object: String,
+    /// Query parameter: copySourceAcl
+    pub copySourceAcl: Option<Option<String>>,
+    /// Query parameter: generation
+    pub generation: Option<Option<String>>,
+    /// Query parameter: ifGenerationMatch
+    pub ifGenerationMatch: Option<Option<String>>,
+    /// Query parameter: ifGenerationNotMatch
+    pub ifGenerationNotMatch: Option<Option<String>>,
+    /// Query parameter: ifMetagenerationMatch
+    pub ifMetagenerationMatch: Option<Option<String>>,
+    /// Query parameter: ifMetagenerationNotMatch
+    pub ifMetagenerationNotMatch: Option<Option<String>>,
+    /// Query parameter: projection
+    pub projection: Option<Option<String>>,
+    /// Query parameter: restoreToken
+    pub restoreToken: Option<Option<String>>,
+    /// Query parameter: userProject
+    pub userProject: Option<Option<String>>,
+}
+
+/// POST b/{bucket}/o/{object}/restore
+/// Restores a soft-deleted object.
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `storage_objects_restore_builder()` + `storage_objects_restore_execute()`.
+/// For task-level control, use `storage_objects_restore_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn storage_objects_restore(
+    client: &SimpleHttpClient,
+    args: &StorageObjectsRestoreArgs,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<Object>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let builder = storage_objects_restore_builder(
+        client,
+        &args.bucket,
+        &args.object,
+        &args.copySourceAcl,
+        &args.generation,
+        &args.ifGenerationMatch,
+        &args.ifGenerationNotMatch,
+        &args.ifMetagenerationMatch,
+        &args.ifMetagenerationNotMatch,
+        &args.projection,
+        &args.restoreToken,
+        &args.userProject,
+    )?;
+    storage_objects_restore_execute(builder)
+}
+
+/// POST b/{sourceBucket}/o/{sourceObject}/rewriteTo/b/{destinationBucket}/o/{destinationObject}
 /// Rewrites a source object to a destination object. Optionally overrides metadata.
 ///
 /// Returns `ClientRequestBuilder` for customization.
@@ -6025,23 +12782,22 @@ pub fn storage_objects_rewrite_builder(
     sourceObject: &String,
     destinationBucket: &String,
     destinationObject: &String,
-    destinationKmsKeyName: &Option<String>,
-    destinationPredefinedAcl: &Option<String>,
-    dropContextGroups: &Option<String>,
-    ifGenerationMatch: &Option<String>,
-    ifGenerationNotMatch: &Option<String>,
-    ifMetagenerationMatch: &Option<String>,
-    ifMetagenerationNotMatch: &Option<String>,
-    ifSourceGenerationMatch: &Option<String>,
-    ifSourceGenerationNotMatch: &Option<String>,
-    ifSourceMetagenerationMatch: &Option<String>,
-    ifSourceMetagenerationNotMatch: &Option<String>,
-    maxBytesRewrittenPerCall: &Option<String>,
-    projection: &Option<String>,
-    rewriteToken: &Option<String>,
-    sourceGeneration: &Option<String>,
-    userProject: &Option<String>,
-    body: &Object,
+    destinationKmsKeyName: &Option<Option<String>>,
+    destinationPredefinedAcl: &Option<Option<String>>,
+    dropContextGroups: &Option<Option<String>>,
+    ifGenerationMatch: &Option<Option<String>>,
+    ifGenerationNotMatch: &Option<Option<String>>,
+    ifMetagenerationMatch: &Option<Option<String>>,
+    ifMetagenerationNotMatch: &Option<Option<String>>,
+    ifSourceGenerationMatch: &Option<Option<String>>,
+    ifSourceGenerationNotMatch: &Option<Option<String>>,
+    ifSourceMetagenerationMatch: &Option<Option<String>>,
+    ifSourceMetagenerationNotMatch: &Option<Option<String>>,
+    maxBytesRewrittenPerCall: &Option<Option<String>>,
+    projection: &Option<Option<String>>,
+    rewriteToken: &Option<Option<String>>,
+    sourceGeneration: &Option<Option<String>>,
+    userProject: &Option<Option<String>>,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
@@ -6107,15 +12863,13 @@ pub fn storage_objects_rewrite_builder(
     };
 
     let builder = client
-        .get(&url_with_query)
+        .post(&url_with_query)
         .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
 
-    builder
-        .body_json(body)
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+    Ok(builder)
 }
 
-/// GET b/{sourceBucket}/o/{sourceObject}/rewriteTo/b/{destinationBucket}/o/{destinationObject}
+/// POST b/{sourceBucket}/o/{sourceObject}/rewriteTo/b/{destinationBucket}/o/{destinationObject}
 /// Rewrites a source object to a destination object. Optionally overrides metadata.
 ///
 /// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
@@ -6189,7 +12943,7 @@ pub fn storage_objects_rewrite_task(
         .map_pending(|_| ApiPending::Sending))
 }
 
-/// GET b/{sourceBucket}/o/{sourceObject}/rewriteTo/b/{destinationBucket}/o/{destinationObject}
+/// POST b/{sourceBucket}/o/{sourceObject}/rewriteTo/b/{destinationBucket}/o/{destinationObject}
 /// Rewrites a source object to a destination object. Optionally overrides metadata.
 ///
 /// Takes a `ClientRequestBuilder`, builds and executes the request,
@@ -6233,42 +12987,40 @@ pub struct StorageObjectsRewriteArgs {
     /// Path parameter: destinationObject
     pub destinationObject: String,
     /// Query parameter: destinationKmsKeyName
-    pub destinationKmsKeyName: Option<String>,
+    pub destinationKmsKeyName: Option<Option<String>>,
     /// Query parameter: destinationPredefinedAcl
-    pub destinationPredefinedAcl: Option<String>,
+    pub destinationPredefinedAcl: Option<Option<String>>,
     /// Query parameter: dropContextGroups
-    pub dropContextGroups: Option<String>,
+    pub dropContextGroups: Option<Option<String>>,
     /// Query parameter: ifGenerationMatch
-    pub ifGenerationMatch: Option<String>,
+    pub ifGenerationMatch: Option<Option<String>>,
     /// Query parameter: ifGenerationNotMatch
-    pub ifGenerationNotMatch: Option<String>,
+    pub ifGenerationNotMatch: Option<Option<String>>,
     /// Query parameter: ifMetagenerationMatch
-    pub ifMetagenerationMatch: Option<String>,
+    pub ifMetagenerationMatch: Option<Option<String>>,
     /// Query parameter: ifMetagenerationNotMatch
-    pub ifMetagenerationNotMatch: Option<String>,
+    pub ifMetagenerationNotMatch: Option<Option<String>>,
     /// Query parameter: ifSourceGenerationMatch
-    pub ifSourceGenerationMatch: Option<String>,
+    pub ifSourceGenerationMatch: Option<Option<String>>,
     /// Query parameter: ifSourceGenerationNotMatch
-    pub ifSourceGenerationNotMatch: Option<String>,
+    pub ifSourceGenerationNotMatch: Option<Option<String>>,
     /// Query parameter: ifSourceMetagenerationMatch
-    pub ifSourceMetagenerationMatch: Option<String>,
+    pub ifSourceMetagenerationMatch: Option<Option<String>>,
     /// Query parameter: ifSourceMetagenerationNotMatch
-    pub ifSourceMetagenerationNotMatch: Option<String>,
+    pub ifSourceMetagenerationNotMatch: Option<Option<String>>,
     /// Query parameter: maxBytesRewrittenPerCall
-    pub maxBytesRewrittenPerCall: Option<String>,
+    pub maxBytesRewrittenPerCall: Option<Option<String>>,
     /// Query parameter: projection
-    pub projection: Option<String>,
+    pub projection: Option<Option<String>>,
     /// Query parameter: rewriteToken
-    pub rewriteToken: Option<String>,
+    pub rewriteToken: Option<Option<String>>,
     /// Query parameter: sourceGeneration
-    pub sourceGeneration: Option<String>,
+    pub sourceGeneration: Option<Option<String>>,
     /// Query parameter: userProject
-    pub userProject: Option<String>,
-    /// Request body.
-    pub body: Object,
+    pub userProject: Option<Option<String>>,
 }
 
-/// GET b/{sourceBucket}/o/{sourceObject}/rewriteTo/b/{destinationBucket}/o/{destinationObject}
+/// POST b/{sourceBucket}/o/{sourceObject}/rewriteTo/b/{destinationBucket}/o/{destinationObject}
 /// Rewrites a source object to a destination object. Optionally overrides metadata.
 ///
 /// Simplest API - builds and executes the request in one call.
@@ -6310,12 +13062,633 @@ pub fn storage_objects_rewrite(
         &args.rewriteToken,
         &args.sourceGeneration,
         &args.userProject,
-        &args.body,
     )?;
     storage_objects_rewrite_execute(builder)
 }
 
-/// GET b/{bucket}/o/watch
+/// PUT b/{bucket}/o/{object}/iam
+/// Updates an IAM policy for the specified object.
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `storage_objects_set_iam_policy_execute()` to send, or `storage_objects_set_iam_policy` for simplest API.
+
+pub fn storage_objects_set_iam_policy_builder(
+    client: &SimpleHttpClient,
+    bucket: &String,
+    object: &String,
+    generation: &Option<Option<String>>,
+    userProject: &Option<Option<String>>,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!(
+        "https://storage.googleapis.com/storage/v1/b/{}/o/{}/iam",
+        bucket, object,
+    );
+
+    // Build request
+    let mut query_parts = Vec::new();
+    if let Some(val) = generation.as_ref() {
+        query_parts.push(format!("generation={}", val));
+    }
+    if let Some(val) = userProject.as_ref() {
+        query_parts.push(format!("userProject={}", val));
+    }
+
+    let url_with_query = if query_parts.is_empty() {
+        endpoint_url
+    } else {
+        format!("{}?{}", endpoint_url, query_parts.join("&"))
+    };
+
+    let builder = client
+        .put(&url_with_query)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// PUT b/{bucket}/o/{object}/iam
+/// Updates an IAM policy for the specified object.
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `storage_objects_set_iam_policy_execute()` or `storage_objects_set_iam_policy`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `storage_objects_set_iam_policy_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn storage_objects_set_iam_policy_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<Policy>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: Policy = serde_json::from_str(&body)
+                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// PUT b/{bucket}/o/{object}/iam
+/// Updates an IAM policy for the specified object.
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `storage_objects_set_iam_policy_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `storage_objects_set_iam_policy_task()`.
+/// For the simplest API, use `storage_objects_set_iam_policy()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `storage_objects_set_iam_policy_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn storage_objects_set_iam_policy_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<Policy>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let task = storage_objects_set_iam_policy_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`storage_objects_set_iam_policy`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct StorageObjectsSetIamPolicyArgs {
+    /// Path parameter: bucket
+    pub bucket: String,
+    /// Path parameter: object
+    pub object: String,
+    /// Query parameter: generation
+    pub generation: Option<Option<String>>,
+    /// Query parameter: userProject
+    pub userProject: Option<Option<String>>,
+}
+
+/// PUT b/{bucket}/o/{object}/iam
+/// Updates an IAM policy for the specified object.
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `storage_objects_set_iam_policy_builder()` + `storage_objects_set_iam_policy_execute()`.
+/// For task-level control, use `storage_objects_set_iam_policy_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn storage_objects_set_iam_policy(
+    client: &SimpleHttpClient,
+    args: &StorageObjectsSetIamPolicyArgs,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<Policy>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let builder = storage_objects_set_iam_policy_builder(
+        client,
+        &args.bucket,
+        &args.object,
+        &args.generation,
+        &args.userProject,
+    )?;
+    storage_objects_set_iam_policy_execute(builder)
+}
+
+/// GET b/{bucket}/o/{object}/iam/testPermissions
+/// Tests a set of permissions on the given object to see which, if any, are held by the caller.
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `storage_objects_test_iam_permissions_execute()` to send, or `storage_objects_test_iam_permissions` for simplest API.
+
+pub fn storage_objects_test_iam_permissions_builder(
+    client: &SimpleHttpClient,
+    bucket: &String,
+    object: &String,
+    generation: &Option<Option<String>>,
+    permissions: &Option<Option<String>>,
+    userProject: &Option<Option<String>>,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!(
+        "https://storage.googleapis.com/storage/v1/b/{}/o/{}/iam/testPermissions",
+        bucket, object,
+    );
+
+    // Build request
+    let mut query_parts = Vec::new();
+    if let Some(val) = generation.as_ref() {
+        query_parts.push(format!("generation={}", val));
+    }
+    if let Some(val) = permissions.as_ref() {
+        query_parts.push(format!("permissions={}", val));
+    }
+    if let Some(val) = userProject.as_ref() {
+        query_parts.push(format!("userProject={}", val));
+    }
+
+    let url_with_query = if query_parts.is_empty() {
+        endpoint_url
+    } else {
+        format!("{}?{}", endpoint_url, query_parts.join("&"))
+    };
+
+    let builder = client
+        .get(&url_with_query)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// GET b/{bucket}/o/{object}/iam/testPermissions
+/// Tests a set of permissions on the given object to see which, if any, are held by the caller.
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `storage_objects_test_iam_permissions_execute()` or `storage_objects_test_iam_permissions`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `storage_objects_test_iam_permissions_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn storage_objects_test_iam_permissions_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<TestIamPermissionsResponse>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: TestIamPermissionsResponse = serde_json::from_str(&body)
+                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// GET b/{bucket}/o/{object}/iam/testPermissions
+/// Tests a set of permissions on the given object to see which, if any, are held by the caller.
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `storage_objects_test_iam_permissions_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `storage_objects_test_iam_permissions_task()`.
+/// For the simplest API, use `storage_objects_test_iam_permissions()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `storage_objects_test_iam_permissions_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn storage_objects_test_iam_permissions_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<
+            D = Result<ApiResponse<TestIamPermissionsResponse>, ApiError>,
+            P = ApiPending,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    let task = storage_objects_test_iam_permissions_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`storage_objects_test_iam_permissions`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct StorageObjectsTestIamPermissionsArgs {
+    /// Path parameter: bucket
+    pub bucket: String,
+    /// Path parameter: object
+    pub object: String,
+    /// Query parameter: generation
+    pub generation: Option<Option<String>>,
+    /// Query parameter: permissions
+    pub permissions: Option<Option<String>>,
+    /// Query parameter: userProject
+    pub userProject: Option<Option<String>>,
+}
+
+/// GET b/{bucket}/o/{object}/iam/testPermissions
+/// Tests a set of permissions on the given object to see which, if any, are held by the caller.
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `storage_objects_test_iam_permissions_builder()` + `storage_objects_test_iam_permissions_execute()`.
+/// For task-level control, use `storage_objects_test_iam_permissions_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn storage_objects_test_iam_permissions(
+    client: &SimpleHttpClient,
+    args: &StorageObjectsTestIamPermissionsArgs,
+) -> Result<
+    impl StreamIterator<
+            D = Result<ApiResponse<TestIamPermissionsResponse>, ApiError>,
+            P = ApiPending,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    let builder = storage_objects_test_iam_permissions_builder(
+        client,
+        &args.bucket,
+        &args.object,
+        &args.generation,
+        &args.permissions,
+        &args.userProject,
+    )?;
+    storage_objects_test_iam_permissions_execute(builder)
+}
+
+/// PUT b/{bucket}/o/{object}
+/// Updates an object's metadata.
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `storage_objects_update_execute()` to send, or `storage_objects_update` for simplest API.
+
+pub fn storage_objects_update_builder(
+    client: &SimpleHttpClient,
+    bucket: &String,
+    object: &String,
+    generation: &Option<Option<String>>,
+    ifGenerationMatch: &Option<Option<String>>,
+    ifGenerationNotMatch: &Option<Option<String>>,
+    ifMetagenerationMatch: &Option<Option<String>>,
+    ifMetagenerationNotMatch: &Option<Option<String>>,
+    overrideUnlockedRetention: &Option<Option<String>>,
+    predefinedAcl: &Option<Option<String>>,
+    projection: &Option<Option<String>>,
+    userProject: &Option<Option<String>>,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!(
+        "https://storage.googleapis.com/storage/v1/b/{}/o/{}",
+        bucket, object,
+    );
+
+    // Build request
+    let mut query_parts = Vec::new();
+    if let Some(val) = generation.as_ref() {
+        query_parts.push(format!("generation={}", val));
+    }
+    if let Some(val) = ifGenerationMatch.as_ref() {
+        query_parts.push(format!("ifGenerationMatch={}", val));
+    }
+    if let Some(val) = ifGenerationNotMatch.as_ref() {
+        query_parts.push(format!("ifGenerationNotMatch={}", val));
+    }
+    if let Some(val) = ifMetagenerationMatch.as_ref() {
+        query_parts.push(format!("ifMetagenerationMatch={}", val));
+    }
+    if let Some(val) = ifMetagenerationNotMatch.as_ref() {
+        query_parts.push(format!("ifMetagenerationNotMatch={}", val));
+    }
+    if let Some(val) = overrideUnlockedRetention.as_ref() {
+        query_parts.push(format!("overrideUnlockedRetention={}", val));
+    }
+    if let Some(val) = predefinedAcl.as_ref() {
+        query_parts.push(format!("predefinedAcl={}", val));
+    }
+    if let Some(val) = projection.as_ref() {
+        query_parts.push(format!("projection={}", val));
+    }
+    if let Some(val) = userProject.as_ref() {
+        query_parts.push(format!("userProject={}", val));
+    }
+
+    let url_with_query = if query_parts.is_empty() {
+        endpoint_url
+    } else {
+        format!("{}?{}", endpoint_url, query_parts.join("&"))
+    };
+
+    let builder = client
+        .put(&url_with_query)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// PUT b/{bucket}/o/{object}
+/// Updates an object's metadata.
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `storage_objects_update_execute()` or `storage_objects_update`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `storage_objects_update_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn storage_objects_update_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<Object>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: Object = serde_json::from_str(&body)
+                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// PUT b/{bucket}/o/{object}
+/// Updates an object's metadata.
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `storage_objects_update_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `storage_objects_update_task()`.
+/// For the simplest API, use `storage_objects_update()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `storage_objects_update_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn storage_objects_update_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<Object>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let task = storage_objects_update_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`storage_objects_update`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct StorageObjectsUpdateArgs {
+    /// Path parameter: bucket
+    pub bucket: String,
+    /// Path parameter: object
+    pub object: String,
+    /// Query parameter: generation
+    pub generation: Option<Option<String>>,
+    /// Query parameter: ifGenerationMatch
+    pub ifGenerationMatch: Option<Option<String>>,
+    /// Query parameter: ifGenerationNotMatch
+    pub ifGenerationNotMatch: Option<Option<String>>,
+    /// Query parameter: ifMetagenerationMatch
+    pub ifMetagenerationMatch: Option<Option<String>>,
+    /// Query parameter: ifMetagenerationNotMatch
+    pub ifMetagenerationNotMatch: Option<Option<String>>,
+    /// Query parameter: overrideUnlockedRetention
+    pub overrideUnlockedRetention: Option<Option<String>>,
+    /// Query parameter: predefinedAcl
+    pub predefinedAcl: Option<Option<String>>,
+    /// Query parameter: projection
+    pub projection: Option<Option<String>>,
+    /// Query parameter: userProject
+    pub userProject: Option<Option<String>>,
+}
+
+/// PUT b/{bucket}/o/{object}
+/// Updates an object's metadata.
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `storage_objects_update_builder()` + `storage_objects_update_execute()`.
+/// For task-level control, use `storage_objects_update_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn storage_objects_update(
+    client: &SimpleHttpClient,
+    args: &StorageObjectsUpdateArgs,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<Object>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let builder = storage_objects_update_builder(
+        client,
+        &args.bucket,
+        &args.object,
+        &args.generation,
+        &args.ifGenerationMatch,
+        &args.ifGenerationNotMatch,
+        &args.ifMetagenerationMatch,
+        &args.ifMetagenerationNotMatch,
+        &args.overrideUnlockedRetention,
+        &args.predefinedAcl,
+        &args.projection,
+        &args.userProject,
+    )?;
+    storage_objects_update_execute(builder)
+}
+
+/// POST b/{bucket}/o/watch
 /// Watch for changes on all objects in a bucket.
 ///
 /// Returns `ClientRequestBuilder` for customization.
@@ -6324,17 +13697,16 @@ pub fn storage_objects_rewrite(
 pub fn storage_objects_watch_all_builder(
     client: &SimpleHttpClient,
     bucket: &String,
-    delimiter: &Option<String>,
-    endOffset: &Option<String>,
-    includeTrailingDelimiter: &Option<bool>,
-    maxResults: &Option<i32>,
-    pageToken: &Option<String>,
-    prefix: &Option<String>,
-    projection: &Option<String>,
-    startOffset: &Option<String>,
-    userProject: &Option<String>,
-    versions: &Option<bool>,
-    body: &Channel,
+    delimiter: &Option<Option<String>>,
+    endOffset: &Option<Option<String>>,
+    includeTrailingDelimiter: &Option<Option<String>>,
+    maxResults: &Option<Option<String>>,
+    pageToken: &Option<Option<String>>,
+    prefix: &Option<Option<String>>,
+    projection: &Option<Option<String>>,
+    startOffset: &Option<Option<String>>,
+    userProject: &Option<Option<String>>,
+    versions: &Option<Option<String>>,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
@@ -6382,15 +13754,13 @@ pub fn storage_objects_watch_all_builder(
     };
 
     let builder = client
-        .get(&url_with_query)
+        .post(&url_with_query)
         .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
 
-    builder
-        .body_json(body)
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+    Ok(builder)
 }
 
-/// GET b/{bucket}/o/watch
+/// POST b/{bucket}/o/watch
 /// Watch for changes on all objects in a bucket.
 ///
 /// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
@@ -6464,7 +13834,7 @@ pub fn storage_objects_watch_all_task(
         .map_pending(|_| ApiPending::Sending))
 }
 
-/// GET b/{bucket}/o/watch
+/// POST b/{bucket}/o/watch
 /// Watch for changes on all objects in a bucket.
 ///
 /// Takes a `ClientRequestBuilder`, builds and executes the request,
@@ -6500,30 +13870,28 @@ pub struct StorageObjectsWatchAllArgs {
     /// Path parameter: bucket
     pub bucket: String,
     /// Query parameter: delimiter
-    pub delimiter: Option<String>,
+    pub delimiter: Option<Option<String>>,
     /// Query parameter: endOffset
-    pub endOffset: Option<String>,
+    pub endOffset: Option<Option<String>>,
     /// Query parameter: includeTrailingDelimiter
-    pub includeTrailingDelimiter: Option<bool>,
+    pub includeTrailingDelimiter: Option<Option<String>>,
     /// Query parameter: maxResults
-    pub maxResults: Option<i32>,
+    pub maxResults: Option<Option<String>>,
     /// Query parameter: pageToken
-    pub pageToken: Option<String>,
+    pub pageToken: Option<Option<String>>,
     /// Query parameter: prefix
-    pub prefix: Option<String>,
+    pub prefix: Option<Option<String>>,
     /// Query parameter: projection
-    pub projection: Option<String>,
+    pub projection: Option<Option<String>>,
     /// Query parameter: startOffset
-    pub startOffset: Option<String>,
+    pub startOffset: Option<Option<String>>,
     /// Query parameter: userProject
-    pub userProject: Option<String>,
+    pub userProject: Option<Option<String>>,
     /// Query parameter: versions
-    pub versions: Option<bool>,
-    /// Request body.
-    pub body: Channel,
+    pub versions: Option<Option<String>>,
 }
 
-/// GET b/{bucket}/o/watch
+/// POST b/{bucket}/o/watch
 /// Watch for changes on all objects in a bucket.
 ///
 /// Simplest API - builds and executes the request in one call.
@@ -6554,12 +13922,11 @@ pub fn storage_objects_watch_all(
         &args.startOffset,
         &args.userProject,
         &args.versions,
-        &args.body,
     )?;
     storage_objects_watch_all_execute(builder)
 }
 
-/// GET b/{bucket}/operations/{operationId}/advanceRelocateBucket
+/// POST b/{bucket}/operations/{operationId}/advanceRelocateBucket
 /// Starts asynchronous advancement of the relocate bucket operation in the case of required write downtime, to allow it to lock the bucket at the source location, and proceed with the bucket location swap. The server makes a best effort to advance the relocate bucket operation, but success is not guaranteed.
 ///
 /// Returns `ClientRequestBuilder` for customization.
@@ -6569,7 +13936,6 @@ pub fn storage_buckets_operations_advance_relocate_bucket_builder(
     client: &SimpleHttpClient,
     bucket: &String,
     operationId: &String,
-    body: &AdvanceRelocateBucketOperationRequest,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
@@ -6579,15 +13945,13 @@ pub fn storage_buckets_operations_advance_relocate_bucket_builder(
 
     // Build request
     let builder = client
-        .get(&endpoint_url)
+        .post(&endpoint_url)
         .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
 
-    builder
-        .body_json(body)
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+    Ok(builder)
 }
 
-/// GET b/{bucket}/operations/{operationId}/advanceRelocateBucket
+/// POST b/{bucket}/operations/{operationId}/advanceRelocateBucket
 /// Starts asynchronous advancement of the relocate bucket operation in the case of required write downtime, to allow it to lock the bucket at the source location, and proceed with the bucket location swap. The server makes a best effort to advance the relocate bucket operation, but success is not guaranteed.
 ///
 /// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
@@ -6658,7 +14022,7 @@ pub fn storage_buckets_operations_advance_relocate_bucket_task(
         .map_pending(|_| ApiPending::Sending))
 }
 
-/// GET b/{bucket}/operations/{operationId}/advanceRelocateBucket
+/// POST b/{bucket}/operations/{operationId}/advanceRelocateBucket
 /// Starts asynchronous advancement of the relocate bucket operation in the case of required write downtime, to allow it to lock the bucket at the source location, and proceed with the bucket location swap. The server makes a best effort to advance the relocate bucket operation, but success is not guaranteed.
 ///
 /// Takes a `ClientRequestBuilder`, builds and executes the request,
@@ -6695,11 +14059,9 @@ pub struct StorageBucketsOperationsAdvanceRelocateBucketArgs {
     pub bucket: String,
     /// Path parameter: operationId
     pub operationId: String,
-    /// Request body.
-    pub body: AdvanceRelocateBucketOperationRequest,
 }
 
-/// GET b/{bucket}/operations/{operationId}/advanceRelocateBucket
+/// POST b/{bucket}/operations/{operationId}/advanceRelocateBucket
 /// Starts asynchronous advancement of the relocate bucket operation in the case of required write downtime, to allow it to lock the bucket at the source location, and proceed with the bucket location swap. The server makes a best effort to advance the relocate bucket operation, but success is not guaranteed.
 ///
 /// Simplest API - builds and executes the request in one call.
@@ -6721,12 +14083,11 @@ pub fn storage_buckets_operations_advance_relocate_bucket(
         client,
         &args.bucket,
         &args.operationId,
-        &args.body,
     )?;
     storage_buckets_operations_advance_relocate_bucket_execute(builder)
 }
 
-/// GET b/{bucket}/operations/{operationId}/cancel
+/// POST b/{bucket}/operations/{operationId}/cancel
 /// Starts asynchronous cancellation on a long-running operation. The server makes a best effort to cancel the operation, but success is not guaranteed.
 ///
 /// Returns `ClientRequestBuilder` for customization.
@@ -6745,13 +14106,13 @@ pub fn storage_buckets_operations_cancel_builder(
 
     // Build request
     let builder = client
-        .get(&endpoint_url)
+        .post(&endpoint_url)
         .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
 
     Ok(builder)
 }
 
-/// GET b/{bucket}/operations/{operationId}/cancel
+/// POST b/{bucket}/operations/{operationId}/cancel
 /// Starts asynchronous cancellation on a long-running operation. The server makes a best effort to cancel the operation, but success is not guaranteed.
 ///
 /// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
@@ -6822,7 +14183,7 @@ pub fn storage_buckets_operations_cancel_task(
         .map_pending(|_| ApiPending::Sending))
 }
 
-/// GET b/{bucket}/operations/{operationId}/cancel
+/// POST b/{bucket}/operations/{operationId}/cancel
 /// Starts asynchronous cancellation on a long-running operation. The server makes a best effort to cancel the operation, but success is not guaranteed.
 ///
 /// Takes a `ClientRequestBuilder`, builds and executes the request,
@@ -6861,7 +14222,7 @@ pub struct StorageBucketsOperationsCancelArgs {
     pub operationId: String,
 }
 
-/// GET b/{bucket}/operations/{operationId}/cancel
+/// POST b/{bucket}/operations/{operationId}/cancel
 /// Starts asynchronous cancellation on a long-running operation. The server makes a best effort to cancel the operation, but success is not guaranteed.
 ///
 /// Simplest API - builds and executes the request in one call.
@@ -7061,9 +14422,9 @@ pub fn storage_buckets_operations_get(
 pub fn storage_buckets_operations_list_builder(
     client: &SimpleHttpClient,
     bucket: &String,
-    filter: &Option<String>,
-    pageSize: &Option<i32>,
-    pageToken: &Option<String>,
+    filter: &Option<Option<String>>,
+    pageSize: &Option<Option<String>>,
+    pageToken: &Option<Option<String>>,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
@@ -7211,11 +14572,11 @@ pub struct StorageBucketsOperationsListArgs {
     /// Path parameter: bucket
     pub bucket: String,
     /// Query parameter: filter
-    pub filter: Option<String>,
+    pub filter: Option<Option<String>>,
     /// Query parameter: pageSize
-    pub pageSize: Option<i32>,
+    pub pageSize: Option<Option<String>>,
     /// Query parameter: pageToken
-    pub pageToken: Option<String>,
+    pub pageToken: Option<Option<String>>,
 }
 
 /// GET b/{bucket}/operations
@@ -7250,7 +14611,189 @@ pub fn storage_buckets_operations_list(
     storage_buckets_operations_list_execute(builder)
 }
 
-/// GET projects/{projectId}/hmacKeys/{accessId}
+/// POST projects/{projectId}/hmacKeys
+/// Creates a new HMAC key for the specified service account.
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `storage_projects_hmac_keys_create_execute()` to send, or `storage_projects_hmac_keys_create` for simplest API.
+
+pub fn storage_projects_hmac_keys_create_builder(
+    client: &SimpleHttpClient,
+    projectId: &String,
+    serviceAccountEmail: &Option<Option<String>>,
+    userProject: &Option<Option<String>>,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!(
+        "https://storage.googleapis.com/storage/v1/projects/{}/hmacKeys",
+        projectId,
+    );
+
+    // Build request
+    let mut query_parts = Vec::new();
+    if let Some(val) = serviceAccountEmail.as_ref() {
+        query_parts.push(format!("serviceAccountEmail={}", val));
+    }
+    if let Some(val) = userProject.as_ref() {
+        query_parts.push(format!("userProject={}", val));
+    }
+
+    let url_with_query = if query_parts.is_empty() {
+        endpoint_url
+    } else {
+        format!("{}?{}", endpoint_url, query_parts.join("&"))
+    };
+
+    let builder = client
+        .post(&url_with_query)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// POST projects/{projectId}/hmacKeys
+/// Creates a new HMAC key for the specified service account.
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `storage_projects_hmac_keys_create_execute()` or `storage_projects_hmac_keys_create`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `storage_projects_hmac_keys_create_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn storage_projects_hmac_keys_create_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<HmacKey>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: HmacKey = serde_json::from_str(&body)
+                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// POST projects/{projectId}/hmacKeys
+/// Creates a new HMAC key for the specified service account.
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `storage_projects_hmac_keys_create_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `storage_projects_hmac_keys_create_task()`.
+/// For the simplest API, use `storage_projects_hmac_keys_create()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `storage_projects_hmac_keys_create_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn storage_projects_hmac_keys_create_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<HmacKey>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let task = storage_projects_hmac_keys_create_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`storage_projects_hmac_keys_create`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct StorageProjectsHmacKeysCreateArgs {
+    /// Path parameter: projectId
+    pub projectId: String,
+    /// Query parameter: serviceAccountEmail
+    pub serviceAccountEmail: Option<Option<String>>,
+    /// Query parameter: userProject
+    pub userProject: Option<Option<String>>,
+}
+
+/// POST projects/{projectId}/hmacKeys
+/// Creates a new HMAC key for the specified service account.
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `storage_projects_hmac_keys_create_builder()` + `storage_projects_hmac_keys_create_execute()`.
+/// For task-level control, use `storage_projects_hmac_keys_create_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn storage_projects_hmac_keys_create(
+    client: &SimpleHttpClient,
+    args: &StorageProjectsHmacKeysCreateArgs,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<HmacKey>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let builder = storage_projects_hmac_keys_create_builder(
+        client,
+        &args.projectId,
+        &args.serviceAccountEmail,
+        &args.userProject,
+    )?;
+    storage_projects_hmac_keys_create_execute(builder)
+}
+
+/// DELETE projects/{projectId}/hmacKeys/{accessId}
 /// Deletes an HMAC key.
 ///
 /// Returns `ClientRequestBuilder` for customization.
@@ -7260,7 +14803,7 @@ pub fn storage_projects_hmac_keys_delete_builder(
     client: &SimpleHttpClient,
     projectId: &String,
     accessId: &String,
-    userProject: &Option<String>,
+    userProject: &Option<Option<String>>,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
@@ -7281,13 +14824,13 @@ pub fn storage_projects_hmac_keys_delete_builder(
     };
 
     let builder = client
-        .get(&url_with_query)
+        .delete(&url_with_query)
         .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
 
     Ok(builder)
 }
 
-/// GET projects/{projectId}/hmacKeys/{accessId}
+/// DELETE projects/{projectId}/hmacKeys/{accessId}
 /// Deletes an HMAC key.
 ///
 /// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
@@ -7358,7 +14901,7 @@ pub fn storage_projects_hmac_keys_delete_task(
         .map_pending(|_| ApiPending::Sending))
 }
 
-/// GET projects/{projectId}/hmacKeys/{accessId}
+/// DELETE projects/{projectId}/hmacKeys/{accessId}
 /// Deletes an HMAC key.
 ///
 /// Takes a `ClientRequestBuilder`, builds and executes the request,
@@ -7396,10 +14939,10 @@ pub struct StorageProjectsHmacKeysDeleteArgs {
     /// Path parameter: accessId
     pub accessId: String,
     /// Query parameter: userProject
-    pub userProject: Option<String>,
+    pub userProject: Option<Option<String>>,
 }
 
-/// GET projects/{projectId}/hmacKeys/{accessId}
+/// DELETE projects/{projectId}/hmacKeys/{accessId}
 /// Deletes an HMAC key.
 ///
 /// Simplest API - builds and executes the request in one call.
@@ -7426,6 +14969,189 @@ pub fn storage_projects_hmac_keys_delete(
     storage_projects_hmac_keys_delete_execute(builder)
 }
 
+/// GET projects/{projectId}/hmacKeys/{accessId}
+/// Retrieves an HMAC key's metadata
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `storage_projects_hmac_keys_get_execute()` to send, or `storage_projects_hmac_keys_get` for simplest API.
+
+pub fn storage_projects_hmac_keys_get_builder(
+    client: &SimpleHttpClient,
+    projectId: &String,
+    accessId: &String,
+    userProject: &Option<Option<String>>,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!(
+        "https://storage.googleapis.com/storage/v1/projects/{}/hmacKeys/{}",
+        projectId, accessId,
+    );
+
+    // Build request
+    let mut query_parts = Vec::new();
+    if let Some(val) = userProject.as_ref() {
+        query_parts.push(format!("userProject={}", val));
+    }
+
+    let url_with_query = if query_parts.is_empty() {
+        endpoint_url
+    } else {
+        format!("{}?{}", endpoint_url, query_parts.join("&"))
+    };
+
+    let builder = client
+        .get(&url_with_query)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// GET projects/{projectId}/hmacKeys/{accessId}
+/// Retrieves an HMAC key's metadata
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `storage_projects_hmac_keys_get_execute()` or `storage_projects_hmac_keys_get`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `storage_projects_hmac_keys_get_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn storage_projects_hmac_keys_get_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<HmacKeyMetadata>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: HmacKeyMetadata = serde_json::from_str(&body)
+                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// GET projects/{projectId}/hmacKeys/{accessId}
+/// Retrieves an HMAC key's metadata
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `storage_projects_hmac_keys_get_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `storage_projects_hmac_keys_get_task()`.
+/// For the simplest API, use `storage_projects_hmac_keys_get()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `storage_projects_hmac_keys_get_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn storage_projects_hmac_keys_get_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<HmacKeyMetadata>, ApiError>, P = ApiPending>
+        + Send
+        + 'static,
+    ApiError,
+> {
+    let task = storage_projects_hmac_keys_get_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`storage_projects_hmac_keys_get`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct StorageProjectsHmacKeysGetArgs {
+    /// Path parameter: projectId
+    pub projectId: String,
+    /// Path parameter: accessId
+    pub accessId: String,
+    /// Query parameter: userProject
+    pub userProject: Option<Option<String>>,
+}
+
+/// GET projects/{projectId}/hmacKeys/{accessId}
+/// Retrieves an HMAC key's metadata
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `storage_projects_hmac_keys_get_builder()` + `storage_projects_hmac_keys_get_execute()`.
+/// For task-level control, use `storage_projects_hmac_keys_get_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn storage_projects_hmac_keys_get(
+    client: &SimpleHttpClient,
+    args: &StorageProjectsHmacKeysGetArgs,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<HmacKeyMetadata>, ApiError>, P = ApiPending>
+        + Send
+        + 'static,
+    ApiError,
+> {
+    let builder = storage_projects_hmac_keys_get_builder(
+        client,
+        &args.projectId,
+        &args.accessId,
+        &args.userProject,
+    )?;
+    storage_projects_hmac_keys_get_execute(builder)
+}
+
 /// GET projects/{projectId}/hmacKeys
 /// Retrieves a list of HMAC keys matching the criteria.
 ///
@@ -7435,11 +15161,11 @@ pub fn storage_projects_hmac_keys_delete(
 pub fn storage_projects_hmac_keys_list_builder(
     client: &SimpleHttpClient,
     projectId: &String,
-    maxResults: &Option<i32>,
-    pageToken: &Option<String>,
-    serviceAccountEmail: &Option<String>,
-    showDeletedKeys: &Option<bool>,
-    userProject: &Option<String>,
+    maxResults: &Option<Option<String>>,
+    pageToken: &Option<Option<String>>,
+    serviceAccountEmail: &Option<Option<String>>,
+    showDeletedKeys: &Option<Option<String>>,
+    userProject: &Option<Option<String>>,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
@@ -7590,15 +15316,15 @@ pub struct StorageProjectsHmacKeysListArgs {
     /// Path parameter: projectId
     pub projectId: String,
     /// Query parameter: maxResults
-    pub maxResults: Option<i32>,
+    pub maxResults: Option<Option<String>>,
     /// Query parameter: pageToken
-    pub pageToken: Option<String>,
+    pub pageToken: Option<Option<String>>,
     /// Query parameter: serviceAccountEmail
-    pub serviceAccountEmail: Option<String>,
+    pub serviceAccountEmail: Option<Option<String>>,
     /// Query parameter: showDeletedKeys
-    pub showDeletedKeys: Option<bool>,
+    pub showDeletedKeys: Option<Option<String>>,
     /// Query parameter: userProject
-    pub userProject: Option<String>,
+    pub userProject: Option<Option<String>>,
 }
 
 /// GET projects/{projectId}/hmacKeys
@@ -7633,6 +15359,189 @@ pub fn storage_projects_hmac_keys_list(
     storage_projects_hmac_keys_list_execute(builder)
 }
 
+/// PUT projects/{projectId}/hmacKeys/{accessId}
+/// Updates the state of an HMAC key. See the [HMAC Key resource descriptor](<https://cloud.google.`com/storage/docs/json_api/v1/projects/`hmacKeys`/update`#request-body>) for valid states.
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `storage_projects_hmac_keys_update_execute()` to send, or `storage_projects_hmac_keys_update` for simplest API.
+
+pub fn storage_projects_hmac_keys_update_builder(
+    client: &SimpleHttpClient,
+    projectId: &String,
+    accessId: &String,
+    userProject: &Option<Option<String>>,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!(
+        "https://storage.googleapis.com/storage/v1/projects/{}/hmacKeys/{}",
+        projectId, accessId,
+    );
+
+    // Build request
+    let mut query_parts = Vec::new();
+    if let Some(val) = userProject.as_ref() {
+        query_parts.push(format!("userProject={}", val));
+    }
+
+    let url_with_query = if query_parts.is_empty() {
+        endpoint_url
+    } else {
+        format!("{}?{}", endpoint_url, query_parts.join("&"))
+    };
+
+    let builder = client
+        .put(&url_with_query)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// PUT projects/{projectId}/hmacKeys/{accessId}
+/// Updates the state of an HMAC key. See the [HMAC Key resource descriptor](<https://cloud.google.`com/storage/docs/json_api/v1/projects/`hmacKeys`/update`#request-body>) for valid states.
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `storage_projects_hmac_keys_update_execute()` or `storage_projects_hmac_keys_update`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `storage_projects_hmac_keys_update_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn storage_projects_hmac_keys_update_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<HmacKeyMetadata>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: HmacKeyMetadata = serde_json::from_str(&body)
+                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// PUT projects/{projectId}/hmacKeys/{accessId}
+/// Updates the state of an HMAC key. See the [HMAC Key resource descriptor](<https://cloud.google.`com/storage/docs/json_api/v1/projects/`hmacKeys`/update`#request-body>) for valid states.
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `storage_projects_hmac_keys_update_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `storage_projects_hmac_keys_update_task()`.
+/// For the simplest API, use `storage_projects_hmac_keys_update()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `storage_projects_hmac_keys_update_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn storage_projects_hmac_keys_update_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<HmacKeyMetadata>, ApiError>, P = ApiPending>
+        + Send
+        + 'static,
+    ApiError,
+> {
+    let task = storage_projects_hmac_keys_update_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`storage_projects_hmac_keys_update`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct StorageProjectsHmacKeysUpdateArgs {
+    /// Path parameter: projectId
+    pub projectId: String,
+    /// Path parameter: accessId
+    pub accessId: String,
+    /// Query parameter: userProject
+    pub userProject: Option<Option<String>>,
+}
+
+/// PUT projects/{projectId}/hmacKeys/{accessId}
+/// Updates the state of an HMAC key. See the [HMAC Key resource descriptor](<https://cloud.google.`com/storage/docs/json_api/v1/projects/`hmacKeys`/update`#request-body>) for valid states.
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `storage_projects_hmac_keys_update_builder()` + `storage_projects_hmac_keys_update_execute()`.
+/// For task-level control, use `storage_projects_hmac_keys_update_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn storage_projects_hmac_keys_update(
+    client: &SimpleHttpClient,
+    args: &StorageProjectsHmacKeysUpdateArgs,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<HmacKeyMetadata>, ApiError>, P = ApiPending>
+        + Send
+        + 'static,
+    ApiError,
+> {
+    let builder = storage_projects_hmac_keys_update_builder(
+        client,
+        &args.projectId,
+        &args.accessId,
+        &args.userProject,
+    )?;
+    storage_projects_hmac_keys_update_execute(builder)
+}
+
 /// GET projects/{projectId}/serviceAccount
 /// Get the email address of this project's Google Cloud Storage service account.
 ///
@@ -7642,7 +15551,7 @@ pub fn storage_projects_hmac_keys_list(
 pub fn storage_projects_service_account_get_builder(
     client: &SimpleHttpClient,
     projectId: &String,
-    userProject: &Option<String>,
+    userProject: &Option<Option<String>>,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
@@ -7781,7 +15690,7 @@ pub struct StorageProjectsServiceAccountGetArgs {
     /// Path parameter: projectId
     pub projectId: String,
     /// Query parameter: userProject
-    pub userProject: Option<String>,
+    pub userProject: Option<Option<String>>,
 }
 
 /// GET projects/{projectId}/serviceAccount
@@ -7807,4 +15716,1720 @@ pub fn storage_projects_service_account_get(
     let builder =
         storage_projects_service_account_get_builder(client, &args.projectId, &args.userProject)?;
     storage_projects_service_account_get_execute(builder)
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for AnywhereCache
+// =============================================================================
+
+/// ResourceIdentifier implementation for AnywhereCache with StorageAnywhereCachesDisableArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<StorageAnywhereCachesDisableArgs> for AnywhereCache {
+    fn generate_resource_id(&self, input: &StorageAnywhereCachesDisableArgs) -> String {
+        format!(
+            "gcp::storage::AnywhereCache/{}/{}",
+            input.bucket, input.anywhereCacheId
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::storage::AnywhereCache"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for AnywhereCache
+// =============================================================================
+
+/// ResourceIdentifier implementation for AnywhereCache with StorageAnywhereCachesGetArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<StorageAnywhereCachesGetArgs> for AnywhereCache {
+    fn generate_resource_id(&self, input: &StorageAnywhereCachesGetArgs) -> String {
+        format!(
+            "gcp::storage::AnywhereCache/{}/{}",
+            input.bucket, input.anywhereCacheId
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::storage::AnywhereCache"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for GoogleLongrunningOperation
+// =============================================================================
+
+/// ResourceIdentifier implementation for GoogleLongrunningOperation with StorageAnywhereCachesInsertArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<StorageAnywhereCachesInsertArgs> for GoogleLongrunningOperation {
+    fn generate_resource_id(&self, input: &StorageAnywhereCachesInsertArgs) -> String {
+        format!("gcp::storage::GoogleLongrunningOperation/{}", input.bucket)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::storage::GoogleLongrunningOperation"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for AnywhereCaches
+// =============================================================================
+
+/// ResourceIdentifier implementation for AnywhereCaches with StorageAnywhereCachesListArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<StorageAnywhereCachesListArgs> for AnywhereCaches {
+    fn generate_resource_id(&self, input: &StorageAnywhereCachesListArgs) -> String {
+        format!("gcp::storage::AnywhereCaches/{}", input.bucket)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::storage::AnywhereCaches"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for AnywhereCache
+// =============================================================================
+
+/// ResourceIdentifier implementation for AnywhereCache with StorageAnywhereCachesPauseArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<StorageAnywhereCachesPauseArgs> for AnywhereCache {
+    fn generate_resource_id(&self, input: &StorageAnywhereCachesPauseArgs) -> String {
+        format!(
+            "gcp::storage::AnywhereCache/{}/{}",
+            input.bucket, input.anywhereCacheId
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::storage::AnywhereCache"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for AnywhereCache
+// =============================================================================
+
+/// ResourceIdentifier implementation for AnywhereCache with StorageAnywhereCachesResumeArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<StorageAnywhereCachesResumeArgs> for AnywhereCache {
+    fn generate_resource_id(&self, input: &StorageAnywhereCachesResumeArgs) -> String {
+        format!(
+            "gcp::storage::AnywhereCache/{}/{}",
+            input.bucket, input.anywhereCacheId
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::storage::AnywhereCache"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for GoogleLongrunningOperation
+// =============================================================================
+
+/// ResourceIdentifier implementation for GoogleLongrunningOperation with StorageAnywhereCachesUpdateArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<StorageAnywhereCachesUpdateArgs> for GoogleLongrunningOperation {
+    fn generate_resource_id(&self, input: &StorageAnywhereCachesUpdateArgs) -> String {
+        format!(
+            "gcp::storage::GoogleLongrunningOperation/{}/{}",
+            input.bucket, input.anywhereCacheId
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::storage::GoogleLongrunningOperation"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for BucketAccessControl
+// =============================================================================
+
+/// ResourceIdentifier implementation for BucketAccessControl with StorageBucketAccessControlsGetArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<StorageBucketAccessControlsGetArgs> for BucketAccessControl {
+    fn generate_resource_id(&self, input: &StorageBucketAccessControlsGetArgs) -> String {
+        format!(
+            "gcp::storage::BucketAccessControl/{}/{}",
+            input.bucket, input.entity
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::storage::BucketAccessControl"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for BucketAccessControl
+// =============================================================================
+
+/// ResourceIdentifier implementation for BucketAccessControl with StorageBucketAccessControlsInsertArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<StorageBucketAccessControlsInsertArgs> for BucketAccessControl {
+    fn generate_resource_id(&self, input: &StorageBucketAccessControlsInsertArgs) -> String {
+        format!("gcp::storage::BucketAccessControl/{}", input.bucket)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::storage::BucketAccessControl"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for BucketAccessControls
+// =============================================================================
+
+/// ResourceIdentifier implementation for BucketAccessControls with StorageBucketAccessControlsListArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<StorageBucketAccessControlsListArgs> for BucketAccessControls {
+    fn generate_resource_id(&self, input: &StorageBucketAccessControlsListArgs) -> String {
+        format!("gcp::storage::BucketAccessControls/{}", input.bucket)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::storage::BucketAccessControls"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for BucketAccessControl
+// =============================================================================
+
+/// ResourceIdentifier implementation for BucketAccessControl with StorageBucketAccessControlsPatchArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<StorageBucketAccessControlsPatchArgs> for BucketAccessControl {
+    fn generate_resource_id(&self, input: &StorageBucketAccessControlsPatchArgs) -> String {
+        format!(
+            "gcp::storage::BucketAccessControl/{}/{}",
+            input.bucket, input.entity
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::storage::BucketAccessControl"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for BucketAccessControl
+// =============================================================================
+
+/// ResourceIdentifier implementation for BucketAccessControl with StorageBucketAccessControlsUpdateArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<StorageBucketAccessControlsUpdateArgs> for BucketAccessControl {
+    fn generate_resource_id(&self, input: &StorageBucketAccessControlsUpdateArgs) -> String {
+        format!(
+            "gcp::storage::BucketAccessControl/{}/{}",
+            input.bucket, input.entity
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::storage::BucketAccessControl"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for Bucket
+// =============================================================================
+
+/// ResourceIdentifier implementation for Bucket with StorageBucketsGetArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<StorageBucketsGetArgs> for Bucket {
+    fn generate_resource_id(&self, input: &StorageBucketsGetArgs) -> String {
+        format!("gcp::storage::Bucket/{}", input.bucket)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::storage::Bucket"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for Policy
+// =============================================================================
+
+/// ResourceIdentifier implementation for Policy with StorageBucketsGetIamPolicyArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<StorageBucketsGetIamPolicyArgs> for Policy {
+    fn generate_resource_id(&self, input: &StorageBucketsGetIamPolicyArgs) -> String {
+        format!("gcp::storage::Policy/{}", input.bucket)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::storage::Policy"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for BucketStorageLayout
+// =============================================================================
+
+/// ResourceIdentifier implementation for BucketStorageLayout with StorageBucketsGetStorageLayoutArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<StorageBucketsGetStorageLayoutArgs> for BucketStorageLayout {
+    fn generate_resource_id(&self, input: &StorageBucketsGetStorageLayoutArgs) -> String {
+        format!("gcp::storage::BucketStorageLayout/{}", input.bucket)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::storage::BucketStorageLayout"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for Bucket
+// =============================================================================
+
+/// ResourceIdentifier implementation for Bucket with StorageBucketsInsertArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<StorageBucketsInsertArgs> for Bucket {
+    fn generate_resource_id(&self, input: &StorageBucketsInsertArgs) -> String {
+        "gcp::storage::Bucket".to_string()
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::storage::Bucket"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for Buckets
+// =============================================================================
+
+/// ResourceIdentifier implementation for Buckets with StorageBucketsListArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<StorageBucketsListArgs> for Buckets {
+    fn generate_resource_id(&self, input: &StorageBucketsListArgs) -> String {
+        "gcp::storage::Buckets".to_string()
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::storage::Buckets"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for Bucket
+// =============================================================================
+
+/// ResourceIdentifier implementation for Bucket with StorageBucketsLockRetentionPolicyArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<StorageBucketsLockRetentionPolicyArgs> for Bucket {
+    fn generate_resource_id(&self, input: &StorageBucketsLockRetentionPolicyArgs) -> String {
+        format!("gcp::storage::Bucket/{}", input.bucket)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::storage::Bucket"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for Bucket
+// =============================================================================
+
+/// ResourceIdentifier implementation for Bucket with StorageBucketsPatchArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<StorageBucketsPatchArgs> for Bucket {
+    fn generate_resource_id(&self, input: &StorageBucketsPatchArgs) -> String {
+        format!("gcp::storage::Bucket/{}", input.bucket)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::storage::Bucket"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for GoogleLongrunningOperation
+// =============================================================================
+
+/// ResourceIdentifier implementation for GoogleLongrunningOperation with StorageBucketsRelocateArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<StorageBucketsRelocateArgs> for GoogleLongrunningOperation {
+    fn generate_resource_id(&self, input: &StorageBucketsRelocateArgs) -> String {
+        format!("gcp::storage::GoogleLongrunningOperation/{}", input.bucket)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::storage::GoogleLongrunningOperation"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for Bucket
+// =============================================================================
+
+/// ResourceIdentifier implementation for Bucket with StorageBucketsRestoreArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<StorageBucketsRestoreArgs> for Bucket {
+    fn generate_resource_id(&self, input: &StorageBucketsRestoreArgs) -> String {
+        format!("gcp::storage::Bucket/{}", input.bucket)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::storage::Bucket"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for Policy
+// =============================================================================
+
+/// ResourceIdentifier implementation for Policy with StorageBucketsSetIamPolicyArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<StorageBucketsSetIamPolicyArgs> for Policy {
+    fn generate_resource_id(&self, input: &StorageBucketsSetIamPolicyArgs) -> String {
+        format!("gcp::storage::Policy/{}", input.bucket)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::storage::Policy"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for TestIamPermissionsResponse
+// =============================================================================
+
+/// ResourceIdentifier implementation for TestIamPermissionsResponse with StorageBucketsTestIamPermissionsArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<StorageBucketsTestIamPermissionsArgs> for TestIamPermissionsResponse {
+    fn generate_resource_id(&self, input: &StorageBucketsTestIamPermissionsArgs) -> String {
+        format!("gcp::storage::TestIamPermissionsResponse/{}", input.bucket)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::storage::TestIamPermissionsResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for Bucket
+// =============================================================================
+
+/// ResourceIdentifier implementation for Bucket with StorageBucketsUpdateArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<StorageBucketsUpdateArgs> for Bucket {
+    fn generate_resource_id(&self, input: &StorageBucketsUpdateArgs) -> String {
+        format!("gcp::storage::Bucket/{}", input.bucket)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::storage::Bucket"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for ObjectAccessControl
+// =============================================================================
+
+/// ResourceIdentifier implementation for ObjectAccessControl with StorageDefaultObjectAccessControlsGetArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<StorageDefaultObjectAccessControlsGetArgs> for ObjectAccessControl {
+    fn generate_resource_id(&self, input: &StorageDefaultObjectAccessControlsGetArgs) -> String {
+        format!(
+            "gcp::storage::ObjectAccessControl/{}/{}",
+            input.bucket, input.entity
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::storage::ObjectAccessControl"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for ObjectAccessControl
+// =============================================================================
+
+/// ResourceIdentifier implementation for ObjectAccessControl with StorageDefaultObjectAccessControlsInsertArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<StorageDefaultObjectAccessControlsInsertArgs> for ObjectAccessControl {
+    fn generate_resource_id(&self, input: &StorageDefaultObjectAccessControlsInsertArgs) -> String {
+        format!("gcp::storage::ObjectAccessControl/{}", input.bucket)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::storage::ObjectAccessControl"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for ObjectAccessControls
+// =============================================================================
+
+/// ResourceIdentifier implementation for ObjectAccessControls with StorageDefaultObjectAccessControlsListArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<StorageDefaultObjectAccessControlsListArgs> for ObjectAccessControls {
+    fn generate_resource_id(&self, input: &StorageDefaultObjectAccessControlsListArgs) -> String {
+        format!("gcp::storage::ObjectAccessControls/{}", input.bucket)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::storage::ObjectAccessControls"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for ObjectAccessControl
+// =============================================================================
+
+/// ResourceIdentifier implementation for ObjectAccessControl with StorageDefaultObjectAccessControlsPatchArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<StorageDefaultObjectAccessControlsPatchArgs> for ObjectAccessControl {
+    fn generate_resource_id(&self, input: &StorageDefaultObjectAccessControlsPatchArgs) -> String {
+        format!(
+            "gcp::storage::ObjectAccessControl/{}/{}",
+            input.bucket, input.entity
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::storage::ObjectAccessControl"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for ObjectAccessControl
+// =============================================================================
+
+/// ResourceIdentifier implementation for ObjectAccessControl with StorageDefaultObjectAccessControlsUpdateArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<StorageDefaultObjectAccessControlsUpdateArgs> for ObjectAccessControl {
+    fn generate_resource_id(&self, input: &StorageDefaultObjectAccessControlsUpdateArgs) -> String {
+        format!(
+            "gcp::storage::ObjectAccessControl/{}/{}",
+            input.bucket, input.entity
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::storage::ObjectAccessControl"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for GoogleLongrunningOperation
+// =============================================================================
+
+/// ResourceIdentifier implementation for GoogleLongrunningOperation with StorageFoldersDeleteRecursiveArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<StorageFoldersDeleteRecursiveArgs> for GoogleLongrunningOperation {
+    fn generate_resource_id(&self, input: &StorageFoldersDeleteRecursiveArgs) -> String {
+        format!(
+            "gcp::storage::GoogleLongrunningOperation/{}/{}",
+            input.bucket, input.folder
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::storage::GoogleLongrunningOperation"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for Folder
+// =============================================================================
+
+/// ResourceIdentifier implementation for Folder with StorageFoldersGetArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<StorageFoldersGetArgs> for Folder {
+    fn generate_resource_id(&self, input: &StorageFoldersGetArgs) -> String {
+        format!("gcp::storage::Folder/{}/{}", input.bucket, input.folder)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::storage::Folder"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for Folder
+// =============================================================================
+
+/// ResourceIdentifier implementation for Folder with StorageFoldersInsertArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<StorageFoldersInsertArgs> for Folder {
+    fn generate_resource_id(&self, input: &StorageFoldersInsertArgs) -> String {
+        format!("gcp::storage::Folder/{}", input.bucket)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::storage::Folder"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for Folders
+// =============================================================================
+
+/// ResourceIdentifier implementation for Folders with StorageFoldersListArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<StorageFoldersListArgs> for Folders {
+    fn generate_resource_id(&self, input: &StorageFoldersListArgs) -> String {
+        format!("gcp::storage::Folders/{}", input.bucket)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::storage::Folders"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for GoogleLongrunningOperation
+// =============================================================================
+
+/// ResourceIdentifier implementation for GoogleLongrunningOperation with StorageFoldersRenameArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<StorageFoldersRenameArgs> for GoogleLongrunningOperation {
+    fn generate_resource_id(&self, input: &StorageFoldersRenameArgs) -> String {
+        format!(
+            "gcp::storage::GoogleLongrunningOperation/{}/{}/{}",
+            input.bucket, input.sourceFolder, input.destinationFolder
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::storage::GoogleLongrunningOperation"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for ManagedFolder
+// =============================================================================
+
+/// ResourceIdentifier implementation for ManagedFolder with StorageManagedFoldersGetArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<StorageManagedFoldersGetArgs> for ManagedFolder {
+    fn generate_resource_id(&self, input: &StorageManagedFoldersGetArgs) -> String {
+        format!(
+            "gcp::storage::ManagedFolder/{}/{}",
+            input.bucket, input.managedFolder
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::storage::ManagedFolder"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for Policy
+// =============================================================================
+
+/// ResourceIdentifier implementation for Policy with StorageManagedFoldersGetIamPolicyArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<StorageManagedFoldersGetIamPolicyArgs> for Policy {
+    fn generate_resource_id(&self, input: &StorageManagedFoldersGetIamPolicyArgs) -> String {
+        format!(
+            "gcp::storage::Policy/{}/{}",
+            input.bucket, input.managedFolder
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::storage::Policy"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for ManagedFolder
+// =============================================================================
+
+/// ResourceIdentifier implementation for ManagedFolder with StorageManagedFoldersInsertArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<StorageManagedFoldersInsertArgs> for ManagedFolder {
+    fn generate_resource_id(&self, input: &StorageManagedFoldersInsertArgs) -> String {
+        format!("gcp::storage::ManagedFolder/{}", input.bucket)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::storage::ManagedFolder"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for ManagedFolders
+// =============================================================================
+
+/// ResourceIdentifier implementation for ManagedFolders with StorageManagedFoldersListArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<StorageManagedFoldersListArgs> for ManagedFolders {
+    fn generate_resource_id(&self, input: &StorageManagedFoldersListArgs) -> String {
+        format!("gcp::storage::ManagedFolders/{}", input.bucket)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::storage::ManagedFolders"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for Policy
+// =============================================================================
+
+/// ResourceIdentifier implementation for Policy with StorageManagedFoldersSetIamPolicyArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<StorageManagedFoldersSetIamPolicyArgs> for Policy {
+    fn generate_resource_id(&self, input: &StorageManagedFoldersSetIamPolicyArgs) -> String {
+        format!(
+            "gcp::storage::Policy/{}/{}",
+            input.bucket, input.managedFolder
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::storage::Policy"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for TestIamPermissionsResponse
+// =============================================================================
+
+/// ResourceIdentifier implementation for TestIamPermissionsResponse with StorageManagedFoldersTestIamPermissionsArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<StorageManagedFoldersTestIamPermissionsArgs>
+    for TestIamPermissionsResponse
+{
+    fn generate_resource_id(&self, input: &StorageManagedFoldersTestIamPermissionsArgs) -> String {
+        format!(
+            "gcp::storage::TestIamPermissionsResponse/{}/{}",
+            input.bucket, input.managedFolder
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::storage::TestIamPermissionsResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for Notification
+// =============================================================================
+
+/// ResourceIdentifier implementation for Notification with StorageNotificationsGetArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<StorageNotificationsGetArgs> for Notification {
+    fn generate_resource_id(&self, input: &StorageNotificationsGetArgs) -> String {
+        format!(
+            "gcp::storage::Notification/{}/{}",
+            input.bucket, input.notification
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::storage::Notification"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for Notification
+// =============================================================================
+
+/// ResourceIdentifier implementation for Notification with StorageNotificationsInsertArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<StorageNotificationsInsertArgs> for Notification {
+    fn generate_resource_id(&self, input: &StorageNotificationsInsertArgs) -> String {
+        format!("gcp::storage::Notification/{}", input.bucket)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::storage::Notification"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for Notifications
+// =============================================================================
+
+/// ResourceIdentifier implementation for Notifications with StorageNotificationsListArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<StorageNotificationsListArgs> for Notifications {
+    fn generate_resource_id(&self, input: &StorageNotificationsListArgs) -> String {
+        format!("gcp::storage::Notifications/{}", input.bucket)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::storage::Notifications"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for ObjectAccessControl
+// =============================================================================
+
+/// ResourceIdentifier implementation for ObjectAccessControl with StorageObjectAccessControlsGetArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<StorageObjectAccessControlsGetArgs> for ObjectAccessControl {
+    fn generate_resource_id(&self, input: &StorageObjectAccessControlsGetArgs) -> String {
+        format!(
+            "gcp::storage::ObjectAccessControl/{}/{}/{}",
+            input.bucket, input.object, input.entity
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::storage::ObjectAccessControl"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for ObjectAccessControl
+// =============================================================================
+
+/// ResourceIdentifier implementation for ObjectAccessControl with StorageObjectAccessControlsInsertArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<StorageObjectAccessControlsInsertArgs> for ObjectAccessControl {
+    fn generate_resource_id(&self, input: &StorageObjectAccessControlsInsertArgs) -> String {
+        format!(
+            "gcp::storage::ObjectAccessControl/{}/{}",
+            input.bucket, input.object
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::storage::ObjectAccessControl"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for ObjectAccessControls
+// =============================================================================
+
+/// ResourceIdentifier implementation for ObjectAccessControls with StorageObjectAccessControlsListArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<StorageObjectAccessControlsListArgs> for ObjectAccessControls {
+    fn generate_resource_id(&self, input: &StorageObjectAccessControlsListArgs) -> String {
+        format!(
+            "gcp::storage::ObjectAccessControls/{}/{}",
+            input.bucket, input.object
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::storage::ObjectAccessControls"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for ObjectAccessControl
+// =============================================================================
+
+/// ResourceIdentifier implementation for ObjectAccessControl with StorageObjectAccessControlsPatchArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<StorageObjectAccessControlsPatchArgs> for ObjectAccessControl {
+    fn generate_resource_id(&self, input: &StorageObjectAccessControlsPatchArgs) -> String {
+        format!(
+            "gcp::storage::ObjectAccessControl/{}/{}/{}",
+            input.bucket, input.object, input.entity
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::storage::ObjectAccessControl"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for ObjectAccessControl
+// =============================================================================
+
+/// ResourceIdentifier implementation for ObjectAccessControl with StorageObjectAccessControlsUpdateArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<StorageObjectAccessControlsUpdateArgs> for ObjectAccessControl {
+    fn generate_resource_id(&self, input: &StorageObjectAccessControlsUpdateArgs) -> String {
+        format!(
+            "gcp::storage::ObjectAccessControl/{}/{}/{}",
+            input.bucket, input.object, input.entity
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::storage::ObjectAccessControl"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for GoogleLongrunningOperation
+// =============================================================================
+
+/// ResourceIdentifier implementation for GoogleLongrunningOperation with StorageObjectsBulkRestoreArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<StorageObjectsBulkRestoreArgs> for GoogleLongrunningOperation {
+    fn generate_resource_id(&self, input: &StorageObjectsBulkRestoreArgs) -> String {
+        format!("gcp::storage::GoogleLongrunningOperation/{}", input.bucket)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::storage::GoogleLongrunningOperation"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for Object
+// =============================================================================
+
+/// ResourceIdentifier implementation for Object with StorageObjectsComposeArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<StorageObjectsComposeArgs> for Object {
+    fn generate_resource_id(&self, input: &StorageObjectsComposeArgs) -> String {
+        format!(
+            "gcp::storage::Object/{}/{}",
+            input.destinationBucket, input.destinationObject
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::storage::Object"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for Object
+// =============================================================================
+
+/// ResourceIdentifier implementation for Object with StorageObjectsCopyArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<StorageObjectsCopyArgs> for Object {
+    fn generate_resource_id(&self, input: &StorageObjectsCopyArgs) -> String {
+        format!(
+            "gcp::storage::Object/{}/{}/{}/{}",
+            input.sourceBucket,
+            input.sourceObject,
+            input.destinationBucket,
+            input.destinationObject
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::storage::Object"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for Object
+// =============================================================================
+
+/// ResourceIdentifier implementation for Object with StorageObjectsGetArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<StorageObjectsGetArgs> for Object {
+    fn generate_resource_id(&self, input: &StorageObjectsGetArgs) -> String {
+        format!("gcp::storage::Object/{}/{}", input.bucket, input.object)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::storage::Object"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for Policy
+// =============================================================================
+
+/// ResourceIdentifier implementation for Policy with StorageObjectsGetIamPolicyArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<StorageObjectsGetIamPolicyArgs> for Policy {
+    fn generate_resource_id(&self, input: &StorageObjectsGetIamPolicyArgs) -> String {
+        format!("gcp::storage::Policy/{}/{}", input.bucket, input.object)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::storage::Policy"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for Object
+// =============================================================================
+
+/// ResourceIdentifier implementation for Object with StorageObjectsInsertArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<StorageObjectsInsertArgs> for Object {
+    fn generate_resource_id(&self, input: &StorageObjectsInsertArgs) -> String {
+        format!("gcp::storage::Object/{}", input.bucket)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::storage::Object"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for Objects
+// =============================================================================
+
+/// ResourceIdentifier implementation for Objects with StorageObjectsListArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<StorageObjectsListArgs> for Objects {
+    fn generate_resource_id(&self, input: &StorageObjectsListArgs) -> String {
+        format!("gcp::storage::Objects/{}", input.bucket)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::storage::Objects"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for Object
+// =============================================================================
+
+/// ResourceIdentifier implementation for Object with StorageObjectsMoveArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<StorageObjectsMoveArgs> for Object {
+    fn generate_resource_id(&self, input: &StorageObjectsMoveArgs) -> String {
+        format!(
+            "gcp::storage::Object/{}/{}/{}",
+            input.bucket, input.sourceObject, input.destinationObject
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::storage::Object"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for Object
+// =============================================================================
+
+/// ResourceIdentifier implementation for Object with StorageObjectsPatchArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<StorageObjectsPatchArgs> for Object {
+    fn generate_resource_id(&self, input: &StorageObjectsPatchArgs) -> String {
+        format!("gcp::storage::Object/{}/{}", input.bucket, input.object)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::storage::Object"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for Object
+// =============================================================================
+
+/// ResourceIdentifier implementation for Object with StorageObjectsRestoreArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<StorageObjectsRestoreArgs> for Object {
+    fn generate_resource_id(&self, input: &StorageObjectsRestoreArgs) -> String {
+        format!("gcp::storage::Object/{}/{}", input.bucket, input.object)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::storage::Object"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for RewriteResponse
+// =============================================================================
+
+/// ResourceIdentifier implementation for RewriteResponse with StorageObjectsRewriteArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<StorageObjectsRewriteArgs> for RewriteResponse {
+    fn generate_resource_id(&self, input: &StorageObjectsRewriteArgs) -> String {
+        format!(
+            "gcp::storage::RewriteResponse/{}/{}/{}/{}",
+            input.sourceBucket,
+            input.sourceObject,
+            input.destinationBucket,
+            input.destinationObject
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::storage::RewriteResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for Policy
+// =============================================================================
+
+/// ResourceIdentifier implementation for Policy with StorageObjectsSetIamPolicyArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<StorageObjectsSetIamPolicyArgs> for Policy {
+    fn generate_resource_id(&self, input: &StorageObjectsSetIamPolicyArgs) -> String {
+        format!("gcp::storage::Policy/{}/{}", input.bucket, input.object)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::storage::Policy"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for TestIamPermissionsResponse
+// =============================================================================
+
+/// ResourceIdentifier implementation for TestIamPermissionsResponse with StorageObjectsTestIamPermissionsArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<StorageObjectsTestIamPermissionsArgs> for TestIamPermissionsResponse {
+    fn generate_resource_id(&self, input: &StorageObjectsTestIamPermissionsArgs) -> String {
+        format!(
+            "gcp::storage::TestIamPermissionsResponse/{}/{}",
+            input.bucket, input.object
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::storage::TestIamPermissionsResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for Object
+// =============================================================================
+
+/// ResourceIdentifier implementation for Object with StorageObjectsUpdateArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<StorageObjectsUpdateArgs> for Object {
+    fn generate_resource_id(&self, input: &StorageObjectsUpdateArgs) -> String {
+        format!("gcp::storage::Object/{}/{}", input.bucket, input.object)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::storage::Object"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for Channel
+// =============================================================================
+
+/// ResourceIdentifier implementation for Channel with StorageObjectsWatchAllArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<StorageObjectsWatchAllArgs> for Channel {
+    fn generate_resource_id(&self, input: &StorageObjectsWatchAllArgs) -> String {
+        format!("gcp::storage::Channel/{}", input.bucket)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::storage::Channel"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for GoogleLongrunningOperation
+// =============================================================================
+
+/// ResourceIdentifier implementation for GoogleLongrunningOperation with StorageBucketsOperationsGetArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<StorageBucketsOperationsGetArgs> for GoogleLongrunningOperation {
+    fn generate_resource_id(&self, input: &StorageBucketsOperationsGetArgs) -> String {
+        format!(
+            "gcp::storage::GoogleLongrunningOperation/{}/{}",
+            input.bucket, input.operationId
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::storage::GoogleLongrunningOperation"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for GoogleLongrunningListOperationsResponse
+// =============================================================================
+
+/// ResourceIdentifier implementation for GoogleLongrunningListOperationsResponse with StorageBucketsOperationsListArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<StorageBucketsOperationsListArgs>
+    for GoogleLongrunningListOperationsResponse
+{
+    fn generate_resource_id(&self, input: &StorageBucketsOperationsListArgs) -> String {
+        format!(
+            "gcp::storage::GoogleLongrunningListOperationsResponse/{}",
+            input.bucket
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::storage::GoogleLongrunningListOperationsResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for HmacKey
+// =============================================================================
+
+/// ResourceIdentifier implementation for HmacKey with StorageProjectsHmacKeysCreateArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<StorageProjectsHmacKeysCreateArgs> for HmacKey {
+    fn generate_resource_id(&self, input: &StorageProjectsHmacKeysCreateArgs) -> String {
+        format!("gcp::storage::HmacKey/{}", input.projectId)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::storage::HmacKey"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for HmacKeyMetadata
+// =============================================================================
+
+/// ResourceIdentifier implementation for HmacKeyMetadata with StorageProjectsHmacKeysGetArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<StorageProjectsHmacKeysGetArgs> for HmacKeyMetadata {
+    fn generate_resource_id(&self, input: &StorageProjectsHmacKeysGetArgs) -> String {
+        format!(
+            "gcp::storage::HmacKeyMetadata/{}/{}",
+            input.projectId, input.accessId
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::storage::HmacKeyMetadata"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for HmacKeysMetadata
+// =============================================================================
+
+/// ResourceIdentifier implementation for HmacKeysMetadata with StorageProjectsHmacKeysListArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<StorageProjectsHmacKeysListArgs> for HmacKeysMetadata {
+    fn generate_resource_id(&self, input: &StorageProjectsHmacKeysListArgs) -> String {
+        format!("gcp::storage::HmacKeysMetadata/{}", input.projectId)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::storage::HmacKeysMetadata"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for HmacKeyMetadata
+// =============================================================================
+
+/// ResourceIdentifier implementation for HmacKeyMetadata with StorageProjectsHmacKeysUpdateArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<StorageProjectsHmacKeysUpdateArgs> for HmacKeyMetadata {
+    fn generate_resource_id(&self, input: &StorageProjectsHmacKeysUpdateArgs) -> String {
+        format!(
+            "gcp::storage::HmacKeyMetadata/{}/{}",
+            input.projectId, input.accessId
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::storage::HmacKeyMetadata"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for ServiceAccount
+// =============================================================================
+
+/// ResourceIdentifier implementation for ServiceAccount with StorageProjectsServiceAccountGetArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<StorageProjectsServiceAccountGetArgs> for ServiceAccount {
+    fn generate_resource_id(&self, input: &StorageProjectsServiceAccountGetArgs) -> String {
+        format!("gcp::storage::ServiceAccount/{}", input.projectId)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::storage::ServiceAccount"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
 }

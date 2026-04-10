@@ -7,7 +7,6 @@
 
 #![cfg(feature = "gcp")]
 
-
 use crate::providers::gcp::clients::types::*;
 use crate::providers::gcp::resources::*;
 use foundation_core::valtron::{
@@ -17,10 +16,11 @@ use foundation_core::valtron::{
 use foundation_core::wire::simple_http::client::{
     body_reader, ClientRequestBuilder, RequestIntro, SimpleHttpClient, SystemDnsResolver,
 };
+use foundation_db::state::resource_identifier::ResourceIdentifier;
 use foundation_macros::JsonHash;
 use serde::Serialize;
 
-/// GET v1/billingAccounts
+/// POST v1/billingAccounts
 /// This method creates [billing subaccounts](<https://cloud.google.`com/billing/docs/concepts`#subaccounts>). Google Cloud resellers should use the Channel Services APIs, [accounts.customers.create](<https://cloud.google.`com/channel/docs/reference/rest/v1/accounts`.`customers/create`>) and [accounts.customers.entitlements.create](<https://cloud.google.`com/channel/docs/reference/rest/v1/accounts`.customers.`entitlements/create`>). When creating a subaccount, the current authenticated user must have the billing.accounts.update IAM permission on the parent account, which is typically given to billing account [administrators](<https://cloud.google.`com/billing/docs/how-to/billing-access`>). This method will return an error if the parent account has not been provisioned for subaccounts.
 ///
 /// Returns `ClientRequestBuilder` for customization.
@@ -28,8 +28,7 @@ use serde::Serialize;
 
 pub fn cloudbilling_billing_accounts_create_builder(
     client: &SimpleHttpClient,
-    parent: &Option<String>,
-    body: &BillingAccount,
+    parent: &Option<Option<String>>,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!("https://cloudbilling.googleapis.com/v1/billingAccounts",);
@@ -47,15 +46,13 @@ pub fn cloudbilling_billing_accounts_create_builder(
     };
 
     let builder = client
-        .get(&url_with_query)
+        .post(&url_with_query)
         .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
 
-    builder
-        .body_json(body)
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+    Ok(builder)
 }
 
-/// GET v1/billingAccounts
+/// POST v1/billingAccounts
 /// This method creates [billing subaccounts](<https://cloud.google.`com/billing/docs/concepts`#subaccounts>). Google Cloud resellers should use the Channel Services APIs, [accounts.customers.create](<https://cloud.google.`com/channel/docs/reference/rest/v1/accounts`.`customers/create`>) and [accounts.customers.entitlements.create](<https://cloud.google.`com/channel/docs/reference/rest/v1/accounts`.customers.`entitlements/create`>). When creating a subaccount, the current authenticated user must have the billing.accounts.update IAM permission on the parent account, which is typically given to billing account [administrators](<https://cloud.google.`com/billing/docs/how-to/billing-access`>). This method will return an error if the parent account has not been provisioned for subaccounts.
 ///
 /// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
@@ -129,7 +126,7 @@ pub fn cloudbilling_billing_accounts_create_task(
         .map_pending(|_| ApiPending::Sending))
 }
 
-/// GET v1/billingAccounts
+/// POST v1/billingAccounts
 /// This method creates [billing subaccounts](<https://cloud.google.`com/billing/docs/concepts`#subaccounts>). Google Cloud resellers should use the Channel Services APIs, [accounts.customers.create](<https://cloud.google.`com/channel/docs/reference/rest/v1/accounts`.`customers/create`>) and [accounts.customers.entitlements.create](<https://cloud.google.`com/channel/docs/reference/rest/v1/accounts`.customers.`entitlements/create`>). When creating a subaccount, the current authenticated user must have the billing.accounts.update IAM permission on the parent account, which is typically given to billing account [administrators](<https://cloud.google.`com/billing/docs/how-to/billing-access`>). This method will return an error if the parent account has not been provisioned for subaccounts.
 ///
 /// Takes a `ClientRequestBuilder`, builds and executes the request,
@@ -165,12 +162,10 @@ pub fn cloudbilling_billing_accounts_create_execute(
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct CloudbillingBillingAccountsCreateArgs {
     /// Query parameter: parent
-    pub parent: Option<String>,
-    /// Request body.
-    pub body: BillingAccount,
+    pub parent: Option<Option<String>>,
 }
 
-/// GET v1/billingAccounts
+/// POST v1/billingAccounts
 /// This method creates [billing subaccounts](<https://cloud.google.`com/billing/docs/concepts`#subaccounts>). Google Cloud resellers should use the Channel Services APIs, [accounts.customers.create](<https://cloud.google.`com/channel/docs/reference/rest/v1/accounts`.`customers/create`>) and [accounts.customers.entitlements.create](<https://cloud.google.`com/channel/docs/reference/rest/v1/accounts`.customers.`entitlements/create`>). When creating a subaccount, the current authenticated user must have the billing.accounts.update IAM permission on the parent account, which is typically given to billing account [administrators](<https://cloud.google.`com/billing/docs/how-to/billing-access`>). This method will return an error if the parent account has not been provisioned for subaccounts.
 ///
 /// Simplest API - builds and executes the request in one call.
@@ -190,7 +185,7 @@ pub fn cloudbilling_billing_accounts_create(
         + 'static,
     ApiError,
 > {
-    let builder = cloudbilling_billing_accounts_create_builder(client, &args.parent, &args.body)?;
+    let builder = cloudbilling_billing_accounts_create_builder(client, &args.parent)?;
     cloudbilling_billing_accounts_create_execute(builder)
 }
 
@@ -205,7 +200,10 @@ pub fn cloudbilling_billing_accounts_get_builder(
     name: &String,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
-    let endpoint_url = format!("https://cloudbilling.googleapis.com/v1/billingAccounts/{}",);
+    let endpoint_url = format!(
+        "https://cloudbilling.googleapis.com/v1/billingAccounts/{}",
+        name,
+    );
 
     // Build request
     let builder = client
@@ -361,11 +359,13 @@ pub fn cloudbilling_billing_accounts_get(
 pub fn cloudbilling_billing_accounts_get_iam_policy_builder(
     client: &SimpleHttpClient,
     resource: &String,
-    options_requestedPolicyVersion: &Option<i32>,
+    options_requestedPolicyVersion: &Option<Option<String>>,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
-    let endpoint_url =
-        format!("https://cloudbilling.googleapis.com/v1/billingAccounts/{}:getIamPolicy",);
+    let endpoint_url = format!(
+        "https://cloudbilling.googleapis.com/v1/billingAccounts/{}:getIamPolicy",
+        resource,
+    );
 
     // Build request
     let mut query_parts = Vec::new();
@@ -496,7 +496,7 @@ pub struct CloudbillingBillingAccountsGetIamPolicyArgs {
     /// Path parameter: resource
     pub resource: String,
     /// Query parameter: options_requestedPolicyVersion
-    pub options_requestedPolicyVersion: Option<i32>,
+    pub options_requestedPolicyVersion: Option<Option<String>>,
 }
 
 /// GET v1/billingAccounts/{billingAccountsId}:getIamPolicy
@@ -525,7 +525,204 @@ pub fn cloudbilling_billing_accounts_get_iam_policy(
     cloudbilling_billing_accounts_get_iam_policy_execute(builder)
 }
 
-/// GET v1/billingAccounts/{billingAccountsId}:move
+/// GET v1/billingAccounts
+/// Lists the billing accounts that the current authenticated user has permission to [view](<https://cloud.google.`com/billing/docs/how-to/billing-access`>).
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `cloudbilling_billing_accounts_list_execute()` to send, or `cloudbilling_billing_accounts_list` for simplest API.
+
+pub fn cloudbilling_billing_accounts_list_builder(
+    client: &SimpleHttpClient,
+    filter: &Option<Option<String>>,
+    pageSize: &Option<Option<String>>,
+    pageToken: &Option<Option<String>>,
+    parent: &Option<Option<String>>,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!("https://cloudbilling.googleapis.com/v1/billingAccounts",);
+
+    // Build request
+    let mut query_parts = Vec::new();
+    if let Some(val) = filter.as_ref() {
+        query_parts.push(format!("filter={}", val));
+    }
+    if let Some(val) = pageSize.as_ref() {
+        query_parts.push(format!("pageSize={}", val));
+    }
+    if let Some(val) = pageToken.as_ref() {
+        query_parts.push(format!("pageToken={}", val));
+    }
+    if let Some(val) = parent.as_ref() {
+        query_parts.push(format!("parent={}", val));
+    }
+
+    let url_with_query = if query_parts.is_empty() {
+        endpoint_url
+    } else {
+        format!("{}?{}", endpoint_url, query_parts.join("&"))
+    };
+
+    let builder = client
+        .get(&url_with_query)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// GET v1/billingAccounts
+/// Lists the billing accounts that the current authenticated user has permission to [view](<https://cloud.google.`com/billing/docs/how-to/billing-access`>).
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `cloudbilling_billing_accounts_list_execute()` or `cloudbilling_billing_accounts_list`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `cloudbilling_billing_accounts_list_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn cloudbilling_billing_accounts_list_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<ListBillingAccountsResponse>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: ListBillingAccountsResponse = serde_json::from_str(&body)
+                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// GET v1/billingAccounts
+/// Lists the billing accounts that the current authenticated user has permission to [view](<https://cloud.google.`com/billing/docs/how-to/billing-access`>).
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `cloudbilling_billing_accounts_list_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `cloudbilling_billing_accounts_list_task()`.
+/// For the simplest API, use `cloudbilling_billing_accounts_list()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `cloudbilling_billing_accounts_list_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn cloudbilling_billing_accounts_list_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<
+            D = Result<ApiResponse<ListBillingAccountsResponse>, ApiError>,
+            P = ApiPending,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    let task = cloudbilling_billing_accounts_list_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`cloudbilling_billing_accounts_list`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct CloudbillingBillingAccountsListArgs {
+    /// Query parameter: filter
+    pub filter: Option<Option<String>>,
+    /// Query parameter: pageSize
+    pub pageSize: Option<Option<String>>,
+    /// Query parameter: pageToken
+    pub pageToken: Option<Option<String>>,
+    /// Query parameter: parent
+    pub parent: Option<Option<String>>,
+}
+
+/// GET v1/billingAccounts
+/// Lists the billing accounts that the current authenticated user has permission to [view](<https://cloud.google.`com/billing/docs/how-to/billing-access`>).
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `cloudbilling_billing_accounts_list_builder()` + `cloudbilling_billing_accounts_list_execute()`.
+/// For task-level control, use `cloudbilling_billing_accounts_list_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn cloudbilling_billing_accounts_list(
+    client: &SimpleHttpClient,
+    args: &CloudbillingBillingAccountsListArgs,
+) -> Result<
+    impl StreamIterator<
+            D = Result<ApiResponse<ListBillingAccountsResponse>, ApiError>,
+            P = ApiPending,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    let builder = cloudbilling_billing_accounts_list_builder(
+        client,
+        &args.filter,
+        &args.pageSize,
+        &args.pageToken,
+        &args.parent,
+    )?;
+    cloudbilling_billing_accounts_list_execute(builder)
+}
+
+/// POST v1/billingAccounts/{billingAccountsId}:move
 /// Changes which parent organization a billing account belongs to.
 ///
 /// Returns `ClientRequestBuilder` for customization.
@@ -534,22 +731,22 @@ pub fn cloudbilling_billing_accounts_get_iam_policy(
 pub fn cloudbilling_billing_accounts_move_builder(
     client: &SimpleHttpClient,
     name: &String,
-    body: &MoveBillingAccountRequest,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
-    let endpoint_url = format!("https://cloudbilling.googleapis.com/v1/billingAccounts/{}:move",);
+    let endpoint_url = format!(
+        "https://cloudbilling.googleapis.com/v1/billingAccounts/{}:move",
+        name,
+    );
 
     // Build request
     let builder = client
-        .get(&endpoint_url)
+        .post(&endpoint_url)
         .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
 
-    builder
-        .body_json(body)
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+    Ok(builder)
 }
 
-/// GET v1/billingAccounts/{billingAccountsId}:move
+/// POST v1/billingAccounts/{billingAccountsId}:move
 /// Changes which parent organization a billing account belongs to.
 ///
 /// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
@@ -623,7 +820,7 @@ pub fn cloudbilling_billing_accounts_move_task(
         .map_pending(|_| ApiPending::Sending))
 }
 
-/// GET v1/billingAccounts/{billingAccountsId}:move
+/// POST v1/billingAccounts/{billingAccountsId}:move
 /// Changes which parent organization a billing account belongs to.
 ///
 /// Takes a `ClientRequestBuilder`, builds and executes the request,
@@ -660,11 +857,9 @@ pub fn cloudbilling_billing_accounts_move_execute(
 pub struct CloudbillingBillingAccountsMoveArgs {
     /// Path parameter: name
     pub name: String,
-    /// Request body.
-    pub body: MoveBillingAccountRequest,
 }
 
-/// GET v1/billingAccounts/{billingAccountsId}:move
+/// POST v1/billingAccounts/{billingAccountsId}:move
 /// Changes which parent organization a billing account belongs to.
 ///
 /// Simplest API - builds and executes the request in one call.
@@ -684,11 +879,187 @@ pub fn cloudbilling_billing_accounts_move(
         + 'static,
     ApiError,
 > {
-    let builder = cloudbilling_billing_accounts_move_builder(client, &args.name, &args.body)?;
+    let builder = cloudbilling_billing_accounts_move_builder(client, &args.name)?;
     cloudbilling_billing_accounts_move_execute(builder)
 }
 
-/// GET v1/billingAccounts/{billingAccountsId}:setIamPolicy
+/// PATCH v1/billingAccounts/{billingAccountsId}
+/// Updates a billing account's fields. Currently the only field that can be edited is display_name. The current authenticated user must have the billing.accounts.update IAM permission, which is typically given to the [administrator](<https://cloud.google.`com/billing/docs/how-to/billing-access`>) of the billing account.
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `cloudbilling_billing_accounts_patch_execute()` to send, or `cloudbilling_billing_accounts_patch` for simplest API.
+
+pub fn cloudbilling_billing_accounts_patch_builder(
+    client: &SimpleHttpClient,
+    name: &String,
+    updateMask: &Option<Option<String>>,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!(
+        "https://cloudbilling.googleapis.com/v1/billingAccounts/{}",
+        name,
+    );
+
+    // Build request
+    let mut query_parts = Vec::new();
+    if let Some(val) = updateMask.as_ref() {
+        query_parts.push(format!("updateMask={}", val));
+    }
+
+    let url_with_query = if query_parts.is_empty() {
+        endpoint_url
+    } else {
+        format!("{}?{}", endpoint_url, query_parts.join("&"))
+    };
+
+    let builder = client
+        .patch(&url_with_query)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// PATCH v1/billingAccounts/{billingAccountsId}
+/// Updates a billing account's fields. Currently the only field that can be edited is display_name. The current authenticated user must have the billing.accounts.update IAM permission, which is typically given to the [administrator](<https://cloud.google.`com/billing/docs/how-to/billing-access`>) of the billing account.
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `cloudbilling_billing_accounts_patch_execute()` or `cloudbilling_billing_accounts_patch`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `cloudbilling_billing_accounts_patch_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn cloudbilling_billing_accounts_patch_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<BillingAccount>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: BillingAccount = serde_json::from_str(&body)
+                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// PATCH v1/billingAccounts/{billingAccountsId}
+/// Updates a billing account's fields. Currently the only field that can be edited is display_name. The current authenticated user must have the billing.accounts.update IAM permission, which is typically given to the [administrator](<https://cloud.google.`com/billing/docs/how-to/billing-access`>) of the billing account.
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `cloudbilling_billing_accounts_patch_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `cloudbilling_billing_accounts_patch_task()`.
+/// For the simplest API, use `cloudbilling_billing_accounts_patch()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `cloudbilling_billing_accounts_patch_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn cloudbilling_billing_accounts_patch_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<BillingAccount>, ApiError>, P = ApiPending>
+        + Send
+        + 'static,
+    ApiError,
+> {
+    let task = cloudbilling_billing_accounts_patch_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`cloudbilling_billing_accounts_patch`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct CloudbillingBillingAccountsPatchArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Query parameter: updateMask
+    pub updateMask: Option<Option<String>>,
+}
+
+/// PATCH v1/billingAccounts/{billingAccountsId}
+/// Updates a billing account's fields. Currently the only field that can be edited is display_name. The current authenticated user must have the billing.accounts.update IAM permission, which is typically given to the [administrator](<https://cloud.google.`com/billing/docs/how-to/billing-access`>) of the billing account.
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `cloudbilling_billing_accounts_patch_builder()` + `cloudbilling_billing_accounts_patch_execute()`.
+/// For task-level control, use `cloudbilling_billing_accounts_patch_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn cloudbilling_billing_accounts_patch(
+    client: &SimpleHttpClient,
+    args: &CloudbillingBillingAccountsPatchArgs,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<BillingAccount>, ApiError>, P = ApiPending>
+        + Send
+        + 'static,
+    ApiError,
+> {
+    let builder =
+        cloudbilling_billing_accounts_patch_builder(client, &args.name, &args.updateMask)?;
+    cloudbilling_billing_accounts_patch_execute(builder)
+}
+
+/// POST v1/billingAccounts/{billingAccountsId}:setIamPolicy
 /// Sets the access control policy for a billing account. Replaces any existing policy. The caller must have the billing.accounts.`setIamPolicy` permission on the account, which is often given to billing account [administrators](<https://cloud.google.`com/billing/docs/how-to/billing-access`>).
 ///
 /// Returns `ClientRequestBuilder` for customization.
@@ -697,23 +1068,22 @@ pub fn cloudbilling_billing_accounts_move(
 pub fn cloudbilling_billing_accounts_set_iam_policy_builder(
     client: &SimpleHttpClient,
     resource: &String,
-    body: &SetIamPolicyRequest,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
-    let endpoint_url =
-        format!("https://cloudbilling.googleapis.com/v1/billingAccounts/{}:setIamPolicy",);
+    let endpoint_url = format!(
+        "https://cloudbilling.googleapis.com/v1/billingAccounts/{}:setIamPolicy",
+        resource,
+    );
 
     // Build request
     let builder = client
-        .get(&endpoint_url)
+        .post(&endpoint_url)
         .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
 
-    builder
-        .body_json(body)
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+    Ok(builder)
 }
 
-/// GET v1/billingAccounts/{billingAccountsId}:setIamPolicy
+/// POST v1/billingAccounts/{billingAccountsId}:setIamPolicy
 /// Sets the access control policy for a billing account. Replaces any existing policy. The caller must have the billing.accounts.`setIamPolicy` permission on the account, which is often given to billing account [administrators](<https://cloud.google.`com/billing/docs/how-to/billing-access`>).
 ///
 /// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
@@ -787,7 +1157,7 @@ pub fn cloudbilling_billing_accounts_set_iam_policy_task(
         .map_pending(|_| ApiPending::Sending))
 }
 
-/// GET v1/billingAccounts/{billingAccountsId}:setIamPolicy
+/// POST v1/billingAccounts/{billingAccountsId}:setIamPolicy
 /// Sets the access control policy for a billing account. Replaces any existing policy. The caller must have the billing.accounts.`setIamPolicy` permission on the account, which is often given to billing account [administrators](<https://cloud.google.`com/billing/docs/how-to/billing-access`>).
 ///
 /// Takes a `ClientRequestBuilder`, builds and executes the request,
@@ -822,11 +1192,9 @@ pub fn cloudbilling_billing_accounts_set_iam_policy_execute(
 pub struct CloudbillingBillingAccountsSetIamPolicyArgs {
     /// Path parameter: resource
     pub resource: String,
-    /// Request body.
-    pub body: SetIamPolicyRequest,
 }
 
-/// GET v1/billingAccounts/{billingAccountsId}:setIamPolicy
+/// POST v1/billingAccounts/{billingAccountsId}:setIamPolicy
 /// Sets the access control policy for a billing account. Replaces any existing policy. The caller must have the billing.accounts.`setIamPolicy` permission on the account, which is often given to billing account [administrators](<https://cloud.google.`com/billing/docs/how-to/billing-access`>).
 ///
 /// Simplest API - builds and executes the request in one call.
@@ -844,12 +1212,11 @@ pub fn cloudbilling_billing_accounts_set_iam_policy(
     impl StreamIterator<D = Result<ApiResponse<Policy>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder =
-        cloudbilling_billing_accounts_set_iam_policy_builder(client, &args.resource, &args.body)?;
+    let builder = cloudbilling_billing_accounts_set_iam_policy_builder(client, &args.resource)?;
     cloudbilling_billing_accounts_set_iam_policy_execute(builder)
 }
 
-/// GET v1/billingAccounts/{billingAccountsId}:testIamPermissions
+/// POST v1/billingAccounts/{billingAccountsId}:testIamPermissions
 /// Tests the access control policy for a billing account. This method takes the resource and a set of permissions as input and returns the subset of the input permissions that the caller is allowed for that resource.
 ///
 /// Returns `ClientRequestBuilder` for customization.
@@ -858,23 +1225,22 @@ pub fn cloudbilling_billing_accounts_set_iam_policy(
 pub fn cloudbilling_billing_accounts_test_iam_permissions_builder(
     client: &SimpleHttpClient,
     resource: &String,
-    body: &TestIamPermissionsRequest,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
-    let endpoint_url =
-        format!("https://cloudbilling.googleapis.com/v1/billingAccounts/{}:testIamPermissions",);
+    let endpoint_url = format!(
+        "https://cloudbilling.googleapis.com/v1/billingAccounts/{}:testIamPermissions",
+        resource,
+    );
 
     // Build request
     let builder = client
-        .get(&endpoint_url)
+        .post(&endpoint_url)
         .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
 
-    builder
-        .body_json(body)
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+    Ok(builder)
 }
 
-/// GET v1/billingAccounts/{billingAccountsId}:testIamPermissions
+/// POST v1/billingAccounts/{billingAccountsId}:testIamPermissions
 /// Tests the access control policy for a billing account. This method takes the resource and a set of permissions as input and returns the subset of the input permissions that the caller is allowed for that resource.
 ///
 /// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
@@ -948,7 +1314,7 @@ pub fn cloudbilling_billing_accounts_test_iam_permissions_task(
         .map_pending(|_| ApiPending::Sending))
 }
 
-/// GET v1/billingAccounts/{billingAccountsId}:testIamPermissions
+/// POST v1/billingAccounts/{billingAccountsId}:testIamPermissions
 /// Tests the access control policy for a billing account. This method takes the resource and a set of permissions as input and returns the subset of the input permissions that the caller is allowed for that resource.
 ///
 /// Takes a `ClientRequestBuilder`, builds and executes the request,
@@ -987,11 +1353,9 @@ pub fn cloudbilling_billing_accounts_test_iam_permissions_execute(
 pub struct CloudbillingBillingAccountsTestIamPermissionsArgs {
     /// Path parameter: resource
     pub resource: String,
-    /// Request body.
-    pub body: TestIamPermissionsRequest,
 }
 
-/// GET v1/billingAccounts/{billingAccountsId}:testIamPermissions
+/// POST v1/billingAccounts/{billingAccountsId}:testIamPermissions
 /// Tests the access control policy for a billing account. This method takes the resource and a set of permissions as input and returns the subset of the input permissions that the caller is allowed for that resource.
 ///
 /// Simplest API - builds and executes the request in one call.
@@ -1013,11 +1377,8 @@ pub fn cloudbilling_billing_accounts_test_iam_permissions(
         + 'static,
     ApiError,
 > {
-    let builder = cloudbilling_billing_accounts_test_iam_permissions_builder(
-        client,
-        &args.resource,
-        &args.body,
-    )?;
+    let builder =
+        cloudbilling_billing_accounts_test_iam_permissions_builder(client, &args.resource)?;
     cloudbilling_billing_accounts_test_iam_permissions_execute(builder)
 }
 
@@ -1030,12 +1391,14 @@ pub fn cloudbilling_billing_accounts_test_iam_permissions(
 pub fn cloudbilling_billing_accounts_projects_list_builder(
     client: &SimpleHttpClient,
     name: &String,
-    pageSize: &Option<i32>,
-    pageToken: &Option<String>,
+    pageSize: &Option<Option<String>>,
+    pageToken: &Option<Option<String>>,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
-    let endpoint_url =
-        format!("https://cloudbilling.googleapis.com/v1/billingAccounts/{}/projects",);
+    let endpoint_url = format!(
+        "https://cloudbilling.googleapis.com/v1/billingAccounts/{}/projects",
+        name,
+    );
 
     // Build request
     let mut query_parts = Vec::new();
@@ -1173,9 +1536,9 @@ pub struct CloudbillingBillingAccountsProjectsListArgs {
     /// Path parameter: name
     pub name: String,
     /// Query parameter: pageSize
-    pub pageSize: Option<i32>,
+    pub pageSize: Option<Option<String>>,
     /// Query parameter: pageToken
-    pub pageToken: Option<String>,
+    pub pageToken: Option<Option<String>>,
 }
 
 /// GET v1/billingAccounts/{billingAccountsId}/projects
@@ -1209,7 +1572,7 @@ pub fn cloudbilling_billing_accounts_projects_list(
     cloudbilling_billing_accounts_projects_list_execute(builder)
 }
 
-/// GET v1/billingAccounts/{billingAccountsId}/subAccounts
+/// POST v1/billingAccounts/{billingAccountsId}/subAccounts
 /// This method creates [billing subaccounts](<https://cloud.google.`com/billing/docs/concepts`#subaccounts>). Google Cloud resellers should use the Channel Services APIs, [accounts.customers.create](<https://cloud.google.`com/channel/docs/reference/rest/v1/accounts`.`customers/create`>) and [accounts.customers.entitlements.create](<https://cloud.google.`com/channel/docs/reference/rest/v1/accounts`.customers.`entitlements/create`>). When creating a subaccount, the current authenticated user must have the billing.accounts.update IAM permission on the parent account, which is typically given to billing account [administrators](<https://cloud.google.`com/billing/docs/how-to/billing-access`>). This method will return an error if the parent account has not been provisioned for subaccounts.
 ///
 /// Returns `ClientRequestBuilder` for customization.
@@ -1218,23 +1581,22 @@ pub fn cloudbilling_billing_accounts_projects_list(
 pub fn cloudbilling_billing_accounts_sub_accounts_create_builder(
     client: &SimpleHttpClient,
     parent: &String,
-    body: &BillingAccount,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
-    let endpoint_url =
-        format!("https://cloudbilling.googleapis.com/v1/billingAccounts/{}/subAccounts",);
+    let endpoint_url = format!(
+        "https://cloudbilling.googleapis.com/v1/billingAccounts/{}/subAccounts",
+        parent,
+    );
 
     // Build request
     let builder = client
-        .get(&endpoint_url)
+        .post(&endpoint_url)
         .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
 
-    builder
-        .body_json(body)
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+    Ok(builder)
 }
 
-/// GET v1/billingAccounts/{billingAccountsId}/subAccounts
+/// POST v1/billingAccounts/{billingAccountsId}/subAccounts
 /// This method creates [billing subaccounts](<https://cloud.google.`com/billing/docs/concepts`#subaccounts>). Google Cloud resellers should use the Channel Services APIs, [accounts.customers.create](<https://cloud.google.`com/channel/docs/reference/rest/v1/accounts`.`customers/create`>) and [accounts.customers.entitlements.create](<https://cloud.google.`com/channel/docs/reference/rest/v1/accounts`.customers.`entitlements/create`>). When creating a subaccount, the current authenticated user must have the billing.accounts.update IAM permission on the parent account, which is typically given to billing account [administrators](<https://cloud.google.`com/billing/docs/how-to/billing-access`>). This method will return an error if the parent account has not been provisioned for subaccounts.
 ///
 /// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
@@ -1308,7 +1670,7 @@ pub fn cloudbilling_billing_accounts_sub_accounts_create_task(
         .map_pending(|_| ApiPending::Sending))
 }
 
-/// GET v1/billingAccounts/{billingAccountsId}/subAccounts
+/// POST v1/billingAccounts/{billingAccountsId}/subAccounts
 /// This method creates [billing subaccounts](<https://cloud.google.`com/billing/docs/concepts`#subaccounts>). Google Cloud resellers should use the Channel Services APIs, [accounts.customers.create](<https://cloud.google.`com/channel/docs/reference/rest/v1/accounts`.`customers/create`>) and [accounts.customers.entitlements.create](<https://cloud.google.`com/channel/docs/reference/rest/v1/accounts`.customers.`entitlements/create`>). When creating a subaccount, the current authenticated user must have the billing.accounts.update IAM permission on the parent account, which is typically given to billing account [administrators](<https://cloud.google.`com/billing/docs/how-to/billing-access`>). This method will return an error if the parent account has not been provisioned for subaccounts.
 ///
 /// Takes a `ClientRequestBuilder`, builds and executes the request,
@@ -1345,11 +1707,9 @@ pub fn cloudbilling_billing_accounts_sub_accounts_create_execute(
 pub struct CloudbillingBillingAccountsSubAccountsCreateArgs {
     /// Path parameter: parent
     pub parent: String,
-    /// Request body.
-    pub body: BillingAccount,
 }
 
-/// GET v1/billingAccounts/{billingAccountsId}/subAccounts
+/// POST v1/billingAccounts/{billingAccountsId}/subAccounts
 /// This method creates [billing subaccounts](<https://cloud.google.`com/billing/docs/concepts`#subaccounts>). Google Cloud resellers should use the Channel Services APIs, [accounts.customers.create](<https://cloud.google.`com/channel/docs/reference/rest/v1/accounts`.`customers/create`>) and [accounts.customers.entitlements.create](<https://cloud.google.`com/channel/docs/reference/rest/v1/accounts`.customers.`entitlements/create`>). When creating a subaccount, the current authenticated user must have the billing.accounts.update IAM permission on the parent account, which is typically given to billing account [administrators](<https://cloud.google.`com/billing/docs/how-to/billing-access`>). This method will return an error if the parent account has not been provisioned for subaccounts.
 ///
 /// Simplest API - builds and executes the request in one call.
@@ -1369,15 +1729,208 @@ pub fn cloudbilling_billing_accounts_sub_accounts_create(
         + 'static,
     ApiError,
 > {
-    let builder = cloudbilling_billing_accounts_sub_accounts_create_builder(
-        client,
-        &args.parent,
-        &args.body,
-    )?;
+    let builder = cloudbilling_billing_accounts_sub_accounts_create_builder(client, &args.parent)?;
     cloudbilling_billing_accounts_sub_accounts_create_execute(builder)
 }
 
-/// GET v1/organizations/{organizationsId}/billingAccounts
+/// GET v1/billingAccounts/{billingAccountsId}/subAccounts
+/// Lists the billing accounts that the current authenticated user has permission to [view](<https://cloud.google.`com/billing/docs/how-to/billing-access`>).
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `cloudbilling_billing_accounts_sub_accounts_list_execute()` to send, or `cloudbilling_billing_accounts_sub_accounts_list` for simplest API.
+
+pub fn cloudbilling_billing_accounts_sub_accounts_list_builder(
+    client: &SimpleHttpClient,
+    parent: &String,
+    filter: &Option<Option<String>>,
+    pageSize: &Option<Option<String>>,
+    pageToken: &Option<Option<String>>,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!(
+        "https://cloudbilling.googleapis.com/v1/billingAccounts/{}/subAccounts",
+        parent,
+    );
+
+    // Build request
+    let mut query_parts = Vec::new();
+    if let Some(val) = filter.as_ref() {
+        query_parts.push(format!("filter={}", val));
+    }
+    if let Some(val) = pageSize.as_ref() {
+        query_parts.push(format!("pageSize={}", val));
+    }
+    if let Some(val) = pageToken.as_ref() {
+        query_parts.push(format!("pageToken={}", val));
+    }
+
+    let url_with_query = if query_parts.is_empty() {
+        endpoint_url
+    } else {
+        format!("{}?{}", endpoint_url, query_parts.join("&"))
+    };
+
+    let builder = client
+        .get(&url_with_query)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// GET v1/billingAccounts/{billingAccountsId}/subAccounts
+/// Lists the billing accounts that the current authenticated user has permission to [view](<https://cloud.google.`com/billing/docs/how-to/billing-access`>).
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `cloudbilling_billing_accounts_sub_accounts_list_execute()` or `cloudbilling_billing_accounts_sub_accounts_list`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `cloudbilling_billing_accounts_sub_accounts_list_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn cloudbilling_billing_accounts_sub_accounts_list_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<ListBillingAccountsResponse>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: ListBillingAccountsResponse = serde_json::from_str(&body)
+                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// GET v1/billingAccounts/{billingAccountsId}/subAccounts
+/// Lists the billing accounts that the current authenticated user has permission to [view](<https://cloud.google.`com/billing/docs/how-to/billing-access`>).
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `cloudbilling_billing_accounts_sub_accounts_list_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `cloudbilling_billing_accounts_sub_accounts_list_task()`.
+/// For the simplest API, use `cloudbilling_billing_accounts_sub_accounts_list()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `cloudbilling_billing_accounts_sub_accounts_list_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn cloudbilling_billing_accounts_sub_accounts_list_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<
+            D = Result<ApiResponse<ListBillingAccountsResponse>, ApiError>,
+            P = ApiPending,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    let task = cloudbilling_billing_accounts_sub_accounts_list_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`cloudbilling_billing_accounts_sub_accounts_list`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct CloudbillingBillingAccountsSubAccountsListArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Query parameter: filter
+    pub filter: Option<Option<String>>,
+    /// Query parameter: pageSize
+    pub pageSize: Option<Option<String>>,
+    /// Query parameter: pageToken
+    pub pageToken: Option<Option<String>>,
+}
+
+/// GET v1/billingAccounts/{billingAccountsId}/subAccounts
+/// Lists the billing accounts that the current authenticated user has permission to [view](<https://cloud.google.`com/billing/docs/how-to/billing-access`>).
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `cloudbilling_billing_accounts_sub_accounts_list_builder()` + `cloudbilling_billing_accounts_sub_accounts_list_execute()`.
+/// For task-level control, use `cloudbilling_billing_accounts_sub_accounts_list_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn cloudbilling_billing_accounts_sub_accounts_list(
+    client: &SimpleHttpClient,
+    args: &CloudbillingBillingAccountsSubAccountsListArgs,
+) -> Result<
+    impl StreamIterator<
+            D = Result<ApiResponse<ListBillingAccountsResponse>, ApiError>,
+            P = ApiPending,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    let builder = cloudbilling_billing_accounts_sub_accounts_list_builder(
+        client,
+        &args.parent,
+        &args.filter,
+        &args.pageSize,
+        &args.pageToken,
+    )?;
+    cloudbilling_billing_accounts_sub_accounts_list_execute(builder)
+}
+
+/// POST v1/organizations/{organizationsId}/billingAccounts
 /// This method creates [billing subaccounts](<https://cloud.google.`com/billing/docs/concepts`#subaccounts>). Google Cloud resellers should use the Channel Services APIs, [accounts.customers.create](<https://cloud.google.`com/channel/docs/reference/rest/v1/accounts`.`customers/create`>) and [accounts.customers.entitlements.create](<https://cloud.google.`com/channel/docs/reference/rest/v1/accounts`.customers.`entitlements/create`>). When creating a subaccount, the current authenticated user must have the billing.accounts.update IAM permission on the parent account, which is typically given to billing account [administrators](<https://cloud.google.`com/billing/docs/how-to/billing-access`>). This method will return an error if the parent account has not been provisioned for subaccounts.
 ///
 /// Returns `ClientRequestBuilder` for customization.
@@ -1386,23 +1939,22 @@ pub fn cloudbilling_billing_accounts_sub_accounts_create(
 pub fn cloudbilling_organizations_billing_accounts_create_builder(
     client: &SimpleHttpClient,
     parent: &String,
-    body: &BillingAccount,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
-    let endpoint_url =
-        format!("https://cloudbilling.googleapis.com/v1/organizations/{}/billingAccounts",);
+    let endpoint_url = format!(
+        "https://cloudbilling.googleapis.com/v1/organizations/{}/billingAccounts",
+        parent,
+    );
 
     // Build request
     let builder = client
-        .get(&endpoint_url)
+        .post(&endpoint_url)
         .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
 
-    builder
-        .body_json(body)
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+    Ok(builder)
 }
 
-/// GET v1/organizations/{organizationsId}/billingAccounts
+/// POST v1/organizations/{organizationsId}/billingAccounts
 /// This method creates [billing subaccounts](<https://cloud.google.`com/billing/docs/concepts`#subaccounts>). Google Cloud resellers should use the Channel Services APIs, [accounts.customers.create](<https://cloud.google.`com/channel/docs/reference/rest/v1/accounts`.`customers/create`>) and [accounts.customers.entitlements.create](<https://cloud.google.`com/channel/docs/reference/rest/v1/accounts`.customers.`entitlements/create`>). When creating a subaccount, the current authenticated user must have the billing.accounts.update IAM permission on the parent account, which is typically given to billing account [administrators](<https://cloud.google.`com/billing/docs/how-to/billing-access`>). This method will return an error if the parent account has not been provisioned for subaccounts.
 ///
 /// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
@@ -1476,7 +2028,7 @@ pub fn cloudbilling_organizations_billing_accounts_create_task(
         .map_pending(|_| ApiPending::Sending))
 }
 
-/// GET v1/organizations/{organizationsId}/billingAccounts
+/// POST v1/organizations/{organizationsId}/billingAccounts
 /// This method creates [billing subaccounts](<https://cloud.google.`com/billing/docs/concepts`#subaccounts>). Google Cloud resellers should use the Channel Services APIs, [accounts.customers.create](<https://cloud.google.`com/channel/docs/reference/rest/v1/accounts`.`customers/create`>) and [accounts.customers.entitlements.create](<https://cloud.google.`com/channel/docs/reference/rest/v1/accounts`.customers.`entitlements/create`>). When creating a subaccount, the current authenticated user must have the billing.accounts.update IAM permission on the parent account, which is typically given to billing account [administrators](<https://cloud.google.`com/billing/docs/how-to/billing-access`>). This method will return an error if the parent account has not been provisioned for subaccounts.
 ///
 /// Takes a `ClientRequestBuilder`, builds and executes the request,
@@ -1513,11 +2065,9 @@ pub fn cloudbilling_organizations_billing_accounts_create_execute(
 pub struct CloudbillingOrganizationsBillingAccountsCreateArgs {
     /// Path parameter: parent
     pub parent: String,
-    /// Request body.
-    pub body: BillingAccount,
 }
 
-/// GET v1/organizations/{organizationsId}/billingAccounts
+/// POST v1/organizations/{organizationsId}/billingAccounts
 /// This method creates [billing subaccounts](<https://cloud.google.`com/billing/docs/concepts`#subaccounts>). Google Cloud resellers should use the Channel Services APIs, [accounts.customers.create](<https://cloud.google.`com/channel/docs/reference/rest/v1/accounts`.`customers/create`>) and [accounts.customers.entitlements.create](<https://cloud.google.`com/channel/docs/reference/rest/v1/accounts`.customers.`entitlements/create`>). When creating a subaccount, the current authenticated user must have the billing.accounts.update IAM permission on the parent account, which is typically given to billing account [administrators](<https://cloud.google.`com/billing/docs/how-to/billing-access`>). This method will return an error if the parent account has not been provisioned for subaccounts.
 ///
 /// Simplest API - builds and executes the request in one call.
@@ -1537,12 +2087,205 @@ pub fn cloudbilling_organizations_billing_accounts_create(
         + 'static,
     ApiError,
 > {
-    let builder = cloudbilling_organizations_billing_accounts_create_builder(
+    let builder = cloudbilling_organizations_billing_accounts_create_builder(client, &args.parent)?;
+    cloudbilling_organizations_billing_accounts_create_execute(builder)
+}
+
+/// GET v1/organizations/{organizationsId}/billingAccounts
+/// Lists the billing accounts that the current authenticated user has permission to [view](<https://cloud.google.`com/billing/docs/how-to/billing-access`>).
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `cloudbilling_organizations_billing_accounts_list_execute()` to send, or `cloudbilling_organizations_billing_accounts_list` for simplest API.
+
+pub fn cloudbilling_organizations_billing_accounts_list_builder(
+    client: &SimpleHttpClient,
+    parent: &String,
+    filter: &Option<Option<String>>,
+    pageSize: &Option<Option<String>>,
+    pageToken: &Option<Option<String>>,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!(
+        "https://cloudbilling.googleapis.com/v1/organizations/{}/billingAccounts",
+        parent,
+    );
+
+    // Build request
+    let mut query_parts = Vec::new();
+    if let Some(val) = filter.as_ref() {
+        query_parts.push(format!("filter={}", val));
+    }
+    if let Some(val) = pageSize.as_ref() {
+        query_parts.push(format!("pageSize={}", val));
+    }
+    if let Some(val) = pageToken.as_ref() {
+        query_parts.push(format!("pageToken={}", val));
+    }
+
+    let url_with_query = if query_parts.is_empty() {
+        endpoint_url
+    } else {
+        format!("{}?{}", endpoint_url, query_parts.join("&"))
+    };
+
+    let builder = client
+        .get(&url_with_query)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// GET v1/organizations/{organizationsId}/billingAccounts
+/// Lists the billing accounts that the current authenticated user has permission to [view](<https://cloud.google.`com/billing/docs/how-to/billing-access`>).
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `cloudbilling_organizations_billing_accounts_list_execute()` or `cloudbilling_organizations_billing_accounts_list`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `cloudbilling_organizations_billing_accounts_list_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn cloudbilling_organizations_billing_accounts_list_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<ListBillingAccountsResponse>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: ListBillingAccountsResponse = serde_json::from_str(&body)
+                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// GET v1/organizations/{organizationsId}/billingAccounts
+/// Lists the billing accounts that the current authenticated user has permission to [view](<https://cloud.google.`com/billing/docs/how-to/billing-access`>).
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `cloudbilling_organizations_billing_accounts_list_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `cloudbilling_organizations_billing_accounts_list_task()`.
+/// For the simplest API, use `cloudbilling_organizations_billing_accounts_list()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `cloudbilling_organizations_billing_accounts_list_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn cloudbilling_organizations_billing_accounts_list_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<
+            D = Result<ApiResponse<ListBillingAccountsResponse>, ApiError>,
+            P = ApiPending,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    let task = cloudbilling_organizations_billing_accounts_list_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`cloudbilling_organizations_billing_accounts_list`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct CloudbillingOrganizationsBillingAccountsListArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Query parameter: filter
+    pub filter: Option<Option<String>>,
+    /// Query parameter: pageSize
+    pub pageSize: Option<Option<String>>,
+    /// Query parameter: pageToken
+    pub pageToken: Option<Option<String>>,
+}
+
+/// GET v1/organizations/{organizationsId}/billingAccounts
+/// Lists the billing accounts that the current authenticated user has permission to [view](<https://cloud.google.`com/billing/docs/how-to/billing-access`>).
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `cloudbilling_organizations_billing_accounts_list_builder()` + `cloudbilling_organizations_billing_accounts_list_execute()`.
+/// For task-level control, use `cloudbilling_organizations_billing_accounts_list_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn cloudbilling_organizations_billing_accounts_list(
+    client: &SimpleHttpClient,
+    args: &CloudbillingOrganizationsBillingAccountsListArgs,
+) -> Result<
+    impl StreamIterator<
+            D = Result<ApiResponse<ListBillingAccountsResponse>, ApiError>,
+            P = ApiPending,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    let builder = cloudbilling_organizations_billing_accounts_list_builder(
         client,
         &args.parent,
-        &args.body,
+        &args.filter,
+        &args.pageSize,
+        &args.pageToken,
     )?;
-    cloudbilling_organizations_billing_accounts_create_execute(builder)
+    cloudbilling_organizations_billing_accounts_list_execute(builder)
 }
 
 /// GET v1/organizations/{organizationsId}/billingAccounts/{billingAccountsId}:move
@@ -1557,8 +2300,10 @@ pub fn cloudbilling_organizations_billing_accounts_move_builder(
     name: &String,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
-    let endpoint_url =
-        format!("https://cloudbilling.googleapis.com/v1/organizations/{}/billingAccounts/{}:move",);
+    let endpoint_url = format!(
+        "https://cloudbilling.googleapis.com/v1/organizations/{}/billingAccounts/{}:move",
+        destinationParent, name,
+    );
 
     // Build request
     let builder = client
@@ -1722,7 +2467,10 @@ pub fn cloudbilling_projects_get_billing_info_builder(
     name: &String,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
-    let endpoint_url = format!("https://cloudbilling.googleapis.com/v1/projects/{}/billingInfo",);
+    let endpoint_url = format!(
+        "https://cloudbilling.googleapis.com/v1/projects/{}/billingInfo",
+        name,
+    );
 
     // Build request
     let builder = client
@@ -1869,6 +2617,167 @@ pub fn cloudbilling_projects_get_billing_info(
     cloudbilling_projects_get_billing_info_execute(builder)
 }
 
+/// PUT v1/projects/{projectsId}/billingInfo
+/// Sets or updates the billing account associated with a project. You specify the new billing account by setting the billing_account_name in the ProjectBillingInfo resource to the resource name of a billing account. Associating a project with an open billing account enables billing on the project and allows charges for resource usage. If the project already had a billing account, this method changes the billing account used for resource usage charges. *Note:* Incurred charges that have not yet been reported in the transaction history of the Google Cloud Console might be billed to the new billing account, even if the charge occurred before the new billing account was assigned to the project. The current authenticated user must have ownership privileges for both the [project](<https://cloud.google.`com/docs/permissions-overview`#h.bgs0oxofvnoo> ) and the [billing account](<https://cloud.google.`com/billing/docs/how-to/billing-access`>). You can disable billing on the project by setting the billing_account_name field to empty. This action disassociates the current billing account from the project. Any billable activity of your in-use services will stop, and your application could stop functioning as expected. Any unbilled charges to date will be billed to the previously associated account. The current authenticated user must be either an owner of the project or an owner of the billing account for the project. Note that associating a project with a *closed* billing account will have much the same effect as disabling billing on the project: any paid resources used by the project will be shut down. Thus, unless you wish to disable billing, you should always call this method with the name of an *open* billing account.
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `cloudbilling_projects_update_billing_info_execute()` to send, or `cloudbilling_projects_update_billing_info` for simplest API.
+
+pub fn cloudbilling_projects_update_billing_info_builder(
+    client: &SimpleHttpClient,
+    name: &String,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!(
+        "https://cloudbilling.googleapis.com/v1/projects/{}/billingInfo",
+        name,
+    );
+
+    // Build request
+    let builder = client
+        .put(&endpoint_url)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// PUT v1/projects/{projectsId}/billingInfo
+/// Sets or updates the billing account associated with a project. You specify the new billing account by setting the billing_account_name in the ProjectBillingInfo resource to the resource name of a billing account. Associating a project with an open billing account enables billing on the project and allows charges for resource usage. If the project already had a billing account, this method changes the billing account used for resource usage charges. *Note:* Incurred charges that have not yet been reported in the transaction history of the Google Cloud Console might be billed to the new billing account, even if the charge occurred before the new billing account was assigned to the project. The current authenticated user must have ownership privileges for both the [project](<https://cloud.google.`com/docs/permissions-overview`#h.bgs0oxofvnoo> ) and the [billing account](<https://cloud.google.`com/billing/docs/how-to/billing-access`>). You can disable billing on the project by setting the billing_account_name field to empty. This action disassociates the current billing account from the project. Any billable activity of your in-use services will stop, and your application could stop functioning as expected. Any unbilled charges to date will be billed to the previously associated account. The current authenticated user must be either an owner of the project or an owner of the billing account for the project. Note that associating a project with a *closed* billing account will have much the same effect as disabling billing on the project: any paid resources used by the project will be shut down. Thus, unless you wish to disable billing, you should always call this method with the name of an *open* billing account.
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `cloudbilling_projects_update_billing_info_execute()` or `cloudbilling_projects_update_billing_info`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `cloudbilling_projects_update_billing_info_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn cloudbilling_projects_update_billing_info_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<ProjectBillingInfo>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: ProjectBillingInfo = serde_json::from_str(&body)
+                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// PUT v1/projects/{projectsId}/billingInfo
+/// Sets or updates the billing account associated with a project. You specify the new billing account by setting the billing_account_name in the ProjectBillingInfo resource to the resource name of a billing account. Associating a project with an open billing account enables billing on the project and allows charges for resource usage. If the project already had a billing account, this method changes the billing account used for resource usage charges. *Note:* Incurred charges that have not yet been reported in the transaction history of the Google Cloud Console might be billed to the new billing account, even if the charge occurred before the new billing account was assigned to the project. The current authenticated user must have ownership privileges for both the [project](<https://cloud.google.`com/docs/permissions-overview`#h.bgs0oxofvnoo> ) and the [billing account](<https://cloud.google.`com/billing/docs/how-to/billing-access`>). You can disable billing on the project by setting the billing_account_name field to empty. This action disassociates the current billing account from the project. Any billable activity of your in-use services will stop, and your application could stop functioning as expected. Any unbilled charges to date will be billed to the previously associated account. The current authenticated user must be either an owner of the project or an owner of the billing account for the project. Note that associating a project with a *closed* billing account will have much the same effect as disabling billing on the project: any paid resources used by the project will be shut down. Thus, unless you wish to disable billing, you should always call this method with the name of an *open* billing account.
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `cloudbilling_projects_update_billing_info_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `cloudbilling_projects_update_billing_info_task()`.
+/// For the simplest API, use `cloudbilling_projects_update_billing_info()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `cloudbilling_projects_update_billing_info_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn cloudbilling_projects_update_billing_info_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<ProjectBillingInfo>, ApiError>, P = ApiPending>
+        + Send
+        + 'static,
+    ApiError,
+> {
+    let task = cloudbilling_projects_update_billing_info_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`cloudbilling_projects_update_billing_info`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct CloudbillingProjectsUpdateBillingInfoArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
+/// PUT v1/projects/{projectsId}/billingInfo
+/// Sets or updates the billing account associated with a project. You specify the new billing account by setting the billing_account_name in the ProjectBillingInfo resource to the resource name of a billing account. Associating a project with an open billing account enables billing on the project and allows charges for resource usage. If the project already had a billing account, this method changes the billing account used for resource usage charges. *Note:* Incurred charges that have not yet been reported in the transaction history of the Google Cloud Console might be billed to the new billing account, even if the charge occurred before the new billing account was assigned to the project. The current authenticated user must have ownership privileges for both the [project](<https://cloud.google.`com/docs/permissions-overview`#h.bgs0oxofvnoo> ) and the [billing account](<https://cloud.google.`com/billing/docs/how-to/billing-access`>). You can disable billing on the project by setting the billing_account_name field to empty. This action disassociates the current billing account from the project. Any billable activity of your in-use services will stop, and your application could stop functioning as expected. Any unbilled charges to date will be billed to the previously associated account. The current authenticated user must be either an owner of the project or an owner of the billing account for the project. Note that associating a project with a *closed* billing account will have much the same effect as disabling billing on the project: any paid resources used by the project will be shut down. Thus, unless you wish to disable billing, you should always call this method with the name of an *open* billing account.
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `cloudbilling_projects_update_billing_info_builder()` + `cloudbilling_projects_update_billing_info_execute()`.
+/// For task-level control, use `cloudbilling_projects_update_billing_info_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn cloudbilling_projects_update_billing_info(
+    client: &SimpleHttpClient,
+    args: &CloudbillingProjectsUpdateBillingInfoArgs,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<ProjectBillingInfo>, ApiError>, P = ApiPending>
+        + Send
+        + 'static,
+    ApiError,
+> {
+    let builder = cloudbilling_projects_update_billing_info_builder(client, &args.name)?;
+    cloudbilling_projects_update_billing_info_execute(builder)
+}
+
 /// GET v1/services
 /// Lists all public cloud services.
 ///
@@ -1877,8 +2786,8 @@ pub fn cloudbilling_projects_get_billing_info(
 
 pub fn cloudbilling_services_list_builder(
     client: &SimpleHttpClient,
-    pageSize: &Option<i32>,
-    pageToken: &Option<String>,
+    pageSize: &Option<Option<String>>,
+    pageToken: &Option<Option<String>>,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!("https://cloudbilling.googleapis.com/v1/services",);
@@ -2015,9 +2924,9 @@ pub fn cloudbilling_services_list_execute(
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct CloudbillingServicesListArgs {
     /// Query parameter: pageSize
-    pub pageSize: Option<i32>,
+    pub pageSize: Option<Option<String>>,
     /// Query parameter: pageToken
-    pub pageToken: Option<String>,
+    pub pageToken: Option<Option<String>>,
 }
 
 /// GET v1/services
@@ -2053,14 +2962,17 @@ pub fn cloudbilling_services_list(
 pub fn cloudbilling_services_skus_list_builder(
     client: &SimpleHttpClient,
     parent: &String,
-    currencyCode: &Option<String>,
-    endTime: &Option<String>,
-    pageSize: &Option<i32>,
-    pageToken: &Option<String>,
-    startTime: &Option<String>,
+    currencyCode: &Option<Option<String>>,
+    endTime: &Option<Option<String>>,
+    pageSize: &Option<Option<String>>,
+    pageToken: &Option<Option<String>>,
+    startTime: &Option<Option<String>>,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
-    let endpoint_url = format!("https://cloudbilling.googleapis.com/v1/services/{}/skus",);
+    let endpoint_url = format!(
+        "https://cloudbilling.googleapis.com/v1/services/{}/skus",
+        parent,
+    );
 
     // Build request
     let mut query_parts = Vec::new();
@@ -2205,15 +3117,15 @@ pub struct CloudbillingServicesSkusListArgs {
     /// Path parameter: parent
     pub parent: String,
     /// Query parameter: currencyCode
-    pub currencyCode: Option<String>,
+    pub currencyCode: Option<Option<String>>,
     /// Query parameter: endTime
-    pub endTime: Option<String>,
+    pub endTime: Option<Option<String>>,
     /// Query parameter: pageSize
-    pub pageSize: Option<i32>,
+    pub pageSize: Option<Option<String>>,
     /// Query parameter: pageToken
-    pub pageToken: Option<String>,
+    pub pageToken: Option<Option<String>>,
     /// Query parameter: startTime
-    pub startTime: Option<String>,
+    pub startTime: Option<Option<String>>,
 }
 
 /// GET v1/services/{servicesId}/skus
@@ -2246,4 +3158,459 @@ pub fn cloudbilling_services_skus_list(
         &args.startTime,
     )?;
     cloudbilling_services_skus_list_execute(builder)
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for BillingAccount
+// =============================================================================
+
+/// ResourceIdentifier implementation for BillingAccount with CloudbillingBillingAccountsCreateArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<CloudbillingBillingAccountsCreateArgs> for BillingAccount {
+    fn generate_resource_id(&self, input: &CloudbillingBillingAccountsCreateArgs) -> String {
+        "gcp::cloudbilling::BillingAccount".to_string()
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::cloudbilling::BillingAccount"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for BillingAccount
+// =============================================================================
+
+/// ResourceIdentifier implementation for BillingAccount with CloudbillingBillingAccountsGetArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<CloudbillingBillingAccountsGetArgs> for BillingAccount {
+    fn generate_resource_id(&self, input: &CloudbillingBillingAccountsGetArgs) -> String {
+        format!("gcp::cloudbilling::BillingAccount/{}", input.name)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::cloudbilling::BillingAccount"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for Policy
+// =============================================================================
+
+/// ResourceIdentifier implementation for Policy with CloudbillingBillingAccountsGetIamPolicyArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<CloudbillingBillingAccountsGetIamPolicyArgs> for Policy {
+    fn generate_resource_id(&self, input: &CloudbillingBillingAccountsGetIamPolicyArgs) -> String {
+        format!("gcp::cloudbilling::Policy/{}", input.resource)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::cloudbilling::Policy"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for ListBillingAccountsResponse
+// =============================================================================
+
+/// ResourceIdentifier implementation for ListBillingAccountsResponse with CloudbillingBillingAccountsListArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<CloudbillingBillingAccountsListArgs> for ListBillingAccountsResponse {
+    fn generate_resource_id(&self, input: &CloudbillingBillingAccountsListArgs) -> String {
+        "gcp::cloudbilling::ListBillingAccountsResponse".to_string()
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::cloudbilling::ListBillingAccountsResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for BillingAccount
+// =============================================================================
+
+/// ResourceIdentifier implementation for BillingAccount with CloudbillingBillingAccountsMoveArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<CloudbillingBillingAccountsMoveArgs> for BillingAccount {
+    fn generate_resource_id(&self, input: &CloudbillingBillingAccountsMoveArgs) -> String {
+        format!("gcp::cloudbilling::BillingAccount/{}", input.name)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::cloudbilling::BillingAccount"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for BillingAccount
+// =============================================================================
+
+/// ResourceIdentifier implementation for BillingAccount with CloudbillingBillingAccountsPatchArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<CloudbillingBillingAccountsPatchArgs> for BillingAccount {
+    fn generate_resource_id(&self, input: &CloudbillingBillingAccountsPatchArgs) -> String {
+        format!("gcp::cloudbilling::BillingAccount/{}", input.name)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::cloudbilling::BillingAccount"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for Policy
+// =============================================================================
+
+/// ResourceIdentifier implementation for Policy with CloudbillingBillingAccountsSetIamPolicyArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<CloudbillingBillingAccountsSetIamPolicyArgs> for Policy {
+    fn generate_resource_id(&self, input: &CloudbillingBillingAccountsSetIamPolicyArgs) -> String {
+        format!("gcp::cloudbilling::Policy/{}", input.resource)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::cloudbilling::Policy"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for TestIamPermissionsResponse
+// =============================================================================
+
+/// ResourceIdentifier implementation for TestIamPermissionsResponse with CloudbillingBillingAccountsTestIamPermissionsArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<CloudbillingBillingAccountsTestIamPermissionsArgs>
+    for TestIamPermissionsResponse
+{
+    fn generate_resource_id(
+        &self,
+        input: &CloudbillingBillingAccountsTestIamPermissionsArgs,
+    ) -> String {
+        format!(
+            "gcp::cloudbilling::TestIamPermissionsResponse/{}",
+            input.resource
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::cloudbilling::TestIamPermissionsResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for ListProjectBillingInfoResponse
+// =============================================================================
+
+/// ResourceIdentifier implementation for ListProjectBillingInfoResponse with CloudbillingBillingAccountsProjectsListArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<CloudbillingBillingAccountsProjectsListArgs>
+    for ListProjectBillingInfoResponse
+{
+    fn generate_resource_id(&self, input: &CloudbillingBillingAccountsProjectsListArgs) -> String {
+        format!(
+            "gcp::cloudbilling::ListProjectBillingInfoResponse/{}",
+            input.name
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::cloudbilling::ListProjectBillingInfoResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for BillingAccount
+// =============================================================================
+
+/// ResourceIdentifier implementation for BillingAccount with CloudbillingBillingAccountsSubAccountsCreateArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<CloudbillingBillingAccountsSubAccountsCreateArgs> for BillingAccount {
+    fn generate_resource_id(
+        &self,
+        input: &CloudbillingBillingAccountsSubAccountsCreateArgs,
+    ) -> String {
+        format!("gcp::cloudbilling::BillingAccount/{}", input.parent)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::cloudbilling::BillingAccount"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for ListBillingAccountsResponse
+// =============================================================================
+
+/// ResourceIdentifier implementation for ListBillingAccountsResponse with CloudbillingBillingAccountsSubAccountsListArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<CloudbillingBillingAccountsSubAccountsListArgs>
+    for ListBillingAccountsResponse
+{
+    fn generate_resource_id(
+        &self,
+        input: &CloudbillingBillingAccountsSubAccountsListArgs,
+    ) -> String {
+        format!(
+            "gcp::cloudbilling::ListBillingAccountsResponse/{}",
+            input.parent
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::cloudbilling::ListBillingAccountsResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for BillingAccount
+// =============================================================================
+
+/// ResourceIdentifier implementation for BillingAccount with CloudbillingOrganizationsBillingAccountsCreateArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<CloudbillingOrganizationsBillingAccountsCreateArgs> for BillingAccount {
+    fn generate_resource_id(
+        &self,
+        input: &CloudbillingOrganizationsBillingAccountsCreateArgs,
+    ) -> String {
+        format!("gcp::cloudbilling::BillingAccount/{}", input.parent)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::cloudbilling::BillingAccount"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for ListBillingAccountsResponse
+// =============================================================================
+
+/// ResourceIdentifier implementation for ListBillingAccountsResponse with CloudbillingOrganizationsBillingAccountsListArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<CloudbillingOrganizationsBillingAccountsListArgs>
+    for ListBillingAccountsResponse
+{
+    fn generate_resource_id(
+        &self,
+        input: &CloudbillingOrganizationsBillingAccountsListArgs,
+    ) -> String {
+        format!(
+            "gcp::cloudbilling::ListBillingAccountsResponse/{}",
+            input.parent
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::cloudbilling::ListBillingAccountsResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for BillingAccount
+// =============================================================================
+
+/// ResourceIdentifier implementation for BillingAccount with CloudbillingOrganizationsBillingAccountsMoveArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<CloudbillingOrganizationsBillingAccountsMoveArgs> for BillingAccount {
+    fn generate_resource_id(
+        &self,
+        input: &CloudbillingOrganizationsBillingAccountsMoveArgs,
+    ) -> String {
+        format!(
+            "gcp::cloudbilling::BillingAccount/{}/{}",
+            input.destinationParent, input.name
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::cloudbilling::BillingAccount"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for ProjectBillingInfo
+// =============================================================================
+
+/// ResourceIdentifier implementation for ProjectBillingInfo with CloudbillingProjectsGetBillingInfoArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<CloudbillingProjectsGetBillingInfoArgs> for ProjectBillingInfo {
+    fn generate_resource_id(&self, input: &CloudbillingProjectsGetBillingInfoArgs) -> String {
+        format!("gcp::cloudbilling::ProjectBillingInfo/{}", input.name)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::cloudbilling::ProjectBillingInfo"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for ProjectBillingInfo
+// =============================================================================
+
+/// ResourceIdentifier implementation for ProjectBillingInfo with CloudbillingProjectsUpdateBillingInfoArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<CloudbillingProjectsUpdateBillingInfoArgs> for ProjectBillingInfo {
+    fn generate_resource_id(&self, input: &CloudbillingProjectsUpdateBillingInfoArgs) -> String {
+        format!("gcp::cloudbilling::ProjectBillingInfo/{}", input.name)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::cloudbilling::ProjectBillingInfo"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for ListServicesResponse
+// =============================================================================
+
+/// ResourceIdentifier implementation for ListServicesResponse with CloudbillingServicesListArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<CloudbillingServicesListArgs> for ListServicesResponse {
+    fn generate_resource_id(&self, input: &CloudbillingServicesListArgs) -> String {
+        "gcp::cloudbilling::ListServicesResponse".to_string()
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::cloudbilling::ListServicesResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for ListSkusResponse
+// =============================================================================
+
+/// ResourceIdentifier implementation for ListSkusResponse with CloudbillingServicesSkusListArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<CloudbillingServicesSkusListArgs> for ListSkusResponse {
+    fn generate_resource_id(&self, input: &CloudbillingServicesSkusListArgs) -> String {
+        format!("gcp::cloudbilling::ListSkusResponse/{}", input.parent)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::cloudbilling::ListSkusResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
 }

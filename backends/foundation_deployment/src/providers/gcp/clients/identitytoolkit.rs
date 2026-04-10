@@ -7,7 +7,6 @@
 
 #![cfg(feature = "gcp")]
 
-
 use crate::providers::gcp::clients::types::*;
 use crate::providers::gcp::resources::*;
 use foundation_core::valtron::{
@@ -17,10 +16,11 @@ use foundation_core::valtron::{
 use foundation_core::wire::simple_http::client::{
     body_reader, ClientRequestBuilder, RequestIntro, SimpleHttpClient, SystemDnsResolver,
 };
+use foundation_db::state::resource_identifier::ResourceIdentifier;
 use foundation_macros::JsonHash;
 use serde::Serialize;
 
-/// GET createAuthUri
+/// POST createAuthUri
 /// Creates the URI used by the IdP to authenticate the user.
 ///
 /// Returns `ClientRequestBuilder` for customization.
@@ -28,7 +28,6 @@ use serde::Serialize;
 
 pub fn identitytoolkit_relyingparty_create_auth_uri_builder(
     client: &SimpleHttpClient,
-    body: &IdentitytoolkitRelyingpartyCreateAuthUriRequest,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url =
@@ -36,15 +35,13 @@ pub fn identitytoolkit_relyingparty_create_auth_uri_builder(
 
     // Build request
     let builder = client
-        .get(&endpoint_url)
+        .post(&endpoint_url)
         .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
 
-    builder
-        .body_json(body)
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+    Ok(builder)
 }
 
-/// GET createAuthUri
+/// POST createAuthUri
 /// Creates the URI used by the IdP to authenticate the user.
 ///
 /// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
@@ -118,7 +115,7 @@ pub fn identitytoolkit_relyingparty_create_auth_uri_task(
         .map_pending(|_| ApiPending::Sending))
 }
 
-/// GET createAuthUri
+/// POST createAuthUri
 /// Creates the URI used by the IdP to authenticate the user.
 ///
 /// Takes a `ClientRequestBuilder`, builds and executes the request,
@@ -150,14 +147,7 @@ pub fn identitytoolkit_relyingparty_create_auth_uri_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
-/// Arguments for [`identitytoolkit_relyingparty_create_auth_uri`].
-#[derive(Debug, Clone, Serialize, JsonHash)]
-pub struct IdentitytoolkitRelyingpartyCreateAuthUriArgs {
-    /// Request body.
-    pub body: IdentitytoolkitRelyingpartyCreateAuthUriRequest,
-}
-
-/// GET createAuthUri
+/// POST createAuthUri
 /// Creates the URI used by the IdP to authenticate the user.
 ///
 /// Simplest API - builds and executes the request in one call.
@@ -170,18 +160,17 @@ pub struct IdentitytoolkitRelyingpartyCreateAuthUriArgs {
 
 pub fn identitytoolkit_relyingparty_create_auth_uri(
     client: &SimpleHttpClient,
-    args: &IdentitytoolkitRelyingpartyCreateAuthUriArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<CreateAuthUriResponse>, ApiError>, P = ApiPending>
         + Send
         + 'static,
     ApiError,
 > {
-    let builder = identitytoolkit_relyingparty_create_auth_uri_builder(client, &args.body)?;
+    let builder = identitytoolkit_relyingparty_create_auth_uri_builder(client)?;
     identitytoolkit_relyingparty_create_auth_uri_execute(builder)
 }
 
-/// GET deleteAccount
+/// POST deleteAccount
 /// Delete user account.
 ///
 /// Returns `ClientRequestBuilder` for customization.
@@ -189,7 +178,6 @@ pub fn identitytoolkit_relyingparty_create_auth_uri(
 
 pub fn identitytoolkit_relyingparty_delete_account_builder(
     client: &SimpleHttpClient,
-    body: &IdentitytoolkitRelyingpartyDeleteAccountRequest,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url =
@@ -197,15 +185,13 @@ pub fn identitytoolkit_relyingparty_delete_account_builder(
 
     // Build request
     let builder = client
-        .get(&endpoint_url)
+        .post(&endpoint_url)
         .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
 
-    builder
-        .body_json(body)
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+    Ok(builder)
 }
 
-/// GET deleteAccount
+/// POST deleteAccount
 /// Delete user account.
 ///
 /// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
@@ -279,7 +265,7 @@ pub fn identitytoolkit_relyingparty_delete_account_task(
         .map_pending(|_| ApiPending::Sending))
 }
 
-/// GET deleteAccount
+/// POST deleteAccount
 /// Delete user account.
 ///
 /// Takes a `ClientRequestBuilder`, builds and executes the request,
@@ -311,14 +297,7 @@ pub fn identitytoolkit_relyingparty_delete_account_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
-/// Arguments for [`identitytoolkit_relyingparty_delete_account`].
-#[derive(Debug, Clone, Serialize, JsonHash)]
-pub struct IdentitytoolkitRelyingpartyDeleteAccountArgs {
-    /// Request body.
-    pub body: IdentitytoolkitRelyingpartyDeleteAccountRequest,
-}
-
-/// GET deleteAccount
+/// POST deleteAccount
 /// Delete user account.
 ///
 /// Simplest API - builds and executes the request in one call.
@@ -331,18 +310,17 @@ pub struct IdentitytoolkitRelyingpartyDeleteAccountArgs {
 
 pub fn identitytoolkit_relyingparty_delete_account(
     client: &SimpleHttpClient,
-    args: &IdentitytoolkitRelyingpartyDeleteAccountArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<DeleteAccountResponse>, ApiError>, P = ApiPending>
         + Send
         + 'static,
     ApiError,
 > {
-    let builder = identitytoolkit_relyingparty_delete_account_builder(client, &args.body)?;
+    let builder = identitytoolkit_relyingparty_delete_account_builder(client)?;
     identitytoolkit_relyingparty_delete_account_execute(builder)
 }
 
-/// GET downloadAccount
+/// POST downloadAccount
 /// Batch download user accounts.
 ///
 /// Returns `ClientRequestBuilder` for customization.
@@ -350,7 +328,6 @@ pub fn identitytoolkit_relyingparty_delete_account(
 
 pub fn identitytoolkit_relyingparty_download_account_builder(
     client: &SimpleHttpClient,
-    body: &IdentitytoolkitRelyingpartyDownloadAccountRequest,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url =
@@ -358,15 +335,13 @@ pub fn identitytoolkit_relyingparty_download_account_builder(
 
     // Build request
     let builder = client
-        .get(&endpoint_url)
+        .post(&endpoint_url)
         .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
 
-    builder
-        .body_json(body)
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+    Ok(builder)
 }
 
-/// GET downloadAccount
+/// POST downloadAccount
 /// Batch download user accounts.
 ///
 /// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
@@ -440,7 +415,7 @@ pub fn identitytoolkit_relyingparty_download_account_task(
         .map_pending(|_| ApiPending::Sending))
 }
 
-/// GET downloadAccount
+/// POST downloadAccount
 /// Batch download user accounts.
 ///
 /// Takes a `ClientRequestBuilder`, builds and executes the request,
@@ -472,14 +447,7 @@ pub fn identitytoolkit_relyingparty_download_account_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
-/// Arguments for [`identitytoolkit_relyingparty_download_account`].
-#[derive(Debug, Clone, Serialize, JsonHash)]
-pub struct IdentitytoolkitRelyingpartyDownloadAccountArgs {
-    /// Request body.
-    pub body: IdentitytoolkitRelyingpartyDownloadAccountRequest,
-}
-
-/// GET downloadAccount
+/// POST downloadAccount
 /// Batch download user accounts.
 ///
 /// Simplest API - builds and executes the request in one call.
@@ -492,18 +460,17 @@ pub struct IdentitytoolkitRelyingpartyDownloadAccountArgs {
 
 pub fn identitytoolkit_relyingparty_download_account(
     client: &SimpleHttpClient,
-    args: &IdentitytoolkitRelyingpartyDownloadAccountArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<DownloadAccountResponse>, ApiError>, P = ApiPending>
         + Send
         + 'static,
     ApiError,
 > {
-    let builder = identitytoolkit_relyingparty_download_account_builder(client, &args.body)?;
+    let builder = identitytoolkit_relyingparty_download_account_builder(client)?;
     identitytoolkit_relyingparty_download_account_execute(builder)
 }
 
-/// GET emailLinkSignin
+/// POST emailLinkSignin
 /// Reset password for a user.
 ///
 /// Returns `ClientRequestBuilder` for customization.
@@ -511,7 +478,6 @@ pub fn identitytoolkit_relyingparty_download_account(
 
 pub fn identitytoolkit_relyingparty_email_link_signin_builder(
     client: &SimpleHttpClient,
-    body: &IdentitytoolkitRelyingpartyEmailLinkSigninRequest,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url =
@@ -519,15 +485,13 @@ pub fn identitytoolkit_relyingparty_email_link_signin_builder(
 
     // Build request
     let builder = client
-        .get(&endpoint_url)
+        .post(&endpoint_url)
         .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
 
-    builder
-        .body_json(body)
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+    Ok(builder)
 }
 
-/// GET emailLinkSignin
+/// POST emailLinkSignin
 /// Reset password for a user.
 ///
 /// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
@@ -601,7 +565,7 @@ pub fn identitytoolkit_relyingparty_email_link_signin_task(
         .map_pending(|_| ApiPending::Sending))
 }
 
-/// GET emailLinkSignin
+/// POST emailLinkSignin
 /// Reset password for a user.
 ///
 /// Takes a `ClientRequestBuilder`, builds and executes the request,
@@ -633,14 +597,7 @@ pub fn identitytoolkit_relyingparty_email_link_signin_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
-/// Arguments for [`identitytoolkit_relyingparty_email_link_signin`].
-#[derive(Debug, Clone, Serialize, JsonHash)]
-pub struct IdentitytoolkitRelyingpartyEmailLinkSigninArgs {
-    /// Request body.
-    pub body: IdentitytoolkitRelyingpartyEmailLinkSigninRequest,
-}
-
-/// GET emailLinkSignin
+/// POST emailLinkSignin
 /// Reset password for a user.
 ///
 /// Simplest API - builds and executes the request in one call.
@@ -653,18 +610,17 @@ pub struct IdentitytoolkitRelyingpartyEmailLinkSigninArgs {
 
 pub fn identitytoolkit_relyingparty_email_link_signin(
     client: &SimpleHttpClient,
-    args: &IdentitytoolkitRelyingpartyEmailLinkSigninArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<EmailLinkSigninResponse>, ApiError>, P = ApiPending>
         + Send
         + 'static,
     ApiError,
 > {
-    let builder = identitytoolkit_relyingparty_email_link_signin_builder(client, &args.body)?;
+    let builder = identitytoolkit_relyingparty_email_link_signin_builder(client)?;
     identitytoolkit_relyingparty_email_link_signin_execute(builder)
 }
 
-/// GET getAccountInfo
+/// POST getAccountInfo
 /// Returns the account info.
 ///
 /// Returns `ClientRequestBuilder` for customization.
@@ -672,7 +628,6 @@ pub fn identitytoolkit_relyingparty_email_link_signin(
 
 pub fn identitytoolkit_relyingparty_get_account_info_builder(
     client: &SimpleHttpClient,
-    body: &IdentitytoolkitRelyingpartyGetAccountInfoRequest,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url =
@@ -680,15 +635,13 @@ pub fn identitytoolkit_relyingparty_get_account_info_builder(
 
     // Build request
     let builder = client
-        .get(&endpoint_url)
+        .post(&endpoint_url)
         .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
 
-    builder
-        .body_json(body)
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+    Ok(builder)
 }
 
-/// GET getAccountInfo
+/// POST getAccountInfo
 /// Returns the account info.
 ///
 /// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
@@ -762,7 +715,7 @@ pub fn identitytoolkit_relyingparty_get_account_info_task(
         .map_pending(|_| ApiPending::Sending))
 }
 
-/// GET getAccountInfo
+/// POST getAccountInfo
 /// Returns the account info.
 ///
 /// Takes a `ClientRequestBuilder`, builds and executes the request,
@@ -794,14 +747,7 @@ pub fn identitytoolkit_relyingparty_get_account_info_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
-/// Arguments for [`identitytoolkit_relyingparty_get_account_info`].
-#[derive(Debug, Clone, Serialize, JsonHash)]
-pub struct IdentitytoolkitRelyingpartyGetAccountInfoArgs {
-    /// Request body.
-    pub body: IdentitytoolkitRelyingpartyGetAccountInfoRequest,
-}
-
-/// GET getAccountInfo
+/// POST getAccountInfo
 /// Returns the account info.
 ///
 /// Simplest API - builds and executes the request in one call.
@@ -814,18 +760,17 @@ pub struct IdentitytoolkitRelyingpartyGetAccountInfoArgs {
 
 pub fn identitytoolkit_relyingparty_get_account_info(
     client: &SimpleHttpClient,
-    args: &IdentitytoolkitRelyingpartyGetAccountInfoArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<GetAccountInfoResponse>, ApiError>, P = ApiPending>
         + Send
         + 'static,
     ApiError,
 > {
-    let builder = identitytoolkit_relyingparty_get_account_info_builder(client, &args.body)?;
+    let builder = identitytoolkit_relyingparty_get_account_info_builder(client)?;
     identitytoolkit_relyingparty_get_account_info_execute(builder)
 }
 
-/// GET getOobConfirmationCode
+/// POST getOobConfirmationCode
 /// Get a code for user action confirmation.
 ///
 /// Returns `ClientRequestBuilder` for customization.
@@ -833,7 +778,6 @@ pub fn identitytoolkit_relyingparty_get_account_info(
 
 pub fn identitytoolkit_relyingparty_get_oob_confirmation_code_builder(
     client: &SimpleHttpClient,
-    body: &Relyingparty,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
@@ -842,15 +786,13 @@ pub fn identitytoolkit_relyingparty_get_oob_confirmation_code_builder(
 
     // Build request
     let builder = client
-        .get(&endpoint_url)
+        .post(&endpoint_url)
         .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
 
-    builder
-        .body_json(body)
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+    Ok(builder)
 }
 
-/// GET getOobConfirmationCode
+/// POST getOobConfirmationCode
 /// Get a code for user action confirmation.
 ///
 /// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
@@ -924,7 +866,7 @@ pub fn identitytoolkit_relyingparty_get_oob_confirmation_code_task(
         .map_pending(|_| ApiPending::Sending))
 }
 
-/// GET getOobConfirmationCode
+/// POST getOobConfirmationCode
 /// Get a code for user action confirmation.
 ///
 /// Takes a `ClientRequestBuilder`, builds and executes the request,
@@ -958,14 +900,7 @@ pub fn identitytoolkit_relyingparty_get_oob_confirmation_code_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
-/// Arguments for [`identitytoolkit_relyingparty_get_oob_confirmation_code`].
-#[derive(Debug, Clone, Serialize, JsonHash)]
-pub struct IdentitytoolkitRelyingpartyGetOobConfirmationCodeArgs {
-    /// Request body.
-    pub body: Relyingparty,
-}
-
-/// GET getOobConfirmationCode
+/// POST getOobConfirmationCode
 /// Get a code for user action confirmation.
 ///
 /// Simplest API - builds and executes the request in one call.
@@ -978,7 +913,6 @@ pub struct IdentitytoolkitRelyingpartyGetOobConfirmationCodeArgs {
 
 pub fn identitytoolkit_relyingparty_get_oob_confirmation_code(
     client: &SimpleHttpClient,
-    args: &IdentitytoolkitRelyingpartyGetOobConfirmationCodeArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<GetOobConfirmationCodeResponse>, ApiError>,
@@ -987,8 +921,7 @@ pub fn identitytoolkit_relyingparty_get_oob_confirmation_code(
         + 'static,
     ApiError,
 > {
-    let builder =
-        identitytoolkit_relyingparty_get_oob_confirmation_code_builder(client, &args.body)?;
+    let builder = identitytoolkit_relyingparty_get_oob_confirmation_code_builder(client)?;
     identitytoolkit_relyingparty_get_oob_confirmation_code_execute(builder)
 }
 
@@ -1000,8 +933,8 @@ pub fn identitytoolkit_relyingparty_get_oob_confirmation_code(
 
 pub fn identitytoolkit_relyingparty_get_project_config_builder(
     client: &SimpleHttpClient,
-    delegatedProjectNumber: &Option<String>,
-    projectNumber: &Option<String>,
+    delegatedProjectNumber: &Option<Option<String>>,
+    projectNumber: &Option<Option<String>>,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url =
@@ -1145,9 +1078,9 @@ pub fn identitytoolkit_relyingparty_get_project_config_execute(
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct IdentitytoolkitRelyingpartyGetProjectConfigArgs {
     /// Query parameter: delegatedProjectNumber
-    pub delegatedProjectNumber: Option<String>,
+    pub delegatedProjectNumber: Option<Option<String>>,
     /// Query parameter: projectNumber
-    pub projectNumber: Option<String>,
+    pub projectNumber: Option<Option<String>>,
 }
 
 /// GET getProjectConfig
@@ -1485,7 +1418,7 @@ pub fn identitytoolkit_relyingparty_get_recaptcha_param(
     identitytoolkit_relyingparty_get_recaptcha_param_execute(builder)
 }
 
-/// GET resetPassword
+/// POST resetPassword
 /// Reset password for a user.
 ///
 /// Returns `ClientRequestBuilder` for customization.
@@ -1493,7 +1426,6 @@ pub fn identitytoolkit_relyingparty_get_recaptcha_param(
 
 pub fn identitytoolkit_relyingparty_reset_password_builder(
     client: &SimpleHttpClient,
-    body: &IdentitytoolkitRelyingpartyResetPasswordRequest,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url =
@@ -1501,15 +1433,13 @@ pub fn identitytoolkit_relyingparty_reset_password_builder(
 
     // Build request
     let builder = client
-        .get(&endpoint_url)
+        .post(&endpoint_url)
         .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
 
-    builder
-        .body_json(body)
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+    Ok(builder)
 }
 
-/// GET resetPassword
+/// POST resetPassword
 /// Reset password for a user.
 ///
 /// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
@@ -1583,7 +1513,7 @@ pub fn identitytoolkit_relyingparty_reset_password_task(
         .map_pending(|_| ApiPending::Sending))
 }
 
-/// GET resetPassword
+/// POST resetPassword
 /// Reset password for a user.
 ///
 /// Takes a `ClientRequestBuilder`, builds and executes the request,
@@ -1615,14 +1545,7 @@ pub fn identitytoolkit_relyingparty_reset_password_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
-/// Arguments for [`identitytoolkit_relyingparty_reset_password`].
-#[derive(Debug, Clone, Serialize, JsonHash)]
-pub struct IdentitytoolkitRelyingpartyResetPasswordArgs {
-    /// Request body.
-    pub body: IdentitytoolkitRelyingpartyResetPasswordRequest,
-}
-
-/// GET resetPassword
+/// POST resetPassword
 /// Reset password for a user.
 ///
 /// Simplest API - builds and executes the request in one call.
@@ -1635,18 +1558,17 @@ pub struct IdentitytoolkitRelyingpartyResetPasswordArgs {
 
 pub fn identitytoolkit_relyingparty_reset_password(
     client: &SimpleHttpClient,
-    args: &IdentitytoolkitRelyingpartyResetPasswordArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<ResetPasswordResponse>, ApiError>, P = ApiPending>
         + Send
         + 'static,
     ApiError,
 > {
-    let builder = identitytoolkit_relyingparty_reset_password_builder(client, &args.body)?;
+    let builder = identitytoolkit_relyingparty_reset_password_builder(client)?;
     identitytoolkit_relyingparty_reset_password_execute(builder)
 }
 
-/// GET sendVerificationCode
+/// POST sendVerificationCode
 /// Send SMS verification code.
 ///
 /// Returns `ClientRequestBuilder` for customization.
@@ -1654,7 +1576,6 @@ pub fn identitytoolkit_relyingparty_reset_password(
 
 pub fn identitytoolkit_relyingparty_send_verification_code_builder(
     client: &SimpleHttpClient,
-    body: &IdentitytoolkitRelyingpartySendVerificationCodeRequest,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url =
@@ -1662,15 +1583,13 @@ pub fn identitytoolkit_relyingparty_send_verification_code_builder(
 
     // Build request
     let builder = client
-        .get(&endpoint_url)
+        .post(&endpoint_url)
         .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
 
-    builder
-        .body_json(body)
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+    Ok(builder)
 }
 
-/// GET sendVerificationCode
+/// POST sendVerificationCode
 /// Send SMS verification code.
 ///
 /// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
@@ -1748,7 +1667,7 @@ pub fn identitytoolkit_relyingparty_send_verification_code_task(
         .map_pending(|_| ApiPending::Sending))
 }
 
-/// GET sendVerificationCode
+/// POST sendVerificationCode
 /// Send SMS verification code.
 ///
 /// Takes a `ClientRequestBuilder`, builds and executes the request,
@@ -1785,14 +1704,7 @@ pub fn identitytoolkit_relyingparty_send_verification_code_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
-/// Arguments for [`identitytoolkit_relyingparty_send_verification_code`].
-#[derive(Debug, Clone, Serialize, JsonHash)]
-pub struct IdentitytoolkitRelyingpartySendVerificationCodeArgs {
-    /// Request body.
-    pub body: IdentitytoolkitRelyingpartySendVerificationCodeRequest,
-}
-
-/// GET sendVerificationCode
+/// POST sendVerificationCode
 /// Send SMS verification code.
 ///
 /// Simplest API - builds and executes the request in one call.
@@ -1805,7 +1717,6 @@ pub struct IdentitytoolkitRelyingpartySendVerificationCodeArgs {
 
 pub fn identitytoolkit_relyingparty_send_verification_code(
     client: &SimpleHttpClient,
-    args: &IdentitytoolkitRelyingpartySendVerificationCodeArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<
@@ -1817,11 +1728,11 @@ pub fn identitytoolkit_relyingparty_send_verification_code(
         + 'static,
     ApiError,
 > {
-    let builder = identitytoolkit_relyingparty_send_verification_code_builder(client, &args.body)?;
+    let builder = identitytoolkit_relyingparty_send_verification_code_builder(client)?;
     identitytoolkit_relyingparty_send_verification_code_execute(builder)
 }
 
-/// GET setAccountInfo
+/// POST setAccountInfo
 /// Set account info for a user.
 ///
 /// Returns `ClientRequestBuilder` for customization.
@@ -1829,7 +1740,6 @@ pub fn identitytoolkit_relyingparty_send_verification_code(
 
 pub fn identitytoolkit_relyingparty_set_account_info_builder(
     client: &SimpleHttpClient,
-    body: &IdentitytoolkitRelyingpartySetAccountInfoRequest,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url =
@@ -1837,15 +1747,13 @@ pub fn identitytoolkit_relyingparty_set_account_info_builder(
 
     // Build request
     let builder = client
-        .get(&endpoint_url)
+        .post(&endpoint_url)
         .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
 
-    builder
-        .body_json(body)
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+    Ok(builder)
 }
 
-/// GET setAccountInfo
+/// POST setAccountInfo
 /// Set account info for a user.
 ///
 /// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
@@ -1919,7 +1827,7 @@ pub fn identitytoolkit_relyingparty_set_account_info_task(
         .map_pending(|_| ApiPending::Sending))
 }
 
-/// GET setAccountInfo
+/// POST setAccountInfo
 /// Set account info for a user.
 ///
 /// Takes a `ClientRequestBuilder`, builds and executes the request,
@@ -1951,14 +1859,7 @@ pub fn identitytoolkit_relyingparty_set_account_info_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
-/// Arguments for [`identitytoolkit_relyingparty_set_account_info`].
-#[derive(Debug, Clone, Serialize, JsonHash)]
-pub struct IdentitytoolkitRelyingpartySetAccountInfoArgs {
-    /// Request body.
-    pub body: IdentitytoolkitRelyingpartySetAccountInfoRequest,
-}
-
-/// GET setAccountInfo
+/// POST setAccountInfo
 /// Set account info for a user.
 ///
 /// Simplest API - builds and executes the request in one call.
@@ -1971,18 +1872,17 @@ pub struct IdentitytoolkitRelyingpartySetAccountInfoArgs {
 
 pub fn identitytoolkit_relyingparty_set_account_info(
     client: &SimpleHttpClient,
-    args: &IdentitytoolkitRelyingpartySetAccountInfoArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<SetAccountInfoResponse>, ApiError>, P = ApiPending>
         + Send
         + 'static,
     ApiError,
 > {
-    let builder = identitytoolkit_relyingparty_set_account_info_builder(client, &args.body)?;
+    let builder = identitytoolkit_relyingparty_set_account_info_builder(client)?;
     identitytoolkit_relyingparty_set_account_info_execute(builder)
 }
 
-/// GET setProjectConfig
+/// POST setProjectConfig
 /// Set project configuration.
 ///
 /// Returns `ClientRequestBuilder` for customization.
@@ -1990,7 +1890,6 @@ pub fn identitytoolkit_relyingparty_set_account_info(
 
 pub fn identitytoolkit_relyingparty_set_project_config_builder(
     client: &SimpleHttpClient,
-    body: &IdentitytoolkitRelyingpartySetProjectConfigRequest,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url =
@@ -1998,15 +1897,13 @@ pub fn identitytoolkit_relyingparty_set_project_config_builder(
 
     // Build request
     let builder = client
-        .get(&endpoint_url)
+        .post(&endpoint_url)
         .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
 
-    builder
-        .body_json(body)
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+    Ok(builder)
 }
 
-/// GET setProjectConfig
+/// POST setProjectConfig
 /// Set project configuration.
 ///
 /// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
@@ -2084,7 +1981,7 @@ pub fn identitytoolkit_relyingparty_set_project_config_task(
         .map_pending(|_| ApiPending::Sending))
 }
 
-/// GET setProjectConfig
+/// POST setProjectConfig
 /// Set project configuration.
 ///
 /// Takes a `ClientRequestBuilder`, builds and executes the request,
@@ -2118,14 +2015,7 @@ pub fn identitytoolkit_relyingparty_set_project_config_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
-/// Arguments for [`identitytoolkit_relyingparty_set_project_config`].
-#[derive(Debug, Clone, Serialize, JsonHash)]
-pub struct IdentitytoolkitRelyingpartySetProjectConfigArgs {
-    /// Request body.
-    pub body: IdentitytoolkitRelyingpartySetProjectConfigRequest,
-}
-
-/// GET setProjectConfig
+/// POST setProjectConfig
 /// Set project configuration.
 ///
 /// Simplest API - builds and executes the request in one call.
@@ -2138,7 +2028,6 @@ pub struct IdentitytoolkitRelyingpartySetProjectConfigArgs {
 
 pub fn identitytoolkit_relyingparty_set_project_config(
     client: &SimpleHttpClient,
-    args: &IdentitytoolkitRelyingpartySetProjectConfigArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<IdentitytoolkitRelyingpartySetProjectConfigResponse>, ApiError>,
@@ -2147,11 +2036,11 @@ pub fn identitytoolkit_relyingparty_set_project_config(
         + 'static,
     ApiError,
 > {
-    let builder = identitytoolkit_relyingparty_set_project_config_builder(client, &args.body)?;
+    let builder = identitytoolkit_relyingparty_set_project_config_builder(client)?;
     identitytoolkit_relyingparty_set_project_config_execute(builder)
 }
 
-/// GET signOutUser
+/// POST signOutUser
 /// Sign out user.
 ///
 /// Returns `ClientRequestBuilder` for customization.
@@ -2159,7 +2048,6 @@ pub fn identitytoolkit_relyingparty_set_project_config(
 
 pub fn identitytoolkit_relyingparty_sign_out_user_builder(
     client: &SimpleHttpClient,
-    body: &IdentitytoolkitRelyingpartySignOutUserRequest,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url =
@@ -2167,15 +2055,13 @@ pub fn identitytoolkit_relyingparty_sign_out_user_builder(
 
     // Build request
     let builder = client
-        .get(&endpoint_url)
+        .post(&endpoint_url)
         .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
 
-    builder
-        .body_json(body)
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+    Ok(builder)
 }
 
-/// GET signOutUser
+/// POST signOutUser
 /// Sign out user.
 ///
 /// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
@@ -2250,7 +2136,7 @@ pub fn identitytoolkit_relyingparty_sign_out_user_task(
         .map_pending(|_| ApiPending::Sending))
 }
 
-/// GET signOutUser
+/// POST signOutUser
 /// Sign out user.
 ///
 /// Takes a `ClientRequestBuilder`, builds and executes the request,
@@ -2284,14 +2170,7 @@ pub fn identitytoolkit_relyingparty_sign_out_user_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
-/// Arguments for [`identitytoolkit_relyingparty_sign_out_user`].
-#[derive(Debug, Clone, Serialize, JsonHash)]
-pub struct IdentitytoolkitRelyingpartySignOutUserArgs {
-    /// Request body.
-    pub body: IdentitytoolkitRelyingpartySignOutUserRequest,
-}
-
-/// GET signOutUser
+/// POST signOutUser
 /// Sign out user.
 ///
 /// Simplest API - builds and executes the request in one call.
@@ -2304,7 +2183,6 @@ pub struct IdentitytoolkitRelyingpartySignOutUserArgs {
 
 pub fn identitytoolkit_relyingparty_sign_out_user(
     client: &SimpleHttpClient,
-    args: &IdentitytoolkitRelyingpartySignOutUserArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<IdentitytoolkitRelyingpartySignOutUserResponse>, ApiError>,
@@ -2313,11 +2191,11 @@ pub fn identitytoolkit_relyingparty_sign_out_user(
         + 'static,
     ApiError,
 > {
-    let builder = identitytoolkit_relyingparty_sign_out_user_builder(client, &args.body)?;
+    let builder = identitytoolkit_relyingparty_sign_out_user_builder(client)?;
     identitytoolkit_relyingparty_sign_out_user_execute(builder)
 }
 
-/// GET signupNewUser
+/// POST signupNewUser
 /// Signup new user.
 ///
 /// Returns `ClientRequestBuilder` for customization.
@@ -2325,7 +2203,6 @@ pub fn identitytoolkit_relyingparty_sign_out_user(
 
 pub fn identitytoolkit_relyingparty_signup_new_user_builder(
     client: &SimpleHttpClient,
-    body: &IdentitytoolkitRelyingpartySignupNewUserRequest,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url =
@@ -2333,15 +2210,13 @@ pub fn identitytoolkit_relyingparty_signup_new_user_builder(
 
     // Build request
     let builder = client
-        .get(&endpoint_url)
+        .post(&endpoint_url)
         .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
 
-    builder
-        .body_json(body)
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+    Ok(builder)
 }
 
-/// GET signupNewUser
+/// POST signupNewUser
 /// Signup new user.
 ///
 /// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
@@ -2415,7 +2290,7 @@ pub fn identitytoolkit_relyingparty_signup_new_user_task(
         .map_pending(|_| ApiPending::Sending))
 }
 
-/// GET signupNewUser
+/// POST signupNewUser
 /// Signup new user.
 ///
 /// Takes a `ClientRequestBuilder`, builds and executes the request,
@@ -2447,14 +2322,7 @@ pub fn identitytoolkit_relyingparty_signup_new_user_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
-/// Arguments for [`identitytoolkit_relyingparty_signup_new_user`].
-#[derive(Debug, Clone, Serialize, JsonHash)]
-pub struct IdentitytoolkitRelyingpartySignupNewUserArgs {
-    /// Request body.
-    pub body: IdentitytoolkitRelyingpartySignupNewUserRequest,
-}
-
-/// GET signupNewUser
+/// POST signupNewUser
 /// Signup new user.
 ///
 /// Simplest API - builds and executes the request in one call.
@@ -2467,18 +2335,17 @@ pub struct IdentitytoolkitRelyingpartySignupNewUserArgs {
 
 pub fn identitytoolkit_relyingparty_signup_new_user(
     client: &SimpleHttpClient,
-    args: &IdentitytoolkitRelyingpartySignupNewUserArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<SignupNewUserResponse>, ApiError>, P = ApiPending>
         + Send
         + 'static,
     ApiError,
 > {
-    let builder = identitytoolkit_relyingparty_signup_new_user_builder(client, &args.body)?;
+    let builder = identitytoolkit_relyingparty_signup_new_user_builder(client)?;
     identitytoolkit_relyingparty_signup_new_user_execute(builder)
 }
 
-/// GET uploadAccount
+/// POST uploadAccount
 /// Batch upload existing user accounts.
 ///
 /// Returns `ClientRequestBuilder` for customization.
@@ -2486,7 +2353,6 @@ pub fn identitytoolkit_relyingparty_signup_new_user(
 
 pub fn identitytoolkit_relyingparty_upload_account_builder(
     client: &SimpleHttpClient,
-    body: &IdentitytoolkitRelyingpartyUploadAccountRequest,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url =
@@ -2494,15 +2360,13 @@ pub fn identitytoolkit_relyingparty_upload_account_builder(
 
     // Build request
     let builder = client
-        .get(&endpoint_url)
+        .post(&endpoint_url)
         .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
 
-    builder
-        .body_json(body)
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+    Ok(builder)
 }
 
-/// GET uploadAccount
+/// POST uploadAccount
 /// Batch upload existing user accounts.
 ///
 /// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
@@ -2576,7 +2440,7 @@ pub fn identitytoolkit_relyingparty_upload_account_task(
         .map_pending(|_| ApiPending::Sending))
 }
 
-/// GET uploadAccount
+/// POST uploadAccount
 /// Batch upload existing user accounts.
 ///
 /// Takes a `ClientRequestBuilder`, builds and executes the request,
@@ -2608,14 +2472,7 @@ pub fn identitytoolkit_relyingparty_upload_account_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
-/// Arguments for [`identitytoolkit_relyingparty_upload_account`].
-#[derive(Debug, Clone, Serialize, JsonHash)]
-pub struct IdentitytoolkitRelyingpartyUploadAccountArgs {
-    /// Request body.
-    pub body: IdentitytoolkitRelyingpartyUploadAccountRequest,
-}
-
-/// GET uploadAccount
+/// POST uploadAccount
 /// Batch upload existing user accounts.
 ///
 /// Simplest API - builds and executes the request in one call.
@@ -2628,18 +2485,17 @@ pub struct IdentitytoolkitRelyingpartyUploadAccountArgs {
 
 pub fn identitytoolkit_relyingparty_upload_account(
     client: &SimpleHttpClient,
-    args: &IdentitytoolkitRelyingpartyUploadAccountArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<UploadAccountResponse>, ApiError>, P = ApiPending>
         + Send
         + 'static,
     ApiError,
 > {
-    let builder = identitytoolkit_relyingparty_upload_account_builder(client, &args.body)?;
+    let builder = identitytoolkit_relyingparty_upload_account_builder(client)?;
     identitytoolkit_relyingparty_upload_account_execute(builder)
 }
 
-/// GET verifyAssertion
+/// POST verifyAssertion
 /// Verifies the assertion returned by the IdP.
 ///
 /// Returns `ClientRequestBuilder` for customization.
@@ -2647,7 +2503,6 @@ pub fn identitytoolkit_relyingparty_upload_account(
 
 pub fn identitytoolkit_relyingparty_verify_assertion_builder(
     client: &SimpleHttpClient,
-    body: &IdentitytoolkitRelyingpartyVerifyAssertionRequest,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url =
@@ -2655,15 +2510,13 @@ pub fn identitytoolkit_relyingparty_verify_assertion_builder(
 
     // Build request
     let builder = client
-        .get(&endpoint_url)
+        .post(&endpoint_url)
         .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
 
-    builder
-        .body_json(body)
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+    Ok(builder)
 }
 
-/// GET verifyAssertion
+/// POST verifyAssertion
 /// Verifies the assertion returned by the IdP.
 ///
 /// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
@@ -2737,7 +2590,7 @@ pub fn identitytoolkit_relyingparty_verify_assertion_task(
         .map_pending(|_| ApiPending::Sending))
 }
 
-/// GET verifyAssertion
+/// POST verifyAssertion
 /// Verifies the assertion returned by the IdP.
 ///
 /// Takes a `ClientRequestBuilder`, builds and executes the request,
@@ -2769,14 +2622,7 @@ pub fn identitytoolkit_relyingparty_verify_assertion_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
-/// Arguments for [`identitytoolkit_relyingparty_verify_assertion`].
-#[derive(Debug, Clone, Serialize, JsonHash)]
-pub struct IdentitytoolkitRelyingpartyVerifyAssertionArgs {
-    /// Request body.
-    pub body: IdentitytoolkitRelyingpartyVerifyAssertionRequest,
-}
-
-/// GET verifyAssertion
+/// POST verifyAssertion
 /// Verifies the assertion returned by the IdP.
 ///
 /// Simplest API - builds and executes the request in one call.
@@ -2789,18 +2635,17 @@ pub struct IdentitytoolkitRelyingpartyVerifyAssertionArgs {
 
 pub fn identitytoolkit_relyingparty_verify_assertion(
     client: &SimpleHttpClient,
-    args: &IdentitytoolkitRelyingpartyVerifyAssertionArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<VerifyAssertionResponse>, ApiError>, P = ApiPending>
         + Send
         + 'static,
     ApiError,
 > {
-    let builder = identitytoolkit_relyingparty_verify_assertion_builder(client, &args.body)?;
+    let builder = identitytoolkit_relyingparty_verify_assertion_builder(client)?;
     identitytoolkit_relyingparty_verify_assertion_execute(builder)
 }
 
-/// GET verifyCustomToken
+/// POST verifyCustomToken
 /// Verifies the developer asserted ID token.
 ///
 /// Returns `ClientRequestBuilder` for customization.
@@ -2808,7 +2653,6 @@ pub fn identitytoolkit_relyingparty_verify_assertion(
 
 pub fn identitytoolkit_relyingparty_verify_custom_token_builder(
     client: &SimpleHttpClient,
-    body: &IdentitytoolkitRelyingpartyVerifyCustomTokenRequest,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url =
@@ -2816,15 +2660,13 @@ pub fn identitytoolkit_relyingparty_verify_custom_token_builder(
 
     // Build request
     let builder = client
-        .get(&endpoint_url)
+        .post(&endpoint_url)
         .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
 
-    builder
-        .body_json(body)
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+    Ok(builder)
 }
 
-/// GET verifyCustomToken
+/// POST verifyCustomToken
 /// Verifies the developer asserted ID token.
 ///
 /// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
@@ -2898,7 +2740,7 @@ pub fn identitytoolkit_relyingparty_verify_custom_token_task(
         .map_pending(|_| ApiPending::Sending))
 }
 
-/// GET verifyCustomToken
+/// POST verifyCustomToken
 /// Verifies the developer asserted ID token.
 ///
 /// Takes a `ClientRequestBuilder`, builds and executes the request,
@@ -2930,14 +2772,7 @@ pub fn identitytoolkit_relyingparty_verify_custom_token_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
-/// Arguments for [`identitytoolkit_relyingparty_verify_custom_token`].
-#[derive(Debug, Clone, Serialize, JsonHash)]
-pub struct IdentitytoolkitRelyingpartyVerifyCustomTokenArgs {
-    /// Request body.
-    pub body: IdentitytoolkitRelyingpartyVerifyCustomTokenRequest,
-}
-
-/// GET verifyCustomToken
+/// POST verifyCustomToken
 /// Verifies the developer asserted ID token.
 ///
 /// Simplest API - builds and executes the request in one call.
@@ -2950,18 +2785,17 @@ pub struct IdentitytoolkitRelyingpartyVerifyCustomTokenArgs {
 
 pub fn identitytoolkit_relyingparty_verify_custom_token(
     client: &SimpleHttpClient,
-    args: &IdentitytoolkitRelyingpartyVerifyCustomTokenArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<VerifyCustomTokenResponse>, ApiError>, P = ApiPending>
         + Send
         + 'static,
     ApiError,
 > {
-    let builder = identitytoolkit_relyingparty_verify_custom_token_builder(client, &args.body)?;
+    let builder = identitytoolkit_relyingparty_verify_custom_token_builder(client)?;
     identitytoolkit_relyingparty_verify_custom_token_execute(builder)
 }
 
-/// GET verifyPassword
+/// POST verifyPassword
 /// Verifies the user entered password.
 ///
 /// Returns `ClientRequestBuilder` for customization.
@@ -2969,7 +2803,6 @@ pub fn identitytoolkit_relyingparty_verify_custom_token(
 
 pub fn identitytoolkit_relyingparty_verify_password_builder(
     client: &SimpleHttpClient,
-    body: &IdentitytoolkitRelyingpartyVerifyPasswordRequest,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url =
@@ -2977,15 +2810,13 @@ pub fn identitytoolkit_relyingparty_verify_password_builder(
 
     // Build request
     let builder = client
-        .get(&endpoint_url)
+        .post(&endpoint_url)
         .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
 
-    builder
-        .body_json(body)
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+    Ok(builder)
 }
 
-/// GET verifyPassword
+/// POST verifyPassword
 /// Verifies the user entered password.
 ///
 /// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
@@ -3059,7 +2890,7 @@ pub fn identitytoolkit_relyingparty_verify_password_task(
         .map_pending(|_| ApiPending::Sending))
 }
 
-/// GET verifyPassword
+/// POST verifyPassword
 /// Verifies the user entered password.
 ///
 /// Takes a `ClientRequestBuilder`, builds and executes the request,
@@ -3091,14 +2922,7 @@ pub fn identitytoolkit_relyingparty_verify_password_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
-/// Arguments for [`identitytoolkit_relyingparty_verify_password`].
-#[derive(Debug, Clone, Serialize, JsonHash)]
-pub struct IdentitytoolkitRelyingpartyVerifyPasswordArgs {
-    /// Request body.
-    pub body: IdentitytoolkitRelyingpartyVerifyPasswordRequest,
-}
-
-/// GET verifyPassword
+/// POST verifyPassword
 /// Verifies the user entered password.
 ///
 /// Simplest API - builds and executes the request in one call.
@@ -3111,18 +2935,17 @@ pub struct IdentitytoolkitRelyingpartyVerifyPasswordArgs {
 
 pub fn identitytoolkit_relyingparty_verify_password(
     client: &SimpleHttpClient,
-    args: &IdentitytoolkitRelyingpartyVerifyPasswordArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<VerifyPasswordResponse>, ApiError>, P = ApiPending>
         + Send
         + 'static,
     ApiError,
 > {
-    let builder = identitytoolkit_relyingparty_verify_password_builder(client, &args.body)?;
+    let builder = identitytoolkit_relyingparty_verify_password_builder(client)?;
     identitytoolkit_relyingparty_verify_password_execute(builder)
 }
 
-/// GET verifyPhoneNumber
+/// POST verifyPhoneNumber
 /// Verifies ownership of a phone number and `creates/updates` the user account accordingly.
 ///
 /// Returns `ClientRequestBuilder` for customization.
@@ -3130,7 +2953,6 @@ pub fn identitytoolkit_relyingparty_verify_password(
 
 pub fn identitytoolkit_relyingparty_verify_phone_number_builder(
     client: &SimpleHttpClient,
-    body: &IdentitytoolkitRelyingpartyVerifyPhoneNumberRequest,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url =
@@ -3138,15 +2960,13 @@ pub fn identitytoolkit_relyingparty_verify_phone_number_builder(
 
     // Build request
     let builder = client
-        .get(&endpoint_url)
+        .post(&endpoint_url)
         .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
 
-    builder
-        .body_json(body)
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+    Ok(builder)
 }
 
-/// GET verifyPhoneNumber
+/// POST verifyPhoneNumber
 /// Verifies ownership of a phone number and `creates/updates` the user account accordingly.
 ///
 /// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
@@ -3224,7 +3044,7 @@ pub fn identitytoolkit_relyingparty_verify_phone_number_task(
         .map_pending(|_| ApiPending::Sending))
 }
 
-/// GET verifyPhoneNumber
+/// POST verifyPhoneNumber
 /// Verifies ownership of a phone number and `creates/updates` the user account accordingly.
 ///
 /// Takes a `ClientRequestBuilder`, builds and executes the request,
@@ -3258,14 +3078,7 @@ pub fn identitytoolkit_relyingparty_verify_phone_number_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
-/// Arguments for [`identitytoolkit_relyingparty_verify_phone_number`].
-#[derive(Debug, Clone, Serialize, JsonHash)]
-pub struct IdentitytoolkitRelyingpartyVerifyPhoneNumberArgs {
-    /// Request body.
-    pub body: IdentitytoolkitRelyingpartyVerifyPhoneNumberRequest,
-}
-
-/// GET verifyPhoneNumber
+/// POST verifyPhoneNumber
 /// Verifies ownership of a phone number and `creates/updates` the user account accordingly.
 ///
 /// Simplest API - builds and executes the request in one call.
@@ -3278,7 +3091,6 @@ pub struct IdentitytoolkitRelyingpartyVerifyPhoneNumberArgs {
 
 pub fn identitytoolkit_relyingparty_verify_phone_number(
     client: &SimpleHttpClient,
-    args: &IdentitytoolkitRelyingpartyVerifyPhoneNumberArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<IdentitytoolkitRelyingpartyVerifyPhoneNumberResponse>, ApiError>,
@@ -3287,6 +3099,529 @@ pub fn identitytoolkit_relyingparty_verify_phone_number(
         + 'static,
     ApiError,
 > {
-    let builder = identitytoolkit_relyingparty_verify_phone_number_builder(client, &args.body)?;
+    let builder = identitytoolkit_relyingparty_verify_phone_number_builder(client)?;
     identitytoolkit_relyingparty_verify_phone_number_execute(builder)
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for CreateAuthUriResponse
+// =============================================================================
+
+/// ResourceIdentifier implementation for CreateAuthUriResponse with IdentitytoolkitRelyingpartyCreateAuthUriArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<IdentitytoolkitRelyingpartyCreateAuthUriArgs> for CreateAuthUriResponse {
+    fn generate_resource_id(&self, input: &IdentitytoolkitRelyingpartyCreateAuthUriArgs) -> String {
+        "gcp::identitytoolkit::CreateAuthUriResponse".to_string()
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::identitytoolkit::CreateAuthUriResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for DeleteAccountResponse
+// =============================================================================
+
+/// ResourceIdentifier implementation for DeleteAccountResponse with IdentitytoolkitRelyingpartyDeleteAccountArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<IdentitytoolkitRelyingpartyDeleteAccountArgs> for DeleteAccountResponse {
+    fn generate_resource_id(&self, input: &IdentitytoolkitRelyingpartyDeleteAccountArgs) -> String {
+        "gcp::identitytoolkit::DeleteAccountResponse".to_string()
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::identitytoolkit::DeleteAccountResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for DownloadAccountResponse
+// =============================================================================
+
+/// ResourceIdentifier implementation for DownloadAccountResponse with IdentitytoolkitRelyingpartyDownloadAccountArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<IdentitytoolkitRelyingpartyDownloadAccountArgs>
+    for DownloadAccountResponse
+{
+    fn generate_resource_id(
+        &self,
+        input: &IdentitytoolkitRelyingpartyDownloadAccountArgs,
+    ) -> String {
+        "gcp::identitytoolkit::DownloadAccountResponse".to_string()
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::identitytoolkit::DownloadAccountResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for EmailLinkSigninResponse
+// =============================================================================
+
+/// ResourceIdentifier implementation for EmailLinkSigninResponse with IdentitytoolkitRelyingpartyEmailLinkSigninArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<IdentitytoolkitRelyingpartyEmailLinkSigninArgs>
+    for EmailLinkSigninResponse
+{
+    fn generate_resource_id(
+        &self,
+        input: &IdentitytoolkitRelyingpartyEmailLinkSigninArgs,
+    ) -> String {
+        "gcp::identitytoolkit::EmailLinkSigninResponse".to_string()
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::identitytoolkit::EmailLinkSigninResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for GetAccountInfoResponse
+// =============================================================================
+
+/// ResourceIdentifier implementation for GetAccountInfoResponse with IdentitytoolkitRelyingpartyGetAccountInfoArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<IdentitytoolkitRelyingpartyGetAccountInfoArgs> for GetAccountInfoResponse {
+    fn generate_resource_id(
+        &self,
+        input: &IdentitytoolkitRelyingpartyGetAccountInfoArgs,
+    ) -> String {
+        "gcp::identitytoolkit::GetAccountInfoResponse".to_string()
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::identitytoolkit::GetAccountInfoResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for GetOobConfirmationCodeResponse
+// =============================================================================
+
+/// ResourceIdentifier implementation for GetOobConfirmationCodeResponse with IdentitytoolkitRelyingpartyGetOobConfirmationCodeArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<IdentitytoolkitRelyingpartyGetOobConfirmationCodeArgs>
+    for GetOobConfirmationCodeResponse
+{
+    fn generate_resource_id(
+        &self,
+        input: &IdentitytoolkitRelyingpartyGetOobConfirmationCodeArgs,
+    ) -> String {
+        "gcp::identitytoolkit::GetOobConfirmationCodeResponse".to_string()
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::identitytoolkit::GetOobConfirmationCodeResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for IdentitytoolkitRelyingpartyGetProjectConfigResponse
+// =============================================================================
+
+/// ResourceIdentifier implementation for IdentitytoolkitRelyingpartyGetProjectConfigResponse with IdentitytoolkitRelyingpartyGetProjectConfigArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<IdentitytoolkitRelyingpartyGetProjectConfigArgs>
+    for IdentitytoolkitRelyingpartyGetProjectConfigResponse
+{
+    fn generate_resource_id(
+        &self,
+        input: &IdentitytoolkitRelyingpartyGetProjectConfigArgs,
+    ) -> String {
+        "gcp::identitytoolkit::IdentitytoolkitRelyingpartyGetProjectConfigResponse".to_string()
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::identitytoolkit::IdentitytoolkitRelyingpartyGetProjectConfigResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for IdentitytoolkitRelyingpartyGetPublicKeysResponse
+// =============================================================================
+
+/// ResourceIdentifier implementation for IdentitytoolkitRelyingpartyGetPublicKeysResponse with IdentitytoolkitRelyingpartyGetPublicKeysArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<IdentitytoolkitRelyingpartyGetPublicKeysArgs>
+    for IdentitytoolkitRelyingpartyGetPublicKeysResponse
+{
+    fn generate_resource_id(&self, input: &IdentitytoolkitRelyingpartyGetPublicKeysArgs) -> String {
+        "gcp::identitytoolkit::IdentitytoolkitRelyingpartyGetPublicKeysResponse".to_string()
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::identitytoolkit::IdentitytoolkitRelyingpartyGetPublicKeysResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for GetRecaptchaParamResponse
+// =============================================================================
+
+/// ResourceIdentifier implementation for GetRecaptchaParamResponse with IdentitytoolkitRelyingpartyGetRecaptchaParamArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<IdentitytoolkitRelyingpartyGetRecaptchaParamArgs>
+    for GetRecaptchaParamResponse
+{
+    fn generate_resource_id(
+        &self,
+        input: &IdentitytoolkitRelyingpartyGetRecaptchaParamArgs,
+    ) -> String {
+        "gcp::identitytoolkit::GetRecaptchaParamResponse".to_string()
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::identitytoolkit::GetRecaptchaParamResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for ResetPasswordResponse
+// =============================================================================
+
+/// ResourceIdentifier implementation for ResetPasswordResponse with IdentitytoolkitRelyingpartyResetPasswordArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<IdentitytoolkitRelyingpartyResetPasswordArgs> for ResetPasswordResponse {
+    fn generate_resource_id(&self, input: &IdentitytoolkitRelyingpartyResetPasswordArgs) -> String {
+        "gcp::identitytoolkit::ResetPasswordResponse".to_string()
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::identitytoolkit::ResetPasswordResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for IdentitytoolkitRelyingpartySendVerificationCodeResponse
+// =============================================================================
+
+/// ResourceIdentifier implementation for IdentitytoolkitRelyingpartySendVerificationCodeResponse with IdentitytoolkitRelyingpartySendVerificationCodeArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<IdentitytoolkitRelyingpartySendVerificationCodeArgs>
+    for IdentitytoolkitRelyingpartySendVerificationCodeResponse
+{
+    fn generate_resource_id(
+        &self,
+        input: &IdentitytoolkitRelyingpartySendVerificationCodeArgs,
+    ) -> String {
+        "gcp::identitytoolkit::IdentitytoolkitRelyingpartySendVerificationCodeResponse".to_string()
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::identitytoolkit::IdentitytoolkitRelyingpartySendVerificationCodeResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for SetAccountInfoResponse
+// =============================================================================
+
+/// ResourceIdentifier implementation for SetAccountInfoResponse with IdentitytoolkitRelyingpartySetAccountInfoArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<IdentitytoolkitRelyingpartySetAccountInfoArgs> for SetAccountInfoResponse {
+    fn generate_resource_id(
+        &self,
+        input: &IdentitytoolkitRelyingpartySetAccountInfoArgs,
+    ) -> String {
+        "gcp::identitytoolkit::SetAccountInfoResponse".to_string()
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::identitytoolkit::SetAccountInfoResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for IdentitytoolkitRelyingpartySetProjectConfigResponse
+// =============================================================================
+
+/// ResourceIdentifier implementation for IdentitytoolkitRelyingpartySetProjectConfigResponse with IdentitytoolkitRelyingpartySetProjectConfigArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<IdentitytoolkitRelyingpartySetProjectConfigArgs>
+    for IdentitytoolkitRelyingpartySetProjectConfigResponse
+{
+    fn generate_resource_id(
+        &self,
+        input: &IdentitytoolkitRelyingpartySetProjectConfigArgs,
+    ) -> String {
+        "gcp::identitytoolkit::IdentitytoolkitRelyingpartySetProjectConfigResponse".to_string()
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::identitytoolkit::IdentitytoolkitRelyingpartySetProjectConfigResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for IdentitytoolkitRelyingpartySignOutUserResponse
+// =============================================================================
+
+/// ResourceIdentifier implementation for IdentitytoolkitRelyingpartySignOutUserResponse with IdentitytoolkitRelyingpartySignOutUserArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<IdentitytoolkitRelyingpartySignOutUserArgs>
+    for IdentitytoolkitRelyingpartySignOutUserResponse
+{
+    fn generate_resource_id(&self, input: &IdentitytoolkitRelyingpartySignOutUserArgs) -> String {
+        "gcp::identitytoolkit::IdentitytoolkitRelyingpartySignOutUserResponse".to_string()
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::identitytoolkit::IdentitytoolkitRelyingpartySignOutUserResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for SignupNewUserResponse
+// =============================================================================
+
+/// ResourceIdentifier implementation for SignupNewUserResponse with IdentitytoolkitRelyingpartySignupNewUserArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<IdentitytoolkitRelyingpartySignupNewUserArgs> for SignupNewUserResponse {
+    fn generate_resource_id(&self, input: &IdentitytoolkitRelyingpartySignupNewUserArgs) -> String {
+        "gcp::identitytoolkit::SignupNewUserResponse".to_string()
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::identitytoolkit::SignupNewUserResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for UploadAccountResponse
+// =============================================================================
+
+/// ResourceIdentifier implementation for UploadAccountResponse with IdentitytoolkitRelyingpartyUploadAccountArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<IdentitytoolkitRelyingpartyUploadAccountArgs> for UploadAccountResponse {
+    fn generate_resource_id(&self, input: &IdentitytoolkitRelyingpartyUploadAccountArgs) -> String {
+        "gcp::identitytoolkit::UploadAccountResponse".to_string()
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::identitytoolkit::UploadAccountResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for VerifyAssertionResponse
+// =============================================================================
+
+/// ResourceIdentifier implementation for VerifyAssertionResponse with IdentitytoolkitRelyingpartyVerifyAssertionArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<IdentitytoolkitRelyingpartyVerifyAssertionArgs>
+    for VerifyAssertionResponse
+{
+    fn generate_resource_id(
+        &self,
+        input: &IdentitytoolkitRelyingpartyVerifyAssertionArgs,
+    ) -> String {
+        "gcp::identitytoolkit::VerifyAssertionResponse".to_string()
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::identitytoolkit::VerifyAssertionResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for VerifyCustomTokenResponse
+// =============================================================================
+
+/// ResourceIdentifier implementation for VerifyCustomTokenResponse with IdentitytoolkitRelyingpartyVerifyCustomTokenArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<IdentitytoolkitRelyingpartyVerifyCustomTokenArgs>
+    for VerifyCustomTokenResponse
+{
+    fn generate_resource_id(
+        &self,
+        input: &IdentitytoolkitRelyingpartyVerifyCustomTokenArgs,
+    ) -> String {
+        "gcp::identitytoolkit::VerifyCustomTokenResponse".to_string()
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::identitytoolkit::VerifyCustomTokenResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for VerifyPasswordResponse
+// =============================================================================
+
+/// ResourceIdentifier implementation for VerifyPasswordResponse with IdentitytoolkitRelyingpartyVerifyPasswordArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<IdentitytoolkitRelyingpartyVerifyPasswordArgs> for VerifyPasswordResponse {
+    fn generate_resource_id(
+        &self,
+        input: &IdentitytoolkitRelyingpartyVerifyPasswordArgs,
+    ) -> String {
+        "gcp::identitytoolkit::VerifyPasswordResponse".to_string()
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::identitytoolkit::VerifyPasswordResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for IdentitytoolkitRelyingpartyVerifyPhoneNumberResponse
+// =============================================================================
+
+/// ResourceIdentifier implementation for IdentitytoolkitRelyingpartyVerifyPhoneNumberResponse with IdentitytoolkitRelyingpartyVerifyPhoneNumberArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<IdentitytoolkitRelyingpartyVerifyPhoneNumberArgs>
+    for IdentitytoolkitRelyingpartyVerifyPhoneNumberResponse
+{
+    fn generate_resource_id(
+        &self,
+        input: &IdentitytoolkitRelyingpartyVerifyPhoneNumberArgs,
+    ) -> String {
+        "gcp::identitytoolkit::IdentitytoolkitRelyingpartyVerifyPhoneNumberResponse".to_string()
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::identitytoolkit::IdentitytoolkitRelyingpartyVerifyPhoneNumberResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
 }

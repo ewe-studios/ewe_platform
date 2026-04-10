@@ -15,26 +15,35 @@ use crate::providers::gcp::clients::analyticsdata::{
     analyticsdata_properties_batch_run_pivot_reports_builder, analyticsdata_properties_batch_run_pivot_reports_task,
     analyticsdata_properties_batch_run_reports_builder, analyticsdata_properties_batch_run_reports_task,
     analyticsdata_properties_check_compatibility_builder, analyticsdata_properties_check_compatibility_task,
+    analyticsdata_properties_get_metadata_builder, analyticsdata_properties_get_metadata_task,
     analyticsdata_properties_run_pivot_report_builder, analyticsdata_properties_run_pivot_report_task,
     analyticsdata_properties_run_realtime_report_builder, analyticsdata_properties_run_realtime_report_task,
     analyticsdata_properties_run_report_builder, analyticsdata_properties_run_report_task,
     analyticsdata_properties_audience_exports_create_builder, analyticsdata_properties_audience_exports_create_task,
+    analyticsdata_properties_audience_exports_get_builder, analyticsdata_properties_audience_exports_get_task,
+    analyticsdata_properties_audience_exports_list_builder, analyticsdata_properties_audience_exports_list_task,
     analyticsdata_properties_audience_exports_query_builder, analyticsdata_properties_audience_exports_query_task,
 };
 use crate::providers::gcp::clients::types::{ApiError, ApiPending};
+use crate::providers::gcp::clients::analyticsdata::AudienceExport;
 use crate::providers::gcp::clients::analyticsdata::BatchRunPivotReportsResponse;
 use crate::providers::gcp::clients::analyticsdata::BatchRunReportsResponse;
 use crate::providers::gcp::clients::analyticsdata::CheckCompatibilityResponse;
+use crate::providers::gcp::clients::analyticsdata::ListAudienceExportsResponse;
+use crate::providers::gcp::clients::analyticsdata::Metadata;
 use crate::providers::gcp::clients::analyticsdata::Operation;
 use crate::providers::gcp::clients::analyticsdata::QueryAudienceExportResponse;
 use crate::providers::gcp::clients::analyticsdata::RunPivotReportResponse;
 use crate::providers::gcp::clients::analyticsdata::RunRealtimeReportResponse;
 use crate::providers::gcp::clients::analyticsdata::RunReportResponse;
 use crate::providers::gcp::clients::analyticsdata::AnalyticsdataPropertiesAudienceExportsCreateArgs;
+use crate::providers::gcp::clients::analyticsdata::AnalyticsdataPropertiesAudienceExportsGetArgs;
+use crate::providers::gcp::clients::analyticsdata::AnalyticsdataPropertiesAudienceExportsListArgs;
 use crate::providers::gcp::clients::analyticsdata::AnalyticsdataPropertiesAudienceExportsQueryArgs;
 use crate::providers::gcp::clients::analyticsdata::AnalyticsdataPropertiesBatchRunPivotReportsArgs;
 use crate::providers::gcp::clients::analyticsdata::AnalyticsdataPropertiesBatchRunReportsArgs;
 use crate::providers::gcp::clients::analyticsdata::AnalyticsdataPropertiesCheckCompatibilityArgs;
+use crate::providers::gcp::clients::analyticsdata::AnalyticsdataPropertiesGetMetadataArgs;
 use crate::providers::gcp::clients::analyticsdata::AnalyticsdataPropertiesRunPivotReportArgs;
 use crate::providers::gcp::clients::analyticsdata::AnalyticsdataPropertiesRunRealtimeReportArgs;
 use crate::providers::gcp::clients::analyticsdata::AnalyticsdataPropertiesRunReportArgs;
@@ -206,6 +215,44 @@ where
         let store_task = StoreStateIdentifierTask::new(task, state_store, args, stage);
 
         execute(store_task, None).map_err(|e: String| ProviderError::ExecuteFailed(e.to_string()))
+    }
+
+    /// Analyticsdata properties get metadata.
+    ///
+    /// Read-only operation - no state tracking.
+    ///
+    /// # Arguments
+    ///
+    /// * `args` - Request arguments
+    ///
+    /// # Returns
+    ///
+    /// StreamIterator yielding the Metadata result.
+    ///
+    /// # Errors
+    ///
+    /// Returns ProviderError if the API request fails.
+    pub fn analyticsdata_properties_get_metadata(
+        &self,
+        args: &AnalyticsdataPropertiesGetMetadataArgs,
+    ) -> Result<
+        impl StreamIterator<
+            D = Result<Metadata, ProviderError<ApiError>>,
+            P = crate::providers::gcp::clients::types::ApiPending,
+        > + Send
+        + 'static,
+        ProviderError<ApiError>,
+    > {
+        let builder = analyticsdata_properties_get_metadata_builder(
+            &self.http_client,
+            &args.name,
+        )
+        .map_err(ProviderError::Api)?;
+
+        let task = analyticsdata_properties_get_metadata_task(builder)
+            .map_err(ProviderError::Api)?;
+
+        execute(task, None).map_err(|e: String| ProviderError::ExecuteFailed(e.to_string()))
     }
 
     /// Analyticsdata properties run pivot report.
@@ -380,9 +427,87 @@ where
         execute(store_task, None).map_err(|e: String| ProviderError::ExecuteFailed(e.to_string()))
     }
 
+    /// Analyticsdata properties audience exports get.
+    ///
+    /// Read-only operation - no state tracking.
+    ///
+    /// # Arguments
+    ///
+    /// * `args` - Request arguments
+    ///
+    /// # Returns
+    ///
+    /// StreamIterator yielding the AudienceExport result.
+    ///
+    /// # Errors
+    ///
+    /// Returns ProviderError if the API request fails.
+    pub fn analyticsdata_properties_audience_exports_get(
+        &self,
+        args: &AnalyticsdataPropertiesAudienceExportsGetArgs,
+    ) -> Result<
+        impl StreamIterator<
+            D = Result<AudienceExport, ProviderError<ApiError>>,
+            P = crate::providers::gcp::clients::types::ApiPending,
+        > + Send
+        + 'static,
+        ProviderError<ApiError>,
+    > {
+        let builder = analyticsdata_properties_audience_exports_get_builder(
+            &self.http_client,
+            &args.name,
+        )
+        .map_err(ProviderError::Api)?;
+
+        let task = analyticsdata_properties_audience_exports_get_task(builder)
+            .map_err(ProviderError::Api)?;
+
+        execute(task, None).map_err(|e: String| ProviderError::ExecuteFailed(e.to_string()))
+    }
+
+    /// Analyticsdata properties audience exports list.
+    ///
+    /// Read-only operation - no state tracking.
+    ///
+    /// # Arguments
+    ///
+    /// * `args` - Request arguments
+    ///
+    /// # Returns
+    ///
+    /// StreamIterator yielding the ListAudienceExportsResponse result.
+    ///
+    /// # Errors
+    ///
+    /// Returns ProviderError if the API request fails.
+    pub fn analyticsdata_properties_audience_exports_list(
+        &self,
+        args: &AnalyticsdataPropertiesAudienceExportsListArgs,
+    ) -> Result<
+        impl StreamIterator<
+            D = Result<ListAudienceExportsResponse, ProviderError<ApiError>>,
+            P = crate::providers::gcp::clients::types::ApiPending,
+        > + Send
+        + 'static,
+        ProviderError<ApiError>,
+    > {
+        let builder = analyticsdata_properties_audience_exports_list_builder(
+            &self.http_client,
+            &args.parent,
+            &args.pageSize,
+            &args.pageToken,
+        )
+        .map_err(ProviderError::Api)?;
+
+        let task = analyticsdata_properties_audience_exports_list_task(builder)
+            .map_err(ProviderError::Api)?;
+
+        execute(task, None).map_err(|e: String| ProviderError::ExecuteFailed(e.to_string()))
+    }
+
     /// Analyticsdata properties audience exports query.
     ///
-    /// Automatically stores the result in the state store on success.
+    /// Read-only operation - no state tracking.
     ///
     /// # Arguments
     ///
@@ -394,7 +519,7 @@ where
     ///
     /// # Errors
     ///
-    /// Returns ProviderError if the API request or state storage fails.
+    /// Returns ProviderError if the API request fails.
     pub fn analyticsdata_properties_audience_exports_query(
         &self,
         args: &AnalyticsdataPropertiesAudienceExportsQueryArgs,
@@ -415,12 +540,7 @@ where
         let task = analyticsdata_properties_audience_exports_query_task(builder)
             .map_err(ProviderError::Api)?;
 
-        let state_store = self.client.state_store.clone();
-        let stage = Some(self.client.stage.clone());
-
-        let store_task = StoreStateIdentifierTask::new(task, state_store, args, stage);
-
-        execute(store_task, None).map_err(|e: String| ProviderError::ExecuteFailed(e.to_string()))
+        execute(task, None).map_err(|e: String| ProviderError::ExecuteFailed(e.to_string()))
     }
 
 }

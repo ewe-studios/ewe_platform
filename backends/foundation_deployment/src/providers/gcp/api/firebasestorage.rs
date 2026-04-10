@@ -13,7 +13,10 @@
 
 use crate::providers::gcp::clients::firebasestorage::{
     firebasestorage_projects_delete_default_bucket_builder, firebasestorage_projects_delete_default_bucket_task,
+    firebasestorage_projects_get_default_bucket_builder, firebasestorage_projects_get_default_bucket_task,
     firebasestorage_projects_buckets_add_firebase_builder, firebasestorage_projects_buckets_add_firebase_task,
+    firebasestorage_projects_buckets_get_builder, firebasestorage_projects_buckets_get_task,
+    firebasestorage_projects_buckets_list_builder, firebasestorage_projects_buckets_list_task,
     firebasestorage_projects_buckets_remove_firebase_builder, firebasestorage_projects_buckets_remove_firebase_task,
     firebasestorage_projects_default_bucket_create_builder, firebasestorage_projects_default_bucket_create_task,
 };
@@ -21,10 +24,14 @@ use crate::providers::gcp::clients::types::{ApiError, ApiPending};
 use crate::providers::gcp::clients::firebasestorage::Bucket;
 use crate::providers::gcp::clients::firebasestorage::DefaultBucket;
 use crate::providers::gcp::clients::firebasestorage::Empty;
+use crate::providers::gcp::clients::firebasestorage::ListBucketsResponse;
 use crate::providers::gcp::clients::firebasestorage::FirebasestorageProjectsBucketsAddFirebaseArgs;
+use crate::providers::gcp::clients::firebasestorage::FirebasestorageProjectsBucketsGetArgs;
+use crate::providers::gcp::clients::firebasestorage::FirebasestorageProjectsBucketsListArgs;
 use crate::providers::gcp::clients::firebasestorage::FirebasestorageProjectsBucketsRemoveFirebaseArgs;
 use crate::providers::gcp::clients::firebasestorage::FirebasestorageProjectsDefaultBucketCreateArgs;
 use crate::providers::gcp::clients::firebasestorage::FirebasestorageProjectsDeleteDefaultBucketArgs;
+use crate::providers::gcp::clients::firebasestorage::FirebasestorageProjectsGetDefaultBucketArgs;
 use crate::provider_client::{ProviderClient, ProviderError};
 use foundation_core::valtron::{execute, StreamIterator};
 use foundation_core::wire::simple_http::client::SimpleHttpClient;
@@ -109,6 +116,44 @@ where
         execute(store_task, None).map_err(|e: String| ProviderError::ExecuteFailed(e.to_string()))
     }
 
+    /// Firebasestorage projects get default bucket.
+    ///
+    /// Read-only operation - no state tracking.
+    ///
+    /// # Arguments
+    ///
+    /// * `args` - Request arguments
+    ///
+    /// # Returns
+    ///
+    /// StreamIterator yielding the DefaultBucket result.
+    ///
+    /// # Errors
+    ///
+    /// Returns ProviderError if the API request fails.
+    pub fn firebasestorage_projects_get_default_bucket(
+        &self,
+        args: &FirebasestorageProjectsGetDefaultBucketArgs,
+    ) -> Result<
+        impl StreamIterator<
+            D = Result<DefaultBucket, ProviderError<ApiError>>,
+            P = crate::providers::gcp::clients::types::ApiPending,
+        > + Send
+        + 'static,
+        ProviderError<ApiError>,
+    > {
+        let builder = firebasestorage_projects_get_default_bucket_builder(
+            &self.http_client,
+            &args.name,
+        )
+        .map_err(ProviderError::Api)?;
+
+        let task = firebasestorage_projects_get_default_bucket_task(builder)
+            .map_err(ProviderError::Api)?;
+
+        execute(task, None).map_err(|e: String| ProviderError::ExecuteFailed(e.to_string()))
+    }
+
     /// Firebasestorage projects buckets add firebase.
     ///
     /// Automatically stores the result in the state store on success.
@@ -150,6 +195,84 @@ where
         let store_task = StoreStateIdentifierTask::new(task, state_store, args, stage);
 
         execute(store_task, None).map_err(|e: String| ProviderError::ExecuteFailed(e.to_string()))
+    }
+
+    /// Firebasestorage projects buckets get.
+    ///
+    /// Read-only operation - no state tracking.
+    ///
+    /// # Arguments
+    ///
+    /// * `args` - Request arguments
+    ///
+    /// # Returns
+    ///
+    /// StreamIterator yielding the Bucket result.
+    ///
+    /// # Errors
+    ///
+    /// Returns ProviderError if the API request fails.
+    pub fn firebasestorage_projects_buckets_get(
+        &self,
+        args: &FirebasestorageProjectsBucketsGetArgs,
+    ) -> Result<
+        impl StreamIterator<
+            D = Result<Bucket, ProviderError<ApiError>>,
+            P = crate::providers::gcp::clients::types::ApiPending,
+        > + Send
+        + 'static,
+        ProviderError<ApiError>,
+    > {
+        let builder = firebasestorage_projects_buckets_get_builder(
+            &self.http_client,
+            &args.name,
+        )
+        .map_err(ProviderError::Api)?;
+
+        let task = firebasestorage_projects_buckets_get_task(builder)
+            .map_err(ProviderError::Api)?;
+
+        execute(task, None).map_err(|e: String| ProviderError::ExecuteFailed(e.to_string()))
+    }
+
+    /// Firebasestorage projects buckets list.
+    ///
+    /// Read-only operation - no state tracking.
+    ///
+    /// # Arguments
+    ///
+    /// * `args` - Request arguments
+    ///
+    /// # Returns
+    ///
+    /// StreamIterator yielding the ListBucketsResponse result.
+    ///
+    /// # Errors
+    ///
+    /// Returns ProviderError if the API request fails.
+    pub fn firebasestorage_projects_buckets_list(
+        &self,
+        args: &FirebasestorageProjectsBucketsListArgs,
+    ) -> Result<
+        impl StreamIterator<
+            D = Result<ListBucketsResponse, ProviderError<ApiError>>,
+            P = crate::providers::gcp::clients::types::ApiPending,
+        > + Send
+        + 'static,
+        ProviderError<ApiError>,
+    > {
+        let builder = firebasestorage_projects_buckets_list_builder(
+            &self.http_client,
+            &args.parent,
+            &args.pageSize,
+            &args.pageToken,
+        )
+        .map_err(ProviderError::Api)?;
+
+        let task = firebasestorage_projects_buckets_list_task(builder)
+            .map_err(ProviderError::Api)?;
+
+        execute(task, None).map_err(|e: String| ProviderError::ExecuteFailed(e.to_string()))
     }
 
     /// Firebasestorage projects buckets remove firebase.

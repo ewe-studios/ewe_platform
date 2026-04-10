@@ -14,9 +14,13 @@
 use crate::providers::gcp::clients::searchconsole::{
     webmasters_searchanalytics_query_builder, webmasters_searchanalytics_query_task,
     webmasters_sitemaps_delete_builder, webmasters_sitemaps_delete_task,
+    webmasters_sitemaps_get_builder, webmasters_sitemaps_get_task,
+    webmasters_sitemaps_list_builder, webmasters_sitemaps_list_task,
     webmasters_sitemaps_submit_builder, webmasters_sitemaps_submit_task,
     webmasters_sites_add_builder, webmasters_sites_add_task,
     webmasters_sites_delete_builder, webmasters_sites_delete_task,
+    webmasters_sites_get_builder, webmasters_sites_get_task,
+    webmasters_sites_list_builder, webmasters_sites_list_task,
     searchconsole_url_inspection_index_inspect_builder, searchconsole_url_inspection_index_inspect_task,
     searchconsole_url_testing_tools_mobile_friendly_test_run_builder, searchconsole_url_testing_tools_mobile_friendly_test_run_task,
 };
@@ -24,13 +28,21 @@ use crate::providers::gcp::clients::types::{ApiError, ApiPending};
 use crate::providers::gcp::clients::searchconsole::InspectUrlIndexResponse;
 use crate::providers::gcp::clients::searchconsole::RunMobileFriendlyTestResponse;
 use crate::providers::gcp::clients::searchconsole::SearchAnalyticsQueryResponse;
+use crate::providers::gcp::clients::searchconsole::SitemapsListResponse;
+use crate::providers::gcp::clients::searchconsole::SitesListResponse;
+use crate::providers::gcp::clients::searchconsole::WmxSite;
+use crate::providers::gcp::clients::searchconsole::WmxSitemap;
 use crate::providers::gcp::clients::searchconsole::SearchconsoleUrlInspectionIndexInspectArgs;
 use crate::providers::gcp::clients::searchconsole::SearchconsoleUrlTestingToolsMobileFriendlyTestRunArgs;
 use crate::providers::gcp::clients::searchconsole::WebmastersSearchanalyticsQueryArgs;
 use crate::providers::gcp::clients::searchconsole::WebmastersSitemapsDeleteArgs;
+use crate::providers::gcp::clients::searchconsole::WebmastersSitemapsGetArgs;
+use crate::providers::gcp::clients::searchconsole::WebmastersSitemapsListArgs;
 use crate::providers::gcp::clients::searchconsole::WebmastersSitemapsSubmitArgs;
 use crate::providers::gcp::clients::searchconsole::WebmastersSitesAddArgs;
 use crate::providers::gcp::clients::searchconsole::WebmastersSitesDeleteArgs;
+use crate::providers::gcp::clients::searchconsole::WebmastersSitesGetArgs;
+use crate::providers::gcp::clients::searchconsole::WebmastersSitesListArgs;
 use crate::provider_client::{ProviderClient, ProviderError};
 use foundation_core::valtron::{execute, StreamIterator};
 use foundation_core::wire::simple_http::client::SimpleHttpClient;
@@ -74,7 +86,7 @@ where
 
     /// Webmasters searchanalytics query.
     ///
-    /// Automatically stores the result in the state store on success.
+    /// Read-only operation - no state tracking.
     ///
     /// # Arguments
     ///
@@ -86,7 +98,7 @@ where
     ///
     /// # Errors
     ///
-    /// Returns ProviderError if the API request or state storage fails.
+    /// Returns ProviderError if the API request fails.
     pub fn webmasters_searchanalytics_query(
         &self,
         args: &WebmastersSearchanalyticsQueryArgs,
@@ -107,12 +119,7 @@ where
         let task = webmasters_searchanalytics_query_task(builder)
             .map_err(ProviderError::Api)?;
 
-        let state_store = self.client.state_store.clone();
-        let stage = Some(self.client.stage.clone());
-
-        let store_task = StoreStateIdentifierTask::new(task, state_store, args, stage);
-
-        execute(store_task, None).map_err(|e: String| ProviderError::ExecuteFailed(e.to_string()))
+        execute(task, None).map_err(|e: String| ProviderError::ExecuteFailed(e.to_string()))
     }
 
     /// Webmasters sitemaps delete.
@@ -157,6 +164,84 @@ where
         let store_task = StoreStateIdentifierTask::new(task, state_store, args, stage);
 
         execute(store_task, None).map_err(|e: String| ProviderError::ExecuteFailed(e.to_string()))
+    }
+
+    /// Webmasters sitemaps get.
+    ///
+    /// Read-only operation - no state tracking.
+    ///
+    /// # Arguments
+    ///
+    /// * `args` - Request arguments
+    ///
+    /// # Returns
+    ///
+    /// StreamIterator yielding the WmxSitemap result.
+    ///
+    /// # Errors
+    ///
+    /// Returns ProviderError if the API request fails.
+    pub fn webmasters_sitemaps_get(
+        &self,
+        args: &WebmastersSitemapsGetArgs,
+    ) -> Result<
+        impl StreamIterator<
+            D = Result<WmxSitemap, ProviderError<ApiError>>,
+            P = crate::providers::gcp::clients::types::ApiPending,
+        > + Send
+        + 'static,
+        ProviderError<ApiError>,
+    > {
+        let builder = webmasters_sitemaps_get_builder(
+            &self.http_client,
+            &args.siteUrl,
+            &args.feedpath,
+        )
+        .map_err(ProviderError::Api)?;
+
+        let task = webmasters_sitemaps_get_task(builder)
+            .map_err(ProviderError::Api)?;
+
+        execute(task, None).map_err(|e: String| ProviderError::ExecuteFailed(e.to_string()))
+    }
+
+    /// Webmasters sitemaps list.
+    ///
+    /// Read-only operation - no state tracking.
+    ///
+    /// # Arguments
+    ///
+    /// * `args` - Request arguments
+    ///
+    /// # Returns
+    ///
+    /// StreamIterator yielding the SitemapsListResponse result.
+    ///
+    /// # Errors
+    ///
+    /// Returns ProviderError if the API request fails.
+    pub fn webmasters_sitemaps_list(
+        &self,
+        args: &WebmastersSitemapsListArgs,
+    ) -> Result<
+        impl StreamIterator<
+            D = Result<SitemapsListResponse, ProviderError<ApiError>>,
+            P = crate::providers::gcp::clients::types::ApiPending,
+        > + Send
+        + 'static,
+        ProviderError<ApiError>,
+    > {
+        let builder = webmasters_sitemaps_list_builder(
+            &self.http_client,
+            &args.siteUrl,
+            &args.sitemapIndex,
+        )
+        .map_err(ProviderError::Api)?;
+
+        let task = webmasters_sitemaps_list_task(builder)
+            .map_err(ProviderError::Api)?;
+
+        execute(task, None).map_err(|e: String| ProviderError::ExecuteFailed(e.to_string()))
     }
 
     /// Webmasters sitemaps submit.
@@ -289,9 +374,84 @@ where
         execute(store_task, None).map_err(|e: String| ProviderError::ExecuteFailed(e.to_string()))
     }
 
+    /// Webmasters sites get.
+    ///
+    /// Read-only operation - no state tracking.
+    ///
+    /// # Arguments
+    ///
+    /// * `args` - Request arguments
+    ///
+    /// # Returns
+    ///
+    /// StreamIterator yielding the WmxSite result.
+    ///
+    /// # Errors
+    ///
+    /// Returns ProviderError if the API request fails.
+    pub fn webmasters_sites_get(
+        &self,
+        args: &WebmastersSitesGetArgs,
+    ) -> Result<
+        impl StreamIterator<
+            D = Result<WmxSite, ProviderError<ApiError>>,
+            P = crate::providers::gcp::clients::types::ApiPending,
+        > + Send
+        + 'static,
+        ProviderError<ApiError>,
+    > {
+        let builder = webmasters_sites_get_builder(
+            &self.http_client,
+            &args.siteUrl,
+        )
+        .map_err(ProviderError::Api)?;
+
+        let task = webmasters_sites_get_task(builder)
+            .map_err(ProviderError::Api)?;
+
+        execute(task, None).map_err(|e: String| ProviderError::ExecuteFailed(e.to_string()))
+    }
+
+    /// Webmasters sites list.
+    ///
+    /// Read-only operation - no state tracking.
+    ///
+    /// # Arguments
+    ///
+    /// * `args` - Request arguments
+    ///
+    /// # Returns
+    ///
+    /// StreamIterator yielding the SitesListResponse result.
+    ///
+    /// # Errors
+    ///
+    /// Returns ProviderError if the API request fails.
+    pub fn webmasters_sites_list(
+        &self,
+        args: &WebmastersSitesListArgs,
+    ) -> Result<
+        impl StreamIterator<
+            D = Result<SitesListResponse, ProviderError<ApiError>>,
+            P = crate::providers::gcp::clients::types::ApiPending,
+        > + Send
+        + 'static,
+        ProviderError<ApiError>,
+    > {
+        let builder = webmasters_sites_list_builder(
+            &self.http_client,
+        )
+        .map_err(ProviderError::Api)?;
+
+        let task = webmasters_sites_list_task(builder)
+            .map_err(ProviderError::Api)?;
+
+        execute(task, None).map_err(|e: String| ProviderError::ExecuteFailed(e.to_string()))
+    }
+
     /// Searchconsole url inspection index inspect.
     ///
-    /// Automatically stores the result in the state store on success.
+    /// Read-only operation - no state tracking.
     ///
     /// # Arguments
     ///
@@ -303,7 +463,7 @@ where
     ///
     /// # Errors
     ///
-    /// Returns ProviderError if the API request or state storage fails.
+    /// Returns ProviderError if the API request fails.
     pub fn searchconsole_url_inspection_index_inspect(
         &self,
         args: &SearchconsoleUrlInspectionIndexInspectArgs,
@@ -323,17 +483,12 @@ where
         let task = searchconsole_url_inspection_index_inspect_task(builder)
             .map_err(ProviderError::Api)?;
 
-        let state_store = self.client.state_store.clone();
-        let stage = Some(self.client.stage.clone());
-
-        let store_task = StoreStateIdentifierTask::new(task, state_store, args, stage);
-
-        execute(store_task, None).map_err(|e: String| ProviderError::ExecuteFailed(e.to_string()))
+        execute(task, None).map_err(|e: String| ProviderError::ExecuteFailed(e.to_string()))
     }
 
     /// Searchconsole url testing tools mobile friendly test run.
     ///
-    /// Automatically stores the result in the state store on success.
+    /// Read-only operation - no state tracking.
     ///
     /// # Arguments
     ///
@@ -345,7 +500,7 @@ where
     ///
     /// # Errors
     ///
-    /// Returns ProviderError if the API request or state storage fails.
+    /// Returns ProviderError if the API request fails.
     pub fn searchconsole_url_testing_tools_mobile_friendly_test_run(
         &self,
         args: &SearchconsoleUrlTestingToolsMobileFriendlyTestRunArgs,
@@ -365,12 +520,7 @@ where
         let task = searchconsole_url_testing_tools_mobile_friendly_test_run_task(builder)
             .map_err(ProviderError::Api)?;
 
-        let state_store = self.client.state_store.clone();
-        let stage = Some(self.client.stage.clone());
-
-        let store_task = StoreStateIdentifierTask::new(task, state_store, args, stage);
-
-        execute(store_task, None).map_err(|e: String| ProviderError::ExecuteFailed(e.to_string()))
+        execute(task, None).map_err(|e: String| ProviderError::ExecuteFailed(e.to_string()))
     }
 
 }

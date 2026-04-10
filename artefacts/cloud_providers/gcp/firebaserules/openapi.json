@@ -477,7 +477,7 @@
       }
     }
   },
-  "revision": "20260323",
+  "revision": "20260330",
   "rootUrl": "https://firebaserules.googleapis.com/",
   "schemas": {
     "Arg": {

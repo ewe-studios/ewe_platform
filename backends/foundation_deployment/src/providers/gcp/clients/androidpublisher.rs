@@ -7,7 +7,6 @@
 
 #![cfg(feature = "gcp")]
 
-
 use crate::providers::gcp::clients::types::*;
 use crate::providers::gcp::resources::*;
 use foundation_core::valtron::{
@@ -17,10 +16,11 @@ use foundation_core::valtron::{
 use foundation_core::wire::simple_http::client::{
     body_reader, ClientRequestBuilder, RequestIntro, SimpleHttpClient, SystemDnsResolver,
 };
+use foundation_db::state::resource_identifier::ResourceIdentifier;
 use foundation_macros::JsonHash;
 use serde::Serialize;
 
-/// GET androidpublisher/v3/applications/{packageName}/dataSafety
+/// POST androidpublisher/v3/applications/{packageName}/dataSafety
 /// Writes the Safety Labels declaration of an app.
 ///
 /// Returns `ClientRequestBuilder` for customization.
@@ -29,7 +29,6 @@ use serde::Serialize;
 pub fn androidpublisher_applications_data_safety_builder(
     client: &SimpleHttpClient,
     packageName: &String,
-    body: &SafetyLabelsUpdateRequest,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
@@ -39,15 +38,13 @@ pub fn androidpublisher_applications_data_safety_builder(
 
     // Build request
     let builder = client
-        .get(&endpoint_url)
+        .post(&endpoint_url)
         .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
 
-    builder
-        .body_json(body)
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+    Ok(builder)
 }
 
-/// GET androidpublisher/v3/applications/{packageName}/dataSafety
+/// POST androidpublisher/v3/applications/{packageName}/dataSafety
 /// Writes the Safety Labels declaration of an app.
 ///
 /// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
@@ -121,7 +118,7 @@ pub fn androidpublisher_applications_data_safety_task(
         .map_pending(|_| ApiPending::Sending))
 }
 
-/// GET androidpublisher/v3/applications/{packageName}/dataSafety
+/// POST androidpublisher/v3/applications/{packageName}/dataSafety
 /// Writes the Safety Labels declaration of an app.
 ///
 /// Takes a `ClientRequestBuilder`, builds and executes the request,
@@ -160,11 +157,9 @@ pub fn androidpublisher_applications_data_safety_execute(
 pub struct AndroidpublisherApplicationsDataSafetyArgs {
     /// Path parameter: packageName
     pub packageName: String,
-    /// Request body.
-    pub body: SafetyLabelsUpdateRequest,
 }
 
-/// GET androidpublisher/v3/applications/{packageName}/dataSafety
+/// POST androidpublisher/v3/applications/{packageName}/dataSafety
 /// Writes the Safety Labels declaration of an app.
 ///
 /// Simplest API - builds and executes the request in one call.
@@ -186,12 +181,11 @@ pub fn androidpublisher_applications_data_safety(
         + 'static,
     ApiError,
 > {
-    let builder =
-        androidpublisher_applications_data_safety_builder(client, &args.packageName, &args.body)?;
+    let builder = androidpublisher_applications_data_safety_builder(client, &args.packageName)?;
     androidpublisher_applications_data_safety_execute(builder)
 }
 
-/// GET androidpublisher/v3/applications/{packageName}/deviceTierConfigs
+/// POST androidpublisher/v3/applications/{packageName}/deviceTierConfigs
 /// Creates a new device tier config for an app.
 ///
 /// Returns `ClientRequestBuilder` for customization.
@@ -200,8 +194,7 @@ pub fn androidpublisher_applications_data_safety(
 pub fn androidpublisher_applications_device_tier_configs_create_builder(
     client: &SimpleHttpClient,
     packageName: &String,
-    allowUnknownDevices: &Option<bool>,
-    body: &DeviceTierConfig,
+    allowUnknownDevices: &Option<Option<String>>,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
@@ -222,15 +215,13 @@ pub fn androidpublisher_applications_device_tier_configs_create_builder(
     };
 
     let builder = client
-        .get(&url_with_query)
+        .post(&url_with_query)
         .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
 
-    builder
-        .body_json(body)
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+    Ok(builder)
 }
 
-/// GET androidpublisher/v3/applications/{packageName}/deviceTierConfigs
+/// POST androidpublisher/v3/applications/{packageName}/deviceTierConfigs
 /// Creates a new device tier config for an app.
 ///
 /// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
@@ -304,7 +295,7 @@ pub fn androidpublisher_applications_device_tier_configs_create_task(
         .map_pending(|_| ApiPending::Sending))
 }
 
-/// GET androidpublisher/v3/applications/{packageName}/deviceTierConfigs
+/// POST androidpublisher/v3/applications/{packageName}/deviceTierConfigs
 /// Creates a new device tier config for an app.
 ///
 /// Takes a `ClientRequestBuilder`, builds and executes the request,
@@ -342,12 +333,10 @@ pub struct AndroidpublisherApplicationsDeviceTierConfigsCreateArgs {
     /// Path parameter: packageName
     pub packageName: String,
     /// Query parameter: allowUnknownDevices
-    pub allowUnknownDevices: Option<bool>,
-    /// Request body.
-    pub body: DeviceTierConfig,
+    pub allowUnknownDevices: Option<Option<String>>,
 }
 
-/// GET androidpublisher/v3/applications/{packageName}/deviceTierConfigs
+/// POST androidpublisher/v3/applications/{packageName}/deviceTierConfigs
 /// Creates a new device tier config for an app.
 ///
 /// Simplest API - builds and executes the request in one call.
@@ -371,7 +360,6 @@ pub fn androidpublisher_applications_device_tier_configs_create(
         client,
         &args.packageName,
         &args.allowUnknownDevices,
-        &args.body,
     )?;
     androidpublisher_applications_device_tier_configs_create_execute(builder)
 }
@@ -545,7 +533,362 @@ pub fn androidpublisher_applications_device_tier_configs_get(
     androidpublisher_applications_device_tier_configs_get_execute(builder)
 }
 
-/// GET androidpublisher/v3/applications/{packageName}/appRecoveries/{appRecoveryId}:addTargeting
+/// GET androidpublisher/v3/applications/{packageName}/deviceTierConfigs
+/// Returns created device tier configs, ordered by descending creation time.
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `androidpublisher_applications_device_tier_configs_list_execute()` to send, or `androidpublisher_applications_device_tier_configs_list` for simplest API.
+
+pub fn androidpublisher_applications_device_tier_configs_list_builder(
+    client: &SimpleHttpClient,
+    packageName: &String,
+    pageSize: &Option<Option<String>>,
+    pageToken: &Option<Option<String>>,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!(
+        "https://androidpublisher.googleapis.com/androidpublisher/v3/applications/{}/deviceTierConfigs",
+        packageName,
+    );
+
+    // Build request
+    let mut query_parts = Vec::new();
+    if let Some(val) = pageSize.as_ref() {
+        query_parts.push(format!("pageSize={}", val));
+    }
+    if let Some(val) = pageToken.as_ref() {
+        query_parts.push(format!("pageToken={}", val));
+    }
+
+    let url_with_query = if query_parts.is_empty() {
+        endpoint_url
+    } else {
+        format!("{}?{}", endpoint_url, query_parts.join("&"))
+    };
+
+    let builder = client
+        .get(&url_with_query)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// GET androidpublisher/v3/applications/{packageName}/deviceTierConfigs
+/// Returns created device tier configs, ordered by descending creation time.
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `androidpublisher_applications_device_tier_configs_list_execute()` or `androidpublisher_applications_device_tier_configs_list`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `androidpublisher_applications_device_tier_configs_list_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn androidpublisher_applications_device_tier_configs_list_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<ListDeviceTierConfigsResponse>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: ListDeviceTierConfigsResponse = serde_json::from_str(&body)
+                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// GET androidpublisher/v3/applications/{packageName}/deviceTierConfigs
+/// Returns created device tier configs, ordered by descending creation time.
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `androidpublisher_applications_device_tier_configs_list_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `androidpublisher_applications_device_tier_configs_list_task()`.
+/// For the simplest API, use `androidpublisher_applications_device_tier_configs_list()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `androidpublisher_applications_device_tier_configs_list_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn androidpublisher_applications_device_tier_configs_list_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<
+            D = Result<ApiResponse<ListDeviceTierConfigsResponse>, ApiError>,
+            P = ApiPending,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    let task = androidpublisher_applications_device_tier_configs_list_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`androidpublisher_applications_device_tier_configs_list`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct AndroidpublisherApplicationsDeviceTierConfigsListArgs {
+    /// Path parameter: packageName
+    pub packageName: String,
+    /// Query parameter: pageSize
+    pub pageSize: Option<Option<String>>,
+    /// Query parameter: pageToken
+    pub pageToken: Option<Option<String>>,
+}
+
+/// GET androidpublisher/v3/applications/{packageName}/deviceTierConfigs
+/// Returns created device tier configs, ordered by descending creation time.
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `androidpublisher_applications_device_tier_configs_list_builder()` + `androidpublisher_applications_device_tier_configs_list_execute()`.
+/// For task-level control, use `androidpublisher_applications_device_tier_configs_list_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn androidpublisher_applications_device_tier_configs_list(
+    client: &SimpleHttpClient,
+    args: &AndroidpublisherApplicationsDeviceTierConfigsListArgs,
+) -> Result<
+    impl StreamIterator<
+            D = Result<ApiResponse<ListDeviceTierConfigsResponse>, ApiError>,
+            P = ApiPending,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    let builder = androidpublisher_applications_device_tier_configs_list_builder(
+        client,
+        &args.packageName,
+        &args.pageSize,
+        &args.pageToken,
+    )?;
+    androidpublisher_applications_device_tier_configs_list_execute(builder)
+}
+
+/// GET androidpublisher/v3/applications/{applicationsId}/tracks/{tracksId}/releases
+/// Returns the list of all releases for a given track. This excludes any releases that are obsolete.
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `androidpublisher_applications_tracks_releases_list_execute()` to send, or `androidpublisher_applications_tracks_releases_list` for simplest API.
+
+pub fn androidpublisher_applications_tracks_releases_list_builder(
+    client: &SimpleHttpClient,
+    parent: &String,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!(
+        "https://androidpublisher.googleapis.com/androidpublisher/v3/applications/{}/tracks/{tracksId}/releases",
+        parent,
+    );
+
+    // Build request
+    let builder = client
+        .get(&endpoint_url)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// GET androidpublisher/v3/applications/{applicationsId}/tracks/{tracksId}/releases
+/// Returns the list of all releases for a given track. This excludes any releases that are obsolete.
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `androidpublisher_applications_tracks_releases_list_execute()` or `androidpublisher_applications_tracks_releases_list`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `androidpublisher_applications_tracks_releases_list_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn androidpublisher_applications_tracks_releases_list_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<ListReleaseSummariesResponse>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: ListReleaseSummariesResponse = serde_json::from_str(&body)
+                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// GET androidpublisher/v3/applications/{applicationsId}/tracks/{tracksId}/releases
+/// Returns the list of all releases for a given track. This excludes any releases that are obsolete.
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `androidpublisher_applications_tracks_releases_list_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `androidpublisher_applications_tracks_releases_list_task()`.
+/// For the simplest API, use `androidpublisher_applications_tracks_releases_list()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `androidpublisher_applications_tracks_releases_list_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn androidpublisher_applications_tracks_releases_list_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<
+            D = Result<ApiResponse<ListReleaseSummariesResponse>, ApiError>,
+            P = ApiPending,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    let task = androidpublisher_applications_tracks_releases_list_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`androidpublisher_applications_tracks_releases_list`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct AndroidpublisherApplicationsTracksReleasesListArgs {
+    /// Path parameter: parent
+    pub parent: String,
+}
+
+/// GET androidpublisher/v3/applications/{applicationsId}/tracks/{tracksId}/releases
+/// Returns the list of all releases for a given track. This excludes any releases that are obsolete.
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `androidpublisher_applications_tracks_releases_list_builder()` + `androidpublisher_applications_tracks_releases_list_execute()`.
+/// For task-level control, use `androidpublisher_applications_tracks_releases_list_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn androidpublisher_applications_tracks_releases_list(
+    client: &SimpleHttpClient,
+    args: &AndroidpublisherApplicationsTracksReleasesListArgs,
+) -> Result<
+    impl StreamIterator<
+            D = Result<ApiResponse<ListReleaseSummariesResponse>, ApiError>,
+            P = ApiPending,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    let builder = androidpublisher_applications_tracks_releases_list_builder(client, &args.parent)?;
+    androidpublisher_applications_tracks_releases_list_execute(builder)
+}
+
+/// POST androidpublisher/v3/applications/{packageName}/appRecoveries/{appRecoveryId}:addTargeting
 /// Incrementally update targeting for a recovery action. Note that only the criteria selected during the creation of recovery action can be expanded.
 ///
 /// Returns `ClientRequestBuilder` for customization.
@@ -555,7 +898,6 @@ pub fn androidpublisher_apprecovery_add_targeting_builder(
     client: &SimpleHttpClient,
     packageName: &String,
     appRecoveryId: &String,
-    body: &AddTargetingRequest,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
@@ -566,15 +908,13 @@ pub fn androidpublisher_apprecovery_add_targeting_builder(
 
     // Build request
     let builder = client
-        .get(&endpoint_url)
+        .post(&endpoint_url)
         .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
 
-    builder
-        .body_json(body)
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+    Ok(builder)
 }
 
-/// GET androidpublisher/v3/applications/{packageName}/appRecoveries/{appRecoveryId}:addTargeting
+/// POST androidpublisher/v3/applications/{packageName}/appRecoveries/{appRecoveryId}:addTargeting
 /// Incrementally update targeting for a recovery action. Note that only the criteria selected during the creation of recovery action can be expanded.
 ///
 /// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
@@ -648,7 +988,7 @@ pub fn androidpublisher_apprecovery_add_targeting_task(
         .map_pending(|_| ApiPending::Sending))
 }
 
-/// GET androidpublisher/v3/applications/{packageName}/appRecoveries/{appRecoveryId}:addTargeting
+/// POST androidpublisher/v3/applications/{packageName}/appRecoveries/{appRecoveryId}:addTargeting
 /// Incrementally update targeting for a recovery action. Note that only the criteria selected during the creation of recovery action can be expanded.
 ///
 /// Takes a `ClientRequestBuilder`, builds and executes the request,
@@ -687,11 +1027,9 @@ pub struct AndroidpublisherApprecoveryAddTargetingArgs {
     pub packageName: String,
     /// Path parameter: appRecoveryId
     pub appRecoveryId: String,
-    /// Request body.
-    pub body: AddTargetingRequest,
 }
 
-/// GET androidpublisher/v3/applications/{packageName}/appRecoveries/{appRecoveryId}:addTargeting
+/// POST androidpublisher/v3/applications/{packageName}/appRecoveries/{appRecoveryId}:addTargeting
 /// Incrementally update targeting for a recovery action. Note that only the criteria selected during the creation of recovery action can be expanded.
 ///
 /// Simplest API - builds and executes the request in one call.
@@ -715,12 +1053,11 @@ pub fn androidpublisher_apprecovery_add_targeting(
         client,
         &args.packageName,
         &args.appRecoveryId,
-        &args.body,
     )?;
     androidpublisher_apprecovery_add_targeting_execute(builder)
 }
 
-/// GET androidpublisher/v3/applications/{packageName}/appRecoveries/{appRecoveryId}:cancel
+/// POST androidpublisher/v3/applications/{packageName}/appRecoveries/{appRecoveryId}:cancel
 /// Cancel an already executing app recovery action. Note that this action changes status of the recovery action to CANCELED.
 ///
 /// Returns `ClientRequestBuilder` for customization.
@@ -730,7 +1067,6 @@ pub fn androidpublisher_apprecovery_cancel_builder(
     client: &SimpleHttpClient,
     packageName: &String,
     appRecoveryId: &String,
-    body: &CancelAppRecoveryRequest,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
@@ -741,15 +1077,13 @@ pub fn androidpublisher_apprecovery_cancel_builder(
 
     // Build request
     let builder = client
-        .get(&endpoint_url)
+        .post(&endpoint_url)
         .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
 
-    builder
-        .body_json(body)
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+    Ok(builder)
 }
 
-/// GET androidpublisher/v3/applications/{packageName}/appRecoveries/{appRecoveryId}:cancel
+/// POST androidpublisher/v3/applications/{packageName}/appRecoveries/{appRecoveryId}:cancel
 /// Cancel an already executing app recovery action. Note that this action changes status of the recovery action to CANCELED.
 ///
 /// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
@@ -823,7 +1157,7 @@ pub fn androidpublisher_apprecovery_cancel_task(
         .map_pending(|_| ApiPending::Sending))
 }
 
-/// GET androidpublisher/v3/applications/{packageName}/appRecoveries/{appRecoveryId}:cancel
+/// POST androidpublisher/v3/applications/{packageName}/appRecoveries/{appRecoveryId}:cancel
 /// Cancel an already executing app recovery action. Note that this action changes status of the recovery action to CANCELED.
 ///
 /// Takes a `ClientRequestBuilder`, builds and executes the request,
@@ -862,11 +1196,9 @@ pub struct AndroidpublisherApprecoveryCancelArgs {
     pub packageName: String,
     /// Path parameter: appRecoveryId
     pub appRecoveryId: String,
-    /// Request body.
-    pub body: CancelAppRecoveryRequest,
 }
 
-/// GET androidpublisher/v3/applications/{packageName}/appRecoveries/{appRecoveryId}:cancel
+/// POST androidpublisher/v3/applications/{packageName}/appRecoveries/{appRecoveryId}:cancel
 /// Cancel an already executing app recovery action. Note that this action changes status of the recovery action to CANCELED.
 ///
 /// Simplest API - builds and executes the request in one call.
@@ -890,12 +1222,11 @@ pub fn androidpublisher_apprecovery_cancel(
         client,
         &args.packageName,
         &args.appRecoveryId,
-        &args.body,
     )?;
     androidpublisher_apprecovery_cancel_execute(builder)
 }
 
-/// GET androidpublisher/v3/applications/{packageName}/appRecoveries
+/// POST androidpublisher/v3/applications/{packageName}/appRecoveries
 /// Create an app recovery action with recovery status as DRAFT. Note that this action does not execute the recovery action.
 ///
 /// Returns `ClientRequestBuilder` for customization.
@@ -904,7 +1235,6 @@ pub fn androidpublisher_apprecovery_cancel(
 pub fn androidpublisher_apprecovery_create_builder(
     client: &SimpleHttpClient,
     packageName: &String,
-    body: &CreateDraftAppRecoveryRequest,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
@@ -914,15 +1244,13 @@ pub fn androidpublisher_apprecovery_create_builder(
 
     // Build request
     let builder = client
-        .get(&endpoint_url)
+        .post(&endpoint_url)
         .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
 
-    builder
-        .body_json(body)
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+    Ok(builder)
 }
 
-/// GET androidpublisher/v3/applications/{packageName}/appRecoveries
+/// POST androidpublisher/v3/applications/{packageName}/appRecoveries
 /// Create an app recovery action with recovery status as DRAFT. Note that this action does not execute the recovery action.
 ///
 /// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
@@ -996,7 +1324,7 @@ pub fn androidpublisher_apprecovery_create_task(
         .map_pending(|_| ApiPending::Sending))
 }
 
-/// GET androidpublisher/v3/applications/{packageName}/appRecoveries
+/// POST androidpublisher/v3/applications/{packageName}/appRecoveries
 /// Create an app recovery action with recovery status as DRAFT. Note that this action does not execute the recovery action.
 ///
 /// Takes a `ClientRequestBuilder`, builds and executes the request,
@@ -1033,11 +1361,9 @@ pub fn androidpublisher_apprecovery_create_execute(
 pub struct AndroidpublisherApprecoveryCreateArgs {
     /// Path parameter: packageName
     pub packageName: String,
-    /// Request body.
-    pub body: CreateDraftAppRecoveryRequest,
 }
 
-/// GET androidpublisher/v3/applications/{packageName}/appRecoveries
+/// POST androidpublisher/v3/applications/{packageName}/appRecoveries
 /// Create an app recovery action with recovery status as DRAFT. Note that this action does not execute the recovery action.
 ///
 /// Simplest API - builds and executes the request in one call.
@@ -1057,12 +1383,11 @@ pub fn androidpublisher_apprecovery_create(
         + 'static,
     ApiError,
 > {
-    let builder =
-        androidpublisher_apprecovery_create_builder(client, &args.packageName, &args.body)?;
+    let builder = androidpublisher_apprecovery_create_builder(client, &args.packageName)?;
     androidpublisher_apprecovery_create_execute(builder)
 }
 
-/// GET androidpublisher/v3/applications/{packageName}/appRecoveries/{appRecoveryId}:deploy
+/// POST androidpublisher/v3/applications/{packageName}/appRecoveries/{appRecoveryId}:deploy
 /// Deploy an already created app recovery action with recovery status DRAFT. Note that this action activates the recovery action for all targeted users and changes its status to `ACTIVE`.
 ///
 /// Returns `ClientRequestBuilder` for customization.
@@ -1072,7 +1397,6 @@ pub fn androidpublisher_apprecovery_deploy_builder(
     client: &SimpleHttpClient,
     packageName: &String,
     appRecoveryId: &String,
-    body: &DeployAppRecoveryRequest,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
@@ -1083,15 +1407,13 @@ pub fn androidpublisher_apprecovery_deploy_builder(
 
     // Build request
     let builder = client
-        .get(&endpoint_url)
+        .post(&endpoint_url)
         .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
 
-    builder
-        .body_json(body)
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+    Ok(builder)
 }
 
-/// GET androidpublisher/v3/applications/{packageName}/appRecoveries/{appRecoveryId}:deploy
+/// POST androidpublisher/v3/applications/{packageName}/appRecoveries/{appRecoveryId}:deploy
 /// Deploy an already created app recovery action with recovery status DRAFT. Note that this action activates the recovery action for all targeted users and changes its status to `ACTIVE`.
 ///
 /// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
@@ -1165,7 +1487,7 @@ pub fn androidpublisher_apprecovery_deploy_task(
         .map_pending(|_| ApiPending::Sending))
 }
 
-/// GET androidpublisher/v3/applications/{packageName}/appRecoveries/{appRecoveryId}:deploy
+/// POST androidpublisher/v3/applications/{packageName}/appRecoveries/{appRecoveryId}:deploy
 /// Deploy an already created app recovery action with recovery status DRAFT. Note that this action activates the recovery action for all targeted users and changes its status to `ACTIVE`.
 ///
 /// Takes a `ClientRequestBuilder`, builds and executes the request,
@@ -1204,11 +1526,9 @@ pub struct AndroidpublisherApprecoveryDeployArgs {
     pub packageName: String,
     /// Path parameter: appRecoveryId
     pub appRecoveryId: String,
-    /// Request body.
-    pub body: DeployAppRecoveryRequest,
 }
 
-/// GET androidpublisher/v3/applications/{packageName}/appRecoveries/{appRecoveryId}:deploy
+/// POST androidpublisher/v3/applications/{packageName}/appRecoveries/{appRecoveryId}:deploy
 /// Deploy an already created app recovery action with recovery status DRAFT. Note that this action activates the recovery action for all targeted users and changes its status to `ACTIVE`.
 ///
 /// Simplest API - builds and executes the request in one call.
@@ -1232,12 +1552,187 @@ pub fn androidpublisher_apprecovery_deploy(
         client,
         &args.packageName,
         &args.appRecoveryId,
-        &args.body,
     )?;
     androidpublisher_apprecovery_deploy_execute(builder)
 }
 
-/// GET androidpublisher/v3/applications/{packageName}/edits/{editId}:commit
+/// GET androidpublisher/v3/applications/{packageName}/appRecoveries
+/// List all app recovery action resources associated with a particular package name and app version.
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `androidpublisher_apprecovery_list_execute()` to send, or `androidpublisher_apprecovery_list` for simplest API.
+
+pub fn androidpublisher_apprecovery_list_builder(
+    client: &SimpleHttpClient,
+    packageName: &String,
+    versionCode: &Option<Option<String>>,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!(
+        "https://androidpublisher.googleapis.com/androidpublisher/v3/applications/{}/appRecoveries",
+        packageName,
+    );
+
+    // Build request
+    let mut query_parts = Vec::new();
+    if let Some(val) = versionCode.as_ref() {
+        query_parts.push(format!("versionCode={}", val));
+    }
+
+    let url_with_query = if query_parts.is_empty() {
+        endpoint_url
+    } else {
+        format!("{}?{}", endpoint_url, query_parts.join("&"))
+    };
+
+    let builder = client
+        .get(&url_with_query)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// GET androidpublisher/v3/applications/{packageName}/appRecoveries
+/// List all app recovery action resources associated with a particular package name and app version.
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `androidpublisher_apprecovery_list_execute()` or `androidpublisher_apprecovery_list`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `androidpublisher_apprecovery_list_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn androidpublisher_apprecovery_list_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<ListAppRecoveriesResponse>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: ListAppRecoveriesResponse = serde_json::from_str(&body)
+                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// GET androidpublisher/v3/applications/{packageName}/appRecoveries
+/// List all app recovery action resources associated with a particular package name and app version.
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `androidpublisher_apprecovery_list_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `androidpublisher_apprecovery_list_task()`.
+/// For the simplest API, use `androidpublisher_apprecovery_list()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `androidpublisher_apprecovery_list_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn androidpublisher_apprecovery_list_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<ListAppRecoveriesResponse>, ApiError>, P = ApiPending>
+        + Send
+        + 'static,
+    ApiError,
+> {
+    let task = androidpublisher_apprecovery_list_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`androidpublisher_apprecovery_list`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct AndroidpublisherApprecoveryListArgs {
+    /// Path parameter: packageName
+    pub packageName: String,
+    /// Query parameter: versionCode
+    pub versionCode: Option<Option<String>>,
+}
+
+/// GET androidpublisher/v3/applications/{packageName}/appRecoveries
+/// List all app recovery action resources associated with a particular package name and app version.
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `androidpublisher_apprecovery_list_builder()` + `androidpublisher_apprecovery_list_execute()`.
+/// For task-level control, use `androidpublisher_apprecovery_list_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn androidpublisher_apprecovery_list(
+    client: &SimpleHttpClient,
+    args: &AndroidpublisherApprecoveryListArgs,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<ListAppRecoveriesResponse>, ApiError>, P = ApiPending>
+        + Send
+        + 'static,
+    ApiError,
+> {
+    let builder =
+        androidpublisher_apprecovery_list_builder(client, &args.packageName, &args.versionCode)?;
+    androidpublisher_apprecovery_list_execute(builder)
+}
+
+/// POST androidpublisher/v3/applications/{packageName}/edits/{editId}:commit
 /// Commits an app edit.
 ///
 /// Returns `ClientRequestBuilder` for customization.
@@ -1247,8 +1742,8 @@ pub fn androidpublisher_edits_commit_builder(
     client: &SimpleHttpClient,
     packageName: &String,
     editId: &String,
-    changesInReviewBehavior: &Option<String>,
-    changesNotSentForReview: &Option<bool>,
+    changesInReviewBehavior: &Option<Option<String>>,
+    changesNotSentForReview: &Option<Option<String>>,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
@@ -1273,13 +1768,13 @@ pub fn androidpublisher_edits_commit_builder(
     };
 
     let builder = client
-        .get(&url_with_query)
+        .post(&url_with_query)
         .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
 
     Ok(builder)
 }
 
-/// GET androidpublisher/v3/applications/{packageName}/edits/{editId}:commit
+/// POST androidpublisher/v3/applications/{packageName}/edits/{editId}:commit
 /// Commits an app edit.
 ///
 /// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
@@ -1353,7 +1848,7 @@ pub fn androidpublisher_edits_commit_task(
         .map_pending(|_| ApiPending::Sending))
 }
 
-/// GET androidpublisher/v3/applications/{packageName}/edits/{editId}:commit
+/// POST androidpublisher/v3/applications/{packageName}/edits/{editId}:commit
 /// Commits an app edit.
 ///
 /// Takes a `ClientRequestBuilder`, builds and executes the request,
@@ -1391,12 +1886,12 @@ pub struct AndroidpublisherEditsCommitArgs {
     /// Path parameter: editId
     pub editId: String,
     /// Query parameter: changesInReviewBehavior
-    pub changesInReviewBehavior: Option<String>,
+    pub changesInReviewBehavior: Option<Option<String>>,
     /// Query parameter: changesNotSentForReview
-    pub changesNotSentForReview: Option<bool>,
+    pub changesNotSentForReview: Option<Option<String>>,
 }
 
-/// GET androidpublisher/v3/applications/{packageName}/edits/{editId}:commit
+/// POST androidpublisher/v3/applications/{packageName}/edits/{editId}:commit
 /// Commits an app edit.
 ///
 /// Simplest API - builds and executes the request in one call.
@@ -1424,7 +1919,7 @@ pub fn androidpublisher_edits_commit(
     androidpublisher_edits_commit_execute(builder)
 }
 
-/// GET androidpublisher/v3/applications/{packageName}/edits/{editId}
+/// DELETE androidpublisher/v3/applications/{packageName}/edits/{editId}
 /// Deletes an app edit.
 ///
 /// Returns `ClientRequestBuilder` for customization.
@@ -1443,13 +1938,13 @@ pub fn androidpublisher_edits_delete_builder(
 
     // Build request
     let builder = client
-        .get(&endpoint_url)
+        .delete(&endpoint_url)
         .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
 
     Ok(builder)
 }
 
-/// GET androidpublisher/v3/applications/{packageName}/edits/{editId}
+/// DELETE androidpublisher/v3/applications/{packageName}/edits/{editId}
 /// Deletes an app edit.
 ///
 /// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
@@ -1520,7 +2015,7 @@ pub fn androidpublisher_edits_delete_task(
         .map_pending(|_| ApiPending::Sending))
 }
 
-/// GET androidpublisher/v3/applications/{packageName}/edits/{editId}
+/// DELETE androidpublisher/v3/applications/{packageName}/edits/{editId}
 /// Deletes an app edit.
 ///
 /// Takes a `ClientRequestBuilder`, builds and executes the request,
@@ -1559,7 +2054,7 @@ pub struct AndroidpublisherEditsDeleteArgs {
     pub editId: String,
 }
 
-/// GET androidpublisher/v3/applications/{packageName}/edits/{editId}
+/// DELETE androidpublisher/v3/applications/{packageName}/edits/{editId}
 /// Deletes an app edit.
 ///
 /// Simplest API - builds and executes the request in one call.
@@ -1581,7 +2076,167 @@ pub fn androidpublisher_edits_delete(
     androidpublisher_edits_delete_execute(builder)
 }
 
-/// GET androidpublisher/v3/applications/{packageName}/edits
+/// GET androidpublisher/v3/applications/{packageName}/edits/{editId}
+/// Gets an app edit.
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `androidpublisher_edits_get_execute()` to send, or `androidpublisher_edits_get` for simplest API.
+
+pub fn androidpublisher_edits_get_builder(
+    client: &SimpleHttpClient,
+    packageName: &String,
+    editId: &String,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!(
+        "https://androidpublisher.googleapis.com/androidpublisher/v3/applications/{}/edits/{}",
+        packageName, editId,
+    );
+
+    // Build request
+    let builder = client
+        .get(&endpoint_url)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// GET androidpublisher/v3/applications/{packageName}/edits/{editId}
+/// Gets an app edit.
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `androidpublisher_edits_get_execute()` or `androidpublisher_edits_get`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `androidpublisher_edits_get_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn androidpublisher_edits_get_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<AppEdit>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: AppEdit = serde_json::from_str(&body)
+                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// GET androidpublisher/v3/applications/{packageName}/edits/{editId}
+/// Gets an app edit.
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `androidpublisher_edits_get_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `androidpublisher_edits_get_task()`.
+/// For the simplest API, use `androidpublisher_edits_get()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `androidpublisher_edits_get_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn androidpublisher_edits_get_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<AppEdit>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let task = androidpublisher_edits_get_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`androidpublisher_edits_get`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct AndroidpublisherEditsGetArgs {
+    /// Path parameter: packageName
+    pub packageName: String,
+    /// Path parameter: editId
+    pub editId: String,
+}
+
+/// GET androidpublisher/v3/applications/{packageName}/edits/{editId}
+/// Gets an app edit.
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `androidpublisher_edits_get_builder()` + `androidpublisher_edits_get_execute()`.
+/// For task-level control, use `androidpublisher_edits_get_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn androidpublisher_edits_get(
+    client: &SimpleHttpClient,
+    args: &AndroidpublisherEditsGetArgs,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<AppEdit>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let builder = androidpublisher_edits_get_builder(client, &args.packageName, &args.editId)?;
+    androidpublisher_edits_get_execute(builder)
+}
+
+/// POST androidpublisher/v3/applications/{packageName}/edits
 /// Creates a new edit for an app.
 ///
 /// Returns `ClientRequestBuilder` for customization.
@@ -1590,7 +2245,6 @@ pub fn androidpublisher_edits_delete(
 pub fn androidpublisher_edits_insert_builder(
     client: &SimpleHttpClient,
     packageName: &String,
-    body: &AppEdit,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
@@ -1600,15 +2254,13 @@ pub fn androidpublisher_edits_insert_builder(
 
     // Build request
     let builder = client
-        .get(&endpoint_url)
+        .post(&endpoint_url)
         .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
 
-    builder
-        .body_json(body)
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+    Ok(builder)
 }
 
-/// GET androidpublisher/v3/applications/{packageName}/edits
+/// POST androidpublisher/v3/applications/{packageName}/edits
 /// Creates a new edit for an app.
 ///
 /// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
@@ -1682,7 +2334,7 @@ pub fn androidpublisher_edits_insert_task(
         .map_pending(|_| ApiPending::Sending))
 }
 
-/// GET androidpublisher/v3/applications/{packageName}/edits
+/// POST androidpublisher/v3/applications/{packageName}/edits
 /// Creates a new edit for an app.
 ///
 /// Takes a `ClientRequestBuilder`, builds and executes the request,
@@ -1717,11 +2369,9 @@ pub fn androidpublisher_edits_insert_execute(
 pub struct AndroidpublisherEditsInsertArgs {
     /// Path parameter: packageName
     pub packageName: String,
-    /// Request body.
-    pub body: AppEdit,
 }
 
-/// GET androidpublisher/v3/applications/{packageName}/edits
+/// POST androidpublisher/v3/applications/{packageName}/edits
 /// Creates a new edit for an app.
 ///
 /// Simplest API - builds and executes the request in one call.
@@ -1739,11 +2389,11 @@ pub fn androidpublisher_edits_insert(
     impl StreamIterator<D = Result<ApiResponse<AppEdit>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = androidpublisher_edits_insert_builder(client, &args.packageName, &args.body)?;
+    let builder = androidpublisher_edits_insert_builder(client, &args.packageName)?;
     androidpublisher_edits_insert_execute(builder)
 }
 
-/// GET androidpublisher/v3/applications/{packageName}/edits/{editId}:validate
+/// POST androidpublisher/v3/applications/{packageName}/edits/{editId}:validate
 /// Validates an app edit.
 ///
 /// Returns `ClientRequestBuilder` for customization.
@@ -1763,13 +2413,13 @@ pub fn androidpublisher_edits_validate_builder(
 
     // Build request
     let builder = client
-        .get(&endpoint_url)
+        .post(&endpoint_url)
         .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
 
     Ok(builder)
 }
 
-/// GET androidpublisher/v3/applications/{packageName}/edits/{editId}:validate
+/// POST androidpublisher/v3/applications/{packageName}/edits/{editId}:validate
 /// Validates an app edit.
 ///
 /// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
@@ -1843,7 +2493,7 @@ pub fn androidpublisher_edits_validate_task(
         .map_pending(|_| ApiPending::Sending))
 }
 
-/// GET androidpublisher/v3/applications/{packageName}/edits/{editId}:validate
+/// POST androidpublisher/v3/applications/{packageName}/edits/{editId}:validate
 /// Validates an app edit.
 ///
 /// Takes a `ClientRequestBuilder`, builds and executes the request,
@@ -1882,7 +2532,7 @@ pub struct AndroidpublisherEditsValidateArgs {
     pub editId: String,
 }
 
-/// GET androidpublisher/v3/applications/{packageName}/edits/{editId}:validate
+/// POST androidpublisher/v3/applications/{packageName}/edits/{editId}:validate
 /// Validates an app edit.
 ///
 /// Simplest API - builds and executes the request in one call.
@@ -1904,7 +2554,7 @@ pub fn androidpublisher_edits_validate(
     androidpublisher_edits_validate_execute(builder)
 }
 
-/// GET androidpublisher/v3/applications/{packageName}/edits/{editId}/apks/externallyHosted
+/// POST androidpublisher/v3/applications/{packageName}/edits/{editId}/apks/externallyHosted
 /// Creates a new APK without uploading the APK itself to Google Play, instead hosting the APK at a specified URL. This function is only available to organizations using Managed Play whose application is configured to restrict distribution to the organizations.
 ///
 /// Returns `ClientRequestBuilder` for customization.
@@ -1914,7 +2564,6 @@ pub fn androidpublisher_edits_apks_addexternallyhosted_builder(
     client: &SimpleHttpClient,
     packageName: &String,
     editId: &String,
-    body: &ApksAddExternallyHostedRequest,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
@@ -1925,15 +2574,13 @@ pub fn androidpublisher_edits_apks_addexternallyhosted_builder(
 
     // Build request
     let builder = client
-        .get(&endpoint_url)
+        .post(&endpoint_url)
         .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
 
-    builder
-        .body_json(body)
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+    Ok(builder)
 }
 
-/// GET androidpublisher/v3/applications/{packageName}/edits/{editId}/apks/externallyHosted
+/// POST androidpublisher/v3/applications/{packageName}/edits/{editId}/apks/externallyHosted
 /// Creates a new APK without uploading the APK itself to Google Play, instead hosting the APK at a specified URL. This function is only available to organizations using Managed Play whose application is configured to restrict distribution to the organizations.
 ///
 /// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
@@ -2007,7 +2654,7 @@ pub fn androidpublisher_edits_apks_addexternallyhosted_task(
         .map_pending(|_| ApiPending::Sending))
 }
 
-/// GET androidpublisher/v3/applications/{packageName}/edits/{editId}/apks/externallyHosted
+/// POST androidpublisher/v3/applications/{packageName}/edits/{editId}/apks/externallyHosted
 /// Creates a new APK without uploading the APK itself to Google Play, instead hosting the APK at a specified URL. This function is only available to organizations using Managed Play whose application is configured to restrict distribution to the organizations.
 ///
 /// Takes a `ClientRequestBuilder`, builds and executes the request,
@@ -2048,11 +2695,9 @@ pub struct AndroidpublisherEditsApksAddexternallyhostedArgs {
     pub packageName: String,
     /// Path parameter: editId
     pub editId: String,
-    /// Request body.
-    pub body: ApksAddExternallyHostedRequest,
 }
 
-/// GET androidpublisher/v3/applications/{packageName}/edits/{editId}/apks/externallyHosted
+/// POST androidpublisher/v3/applications/{packageName}/edits/{editId}/apks/externallyHosted
 /// Creates a new APK without uploading the APK itself to Google Play, instead hosting the APK at a specified URL. This function is only available to organizations using Managed Play whose application is configured to restrict distribution to the organizations.
 ///
 /// Simplest API - builds and executes the request in one call.
@@ -2078,7 +2723,6 @@ pub fn androidpublisher_edits_apks_addexternallyhosted(
         client,
         &args.packageName,
         &args.editId,
-        &args.body,
     )?;
     androidpublisher_edits_apks_addexternallyhosted_execute(builder)
 }
@@ -2248,6 +2892,167 @@ pub fn androidpublisher_edits_apks_list(
     androidpublisher_edits_apks_list_execute(builder)
 }
 
+/// POST androidpublisher/v3/applications/{packageName}/edits/{editId}/apks
+/// Uploads an APK and adds to the current edit.
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `androidpublisher_edits_apks_upload_execute()` to send, or `androidpublisher_edits_apks_upload` for simplest API.
+
+pub fn androidpublisher_edits_apks_upload_builder(
+    client: &SimpleHttpClient,
+    packageName: &String,
+    editId: &String,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!(
+        "https://androidpublisher.googleapis.com/androidpublisher/v3/applications/{}/edits/{}/apks",
+        packageName, editId,
+    );
+
+    // Build request
+    let builder = client
+        .post(&endpoint_url)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// POST androidpublisher/v3/applications/{packageName}/edits/{editId}/apks
+/// Uploads an APK and adds to the current edit.
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `androidpublisher_edits_apks_upload_execute()` or `androidpublisher_edits_apks_upload`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `androidpublisher_edits_apks_upload_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn androidpublisher_edits_apks_upload_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<Apk>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: Apk = serde_json::from_str(&body)
+                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// POST androidpublisher/v3/applications/{packageName}/edits/{editId}/apks
+/// Uploads an APK and adds to the current edit.
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `androidpublisher_edits_apks_upload_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `androidpublisher_edits_apks_upload_task()`.
+/// For the simplest API, use `androidpublisher_edits_apks_upload()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `androidpublisher_edits_apks_upload_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn androidpublisher_edits_apks_upload_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<Apk>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let task = androidpublisher_edits_apks_upload_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`androidpublisher_edits_apks_upload`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct AndroidpublisherEditsApksUploadArgs {
+    /// Path parameter: packageName
+    pub packageName: String,
+    /// Path parameter: editId
+    pub editId: String,
+}
+
+/// POST androidpublisher/v3/applications/{packageName}/edits/{editId}/apks
+/// Uploads an APK and adds to the current edit.
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `androidpublisher_edits_apks_upload_builder()` + `androidpublisher_edits_apks_upload_execute()`.
+/// For task-level control, use `androidpublisher_edits_apks_upload_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn androidpublisher_edits_apks_upload(
+    client: &SimpleHttpClient,
+    args: &AndroidpublisherEditsApksUploadArgs,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<Apk>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let builder =
+        androidpublisher_edits_apks_upload_builder(client, &args.packageName, &args.editId)?;
+    androidpublisher_edits_apks_upload_execute(builder)
+}
+
 /// GET androidpublisher/v3/applications/{packageName}/edits/{editId}/bundles
 /// Lists all current Android App Bundles of the app and edit.
 ///
@@ -2412,6 +3217,193 @@ pub fn androidpublisher_edits_bundles_list(
     let builder =
         androidpublisher_edits_bundles_list_builder(client, &args.packageName, &args.editId)?;
     androidpublisher_edits_bundles_list_execute(builder)
+}
+
+/// POST androidpublisher/v3/applications/{packageName}/edits/{editId}/bundles
+/// Uploads a new Android App Bundle to this edit. If you are using the Google API client libraries, please increase the timeout of the http request before calling this endpoint (a timeout of 2 minutes is recommended). See [Timeouts and Errors](<https://developers.google.`com/api-client-library/java/google-api-java-client/errors`>) for an example in java.
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `androidpublisher_edits_bundles_upload_execute()` to send, or `androidpublisher_edits_bundles_upload` for simplest API.
+
+pub fn androidpublisher_edits_bundles_upload_builder(
+    client: &SimpleHttpClient,
+    packageName: &String,
+    editId: &String,
+    ackBundleInstallationWarning: &Option<Option<String>>,
+    deviceTierConfigId: &Option<Option<String>>,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!(
+        "https://androidpublisher.googleapis.com/androidpublisher/v3/applications/{}/edits/{}/bundles",
+        packageName,
+        editId,
+    );
+
+    // Build request
+    let mut query_parts = Vec::new();
+    if let Some(val) = ackBundleInstallationWarning.as_ref() {
+        query_parts.push(format!("ackBundleInstallationWarning={}", val));
+    }
+    if let Some(val) = deviceTierConfigId.as_ref() {
+        query_parts.push(format!("deviceTierConfigId={}", val));
+    }
+
+    let url_with_query = if query_parts.is_empty() {
+        endpoint_url
+    } else {
+        format!("{}?{}", endpoint_url, query_parts.join("&"))
+    };
+
+    let builder = client
+        .post(&url_with_query)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// POST androidpublisher/v3/applications/{packageName}/edits/{editId}/bundles
+/// Uploads a new Android App Bundle to this edit. If you are using the Google API client libraries, please increase the timeout of the http request before calling this endpoint (a timeout of 2 minutes is recommended). See [Timeouts and Errors](<https://developers.google.`com/api-client-library/java/google-api-java-client/errors`>) for an example in java.
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `androidpublisher_edits_bundles_upload_execute()` or `androidpublisher_edits_bundles_upload`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `androidpublisher_edits_bundles_upload_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn androidpublisher_edits_bundles_upload_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<Bundle>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: Bundle = serde_json::from_str(&body)
+                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// POST androidpublisher/v3/applications/{packageName}/edits/{editId}/bundles
+/// Uploads a new Android App Bundle to this edit. If you are using the Google API client libraries, please increase the timeout of the http request before calling this endpoint (a timeout of 2 minutes is recommended). See [Timeouts and Errors](<https://developers.google.`com/api-client-library/java/google-api-java-client/errors`>) for an example in java.
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `androidpublisher_edits_bundles_upload_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `androidpublisher_edits_bundles_upload_task()`.
+/// For the simplest API, use `androidpublisher_edits_bundles_upload()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `androidpublisher_edits_bundles_upload_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn androidpublisher_edits_bundles_upload_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<Bundle>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let task = androidpublisher_edits_bundles_upload_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`androidpublisher_edits_bundles_upload`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct AndroidpublisherEditsBundlesUploadArgs {
+    /// Path parameter: packageName
+    pub packageName: String,
+    /// Path parameter: editId
+    pub editId: String,
+    /// Query parameter: ackBundleInstallationWarning
+    pub ackBundleInstallationWarning: Option<Option<String>>,
+    /// Query parameter: deviceTierConfigId
+    pub deviceTierConfigId: Option<Option<String>>,
+}
+
+/// POST androidpublisher/v3/applications/{packageName}/edits/{editId}/bundles
+/// Uploads a new Android App Bundle to this edit. If you are using the Google API client libraries, please increase the timeout of the http request before calling this endpoint (a timeout of 2 minutes is recommended). See [Timeouts and Errors](<https://developers.google.`com/api-client-library/java/google-api-java-client/errors`>) for an example in java.
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `androidpublisher_edits_bundles_upload_builder()` + `androidpublisher_edits_bundles_upload_execute()`.
+/// For task-level control, use `androidpublisher_edits_bundles_upload_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn androidpublisher_edits_bundles_upload(
+    client: &SimpleHttpClient,
+    args: &AndroidpublisherEditsBundlesUploadArgs,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<Bundle>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let builder = androidpublisher_edits_bundles_upload_builder(
+        client,
+        &args.packageName,
+        &args.editId,
+        &args.ackBundleInstallationWarning,
+        &args.deviceTierConfigId,
+    )?;
+    androidpublisher_edits_bundles_upload_execute(builder)
 }
 
 /// GET androidpublisher/v3/applications/{packageName}/edits/{editId}/countryAvailability/{track}
@@ -2588,7 +3580,7 @@ pub fn androidpublisher_edits_countryavailability_get(
     androidpublisher_edits_countryavailability_get_execute(builder)
 }
 
-/// GET androidpublisher/v3/applications/{packageName}/edits/{editId}/apks/{apkVersionCode}/deobfuscationFiles/{deobfuscationFileType}
+/// POST androidpublisher/v3/applications/{packageName}/edits/{editId}/apks/{apkVersionCode}/deobfuscationFiles/{deobfuscationFileType}
 /// Uploads a new deobfuscation file and attaches to the specified APK.
 ///
 /// Returns `ClientRequestBuilder` for customization.
@@ -2598,7 +3590,7 @@ pub fn androidpublisher_edits_deobfuscationfiles_upload_builder(
     client: &SimpleHttpClient,
     packageName: &String,
     editId: &String,
-    apkVersionCode: &i32,
+    apkVersionCode: &String,
     deobfuscationFileType: &String,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
@@ -2612,13 +3604,13 @@ pub fn androidpublisher_edits_deobfuscationfiles_upload_builder(
 
     // Build request
     let builder = client
-        .get(&endpoint_url)
+        .post(&endpoint_url)
         .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
 
     Ok(builder)
 }
 
-/// GET androidpublisher/v3/applications/{packageName}/edits/{editId}/apks/{apkVersionCode}/deobfuscationFiles/{deobfuscationFileType}
+/// POST androidpublisher/v3/applications/{packageName}/edits/{editId}/apks/{apkVersionCode}/deobfuscationFiles/{deobfuscationFileType}
 /// Uploads a new deobfuscation file and attaches to the specified APK.
 ///
 /// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
@@ -2692,7 +3684,7 @@ pub fn androidpublisher_edits_deobfuscationfiles_upload_task(
         .map_pending(|_| ApiPending::Sending))
 }
 
-/// GET androidpublisher/v3/applications/{packageName}/edits/{editId}/apks/{apkVersionCode}/deobfuscationFiles/{deobfuscationFileType}
+/// POST androidpublisher/v3/applications/{packageName}/edits/{editId}/apks/{apkVersionCode}/deobfuscationFiles/{deobfuscationFileType}
 /// Uploads a new deobfuscation file and attaches to the specified APK.
 ///
 /// Takes a `ClientRequestBuilder`, builds and executes the request,
@@ -2734,12 +3726,12 @@ pub struct AndroidpublisherEditsDeobfuscationfilesUploadArgs {
     /// Path parameter: editId
     pub editId: String,
     /// Path parameter: apkVersionCode
-    pub apkVersionCode: i32,
+    pub apkVersionCode: String,
     /// Path parameter: deobfuscationFileType
     pub deobfuscationFileType: String,
 }
 
-/// GET androidpublisher/v3/applications/{packageName}/edits/{editId}/apks/{apkVersionCode}/deobfuscationFiles/{deobfuscationFileType}
+/// POST androidpublisher/v3/applications/{packageName}/edits/{editId}/apks/{apkVersionCode}/deobfuscationFiles/{deobfuscationFileType}
 /// Uploads a new deobfuscation file and attaches to the specified APK.
 ///
 /// Simplest API - builds and executes the request in one call.
@@ -2933,6 +3925,330 @@ pub fn androidpublisher_edits_details_get(
     androidpublisher_edits_details_get_execute(builder)
 }
 
+/// PATCH androidpublisher/v3/applications/{packageName}/edits/{editId}/details
+/// Patches details of an app.
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `androidpublisher_edits_details_patch_execute()` to send, or `androidpublisher_edits_details_patch` for simplest API.
+
+pub fn androidpublisher_edits_details_patch_builder(
+    client: &SimpleHttpClient,
+    packageName: &String,
+    editId: &String,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!(
+        "https://androidpublisher.googleapis.com/androidpublisher/v3/applications/{}/edits/{}/details",
+        packageName,
+        editId,
+    );
+
+    // Build request
+    let builder = client
+        .patch(&endpoint_url)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// PATCH androidpublisher/v3/applications/{packageName}/edits/{editId}/details
+/// Patches details of an app.
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `androidpublisher_edits_details_patch_execute()` or `androidpublisher_edits_details_patch`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `androidpublisher_edits_details_patch_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn androidpublisher_edits_details_patch_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<AppDetails>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: AppDetails = serde_json::from_str(&body)
+                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// PATCH androidpublisher/v3/applications/{packageName}/edits/{editId}/details
+/// Patches details of an app.
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `androidpublisher_edits_details_patch_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `androidpublisher_edits_details_patch_task()`.
+/// For the simplest API, use `androidpublisher_edits_details_patch()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `androidpublisher_edits_details_patch_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn androidpublisher_edits_details_patch_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<AppDetails>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let task = androidpublisher_edits_details_patch_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`androidpublisher_edits_details_patch`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct AndroidpublisherEditsDetailsPatchArgs {
+    /// Path parameter: packageName
+    pub packageName: String,
+    /// Path parameter: editId
+    pub editId: String,
+}
+
+/// PATCH androidpublisher/v3/applications/{packageName}/edits/{editId}/details
+/// Patches details of an app.
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `androidpublisher_edits_details_patch_builder()` + `androidpublisher_edits_details_patch_execute()`.
+/// For task-level control, use `androidpublisher_edits_details_patch_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn androidpublisher_edits_details_patch(
+    client: &SimpleHttpClient,
+    args: &AndroidpublisherEditsDetailsPatchArgs,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<AppDetails>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let builder =
+        androidpublisher_edits_details_patch_builder(client, &args.packageName, &args.editId)?;
+    androidpublisher_edits_details_patch_execute(builder)
+}
+
+/// PUT androidpublisher/v3/applications/{packageName}/edits/{editId}/details
+/// Updates details of an app.
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `androidpublisher_edits_details_update_execute()` to send, or `androidpublisher_edits_details_update` for simplest API.
+
+pub fn androidpublisher_edits_details_update_builder(
+    client: &SimpleHttpClient,
+    packageName: &String,
+    editId: &String,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!(
+        "https://androidpublisher.googleapis.com/androidpublisher/v3/applications/{}/edits/{}/details",
+        packageName,
+        editId,
+    );
+
+    // Build request
+    let builder = client
+        .put(&endpoint_url)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// PUT androidpublisher/v3/applications/{packageName}/edits/{editId}/details
+/// Updates details of an app.
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `androidpublisher_edits_details_update_execute()` or `androidpublisher_edits_details_update`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `androidpublisher_edits_details_update_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn androidpublisher_edits_details_update_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<AppDetails>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: AppDetails = serde_json::from_str(&body)
+                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// PUT androidpublisher/v3/applications/{packageName}/edits/{editId}/details
+/// Updates details of an app.
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `androidpublisher_edits_details_update_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `androidpublisher_edits_details_update_task()`.
+/// For the simplest API, use `androidpublisher_edits_details_update()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `androidpublisher_edits_details_update_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn androidpublisher_edits_details_update_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<AppDetails>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let task = androidpublisher_edits_details_update_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`androidpublisher_edits_details_update`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct AndroidpublisherEditsDetailsUpdateArgs {
+    /// Path parameter: packageName
+    pub packageName: String,
+    /// Path parameter: editId
+    pub editId: String,
+}
+
+/// PUT androidpublisher/v3/applications/{packageName}/edits/{editId}/details
+/// Updates details of an app.
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `androidpublisher_edits_details_update_builder()` + `androidpublisher_edits_details_update_execute()`.
+/// For task-level control, use `androidpublisher_edits_details_update_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn androidpublisher_edits_details_update(
+    client: &SimpleHttpClient,
+    args: &AndroidpublisherEditsDetailsUpdateArgs,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<AppDetails>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let builder =
+        androidpublisher_edits_details_update_builder(client, &args.packageName, &args.editId)?;
+    androidpublisher_edits_details_update_execute(builder)
+}
+
 /// GET androidpublisher/v3/applications/{packageName}/edits/{editId}/apks/{apkVersionCode}/expansionFiles/{expansionFileType}
 /// Fetches the expansion file configuration for the specified APK.
 ///
@@ -2943,7 +4259,7 @@ pub fn androidpublisher_edits_expansionfiles_get_builder(
     client: &SimpleHttpClient,
     packageName: &String,
     editId: &String,
-    apkVersionCode: &i32,
+    apkVersionCode: &String,
     expansionFileType: &String,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
@@ -3077,7 +4393,7 @@ pub struct AndroidpublisherEditsExpansionfilesGetArgs {
     /// Path parameter: editId
     pub editId: String,
     /// Path parameter: apkVersionCode
-    pub apkVersionCode: i32,
+    pub apkVersionCode: String,
     /// Path parameter: expansionFileType
     pub expansionFileType: String,
 }
@@ -3112,7 +4428,548 @@ pub fn androidpublisher_edits_expansionfiles_get(
     androidpublisher_edits_expansionfiles_get_execute(builder)
 }
 
-/// GET androidpublisher/v3/applications/{packageName}/edits/{editId}/listings/{language}/{imageType}/{imageId}
+/// PATCH androidpublisher/v3/applications/{packageName}/edits/{editId}/apks/{apkVersionCode}/expansionFiles/{expansionFileType}
+/// Patches the APK's expansion file configuration to reference another APK's expansion file. To add a new expansion file use the Upload method.
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `androidpublisher_edits_expansionfiles_patch_execute()` to send, or `androidpublisher_edits_expansionfiles_patch` for simplest API.
+
+pub fn androidpublisher_edits_expansionfiles_patch_builder(
+    client: &SimpleHttpClient,
+    packageName: &String,
+    editId: &String,
+    apkVersionCode: &String,
+    expansionFileType: &String,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!(
+        "https://androidpublisher.googleapis.com/androidpublisher/v3/applications/{}/edits/{}/apks/{}/expansionFiles/{}",
+        packageName,
+        editId,
+        apkVersionCode,
+        expansionFileType,
+    );
+
+    // Build request
+    let builder = client
+        .patch(&endpoint_url)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// PATCH androidpublisher/v3/applications/{packageName}/edits/{editId}/apks/{apkVersionCode}/expansionFiles/{expansionFileType}
+/// Patches the APK's expansion file configuration to reference another APK's expansion file. To add a new expansion file use the Upload method.
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `androidpublisher_edits_expansionfiles_patch_execute()` or `androidpublisher_edits_expansionfiles_patch`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `androidpublisher_edits_expansionfiles_patch_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn androidpublisher_edits_expansionfiles_patch_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<ExpansionFile>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: ExpansionFile = serde_json::from_str(&body)
+                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// PATCH androidpublisher/v3/applications/{packageName}/edits/{editId}/apks/{apkVersionCode}/expansionFiles/{expansionFileType}
+/// Patches the APK's expansion file configuration to reference another APK's expansion file. To add a new expansion file use the Upload method.
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `androidpublisher_edits_expansionfiles_patch_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `androidpublisher_edits_expansionfiles_patch_task()`.
+/// For the simplest API, use `androidpublisher_edits_expansionfiles_patch()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `androidpublisher_edits_expansionfiles_patch_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn androidpublisher_edits_expansionfiles_patch_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<ExpansionFile>, ApiError>, P = ApiPending>
+        + Send
+        + 'static,
+    ApiError,
+> {
+    let task = androidpublisher_edits_expansionfiles_patch_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`androidpublisher_edits_expansionfiles_patch`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct AndroidpublisherEditsExpansionfilesPatchArgs {
+    /// Path parameter: packageName
+    pub packageName: String,
+    /// Path parameter: editId
+    pub editId: String,
+    /// Path parameter: apkVersionCode
+    pub apkVersionCode: String,
+    /// Path parameter: expansionFileType
+    pub expansionFileType: String,
+}
+
+/// PATCH androidpublisher/v3/applications/{packageName}/edits/{editId}/apks/{apkVersionCode}/expansionFiles/{expansionFileType}
+/// Patches the APK's expansion file configuration to reference another APK's expansion file. To add a new expansion file use the Upload method.
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `androidpublisher_edits_expansionfiles_patch_builder()` + `androidpublisher_edits_expansionfiles_patch_execute()`.
+/// For task-level control, use `androidpublisher_edits_expansionfiles_patch_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn androidpublisher_edits_expansionfiles_patch(
+    client: &SimpleHttpClient,
+    args: &AndroidpublisherEditsExpansionfilesPatchArgs,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<ExpansionFile>, ApiError>, P = ApiPending>
+        + Send
+        + 'static,
+    ApiError,
+> {
+    let builder = androidpublisher_edits_expansionfiles_patch_builder(
+        client,
+        &args.packageName,
+        &args.editId,
+        &args.apkVersionCode,
+        &args.expansionFileType,
+    )?;
+    androidpublisher_edits_expansionfiles_patch_execute(builder)
+}
+
+/// PUT androidpublisher/v3/applications/{packageName}/edits/{editId}/apks/{apkVersionCode}/expansionFiles/{expansionFileType}
+/// Updates the APK's expansion file configuration to reference another APK's expansion file. To add a new expansion file use the Upload method.
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `androidpublisher_edits_expansionfiles_update_execute()` to send, or `androidpublisher_edits_expansionfiles_update` for simplest API.
+
+pub fn androidpublisher_edits_expansionfiles_update_builder(
+    client: &SimpleHttpClient,
+    packageName: &String,
+    editId: &String,
+    apkVersionCode: &String,
+    expansionFileType: &String,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!(
+        "https://androidpublisher.googleapis.com/androidpublisher/v3/applications/{}/edits/{}/apks/{}/expansionFiles/{}",
+        packageName,
+        editId,
+        apkVersionCode,
+        expansionFileType,
+    );
+
+    // Build request
+    let builder = client
+        .put(&endpoint_url)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// PUT androidpublisher/v3/applications/{packageName}/edits/{editId}/apks/{apkVersionCode}/expansionFiles/{expansionFileType}
+/// Updates the APK's expansion file configuration to reference another APK's expansion file. To add a new expansion file use the Upload method.
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `androidpublisher_edits_expansionfiles_update_execute()` or `androidpublisher_edits_expansionfiles_update`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `androidpublisher_edits_expansionfiles_update_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn androidpublisher_edits_expansionfiles_update_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<ExpansionFile>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: ExpansionFile = serde_json::from_str(&body)
+                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// PUT androidpublisher/v3/applications/{packageName}/edits/{editId}/apks/{apkVersionCode}/expansionFiles/{expansionFileType}
+/// Updates the APK's expansion file configuration to reference another APK's expansion file. To add a new expansion file use the Upload method.
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `androidpublisher_edits_expansionfiles_update_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `androidpublisher_edits_expansionfiles_update_task()`.
+/// For the simplest API, use `androidpublisher_edits_expansionfiles_update()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `androidpublisher_edits_expansionfiles_update_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn androidpublisher_edits_expansionfiles_update_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<ExpansionFile>, ApiError>, P = ApiPending>
+        + Send
+        + 'static,
+    ApiError,
+> {
+    let task = androidpublisher_edits_expansionfiles_update_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`androidpublisher_edits_expansionfiles_update`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct AndroidpublisherEditsExpansionfilesUpdateArgs {
+    /// Path parameter: packageName
+    pub packageName: String,
+    /// Path parameter: editId
+    pub editId: String,
+    /// Path parameter: apkVersionCode
+    pub apkVersionCode: String,
+    /// Path parameter: expansionFileType
+    pub expansionFileType: String,
+}
+
+/// PUT androidpublisher/v3/applications/{packageName}/edits/{editId}/apks/{apkVersionCode}/expansionFiles/{expansionFileType}
+/// Updates the APK's expansion file configuration to reference another APK's expansion file. To add a new expansion file use the Upload method.
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `androidpublisher_edits_expansionfiles_update_builder()` + `androidpublisher_edits_expansionfiles_update_execute()`.
+/// For task-level control, use `androidpublisher_edits_expansionfiles_update_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn androidpublisher_edits_expansionfiles_update(
+    client: &SimpleHttpClient,
+    args: &AndroidpublisherEditsExpansionfilesUpdateArgs,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<ExpansionFile>, ApiError>, P = ApiPending>
+        + Send
+        + 'static,
+    ApiError,
+> {
+    let builder = androidpublisher_edits_expansionfiles_update_builder(
+        client,
+        &args.packageName,
+        &args.editId,
+        &args.apkVersionCode,
+        &args.expansionFileType,
+    )?;
+    androidpublisher_edits_expansionfiles_update_execute(builder)
+}
+
+/// POST androidpublisher/v3/applications/{packageName}/edits/{editId}/apks/{apkVersionCode}/expansionFiles/{expansionFileType}
+/// Uploads a new expansion file and attaches to the specified APK.
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `androidpublisher_edits_expansionfiles_upload_execute()` to send, or `androidpublisher_edits_expansionfiles_upload` for simplest API.
+
+pub fn androidpublisher_edits_expansionfiles_upload_builder(
+    client: &SimpleHttpClient,
+    packageName: &String,
+    editId: &String,
+    apkVersionCode: &String,
+    expansionFileType: &String,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!(
+        "https://androidpublisher.googleapis.com/androidpublisher/v3/applications/{}/edits/{}/apks/{}/expansionFiles/{}",
+        packageName,
+        editId,
+        apkVersionCode,
+        expansionFileType,
+    );
+
+    // Build request
+    let builder = client
+        .post(&endpoint_url)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// POST androidpublisher/v3/applications/{packageName}/edits/{editId}/apks/{apkVersionCode}/expansionFiles/{expansionFileType}
+/// Uploads a new expansion file and attaches to the specified APK.
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `androidpublisher_edits_expansionfiles_upload_execute()` or `androidpublisher_edits_expansionfiles_upload`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `androidpublisher_edits_expansionfiles_upload_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn androidpublisher_edits_expansionfiles_upload_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<ExpansionFilesUploadResponse>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: ExpansionFilesUploadResponse = serde_json::from_str(&body)
+                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// POST androidpublisher/v3/applications/{packageName}/edits/{editId}/apks/{apkVersionCode}/expansionFiles/{expansionFileType}
+/// Uploads a new expansion file and attaches to the specified APK.
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `androidpublisher_edits_expansionfiles_upload_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `androidpublisher_edits_expansionfiles_upload_task()`.
+/// For the simplest API, use `androidpublisher_edits_expansionfiles_upload()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `androidpublisher_edits_expansionfiles_upload_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn androidpublisher_edits_expansionfiles_upload_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<
+            D = Result<ApiResponse<ExpansionFilesUploadResponse>, ApiError>,
+            P = ApiPending,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    let task = androidpublisher_edits_expansionfiles_upload_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`androidpublisher_edits_expansionfiles_upload`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct AndroidpublisherEditsExpansionfilesUploadArgs {
+    /// Path parameter: packageName
+    pub packageName: String,
+    /// Path parameter: editId
+    pub editId: String,
+    /// Path parameter: apkVersionCode
+    pub apkVersionCode: String,
+    /// Path parameter: expansionFileType
+    pub expansionFileType: String,
+}
+
+/// POST androidpublisher/v3/applications/{packageName}/edits/{editId}/apks/{apkVersionCode}/expansionFiles/{expansionFileType}
+/// Uploads a new expansion file and attaches to the specified APK.
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `androidpublisher_edits_expansionfiles_upload_builder()` + `androidpublisher_edits_expansionfiles_upload_execute()`.
+/// For task-level control, use `androidpublisher_edits_expansionfiles_upload_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn androidpublisher_edits_expansionfiles_upload(
+    client: &SimpleHttpClient,
+    args: &AndroidpublisherEditsExpansionfilesUploadArgs,
+) -> Result<
+    impl StreamIterator<
+            D = Result<ApiResponse<ExpansionFilesUploadResponse>, ApiError>,
+            P = ApiPending,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    let builder = androidpublisher_edits_expansionfiles_upload_builder(
+        client,
+        &args.packageName,
+        &args.editId,
+        &args.apkVersionCode,
+        &args.expansionFileType,
+    )?;
+    androidpublisher_edits_expansionfiles_upload_execute(builder)
+}
+
+/// DELETE androidpublisher/v3/applications/{packageName}/edits/{editId}/listings/{language}/{imageType}/{imageId}
 /// Deletes the image (specified by id) from the edit.
 ///
 /// Returns `ClientRequestBuilder` for customization.
@@ -3138,13 +4995,13 @@ pub fn androidpublisher_edits_images_delete_builder(
 
     // Build request
     let builder = client
-        .get(&endpoint_url)
+        .delete(&endpoint_url)
         .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
 
     Ok(builder)
 }
 
-/// GET androidpublisher/v3/applications/{packageName}/edits/{editId}/listings/{language}/{imageType}/{imageId}
+/// DELETE androidpublisher/v3/applications/{packageName}/edits/{editId}/listings/{language}/{imageType}/{imageId}
 /// Deletes the image (specified by id) from the edit.
 ///
 /// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
@@ -3215,7 +5072,7 @@ pub fn androidpublisher_edits_images_delete_task(
         .map_pending(|_| ApiPending::Sending))
 }
 
-/// GET androidpublisher/v3/applications/{packageName}/edits/{editId}/listings/{language}/{imageType}/{imageId}
+/// DELETE androidpublisher/v3/applications/{packageName}/edits/{editId}/listings/{language}/{imageType}/{imageId}
 /// Deletes the image (specified by id) from the edit.
 ///
 /// Takes a `ClientRequestBuilder`, builds and executes the request,
@@ -3260,7 +5117,7 @@ pub struct AndroidpublisherEditsImagesDeleteArgs {
     pub imageId: String,
 }
 
-/// GET androidpublisher/v3/applications/{packageName}/edits/{editId}/listings/{language}/{imageType}/{imageId}
+/// DELETE androidpublisher/v3/applications/{packageName}/edits/{editId}/listings/{language}/{imageType}/{imageId}
 /// Deletes the image (specified by id) from the edit.
 ///
 /// Simplest API - builds and executes the request in one call.
@@ -3289,7 +5146,7 @@ pub fn androidpublisher_edits_images_delete(
     androidpublisher_edits_images_delete_execute(builder)
 }
 
-/// GET androidpublisher/v3/applications/{packageName}/edits/{editId}/listings/{language}/{imageType}
+/// DELETE androidpublisher/v3/applications/{packageName}/edits/{editId}/listings/{language}/{imageType}
 /// Deletes all images for the specified language and image type. Returns an empty response if no images are found.
 ///
 /// Returns `ClientRequestBuilder` for customization.
@@ -3313,13 +5170,13 @@ pub fn androidpublisher_edits_images_deleteall_builder(
 
     // Build request
     let builder = client
-        .get(&endpoint_url)
+        .delete(&endpoint_url)
         .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
 
     Ok(builder)
 }
 
-/// GET androidpublisher/v3/applications/{packageName}/edits/{editId}/listings/{language}/{imageType}
+/// DELETE androidpublisher/v3/applications/{packageName}/edits/{editId}/listings/{language}/{imageType}
 /// Deletes all images for the specified language and image type. Returns an empty response if no images are found.
 ///
 /// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
@@ -3393,7 +5250,7 @@ pub fn androidpublisher_edits_images_deleteall_task(
         .map_pending(|_| ApiPending::Sending))
 }
 
-/// GET androidpublisher/v3/applications/{packageName}/edits/{editId}/listings/{language}/{imageType}
+/// DELETE androidpublisher/v3/applications/{packageName}/edits/{editId}/listings/{language}/{imageType}
 /// Deletes all images for the specified language and image type. Returns an empty response if no images are found.
 ///
 /// Takes a `ClientRequestBuilder`, builds and executes the request,
@@ -3438,7 +5295,7 @@ pub struct AndroidpublisherEditsImagesDeleteallArgs {
     pub imageType: String,
 }
 
-/// GET androidpublisher/v3/applications/{packageName}/edits/{editId}/listings/{language}/{imageType}
+/// DELETE androidpublisher/v3/applications/{packageName}/edits/{editId}/listings/{language}/{imageType}
 /// Deletes all images for the specified language and image type. Returns an empty response if no images are found.
 ///
 /// Simplest API - builds and executes the request in one call.
@@ -3468,7 +5325,365 @@ pub fn androidpublisher_edits_images_deleteall(
     androidpublisher_edits_images_deleteall_execute(builder)
 }
 
-/// GET androidpublisher/v3/applications/{packageName}/edits/{editId}/listings/{language}
+/// GET androidpublisher/v3/applications/{packageName}/edits/{editId}/listings/{language}/{imageType}
+/// Lists all images. The response may be empty.
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `androidpublisher_edits_images_list_execute()` to send, or `androidpublisher_edits_images_list` for simplest API.
+
+pub fn androidpublisher_edits_images_list_builder(
+    client: &SimpleHttpClient,
+    packageName: &String,
+    editId: &String,
+    language: &String,
+    imageType: &String,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!(
+        "https://androidpublisher.googleapis.com/androidpublisher/v3/applications/{}/edits/{}/listings/{}/{}",
+        packageName,
+        editId,
+        language,
+        imageType,
+    );
+
+    // Build request
+    let builder = client
+        .get(&endpoint_url)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// GET androidpublisher/v3/applications/{packageName}/edits/{editId}/listings/{language}/{imageType}
+/// Lists all images. The response may be empty.
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `androidpublisher_edits_images_list_execute()` or `androidpublisher_edits_images_list`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `androidpublisher_edits_images_list_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn androidpublisher_edits_images_list_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<ImagesListResponse>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: ImagesListResponse = serde_json::from_str(&body)
+                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// GET androidpublisher/v3/applications/{packageName}/edits/{editId}/listings/{language}/{imageType}
+/// Lists all images. The response may be empty.
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `androidpublisher_edits_images_list_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `androidpublisher_edits_images_list_task()`.
+/// For the simplest API, use `androidpublisher_edits_images_list()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `androidpublisher_edits_images_list_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn androidpublisher_edits_images_list_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<ImagesListResponse>, ApiError>, P = ApiPending>
+        + Send
+        + 'static,
+    ApiError,
+> {
+    let task = androidpublisher_edits_images_list_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`androidpublisher_edits_images_list`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct AndroidpublisherEditsImagesListArgs {
+    /// Path parameter: packageName
+    pub packageName: String,
+    /// Path parameter: editId
+    pub editId: String,
+    /// Path parameter: language
+    pub language: String,
+    /// Path parameter: imageType
+    pub imageType: String,
+}
+
+/// GET androidpublisher/v3/applications/{packageName}/edits/{editId}/listings/{language}/{imageType}
+/// Lists all images. The response may be empty.
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `androidpublisher_edits_images_list_builder()` + `androidpublisher_edits_images_list_execute()`.
+/// For task-level control, use `androidpublisher_edits_images_list_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn androidpublisher_edits_images_list(
+    client: &SimpleHttpClient,
+    args: &AndroidpublisherEditsImagesListArgs,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<ImagesListResponse>, ApiError>, P = ApiPending>
+        + Send
+        + 'static,
+    ApiError,
+> {
+    let builder = androidpublisher_edits_images_list_builder(
+        client,
+        &args.packageName,
+        &args.editId,
+        &args.language,
+        &args.imageType,
+    )?;
+    androidpublisher_edits_images_list_execute(builder)
+}
+
+/// POST androidpublisher/v3/applications/{packageName}/edits/{editId}/listings/{language}/{imageType}
+/// Uploads an image of the specified language and image type, and adds to the edit.
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `androidpublisher_edits_images_upload_execute()` to send, or `androidpublisher_edits_images_upload` for simplest API.
+
+pub fn androidpublisher_edits_images_upload_builder(
+    client: &SimpleHttpClient,
+    packageName: &String,
+    editId: &String,
+    language: &String,
+    imageType: &String,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!(
+        "https://androidpublisher.googleapis.com/androidpublisher/v3/applications/{}/edits/{}/listings/{}/{}",
+        packageName,
+        editId,
+        language,
+        imageType,
+    );
+
+    // Build request
+    let builder = client
+        .post(&endpoint_url)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// POST androidpublisher/v3/applications/{packageName}/edits/{editId}/listings/{language}/{imageType}
+/// Uploads an image of the specified language and image type, and adds to the edit.
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `androidpublisher_edits_images_upload_execute()` or `androidpublisher_edits_images_upload`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `androidpublisher_edits_images_upload_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn androidpublisher_edits_images_upload_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<ImagesUploadResponse>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: ImagesUploadResponse = serde_json::from_str(&body)
+                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// POST androidpublisher/v3/applications/{packageName}/edits/{editId}/listings/{language}/{imageType}
+/// Uploads an image of the specified language and image type, and adds to the edit.
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `androidpublisher_edits_images_upload_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `androidpublisher_edits_images_upload_task()`.
+/// For the simplest API, use `androidpublisher_edits_images_upload()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `androidpublisher_edits_images_upload_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn androidpublisher_edits_images_upload_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<ImagesUploadResponse>, ApiError>, P = ApiPending>
+        + Send
+        + 'static,
+    ApiError,
+> {
+    let task = androidpublisher_edits_images_upload_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`androidpublisher_edits_images_upload`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct AndroidpublisherEditsImagesUploadArgs {
+    /// Path parameter: packageName
+    pub packageName: String,
+    /// Path parameter: editId
+    pub editId: String,
+    /// Path parameter: language
+    pub language: String,
+    /// Path parameter: imageType
+    pub imageType: String,
+}
+
+/// POST androidpublisher/v3/applications/{packageName}/edits/{editId}/listings/{language}/{imageType}
+/// Uploads an image of the specified language and image type, and adds to the edit.
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `androidpublisher_edits_images_upload_builder()` + `androidpublisher_edits_images_upload_execute()`.
+/// For task-level control, use `androidpublisher_edits_images_upload_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn androidpublisher_edits_images_upload(
+    client: &SimpleHttpClient,
+    args: &AndroidpublisherEditsImagesUploadArgs,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<ImagesUploadResponse>, ApiError>, P = ApiPending>
+        + Send
+        + 'static,
+    ApiError,
+> {
+    let builder = androidpublisher_edits_images_upload_builder(
+        client,
+        &args.packageName,
+        &args.editId,
+        &args.language,
+        &args.imageType,
+    )?;
+    androidpublisher_edits_images_upload_execute(builder)
+}
+
+/// DELETE androidpublisher/v3/applications/{packageName}/edits/{editId}/listings/{language}
 /// Deletes a localized store listing.
 ///
 /// Returns `ClientRequestBuilder` for customization.
@@ -3490,13 +5705,13 @@ pub fn androidpublisher_edits_listings_delete_builder(
 
     // Build request
     let builder = client
-        .get(&endpoint_url)
+        .delete(&endpoint_url)
         .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
 
     Ok(builder)
 }
 
-/// GET androidpublisher/v3/applications/{packageName}/edits/{editId}/listings/{language}
+/// DELETE androidpublisher/v3/applications/{packageName}/edits/{editId}/listings/{language}
 /// Deletes a localized store listing.
 ///
 /// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
@@ -3567,7 +5782,7 @@ pub fn androidpublisher_edits_listings_delete_task(
         .map_pending(|_| ApiPending::Sending))
 }
 
-/// GET androidpublisher/v3/applications/{packageName}/edits/{editId}/listings/{language}
+/// DELETE androidpublisher/v3/applications/{packageName}/edits/{editId}/listings/{language}
 /// Deletes a localized store listing.
 ///
 /// Takes a `ClientRequestBuilder`, builds and executes the request,
@@ -3608,7 +5823,7 @@ pub struct AndroidpublisherEditsListingsDeleteArgs {
     pub language: String,
 }
 
-/// GET androidpublisher/v3/applications/{packageName}/edits/{editId}/listings/{language}
+/// DELETE androidpublisher/v3/applications/{packageName}/edits/{editId}/listings/{language}
 /// Deletes a localized store listing.
 ///
 /// Simplest API - builds and executes the request in one call.
@@ -3635,7 +5850,7 @@ pub fn androidpublisher_edits_listings_delete(
     androidpublisher_edits_listings_delete_execute(builder)
 }
 
-/// GET androidpublisher/v3/applications/{packageName}/edits/{editId}/listings
+/// DELETE androidpublisher/v3/applications/{packageName}/edits/{editId}/listings
 /// Deletes all store listings.
 ///
 /// Returns `ClientRequestBuilder` for customization.
@@ -3655,13 +5870,13 @@ pub fn androidpublisher_edits_listings_deleteall_builder(
 
     // Build request
     let builder = client
-        .get(&endpoint_url)
+        .delete(&endpoint_url)
         .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
 
     Ok(builder)
 }
 
-/// GET androidpublisher/v3/applications/{packageName}/edits/{editId}/listings
+/// DELETE androidpublisher/v3/applications/{packageName}/edits/{editId}/listings
 /// Deletes all store listings.
 ///
 /// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
@@ -3732,7 +5947,7 @@ pub fn androidpublisher_edits_listings_deleteall_task(
         .map_pending(|_| ApiPending::Sending))
 }
 
-/// GET androidpublisher/v3/applications/{packageName}/edits/{editId}/listings
+/// DELETE androidpublisher/v3/applications/{packageName}/edits/{editId}/listings
 /// Deletes all store listings.
 ///
 /// Takes a `ClientRequestBuilder`, builds and executes the request,
@@ -3771,7 +5986,7 @@ pub struct AndroidpublisherEditsListingsDeleteallArgs {
     pub editId: String,
 }
 
-/// GET androidpublisher/v3/applications/{packageName}/edits/{editId}/listings
+/// DELETE androidpublisher/v3/applications/{packageName}/edits/{editId}/listings
 /// Deletes all store listings.
 ///
 /// Simplest API - builds and executes the request in one call.
@@ -3792,6 +6007,682 @@ pub fn androidpublisher_edits_listings_deleteall(
     let builder =
         androidpublisher_edits_listings_deleteall_builder(client, &args.packageName, &args.editId)?;
     androidpublisher_edits_listings_deleteall_execute(builder)
+}
+
+/// GET androidpublisher/v3/applications/{packageName}/edits/{editId}/listings/{language}
+/// Gets a localized store listing.
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `androidpublisher_edits_listings_get_execute()` to send, or `androidpublisher_edits_listings_get` for simplest API.
+
+pub fn androidpublisher_edits_listings_get_builder(
+    client: &SimpleHttpClient,
+    packageName: &String,
+    editId: &String,
+    language: &String,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!(
+        "https://androidpublisher.googleapis.com/androidpublisher/v3/applications/{}/edits/{}/listings/{}",
+        packageName,
+        editId,
+        language,
+    );
+
+    // Build request
+    let builder = client
+        .get(&endpoint_url)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// GET androidpublisher/v3/applications/{packageName}/edits/{editId}/listings/{language}
+/// Gets a localized store listing.
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `androidpublisher_edits_listings_get_execute()` or `androidpublisher_edits_listings_get`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `androidpublisher_edits_listings_get_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn androidpublisher_edits_listings_get_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<Listing>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: Listing = serde_json::from_str(&body)
+                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// GET androidpublisher/v3/applications/{packageName}/edits/{editId}/listings/{language}
+/// Gets a localized store listing.
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `androidpublisher_edits_listings_get_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `androidpublisher_edits_listings_get_task()`.
+/// For the simplest API, use `androidpublisher_edits_listings_get()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `androidpublisher_edits_listings_get_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn androidpublisher_edits_listings_get_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<Listing>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let task = androidpublisher_edits_listings_get_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`androidpublisher_edits_listings_get`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct AndroidpublisherEditsListingsGetArgs {
+    /// Path parameter: packageName
+    pub packageName: String,
+    /// Path parameter: editId
+    pub editId: String,
+    /// Path parameter: language
+    pub language: String,
+}
+
+/// GET androidpublisher/v3/applications/{packageName}/edits/{editId}/listings/{language}
+/// Gets a localized store listing.
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `androidpublisher_edits_listings_get_builder()` + `androidpublisher_edits_listings_get_execute()`.
+/// For task-level control, use `androidpublisher_edits_listings_get_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn androidpublisher_edits_listings_get(
+    client: &SimpleHttpClient,
+    args: &AndroidpublisherEditsListingsGetArgs,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<Listing>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let builder = androidpublisher_edits_listings_get_builder(
+        client,
+        &args.packageName,
+        &args.editId,
+        &args.language,
+    )?;
+    androidpublisher_edits_listings_get_execute(builder)
+}
+
+/// GET androidpublisher/v3/applications/{packageName}/edits/{editId}/listings
+/// Lists all localized store listings.
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `androidpublisher_edits_listings_list_execute()` to send, or `androidpublisher_edits_listings_list` for simplest API.
+
+pub fn androidpublisher_edits_listings_list_builder(
+    client: &SimpleHttpClient,
+    packageName: &String,
+    editId: &String,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!(
+        "https://androidpublisher.googleapis.com/androidpublisher/v3/applications/{}/edits/{}/listings",
+        packageName,
+        editId,
+    );
+
+    // Build request
+    let builder = client
+        .get(&endpoint_url)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// GET androidpublisher/v3/applications/{packageName}/edits/{editId}/listings
+/// Lists all localized store listings.
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `androidpublisher_edits_listings_list_execute()` or `androidpublisher_edits_listings_list`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `androidpublisher_edits_listings_list_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn androidpublisher_edits_listings_list_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<ListingsListResponse>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: ListingsListResponse = serde_json::from_str(&body)
+                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// GET androidpublisher/v3/applications/{packageName}/edits/{editId}/listings
+/// Lists all localized store listings.
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `androidpublisher_edits_listings_list_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `androidpublisher_edits_listings_list_task()`.
+/// For the simplest API, use `androidpublisher_edits_listings_list()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `androidpublisher_edits_listings_list_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn androidpublisher_edits_listings_list_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<ListingsListResponse>, ApiError>, P = ApiPending>
+        + Send
+        + 'static,
+    ApiError,
+> {
+    let task = androidpublisher_edits_listings_list_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`androidpublisher_edits_listings_list`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct AndroidpublisherEditsListingsListArgs {
+    /// Path parameter: packageName
+    pub packageName: String,
+    /// Path parameter: editId
+    pub editId: String,
+}
+
+/// GET androidpublisher/v3/applications/{packageName}/edits/{editId}/listings
+/// Lists all localized store listings.
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `androidpublisher_edits_listings_list_builder()` + `androidpublisher_edits_listings_list_execute()`.
+/// For task-level control, use `androidpublisher_edits_listings_list_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn androidpublisher_edits_listings_list(
+    client: &SimpleHttpClient,
+    args: &AndroidpublisherEditsListingsListArgs,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<ListingsListResponse>, ApiError>, P = ApiPending>
+        + Send
+        + 'static,
+    ApiError,
+> {
+    let builder =
+        androidpublisher_edits_listings_list_builder(client, &args.packageName, &args.editId)?;
+    androidpublisher_edits_listings_list_execute(builder)
+}
+
+/// PATCH androidpublisher/v3/applications/{packageName}/edits/{editId}/listings/{language}
+/// Patches a localized store listing.
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `androidpublisher_edits_listings_patch_execute()` to send, or `androidpublisher_edits_listings_patch` for simplest API.
+
+pub fn androidpublisher_edits_listings_patch_builder(
+    client: &SimpleHttpClient,
+    packageName: &String,
+    editId: &String,
+    language: &String,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!(
+        "https://androidpublisher.googleapis.com/androidpublisher/v3/applications/{}/edits/{}/listings/{}",
+        packageName,
+        editId,
+        language,
+    );
+
+    // Build request
+    let builder = client
+        .patch(&endpoint_url)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// PATCH androidpublisher/v3/applications/{packageName}/edits/{editId}/listings/{language}
+/// Patches a localized store listing.
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `androidpublisher_edits_listings_patch_execute()` or `androidpublisher_edits_listings_patch`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `androidpublisher_edits_listings_patch_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn androidpublisher_edits_listings_patch_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<Listing>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: Listing = serde_json::from_str(&body)
+                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// PATCH androidpublisher/v3/applications/{packageName}/edits/{editId}/listings/{language}
+/// Patches a localized store listing.
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `androidpublisher_edits_listings_patch_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `androidpublisher_edits_listings_patch_task()`.
+/// For the simplest API, use `androidpublisher_edits_listings_patch()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `androidpublisher_edits_listings_patch_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn androidpublisher_edits_listings_patch_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<Listing>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let task = androidpublisher_edits_listings_patch_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`androidpublisher_edits_listings_patch`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct AndroidpublisherEditsListingsPatchArgs {
+    /// Path parameter: packageName
+    pub packageName: String,
+    /// Path parameter: editId
+    pub editId: String,
+    /// Path parameter: language
+    pub language: String,
+}
+
+/// PATCH androidpublisher/v3/applications/{packageName}/edits/{editId}/listings/{language}
+/// Patches a localized store listing.
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `androidpublisher_edits_listings_patch_builder()` + `androidpublisher_edits_listings_patch_execute()`.
+/// For task-level control, use `androidpublisher_edits_listings_patch_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn androidpublisher_edits_listings_patch(
+    client: &SimpleHttpClient,
+    args: &AndroidpublisherEditsListingsPatchArgs,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<Listing>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let builder = androidpublisher_edits_listings_patch_builder(
+        client,
+        &args.packageName,
+        &args.editId,
+        &args.language,
+    )?;
+    androidpublisher_edits_listings_patch_execute(builder)
+}
+
+/// PUT androidpublisher/v3/applications/{packageName}/edits/{editId}/listings/{language}
+/// Creates or updates a localized store listing.
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `androidpublisher_edits_listings_update_execute()` to send, or `androidpublisher_edits_listings_update` for simplest API.
+
+pub fn androidpublisher_edits_listings_update_builder(
+    client: &SimpleHttpClient,
+    packageName: &String,
+    editId: &String,
+    language: &String,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!(
+        "https://androidpublisher.googleapis.com/androidpublisher/v3/applications/{}/edits/{}/listings/{}",
+        packageName,
+        editId,
+        language,
+    );
+
+    // Build request
+    let builder = client
+        .put(&endpoint_url)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// PUT androidpublisher/v3/applications/{packageName}/edits/{editId}/listings/{language}
+/// Creates or updates a localized store listing.
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `androidpublisher_edits_listings_update_execute()` or `androidpublisher_edits_listings_update`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `androidpublisher_edits_listings_update_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn androidpublisher_edits_listings_update_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<Listing>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: Listing = serde_json::from_str(&body)
+                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// PUT androidpublisher/v3/applications/{packageName}/edits/{editId}/listings/{language}
+/// Creates or updates a localized store listing.
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `androidpublisher_edits_listings_update_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `androidpublisher_edits_listings_update_task()`.
+/// For the simplest API, use `androidpublisher_edits_listings_update()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `androidpublisher_edits_listings_update_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn androidpublisher_edits_listings_update_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<Listing>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let task = androidpublisher_edits_listings_update_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`androidpublisher_edits_listings_update`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct AndroidpublisherEditsListingsUpdateArgs {
+    /// Path parameter: packageName
+    pub packageName: String,
+    /// Path parameter: editId
+    pub editId: String,
+    /// Path parameter: language
+    pub language: String,
+}
+
+/// PUT androidpublisher/v3/applications/{packageName}/edits/{editId}/listings/{language}
+/// Creates or updates a localized store listing.
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `androidpublisher_edits_listings_update_builder()` + `androidpublisher_edits_listings_update_execute()`.
+/// For task-level control, use `androidpublisher_edits_listings_update_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn androidpublisher_edits_listings_update(
+    client: &SimpleHttpClient,
+    args: &AndroidpublisherEditsListingsUpdateArgs,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<Listing>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let builder = androidpublisher_edits_listings_update_builder(
+        client,
+        &args.packageName,
+        &args.editId,
+        &args.language,
+    )?;
+    androidpublisher_edits_listings_update_execute(builder)
 }
 
 /// GET androidpublisher/v3/applications/{packageName}/edits/{editId}/testers/{track}
@@ -3964,7 +6855,347 @@ pub fn androidpublisher_edits_testers_get(
     androidpublisher_edits_testers_get_execute(builder)
 }
 
-/// GET androidpublisher/v3/applications/{packageName}/edits/{editId}/tracks
+/// PATCH androidpublisher/v3/applications/{packageName}/edits/{editId}/testers/{track}
+/// Patches testers. Note: Testers resource does not support email lists.
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `androidpublisher_edits_testers_patch_execute()` to send, or `androidpublisher_edits_testers_patch` for simplest API.
+
+pub fn androidpublisher_edits_testers_patch_builder(
+    client: &SimpleHttpClient,
+    packageName: &String,
+    editId: &String,
+    track: &String,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!(
+        "https://androidpublisher.googleapis.com/androidpublisher/v3/applications/{}/edits/{}/testers/{}",
+        packageName,
+        editId,
+        track,
+    );
+
+    // Build request
+    let builder = client
+        .patch(&endpoint_url)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// PATCH androidpublisher/v3/applications/{packageName}/edits/{editId}/testers/{track}
+/// Patches testers. Note: Testers resource does not support email lists.
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `androidpublisher_edits_testers_patch_execute()` or `androidpublisher_edits_testers_patch`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `androidpublisher_edits_testers_patch_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn androidpublisher_edits_testers_patch_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<Testers>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: Testers = serde_json::from_str(&body)
+                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// PATCH androidpublisher/v3/applications/{packageName}/edits/{editId}/testers/{track}
+/// Patches testers. Note: Testers resource does not support email lists.
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `androidpublisher_edits_testers_patch_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `androidpublisher_edits_testers_patch_task()`.
+/// For the simplest API, use `androidpublisher_edits_testers_patch()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `androidpublisher_edits_testers_patch_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn androidpublisher_edits_testers_patch_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<Testers>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let task = androidpublisher_edits_testers_patch_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`androidpublisher_edits_testers_patch`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct AndroidpublisherEditsTestersPatchArgs {
+    /// Path parameter: packageName
+    pub packageName: String,
+    /// Path parameter: editId
+    pub editId: String,
+    /// Path parameter: track
+    pub track: String,
+}
+
+/// PATCH androidpublisher/v3/applications/{packageName}/edits/{editId}/testers/{track}
+/// Patches testers. Note: Testers resource does not support email lists.
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `androidpublisher_edits_testers_patch_builder()` + `androidpublisher_edits_testers_patch_execute()`.
+/// For task-level control, use `androidpublisher_edits_testers_patch_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn androidpublisher_edits_testers_patch(
+    client: &SimpleHttpClient,
+    args: &AndroidpublisherEditsTestersPatchArgs,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<Testers>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let builder = androidpublisher_edits_testers_patch_builder(
+        client,
+        &args.packageName,
+        &args.editId,
+        &args.track,
+    )?;
+    androidpublisher_edits_testers_patch_execute(builder)
+}
+
+/// PUT androidpublisher/v3/applications/{packageName}/edits/{editId}/testers/{track}
+/// Updates testers. Note: Testers resource does not support email lists.
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `androidpublisher_edits_testers_update_execute()` to send, or `androidpublisher_edits_testers_update` for simplest API.
+
+pub fn androidpublisher_edits_testers_update_builder(
+    client: &SimpleHttpClient,
+    packageName: &String,
+    editId: &String,
+    track: &String,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!(
+        "https://androidpublisher.googleapis.com/androidpublisher/v3/applications/{}/edits/{}/testers/{}",
+        packageName,
+        editId,
+        track,
+    );
+
+    // Build request
+    let builder = client
+        .put(&endpoint_url)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// PUT androidpublisher/v3/applications/{packageName}/edits/{editId}/testers/{track}
+/// Updates testers. Note: Testers resource does not support email lists.
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `androidpublisher_edits_testers_update_execute()` or `androidpublisher_edits_testers_update`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `androidpublisher_edits_testers_update_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn androidpublisher_edits_testers_update_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<Testers>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: Testers = serde_json::from_str(&body)
+                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// PUT androidpublisher/v3/applications/{packageName}/edits/{editId}/testers/{track}
+/// Updates testers. Note: Testers resource does not support email lists.
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `androidpublisher_edits_testers_update_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `androidpublisher_edits_testers_update_task()`.
+/// For the simplest API, use `androidpublisher_edits_testers_update()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `androidpublisher_edits_testers_update_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn androidpublisher_edits_testers_update_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<Testers>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let task = androidpublisher_edits_testers_update_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`androidpublisher_edits_testers_update`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct AndroidpublisherEditsTestersUpdateArgs {
+    /// Path parameter: packageName
+    pub packageName: String,
+    /// Path parameter: editId
+    pub editId: String,
+    /// Path parameter: track
+    pub track: String,
+}
+
+/// PUT androidpublisher/v3/applications/{packageName}/edits/{editId}/testers/{track}
+/// Updates testers. Note: Testers resource does not support email lists.
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `androidpublisher_edits_testers_update_builder()` + `androidpublisher_edits_testers_update_execute()`.
+/// For task-level control, use `androidpublisher_edits_testers_update_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn androidpublisher_edits_testers_update(
+    client: &SimpleHttpClient,
+    args: &AndroidpublisherEditsTestersUpdateArgs,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<Testers>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let builder = androidpublisher_edits_testers_update_builder(
+        client,
+        &args.packageName,
+        &args.editId,
+        &args.track,
+    )?;
+    androidpublisher_edits_testers_update_execute(builder)
+}
+
+/// POST androidpublisher/v3/applications/{packageName}/edits/{editId}/tracks
 /// Creates a new track.
 ///
 /// Returns `ClientRequestBuilder` for customization.
@@ -3974,7 +7205,6 @@ pub fn androidpublisher_edits_tracks_create_builder(
     client: &SimpleHttpClient,
     packageName: &String,
     editId: &String,
-    body: &TrackConfig,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
@@ -3985,15 +7215,13 @@ pub fn androidpublisher_edits_tracks_create_builder(
 
     // Build request
     let builder = client
-        .get(&endpoint_url)
+        .post(&endpoint_url)
         .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
 
-    builder
-        .body_json(body)
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+    Ok(builder)
 }
 
-/// GET androidpublisher/v3/applications/{packageName}/edits/{editId}/tracks
+/// POST androidpublisher/v3/applications/{packageName}/edits/{editId}/tracks
 /// Creates a new track.
 ///
 /// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
@@ -4067,7 +7295,7 @@ pub fn androidpublisher_edits_tracks_create_task(
         .map_pending(|_| ApiPending::Sending))
 }
 
-/// GET androidpublisher/v3/applications/{packageName}/edits/{editId}/tracks
+/// POST androidpublisher/v3/applications/{packageName}/edits/{editId}/tracks
 /// Creates a new track.
 ///
 /// Takes a `ClientRequestBuilder`, builds and executes the request,
@@ -4104,11 +7332,9 @@ pub struct AndroidpublisherEditsTracksCreateArgs {
     pub packageName: String,
     /// Path parameter: editId
     pub editId: String,
-    /// Request body.
-    pub body: TrackConfig,
 }
 
-/// GET androidpublisher/v3/applications/{packageName}/edits/{editId}/tracks
+/// POST androidpublisher/v3/applications/{packageName}/edits/{editId}/tracks
 /// Creates a new track.
 ///
 /// Simplest API - builds and executes the request in one call.
@@ -4126,12 +7352,8 @@ pub fn androidpublisher_edits_tracks_create(
     impl StreamIterator<D = Result<ApiResponse<Track>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = androidpublisher_edits_tracks_create_builder(
-        client,
-        &args.packageName,
-        &args.editId,
-        &args.body,
-    )?;
+    let builder =
+        androidpublisher_edits_tracks_create_builder(client, &args.packageName, &args.editId)?;
     androidpublisher_edits_tracks_create_execute(builder)
 }
 
@@ -4305,7 +7527,513 @@ pub fn androidpublisher_edits_tracks_get(
     androidpublisher_edits_tracks_get_execute(builder)
 }
 
-/// GET androidpublisher/v3/applications/{applicationsId}/externalTransactions
+/// GET androidpublisher/v3/applications/{packageName}/edits/{editId}/tracks
+/// Lists all tracks.
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `androidpublisher_edits_tracks_list_execute()` to send, or `androidpublisher_edits_tracks_list` for simplest API.
+
+pub fn androidpublisher_edits_tracks_list_builder(
+    client: &SimpleHttpClient,
+    packageName: &String,
+    editId: &String,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!(
+        "https://androidpublisher.googleapis.com/androidpublisher/v3/applications/{}/edits/{}/tracks",
+        packageName,
+        editId,
+    );
+
+    // Build request
+    let builder = client
+        .get(&endpoint_url)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// GET androidpublisher/v3/applications/{packageName}/edits/{editId}/tracks
+/// Lists all tracks.
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `androidpublisher_edits_tracks_list_execute()` or `androidpublisher_edits_tracks_list`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `androidpublisher_edits_tracks_list_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn androidpublisher_edits_tracks_list_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<TracksListResponse>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: TracksListResponse = serde_json::from_str(&body)
+                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// GET androidpublisher/v3/applications/{packageName}/edits/{editId}/tracks
+/// Lists all tracks.
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `androidpublisher_edits_tracks_list_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `androidpublisher_edits_tracks_list_task()`.
+/// For the simplest API, use `androidpublisher_edits_tracks_list()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `androidpublisher_edits_tracks_list_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn androidpublisher_edits_tracks_list_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<TracksListResponse>, ApiError>, P = ApiPending>
+        + Send
+        + 'static,
+    ApiError,
+> {
+    let task = androidpublisher_edits_tracks_list_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`androidpublisher_edits_tracks_list`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct AndroidpublisherEditsTracksListArgs {
+    /// Path parameter: packageName
+    pub packageName: String,
+    /// Path parameter: editId
+    pub editId: String,
+}
+
+/// GET androidpublisher/v3/applications/{packageName}/edits/{editId}/tracks
+/// Lists all tracks.
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `androidpublisher_edits_tracks_list_builder()` + `androidpublisher_edits_tracks_list_execute()`.
+/// For task-level control, use `androidpublisher_edits_tracks_list_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn androidpublisher_edits_tracks_list(
+    client: &SimpleHttpClient,
+    args: &AndroidpublisherEditsTracksListArgs,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<TracksListResponse>, ApiError>, P = ApiPending>
+        + Send
+        + 'static,
+    ApiError,
+> {
+    let builder =
+        androidpublisher_edits_tracks_list_builder(client, &args.packageName, &args.editId)?;
+    androidpublisher_edits_tracks_list_execute(builder)
+}
+
+/// PATCH androidpublisher/v3/applications/{packageName}/edits/{editId}/tracks/{track}
+/// Patches a track.
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `androidpublisher_edits_tracks_patch_execute()` to send, or `androidpublisher_edits_tracks_patch` for simplest API.
+
+pub fn androidpublisher_edits_tracks_patch_builder(
+    client: &SimpleHttpClient,
+    packageName: &String,
+    editId: &String,
+    track: &String,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!(
+        "https://androidpublisher.googleapis.com/androidpublisher/v3/applications/{}/edits/{}/tracks/{}",
+        packageName,
+        editId,
+        track,
+    );
+
+    // Build request
+    let builder = client
+        .patch(&endpoint_url)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// PATCH androidpublisher/v3/applications/{packageName}/edits/{editId}/tracks/{track}
+/// Patches a track.
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `androidpublisher_edits_tracks_patch_execute()` or `androidpublisher_edits_tracks_patch`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `androidpublisher_edits_tracks_patch_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn androidpublisher_edits_tracks_patch_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<Track>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: Track = serde_json::from_str(&body)
+                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// PATCH androidpublisher/v3/applications/{packageName}/edits/{editId}/tracks/{track}
+/// Patches a track.
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `androidpublisher_edits_tracks_patch_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `androidpublisher_edits_tracks_patch_task()`.
+/// For the simplest API, use `androidpublisher_edits_tracks_patch()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `androidpublisher_edits_tracks_patch_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn androidpublisher_edits_tracks_patch_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<Track>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let task = androidpublisher_edits_tracks_patch_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`androidpublisher_edits_tracks_patch`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct AndroidpublisherEditsTracksPatchArgs {
+    /// Path parameter: packageName
+    pub packageName: String,
+    /// Path parameter: editId
+    pub editId: String,
+    /// Path parameter: track
+    pub track: String,
+}
+
+/// PATCH androidpublisher/v3/applications/{packageName}/edits/{editId}/tracks/{track}
+/// Patches a track.
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `androidpublisher_edits_tracks_patch_builder()` + `androidpublisher_edits_tracks_patch_execute()`.
+/// For task-level control, use `androidpublisher_edits_tracks_patch_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn androidpublisher_edits_tracks_patch(
+    client: &SimpleHttpClient,
+    args: &AndroidpublisherEditsTracksPatchArgs,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<Track>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let builder = androidpublisher_edits_tracks_patch_builder(
+        client,
+        &args.packageName,
+        &args.editId,
+        &args.track,
+    )?;
+    androidpublisher_edits_tracks_patch_execute(builder)
+}
+
+/// PUT androidpublisher/v3/applications/{packageName}/edits/{editId}/tracks/{track}
+/// Updates a track.
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `androidpublisher_edits_tracks_update_execute()` to send, or `androidpublisher_edits_tracks_update` for simplest API.
+
+pub fn androidpublisher_edits_tracks_update_builder(
+    client: &SimpleHttpClient,
+    packageName: &String,
+    editId: &String,
+    track: &String,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!(
+        "https://androidpublisher.googleapis.com/androidpublisher/v3/applications/{}/edits/{}/tracks/{}",
+        packageName,
+        editId,
+        track,
+    );
+
+    // Build request
+    let builder = client
+        .put(&endpoint_url)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// PUT androidpublisher/v3/applications/{packageName}/edits/{editId}/tracks/{track}
+/// Updates a track.
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `androidpublisher_edits_tracks_update_execute()` or `androidpublisher_edits_tracks_update`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `androidpublisher_edits_tracks_update_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn androidpublisher_edits_tracks_update_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<Track>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: Track = serde_json::from_str(&body)
+                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// PUT androidpublisher/v3/applications/{packageName}/edits/{editId}/tracks/{track}
+/// Updates a track.
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `androidpublisher_edits_tracks_update_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `androidpublisher_edits_tracks_update_task()`.
+/// For the simplest API, use `androidpublisher_edits_tracks_update()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `androidpublisher_edits_tracks_update_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn androidpublisher_edits_tracks_update_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<Track>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let task = androidpublisher_edits_tracks_update_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`androidpublisher_edits_tracks_update`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct AndroidpublisherEditsTracksUpdateArgs {
+    /// Path parameter: packageName
+    pub packageName: String,
+    /// Path parameter: editId
+    pub editId: String,
+    /// Path parameter: track
+    pub track: String,
+}
+
+/// PUT androidpublisher/v3/applications/{packageName}/edits/{editId}/tracks/{track}
+/// Updates a track.
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `androidpublisher_edits_tracks_update_builder()` + `androidpublisher_edits_tracks_update_execute()`.
+/// For task-level control, use `androidpublisher_edits_tracks_update_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn androidpublisher_edits_tracks_update(
+    client: &SimpleHttpClient,
+    args: &AndroidpublisherEditsTracksUpdateArgs,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<Track>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let builder = androidpublisher_edits_tracks_update_builder(
+        client,
+        &args.packageName,
+        &args.editId,
+        &args.track,
+    )?;
+    androidpublisher_edits_tracks_update_execute(builder)
+}
+
+/// POST androidpublisher/v3/applications/{applicationsId}/externalTransactions
 /// Creates a new external transaction.
 ///
 /// Returns `ClientRequestBuilder` for customization.
@@ -4314,12 +8042,12 @@ pub fn androidpublisher_edits_tracks_get(
 pub fn androidpublisher_externaltransactions_createexternaltransaction_builder(
     client: &SimpleHttpClient,
     parent: &String,
-    externalTransactionId: &Option<String>,
-    body: &ExternalTransaction,
+    externalTransactionId: &Option<Option<String>>,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
         "https://androidpublisher.googleapis.com/androidpublisher/v3/applications/{}/externalTransactions",
+        parent,
     );
 
     // Build request
@@ -4335,15 +8063,13 @@ pub fn androidpublisher_externaltransactions_createexternaltransaction_builder(
     };
 
     let builder = client
-        .get(&url_with_query)
+        .post(&url_with_query)
         .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
 
-    builder
-        .body_json(body)
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+    Ok(builder)
 }
 
-/// GET androidpublisher/v3/applications/{applicationsId}/externalTransactions
+/// POST androidpublisher/v3/applications/{applicationsId}/externalTransactions
 /// Creates a new external transaction.
 ///
 /// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
@@ -4417,7 +8143,7 @@ pub fn androidpublisher_externaltransactions_createexternaltransaction_task(
         .map_pending(|_| ApiPending::Sending))
 }
 
-/// GET androidpublisher/v3/applications/{applicationsId}/externalTransactions
+/// POST androidpublisher/v3/applications/{applicationsId}/externalTransactions
 /// Creates a new external transaction.
 ///
 /// Takes a `ClientRequestBuilder`, builds and executes the request,
@@ -4455,12 +8181,10 @@ pub struct AndroidpublisherExternaltransactionsCreateexternaltransactionArgs {
     /// Path parameter: parent
     pub parent: String,
     /// Query parameter: externalTransactionId
-    pub externalTransactionId: Option<String>,
-    /// Request body.
-    pub body: ExternalTransaction,
+    pub externalTransactionId: Option<Option<String>>,
 }
 
-/// GET androidpublisher/v3/applications/{applicationsId}/externalTransactions
+/// POST androidpublisher/v3/applications/{applicationsId}/externalTransactions
 /// Creates a new external transaction.
 ///
 /// Simplest API - builds and executes the request in one call.
@@ -4484,9 +8208,333 @@ pub fn androidpublisher_externaltransactions_createexternaltransaction(
         client,
         &args.parent,
         &args.externalTransactionId,
-        &args.body,
     )?;
     androidpublisher_externaltransactions_createexternaltransaction_execute(builder)
+}
+
+/// GET androidpublisher/v3/applications/{applicationsId}/externalTransactions/{externalTransactionsId}
+/// Gets an existing external transaction.
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `androidpublisher_externaltransactions_getexternaltransaction_execute()` to send, or `androidpublisher_externaltransactions_getexternaltransaction` for simplest API.
+
+pub fn androidpublisher_externaltransactions_getexternaltransaction_builder(
+    client: &SimpleHttpClient,
+    name: &String,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!(
+        "https://androidpublisher.googleapis.com/androidpublisher/v3/applications/{}/externalTransactions/{externalTransactionsId}",
+        name,
+    );
+
+    // Build request
+    let builder = client
+        .get(&endpoint_url)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// GET androidpublisher/v3/applications/{applicationsId}/externalTransactions/{externalTransactionsId}
+/// Gets an existing external transaction.
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `androidpublisher_externaltransactions_getexternaltransaction_execute()` or `androidpublisher_externaltransactions_getexternaltransaction`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `androidpublisher_externaltransactions_getexternaltransaction_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn androidpublisher_externaltransactions_getexternaltransaction_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<ExternalTransaction>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: ExternalTransaction = serde_json::from_str(&body)
+                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// GET androidpublisher/v3/applications/{applicationsId}/externalTransactions/{externalTransactionsId}
+/// Gets an existing external transaction.
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `androidpublisher_externaltransactions_getexternaltransaction_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `androidpublisher_externaltransactions_getexternaltransaction_task()`.
+/// For the simplest API, use `androidpublisher_externaltransactions_getexternaltransaction()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `androidpublisher_externaltransactions_getexternaltransaction_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn androidpublisher_externaltransactions_getexternaltransaction_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<ExternalTransaction>, ApiError>, P = ApiPending>
+        + Send
+        + 'static,
+    ApiError,
+> {
+    let task = androidpublisher_externaltransactions_getexternaltransaction_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`androidpublisher_externaltransactions_getexternaltransaction`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct AndroidpublisherExternaltransactionsGetexternaltransactionArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
+/// GET androidpublisher/v3/applications/{applicationsId}/externalTransactions/{externalTransactionsId}
+/// Gets an existing external transaction.
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `androidpublisher_externaltransactions_getexternaltransaction_builder()` + `androidpublisher_externaltransactions_getexternaltransaction_execute()`.
+/// For task-level control, use `androidpublisher_externaltransactions_getexternaltransaction_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn androidpublisher_externaltransactions_getexternaltransaction(
+    client: &SimpleHttpClient,
+    args: &AndroidpublisherExternaltransactionsGetexternaltransactionArgs,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<ExternalTransaction>, ApiError>, P = ApiPending>
+        + Send
+        + 'static,
+    ApiError,
+> {
+    let builder =
+        androidpublisher_externaltransactions_getexternaltransaction_builder(client, &args.name)?;
+    androidpublisher_externaltransactions_getexternaltransaction_execute(builder)
+}
+
+/// POST androidpublisher/v3/applications/{applicationsId}/externalTransactions/{externalTransactionsId}:refund
+/// Refunds or partially refunds an existing external transaction.
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `androidpublisher_externaltransactions_refundexternaltransaction_execute()` to send, or `androidpublisher_externaltransactions_refundexternaltransaction` for simplest API.
+
+pub fn androidpublisher_externaltransactions_refundexternaltransaction_builder(
+    client: &SimpleHttpClient,
+    name: &String,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!(
+        "https://androidpublisher.googleapis.com/androidpublisher/v3/applications/{}/externalTransactions/{externalTransactionsId}:refund",
+        name,
+    );
+
+    // Build request
+    let builder = client
+        .post(&endpoint_url)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// POST androidpublisher/v3/applications/{applicationsId}/externalTransactions/{externalTransactionsId}:refund
+/// Refunds or partially refunds an existing external transaction.
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `androidpublisher_externaltransactions_refundexternaltransaction_execute()` or `androidpublisher_externaltransactions_refundexternaltransaction`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `androidpublisher_externaltransactions_refundexternaltransaction_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn androidpublisher_externaltransactions_refundexternaltransaction_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<ExternalTransaction>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: ExternalTransaction = serde_json::from_str(&body)
+                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// POST androidpublisher/v3/applications/{applicationsId}/externalTransactions/{externalTransactionsId}:refund
+/// Refunds or partially refunds an existing external transaction.
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `androidpublisher_externaltransactions_refundexternaltransaction_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `androidpublisher_externaltransactions_refundexternaltransaction_task()`.
+/// For the simplest API, use `androidpublisher_externaltransactions_refundexternaltransaction()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `androidpublisher_externaltransactions_refundexternaltransaction_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn androidpublisher_externaltransactions_refundexternaltransaction_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<ExternalTransaction>, ApiError>, P = ApiPending>
+        + Send
+        + 'static,
+    ApiError,
+> {
+    let task = androidpublisher_externaltransactions_refundexternaltransaction_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`androidpublisher_externaltransactions_refundexternaltransaction`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct AndroidpublisherExternaltransactionsRefundexternaltransactionArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
+/// POST androidpublisher/v3/applications/{applicationsId}/externalTransactions/{externalTransactionsId}:refund
+/// Refunds or partially refunds an existing external transaction.
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `androidpublisher_externaltransactions_refundexternaltransaction_builder()` + `androidpublisher_externaltransactions_refundexternaltransaction_execute()`.
+/// For task-level control, use `androidpublisher_externaltransactions_refundexternaltransaction_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn androidpublisher_externaltransactions_refundexternaltransaction(
+    client: &SimpleHttpClient,
+    args: &AndroidpublisherExternaltransactionsRefundexternaltransactionArgs,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<ExternalTransaction>, ApiError>, P = ApiPending>
+        + Send
+        + 'static,
+    ApiError,
+> {
+    let builder = androidpublisher_externaltransactions_refundexternaltransaction_builder(
+        client, &args.name,
+    )?;
+    androidpublisher_externaltransactions_refundexternaltransaction_execute(builder)
 }
 
 /// GET androidpublisher/v3/applications/{packageName}/generatedApks/{versionCode}/downloads/{downloadId}:download
@@ -4498,7 +8546,7 @@ pub fn androidpublisher_externaltransactions_createexternaltransaction(
 pub fn androidpublisher_generatedapks_download_builder(
     client: &SimpleHttpClient,
     packageName: &String,
-    versionCode: &i32,
+    versionCode: &String,
     downloadId: &String,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
@@ -4624,7 +8672,7 @@ pub struct AndroidpublisherGeneratedapksDownloadArgs {
     /// Path parameter: packageName
     pub packageName: String,
     /// Path parameter: versionCode
-    pub versionCode: i32,
+    pub versionCode: String,
     /// Path parameter: downloadId
     pub downloadId: String,
 }
@@ -4665,7 +8713,7 @@ pub fn androidpublisher_generatedapks_download(
 pub fn androidpublisher_generatedapks_list_builder(
     client: &SimpleHttpClient,
     packageName: &String,
-    versionCode: &i32,
+    versionCode: &String,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
@@ -4794,7 +8842,7 @@ pub struct AndroidpublisherGeneratedapksListArgs {
     /// Path parameter: packageName
     pub packageName: String,
     /// Path parameter: versionCode
-    pub versionCode: i32,
+    pub versionCode: String,
 }
 
 /// GET androidpublisher/v3/applications/{packageName}/generatedApks/{versionCode}
@@ -4822,7 +8870,489 @@ pub fn androidpublisher_generatedapks_list(
     androidpublisher_generatedapks_list_execute(builder)
 }
 
-/// GET androidpublisher/v3/applications/{packageName}/inappproducts:batchDelete
+/// POST androidpublisher/v3/developers/{developersId}/users/{usersId}/grants
+/// Grant access for a user to the given package.
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `androidpublisher_grants_create_execute()` to send, or `androidpublisher_grants_create` for simplest API.
+
+pub fn androidpublisher_grants_create_builder(
+    client: &SimpleHttpClient,
+    parent: &String,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!(
+        "https://androidpublisher.googleapis.com/androidpublisher/v3/developers/{}/users/{usersId}/grants",
+        parent,
+    );
+
+    // Build request
+    let builder = client
+        .post(&endpoint_url)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// POST androidpublisher/v3/developers/{developersId}/users/{usersId}/grants
+/// Grant access for a user to the given package.
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `androidpublisher_grants_create_execute()` or `androidpublisher_grants_create`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `androidpublisher_grants_create_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn androidpublisher_grants_create_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<Grant>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: Grant = serde_json::from_str(&body)
+                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// POST androidpublisher/v3/developers/{developersId}/users/{usersId}/grants
+/// Grant access for a user to the given package.
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `androidpublisher_grants_create_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `androidpublisher_grants_create_task()`.
+/// For the simplest API, use `androidpublisher_grants_create()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `androidpublisher_grants_create_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn androidpublisher_grants_create_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<Grant>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let task = androidpublisher_grants_create_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`androidpublisher_grants_create`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct AndroidpublisherGrantsCreateArgs {
+    /// Path parameter: parent
+    pub parent: String,
+}
+
+/// POST androidpublisher/v3/developers/{developersId}/users/{usersId}/grants
+/// Grant access for a user to the given package.
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `androidpublisher_grants_create_builder()` + `androidpublisher_grants_create_execute()`.
+/// For task-level control, use `androidpublisher_grants_create_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn androidpublisher_grants_create(
+    client: &SimpleHttpClient,
+    args: &AndroidpublisherGrantsCreateArgs,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<Grant>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let builder = androidpublisher_grants_create_builder(client, &args.parent)?;
+    androidpublisher_grants_create_execute(builder)
+}
+
+/// DELETE androidpublisher/v3/developers/{developersId}/users/{usersId}/grants/{grantsId}
+/// Removes all access for the user to the given package or developer account.
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `androidpublisher_grants_delete_execute()` to send, or `androidpublisher_grants_delete` for simplest API.
+
+pub fn androidpublisher_grants_delete_builder(
+    client: &SimpleHttpClient,
+    name: &String,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!(
+        "https://androidpublisher.googleapis.com/androidpublisher/v3/developers/{}/users/{usersId}/grants/{grantsId}",
+        name,
+    );
+
+    // Build request
+    let builder = client
+        .delete(&endpoint_url)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// DELETE androidpublisher/v3/developers/{developersId}/users/{usersId}/grants/{grantsId}
+/// Removes all access for the user to the given package or developer account.
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `androidpublisher_grants_delete_execute()` or `androidpublisher_grants_delete`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `androidpublisher_grants_delete_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn androidpublisher_grants_delete_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<()>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: (),
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// DELETE androidpublisher/v3/developers/{developersId}/users/{usersId}/grants/{grantsId}
+/// Removes all access for the user to the given package or developer account.
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `androidpublisher_grants_delete_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `androidpublisher_grants_delete_task()`.
+/// For the simplest API, use `androidpublisher_grants_delete()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `androidpublisher_grants_delete_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn androidpublisher_grants_delete_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<()>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let task = androidpublisher_grants_delete_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`androidpublisher_grants_delete`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct AndroidpublisherGrantsDeleteArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
+/// DELETE androidpublisher/v3/developers/{developersId}/users/{usersId}/grants/{grantsId}
+/// Removes all access for the user to the given package or developer account.
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `androidpublisher_grants_delete_builder()` + `androidpublisher_grants_delete_execute()`.
+/// For task-level control, use `androidpublisher_grants_delete_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn androidpublisher_grants_delete(
+    client: &SimpleHttpClient,
+    args: &AndroidpublisherGrantsDeleteArgs,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<()>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let builder = androidpublisher_grants_delete_builder(client, &args.name)?;
+    androidpublisher_grants_delete_execute(builder)
+}
+
+/// PATCH androidpublisher/v3/developers/{developersId}/users/{usersId}/grants/{grantsId}
+/// Updates access for the user to the given package.
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `androidpublisher_grants_patch_execute()` to send, or `androidpublisher_grants_patch` for simplest API.
+
+pub fn androidpublisher_grants_patch_builder(
+    client: &SimpleHttpClient,
+    name: &String,
+    updateMask: &Option<Option<String>>,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!(
+        "https://androidpublisher.googleapis.com/androidpublisher/v3/developers/{}/users/{usersId}/grants/{grantsId}",
+        name,
+    );
+
+    // Build request
+    let mut query_parts = Vec::new();
+    if let Some(val) = updateMask.as_ref() {
+        query_parts.push(format!("updateMask={}", val));
+    }
+
+    let url_with_query = if query_parts.is_empty() {
+        endpoint_url
+    } else {
+        format!("{}?{}", endpoint_url, query_parts.join("&"))
+    };
+
+    let builder = client
+        .patch(&url_with_query)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// PATCH androidpublisher/v3/developers/{developersId}/users/{usersId}/grants/{grantsId}
+/// Updates access for the user to the given package.
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `androidpublisher_grants_patch_execute()` or `androidpublisher_grants_patch`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `androidpublisher_grants_patch_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn androidpublisher_grants_patch_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<Grant>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: Grant = serde_json::from_str(&body)
+                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// PATCH androidpublisher/v3/developers/{developersId}/users/{usersId}/grants/{grantsId}
+/// Updates access for the user to the given package.
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `androidpublisher_grants_patch_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `androidpublisher_grants_patch_task()`.
+/// For the simplest API, use `androidpublisher_grants_patch()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `androidpublisher_grants_patch_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn androidpublisher_grants_patch_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<Grant>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let task = androidpublisher_grants_patch_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`androidpublisher_grants_patch`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct AndroidpublisherGrantsPatchArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Query parameter: updateMask
+    pub updateMask: Option<Option<String>>,
+}
+
+/// PATCH androidpublisher/v3/developers/{developersId}/users/{usersId}/grants/{grantsId}
+/// Updates access for the user to the given package.
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `androidpublisher_grants_patch_builder()` + `androidpublisher_grants_patch_execute()`.
+/// For task-level control, use `androidpublisher_grants_patch_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn androidpublisher_grants_patch(
+    client: &SimpleHttpClient,
+    args: &AndroidpublisherGrantsPatchArgs,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<Grant>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let builder = androidpublisher_grants_patch_builder(client, &args.name, &args.updateMask)?;
+    androidpublisher_grants_patch_execute(builder)
+}
+
+/// POST androidpublisher/v3/applications/{packageName}/inappproducts:batchDelete
 /// Deletes in-app products (managed products or subscriptions). Set the `latencyTolerance` field on nested requests to PRODUCT_UPDATE_LATENCY_TOLERANCE_LATENCY_TOLERANT to achieve maximum update throughput. This method should not be used to delete subscriptions. See [this article](<https://android-developers.googleblog.`com/2023/06/changes-to-google-play-developer-api-june-2023`.html>) for more information.
 ///
 /// Returns `ClientRequestBuilder` for customization.
@@ -4831,7 +9361,6 @@ pub fn androidpublisher_generatedapks_list(
 pub fn androidpublisher_inappproducts_batch_delete_builder(
     client: &SimpleHttpClient,
     packageName: &String,
-    body: &InappproductsBatchDeleteRequest,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
@@ -4841,15 +9370,13 @@ pub fn androidpublisher_inappproducts_batch_delete_builder(
 
     // Build request
     let builder = client
-        .get(&endpoint_url)
+        .post(&endpoint_url)
         .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
 
-    builder
-        .body_json(body)
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+    Ok(builder)
 }
 
-/// GET androidpublisher/v3/applications/{packageName}/inappproducts:batchDelete
+/// POST androidpublisher/v3/applications/{packageName}/inappproducts:batchDelete
 /// Deletes in-app products (managed products or subscriptions). Set the `latencyTolerance` field on nested requests to PRODUCT_UPDATE_LATENCY_TOLERANCE_LATENCY_TOLERANT to achieve maximum update throughput. This method should not be used to delete subscriptions. See [this article](<https://android-developers.googleblog.`com/2023/06/changes-to-google-play-developer-api-june-2023`.html>) for more information.
 ///
 /// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
@@ -4920,7 +9447,7 @@ pub fn androidpublisher_inappproducts_batch_delete_task(
         .map_pending(|_| ApiPending::Sending))
 }
 
-/// GET androidpublisher/v3/applications/{packageName}/inappproducts:batchDelete
+/// POST androidpublisher/v3/applications/{packageName}/inappproducts:batchDelete
 /// Deletes in-app products (managed products or subscriptions). Set the `latencyTolerance` field on nested requests to PRODUCT_UPDATE_LATENCY_TOLERANCE_LATENCY_TOLERANT to achieve maximum update throughput. This method should not be used to delete subscriptions. See [this article](<https://android-developers.googleblog.`com/2023/06/changes-to-google-play-developer-api-june-2023`.html>) for more information.
 ///
 /// Takes a `ClientRequestBuilder`, builds and executes the request,
@@ -4955,11 +9482,9 @@ pub fn androidpublisher_inappproducts_batch_delete_execute(
 pub struct AndroidpublisherInappproductsBatchDeleteArgs {
     /// Path parameter: packageName
     pub packageName: String,
-    /// Request body.
-    pub body: InappproductsBatchDeleteRequest,
 }
 
-/// GET androidpublisher/v3/applications/{packageName}/inappproducts:batchDelete
+/// POST androidpublisher/v3/applications/{packageName}/inappproducts:batchDelete
 /// Deletes in-app products (managed products or subscriptions). Set the `latencyTolerance` field on nested requests to PRODUCT_UPDATE_LATENCY_TOLERANCE_LATENCY_TOLERANT to achieve maximum update throughput. This method should not be used to delete subscriptions. See [this article](<https://android-developers.googleblog.`com/2023/06/changes-to-google-play-developer-api-june-2023`.html>) for more information.
 ///
 /// Simplest API - builds and executes the request in one call.
@@ -4977,8 +9502,7 @@ pub fn androidpublisher_inappproducts_batch_delete(
     impl StreamIterator<D = Result<ApiResponse<()>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder =
-        androidpublisher_inappproducts_batch_delete_builder(client, &args.packageName, &args.body)?;
+    let builder = androidpublisher_inappproducts_batch_delete_builder(client, &args.packageName)?;
     androidpublisher_inappproducts_batch_delete_execute(builder)
 }
 
@@ -4991,7 +9515,7 @@ pub fn androidpublisher_inappproducts_batch_delete(
 pub fn androidpublisher_inappproducts_batch_get_builder(
     client: &SimpleHttpClient,
     packageName: &String,
-    sku: &Option<String>,
+    sku: &Option<Option<String>>,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
@@ -5132,7 +9656,7 @@ pub struct AndroidpublisherInappproductsBatchGetArgs {
     /// Path parameter: packageName
     pub packageName: String,
     /// Query parameter: sku
-    pub sku: Option<String>,
+    pub sku: Option<Option<String>>,
 }
 
 /// GET androidpublisher/v3/applications/{packageName}/inappproducts:batchGet
@@ -5162,7 +9686,7 @@ pub fn androidpublisher_inappproducts_batch_get(
     androidpublisher_inappproducts_batch_get_execute(builder)
 }
 
-/// GET androidpublisher/v3/applications/{packageName}/inappproducts:batchUpdate
+/// POST androidpublisher/v3/applications/{packageName}/inappproducts:batchUpdate
 /// Updates or inserts one or more in-app products (managed products or subscriptions). Set the `latencyTolerance` field on nested requests to PRODUCT_UPDATE_LATENCY_TOLERANCE_LATENCY_TOLERANT to achieve maximum update throughput. This method should no longer be used to update subscriptions. See [this article](<https://android-developers.googleblog.`com/2023/06/changes-to-google-play-developer-api-june-2023`.html>) for more information.
 ///
 /// Returns `ClientRequestBuilder` for customization.
@@ -5171,7 +9695,6 @@ pub fn androidpublisher_inappproducts_batch_get(
 pub fn androidpublisher_inappproducts_batch_update_builder(
     client: &SimpleHttpClient,
     packageName: &String,
-    body: &InappproductsBatchUpdateRequest,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
@@ -5181,15 +9704,13 @@ pub fn androidpublisher_inappproducts_batch_update_builder(
 
     // Build request
     let builder = client
-        .get(&endpoint_url)
+        .post(&endpoint_url)
         .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
 
-    builder
-        .body_json(body)
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+    Ok(builder)
 }
 
-/// GET androidpublisher/v3/applications/{packageName}/inappproducts:batchUpdate
+/// POST androidpublisher/v3/applications/{packageName}/inappproducts:batchUpdate
 /// Updates or inserts one or more in-app products (managed products or subscriptions). Set the `latencyTolerance` field on nested requests to PRODUCT_UPDATE_LATENCY_TOLERANCE_LATENCY_TOLERANT to achieve maximum update throughput. This method should no longer be used to update subscriptions. See [this article](<https://android-developers.googleblog.`com/2023/06/changes-to-google-play-developer-api-june-2023`.html>) for more information.
 ///
 /// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
@@ -5263,7 +9784,7 @@ pub fn androidpublisher_inappproducts_batch_update_task(
         .map_pending(|_| ApiPending::Sending))
 }
 
-/// GET androidpublisher/v3/applications/{packageName}/inappproducts:batchUpdate
+/// POST androidpublisher/v3/applications/{packageName}/inappproducts:batchUpdate
 /// Updates or inserts one or more in-app products (managed products or subscriptions). Set the `latencyTolerance` field on nested requests to PRODUCT_UPDATE_LATENCY_TOLERANCE_LATENCY_TOLERANT to achieve maximum update throughput. This method should no longer be used to update subscriptions. See [this article](<https://android-developers.googleblog.`com/2023/06/changes-to-google-play-developer-api-june-2023`.html>) for more information.
 ///
 /// Takes a `ClientRequestBuilder`, builds and executes the request,
@@ -5302,11 +9823,9 @@ pub fn androidpublisher_inappproducts_batch_update_execute(
 pub struct AndroidpublisherInappproductsBatchUpdateArgs {
     /// Path parameter: packageName
     pub packageName: String,
-    /// Request body.
-    pub body: InappproductsBatchUpdateRequest,
 }
 
-/// GET androidpublisher/v3/applications/{packageName}/inappproducts:batchUpdate
+/// POST androidpublisher/v3/applications/{packageName}/inappproducts:batchUpdate
 /// Updates or inserts one or more in-app products (managed products or subscriptions). Set the `latencyTolerance` field on nested requests to PRODUCT_UPDATE_LATENCY_TOLERANCE_LATENCY_TOLERANT to achieve maximum update throughput. This method should no longer be used to update subscriptions. See [this article](<https://android-developers.googleblog.`com/2023/06/changes-to-google-play-developer-api-june-2023`.html>) for more information.
 ///
 /// Simplest API - builds and executes the request in one call.
@@ -5328,12 +9847,11 @@ pub fn androidpublisher_inappproducts_batch_update(
         + 'static,
     ApiError,
 > {
-    let builder =
-        androidpublisher_inappproducts_batch_update_builder(client, &args.packageName, &args.body)?;
+    let builder = androidpublisher_inappproducts_batch_update_builder(client, &args.packageName)?;
     androidpublisher_inappproducts_batch_update_execute(builder)
 }
 
-/// GET androidpublisher/v3/applications/{packageName}/inappproducts/{sku}
+/// DELETE androidpublisher/v3/applications/{packageName}/inappproducts/{sku}
 /// Deletes an in-app product (a managed product or a subscription). This method should no longer be used to delete subscriptions. See [this article](<https://android-developers.googleblog.`com/2023/06/changes-to-google-play-developer-api-june-2023`.html>) for more information.
 ///
 /// Returns `ClientRequestBuilder` for customization.
@@ -5343,7 +9861,7 @@ pub fn androidpublisher_inappproducts_delete_builder(
     client: &SimpleHttpClient,
     packageName: &String,
     sku: &String,
-    latencyTolerance: &Option<String>,
+    latencyTolerance: &Option<Option<String>>,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
@@ -5365,13 +9883,13 @@ pub fn androidpublisher_inappproducts_delete_builder(
     };
 
     let builder = client
-        .get(&url_with_query)
+        .delete(&url_with_query)
         .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
 
     Ok(builder)
 }
 
-/// GET androidpublisher/v3/applications/{packageName}/inappproducts/{sku}
+/// DELETE androidpublisher/v3/applications/{packageName}/inappproducts/{sku}
 /// Deletes an in-app product (a managed product or a subscription). This method should no longer be used to delete subscriptions. See [this article](<https://android-developers.googleblog.`com/2023/06/changes-to-google-play-developer-api-june-2023`.html>) for more information.
 ///
 /// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
@@ -5442,7 +9960,7 @@ pub fn androidpublisher_inappproducts_delete_task(
         .map_pending(|_| ApiPending::Sending))
 }
 
-/// GET androidpublisher/v3/applications/{packageName}/inappproducts/{sku}
+/// DELETE androidpublisher/v3/applications/{packageName}/inappproducts/{sku}
 /// Deletes an in-app product (a managed product or a subscription). This method should no longer be used to delete subscriptions. See [this article](<https://android-developers.googleblog.`com/2023/06/changes-to-google-play-developer-api-june-2023`.html>) for more information.
 ///
 /// Takes a `ClientRequestBuilder`, builds and executes the request,
@@ -5480,10 +9998,10 @@ pub struct AndroidpublisherInappproductsDeleteArgs {
     /// Path parameter: sku
     pub sku: String,
     /// Query parameter: latencyTolerance
-    pub latencyTolerance: Option<String>,
+    pub latencyTolerance: Option<Option<String>>,
 }
 
-/// GET androidpublisher/v3/applications/{packageName}/inappproducts/{sku}
+/// DELETE androidpublisher/v3/applications/{packageName}/inappproducts/{sku}
 /// Deletes an in-app product (a managed product or a subscription). This method should no longer be used to delete subscriptions. See [this article](<https://android-developers.googleblog.`com/2023/06/changes-to-google-play-developer-api-june-2023`.html>) for more information.
 ///
 /// Simplest API - builds and executes the request in one call.
@@ -5510,7 +10028,172 @@ pub fn androidpublisher_inappproducts_delete(
     androidpublisher_inappproducts_delete_execute(builder)
 }
 
-/// GET androidpublisher/v3/applications/{packageName}/inappproducts
+/// GET androidpublisher/v3/applications/{packageName}/inappproducts/{sku}
+/// Gets an in-app product, which can be a managed product or a subscription. This method should no longer be used to retrieve subscriptions. See [this article](<https://android-developers.googleblog.`com/2023/06/changes-to-google-play-developer-api-june-2023`.html>) for more information.
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `androidpublisher_inappproducts_get_execute()` to send, or `androidpublisher_inappproducts_get` for simplest API.
+
+pub fn androidpublisher_inappproducts_get_builder(
+    client: &SimpleHttpClient,
+    packageName: &String,
+    sku: &String,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!(
+        "https://androidpublisher.googleapis.com/androidpublisher/v3/applications/{}/inappproducts/{}",
+        packageName,
+        sku,
+    );
+
+    // Build request
+    let builder = client
+        .get(&endpoint_url)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// GET androidpublisher/v3/applications/{packageName}/inappproducts/{sku}
+/// Gets an in-app product, which can be a managed product or a subscription. This method should no longer be used to retrieve subscriptions. See [this article](<https://android-developers.googleblog.`com/2023/06/changes-to-google-play-developer-api-june-2023`.html>) for more information.
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `androidpublisher_inappproducts_get_execute()` or `androidpublisher_inappproducts_get`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `androidpublisher_inappproducts_get_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn androidpublisher_inappproducts_get_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<InAppProduct>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: InAppProduct = serde_json::from_str(&body)
+                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// GET androidpublisher/v3/applications/{packageName}/inappproducts/{sku}
+/// Gets an in-app product, which can be a managed product or a subscription. This method should no longer be used to retrieve subscriptions. See [this article](<https://android-developers.googleblog.`com/2023/06/changes-to-google-play-developer-api-june-2023`.html>) for more information.
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `androidpublisher_inappproducts_get_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `androidpublisher_inappproducts_get_task()`.
+/// For the simplest API, use `androidpublisher_inappproducts_get()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `androidpublisher_inappproducts_get_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn androidpublisher_inappproducts_get_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<InAppProduct>, ApiError>, P = ApiPending>
+        + Send
+        + 'static,
+    ApiError,
+> {
+    let task = androidpublisher_inappproducts_get_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`androidpublisher_inappproducts_get`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct AndroidpublisherInappproductsGetArgs {
+    /// Path parameter: packageName
+    pub packageName: String,
+    /// Path parameter: sku
+    pub sku: String,
+}
+
+/// GET androidpublisher/v3/applications/{packageName}/inappproducts/{sku}
+/// Gets an in-app product, which can be a managed product or a subscription. This method should no longer be used to retrieve subscriptions. See [this article](<https://android-developers.googleblog.`com/2023/06/changes-to-google-play-developer-api-june-2023`.html>) for more information.
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `androidpublisher_inappproducts_get_builder()` + `androidpublisher_inappproducts_get_execute()`.
+/// For task-level control, use `androidpublisher_inappproducts_get_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn androidpublisher_inappproducts_get(
+    client: &SimpleHttpClient,
+    args: &AndroidpublisherInappproductsGetArgs,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<InAppProduct>, ApiError>, P = ApiPending>
+        + Send
+        + 'static,
+    ApiError,
+> {
+    let builder = androidpublisher_inappproducts_get_builder(client, &args.packageName, &args.sku)?;
+    androidpublisher_inappproducts_get_execute(builder)
+}
+
+/// POST androidpublisher/v3/applications/{packageName}/inappproducts
 /// Creates an in-app product (a managed product or a subscription). This method should no longer be used to create subscriptions. See [this article](<https://android-developers.googleblog.`com/2023/06/changes-to-google-play-developer-api-june-2023`.html>) for more information.
 ///
 /// Returns `ClientRequestBuilder` for customization.
@@ -5519,8 +10202,7 @@ pub fn androidpublisher_inappproducts_delete(
 pub fn androidpublisher_inappproducts_insert_builder(
     client: &SimpleHttpClient,
     packageName: &String,
-    autoConvertMissingPrices: &Option<bool>,
-    body: &InAppProduct,
+    autoConvertMissingPrices: &Option<Option<String>>,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
@@ -5541,15 +10223,13 @@ pub fn androidpublisher_inappproducts_insert_builder(
     };
 
     let builder = client
-        .get(&url_with_query)
+        .post(&url_with_query)
         .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
 
-    builder
-        .body_json(body)
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+    Ok(builder)
 }
 
-/// GET androidpublisher/v3/applications/{packageName}/inappproducts
+/// POST androidpublisher/v3/applications/{packageName}/inappproducts
 /// Creates an in-app product (a managed product or a subscription). This method should no longer be used to create subscriptions. See [this article](<https://android-developers.googleblog.`com/2023/06/changes-to-google-play-developer-api-june-2023`.html>) for more information.
 ///
 /// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
@@ -5623,7 +10303,7 @@ pub fn androidpublisher_inappproducts_insert_task(
         .map_pending(|_| ApiPending::Sending))
 }
 
-/// GET androidpublisher/v3/applications/{packageName}/inappproducts
+/// POST androidpublisher/v3/applications/{packageName}/inappproducts
 /// Creates an in-app product (a managed product or a subscription). This method should no longer be used to create subscriptions. See [this article](<https://android-developers.googleblog.`com/2023/06/changes-to-google-play-developer-api-june-2023`.html>) for more information.
 ///
 /// Takes a `ClientRequestBuilder`, builds and executes the request,
@@ -5661,12 +10341,10 @@ pub struct AndroidpublisherInappproductsInsertArgs {
     /// Path parameter: packageName
     pub packageName: String,
     /// Query parameter: autoConvertMissingPrices
-    pub autoConvertMissingPrices: Option<bool>,
-    /// Request body.
-    pub body: InAppProduct,
+    pub autoConvertMissingPrices: Option<Option<String>>,
 }
 
-/// GET androidpublisher/v3/applications/{packageName}/inappproducts
+/// POST androidpublisher/v3/applications/{packageName}/inappproducts
 /// Creates an in-app product (a managed product or a subscription). This method should no longer be used to create subscriptions. See [this article](<https://android-developers.googleblog.`com/2023/06/changes-to-google-play-developer-api-june-2023`.html>) for more information.
 ///
 /// Simplest API - builds and executes the request in one call.
@@ -5690,12 +10368,593 @@ pub fn androidpublisher_inappproducts_insert(
         client,
         &args.packageName,
         &args.autoConvertMissingPrices,
-        &args.body,
     )?;
     androidpublisher_inappproducts_insert_execute(builder)
 }
 
-/// GET androidpublisher/v3/applications/internalappsharing/{packageName}/artifacts/apk
+/// GET androidpublisher/v3/applications/{packageName}/inappproducts
+/// Lists all in-app products - both managed products and subscriptions. If an app has a large number of in-app products, the response may be paginated. In this case the response field `tokenPagination`.`nextPageToken` will be set and the caller should provide its value as a token request parameter to retrieve the next page. This method should no longer be used to retrieve subscriptions. See [this article](<https://android-developers.googleblog.`com/2023/06/changes-to-google-play-developer-api-june-2023`.html>) for more information.
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `androidpublisher_inappproducts_list_execute()` to send, or `androidpublisher_inappproducts_list` for simplest API.
+
+pub fn androidpublisher_inappproducts_list_builder(
+    client: &SimpleHttpClient,
+    packageName: &String,
+    maxResults: &Option<Option<String>>,
+    startIndex: &Option<Option<String>>,
+    token: &Option<Option<String>>,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!(
+        "https://androidpublisher.googleapis.com/androidpublisher/v3/applications/{}/inappproducts",
+        packageName,
+    );
+
+    // Build request
+    let mut query_parts = Vec::new();
+    if let Some(val) = maxResults.as_ref() {
+        query_parts.push(format!("maxResults={}", val));
+    }
+    if let Some(val) = startIndex.as_ref() {
+        query_parts.push(format!("startIndex={}", val));
+    }
+    if let Some(val) = token.as_ref() {
+        query_parts.push(format!("token={}", val));
+    }
+
+    let url_with_query = if query_parts.is_empty() {
+        endpoint_url
+    } else {
+        format!("{}?{}", endpoint_url, query_parts.join("&"))
+    };
+
+    let builder = client
+        .get(&url_with_query)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// GET androidpublisher/v3/applications/{packageName}/inappproducts
+/// Lists all in-app products - both managed products and subscriptions. If an app has a large number of in-app products, the response may be paginated. In this case the response field `tokenPagination`.`nextPageToken` will be set and the caller should provide its value as a token request parameter to retrieve the next page. This method should no longer be used to retrieve subscriptions. See [this article](<https://android-developers.googleblog.`com/2023/06/changes-to-google-play-developer-api-june-2023`.html>) for more information.
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `androidpublisher_inappproducts_list_execute()` or `androidpublisher_inappproducts_list`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `androidpublisher_inappproducts_list_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn androidpublisher_inappproducts_list_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<InappproductsListResponse>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: InappproductsListResponse = serde_json::from_str(&body)
+                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// GET androidpublisher/v3/applications/{packageName}/inappproducts
+/// Lists all in-app products - both managed products and subscriptions. If an app has a large number of in-app products, the response may be paginated. In this case the response field `tokenPagination`.`nextPageToken` will be set and the caller should provide its value as a token request parameter to retrieve the next page. This method should no longer be used to retrieve subscriptions. See [this article](<https://android-developers.googleblog.`com/2023/06/changes-to-google-play-developer-api-june-2023`.html>) for more information.
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `androidpublisher_inappproducts_list_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `androidpublisher_inappproducts_list_task()`.
+/// For the simplest API, use `androidpublisher_inappproducts_list()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `androidpublisher_inappproducts_list_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn androidpublisher_inappproducts_list_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<InappproductsListResponse>, ApiError>, P = ApiPending>
+        + Send
+        + 'static,
+    ApiError,
+> {
+    let task = androidpublisher_inappproducts_list_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`androidpublisher_inappproducts_list`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct AndroidpublisherInappproductsListArgs {
+    /// Path parameter: packageName
+    pub packageName: String,
+    /// Query parameter: maxResults
+    pub maxResults: Option<Option<String>>,
+    /// Query parameter: startIndex
+    pub startIndex: Option<Option<String>>,
+    /// Query parameter: token
+    pub token: Option<Option<String>>,
+}
+
+/// GET androidpublisher/v3/applications/{packageName}/inappproducts
+/// Lists all in-app products - both managed products and subscriptions. If an app has a large number of in-app products, the response may be paginated. In this case the response field `tokenPagination`.`nextPageToken` will be set and the caller should provide its value as a token request parameter to retrieve the next page. This method should no longer be used to retrieve subscriptions. See [this article](<https://android-developers.googleblog.`com/2023/06/changes-to-google-play-developer-api-june-2023`.html>) for more information.
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `androidpublisher_inappproducts_list_builder()` + `androidpublisher_inappproducts_list_execute()`.
+/// For task-level control, use `androidpublisher_inappproducts_list_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn androidpublisher_inappproducts_list(
+    client: &SimpleHttpClient,
+    args: &AndroidpublisherInappproductsListArgs,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<InappproductsListResponse>, ApiError>, P = ApiPending>
+        + Send
+        + 'static,
+    ApiError,
+> {
+    let builder = androidpublisher_inappproducts_list_builder(
+        client,
+        &args.packageName,
+        &args.maxResults,
+        &args.startIndex,
+        &args.token,
+    )?;
+    androidpublisher_inappproducts_list_execute(builder)
+}
+
+/// PATCH androidpublisher/v3/applications/{packageName}/inappproducts/{sku}
+/// Patches an in-app product (a managed product or a subscription). This method should no longer be used to update subscriptions. See [this article](<https://android-developers.googleblog.`com/2023/06/changes-to-google-play-developer-api-june-2023`.html>) for more information.
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `androidpublisher_inappproducts_patch_execute()` to send, or `androidpublisher_inappproducts_patch` for simplest API.
+
+pub fn androidpublisher_inappproducts_patch_builder(
+    client: &SimpleHttpClient,
+    packageName: &String,
+    sku: &String,
+    autoConvertMissingPrices: &Option<Option<String>>,
+    latencyTolerance: &Option<Option<String>>,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!(
+        "https://androidpublisher.googleapis.com/androidpublisher/v3/applications/{}/inappproducts/{}",
+        packageName,
+        sku,
+    );
+
+    // Build request
+    let mut query_parts = Vec::new();
+    if let Some(val) = autoConvertMissingPrices.as_ref() {
+        query_parts.push(format!("autoConvertMissingPrices={}", val));
+    }
+    if let Some(val) = latencyTolerance.as_ref() {
+        query_parts.push(format!("latencyTolerance={}", val));
+    }
+
+    let url_with_query = if query_parts.is_empty() {
+        endpoint_url
+    } else {
+        format!("{}?{}", endpoint_url, query_parts.join("&"))
+    };
+
+    let builder = client
+        .patch(&url_with_query)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// PATCH androidpublisher/v3/applications/{packageName}/inappproducts/{sku}
+/// Patches an in-app product (a managed product or a subscription). This method should no longer be used to update subscriptions. See [this article](<https://android-developers.googleblog.`com/2023/06/changes-to-google-play-developer-api-june-2023`.html>) for more information.
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `androidpublisher_inappproducts_patch_execute()` or `androidpublisher_inappproducts_patch`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `androidpublisher_inappproducts_patch_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn androidpublisher_inappproducts_patch_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<InAppProduct>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: InAppProduct = serde_json::from_str(&body)
+                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// PATCH androidpublisher/v3/applications/{packageName}/inappproducts/{sku}
+/// Patches an in-app product (a managed product or a subscription). This method should no longer be used to update subscriptions. See [this article](<https://android-developers.googleblog.`com/2023/06/changes-to-google-play-developer-api-june-2023`.html>) for more information.
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `androidpublisher_inappproducts_patch_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `androidpublisher_inappproducts_patch_task()`.
+/// For the simplest API, use `androidpublisher_inappproducts_patch()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `androidpublisher_inappproducts_patch_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn androidpublisher_inappproducts_patch_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<InAppProduct>, ApiError>, P = ApiPending>
+        + Send
+        + 'static,
+    ApiError,
+> {
+    let task = androidpublisher_inappproducts_patch_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`androidpublisher_inappproducts_patch`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct AndroidpublisherInappproductsPatchArgs {
+    /// Path parameter: packageName
+    pub packageName: String,
+    /// Path parameter: sku
+    pub sku: String,
+    /// Query parameter: autoConvertMissingPrices
+    pub autoConvertMissingPrices: Option<Option<String>>,
+    /// Query parameter: latencyTolerance
+    pub latencyTolerance: Option<Option<String>>,
+}
+
+/// PATCH androidpublisher/v3/applications/{packageName}/inappproducts/{sku}
+/// Patches an in-app product (a managed product or a subscription). This method should no longer be used to update subscriptions. See [this article](<https://android-developers.googleblog.`com/2023/06/changes-to-google-play-developer-api-june-2023`.html>) for more information.
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `androidpublisher_inappproducts_patch_builder()` + `androidpublisher_inappproducts_patch_execute()`.
+/// For task-level control, use `androidpublisher_inappproducts_patch_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn androidpublisher_inappproducts_patch(
+    client: &SimpleHttpClient,
+    args: &AndroidpublisherInappproductsPatchArgs,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<InAppProduct>, ApiError>, P = ApiPending>
+        + Send
+        + 'static,
+    ApiError,
+> {
+    let builder = androidpublisher_inappproducts_patch_builder(
+        client,
+        &args.packageName,
+        &args.sku,
+        &args.autoConvertMissingPrices,
+        &args.latencyTolerance,
+    )?;
+    androidpublisher_inappproducts_patch_execute(builder)
+}
+
+/// PUT androidpublisher/v3/applications/{packageName}/inappproducts/{sku}
+/// Updates an in-app product (a managed product or a subscription). This method should no longer be used to update subscriptions. See [this article](<https://android-developers.googleblog.`com/2023/06/changes-to-google-play-developer-api-june-2023`.html>) for more information.
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `androidpublisher_inappproducts_update_execute()` to send, or `androidpublisher_inappproducts_update` for simplest API.
+
+pub fn androidpublisher_inappproducts_update_builder(
+    client: &SimpleHttpClient,
+    packageName: &String,
+    sku: &String,
+    allowMissing: &Option<Option<String>>,
+    autoConvertMissingPrices: &Option<Option<String>>,
+    latencyTolerance: &Option<Option<String>>,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!(
+        "https://androidpublisher.googleapis.com/androidpublisher/v3/applications/{}/inappproducts/{}",
+        packageName,
+        sku,
+    );
+
+    // Build request
+    let mut query_parts = Vec::new();
+    if let Some(val) = allowMissing.as_ref() {
+        query_parts.push(format!("allowMissing={}", val));
+    }
+    if let Some(val) = autoConvertMissingPrices.as_ref() {
+        query_parts.push(format!("autoConvertMissingPrices={}", val));
+    }
+    if let Some(val) = latencyTolerance.as_ref() {
+        query_parts.push(format!("latencyTolerance={}", val));
+    }
+
+    let url_with_query = if query_parts.is_empty() {
+        endpoint_url
+    } else {
+        format!("{}?{}", endpoint_url, query_parts.join("&"))
+    };
+
+    let builder = client
+        .put(&url_with_query)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// PUT androidpublisher/v3/applications/{packageName}/inappproducts/{sku}
+/// Updates an in-app product (a managed product or a subscription). This method should no longer be used to update subscriptions. See [this article](<https://android-developers.googleblog.`com/2023/06/changes-to-google-play-developer-api-june-2023`.html>) for more information.
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `androidpublisher_inappproducts_update_execute()` or `androidpublisher_inappproducts_update`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `androidpublisher_inappproducts_update_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn androidpublisher_inappproducts_update_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<InAppProduct>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: InAppProduct = serde_json::from_str(&body)
+                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// PUT androidpublisher/v3/applications/{packageName}/inappproducts/{sku}
+/// Updates an in-app product (a managed product or a subscription). This method should no longer be used to update subscriptions. See [this article](<https://android-developers.googleblog.`com/2023/06/changes-to-google-play-developer-api-june-2023`.html>) for more information.
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `androidpublisher_inappproducts_update_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `androidpublisher_inappproducts_update_task()`.
+/// For the simplest API, use `androidpublisher_inappproducts_update()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `androidpublisher_inappproducts_update_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn androidpublisher_inappproducts_update_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<InAppProduct>, ApiError>, P = ApiPending>
+        + Send
+        + 'static,
+    ApiError,
+> {
+    let task = androidpublisher_inappproducts_update_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`androidpublisher_inappproducts_update`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct AndroidpublisherInappproductsUpdateArgs {
+    /// Path parameter: packageName
+    pub packageName: String,
+    /// Path parameter: sku
+    pub sku: String,
+    /// Query parameter: allowMissing
+    pub allowMissing: Option<Option<String>>,
+    /// Query parameter: autoConvertMissingPrices
+    pub autoConvertMissingPrices: Option<Option<String>>,
+    /// Query parameter: latencyTolerance
+    pub latencyTolerance: Option<Option<String>>,
+}
+
+/// PUT androidpublisher/v3/applications/{packageName}/inappproducts/{sku}
+/// Updates an in-app product (a managed product or a subscription). This method should no longer be used to update subscriptions. See [this article](<https://android-developers.googleblog.`com/2023/06/changes-to-google-play-developer-api-june-2023`.html>) for more information.
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `androidpublisher_inappproducts_update_builder()` + `androidpublisher_inappproducts_update_execute()`.
+/// For task-level control, use `androidpublisher_inappproducts_update_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn androidpublisher_inappproducts_update(
+    client: &SimpleHttpClient,
+    args: &AndroidpublisherInappproductsUpdateArgs,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<InAppProduct>, ApiError>, P = ApiPending>
+        + Send
+        + 'static,
+    ApiError,
+> {
+    let builder = androidpublisher_inappproducts_update_builder(
+        client,
+        &args.packageName,
+        &args.sku,
+        &args.allowMissing,
+        &args.autoConvertMissingPrices,
+        &args.latencyTolerance,
+    )?;
+    androidpublisher_inappproducts_update_execute(builder)
+}
+
+/// POST androidpublisher/v3/applications/internalappsharing/{packageName}/artifacts/apk
 /// Uploads an APK to internal app sharing. If you are using the Google API client libraries, please increase the timeout of the http request before calling this endpoint (a timeout of 2 minutes is recommended). See [Timeouts and Errors](<https://developers.google.`com/api-client-library/java/google-api-java-client/errors`>) for an example in java.
 ///
 /// Returns `ClientRequestBuilder` for customization.
@@ -5713,13 +10972,13 @@ pub fn androidpublisher_internalappsharingartifacts_uploadapk_builder(
 
     // Build request
     let builder = client
-        .get(&endpoint_url)
+        .post(&endpoint_url)
         .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
 
     Ok(builder)
 }
 
-/// GET androidpublisher/v3/applications/internalappsharing/{packageName}/artifacts/apk
+/// POST androidpublisher/v3/applications/internalappsharing/{packageName}/artifacts/apk
 /// Uploads an APK to internal app sharing. If you are using the Google API client libraries, please increase the timeout of the http request before calling this endpoint (a timeout of 2 minutes is recommended). See [Timeouts and Errors](<https://developers.google.`com/api-client-library/java/google-api-java-client/errors`>) for an example in java.
 ///
 /// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
@@ -5793,7 +11052,7 @@ pub fn androidpublisher_internalappsharingartifacts_uploadapk_task(
         .map_pending(|_| ApiPending::Sending))
 }
 
-/// GET androidpublisher/v3/applications/internalappsharing/{packageName}/artifacts/apk
+/// POST androidpublisher/v3/applications/internalappsharing/{packageName}/artifacts/apk
 /// Uploads an APK to internal app sharing. If you are using the Google API client libraries, please increase the timeout of the http request before calling this endpoint (a timeout of 2 minutes is recommended). See [Timeouts and Errors](<https://developers.google.`com/api-client-library/java/google-api-java-client/errors`>) for an example in java.
 ///
 /// Takes a `ClientRequestBuilder`, builds and executes the request,
@@ -5834,7 +11093,7 @@ pub struct AndroidpublisherInternalappsharingartifactsUploadapkArgs {
     pub packageName: String,
 }
 
-/// GET androidpublisher/v3/applications/internalappsharing/{packageName}/artifacts/apk
+/// POST androidpublisher/v3/applications/internalappsharing/{packageName}/artifacts/apk
 /// Uploads an APK to internal app sharing. If you are using the Google API client libraries, please increase the timeout of the http request before calling this endpoint (a timeout of 2 minutes is recommended). See [Timeouts and Errors](<https://developers.google.`com/api-client-library/java/google-api-java-client/errors`>) for an example in java.
 ///
 /// Simplest API - builds and executes the request in one call.
@@ -5861,7 +11120,7 @@ pub fn androidpublisher_internalappsharingartifacts_uploadapk(
     androidpublisher_internalappsharingartifacts_uploadapk_execute(builder)
 }
 
-/// GET androidpublisher/v3/applications/internalappsharing/{packageName}/artifacts/bundle
+/// POST androidpublisher/v3/applications/internalappsharing/{packageName}/artifacts/bundle
 /// Uploads an app bundle to internal app sharing. If you are using the Google API client libraries, please increase the timeout of the http request before calling this endpoint (a timeout of 2 minutes is recommended). See [Timeouts and Errors](<https://developers.google.`com/api-client-library/java/google-api-java-client/errors`>) for an example in java.
 ///
 /// Returns `ClientRequestBuilder` for customization.
@@ -5879,13 +11138,13 @@ pub fn androidpublisher_internalappsharingartifacts_uploadbundle_builder(
 
     // Build request
     let builder = client
-        .get(&endpoint_url)
+        .post(&endpoint_url)
         .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
 
     Ok(builder)
 }
 
-/// GET androidpublisher/v3/applications/internalappsharing/{packageName}/artifacts/bundle
+/// POST androidpublisher/v3/applications/internalappsharing/{packageName}/artifacts/bundle
 /// Uploads an app bundle to internal app sharing. If you are using the Google API client libraries, please increase the timeout of the http request before calling this endpoint (a timeout of 2 minutes is recommended). See [Timeouts and Errors](<https://developers.google.`com/api-client-library/java/google-api-java-client/errors`>) for an example in java.
 ///
 /// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
@@ -5959,7 +11218,7 @@ pub fn androidpublisher_internalappsharingartifacts_uploadbundle_task(
         .map_pending(|_| ApiPending::Sending))
 }
 
-/// GET androidpublisher/v3/applications/internalappsharing/{packageName}/artifacts/bundle
+/// POST androidpublisher/v3/applications/internalappsharing/{packageName}/artifacts/bundle
 /// Uploads an app bundle to internal app sharing. If you are using the Google API client libraries, please increase the timeout of the http request before calling this endpoint (a timeout of 2 minutes is recommended). See [Timeouts and Errors](<https://developers.google.`com/api-client-library/java/google-api-java-client/errors`>) for an example in java.
 ///
 /// Takes a `ClientRequestBuilder`, builds and executes the request,
@@ -6000,7 +11259,7 @@ pub struct AndroidpublisherInternalappsharingartifactsUploadbundleArgs {
     pub packageName: String,
 }
 
-/// GET androidpublisher/v3/applications/internalappsharing/{packageName}/artifacts/bundle
+/// POST androidpublisher/v3/applications/internalappsharing/{packageName}/artifacts/bundle
 /// Uploads an app bundle to internal app sharing. If you are using the Google API client libraries, please increase the timeout of the http request before calling this endpoint (a timeout of 2 minutes is recommended). See [Timeouts and Errors](<https://developers.google.`com/api-client-library/java/google-api-java-client/errors`>) for an example in java.
 ///
 /// Simplest API - builds and executes the request in one call.
@@ -6029,7 +11288,7 @@ pub fn androidpublisher_internalappsharingartifacts_uploadbundle(
     androidpublisher_internalappsharingartifacts_uploadbundle_execute(builder)
 }
 
-/// GET androidpublisher/v3/applications/{packageName}/pricing:convertRegionPrices
+/// POST androidpublisher/v3/applications/{packageName}/pricing:convertRegionPrices
 /// Calculates the region prices, using today's exchange rate and country-specific pricing patterns, based on the price in the request for a set of regions.
 ///
 /// Returns `ClientRequestBuilder` for customization.
@@ -6038,7 +11297,6 @@ pub fn androidpublisher_internalappsharingartifacts_uploadbundle(
 pub fn androidpublisher_monetization_convert_region_prices_builder(
     client: &SimpleHttpClient,
     packageName: &String,
-    body: &ConvertRegionPricesRequest,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
@@ -6048,15 +11306,13 @@ pub fn androidpublisher_monetization_convert_region_prices_builder(
 
     // Build request
     let builder = client
-        .get(&endpoint_url)
+        .post(&endpoint_url)
         .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
 
-    builder
-        .body_json(body)
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+    Ok(builder)
 }
 
-/// GET androidpublisher/v3/applications/{packageName}/pricing:convertRegionPrices
+/// POST androidpublisher/v3/applications/{packageName}/pricing:convertRegionPrices
 /// Calculates the region prices, using today's exchange rate and country-specific pricing patterns, based on the price in the request for a set of regions.
 ///
 /// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
@@ -6130,7 +11386,7 @@ pub fn androidpublisher_monetization_convert_region_prices_task(
         .map_pending(|_| ApiPending::Sending))
 }
 
-/// GET androidpublisher/v3/applications/{packageName}/pricing:convertRegionPrices
+/// POST androidpublisher/v3/applications/{packageName}/pricing:convertRegionPrices
 /// Calculates the region prices, using today's exchange rate and country-specific pricing patterns, based on the price in the request for a set of regions.
 ///
 /// Takes a `ClientRequestBuilder`, builds and executes the request,
@@ -6169,11 +11425,9 @@ pub fn androidpublisher_monetization_convert_region_prices_execute(
 pub struct AndroidpublisherMonetizationConvertRegionPricesArgs {
     /// Path parameter: packageName
     pub packageName: String,
-    /// Request body.
-    pub body: ConvertRegionPricesRequest,
 }
 
-/// GET androidpublisher/v3/applications/{packageName}/pricing:convertRegionPrices
+/// POST androidpublisher/v3/applications/{packageName}/pricing:convertRegionPrices
 /// Calculates the region prices, using today's exchange rate and country-specific pricing patterns, based on the price in the request for a set of regions.
 ///
 /// Simplest API - builds and executes the request in one call.
@@ -6195,15 +11449,12 @@ pub fn androidpublisher_monetization_convert_region_prices(
         + 'static,
     ApiError,
 > {
-    let builder = androidpublisher_monetization_convert_region_prices_builder(
-        client,
-        &args.packageName,
-        &args.body,
-    )?;
+    let builder =
+        androidpublisher_monetization_convert_region_prices_builder(client, &args.packageName)?;
     androidpublisher_monetization_convert_region_prices_execute(builder)
 }
 
-/// GET androidpublisher/v3/applications/{packageName}/oneTimeProducts:batchDelete
+/// POST androidpublisher/v3/applications/{packageName}/oneTimeProducts:batchDelete
 /// Deletes one or more one-time products.
 ///
 /// Returns `ClientRequestBuilder` for customization.
@@ -6212,7 +11463,6 @@ pub fn androidpublisher_monetization_convert_region_prices(
 pub fn androidpublisher_monetization_onetimeproducts_batch_delete_builder(
     client: &SimpleHttpClient,
     packageName: &String,
-    body: &BatchDeleteOneTimeProductsRequest,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
@@ -6222,15 +11472,13 @@ pub fn androidpublisher_monetization_onetimeproducts_batch_delete_builder(
 
     // Build request
     let builder = client
-        .get(&endpoint_url)
+        .post(&endpoint_url)
         .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
 
-    builder
-        .body_json(body)
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+    Ok(builder)
 }
 
-/// GET androidpublisher/v3/applications/{packageName}/oneTimeProducts:batchDelete
+/// POST androidpublisher/v3/applications/{packageName}/oneTimeProducts:batchDelete
 /// Deletes one or more one-time products.
 ///
 /// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
@@ -6301,7 +11549,7 @@ pub fn androidpublisher_monetization_onetimeproducts_batch_delete_task(
         .map_pending(|_| ApiPending::Sending))
 }
 
-/// GET androidpublisher/v3/applications/{packageName}/oneTimeProducts:batchDelete
+/// POST androidpublisher/v3/applications/{packageName}/oneTimeProducts:batchDelete
 /// Deletes one or more one-time products.
 ///
 /// Takes a `ClientRequestBuilder`, builds and executes the request,
@@ -6336,11 +11584,9 @@ pub fn androidpublisher_monetization_onetimeproducts_batch_delete_execute(
 pub struct AndroidpublisherMonetizationOnetimeproductsBatchDeleteArgs {
     /// Path parameter: packageName
     pub packageName: String,
-    /// Request body.
-    pub body: BatchDeleteOneTimeProductsRequest,
 }
 
-/// GET androidpublisher/v3/applications/{packageName}/oneTimeProducts:batchDelete
+/// POST androidpublisher/v3/applications/{packageName}/oneTimeProducts:batchDelete
 /// Deletes one or more one-time products.
 ///
 /// Simplest API - builds and executes the request in one call.
@@ -6361,7 +11607,6 @@ pub fn androidpublisher_monetization_onetimeproducts_batch_delete(
     let builder = androidpublisher_monetization_onetimeproducts_batch_delete_builder(
         client,
         &args.packageName,
-        &args.body,
     )?;
     androidpublisher_monetization_onetimeproducts_batch_delete_execute(builder)
 }
@@ -6375,7 +11620,7 @@ pub fn androidpublisher_monetization_onetimeproducts_batch_delete(
 pub fn androidpublisher_monetization_onetimeproducts_batch_get_builder(
     client: &SimpleHttpClient,
     packageName: &String,
-    productIds: &Option<String>,
+    productIds: &Option<Option<String>>,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
@@ -6516,7 +11761,7 @@ pub struct AndroidpublisherMonetizationOnetimeproductsBatchGetArgs {
     /// Path parameter: packageName
     pub packageName: String,
     /// Query parameter: productIds
-    pub productIds: Option<String>,
+    pub productIds: Option<Option<String>>,
 }
 
 /// GET androidpublisher/v3/applications/{packageName}/oneTimeProducts:batchGet
@@ -6549,7 +11794,7 @@ pub fn androidpublisher_monetization_onetimeproducts_batch_get(
     androidpublisher_monetization_onetimeproducts_batch_get_execute(builder)
 }
 
-/// GET androidpublisher/v3/applications/{packageName}/oneTimeProducts:batchUpdate
+/// POST androidpublisher/v3/applications/{packageName}/oneTimeProducts:batchUpdate
 /// Creates or updates one or more one-time products.
 ///
 /// Returns `ClientRequestBuilder` for customization.
@@ -6558,7 +11803,6 @@ pub fn androidpublisher_monetization_onetimeproducts_batch_get(
 pub fn androidpublisher_monetization_onetimeproducts_batch_update_builder(
     client: &SimpleHttpClient,
     packageName: &String,
-    body: &BatchUpdateOneTimeProductsRequest,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
@@ -6568,15 +11812,13 @@ pub fn androidpublisher_monetization_onetimeproducts_batch_update_builder(
 
     // Build request
     let builder = client
-        .get(&endpoint_url)
+        .post(&endpoint_url)
         .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
 
-    builder
-        .body_json(body)
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+    Ok(builder)
 }
 
-/// GET androidpublisher/v3/applications/{packageName}/oneTimeProducts:batchUpdate
+/// POST androidpublisher/v3/applications/{packageName}/oneTimeProducts:batchUpdate
 /// Creates or updates one or more one-time products.
 ///
 /// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
@@ -6650,7 +11892,7 @@ pub fn androidpublisher_monetization_onetimeproducts_batch_update_task(
         .map_pending(|_| ApiPending::Sending))
 }
 
-/// GET androidpublisher/v3/applications/{packageName}/oneTimeProducts:batchUpdate
+/// POST androidpublisher/v3/applications/{packageName}/oneTimeProducts:batchUpdate
 /// Creates or updates one or more one-time products.
 ///
 /// Takes a `ClientRequestBuilder`, builds and executes the request,
@@ -6689,11 +11931,9 @@ pub fn androidpublisher_monetization_onetimeproducts_batch_update_execute(
 pub struct AndroidpublisherMonetizationOnetimeproductsBatchUpdateArgs {
     /// Path parameter: packageName
     pub packageName: String,
-    /// Request body.
-    pub body: BatchUpdateOneTimeProductsRequest,
 }
 
-/// GET androidpublisher/v3/applications/{packageName}/oneTimeProducts:batchUpdate
+/// POST androidpublisher/v3/applications/{packageName}/oneTimeProducts:batchUpdate
 /// Creates or updates one or more one-time products.
 ///
 /// Simplest API - builds and executes the request in one call.
@@ -6718,12 +11958,11 @@ pub fn androidpublisher_monetization_onetimeproducts_batch_update(
     let builder = androidpublisher_monetization_onetimeproducts_batch_update_builder(
         client,
         &args.packageName,
-        &args.body,
     )?;
     androidpublisher_monetization_onetimeproducts_batch_update_execute(builder)
 }
 
-/// GET androidpublisher/v3/applications/{packageName}/oneTimeProducts/{productId}
+/// DELETE androidpublisher/v3/applications/{packageName}/oneTimeProducts/{productId}
 /// Deletes a one-time product.
 ///
 /// Returns `ClientRequestBuilder` for customization.
@@ -6733,7 +11972,7 @@ pub fn androidpublisher_monetization_onetimeproducts_delete_builder(
     client: &SimpleHttpClient,
     packageName: &String,
     productId: &String,
-    latencyTolerance: &Option<String>,
+    latencyTolerance: &Option<Option<String>>,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
@@ -6755,13 +11994,13 @@ pub fn androidpublisher_monetization_onetimeproducts_delete_builder(
     };
 
     let builder = client
-        .get(&url_with_query)
+        .delete(&url_with_query)
         .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
 
     Ok(builder)
 }
 
-/// GET androidpublisher/v3/applications/{packageName}/oneTimeProducts/{productId}
+/// DELETE androidpublisher/v3/applications/{packageName}/oneTimeProducts/{productId}
 /// Deletes a one-time product.
 ///
 /// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
@@ -6832,7 +12071,7 @@ pub fn androidpublisher_monetization_onetimeproducts_delete_task(
         .map_pending(|_| ApiPending::Sending))
 }
 
-/// GET androidpublisher/v3/applications/{packageName}/oneTimeProducts/{productId}
+/// DELETE androidpublisher/v3/applications/{packageName}/oneTimeProducts/{productId}
 /// Deletes a one-time product.
 ///
 /// Takes a `ClientRequestBuilder`, builds and executes the request,
@@ -6870,10 +12109,10 @@ pub struct AndroidpublisherMonetizationOnetimeproductsDeleteArgs {
     /// Path parameter: productId
     pub productId: String,
     /// Query parameter: latencyTolerance
-    pub latencyTolerance: Option<String>,
+    pub latencyTolerance: Option<Option<String>>,
 }
 
-/// GET androidpublisher/v3/applications/{packageName}/oneTimeProducts/{productId}
+/// DELETE androidpublisher/v3/applications/{packageName}/oneTimeProducts/{productId}
 /// Deletes a one-time product.
 ///
 /// Simplest API - builds and executes the request in one call.
@@ -6900,6 +12139,175 @@ pub fn androidpublisher_monetization_onetimeproducts_delete(
     androidpublisher_monetization_onetimeproducts_delete_execute(builder)
 }
 
+/// GET androidpublisher/v3/applications/{packageName}/oneTimeProducts/{productId}
+/// Reads a single one-time product.
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `androidpublisher_monetization_onetimeproducts_get_execute()` to send, or `androidpublisher_monetization_onetimeproducts_get` for simplest API.
+
+pub fn androidpublisher_monetization_onetimeproducts_get_builder(
+    client: &SimpleHttpClient,
+    packageName: &String,
+    productId: &String,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!(
+        "https://androidpublisher.googleapis.com/androidpublisher/v3/applications/{}/oneTimeProducts/{}",
+        packageName,
+        productId,
+    );
+
+    // Build request
+    let builder = client
+        .get(&endpoint_url)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// GET androidpublisher/v3/applications/{packageName}/oneTimeProducts/{productId}
+/// Reads a single one-time product.
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `androidpublisher_monetization_onetimeproducts_get_execute()` or `androidpublisher_monetization_onetimeproducts_get`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `androidpublisher_monetization_onetimeproducts_get_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn androidpublisher_monetization_onetimeproducts_get_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<OneTimeProduct>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: OneTimeProduct = serde_json::from_str(&body)
+                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// GET androidpublisher/v3/applications/{packageName}/oneTimeProducts/{productId}
+/// Reads a single one-time product.
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `androidpublisher_monetization_onetimeproducts_get_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `androidpublisher_monetization_onetimeproducts_get_task()`.
+/// For the simplest API, use `androidpublisher_monetization_onetimeproducts_get()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `androidpublisher_monetization_onetimeproducts_get_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn androidpublisher_monetization_onetimeproducts_get_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<OneTimeProduct>, ApiError>, P = ApiPending>
+        + Send
+        + 'static,
+    ApiError,
+> {
+    let task = androidpublisher_monetization_onetimeproducts_get_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`androidpublisher_monetization_onetimeproducts_get`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct AndroidpublisherMonetizationOnetimeproductsGetArgs {
+    /// Path parameter: packageName
+    pub packageName: String,
+    /// Path parameter: productId
+    pub productId: String,
+}
+
+/// GET androidpublisher/v3/applications/{packageName}/oneTimeProducts/{productId}
+/// Reads a single one-time product.
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `androidpublisher_monetization_onetimeproducts_get_builder()` + `androidpublisher_monetization_onetimeproducts_get_execute()`.
+/// For task-level control, use `androidpublisher_monetization_onetimeproducts_get_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn androidpublisher_monetization_onetimeproducts_get(
+    client: &SimpleHttpClient,
+    args: &AndroidpublisherMonetizationOnetimeproductsGetArgs,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<OneTimeProduct>, ApiError>, P = ApiPending>
+        + Send
+        + 'static,
+    ApiError,
+> {
+    let builder = androidpublisher_monetization_onetimeproducts_get_builder(
+        client,
+        &args.packageName,
+        &args.productId,
+    )?;
+    androidpublisher_monetization_onetimeproducts_get_execute(builder)
+}
+
 /// GET androidpublisher/v3/applications/{packageName}/oneTimeProducts
 /// Lists all one-time products under a given app.
 ///
@@ -6909,8 +12317,8 @@ pub fn androidpublisher_monetization_onetimeproducts_delete(
 pub fn androidpublisher_monetization_onetimeproducts_list_builder(
     client: &SimpleHttpClient,
     packageName: &String,
-    pageSize: &Option<i32>,
-    pageToken: &Option<String>,
+    pageSize: &Option<Option<String>>,
+    pageToken: &Option<Option<String>>,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
@@ -7054,9 +12462,9 @@ pub struct AndroidpublisherMonetizationOnetimeproductsListArgs {
     /// Path parameter: packageName
     pub packageName: String,
     /// Query parameter: pageSize
-    pub pageSize: Option<i32>,
+    pub pageSize: Option<Option<String>>,
     /// Query parameter: pageToken
-    pub pageToken: Option<String>,
+    pub pageToken: Option<Option<String>>,
 }
 
 /// GET androidpublisher/v3/applications/{packageName}/oneTimeProducts
@@ -7090,7 +12498,7 @@ pub fn androidpublisher_monetization_onetimeproducts_list(
     androidpublisher_monetization_onetimeproducts_list_execute(builder)
 }
 
-/// GET androidpublisher/v3/applications/{packageName}/onetimeproducts/{productId}
+/// PATCH androidpublisher/v3/applications/{packageName}/onetimeproducts/{productId}
 /// Creates or updates a one-time product.
 ///
 /// Returns `ClientRequestBuilder` for customization.
@@ -7100,11 +12508,10 @@ pub fn androidpublisher_monetization_onetimeproducts_patch_builder(
     client: &SimpleHttpClient,
     packageName: &String,
     productId: &String,
-    allowMissing: &Option<bool>,
-    latencyTolerance: &Option<String>,
-    regionsVersion_version: &Option<String>,
-    updateMask: &Option<String>,
-    body: &OneTimeProduct,
+    allowMissing: &Option<Option<String>>,
+    latencyTolerance: &Option<Option<String>>,
+    regionsVersion_version: &Option<Option<String>>,
+    updateMask: &Option<Option<String>>,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
@@ -7135,15 +12542,13 @@ pub fn androidpublisher_monetization_onetimeproducts_patch_builder(
     };
 
     let builder = client
-        .get(&url_with_query)
+        .patch(&url_with_query)
         .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
 
-    builder
-        .body_json(body)
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+    Ok(builder)
 }
 
-/// GET androidpublisher/v3/applications/{packageName}/onetimeproducts/{productId}
+/// PATCH androidpublisher/v3/applications/{packageName}/onetimeproducts/{productId}
 /// Creates or updates a one-time product.
 ///
 /// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
@@ -7217,7 +12622,7 @@ pub fn androidpublisher_monetization_onetimeproducts_patch_task(
         .map_pending(|_| ApiPending::Sending))
 }
 
-/// GET androidpublisher/v3/applications/{packageName}/onetimeproducts/{productId}
+/// PATCH androidpublisher/v3/applications/{packageName}/onetimeproducts/{productId}
 /// Creates or updates a one-time product.
 ///
 /// Takes a `ClientRequestBuilder`, builds and executes the request,
@@ -7257,18 +12662,16 @@ pub struct AndroidpublisherMonetizationOnetimeproductsPatchArgs {
     /// Path parameter: productId
     pub productId: String,
     /// Query parameter: allowMissing
-    pub allowMissing: Option<bool>,
+    pub allowMissing: Option<Option<String>>,
     /// Query parameter: latencyTolerance
-    pub latencyTolerance: Option<String>,
+    pub latencyTolerance: Option<Option<String>>,
     /// Query parameter: regionsVersion_version
-    pub regionsVersion_version: Option<String>,
+    pub regionsVersion_version: Option<Option<String>>,
     /// Query parameter: updateMask
-    pub updateMask: Option<String>,
-    /// Request body.
-    pub body: OneTimeProduct,
+    pub updateMask: Option<Option<String>>,
 }
 
-/// GET androidpublisher/v3/applications/{packageName}/onetimeproducts/{productId}
+/// PATCH androidpublisher/v3/applications/{packageName}/onetimeproducts/{productId}
 /// Creates or updates a one-time product.
 ///
 /// Simplest API - builds and executes the request in one call.
@@ -7296,12 +12699,11 @@ pub fn androidpublisher_monetization_onetimeproducts_patch(
         &args.latencyTolerance,
         &args.regionsVersion_version,
         &args.updateMask,
-        &args.body,
     )?;
     androidpublisher_monetization_onetimeproducts_patch_execute(builder)
 }
 
-/// GET androidpublisher/v3/applications/{packageName}/oneTimeProducts/{productId}/purchaseOptions:batchDelete
+/// POST androidpublisher/v3/applications/{packageName}/oneTimeProducts/{productId}/purchaseOptions:batchDelete
 /// Deletes purchase options across one or multiple one-time products. By default this operation will fail if there are any existing offers under the deleted purchase options. Use the force parameter to override the default behavior.
 ///
 /// Returns `ClientRequestBuilder` for customization.
@@ -7311,7 +12713,6 @@ pub fn androidpublisher_monetization_onetimeproducts_purchase_options_batch_dele
     client: &SimpleHttpClient,
     packageName: &String,
     productId: &String,
-    body: &BatchDeletePurchaseOptionsRequest,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
@@ -7322,15 +12723,13 @@ pub fn androidpublisher_monetization_onetimeproducts_purchase_options_batch_dele
 
     // Build request
     let builder = client
-        .get(&endpoint_url)
+        .post(&endpoint_url)
         .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
 
-    builder
-        .body_json(body)
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+    Ok(builder)
 }
 
-/// GET androidpublisher/v3/applications/{packageName}/oneTimeProducts/{productId}/purchaseOptions:batchDelete
+/// POST androidpublisher/v3/applications/{packageName}/oneTimeProducts/{productId}/purchaseOptions:batchDelete
 /// Deletes purchase options across one or multiple one-time products. By default this operation will fail if there are any existing offers under the deleted purchase options. Use the force parameter to override the default behavior.
 ///
 /// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
@@ -7401,7 +12800,7 @@ pub fn androidpublisher_monetization_onetimeproducts_purchase_options_batch_dele
         .map_pending(|_| ApiPending::Sending))
 }
 
-/// GET androidpublisher/v3/applications/{packageName}/oneTimeProducts/{productId}/purchaseOptions:batchDelete
+/// POST androidpublisher/v3/applications/{packageName}/oneTimeProducts/{productId}/purchaseOptions:batchDelete
 /// Deletes purchase options across one or multiple one-time products. By default this operation will fail if there are any existing offers under the deleted purchase options. Use the force parameter to override the default behavior.
 ///
 /// Takes a `ClientRequestBuilder`, builds and executes the request,
@@ -7439,11 +12838,9 @@ pub struct AndroidpublisherMonetizationOnetimeproductsPurchaseOptionsBatchDelete
     pub packageName: String,
     /// Path parameter: productId
     pub productId: String,
-    /// Request body.
-    pub body: BatchDeletePurchaseOptionsRequest,
 }
 
-/// GET androidpublisher/v3/applications/{packageName}/oneTimeProducts/{productId}/purchaseOptions:batchDelete
+/// POST androidpublisher/v3/applications/{packageName}/oneTimeProducts/{productId}/purchaseOptions:batchDelete
 /// Deletes purchase options across one or multiple one-time products. By default this operation will fail if there are any existing offers under the deleted purchase options. Use the force parameter to override the default behavior.
 ///
 /// Simplest API - builds and executes the request in one call.
@@ -7466,12 +12863,11 @@ pub fn androidpublisher_monetization_onetimeproducts_purchase_options_batch_dele
             client,
             &args.packageName,
             &args.productId,
-            &args.body,
         )?;
     androidpublisher_monetization_onetimeproducts_purchase_options_batch_delete_execute(builder)
 }
 
-/// GET androidpublisher/v3/applications/{packageName}/oneTimeProducts/{productId}/purchaseOptions:batchUpdateStates
+/// POST androidpublisher/v3/applications/{packageName}/oneTimeProducts/{productId}/purchaseOptions:batchUpdateStates
 /// Activates or deactivates purchase options across one or multiple one-time products.
 ///
 /// Returns `ClientRequestBuilder` for customization.
@@ -7481,7 +12877,6 @@ pub fn androidpublisher_monetization_onetimeproducts_purchase_options_batch_upda
     client: &SimpleHttpClient,
     packageName: &String,
     productId: &String,
-    body: &BatchUpdatePurchaseOptionStatesRequest,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
@@ -7492,15 +12887,13 @@ pub fn androidpublisher_monetization_onetimeproducts_purchase_options_batch_upda
 
     // Build request
     let builder = client
-        .get(&endpoint_url)
+        .post(&endpoint_url)
         .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
 
-    builder
-        .body_json(body)
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+    Ok(builder)
 }
 
-/// GET androidpublisher/v3/applications/{packageName}/oneTimeProducts/{productId}/purchaseOptions:batchUpdateStates
+/// POST androidpublisher/v3/applications/{packageName}/oneTimeProducts/{productId}/purchaseOptions:batchUpdateStates
 /// Activates or deactivates purchase options across one or multiple one-time products.
 ///
 /// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
@@ -7575,7 +12968,7 @@ pub fn androidpublisher_monetization_onetimeproducts_purchase_options_batch_upda
         .map_pending(|_| ApiPending::Sending))
 }
 
-/// GET androidpublisher/v3/applications/{packageName}/oneTimeProducts/{productId}/purchaseOptions:batchUpdateStates
+/// POST androidpublisher/v3/applications/{packageName}/oneTimeProducts/{productId}/purchaseOptions:batchUpdateStates
 /// Activates or deactivates purchase options across one or multiple one-time products.
 ///
 /// Takes a `ClientRequestBuilder`, builds and executes the request,
@@ -7619,11 +13012,9 @@ pub struct AndroidpublisherMonetizationOnetimeproductsPurchaseOptionsBatchUpdate
     pub packageName: String,
     /// Path parameter: productId
     pub productId: String,
-    /// Request body.
-    pub body: BatchUpdatePurchaseOptionStatesRequest,
 }
 
-/// GET androidpublisher/v3/applications/{packageName}/oneTimeProducts/{productId}/purchaseOptions:batchUpdateStates
+/// POST androidpublisher/v3/applications/{packageName}/oneTimeProducts/{productId}/purchaseOptions:batchUpdateStates
 /// Activates or deactivates purchase options across one or multiple one-time products.
 ///
 /// Simplest API - builds and executes the request in one call.
@@ -7650,14 +13041,13 @@ pub fn androidpublisher_monetization_onetimeproducts_purchase_options_batch_upda
             client,
             &args.packageName,
             &args.productId,
-            &args.body,
         )?;
     androidpublisher_monetization_onetimeproducts_purchase_options_batch_update_states_execute(
         builder,
     )
 }
 
-/// GET androidpublisher/v3/applications/{packageName}/oneTimeProducts/{productId}/purchaseOptions/{purchaseOptionId}/offers/{offerId}:activate
+/// POST androidpublisher/v3/applications/{packageName}/oneTimeProducts/{productId}/purchaseOptions/{purchaseOptionId}/offers/{offerId}:activate
 /// Activates a one-time product offer.
 ///
 /// Returns `ClientRequestBuilder` for customization.
@@ -7669,7 +13059,6 @@ pub fn androidpublisher_monetization_onetimeproducts_purchase_options_offers_act
     productId: &String,
     purchaseOptionId: &String,
     offerId: &String,
-    body: &ActivateOneTimeProductOfferRequest,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
@@ -7682,15 +13071,13 @@ pub fn androidpublisher_monetization_onetimeproducts_purchase_options_offers_act
 
     // Build request
     let builder = client
-        .get(&endpoint_url)
+        .post(&endpoint_url)
         .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
 
-    builder
-        .body_json(body)
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+    Ok(builder)
 }
 
-/// GET androidpublisher/v3/applications/{packageName}/oneTimeProducts/{productId}/purchaseOptions/{purchaseOptionId}/offers/{offerId}:activate
+/// POST androidpublisher/v3/applications/{packageName}/oneTimeProducts/{productId}/purchaseOptions/{purchaseOptionId}/offers/{offerId}:activate
 /// Activates a one-time product offer.
 ///
 /// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
@@ -7764,7 +13151,7 @@ pub fn androidpublisher_monetization_onetimeproducts_purchase_options_offers_act
         .map_pending(|_| ApiPending::Sending))
 }
 
-/// GET androidpublisher/v3/applications/{packageName}/oneTimeProducts/{productId}/purchaseOptions/{purchaseOptionId}/offers/{offerId}:activate
+/// POST androidpublisher/v3/applications/{packageName}/oneTimeProducts/{productId}/purchaseOptions/{purchaseOptionId}/offers/{offerId}:activate
 /// Activates a one-time product offer.
 ///
 /// Takes a `ClientRequestBuilder`, builds and executes the request,
@@ -7809,11 +13196,9 @@ pub struct AndroidpublisherMonetizationOnetimeproductsPurchaseOptionsOffersActiv
     pub purchaseOptionId: String,
     /// Path parameter: offerId
     pub offerId: String,
-    /// Request body.
-    pub body: ActivateOneTimeProductOfferRequest,
 }
 
-/// GET androidpublisher/v3/applications/{packageName}/oneTimeProducts/{productId}/purchaseOptions/{purchaseOptionId}/offers/{offerId}:activate
+/// POST androidpublisher/v3/applications/{packageName}/oneTimeProducts/{productId}/purchaseOptions/{purchaseOptionId}/offers/{offerId}:activate
 /// Activates a one-time product offer.
 ///
 /// Simplest API - builds and executes the request in one call.
@@ -7840,12 +13225,11 @@ pub fn androidpublisher_monetization_onetimeproducts_purchase_options_offers_act
             &args.productId,
             &args.purchaseOptionId,
             &args.offerId,
-            &args.body,
         )?;
     androidpublisher_monetization_onetimeproducts_purchase_options_offers_activate_execute(builder)
 }
 
-/// GET androidpublisher/v3/applications/{packageName}/oneTimeProducts/{productId}/purchaseOptions/{purchaseOptionId}/offers:batchDelete
+/// POST androidpublisher/v3/applications/{packageName}/oneTimeProducts/{productId}/purchaseOptions/{purchaseOptionId}/offers:batchDelete
 /// Deletes one or more one-time product offers.
 ///
 /// Returns `ClientRequestBuilder` for customization.
@@ -7856,7 +13240,6 @@ pub fn androidpublisher_monetization_onetimeproducts_purchase_options_offers_bat
     packageName: &String,
     productId: &String,
     purchaseOptionId: &String,
-    body: &BatchDeleteOneTimeProductOffersRequest,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
@@ -7868,15 +13251,13 @@ pub fn androidpublisher_monetization_onetimeproducts_purchase_options_offers_bat
 
     // Build request
     let builder = client
-        .get(&endpoint_url)
+        .post(&endpoint_url)
         .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
 
-    builder
-        .body_json(body)
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+    Ok(builder)
 }
 
-/// GET androidpublisher/v3/applications/{packageName}/oneTimeProducts/{productId}/purchaseOptions/{purchaseOptionId}/offers:batchDelete
+/// POST androidpublisher/v3/applications/{packageName}/oneTimeProducts/{productId}/purchaseOptions/{purchaseOptionId}/offers:batchDelete
 /// Deletes one or more one-time product offers.
 ///
 /// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
@@ -7947,7 +13328,7 @@ pub fn androidpublisher_monetization_onetimeproducts_purchase_options_offers_bat
         .map_pending(|_| ApiPending::Sending))
 }
 
-/// GET androidpublisher/v3/applications/{packageName}/oneTimeProducts/{productId}/purchaseOptions/{purchaseOptionId}/offers:batchDelete
+/// POST androidpublisher/v3/applications/{packageName}/oneTimeProducts/{productId}/purchaseOptions/{purchaseOptionId}/offers:batchDelete
 /// Deletes one or more one-time product offers.
 ///
 /// Takes a `ClientRequestBuilder`, builds and executes the request,
@@ -7989,11 +13370,9 @@ pub struct AndroidpublisherMonetizationOnetimeproductsPurchaseOptionsOffersBatch
     pub productId: String,
     /// Path parameter: purchaseOptionId
     pub purchaseOptionId: String,
-    /// Request body.
-    pub body: BatchDeleteOneTimeProductOffersRequest,
 }
 
-/// GET androidpublisher/v3/applications/{packageName}/oneTimeProducts/{productId}/purchaseOptions/{purchaseOptionId}/offers:batchDelete
+/// POST androidpublisher/v3/applications/{packageName}/oneTimeProducts/{productId}/purchaseOptions/{purchaseOptionId}/offers:batchDelete
 /// Deletes one or more one-time product offers.
 ///
 /// Simplest API - builds and executes the request in one call.
@@ -8017,14 +13396,13 @@ pub fn androidpublisher_monetization_onetimeproducts_purchase_options_offers_bat
             &args.packageName,
             &args.productId,
             &args.purchaseOptionId,
-            &args.body,
         )?;
     androidpublisher_monetization_onetimeproducts_purchase_options_offers_batch_delete_execute(
         builder,
     )
 }
 
-/// GET androidpublisher/v3/applications/{packageName}/oneTimeProducts/{productId}/purchaseOptions/{purchaseOptionId}/offers:batchGet
+/// POST androidpublisher/v3/applications/{packageName}/oneTimeProducts/{productId}/purchaseOptions/{purchaseOptionId}/offers:batchGet
 /// Reads one or more one-time product offers.
 ///
 /// Returns `ClientRequestBuilder` for customization.
@@ -8035,7 +13413,6 @@ pub fn androidpublisher_monetization_onetimeproducts_purchase_options_offers_bat
     packageName: &String,
     productId: &String,
     purchaseOptionId: &String,
-    body: &BatchGetOneTimeProductOffersRequest,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
@@ -8047,15 +13424,13 @@ pub fn androidpublisher_monetization_onetimeproducts_purchase_options_offers_bat
 
     // Build request
     let builder = client
-        .get(&endpoint_url)
+        .post(&endpoint_url)
         .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
 
-    builder
-        .body_json(body)
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+    Ok(builder)
 }
 
-/// GET androidpublisher/v3/applications/{packageName}/oneTimeProducts/{productId}/purchaseOptions/{purchaseOptionId}/offers:batchGet
+/// POST androidpublisher/v3/applications/{packageName}/oneTimeProducts/{productId}/purchaseOptions/{purchaseOptionId}/offers:batchGet
 /// Reads one or more one-time product offers.
 ///
 /// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
@@ -8129,7 +13504,7 @@ pub fn androidpublisher_monetization_onetimeproducts_purchase_options_offers_bat
         .map_pending(|_| ApiPending::Sending))
 }
 
-/// GET androidpublisher/v3/applications/{packageName}/oneTimeProducts/{productId}/purchaseOptions/{purchaseOptionId}/offers:batchGet
+/// POST androidpublisher/v3/applications/{packageName}/oneTimeProducts/{productId}/purchaseOptions/{purchaseOptionId}/offers:batchGet
 /// Reads one or more one-time product offers.
 ///
 /// Takes a `ClientRequestBuilder`, builds and executes the request,
@@ -8175,11 +13550,9 @@ pub struct AndroidpublisherMonetizationOnetimeproductsPurchaseOptionsOffersBatch
     pub productId: String,
     /// Path parameter: purchaseOptionId
     pub purchaseOptionId: String,
-    /// Request body.
-    pub body: BatchGetOneTimeProductOffersRequest,
 }
 
-/// GET androidpublisher/v3/applications/{packageName}/oneTimeProducts/{productId}/purchaseOptions/{purchaseOptionId}/offers:batchGet
+/// POST androidpublisher/v3/applications/{packageName}/oneTimeProducts/{productId}/purchaseOptions/{purchaseOptionId}/offers:batchGet
 /// Reads one or more one-time product offers.
 ///
 /// Simplest API - builds and executes the request in one call.
@@ -8207,12 +13580,11 @@ pub fn androidpublisher_monetization_onetimeproducts_purchase_options_offers_bat
             &args.packageName,
             &args.productId,
             &args.purchaseOptionId,
-            &args.body,
         )?;
     androidpublisher_monetization_onetimeproducts_purchase_options_offers_batch_get_execute(builder)
 }
 
-/// GET androidpublisher/v3/applications/{packageName}/oneTimeProducts/{productId}/purchaseOptions/{purchaseOptionId}/offers:batchUpdate
+/// POST androidpublisher/v3/applications/{packageName}/oneTimeProducts/{productId}/purchaseOptions/{purchaseOptionId}/offers:batchUpdate
 /// Creates or updates one or more one-time product offers.
 ///
 /// Returns `ClientRequestBuilder` for customization.
@@ -8223,7 +13595,6 @@ pub fn androidpublisher_monetization_onetimeproducts_purchase_options_offers_bat
     packageName: &String,
     productId: &String,
     purchaseOptionId: &String,
-    body: &BatchUpdateOneTimeProductOffersRequest,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
@@ -8235,15 +13606,13 @@ pub fn androidpublisher_monetization_onetimeproducts_purchase_options_offers_bat
 
     // Build request
     let builder = client
-        .get(&endpoint_url)
+        .post(&endpoint_url)
         .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
 
-    builder
-        .body_json(body)
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+    Ok(builder)
 }
 
-/// GET androidpublisher/v3/applications/{packageName}/oneTimeProducts/{productId}/purchaseOptions/{purchaseOptionId}/offers:batchUpdate
+/// POST androidpublisher/v3/applications/{packageName}/oneTimeProducts/{productId}/purchaseOptions/{purchaseOptionId}/offers:batchUpdate
 /// Creates or updates one or more one-time product offers.
 ///
 /// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
@@ -8318,7 +13687,7 @@ pub fn androidpublisher_monetization_onetimeproducts_purchase_options_offers_bat
         .map_pending(|_| ApiPending::Sending))
 }
 
-/// GET androidpublisher/v3/applications/{packageName}/oneTimeProducts/{productId}/purchaseOptions/{purchaseOptionId}/offers:batchUpdate
+/// POST androidpublisher/v3/applications/{packageName}/oneTimeProducts/{productId}/purchaseOptions/{purchaseOptionId}/offers:batchUpdate
 /// Creates or updates one or more one-time product offers.
 ///
 /// Takes a `ClientRequestBuilder`, builds and executes the request,
@@ -8364,11 +13733,9 @@ pub struct AndroidpublisherMonetizationOnetimeproductsPurchaseOptionsOffersBatch
     pub productId: String,
     /// Path parameter: purchaseOptionId
     pub purchaseOptionId: String,
-    /// Request body.
-    pub body: BatchUpdateOneTimeProductOffersRequest,
 }
 
-/// GET androidpublisher/v3/applications/{packageName}/oneTimeProducts/{productId}/purchaseOptions/{purchaseOptionId}/offers:batchUpdate
+/// POST androidpublisher/v3/applications/{packageName}/oneTimeProducts/{productId}/purchaseOptions/{purchaseOptionId}/offers:batchUpdate
 /// Creates or updates one or more one-time product offers.
 ///
 /// Simplest API - builds and executes the request in one call.
@@ -8396,14 +13763,13 @@ pub fn androidpublisher_monetization_onetimeproducts_purchase_options_offers_bat
             &args.packageName,
             &args.productId,
             &args.purchaseOptionId,
-            &args.body,
         )?;
     androidpublisher_monetization_onetimeproducts_purchase_options_offers_batch_update_execute(
         builder,
     )
 }
 
-/// GET androidpublisher/v3/applications/{packageName}/oneTimeProducts/{productId}/purchaseOptions/{purchaseOptionId}/offers:batchUpdateStates
+/// POST androidpublisher/v3/applications/{packageName}/oneTimeProducts/{productId}/purchaseOptions/{purchaseOptionId}/offers:batchUpdateStates
 /// Updates a batch of one-time product offer states.
 ///
 /// Returns `ClientRequestBuilder` for customization.
@@ -8414,7 +13780,6 @@ pub fn androidpublisher_monetization_onetimeproducts_purchase_options_offers_bat
     packageName: &String,
     productId: &String,
     purchaseOptionId: &String,
-    body: &BatchUpdateOneTimeProductOfferStatesRequest,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
@@ -8426,15 +13791,13 @@ pub fn androidpublisher_monetization_onetimeproducts_purchase_options_offers_bat
 
     // Build request
     let builder = client
-        .get(&endpoint_url)
+        .post(&endpoint_url)
         .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
 
-    builder
-        .body_json(body)
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+    Ok(builder)
 }
 
-/// GET androidpublisher/v3/applications/{packageName}/oneTimeProducts/{productId}/purchaseOptions/{purchaseOptionId}/offers:batchUpdateStates
+/// POST androidpublisher/v3/applications/{packageName}/oneTimeProducts/{productId}/purchaseOptions/{purchaseOptionId}/offers:batchUpdateStates
 /// Updates a batch of one-time product offer states.
 ///
 /// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
@@ -8509,7 +13872,7 @@ pub fn androidpublisher_monetization_onetimeproducts_purchase_options_offers_bat
         .map_pending(|_| ApiPending::Sending))
 }
 
-/// GET androidpublisher/v3/applications/{packageName}/oneTimeProducts/{productId}/purchaseOptions/{purchaseOptionId}/offers:batchUpdateStates
+/// POST androidpublisher/v3/applications/{packageName}/oneTimeProducts/{productId}/purchaseOptions/{purchaseOptionId}/offers:batchUpdateStates
 /// Updates a batch of one-time product offer states.
 ///
 /// Takes a `ClientRequestBuilder`, builds and executes the request,
@@ -8552,11 +13915,9 @@ pub struct AndroidpublisherMonetizationOnetimeproductsPurchaseOptionsOffersBatch
     pub productId: String,
     /// Path parameter: purchaseOptionId
     pub purchaseOptionId: String,
-    /// Request body.
-    pub body: BatchUpdateOneTimeProductOfferStatesRequest,
 }
 
-/// GET androidpublisher/v3/applications/{packageName}/oneTimeProducts/{productId}/purchaseOptions/{purchaseOptionId}/offers:batchUpdateStates
+/// POST androidpublisher/v3/applications/{packageName}/oneTimeProducts/{productId}/purchaseOptions/{purchaseOptionId}/offers:batchUpdateStates
 /// Updates a batch of one-time product offer states.
 ///
 /// Simplest API - builds and executes the request in one call.
@@ -8578,11 +13939,11 @@ pub fn androidpublisher_monetization_onetimeproducts_purchase_options_offers_bat
         + 'static,
     ApiError,
 > {
-    let builder = androidpublisher_monetization_onetimeproducts_purchase_options_offers_batch_update_states_builder(client, &args.packageName, &args.productId, &args.purchaseOptionId, &args.body)?;
+    let builder = androidpublisher_monetization_onetimeproducts_purchase_options_offers_batch_update_states_builder(client, &args.packageName, &args.productId, &args.purchaseOptionId)?;
     androidpublisher_monetization_onetimeproducts_purchase_options_offers_batch_update_states_execute(builder)
 }
 
-/// GET androidpublisher/v3/applications/{packageName}/oneTimeProducts/{productId}/purchaseOptions/{purchaseOptionId}/offers/{offerId}:cancel
+/// POST androidpublisher/v3/applications/{packageName}/oneTimeProducts/{productId}/purchaseOptions/{purchaseOptionId}/offers/{offerId}:cancel
 /// Cancels a one-time product offer.
 ///
 /// Returns `ClientRequestBuilder` for customization.
@@ -8594,7 +13955,6 @@ pub fn androidpublisher_monetization_onetimeproducts_purchase_options_offers_can
     productId: &String,
     purchaseOptionId: &String,
     offerId: &String,
-    body: &CancelOneTimeProductOfferRequest,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
@@ -8607,15 +13967,13 @@ pub fn androidpublisher_monetization_onetimeproducts_purchase_options_offers_can
 
     // Build request
     let builder = client
-        .get(&endpoint_url)
+        .post(&endpoint_url)
         .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
 
-    builder
-        .body_json(body)
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+    Ok(builder)
 }
 
-/// GET androidpublisher/v3/applications/{packageName}/oneTimeProducts/{productId}/purchaseOptions/{purchaseOptionId}/offers/{offerId}:cancel
+/// POST androidpublisher/v3/applications/{packageName}/oneTimeProducts/{productId}/purchaseOptions/{purchaseOptionId}/offers/{offerId}:cancel
 /// Cancels a one-time product offer.
 ///
 /// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
@@ -8689,7 +14047,7 @@ pub fn androidpublisher_monetization_onetimeproducts_purchase_options_offers_can
         .map_pending(|_| ApiPending::Sending))
 }
 
-/// GET androidpublisher/v3/applications/{packageName}/oneTimeProducts/{productId}/purchaseOptions/{purchaseOptionId}/offers/{offerId}:cancel
+/// POST androidpublisher/v3/applications/{packageName}/oneTimeProducts/{productId}/purchaseOptions/{purchaseOptionId}/offers/{offerId}:cancel
 /// Cancels a one-time product offer.
 ///
 /// Takes a `ClientRequestBuilder`, builds and executes the request,
@@ -8733,11 +14091,9 @@ pub struct AndroidpublisherMonetizationOnetimeproductsPurchaseOptionsOffersCance
     pub purchaseOptionId: String,
     /// Path parameter: offerId
     pub offerId: String,
-    /// Request body.
-    pub body: CancelOneTimeProductOfferRequest,
 }
 
-/// GET androidpublisher/v3/applications/{packageName}/oneTimeProducts/{productId}/purchaseOptions/{purchaseOptionId}/offers/{offerId}:cancel
+/// POST androidpublisher/v3/applications/{packageName}/oneTimeProducts/{productId}/purchaseOptions/{purchaseOptionId}/offers/{offerId}:cancel
 /// Cancels a one-time product offer.
 ///
 /// Simplest API - builds and executes the request in one call.
@@ -8764,12 +14120,11 @@ pub fn androidpublisher_monetization_onetimeproducts_purchase_options_offers_can
             &args.productId,
             &args.purchaseOptionId,
             &args.offerId,
-            &args.body,
         )?;
     androidpublisher_monetization_onetimeproducts_purchase_options_offers_cancel_execute(builder)
 }
 
-/// GET androidpublisher/v3/applications/{packageName}/oneTimeProducts/{productId}/purchaseOptions/{purchaseOptionId}/offers/{offerId}:deactivate
+/// POST androidpublisher/v3/applications/{packageName}/oneTimeProducts/{productId}/purchaseOptions/{purchaseOptionId}/offers/{offerId}:deactivate
 /// Deactivates a one-time product offer.
 ///
 /// Returns `ClientRequestBuilder` for customization.
@@ -8781,7 +14136,6 @@ pub fn androidpublisher_monetization_onetimeproducts_purchase_options_offers_dea
     productId: &String,
     purchaseOptionId: &String,
     offerId: &String,
-    body: &DeactivateOneTimeProductOfferRequest,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
@@ -8794,15 +14148,13 @@ pub fn androidpublisher_monetization_onetimeproducts_purchase_options_offers_dea
 
     // Build request
     let builder = client
-        .get(&endpoint_url)
+        .post(&endpoint_url)
         .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
 
-    builder
-        .body_json(body)
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+    Ok(builder)
 }
 
-/// GET androidpublisher/v3/applications/{packageName}/oneTimeProducts/{productId}/purchaseOptions/{purchaseOptionId}/offers/{offerId}:deactivate
+/// POST androidpublisher/v3/applications/{packageName}/oneTimeProducts/{productId}/purchaseOptions/{purchaseOptionId}/offers/{offerId}:deactivate
 /// Deactivates a one-time product offer.
 ///
 /// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
@@ -8876,7 +14228,7 @@ pub fn androidpublisher_monetization_onetimeproducts_purchase_options_offers_dea
         .map_pending(|_| ApiPending::Sending))
 }
 
-/// GET androidpublisher/v3/applications/{packageName}/oneTimeProducts/{productId}/purchaseOptions/{purchaseOptionId}/offers/{offerId}:deactivate
+/// POST androidpublisher/v3/applications/{packageName}/oneTimeProducts/{productId}/purchaseOptions/{purchaseOptionId}/offers/{offerId}:deactivate
 /// Deactivates a one-time product offer.
 ///
 /// Takes a `ClientRequestBuilder`, builds and executes the request,
@@ -8922,11 +14274,9 @@ pub struct AndroidpublisherMonetizationOnetimeproductsPurchaseOptionsOffersDeact
     pub purchaseOptionId: String,
     /// Path parameter: offerId
     pub offerId: String,
-    /// Request body.
-    pub body: DeactivateOneTimeProductOfferRequest,
 }
 
-/// GET androidpublisher/v3/applications/{packageName}/oneTimeProducts/{productId}/purchaseOptions/{purchaseOptionId}/offers/{offerId}:deactivate
+/// POST androidpublisher/v3/applications/{packageName}/oneTimeProducts/{productId}/purchaseOptions/{purchaseOptionId}/offers/{offerId}:deactivate
 /// Deactivates a one-time product offer.
 ///
 /// Simplest API - builds and executes the request in one call.
@@ -8953,7 +14303,6 @@ pub fn androidpublisher_monetization_onetimeproducts_purchase_options_offers_dea
             &args.productId,
             &args.purchaseOptionId,
             &args.offerId,
-            &args.body,
         )?;
     androidpublisher_monetization_onetimeproducts_purchase_options_offers_deactivate_execute(
         builder,
@@ -8971,8 +14320,8 @@ pub fn androidpublisher_monetization_onetimeproducts_purchase_options_offers_lis
     packageName: &String,
     productId: &String,
     purchaseOptionId: &String,
-    pageSize: &Option<i32>,
-    pageToken: &Option<String>,
+    pageSize: &Option<Option<String>>,
+    pageToken: &Option<Option<String>>,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
@@ -9123,9 +14472,9 @@ pub struct AndroidpublisherMonetizationOnetimeproductsPurchaseOptionsOffersListA
     /// Path parameter: purchaseOptionId
     pub purchaseOptionId: String,
     /// Query parameter: pageSize
-    pub pageSize: Option<i32>,
+    pub pageSize: Option<Option<String>>,
     /// Query parameter: pageToken
-    pub pageToken: Option<String>,
+    pub pageToken: Option<Option<String>>,
 }
 
 /// GET androidpublisher/v3/applications/{packageName}/oneTimeProducts/{productId}/purchaseOptions/{purchaseOptionId}/offers
@@ -9162,7 +14511,7 @@ pub fn androidpublisher_monetization_onetimeproducts_purchase_options_offers_lis
     androidpublisher_monetization_onetimeproducts_purchase_options_offers_list_execute(builder)
 }
 
-/// GET androidpublisher/v3/applications/{packageName}/subscriptions/{productId}:archive
+/// POST androidpublisher/v3/applications/{packageName}/subscriptions/{productId}:archive
 /// Deprecated: subscription archiving is not supported.
 ///
 /// Returns `ClientRequestBuilder` for customization.
@@ -9172,7 +14521,6 @@ pub fn androidpublisher_monetization_subscriptions_archive_builder(
     client: &SimpleHttpClient,
     packageName: &String,
     productId: &String,
-    body: &ArchiveSubscriptionRequest,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
@@ -9183,15 +14531,13 @@ pub fn androidpublisher_monetization_subscriptions_archive_builder(
 
     // Build request
     let builder = client
-        .get(&endpoint_url)
+        .post(&endpoint_url)
         .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
 
-    builder
-        .body_json(body)
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+    Ok(builder)
 }
 
-/// GET androidpublisher/v3/applications/{packageName}/subscriptions/{productId}:archive
+/// POST androidpublisher/v3/applications/{packageName}/subscriptions/{productId}:archive
 /// Deprecated: subscription archiving is not supported.
 ///
 /// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
@@ -9265,7 +14611,7 @@ pub fn androidpublisher_monetization_subscriptions_archive_task(
         .map_pending(|_| ApiPending::Sending))
 }
 
-/// GET androidpublisher/v3/applications/{packageName}/subscriptions/{productId}:archive
+/// POST androidpublisher/v3/applications/{packageName}/subscriptions/{productId}:archive
 /// Deprecated: subscription archiving is not supported.
 ///
 /// Takes a `ClientRequestBuilder`, builds and executes the request,
@@ -9304,11 +14650,9 @@ pub struct AndroidpublisherMonetizationSubscriptionsArchiveArgs {
     pub packageName: String,
     /// Path parameter: productId
     pub productId: String,
-    /// Request body.
-    pub body: ArchiveSubscriptionRequest,
 }
 
-/// GET androidpublisher/v3/applications/{packageName}/subscriptions/{productId}:archive
+/// POST androidpublisher/v3/applications/{packageName}/subscriptions/{productId}:archive
 /// Deprecated: subscription archiving is not supported.
 ///
 /// Simplest API - builds and executes the request in one call.
@@ -9332,7 +14676,6 @@ pub fn androidpublisher_monetization_subscriptions_archive(
         client,
         &args.packageName,
         &args.productId,
-        &args.body,
     )?;
     androidpublisher_monetization_subscriptions_archive_execute(builder)
 }
@@ -9346,7 +14689,7 @@ pub fn androidpublisher_monetization_subscriptions_archive(
 pub fn androidpublisher_monetization_subscriptions_batch_get_builder(
     client: &SimpleHttpClient,
     packageName: &String,
-    productIds: &Option<String>,
+    productIds: &Option<Option<String>>,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
@@ -9487,7 +14830,7 @@ pub struct AndroidpublisherMonetizationSubscriptionsBatchGetArgs {
     /// Path parameter: packageName
     pub packageName: String,
     /// Query parameter: productIds
-    pub productIds: Option<String>,
+    pub productIds: Option<Option<String>>,
 }
 
 /// GET androidpublisher/v3/applications/{packageName}/subscriptions:batchGet
@@ -9520,7 +14863,7 @@ pub fn androidpublisher_monetization_subscriptions_batch_get(
     androidpublisher_monetization_subscriptions_batch_get_execute(builder)
 }
 
-/// GET androidpublisher/v3/applications/{packageName}/subscriptions:batchUpdate
+/// POST androidpublisher/v3/applications/{packageName}/subscriptions:batchUpdate
 /// Updates a batch of subscriptions. Set the `latencyTolerance` field on nested requests to PRODUCT_UPDATE_LATENCY_TOLERANCE_LATENCY_TOLERANT to achieve maximum update throughput.
 ///
 /// Returns `ClientRequestBuilder` for customization.
@@ -9529,7 +14872,6 @@ pub fn androidpublisher_monetization_subscriptions_batch_get(
 pub fn androidpublisher_monetization_subscriptions_batch_update_builder(
     client: &SimpleHttpClient,
     packageName: &String,
-    body: &BatchUpdateSubscriptionsRequest,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
@@ -9539,15 +14881,13 @@ pub fn androidpublisher_monetization_subscriptions_batch_update_builder(
 
     // Build request
     let builder = client
-        .get(&endpoint_url)
+        .post(&endpoint_url)
         .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
 
-    builder
-        .body_json(body)
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+    Ok(builder)
 }
 
-/// GET androidpublisher/v3/applications/{packageName}/subscriptions:batchUpdate
+/// POST androidpublisher/v3/applications/{packageName}/subscriptions:batchUpdate
 /// Updates a batch of subscriptions. Set the `latencyTolerance` field on nested requests to PRODUCT_UPDATE_LATENCY_TOLERANCE_LATENCY_TOLERANT to achieve maximum update throughput.
 ///
 /// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
@@ -9621,7 +14961,7 @@ pub fn androidpublisher_monetization_subscriptions_batch_update_task(
         .map_pending(|_| ApiPending::Sending))
 }
 
-/// GET androidpublisher/v3/applications/{packageName}/subscriptions:batchUpdate
+/// POST androidpublisher/v3/applications/{packageName}/subscriptions:batchUpdate
 /// Updates a batch of subscriptions. Set the `latencyTolerance` field on nested requests to PRODUCT_UPDATE_LATENCY_TOLERANCE_LATENCY_TOLERANT to achieve maximum update throughput.
 ///
 /// Takes a `ClientRequestBuilder`, builds and executes the request,
@@ -9660,11 +15000,9 @@ pub fn androidpublisher_monetization_subscriptions_batch_update_execute(
 pub struct AndroidpublisherMonetizationSubscriptionsBatchUpdateArgs {
     /// Path parameter: packageName
     pub packageName: String,
-    /// Request body.
-    pub body: BatchUpdateSubscriptionsRequest,
 }
 
-/// GET androidpublisher/v3/applications/{packageName}/subscriptions:batchUpdate
+/// POST androidpublisher/v3/applications/{packageName}/subscriptions:batchUpdate
 /// Updates a batch of subscriptions. Set the `latencyTolerance` field on nested requests to PRODUCT_UPDATE_LATENCY_TOLERANCE_LATENCY_TOLERANT to achieve maximum update throughput.
 ///
 /// Simplest API - builds and executes the request in one call.
@@ -9689,12 +15027,11 @@ pub fn androidpublisher_monetization_subscriptions_batch_update(
     let builder = androidpublisher_monetization_subscriptions_batch_update_builder(
         client,
         &args.packageName,
-        &args.body,
     )?;
     androidpublisher_monetization_subscriptions_batch_update_execute(builder)
 }
 
-/// GET androidpublisher/v3/applications/{packageName}/subscriptions
+/// POST androidpublisher/v3/applications/{packageName}/subscriptions
 /// Creates a new subscription. Newly added base plans will remain in draft state until activated.
 ///
 /// Returns `ClientRequestBuilder` for customization.
@@ -9703,9 +15040,8 @@ pub fn androidpublisher_monetization_subscriptions_batch_update(
 pub fn androidpublisher_monetization_subscriptions_create_builder(
     client: &SimpleHttpClient,
     packageName: &String,
-    productId: &Option<String>,
-    regionsVersion_version: &Option<String>,
-    body: &Subscription,
+    productId: &Option<Option<String>>,
+    regionsVersion_version: &Option<Option<String>>,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
@@ -9729,15 +15065,13 @@ pub fn androidpublisher_monetization_subscriptions_create_builder(
     };
 
     let builder = client
-        .get(&url_with_query)
+        .post(&url_with_query)
         .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
 
-    builder
-        .body_json(body)
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+    Ok(builder)
 }
 
-/// GET androidpublisher/v3/applications/{packageName}/subscriptions
+/// POST androidpublisher/v3/applications/{packageName}/subscriptions
 /// Creates a new subscription. Newly added base plans will remain in draft state until activated.
 ///
 /// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
@@ -9811,7 +15145,7 @@ pub fn androidpublisher_monetization_subscriptions_create_task(
         .map_pending(|_| ApiPending::Sending))
 }
 
-/// GET androidpublisher/v3/applications/{packageName}/subscriptions
+/// POST androidpublisher/v3/applications/{packageName}/subscriptions
 /// Creates a new subscription. Newly added base plans will remain in draft state until activated.
 ///
 /// Takes a `ClientRequestBuilder`, builds and executes the request,
@@ -9849,14 +15183,12 @@ pub struct AndroidpublisherMonetizationSubscriptionsCreateArgs {
     /// Path parameter: packageName
     pub packageName: String,
     /// Query parameter: productId
-    pub productId: Option<String>,
+    pub productId: Option<Option<String>>,
     /// Query parameter: regionsVersion_version
-    pub regionsVersion_version: Option<String>,
-    /// Request body.
-    pub body: Subscription,
+    pub regionsVersion_version: Option<Option<String>>,
 }
 
-/// GET androidpublisher/v3/applications/{packageName}/subscriptions
+/// POST androidpublisher/v3/applications/{packageName}/subscriptions
 /// Creates a new subscription. Newly added base plans will remain in draft state until activated.
 ///
 /// Simplest API - builds and executes the request in one call.
@@ -9881,12 +15213,11 @@ pub fn androidpublisher_monetization_subscriptions_create(
         &args.packageName,
         &args.productId,
         &args.regionsVersion_version,
-        &args.body,
     )?;
     androidpublisher_monetization_subscriptions_create_execute(builder)
 }
 
-/// GET androidpublisher/v3/applications/{packageName}/subscriptions/{productId}
+/// DELETE androidpublisher/v3/applications/{packageName}/subscriptions/{productId}
 /// Deletes a subscription. A subscription can only be deleted if it has never had a base plan published.
 ///
 /// Returns `ClientRequestBuilder` for customization.
@@ -9906,13 +15237,13 @@ pub fn androidpublisher_monetization_subscriptions_delete_builder(
 
     // Build request
     let builder = client
-        .get(&endpoint_url)
+        .delete(&endpoint_url)
         .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
 
     Ok(builder)
 }
 
-/// GET androidpublisher/v3/applications/{packageName}/subscriptions/{productId}
+/// DELETE androidpublisher/v3/applications/{packageName}/subscriptions/{productId}
 /// Deletes a subscription. A subscription can only be deleted if it has never had a base plan published.
 ///
 /// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
@@ -9983,7 +15314,7 @@ pub fn androidpublisher_monetization_subscriptions_delete_task(
         .map_pending(|_| ApiPending::Sending))
 }
 
-/// GET androidpublisher/v3/applications/{packageName}/subscriptions/{productId}
+/// DELETE androidpublisher/v3/applications/{packageName}/subscriptions/{productId}
 /// Deletes a subscription. A subscription can only be deleted if it has never had a base plan published.
 ///
 /// Takes a `ClientRequestBuilder`, builds and executes the request,
@@ -10022,7 +15353,7 @@ pub struct AndroidpublisherMonetizationSubscriptionsDeleteArgs {
     pub productId: String,
 }
 
-/// GET androidpublisher/v3/applications/{packageName}/subscriptions/{productId}
+/// DELETE androidpublisher/v3/applications/{packageName}/subscriptions/{productId}
 /// Deletes a subscription. A subscription can only be deleted if it has never had a base plan published.
 ///
 /// Simplest API - builds and executes the request in one call.
@@ -10048,7 +15379,574 @@ pub fn androidpublisher_monetization_subscriptions_delete(
     androidpublisher_monetization_subscriptions_delete_execute(builder)
 }
 
-/// GET androidpublisher/v3/applications/{packageName}/subscriptions/{productId}/basePlans/{basePlanId}:activate
+/// GET androidpublisher/v3/applications/{packageName}/subscriptions/{productId}
+/// Reads a single subscription.
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `androidpublisher_monetization_subscriptions_get_execute()` to send, or `androidpublisher_monetization_subscriptions_get` for simplest API.
+
+pub fn androidpublisher_monetization_subscriptions_get_builder(
+    client: &SimpleHttpClient,
+    packageName: &String,
+    productId: &String,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!(
+        "https://androidpublisher.googleapis.com/androidpublisher/v3/applications/{}/subscriptions/{}",
+        packageName,
+        productId,
+    );
+
+    // Build request
+    let builder = client
+        .get(&endpoint_url)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// GET androidpublisher/v3/applications/{packageName}/subscriptions/{productId}
+/// Reads a single subscription.
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `androidpublisher_monetization_subscriptions_get_execute()` or `androidpublisher_monetization_subscriptions_get`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `androidpublisher_monetization_subscriptions_get_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn androidpublisher_monetization_subscriptions_get_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<Subscription>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: Subscription = serde_json::from_str(&body)
+                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// GET androidpublisher/v3/applications/{packageName}/subscriptions/{productId}
+/// Reads a single subscription.
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `androidpublisher_monetization_subscriptions_get_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `androidpublisher_monetization_subscriptions_get_task()`.
+/// For the simplest API, use `androidpublisher_monetization_subscriptions_get()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `androidpublisher_monetization_subscriptions_get_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn androidpublisher_monetization_subscriptions_get_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<Subscription>, ApiError>, P = ApiPending>
+        + Send
+        + 'static,
+    ApiError,
+> {
+    let task = androidpublisher_monetization_subscriptions_get_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`androidpublisher_monetization_subscriptions_get`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct AndroidpublisherMonetizationSubscriptionsGetArgs {
+    /// Path parameter: packageName
+    pub packageName: String,
+    /// Path parameter: productId
+    pub productId: String,
+}
+
+/// GET androidpublisher/v3/applications/{packageName}/subscriptions/{productId}
+/// Reads a single subscription.
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `androidpublisher_monetization_subscriptions_get_builder()` + `androidpublisher_monetization_subscriptions_get_execute()`.
+/// For task-level control, use `androidpublisher_monetization_subscriptions_get_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn androidpublisher_monetization_subscriptions_get(
+    client: &SimpleHttpClient,
+    args: &AndroidpublisherMonetizationSubscriptionsGetArgs,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<Subscription>, ApiError>, P = ApiPending>
+        + Send
+        + 'static,
+    ApiError,
+> {
+    let builder = androidpublisher_monetization_subscriptions_get_builder(
+        client,
+        &args.packageName,
+        &args.productId,
+    )?;
+    androidpublisher_monetization_subscriptions_get_execute(builder)
+}
+
+/// GET androidpublisher/v3/applications/{packageName}/subscriptions
+/// Lists all subscriptions under a given app.
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `androidpublisher_monetization_subscriptions_list_execute()` to send, or `androidpublisher_monetization_subscriptions_list` for simplest API.
+
+pub fn androidpublisher_monetization_subscriptions_list_builder(
+    client: &SimpleHttpClient,
+    packageName: &String,
+    pageSize: &Option<Option<String>>,
+    pageToken: &Option<Option<String>>,
+    showArchived: &Option<Option<String>>,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!(
+        "https://androidpublisher.googleapis.com/androidpublisher/v3/applications/{}/subscriptions",
+        packageName,
+    );
+
+    // Build request
+    let mut query_parts = Vec::new();
+    if let Some(val) = pageSize.as_ref() {
+        query_parts.push(format!("pageSize={}", val));
+    }
+    if let Some(val) = pageToken.as_ref() {
+        query_parts.push(format!("pageToken={}", val));
+    }
+    if let Some(val) = showArchived.as_ref() {
+        query_parts.push(format!("showArchived={}", val));
+    }
+
+    let url_with_query = if query_parts.is_empty() {
+        endpoint_url
+    } else {
+        format!("{}?{}", endpoint_url, query_parts.join("&"))
+    };
+
+    let builder = client
+        .get(&url_with_query)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// GET androidpublisher/v3/applications/{packageName}/subscriptions
+/// Lists all subscriptions under a given app.
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `androidpublisher_monetization_subscriptions_list_execute()` or `androidpublisher_monetization_subscriptions_list`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `androidpublisher_monetization_subscriptions_list_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn androidpublisher_monetization_subscriptions_list_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<ListSubscriptionsResponse>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: ListSubscriptionsResponse = serde_json::from_str(&body)
+                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// GET androidpublisher/v3/applications/{packageName}/subscriptions
+/// Lists all subscriptions under a given app.
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `androidpublisher_monetization_subscriptions_list_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `androidpublisher_monetization_subscriptions_list_task()`.
+/// For the simplest API, use `androidpublisher_monetization_subscriptions_list()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `androidpublisher_monetization_subscriptions_list_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn androidpublisher_monetization_subscriptions_list_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<ListSubscriptionsResponse>, ApiError>, P = ApiPending>
+        + Send
+        + 'static,
+    ApiError,
+> {
+    let task = androidpublisher_monetization_subscriptions_list_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`androidpublisher_monetization_subscriptions_list`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct AndroidpublisherMonetizationSubscriptionsListArgs {
+    /// Path parameter: packageName
+    pub packageName: String,
+    /// Query parameter: pageSize
+    pub pageSize: Option<Option<String>>,
+    /// Query parameter: pageToken
+    pub pageToken: Option<Option<String>>,
+    /// Query parameter: showArchived
+    pub showArchived: Option<Option<String>>,
+}
+
+/// GET androidpublisher/v3/applications/{packageName}/subscriptions
+/// Lists all subscriptions under a given app.
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `androidpublisher_monetization_subscriptions_list_builder()` + `androidpublisher_monetization_subscriptions_list_execute()`.
+/// For task-level control, use `androidpublisher_monetization_subscriptions_list_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn androidpublisher_monetization_subscriptions_list(
+    client: &SimpleHttpClient,
+    args: &AndroidpublisherMonetizationSubscriptionsListArgs,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<ListSubscriptionsResponse>, ApiError>, P = ApiPending>
+        + Send
+        + 'static,
+    ApiError,
+> {
+    let builder = androidpublisher_monetization_subscriptions_list_builder(
+        client,
+        &args.packageName,
+        &args.pageSize,
+        &args.pageToken,
+        &args.showArchived,
+    )?;
+    androidpublisher_monetization_subscriptions_list_execute(builder)
+}
+
+/// PATCH androidpublisher/v3/applications/{packageName}/subscriptions/{productId}
+/// Updates an existing subscription.
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `androidpublisher_monetization_subscriptions_patch_execute()` to send, or `androidpublisher_monetization_subscriptions_patch` for simplest API.
+
+pub fn androidpublisher_monetization_subscriptions_patch_builder(
+    client: &SimpleHttpClient,
+    packageName: &String,
+    productId: &String,
+    allowMissing: &Option<Option<String>>,
+    latencyTolerance: &Option<Option<String>>,
+    regionsVersion_version: &Option<Option<String>>,
+    updateMask: &Option<Option<String>>,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!(
+        "https://androidpublisher.googleapis.com/androidpublisher/v3/applications/{}/subscriptions/{}",
+        packageName,
+        productId,
+    );
+
+    // Build request
+    let mut query_parts = Vec::new();
+    if let Some(val) = allowMissing.as_ref() {
+        query_parts.push(format!("allowMissing={}", val));
+    }
+    if let Some(val) = latencyTolerance.as_ref() {
+        query_parts.push(format!("latencyTolerance={}", val));
+    }
+    if let Some(val) = regionsVersion_version.as_ref() {
+        query_parts.push(format!("regionsVersion.version={}", val));
+    }
+    if let Some(val) = updateMask.as_ref() {
+        query_parts.push(format!("updateMask={}", val));
+    }
+
+    let url_with_query = if query_parts.is_empty() {
+        endpoint_url
+    } else {
+        format!("{}?{}", endpoint_url, query_parts.join("&"))
+    };
+
+    let builder = client
+        .patch(&url_with_query)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// PATCH androidpublisher/v3/applications/{packageName}/subscriptions/{productId}
+/// Updates an existing subscription.
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `androidpublisher_monetization_subscriptions_patch_execute()` or `androidpublisher_monetization_subscriptions_patch`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `androidpublisher_monetization_subscriptions_patch_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn androidpublisher_monetization_subscriptions_patch_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<Subscription>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: Subscription = serde_json::from_str(&body)
+                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// PATCH androidpublisher/v3/applications/{packageName}/subscriptions/{productId}
+/// Updates an existing subscription.
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `androidpublisher_monetization_subscriptions_patch_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `androidpublisher_monetization_subscriptions_patch_task()`.
+/// For the simplest API, use `androidpublisher_monetization_subscriptions_patch()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `androidpublisher_monetization_subscriptions_patch_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn androidpublisher_monetization_subscriptions_patch_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<Subscription>, ApiError>, P = ApiPending>
+        + Send
+        + 'static,
+    ApiError,
+> {
+    let task = androidpublisher_monetization_subscriptions_patch_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`androidpublisher_monetization_subscriptions_patch`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct AndroidpublisherMonetizationSubscriptionsPatchArgs {
+    /// Path parameter: packageName
+    pub packageName: String,
+    /// Path parameter: productId
+    pub productId: String,
+    /// Query parameter: allowMissing
+    pub allowMissing: Option<Option<String>>,
+    /// Query parameter: latencyTolerance
+    pub latencyTolerance: Option<Option<String>>,
+    /// Query parameter: regionsVersion_version
+    pub regionsVersion_version: Option<Option<String>>,
+    /// Query parameter: updateMask
+    pub updateMask: Option<Option<String>>,
+}
+
+/// PATCH androidpublisher/v3/applications/{packageName}/subscriptions/{productId}
+/// Updates an existing subscription.
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `androidpublisher_monetization_subscriptions_patch_builder()` + `androidpublisher_monetization_subscriptions_patch_execute()`.
+/// For task-level control, use `androidpublisher_monetization_subscriptions_patch_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn androidpublisher_monetization_subscriptions_patch(
+    client: &SimpleHttpClient,
+    args: &AndroidpublisherMonetizationSubscriptionsPatchArgs,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<Subscription>, ApiError>, P = ApiPending>
+        + Send
+        + 'static,
+    ApiError,
+> {
+    let builder = androidpublisher_monetization_subscriptions_patch_builder(
+        client,
+        &args.packageName,
+        &args.productId,
+        &args.allowMissing,
+        &args.latencyTolerance,
+        &args.regionsVersion_version,
+        &args.updateMask,
+    )?;
+    androidpublisher_monetization_subscriptions_patch_execute(builder)
+}
+
+/// POST androidpublisher/v3/applications/{packageName}/subscriptions/{productId}/basePlans/{basePlanId}:activate
 /// Activates a base plan. Once activated, base plans will be available to new subscribers.
 ///
 /// Returns `ClientRequestBuilder` for customization.
@@ -10059,7 +15957,6 @@ pub fn androidpublisher_monetization_subscriptions_base_plans_activate_builder(
     packageName: &String,
     productId: &String,
     basePlanId: &String,
-    body: &ActivateBasePlanRequest,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
@@ -10071,15 +15968,13 @@ pub fn androidpublisher_monetization_subscriptions_base_plans_activate_builder(
 
     // Build request
     let builder = client
-        .get(&endpoint_url)
+        .post(&endpoint_url)
         .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
 
-    builder
-        .body_json(body)
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+    Ok(builder)
 }
 
-/// GET androidpublisher/v3/applications/{packageName}/subscriptions/{productId}/basePlans/{basePlanId}:activate
+/// POST androidpublisher/v3/applications/{packageName}/subscriptions/{productId}/basePlans/{basePlanId}:activate
 /// Activates a base plan. Once activated, base plans will be available to new subscribers.
 ///
 /// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
@@ -10153,7 +16048,7 @@ pub fn androidpublisher_monetization_subscriptions_base_plans_activate_task(
         .map_pending(|_| ApiPending::Sending))
 }
 
-/// GET androidpublisher/v3/applications/{packageName}/subscriptions/{productId}/basePlans/{basePlanId}:activate
+/// POST androidpublisher/v3/applications/{packageName}/subscriptions/{productId}/basePlans/{basePlanId}:activate
 /// Activates a base plan. Once activated, base plans will be available to new subscribers.
 ///
 /// Takes a `ClientRequestBuilder`, builds and executes the request,
@@ -10194,11 +16089,9 @@ pub struct AndroidpublisherMonetizationSubscriptionsBasePlansActivateArgs {
     pub productId: String,
     /// Path parameter: basePlanId
     pub basePlanId: String,
-    /// Request body.
-    pub body: ActivateBasePlanRequest,
 }
 
-/// GET androidpublisher/v3/applications/{packageName}/subscriptions/{productId}/basePlans/{basePlanId}:activate
+/// POST androidpublisher/v3/applications/{packageName}/subscriptions/{productId}/basePlans/{basePlanId}:activate
 /// Activates a base plan. Once activated, base plans will be available to new subscribers.
 ///
 /// Simplest API - builds and executes the request in one call.
@@ -10223,12 +16116,11 @@ pub fn androidpublisher_monetization_subscriptions_base_plans_activate(
         &args.packageName,
         &args.productId,
         &args.basePlanId,
-        &args.body,
     )?;
     androidpublisher_monetization_subscriptions_base_plans_activate_execute(builder)
 }
 
-/// GET androidpublisher/v3/applications/{packageName}/subscriptions/{productId}/basePlans:batchMigratePrices
+/// POST androidpublisher/v3/applications/{packageName}/subscriptions/{productId}/basePlans:batchMigratePrices
 /// Batch variant of the MigrateBasePlanPrices endpoint. Set the `latencyTolerance` field on nested requests to PRODUCT_UPDATE_LATENCY_TOLERANCE_LATENCY_TOLERANT to achieve maximum update throughput.
 ///
 /// Returns `ClientRequestBuilder` for customization.
@@ -10238,7 +16130,6 @@ pub fn androidpublisher_monetization_subscriptions_base_plans_batch_migrate_pric
     client: &SimpleHttpClient,
     packageName: &String,
     productId: &String,
-    body: &BatchMigrateBasePlanPricesRequest,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
@@ -10249,15 +16140,13 @@ pub fn androidpublisher_monetization_subscriptions_base_plans_batch_migrate_pric
 
     // Build request
     let builder = client
-        .get(&endpoint_url)
+        .post(&endpoint_url)
         .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
 
-    builder
-        .body_json(body)
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+    Ok(builder)
 }
 
-/// GET androidpublisher/v3/applications/{packageName}/subscriptions/{productId}/basePlans:batchMigratePrices
+/// POST androidpublisher/v3/applications/{packageName}/subscriptions/{productId}/basePlans:batchMigratePrices
 /// Batch variant of the MigrateBasePlanPrices endpoint. Set the `latencyTolerance` field on nested requests to PRODUCT_UPDATE_LATENCY_TOLERANCE_LATENCY_TOLERANT to achieve maximum update throughput.
 ///
 /// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
@@ -10331,7 +16220,7 @@ pub fn androidpublisher_monetization_subscriptions_base_plans_batch_migrate_pric
         .map_pending(|_| ApiPending::Sending))
 }
 
-/// GET androidpublisher/v3/applications/{packageName}/subscriptions/{productId}/basePlans:batchMigratePrices
+/// POST androidpublisher/v3/applications/{packageName}/subscriptions/{productId}/basePlans:batchMigratePrices
 /// Batch variant of the MigrateBasePlanPrices endpoint. Set the `latencyTolerance` field on nested requests to PRODUCT_UPDATE_LATENCY_TOLERANCE_LATENCY_TOLERANT to achieve maximum update throughput.
 ///
 /// Takes a `ClientRequestBuilder`, builds and executes the request,
@@ -10373,11 +16262,9 @@ pub struct AndroidpublisherMonetizationSubscriptionsBasePlansBatchMigratePricesA
     pub packageName: String,
     /// Path parameter: productId
     pub productId: String,
-    /// Request body.
-    pub body: BatchMigrateBasePlanPricesRequest,
 }
 
-/// GET androidpublisher/v3/applications/{packageName}/subscriptions/{productId}/basePlans:batchMigratePrices
+/// POST androidpublisher/v3/applications/{packageName}/subscriptions/{productId}/basePlans:batchMigratePrices
 /// Batch variant of the MigrateBasePlanPrices endpoint. Set the `latencyTolerance` field on nested requests to PRODUCT_UPDATE_LATENCY_TOLERANCE_LATENCY_TOLERANT to achieve maximum update throughput.
 ///
 /// Simplest API - builds and executes the request in one call.
@@ -10404,12 +16291,11 @@ pub fn androidpublisher_monetization_subscriptions_base_plans_batch_migrate_pric
             client,
             &args.packageName,
             &args.productId,
-            &args.body,
         )?;
     androidpublisher_monetization_subscriptions_base_plans_batch_migrate_prices_execute(builder)
 }
 
-/// GET androidpublisher/v3/applications/{packageName}/subscriptions/{productId}/basePlans:batchUpdateStates
+/// POST androidpublisher/v3/applications/{packageName}/subscriptions/{productId}/basePlans:batchUpdateStates
 /// Activates or deactivates base plans across one or multiple subscriptions. Set the `latencyTolerance` field on nested requests to PRODUCT_UPDATE_LATENCY_TOLERANCE_LATENCY_TOLERANT to achieve maximum update throughput.
 ///
 /// Returns `ClientRequestBuilder` for customization.
@@ -10419,7 +16305,6 @@ pub fn androidpublisher_monetization_subscriptions_base_plans_batch_update_state
     client: &SimpleHttpClient,
     packageName: &String,
     productId: &String,
-    body: &BatchUpdateBasePlanStatesRequest,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
@@ -10430,15 +16315,13 @@ pub fn androidpublisher_monetization_subscriptions_base_plans_batch_update_state
 
     // Build request
     let builder = client
-        .get(&endpoint_url)
+        .post(&endpoint_url)
         .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
 
-    builder
-        .body_json(body)
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+    Ok(builder)
 }
 
-/// GET androidpublisher/v3/applications/{packageName}/subscriptions/{productId}/basePlans:batchUpdateStates
+/// POST androidpublisher/v3/applications/{packageName}/subscriptions/{productId}/basePlans:batchUpdateStates
 /// Activates or deactivates base plans across one or multiple subscriptions. Set the `latencyTolerance` field on nested requests to PRODUCT_UPDATE_LATENCY_TOLERANCE_LATENCY_TOLERANT to achieve maximum update throughput.
 ///
 /// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
@@ -10512,7 +16395,7 @@ pub fn androidpublisher_monetization_subscriptions_base_plans_batch_update_state
         .map_pending(|_| ApiPending::Sending))
 }
 
-/// GET androidpublisher/v3/applications/{packageName}/subscriptions/{productId}/basePlans:batchUpdateStates
+/// POST androidpublisher/v3/applications/{packageName}/subscriptions/{productId}/basePlans:batchUpdateStates
 /// Activates or deactivates base plans across one or multiple subscriptions. Set the `latencyTolerance` field on nested requests to PRODUCT_UPDATE_LATENCY_TOLERANCE_LATENCY_TOLERANT to achieve maximum update throughput.
 ///
 /// Takes a `ClientRequestBuilder`, builds and executes the request,
@@ -10554,11 +16437,9 @@ pub struct AndroidpublisherMonetizationSubscriptionsBasePlansBatchUpdateStatesAr
     pub packageName: String,
     /// Path parameter: productId
     pub productId: String,
-    /// Request body.
-    pub body: BatchUpdateBasePlanStatesRequest,
 }
 
-/// GET androidpublisher/v3/applications/{packageName}/subscriptions/{productId}/basePlans:batchUpdateStates
+/// POST androidpublisher/v3/applications/{packageName}/subscriptions/{productId}/basePlans:batchUpdateStates
 /// Activates or deactivates base plans across one or multiple subscriptions. Set the `latencyTolerance` field on nested requests to PRODUCT_UPDATE_LATENCY_TOLERANCE_LATENCY_TOLERANT to achieve maximum update throughput.
 ///
 /// Simplest API - builds and executes the request in one call.
@@ -10585,12 +16466,11 @@ pub fn androidpublisher_monetization_subscriptions_base_plans_batch_update_state
             client,
             &args.packageName,
             &args.productId,
-            &args.body,
         )?;
     androidpublisher_monetization_subscriptions_base_plans_batch_update_states_execute(builder)
 }
 
-/// GET androidpublisher/v3/applications/{packageName}/subscriptions/{productId}/basePlans/{basePlanId}:deactivate
+/// POST androidpublisher/v3/applications/{packageName}/subscriptions/{productId}/basePlans/{basePlanId}:deactivate
 /// Deactivates a base plan. Once deactivated, the base plan will become unavailable to new subscribers, but existing subscribers will maintain their subscription
 ///
 /// Returns `ClientRequestBuilder` for customization.
@@ -10601,7 +16481,6 @@ pub fn androidpublisher_monetization_subscriptions_base_plans_deactivate_builder
     packageName: &String,
     productId: &String,
     basePlanId: &String,
-    body: &DeactivateBasePlanRequest,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
@@ -10613,15 +16492,13 @@ pub fn androidpublisher_monetization_subscriptions_base_plans_deactivate_builder
 
     // Build request
     let builder = client
-        .get(&endpoint_url)
+        .post(&endpoint_url)
         .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
 
-    builder
-        .body_json(body)
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+    Ok(builder)
 }
 
-/// GET androidpublisher/v3/applications/{packageName}/subscriptions/{productId}/basePlans/{basePlanId}:deactivate
+/// POST androidpublisher/v3/applications/{packageName}/subscriptions/{productId}/basePlans/{basePlanId}:deactivate
 /// Deactivates a base plan. Once deactivated, the base plan will become unavailable to new subscribers, but existing subscribers will maintain their subscription
 ///
 /// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
@@ -10695,7 +16572,7 @@ pub fn androidpublisher_monetization_subscriptions_base_plans_deactivate_task(
         .map_pending(|_| ApiPending::Sending))
 }
 
-/// GET androidpublisher/v3/applications/{packageName}/subscriptions/{productId}/basePlans/{basePlanId}:deactivate
+/// POST androidpublisher/v3/applications/{packageName}/subscriptions/{productId}/basePlans/{basePlanId}:deactivate
 /// Deactivates a base plan. Once deactivated, the base plan will become unavailable to new subscribers, but existing subscribers will maintain their subscription
 ///
 /// Takes a `ClientRequestBuilder`, builds and executes the request,
@@ -10736,11 +16613,9 @@ pub struct AndroidpublisherMonetizationSubscriptionsBasePlansDeactivateArgs {
     pub productId: String,
     /// Path parameter: basePlanId
     pub basePlanId: String,
-    /// Request body.
-    pub body: DeactivateBasePlanRequest,
 }
 
-/// GET androidpublisher/v3/applications/{packageName}/subscriptions/{productId}/basePlans/{basePlanId}:deactivate
+/// POST androidpublisher/v3/applications/{packageName}/subscriptions/{productId}/basePlans/{basePlanId}:deactivate
 /// Deactivates a base plan. Once deactivated, the base plan will become unavailable to new subscribers, but existing subscribers will maintain their subscription
 ///
 /// Simplest API - builds and executes the request in one call.
@@ -10765,12 +16640,11 @@ pub fn androidpublisher_monetization_subscriptions_base_plans_deactivate(
         &args.packageName,
         &args.productId,
         &args.basePlanId,
-        &args.body,
     )?;
     androidpublisher_monetization_subscriptions_base_plans_deactivate_execute(builder)
 }
 
-/// GET androidpublisher/v3/applications/{packageName}/subscriptions/{productId}/basePlans/{basePlanId}
+/// DELETE androidpublisher/v3/applications/{packageName}/subscriptions/{productId}/basePlans/{basePlanId}
 /// Deletes a base plan. Can only be done for draft base plans. This action is irreversible.
 ///
 /// Returns `ClientRequestBuilder` for customization.
@@ -10792,13 +16666,13 @@ pub fn androidpublisher_monetization_subscriptions_base_plans_delete_builder(
 
     // Build request
     let builder = client
-        .get(&endpoint_url)
+        .delete(&endpoint_url)
         .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
 
     Ok(builder)
 }
 
-/// GET androidpublisher/v3/applications/{packageName}/subscriptions/{productId}/basePlans/{basePlanId}
+/// DELETE androidpublisher/v3/applications/{packageName}/subscriptions/{productId}/basePlans/{basePlanId}
 /// Deletes a base plan. Can only be done for draft base plans. This action is irreversible.
 ///
 /// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
@@ -10869,7 +16743,7 @@ pub fn androidpublisher_monetization_subscriptions_base_plans_delete_task(
         .map_pending(|_| ApiPending::Sending))
 }
 
-/// GET androidpublisher/v3/applications/{packageName}/subscriptions/{productId}/basePlans/{basePlanId}
+/// DELETE androidpublisher/v3/applications/{packageName}/subscriptions/{productId}/basePlans/{basePlanId}
 /// Deletes a base plan. Can only be done for draft base plans. This action is irreversible.
 ///
 /// Takes a `ClientRequestBuilder`, builds and executes the request,
@@ -10910,7 +16784,7 @@ pub struct AndroidpublisherMonetizationSubscriptionsBasePlansDeleteArgs {
     pub basePlanId: String,
 }
 
-/// GET androidpublisher/v3/applications/{packageName}/subscriptions/{productId}/basePlans/{basePlanId}
+/// DELETE androidpublisher/v3/applications/{packageName}/subscriptions/{productId}/basePlans/{basePlanId}
 /// Deletes a base plan. Can only be done for draft base plans. This action is irreversible.
 ///
 /// Simplest API - builds and executes the request in one call.
@@ -10937,7 +16811,7 @@ pub fn androidpublisher_monetization_subscriptions_base_plans_delete(
     androidpublisher_monetization_subscriptions_base_plans_delete_execute(builder)
 }
 
-/// GET androidpublisher/v3/applications/{packageName}/subscriptions/{productId}/basePlans/{basePlanId}:migratePrices
+/// POST androidpublisher/v3/applications/{packageName}/subscriptions/{productId}/basePlans/{basePlanId}:migratePrices
 /// Migrates subscribers from one or more legacy price cohorts to the current price. Requests result in Google Play notifying affected subscribers. Only up to 250 simultaneous legacy price cohorts are supported.
 ///
 /// Returns `ClientRequestBuilder` for customization.
@@ -10948,7 +16822,6 @@ pub fn androidpublisher_monetization_subscriptions_base_plans_migrate_prices_bui
     packageName: &String,
     productId: &String,
     basePlanId: &String,
-    body: &MigrateBasePlanPricesRequest,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
@@ -10960,15 +16833,13 @@ pub fn androidpublisher_monetization_subscriptions_base_plans_migrate_prices_bui
 
     // Build request
     let builder = client
-        .get(&endpoint_url)
+        .post(&endpoint_url)
         .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
 
-    builder
-        .body_json(body)
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+    Ok(builder)
 }
 
-/// GET androidpublisher/v3/applications/{packageName}/subscriptions/{productId}/basePlans/{basePlanId}:migratePrices
+/// POST androidpublisher/v3/applications/{packageName}/subscriptions/{productId}/basePlans/{basePlanId}:migratePrices
 /// Migrates subscribers from one or more legacy price cohorts to the current price. Requests result in Google Play notifying affected subscribers. Only up to 250 simultaneous legacy price cohorts are supported.
 ///
 /// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
@@ -11042,7 +16913,7 @@ pub fn androidpublisher_monetization_subscriptions_base_plans_migrate_prices_tas
         .map_pending(|_| ApiPending::Sending))
 }
 
-/// GET androidpublisher/v3/applications/{packageName}/subscriptions/{productId}/basePlans/{basePlanId}:migratePrices
+/// POST androidpublisher/v3/applications/{packageName}/subscriptions/{productId}/basePlans/{basePlanId}:migratePrices
 /// Migrates subscribers from one or more legacy price cohorts to the current price. Requests result in Google Play notifying affected subscribers. Only up to 250 simultaneous legacy price cohorts are supported.
 ///
 /// Takes a `ClientRequestBuilder`, builds and executes the request,
@@ -11085,11 +16956,9 @@ pub struct AndroidpublisherMonetizationSubscriptionsBasePlansMigratePricesArgs {
     pub productId: String,
     /// Path parameter: basePlanId
     pub basePlanId: String,
-    /// Request body.
-    pub body: MigrateBasePlanPricesRequest,
 }
 
-/// GET androidpublisher/v3/applications/{packageName}/subscriptions/{productId}/basePlans/{basePlanId}:migratePrices
+/// POST androidpublisher/v3/applications/{packageName}/subscriptions/{productId}/basePlans/{basePlanId}:migratePrices
 /// Migrates subscribers from one or more legacy price cohorts to the current price. Requests result in Google Play notifying affected subscribers. Only up to 250 simultaneous legacy price cohorts are supported.
 ///
 /// Simplest API - builds and executes the request in one call.
@@ -11116,12 +16985,11 @@ pub fn androidpublisher_monetization_subscriptions_base_plans_migrate_prices(
         &args.packageName,
         &args.productId,
         &args.basePlanId,
-        &args.body,
     )?;
     androidpublisher_monetization_subscriptions_base_plans_migrate_prices_execute(builder)
 }
 
-/// GET androidpublisher/v3/applications/{packageName}/subscriptions/{productId}/basePlans/{basePlanId}/offers/{offerId}:activate
+/// POST androidpublisher/v3/applications/{packageName}/subscriptions/{productId}/basePlans/{basePlanId}/offers/{offerId}:activate
 /// Activates a subscription offer. Once activated, subscription offers will be available to new subscribers.
 ///
 /// Returns `ClientRequestBuilder` for customization.
@@ -11133,7 +17001,6 @@ pub fn androidpublisher_monetization_subscriptions_base_plans_offers_activate_bu
     productId: &String,
     basePlanId: &String,
     offerId: &String,
-    body: &ActivateSubscriptionOfferRequest,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
@@ -11146,15 +17013,13 @@ pub fn androidpublisher_monetization_subscriptions_base_plans_offers_activate_bu
 
     // Build request
     let builder = client
-        .get(&endpoint_url)
+        .post(&endpoint_url)
         .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
 
-    builder
-        .body_json(body)
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+    Ok(builder)
 }
 
-/// GET androidpublisher/v3/applications/{packageName}/subscriptions/{productId}/basePlans/{basePlanId}/offers/{offerId}:activate
+/// POST androidpublisher/v3/applications/{packageName}/subscriptions/{productId}/basePlans/{basePlanId}/offers/{offerId}:activate
 /// Activates a subscription offer. Once activated, subscription offers will be available to new subscribers.
 ///
 /// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
@@ -11228,7 +17093,7 @@ pub fn androidpublisher_monetization_subscriptions_base_plans_offers_activate_ta
         .map_pending(|_| ApiPending::Sending))
 }
 
-/// GET androidpublisher/v3/applications/{packageName}/subscriptions/{productId}/basePlans/{basePlanId}/offers/{offerId}:activate
+/// POST androidpublisher/v3/applications/{packageName}/subscriptions/{productId}/basePlans/{basePlanId}/offers/{offerId}:activate
 /// Activates a subscription offer. Once activated, subscription offers will be available to new subscribers.
 ///
 /// Takes a `ClientRequestBuilder`, builds and executes the request,
@@ -11272,11 +17137,9 @@ pub struct AndroidpublisherMonetizationSubscriptionsBasePlansOffersActivateArgs 
     pub basePlanId: String,
     /// Path parameter: offerId
     pub offerId: String,
-    /// Request body.
-    pub body: ActivateSubscriptionOfferRequest,
 }
 
-/// GET androidpublisher/v3/applications/{packageName}/subscriptions/{productId}/basePlans/{basePlanId}/offers/{offerId}:activate
+/// POST androidpublisher/v3/applications/{packageName}/subscriptions/{productId}/basePlans/{basePlanId}/offers/{offerId}:activate
 /// Activates a subscription offer. Once activated, subscription offers will be available to new subscribers.
 ///
 /// Simplest API - builds and executes the request in one call.
@@ -11302,12 +17165,11 @@ pub fn androidpublisher_monetization_subscriptions_base_plans_offers_activate(
         &args.productId,
         &args.basePlanId,
         &args.offerId,
-        &args.body,
     )?;
     androidpublisher_monetization_subscriptions_base_plans_offers_activate_execute(builder)
 }
 
-/// GET androidpublisher/v3/applications/{packageName}/subscriptions/{productId}/basePlans/{basePlanId}/offers:batchGet
+/// POST androidpublisher/v3/applications/{packageName}/subscriptions/{productId}/basePlans/{basePlanId}/offers:batchGet
 /// Reads one or more subscription offers.
 ///
 /// Returns `ClientRequestBuilder` for customization.
@@ -11318,7 +17180,6 @@ pub fn androidpublisher_monetization_subscriptions_base_plans_offers_batch_get_b
     packageName: &String,
     productId: &String,
     basePlanId: &String,
-    body: &BatchGetSubscriptionOffersRequest,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
@@ -11330,15 +17191,13 @@ pub fn androidpublisher_monetization_subscriptions_base_plans_offers_batch_get_b
 
     // Build request
     let builder = client
-        .get(&endpoint_url)
+        .post(&endpoint_url)
         .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
 
-    builder
-        .body_json(body)
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+    Ok(builder)
 }
 
-/// GET androidpublisher/v3/applications/{packageName}/subscriptions/{productId}/basePlans/{basePlanId}/offers:batchGet
+/// POST androidpublisher/v3/applications/{packageName}/subscriptions/{productId}/basePlans/{basePlanId}/offers:batchGet
 /// Reads one or more subscription offers.
 ///
 /// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
@@ -11412,7 +17271,7 @@ pub fn androidpublisher_monetization_subscriptions_base_plans_offers_batch_get_t
         .map_pending(|_| ApiPending::Sending))
 }
 
-/// GET androidpublisher/v3/applications/{packageName}/subscriptions/{productId}/basePlans/{basePlanId}/offers:batchGet
+/// POST androidpublisher/v3/applications/{packageName}/subscriptions/{productId}/basePlans/{basePlanId}/offers:batchGet
 /// Reads one or more subscription offers.
 ///
 /// Takes a `ClientRequestBuilder`, builds and executes the request,
@@ -11456,11 +17315,9 @@ pub struct AndroidpublisherMonetizationSubscriptionsBasePlansOffersBatchGetArgs 
     pub productId: String,
     /// Path parameter: basePlanId
     pub basePlanId: String,
-    /// Request body.
-    pub body: BatchGetSubscriptionOffersRequest,
 }
 
-/// GET androidpublisher/v3/applications/{packageName}/subscriptions/{productId}/basePlans/{basePlanId}/offers:batchGet
+/// POST androidpublisher/v3/applications/{packageName}/subscriptions/{productId}/basePlans/{basePlanId}/offers:batchGet
 /// Reads one or more subscription offers.
 ///
 /// Simplest API - builds and executes the request in one call.
@@ -11487,12 +17344,11 @@ pub fn androidpublisher_monetization_subscriptions_base_plans_offers_batch_get(
         &args.packageName,
         &args.productId,
         &args.basePlanId,
-        &args.body,
     )?;
     androidpublisher_monetization_subscriptions_base_plans_offers_batch_get_execute(builder)
 }
 
-/// GET androidpublisher/v3/applications/{packageName}/subscriptions/{productId}/basePlans/{basePlanId}/offers:batchUpdate
+/// POST androidpublisher/v3/applications/{packageName}/subscriptions/{productId}/basePlans/{basePlanId}/offers:batchUpdate
 /// Updates a batch of subscription offers. Set the `latencyTolerance` field on nested requests to PRODUCT_UPDATE_LATENCY_TOLERANCE_LATENCY_TOLERANT to achieve maximum update throughput.
 ///
 /// Returns `ClientRequestBuilder` for customization.
@@ -11503,7 +17359,6 @@ pub fn androidpublisher_monetization_subscriptions_base_plans_offers_batch_updat
     packageName: &String,
     productId: &String,
     basePlanId: &String,
-    body: &BatchUpdateSubscriptionOffersRequest,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
@@ -11515,15 +17370,13 @@ pub fn androidpublisher_monetization_subscriptions_base_plans_offers_batch_updat
 
     // Build request
     let builder = client
-        .get(&endpoint_url)
+        .post(&endpoint_url)
         .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
 
-    builder
-        .body_json(body)
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+    Ok(builder)
 }
 
-/// GET androidpublisher/v3/applications/{packageName}/subscriptions/{productId}/basePlans/{basePlanId}/offers:batchUpdate
+/// POST androidpublisher/v3/applications/{packageName}/subscriptions/{productId}/basePlans/{basePlanId}/offers:batchUpdate
 /// Updates a batch of subscription offers. Set the `latencyTolerance` field on nested requests to PRODUCT_UPDATE_LATENCY_TOLERANCE_LATENCY_TOLERANT to achieve maximum update throughput.
 ///
 /// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
@@ -11597,7 +17450,7 @@ pub fn androidpublisher_monetization_subscriptions_base_plans_offers_batch_updat
         .map_pending(|_| ApiPending::Sending))
 }
 
-/// GET androidpublisher/v3/applications/{packageName}/subscriptions/{productId}/basePlans/{basePlanId}/offers:batchUpdate
+/// POST androidpublisher/v3/applications/{packageName}/subscriptions/{productId}/basePlans/{basePlanId}/offers:batchUpdate
 /// Updates a batch of subscription offers. Set the `latencyTolerance` field on nested requests to PRODUCT_UPDATE_LATENCY_TOLERANCE_LATENCY_TOLERANT to achieve maximum update throughput.
 ///
 /// Takes a `ClientRequestBuilder`, builds and executes the request,
@@ -11641,11 +17494,9 @@ pub struct AndroidpublisherMonetizationSubscriptionsBasePlansOffersBatchUpdateAr
     pub productId: String,
     /// Path parameter: basePlanId
     pub basePlanId: String,
-    /// Request body.
-    pub body: BatchUpdateSubscriptionOffersRequest,
 }
 
-/// GET androidpublisher/v3/applications/{packageName}/subscriptions/{productId}/basePlans/{basePlanId}/offers:batchUpdate
+/// POST androidpublisher/v3/applications/{packageName}/subscriptions/{productId}/basePlans/{basePlanId}/offers:batchUpdate
 /// Updates a batch of subscription offers. Set the `latencyTolerance` field on nested requests to PRODUCT_UPDATE_LATENCY_TOLERANCE_LATENCY_TOLERANT to achieve maximum update throughput.
 ///
 /// Simplest API - builds and executes the request in one call.
@@ -11673,12 +17524,11 @@ pub fn androidpublisher_monetization_subscriptions_base_plans_offers_batch_updat
             &args.packageName,
             &args.productId,
             &args.basePlanId,
-            &args.body,
         )?;
     androidpublisher_monetization_subscriptions_base_plans_offers_batch_update_execute(builder)
 }
 
-/// GET androidpublisher/v3/applications/{packageName}/subscriptions/{productId}/basePlans/{basePlanId}/offers:batchUpdateStates
+/// POST androidpublisher/v3/applications/{packageName}/subscriptions/{productId}/basePlans/{basePlanId}/offers:batchUpdateStates
 /// Updates a batch of subscription offer states. Set the `latencyTolerance` field on nested requests to PRODUCT_UPDATE_LATENCY_TOLERANCE_LATENCY_TOLERANT to achieve maximum update throughput.
 ///
 /// Returns `ClientRequestBuilder` for customization.
@@ -11689,7 +17539,6 @@ pub fn androidpublisher_monetization_subscriptions_base_plans_offers_batch_updat
     packageName: &String,
     productId: &String,
     basePlanId: &String,
-    body: &BatchUpdateSubscriptionOfferStatesRequest,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
@@ -11701,15 +17550,13 @@ pub fn androidpublisher_monetization_subscriptions_base_plans_offers_batch_updat
 
     // Build request
     let builder = client
-        .get(&endpoint_url)
+        .post(&endpoint_url)
         .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
 
-    builder
-        .body_json(body)
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+    Ok(builder)
 }
 
-/// GET androidpublisher/v3/applications/{packageName}/subscriptions/{productId}/basePlans/{basePlanId}/offers:batchUpdateStates
+/// POST androidpublisher/v3/applications/{packageName}/subscriptions/{productId}/basePlans/{basePlanId}/offers:batchUpdateStates
 /// Updates a batch of subscription offer states. Set the `latencyTolerance` field on nested requests to PRODUCT_UPDATE_LATENCY_TOLERANCE_LATENCY_TOLERANT to achieve maximum update throughput.
 ///
 /// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
@@ -11784,7 +17631,7 @@ pub fn androidpublisher_monetization_subscriptions_base_plans_offers_batch_updat
         .map_pending(|_| ApiPending::Sending))
 }
 
-/// GET androidpublisher/v3/applications/{packageName}/subscriptions/{productId}/basePlans/{basePlanId}/offers:batchUpdateStates
+/// POST androidpublisher/v3/applications/{packageName}/subscriptions/{productId}/basePlans/{basePlanId}/offers:batchUpdateStates
 /// Updates a batch of subscription offer states. Set the `latencyTolerance` field on nested requests to PRODUCT_UPDATE_LATENCY_TOLERANCE_LATENCY_TOLERANT to achieve maximum update throughput.
 ///
 /// Takes a `ClientRequestBuilder`, builds and executes the request,
@@ -11830,11 +17677,9 @@ pub struct AndroidpublisherMonetizationSubscriptionsBasePlansOffersBatchUpdateSt
     pub productId: String,
     /// Path parameter: basePlanId
     pub basePlanId: String,
-    /// Request body.
-    pub body: BatchUpdateSubscriptionOfferStatesRequest,
 }
 
-/// GET androidpublisher/v3/applications/{packageName}/subscriptions/{productId}/basePlans/{basePlanId}/offers:batchUpdateStates
+/// POST androidpublisher/v3/applications/{packageName}/subscriptions/{productId}/basePlans/{basePlanId}/offers:batchUpdateStates
 /// Updates a batch of subscription offer states. Set the `latencyTolerance` field on nested requests to PRODUCT_UPDATE_LATENCY_TOLERANCE_LATENCY_TOLERANT to achieve maximum update throughput.
 ///
 /// Simplest API - builds and executes the request in one call.
@@ -11862,14 +17707,13 @@ pub fn androidpublisher_monetization_subscriptions_base_plans_offers_batch_updat
             &args.packageName,
             &args.productId,
             &args.basePlanId,
-            &args.body,
         )?;
     androidpublisher_monetization_subscriptions_base_plans_offers_batch_update_states_execute(
         builder,
     )
 }
 
-/// GET androidpublisher/v3/applications/{packageName}/subscriptions/{productId}/basePlans/{basePlanId}/offers
+/// POST androidpublisher/v3/applications/{packageName}/subscriptions/{productId}/basePlans/{basePlanId}/offers
 /// Creates a new subscription offer. Only auto-renewing base plans can have subscription offers. The offer state will be DRAFT until it is activated.
 ///
 /// Returns `ClientRequestBuilder` for customization.
@@ -11880,9 +17724,8 @@ pub fn androidpublisher_monetization_subscriptions_base_plans_offers_create_buil
     packageName: &String,
     productId: &String,
     basePlanId: &String,
-    offerId: &Option<String>,
-    regionsVersion_version: &Option<String>,
-    body: &SubscriptionOffer,
+    offerId: &Option<Option<String>>,
+    regionsVersion_version: &Option<Option<String>>,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
@@ -11908,15 +17751,13 @@ pub fn androidpublisher_monetization_subscriptions_base_plans_offers_create_buil
     };
 
     let builder = client
-        .get(&url_with_query)
+        .post(&url_with_query)
         .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
 
-    builder
-        .body_json(body)
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+    Ok(builder)
 }
 
-/// GET androidpublisher/v3/applications/{packageName}/subscriptions/{productId}/basePlans/{basePlanId}/offers
+/// POST androidpublisher/v3/applications/{packageName}/subscriptions/{productId}/basePlans/{basePlanId}/offers
 /// Creates a new subscription offer. Only auto-renewing base plans can have subscription offers. The offer state will be DRAFT until it is activated.
 ///
 /// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
@@ -11990,7 +17831,7 @@ pub fn androidpublisher_monetization_subscriptions_base_plans_offers_create_task
         .map_pending(|_| ApiPending::Sending))
 }
 
-/// GET androidpublisher/v3/applications/{packageName}/subscriptions/{productId}/basePlans/{basePlanId}/offers
+/// POST androidpublisher/v3/applications/{packageName}/subscriptions/{productId}/basePlans/{basePlanId}/offers
 /// Creates a new subscription offer. Only auto-renewing base plans can have subscription offers. The offer state will be DRAFT until it is activated.
 ///
 /// Takes a `ClientRequestBuilder`, builds and executes the request,
@@ -12032,14 +17873,12 @@ pub struct AndroidpublisherMonetizationSubscriptionsBasePlansOffersCreateArgs {
     /// Path parameter: basePlanId
     pub basePlanId: String,
     /// Query parameter: offerId
-    pub offerId: Option<String>,
+    pub offerId: Option<Option<String>>,
     /// Query parameter: regionsVersion_version
-    pub regionsVersion_version: Option<String>,
-    /// Request body.
-    pub body: SubscriptionOffer,
+    pub regionsVersion_version: Option<Option<String>>,
 }
 
-/// GET androidpublisher/v3/applications/{packageName}/subscriptions/{productId}/basePlans/{basePlanId}/offers
+/// POST androidpublisher/v3/applications/{packageName}/subscriptions/{productId}/basePlans/{basePlanId}/offers
 /// Creates a new subscription offer. Only auto-renewing base plans can have subscription offers. The offer state will be DRAFT until it is activated.
 ///
 /// Simplest API - builds and executes the request in one call.
@@ -12066,12 +17905,11 @@ pub fn androidpublisher_monetization_subscriptions_base_plans_offers_create(
         &args.basePlanId,
         &args.offerId,
         &args.regionsVersion_version,
-        &args.body,
     )?;
     androidpublisher_monetization_subscriptions_base_plans_offers_create_execute(builder)
 }
 
-/// GET androidpublisher/v3/applications/{packageName}/subscriptions/{productId}/basePlans/{basePlanId}/offers/{offerId}:deactivate
+/// POST androidpublisher/v3/applications/{packageName}/subscriptions/{productId}/basePlans/{basePlanId}/offers/{offerId}:deactivate
 /// Deactivates a subscription offer. Once deactivated, existing subscribers will maintain their subscription, but the offer will become unavailable to new subscribers.
 ///
 /// Returns `ClientRequestBuilder` for customization.
@@ -12083,7 +17921,6 @@ pub fn androidpublisher_monetization_subscriptions_base_plans_offers_deactivate_
     productId: &String,
     basePlanId: &String,
     offerId: &String,
-    body: &DeactivateSubscriptionOfferRequest,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
@@ -12096,15 +17933,13 @@ pub fn androidpublisher_monetization_subscriptions_base_plans_offers_deactivate_
 
     // Build request
     let builder = client
-        .get(&endpoint_url)
+        .post(&endpoint_url)
         .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
 
-    builder
-        .body_json(body)
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+    Ok(builder)
 }
 
-/// GET androidpublisher/v3/applications/{packageName}/subscriptions/{productId}/basePlans/{basePlanId}/offers/{offerId}:deactivate
+/// POST androidpublisher/v3/applications/{packageName}/subscriptions/{productId}/basePlans/{basePlanId}/offers/{offerId}:deactivate
 /// Deactivates a subscription offer. Once deactivated, existing subscribers will maintain their subscription, but the offer will become unavailable to new subscribers.
 ///
 /// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
@@ -12178,7 +18013,7 @@ pub fn androidpublisher_monetization_subscriptions_base_plans_offers_deactivate_
         .map_pending(|_| ApiPending::Sending))
 }
 
-/// GET androidpublisher/v3/applications/{packageName}/subscriptions/{productId}/basePlans/{basePlanId}/offers/{offerId}:deactivate
+/// POST androidpublisher/v3/applications/{packageName}/subscriptions/{productId}/basePlans/{basePlanId}/offers/{offerId}:deactivate
 /// Deactivates a subscription offer. Once deactivated, existing subscribers will maintain their subscription, but the offer will become unavailable to new subscribers.
 ///
 /// Takes a `ClientRequestBuilder`, builds and executes the request,
@@ -12222,11 +18057,9 @@ pub struct AndroidpublisherMonetizationSubscriptionsBasePlansOffersDeactivateArg
     pub basePlanId: String,
     /// Path parameter: offerId
     pub offerId: String,
-    /// Request body.
-    pub body: DeactivateSubscriptionOfferRequest,
 }
 
-/// GET androidpublisher/v3/applications/{packageName}/subscriptions/{productId}/basePlans/{basePlanId}/offers/{offerId}:deactivate
+/// POST androidpublisher/v3/applications/{packageName}/subscriptions/{productId}/basePlans/{basePlanId}/offers/{offerId}:deactivate
 /// Deactivates a subscription offer. Once deactivated, existing subscribers will maintain their subscription, but the offer will become unavailable to new subscribers.
 ///
 /// Simplest API - builds and executes the request in one call.
@@ -12252,12 +18085,11 @@ pub fn androidpublisher_monetization_subscriptions_base_plans_offers_deactivate(
         &args.productId,
         &args.basePlanId,
         &args.offerId,
-        &args.body,
     )?;
     androidpublisher_monetization_subscriptions_base_plans_offers_deactivate_execute(builder)
 }
 
-/// GET androidpublisher/v3/applications/{packageName}/subscriptions/{productId}/basePlans/{basePlanId}/offers/{offerId}
+/// DELETE androidpublisher/v3/applications/{packageName}/subscriptions/{productId}/basePlans/{basePlanId}/offers/{offerId}
 /// Deletes a subscription offer. Can only be done for draft offers. This action is irreversible.
 ///
 /// Returns `ClientRequestBuilder` for customization.
@@ -12281,13 +18113,13 @@ pub fn androidpublisher_monetization_subscriptions_base_plans_offers_delete_buil
 
     // Build request
     let builder = client
-        .get(&endpoint_url)
+        .delete(&endpoint_url)
         .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
 
     Ok(builder)
 }
 
-/// GET androidpublisher/v3/applications/{packageName}/subscriptions/{productId}/basePlans/{basePlanId}/offers/{offerId}
+/// DELETE androidpublisher/v3/applications/{packageName}/subscriptions/{productId}/basePlans/{basePlanId}/offers/{offerId}
 /// Deletes a subscription offer. Can only be done for draft offers. This action is irreversible.
 ///
 /// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
@@ -12358,7 +18190,7 @@ pub fn androidpublisher_monetization_subscriptions_base_plans_offers_delete_task
         .map_pending(|_| ApiPending::Sending))
 }
 
-/// GET androidpublisher/v3/applications/{packageName}/subscriptions/{productId}/basePlans/{basePlanId}/offers/{offerId}
+/// DELETE androidpublisher/v3/applications/{packageName}/subscriptions/{productId}/basePlans/{basePlanId}/offers/{offerId}
 /// Deletes a subscription offer. Can only be done for draft offers. This action is irreversible.
 ///
 /// Takes a `ClientRequestBuilder`, builds and executes the request,
@@ -12401,7 +18233,7 @@ pub struct AndroidpublisherMonetizationSubscriptionsBasePlansOffersDeleteArgs {
     pub offerId: String,
 }
 
-/// GET androidpublisher/v3/applications/{packageName}/subscriptions/{productId}/basePlans/{basePlanId}/offers/{offerId}
+/// DELETE androidpublisher/v3/applications/{packageName}/subscriptions/{productId}/basePlans/{basePlanId}/offers/{offerId}
 /// Deletes a subscription offer. Can only be done for draft offers. This action is irreversible.
 ///
 /// Simplest API - builds and executes the request in one call.
@@ -12429,6 +18261,600 @@ pub fn androidpublisher_monetization_subscriptions_base_plans_offers_delete(
     androidpublisher_monetization_subscriptions_base_plans_offers_delete_execute(builder)
 }
 
+/// GET androidpublisher/v3/applications/{packageName}/subscriptions/{productId}/basePlans/{basePlanId}/offers/{offerId}
+/// Reads a single offer
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `androidpublisher_monetization_subscriptions_base_plans_offers_get_execute()` to send, or `androidpublisher_monetization_subscriptions_base_plans_offers_get` for simplest API.
+
+pub fn androidpublisher_monetization_subscriptions_base_plans_offers_get_builder(
+    client: &SimpleHttpClient,
+    packageName: &String,
+    productId: &String,
+    basePlanId: &String,
+    offerId: &String,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!(
+        "https://androidpublisher.googleapis.com/androidpublisher/v3/applications/{}/subscriptions/{}/basePlans/{}/offers/{}",
+        packageName,
+        productId,
+        basePlanId,
+        offerId,
+    );
+
+    // Build request
+    let builder = client
+        .get(&endpoint_url)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// GET androidpublisher/v3/applications/{packageName}/subscriptions/{productId}/basePlans/{basePlanId}/offers/{offerId}
+/// Reads a single offer
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `androidpublisher_monetization_subscriptions_base_plans_offers_get_execute()` or `androidpublisher_monetization_subscriptions_base_plans_offers_get`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `androidpublisher_monetization_subscriptions_base_plans_offers_get_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn androidpublisher_monetization_subscriptions_base_plans_offers_get_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<SubscriptionOffer>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: SubscriptionOffer = serde_json::from_str(&body)
+                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// GET androidpublisher/v3/applications/{packageName}/subscriptions/{productId}/basePlans/{basePlanId}/offers/{offerId}
+/// Reads a single offer
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `androidpublisher_monetization_subscriptions_base_plans_offers_get_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `androidpublisher_monetization_subscriptions_base_plans_offers_get_task()`.
+/// For the simplest API, use `androidpublisher_monetization_subscriptions_base_plans_offers_get()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `androidpublisher_monetization_subscriptions_base_plans_offers_get_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn androidpublisher_monetization_subscriptions_base_plans_offers_get_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<SubscriptionOffer>, ApiError>, P = ApiPending>
+        + Send
+        + 'static,
+    ApiError,
+> {
+    let task = androidpublisher_monetization_subscriptions_base_plans_offers_get_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`androidpublisher_monetization_subscriptions_base_plans_offers_get`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct AndroidpublisherMonetizationSubscriptionsBasePlansOffersGetArgs {
+    /// Path parameter: packageName
+    pub packageName: String,
+    /// Path parameter: productId
+    pub productId: String,
+    /// Path parameter: basePlanId
+    pub basePlanId: String,
+    /// Path parameter: offerId
+    pub offerId: String,
+}
+
+/// GET androidpublisher/v3/applications/{packageName}/subscriptions/{productId}/basePlans/{basePlanId}/offers/{offerId}
+/// Reads a single offer
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `androidpublisher_monetization_subscriptions_base_plans_offers_get_builder()` + `androidpublisher_monetization_subscriptions_base_plans_offers_get_execute()`.
+/// For task-level control, use `androidpublisher_monetization_subscriptions_base_plans_offers_get_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn androidpublisher_monetization_subscriptions_base_plans_offers_get(
+    client: &SimpleHttpClient,
+    args: &AndroidpublisherMonetizationSubscriptionsBasePlansOffersGetArgs,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<SubscriptionOffer>, ApiError>, P = ApiPending>
+        + Send
+        + 'static,
+    ApiError,
+> {
+    let builder = androidpublisher_monetization_subscriptions_base_plans_offers_get_builder(
+        client,
+        &args.packageName,
+        &args.productId,
+        &args.basePlanId,
+        &args.offerId,
+    )?;
+    androidpublisher_monetization_subscriptions_base_plans_offers_get_execute(builder)
+}
+
+/// GET androidpublisher/v3/applications/{packageName}/subscriptions/{productId}/basePlans/{basePlanId}/offers
+/// Lists all offers under a given subscription.
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `androidpublisher_monetization_subscriptions_base_plans_offers_list_execute()` to send, or `androidpublisher_monetization_subscriptions_base_plans_offers_list` for simplest API.
+
+pub fn androidpublisher_monetization_subscriptions_base_plans_offers_list_builder(
+    client: &SimpleHttpClient,
+    packageName: &String,
+    productId: &String,
+    basePlanId: &String,
+    pageSize: &Option<Option<String>>,
+    pageToken: &Option<Option<String>>,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!(
+        "https://androidpublisher.googleapis.com/androidpublisher/v3/applications/{}/subscriptions/{}/basePlans/{}/offers",
+        packageName,
+        productId,
+        basePlanId,
+    );
+
+    // Build request
+    let mut query_parts = Vec::new();
+    if let Some(val) = pageSize.as_ref() {
+        query_parts.push(format!("pageSize={}", val));
+    }
+    if let Some(val) = pageToken.as_ref() {
+        query_parts.push(format!("pageToken={}", val));
+    }
+
+    let url_with_query = if query_parts.is_empty() {
+        endpoint_url
+    } else {
+        format!("{}?{}", endpoint_url, query_parts.join("&"))
+    };
+
+    let builder = client
+        .get(&url_with_query)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// GET androidpublisher/v3/applications/{packageName}/subscriptions/{productId}/basePlans/{basePlanId}/offers
+/// Lists all offers under a given subscription.
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `androidpublisher_monetization_subscriptions_base_plans_offers_list_execute()` or `androidpublisher_monetization_subscriptions_base_plans_offers_list`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `androidpublisher_monetization_subscriptions_base_plans_offers_list_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn androidpublisher_monetization_subscriptions_base_plans_offers_list_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<ListSubscriptionOffersResponse>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: ListSubscriptionOffersResponse = serde_json::from_str(&body)
+                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// GET androidpublisher/v3/applications/{packageName}/subscriptions/{productId}/basePlans/{basePlanId}/offers
+/// Lists all offers under a given subscription.
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `androidpublisher_monetization_subscriptions_base_plans_offers_list_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `androidpublisher_monetization_subscriptions_base_plans_offers_list_task()`.
+/// For the simplest API, use `androidpublisher_monetization_subscriptions_base_plans_offers_list()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `androidpublisher_monetization_subscriptions_base_plans_offers_list_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn androidpublisher_monetization_subscriptions_base_plans_offers_list_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<
+            D = Result<ApiResponse<ListSubscriptionOffersResponse>, ApiError>,
+            P = ApiPending,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    let task = androidpublisher_monetization_subscriptions_base_plans_offers_list_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`androidpublisher_monetization_subscriptions_base_plans_offers_list`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct AndroidpublisherMonetizationSubscriptionsBasePlansOffersListArgs {
+    /// Path parameter: packageName
+    pub packageName: String,
+    /// Path parameter: productId
+    pub productId: String,
+    /// Path parameter: basePlanId
+    pub basePlanId: String,
+    /// Query parameter: pageSize
+    pub pageSize: Option<Option<String>>,
+    /// Query parameter: pageToken
+    pub pageToken: Option<Option<String>>,
+}
+
+/// GET androidpublisher/v3/applications/{packageName}/subscriptions/{productId}/basePlans/{basePlanId}/offers
+/// Lists all offers under a given subscription.
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `androidpublisher_monetization_subscriptions_base_plans_offers_list_builder()` + `androidpublisher_monetization_subscriptions_base_plans_offers_list_execute()`.
+/// For task-level control, use `androidpublisher_monetization_subscriptions_base_plans_offers_list_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn androidpublisher_monetization_subscriptions_base_plans_offers_list(
+    client: &SimpleHttpClient,
+    args: &AndroidpublisherMonetizationSubscriptionsBasePlansOffersListArgs,
+) -> Result<
+    impl StreamIterator<
+            D = Result<ApiResponse<ListSubscriptionOffersResponse>, ApiError>,
+            P = ApiPending,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    let builder = androidpublisher_monetization_subscriptions_base_plans_offers_list_builder(
+        client,
+        &args.packageName,
+        &args.productId,
+        &args.basePlanId,
+        &args.pageSize,
+        &args.pageToken,
+    )?;
+    androidpublisher_monetization_subscriptions_base_plans_offers_list_execute(builder)
+}
+
+/// PATCH androidpublisher/v3/applications/{packageName}/subscriptions/{productId}/basePlans/{basePlanId}/offers/{offerId}
+/// Updates an existing subscription offer.
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `androidpublisher_monetization_subscriptions_base_plans_offers_patch_execute()` to send, or `androidpublisher_monetization_subscriptions_base_plans_offers_patch` for simplest API.
+
+pub fn androidpublisher_monetization_subscriptions_base_plans_offers_patch_builder(
+    client: &SimpleHttpClient,
+    packageName: &String,
+    productId: &String,
+    basePlanId: &String,
+    offerId: &String,
+    allowMissing: &Option<Option<String>>,
+    latencyTolerance: &Option<Option<String>>,
+    regionsVersion_version: &Option<Option<String>>,
+    updateMask: &Option<Option<String>>,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!(
+        "https://androidpublisher.googleapis.com/androidpublisher/v3/applications/{}/subscriptions/{}/basePlans/{}/offers/{}",
+        packageName,
+        productId,
+        basePlanId,
+        offerId,
+    );
+
+    // Build request
+    let mut query_parts = Vec::new();
+    if let Some(val) = allowMissing.as_ref() {
+        query_parts.push(format!("allowMissing={}", val));
+    }
+    if let Some(val) = latencyTolerance.as_ref() {
+        query_parts.push(format!("latencyTolerance={}", val));
+    }
+    if let Some(val) = regionsVersion_version.as_ref() {
+        query_parts.push(format!("regionsVersion.version={}", val));
+    }
+    if let Some(val) = updateMask.as_ref() {
+        query_parts.push(format!("updateMask={}", val));
+    }
+
+    let url_with_query = if query_parts.is_empty() {
+        endpoint_url
+    } else {
+        format!("{}?{}", endpoint_url, query_parts.join("&"))
+    };
+
+    let builder = client
+        .patch(&url_with_query)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// PATCH androidpublisher/v3/applications/{packageName}/subscriptions/{productId}/basePlans/{basePlanId}/offers/{offerId}
+/// Updates an existing subscription offer.
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `androidpublisher_monetization_subscriptions_base_plans_offers_patch_execute()` or `androidpublisher_monetization_subscriptions_base_plans_offers_patch`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `androidpublisher_monetization_subscriptions_base_plans_offers_patch_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn androidpublisher_monetization_subscriptions_base_plans_offers_patch_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<SubscriptionOffer>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: SubscriptionOffer = serde_json::from_str(&body)
+                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// PATCH androidpublisher/v3/applications/{packageName}/subscriptions/{productId}/basePlans/{basePlanId}/offers/{offerId}
+/// Updates an existing subscription offer.
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `androidpublisher_monetization_subscriptions_base_plans_offers_patch_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `androidpublisher_monetization_subscriptions_base_plans_offers_patch_task()`.
+/// For the simplest API, use `androidpublisher_monetization_subscriptions_base_plans_offers_patch()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `androidpublisher_monetization_subscriptions_base_plans_offers_patch_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn androidpublisher_monetization_subscriptions_base_plans_offers_patch_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<SubscriptionOffer>, ApiError>, P = ApiPending>
+        + Send
+        + 'static,
+    ApiError,
+> {
+    let task = androidpublisher_monetization_subscriptions_base_plans_offers_patch_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`androidpublisher_monetization_subscriptions_base_plans_offers_patch`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct AndroidpublisherMonetizationSubscriptionsBasePlansOffersPatchArgs {
+    /// Path parameter: packageName
+    pub packageName: String,
+    /// Path parameter: productId
+    pub productId: String,
+    /// Path parameter: basePlanId
+    pub basePlanId: String,
+    /// Path parameter: offerId
+    pub offerId: String,
+    /// Query parameter: allowMissing
+    pub allowMissing: Option<Option<String>>,
+    /// Query parameter: latencyTolerance
+    pub latencyTolerance: Option<Option<String>>,
+    /// Query parameter: regionsVersion_version
+    pub regionsVersion_version: Option<Option<String>>,
+    /// Query parameter: updateMask
+    pub updateMask: Option<Option<String>>,
+}
+
+/// PATCH androidpublisher/v3/applications/{packageName}/subscriptions/{productId}/basePlans/{basePlanId}/offers/{offerId}
+/// Updates an existing subscription offer.
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `androidpublisher_monetization_subscriptions_base_plans_offers_patch_builder()` + `androidpublisher_monetization_subscriptions_base_plans_offers_patch_execute()`.
+/// For task-level control, use `androidpublisher_monetization_subscriptions_base_plans_offers_patch_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn androidpublisher_monetization_subscriptions_base_plans_offers_patch(
+    client: &SimpleHttpClient,
+    args: &AndroidpublisherMonetizationSubscriptionsBasePlansOffersPatchArgs,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<SubscriptionOffer>, ApiError>, P = ApiPending>
+        + Send
+        + 'static,
+    ApiError,
+> {
+    let builder = androidpublisher_monetization_subscriptions_base_plans_offers_patch_builder(
+        client,
+        &args.packageName,
+        &args.productId,
+        &args.basePlanId,
+        &args.offerId,
+        &args.allowMissing,
+        &args.latencyTolerance,
+        &args.regionsVersion_version,
+        &args.updateMask,
+    )?;
+    androidpublisher_monetization_subscriptions_base_plans_offers_patch_execute(builder)
+}
+
 /// GET androidpublisher/v3/applications/{packageName}/orders:batchGet
 /// Get order details for a list of orders.
 ///
@@ -12438,7 +18864,7 @@ pub fn androidpublisher_monetization_subscriptions_base_plans_offers_delete(
 pub fn androidpublisher_orders_batchget_builder(
     client: &SimpleHttpClient,
     packageName: &String,
-    orderIds: &Option<String>,
+    orderIds: &Option<Option<String>>,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
@@ -12577,7 +19003,7 @@ pub struct AndroidpublisherOrdersBatchgetArgs {
     /// Path parameter: packageName
     pub packageName: String,
     /// Query parameter: orderIds
-    pub orderIds: Option<String>,
+    pub orderIds: Option<Option<String>>,
 }
 
 /// GET androidpublisher/v3/applications/{packageName}/orders:batchGet
@@ -12765,7 +19191,7 @@ pub fn androidpublisher_orders_get(
     androidpublisher_orders_get_execute(builder)
 }
 
-/// GET androidpublisher/v3/applications/{packageName}/orders/{orderId}:refund
+/// POST androidpublisher/v3/applications/{packageName}/orders/{orderId}:refund
 /// Refunds a user's subscription or in-app purchase order. Orders older than 3 years cannot be refunded.
 ///
 /// Returns `ClientRequestBuilder` for customization.
@@ -12775,7 +19201,7 @@ pub fn androidpublisher_orders_refund_builder(
     client: &SimpleHttpClient,
     packageName: &String,
     orderId: &String,
-    revoke: &Option<bool>,
+    revoke: &Option<Option<String>>,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
@@ -12797,13 +19223,13 @@ pub fn androidpublisher_orders_refund_builder(
     };
 
     let builder = client
-        .get(&url_with_query)
+        .post(&url_with_query)
         .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
 
     Ok(builder)
 }
 
-/// GET androidpublisher/v3/applications/{packageName}/orders/{orderId}:refund
+/// POST androidpublisher/v3/applications/{packageName}/orders/{orderId}:refund
 /// Refunds a user's subscription or in-app purchase order. Orders older than 3 years cannot be refunded.
 ///
 /// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
@@ -12874,7 +19300,7 @@ pub fn androidpublisher_orders_refund_task(
         .map_pending(|_| ApiPending::Sending))
 }
 
-/// GET androidpublisher/v3/applications/{packageName}/orders/{orderId}:refund
+/// POST androidpublisher/v3/applications/{packageName}/orders/{orderId}:refund
 /// Refunds a user's subscription or in-app purchase order. Orders older than 3 years cannot be refunded.
 ///
 /// Takes a `ClientRequestBuilder`, builds and executes the request,
@@ -12912,10 +19338,10 @@ pub struct AndroidpublisherOrdersRefundArgs {
     /// Path parameter: orderId
     pub orderId: String,
     /// Query parameter: revoke
-    pub revoke: Option<bool>,
+    pub revoke: Option<Option<String>>,
 }
 
-/// GET androidpublisher/v3/applications/{packageName}/orders/{orderId}:refund
+/// POST androidpublisher/v3/applications/{packageName}/orders/{orderId}:refund
 /// Refunds a user's subscription or in-app purchase order. Orders older than 3 years cannot be refunded.
 ///
 /// Simplest API - builds and executes the request in one call.
@@ -12942,7 +19368,7 @@ pub fn androidpublisher_orders_refund(
     androidpublisher_orders_refund_execute(builder)
 }
 
-/// GET androidpublisher/v3/applications/{packageName}/purchases/products/{productId}/tokens/{token}:acknowledge
+/// POST androidpublisher/v3/applications/{packageName}/purchases/products/{productId}/tokens/{token}:acknowledge
 /// Acknowledges a purchase of an inapp item.
 ///
 /// Returns `ClientRequestBuilder` for customization.
@@ -12953,7 +19379,6 @@ pub fn androidpublisher_purchases_products_acknowledge_builder(
     packageName: &String,
     productId: &String,
     token: &String,
-    body: &ProductPurchasesAcknowledgeRequest,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
@@ -12965,15 +19390,13 @@ pub fn androidpublisher_purchases_products_acknowledge_builder(
 
     // Build request
     let builder = client
-        .get(&endpoint_url)
+        .post(&endpoint_url)
         .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
 
-    builder
-        .body_json(body)
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+    Ok(builder)
 }
 
-/// GET androidpublisher/v3/applications/{packageName}/purchases/products/{productId}/tokens/{token}:acknowledge
+/// POST androidpublisher/v3/applications/{packageName}/purchases/products/{productId}/tokens/{token}:acknowledge
 /// Acknowledges a purchase of an inapp item.
 ///
 /// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
@@ -13044,7 +19467,7 @@ pub fn androidpublisher_purchases_products_acknowledge_task(
         .map_pending(|_| ApiPending::Sending))
 }
 
-/// GET androidpublisher/v3/applications/{packageName}/purchases/products/{productId}/tokens/{token}:acknowledge
+/// POST androidpublisher/v3/applications/{packageName}/purchases/products/{productId}/tokens/{token}:acknowledge
 /// Acknowledges a purchase of an inapp item.
 ///
 /// Takes a `ClientRequestBuilder`, builds and executes the request,
@@ -13083,11 +19506,9 @@ pub struct AndroidpublisherPurchasesProductsAcknowledgeArgs {
     pub productId: String,
     /// Path parameter: token
     pub token: String,
-    /// Request body.
-    pub body: ProductPurchasesAcknowledgeRequest,
 }
 
-/// GET androidpublisher/v3/applications/{packageName}/purchases/products/{productId}/tokens/{token}:acknowledge
+/// POST androidpublisher/v3/applications/{packageName}/purchases/products/{productId}/tokens/{token}:acknowledge
 /// Acknowledges a purchase of an inapp item.
 ///
 /// Simplest API - builds and executes the request in one call.
@@ -13110,12 +19531,11 @@ pub fn androidpublisher_purchases_products_acknowledge(
         &args.packageName,
         &args.productId,
         &args.token,
-        &args.body,
     )?;
     androidpublisher_purchases_products_acknowledge_execute(builder)
 }
 
-/// GET androidpublisher/v3/applications/{packageName}/purchases/products/{productId}/tokens/{token}:consume
+/// POST androidpublisher/v3/applications/{packageName}/purchases/products/{productId}/tokens/{token}:consume
 /// Consumes a purchase for an inapp item.
 ///
 /// Returns `ClientRequestBuilder` for customization.
@@ -13137,13 +19557,13 @@ pub fn androidpublisher_purchases_products_consume_builder(
 
     // Build request
     let builder = client
-        .get(&endpoint_url)
+        .post(&endpoint_url)
         .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
 
     Ok(builder)
 }
 
-/// GET androidpublisher/v3/applications/{packageName}/purchases/products/{productId}/tokens/{token}:consume
+/// POST androidpublisher/v3/applications/{packageName}/purchases/products/{productId}/tokens/{token}:consume
 /// Consumes a purchase for an inapp item.
 ///
 /// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
@@ -13214,7 +19634,7 @@ pub fn androidpublisher_purchases_products_consume_task(
         .map_pending(|_| ApiPending::Sending))
 }
 
-/// GET androidpublisher/v3/applications/{packageName}/purchases/products/{productId}/tokens/{token}:consume
+/// POST androidpublisher/v3/applications/{packageName}/purchases/products/{productId}/tokens/{token}:consume
 /// Consumes a purchase for an inapp item.
 ///
 /// Takes a `ClientRequestBuilder`, builds and executes the request,
@@ -13255,7 +19675,7 @@ pub struct AndroidpublisherPurchasesProductsConsumeArgs {
     pub token: String,
 }
 
-/// GET androidpublisher/v3/applications/{packageName}/purchases/products/{productId}/tokens/{token}:consume
+/// POST androidpublisher/v3/applications/{packageName}/purchases/products/{productId}/tokens/{token}:consume
 /// Consumes a purchase for an inapp item.
 ///
 /// Simplest API - builds and executes the request in one call.
@@ -13625,7 +20045,7 @@ pub fn androidpublisher_purchases_productsv2_getproductpurchasev2(
     androidpublisher_purchases_productsv2_getproductpurchasev2_execute(builder)
 }
 
-/// GET androidpublisher/v3/applications/{packageName}/purchases/subscriptions/{subscriptionId}/tokens/{token}:acknowledge
+/// POST androidpublisher/v3/applications/{packageName}/purchases/subscriptions/{subscriptionId}/tokens/{token}:acknowledge
 /// Acknowledges a subscription purchase.
 ///
 /// Returns `ClientRequestBuilder` for customization.
@@ -13636,7 +20056,6 @@ pub fn androidpublisher_purchases_subscriptions_acknowledge_builder(
     packageName: &String,
     subscriptionId: &String,
     token: &String,
-    body: &SubscriptionPurchasesAcknowledgeRequest,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
@@ -13648,15 +20067,13 @@ pub fn androidpublisher_purchases_subscriptions_acknowledge_builder(
 
     // Build request
     let builder = client
-        .get(&endpoint_url)
+        .post(&endpoint_url)
         .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
 
-    builder
-        .body_json(body)
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+    Ok(builder)
 }
 
-/// GET androidpublisher/v3/applications/{packageName}/purchases/subscriptions/{subscriptionId}/tokens/{token}:acknowledge
+/// POST androidpublisher/v3/applications/{packageName}/purchases/subscriptions/{subscriptionId}/tokens/{token}:acknowledge
 /// Acknowledges a subscription purchase.
 ///
 /// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
@@ -13727,7 +20144,7 @@ pub fn androidpublisher_purchases_subscriptions_acknowledge_task(
         .map_pending(|_| ApiPending::Sending))
 }
 
-/// GET androidpublisher/v3/applications/{packageName}/purchases/subscriptions/{subscriptionId}/tokens/{token}:acknowledge
+/// POST androidpublisher/v3/applications/{packageName}/purchases/subscriptions/{subscriptionId}/tokens/{token}:acknowledge
 /// Acknowledges a subscription purchase.
 ///
 /// Takes a `ClientRequestBuilder`, builds and executes the request,
@@ -13766,11 +20183,9 @@ pub struct AndroidpublisherPurchasesSubscriptionsAcknowledgeArgs {
     pub subscriptionId: String,
     /// Path parameter: token
     pub token: String,
-    /// Request body.
-    pub body: SubscriptionPurchasesAcknowledgeRequest,
 }
 
-/// GET androidpublisher/v3/applications/{packageName}/purchases/subscriptions/{subscriptionId}/tokens/{token}:acknowledge
+/// POST androidpublisher/v3/applications/{packageName}/purchases/subscriptions/{subscriptionId}/tokens/{token}:acknowledge
 /// Acknowledges a subscription purchase.
 ///
 /// Simplest API - builds and executes the request in one call.
@@ -13793,12 +20208,11 @@ pub fn androidpublisher_purchases_subscriptions_acknowledge(
         &args.packageName,
         &args.subscriptionId,
         &args.token,
-        &args.body,
     )?;
     androidpublisher_purchases_subscriptions_acknowledge_execute(builder)
 }
 
-/// GET androidpublisher/v3/applications/{packageName}/purchases/subscriptions/{subscriptionId}/tokens/{token}:cancel
+/// POST androidpublisher/v3/applications/{packageName}/purchases/subscriptions/{subscriptionId}/tokens/{token}:cancel
 /// Cancels a user's subscription purchase. The subscription remains valid until its expiration time. Newer version is available at purchases.subscriptionsv2.cancel for better client library support.
 ///
 /// Returns `ClientRequestBuilder` for customization.
@@ -13820,13 +20234,13 @@ pub fn androidpublisher_purchases_subscriptions_cancel_builder(
 
     // Build request
     let builder = client
-        .get(&endpoint_url)
+        .post(&endpoint_url)
         .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
 
     Ok(builder)
 }
 
-/// GET androidpublisher/v3/applications/{packageName}/purchases/subscriptions/{subscriptionId}/tokens/{token}:cancel
+/// POST androidpublisher/v3/applications/{packageName}/purchases/subscriptions/{subscriptionId}/tokens/{token}:cancel
 /// Cancels a user's subscription purchase. The subscription remains valid until its expiration time. Newer version is available at purchases.subscriptionsv2.cancel for better client library support.
 ///
 /// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
@@ -13897,7 +20311,7 @@ pub fn androidpublisher_purchases_subscriptions_cancel_task(
         .map_pending(|_| ApiPending::Sending))
 }
 
-/// GET androidpublisher/v3/applications/{packageName}/purchases/subscriptions/{subscriptionId}/tokens/{token}:cancel
+/// POST androidpublisher/v3/applications/{packageName}/purchases/subscriptions/{subscriptionId}/tokens/{token}:cancel
 /// Cancels a user's subscription purchase. The subscription remains valid until its expiration time. Newer version is available at purchases.subscriptionsv2.cancel for better client library support.
 ///
 /// Takes a `ClientRequestBuilder`, builds and executes the request,
@@ -13938,7 +20352,7 @@ pub struct AndroidpublisherPurchasesSubscriptionsCancelArgs {
     pub token: String,
 }
 
-/// GET androidpublisher/v3/applications/{packageName}/purchases/subscriptions/{subscriptionId}/tokens/{token}:cancel
+/// POST androidpublisher/v3/applications/{packageName}/purchases/subscriptions/{subscriptionId}/tokens/{token}:cancel
 /// Cancels a user's subscription purchase. The subscription remains valid until its expiration time. Newer version is available at purchases.subscriptionsv2.cancel for better client library support.
 ///
 /// Simplest API - builds and executes the request in one call.
@@ -13965,7 +20379,7 @@ pub fn androidpublisher_purchases_subscriptions_cancel(
     androidpublisher_purchases_subscriptions_cancel_execute(builder)
 }
 
-/// GET androidpublisher/v3/applications/{packageName}/purchases/subscriptions/{subscriptionId}/tokens/{token}:defer
+/// POST androidpublisher/v3/applications/{packageName}/purchases/subscriptions/{subscriptionId}/tokens/{token}:defer
 /// Defers a user's subscription purchase until a specified future expiration time.
 ///
 /// Returns `ClientRequestBuilder` for customization.
@@ -13976,7 +20390,6 @@ pub fn androidpublisher_purchases_subscriptions_defer_builder(
     packageName: &String,
     subscriptionId: &String,
     token: &String,
-    body: &SubscriptionPurchasesDeferRequest,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
@@ -13988,15 +20401,13 @@ pub fn androidpublisher_purchases_subscriptions_defer_builder(
 
     // Build request
     let builder = client
-        .get(&endpoint_url)
+        .post(&endpoint_url)
         .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
 
-    builder
-        .body_json(body)
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+    Ok(builder)
 }
 
-/// GET androidpublisher/v3/applications/{packageName}/purchases/subscriptions/{subscriptionId}/tokens/{token}:defer
+/// POST androidpublisher/v3/applications/{packageName}/purchases/subscriptions/{subscriptionId}/tokens/{token}:defer
 /// Defers a user's subscription purchase until a specified future expiration time.
 ///
 /// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
@@ -14070,7 +20481,7 @@ pub fn androidpublisher_purchases_subscriptions_defer_task(
         .map_pending(|_| ApiPending::Sending))
 }
 
-/// GET androidpublisher/v3/applications/{packageName}/purchases/subscriptions/{subscriptionId}/tokens/{token}:defer
+/// POST androidpublisher/v3/applications/{packageName}/purchases/subscriptions/{subscriptionId}/tokens/{token}:defer
 /// Defers a user's subscription purchase until a specified future expiration time.
 ///
 /// Takes a `ClientRequestBuilder`, builds and executes the request,
@@ -14113,11 +20524,9 @@ pub struct AndroidpublisherPurchasesSubscriptionsDeferArgs {
     pub subscriptionId: String,
     /// Path parameter: token
     pub token: String,
-    /// Request body.
-    pub body: SubscriptionPurchasesDeferRequest,
 }
 
-/// GET androidpublisher/v3/applications/{packageName}/purchases/subscriptions/{subscriptionId}/tokens/{token}:defer
+/// POST androidpublisher/v3/applications/{packageName}/purchases/subscriptions/{subscriptionId}/tokens/{token}:defer
 /// Defers a user's subscription purchase until a specified future expiration time.
 ///
 /// Simplest API - builds and executes the request in one call.
@@ -14144,7 +20553,6 @@ pub fn androidpublisher_purchases_subscriptions_defer(
         &args.packageName,
         &args.subscriptionId,
         &args.token,
-        &args.body,
     )?;
     androidpublisher_purchases_subscriptions_defer_execute(builder)
 }
@@ -14323,7 +20731,7 @@ pub fn androidpublisher_purchases_subscriptions_get(
     androidpublisher_purchases_subscriptions_get_execute(builder)
 }
 
-/// GET androidpublisher/v3/applications/{packageName}/purchases/subscriptions/{subscriptionId}/tokens/{token}:refund
+/// POST androidpublisher/v3/applications/{packageName}/purchases/subscriptions/{subscriptionId}/tokens/{token}:refund
 /// Deprecated: Use orders.refund instead. Refunds a user's subscription purchase, but the subscription remains valid until its expiration time and it will continue to recur.
 ///
 /// Returns `ClientRequestBuilder` for customization.
@@ -14345,13 +20753,13 @@ pub fn androidpublisher_purchases_subscriptions_refund_builder(
 
     // Build request
     let builder = client
-        .get(&endpoint_url)
+        .post(&endpoint_url)
         .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
 
     Ok(builder)
 }
 
-/// GET androidpublisher/v3/applications/{packageName}/purchases/subscriptions/{subscriptionId}/tokens/{token}:refund
+/// POST androidpublisher/v3/applications/{packageName}/purchases/subscriptions/{subscriptionId}/tokens/{token}:refund
 /// Deprecated: Use orders.refund instead. Refunds a user's subscription purchase, but the subscription remains valid until its expiration time and it will continue to recur.
 ///
 /// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
@@ -14422,7 +20830,7 @@ pub fn androidpublisher_purchases_subscriptions_refund_task(
         .map_pending(|_| ApiPending::Sending))
 }
 
-/// GET androidpublisher/v3/applications/{packageName}/purchases/subscriptions/{subscriptionId}/tokens/{token}:refund
+/// POST androidpublisher/v3/applications/{packageName}/purchases/subscriptions/{subscriptionId}/tokens/{token}:refund
 /// Deprecated: Use orders.refund instead. Refunds a user's subscription purchase, but the subscription remains valid until its expiration time and it will continue to recur.
 ///
 /// Takes a `ClientRequestBuilder`, builds and executes the request,
@@ -14463,7 +20871,7 @@ pub struct AndroidpublisherPurchasesSubscriptionsRefundArgs {
     pub token: String,
 }
 
-/// GET androidpublisher/v3/applications/{packageName}/purchases/subscriptions/{subscriptionId}/tokens/{token}:refund
+/// POST androidpublisher/v3/applications/{packageName}/purchases/subscriptions/{subscriptionId}/tokens/{token}:refund
 /// Deprecated: Use orders.refund instead. Refunds a user's subscription purchase, but the subscription remains valid until its expiration time and it will continue to recur.
 ///
 /// Simplest API - builds and executes the request in one call.
@@ -14490,7 +20898,7 @@ pub fn androidpublisher_purchases_subscriptions_refund(
     androidpublisher_purchases_subscriptions_refund_execute(builder)
 }
 
-/// GET androidpublisher/v3/applications/{packageName}/purchases/subscriptions/{subscriptionId}/tokens/{token}:revoke
+/// POST androidpublisher/v3/applications/{packageName}/purchases/subscriptions/{subscriptionId}/tokens/{token}:revoke
 /// Deprecated: Use purchases.subscriptionsv2.revoke instead. Refunds and immediately revokes a user's subscription purchase. Access to the subscription will be terminated immediately and it will stop recurring.
 ///
 /// Returns `ClientRequestBuilder` for customization.
@@ -14512,13 +20920,13 @@ pub fn androidpublisher_purchases_subscriptions_revoke_builder(
 
     // Build request
     let builder = client
-        .get(&endpoint_url)
+        .post(&endpoint_url)
         .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
 
     Ok(builder)
 }
 
-/// GET androidpublisher/v3/applications/{packageName}/purchases/subscriptions/{subscriptionId}/tokens/{token}:revoke
+/// POST androidpublisher/v3/applications/{packageName}/purchases/subscriptions/{subscriptionId}/tokens/{token}:revoke
 /// Deprecated: Use purchases.subscriptionsv2.revoke instead. Refunds and immediately revokes a user's subscription purchase. Access to the subscription will be terminated immediately and it will stop recurring.
 ///
 /// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
@@ -14589,7 +20997,7 @@ pub fn androidpublisher_purchases_subscriptions_revoke_task(
         .map_pending(|_| ApiPending::Sending))
 }
 
-/// GET androidpublisher/v3/applications/{packageName}/purchases/subscriptions/{subscriptionId}/tokens/{token}:revoke
+/// POST androidpublisher/v3/applications/{packageName}/purchases/subscriptions/{subscriptionId}/tokens/{token}:revoke
 /// Deprecated: Use purchases.subscriptionsv2.revoke instead. Refunds and immediately revokes a user's subscription purchase. Access to the subscription will be terminated immediately and it will stop recurring.
 ///
 /// Takes a `ClientRequestBuilder`, builds and executes the request,
@@ -14630,7 +21038,7 @@ pub struct AndroidpublisherPurchasesSubscriptionsRevokeArgs {
     pub token: String,
 }
 
-/// GET androidpublisher/v3/applications/{packageName}/purchases/subscriptions/{subscriptionId}/tokens/{token}:revoke
+/// POST androidpublisher/v3/applications/{packageName}/purchases/subscriptions/{subscriptionId}/tokens/{token}:revoke
 /// Deprecated: Use purchases.subscriptionsv2.revoke instead. Refunds and immediately revokes a user's subscription purchase. Access to the subscription will be terminated immediately and it will stop recurring.
 ///
 /// Simplest API - builds and executes the request in one call.
@@ -14657,7 +21065,7 @@ pub fn androidpublisher_purchases_subscriptions_revoke(
     androidpublisher_purchases_subscriptions_revoke_execute(builder)
 }
 
-/// GET androidpublisher/v3/applications/{packageName}/purchases/subscriptionsv2/tokens/{token}:cancel
+/// POST androidpublisher/v3/applications/{packageName}/purchases/subscriptionsv2/tokens/{token}:cancel
 /// Cancel a subscription purchase for the user.
 ///
 /// Returns `ClientRequestBuilder` for customization.
@@ -14667,7 +21075,6 @@ pub fn androidpublisher_purchases_subscriptionsv2_cancel_builder(
     client: &SimpleHttpClient,
     packageName: &String,
     token: &String,
-    body: &CancelSubscriptionPurchaseRequest,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
@@ -14678,15 +21085,13 @@ pub fn androidpublisher_purchases_subscriptionsv2_cancel_builder(
 
     // Build request
     let builder = client
-        .get(&endpoint_url)
+        .post(&endpoint_url)
         .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
 
-    builder
-        .body_json(body)
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+    Ok(builder)
 }
 
-/// GET androidpublisher/v3/applications/{packageName}/purchases/subscriptionsv2/tokens/{token}:cancel
+/// POST androidpublisher/v3/applications/{packageName}/purchases/subscriptionsv2/tokens/{token}:cancel
 /// Cancel a subscription purchase for the user.
 ///
 /// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
@@ -14760,7 +21165,7 @@ pub fn androidpublisher_purchases_subscriptionsv2_cancel_task(
         .map_pending(|_| ApiPending::Sending))
 }
 
-/// GET androidpublisher/v3/applications/{packageName}/purchases/subscriptionsv2/tokens/{token}:cancel
+/// POST androidpublisher/v3/applications/{packageName}/purchases/subscriptionsv2/tokens/{token}:cancel
 /// Cancel a subscription purchase for the user.
 ///
 /// Takes a `ClientRequestBuilder`, builds and executes the request,
@@ -14801,11 +21206,9 @@ pub struct AndroidpublisherPurchasesSubscriptionsv2CancelArgs {
     pub packageName: String,
     /// Path parameter: token
     pub token: String,
-    /// Request body.
-    pub body: CancelSubscriptionPurchaseRequest,
 }
 
-/// GET androidpublisher/v3/applications/{packageName}/purchases/subscriptionsv2/tokens/{token}:cancel
+/// POST androidpublisher/v3/applications/{packageName}/purchases/subscriptionsv2/tokens/{token}:cancel
 /// Cancel a subscription purchase for the user.
 ///
 /// Simplest API - builds and executes the request in one call.
@@ -14831,12 +21234,11 @@ pub fn androidpublisher_purchases_subscriptionsv2_cancel(
         client,
         &args.packageName,
         &args.token,
-        &args.body,
     )?;
     androidpublisher_purchases_subscriptionsv2_cancel_execute(builder)
 }
 
-/// GET androidpublisher/v3/applications/{packageName}/purchases/subscriptionsv2/tokens/{token}:defer
+/// POST androidpublisher/v3/applications/{packageName}/purchases/subscriptionsv2/tokens/{token}:defer
 /// Defers the renewal of a subscription.
 ///
 /// Returns `ClientRequestBuilder` for customization.
@@ -14846,7 +21248,6 @@ pub fn androidpublisher_purchases_subscriptionsv2_defer_builder(
     client: &SimpleHttpClient,
     packageName: &String,
     token: &String,
-    body: &DeferSubscriptionPurchaseRequest,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
@@ -14857,15 +21258,13 @@ pub fn androidpublisher_purchases_subscriptionsv2_defer_builder(
 
     // Build request
     let builder = client
-        .get(&endpoint_url)
+        .post(&endpoint_url)
         .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
 
-    builder
-        .body_json(body)
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+    Ok(builder)
 }
 
-/// GET androidpublisher/v3/applications/{packageName}/purchases/subscriptionsv2/tokens/{token}:defer
+/// POST androidpublisher/v3/applications/{packageName}/purchases/subscriptionsv2/tokens/{token}:defer
 /// Defers the renewal of a subscription.
 ///
 /// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
@@ -14939,7 +21338,7 @@ pub fn androidpublisher_purchases_subscriptionsv2_defer_task(
         .map_pending(|_| ApiPending::Sending))
 }
 
-/// GET androidpublisher/v3/applications/{packageName}/purchases/subscriptionsv2/tokens/{token}:defer
+/// POST androidpublisher/v3/applications/{packageName}/purchases/subscriptionsv2/tokens/{token}:defer
 /// Defers the renewal of a subscription.
 ///
 /// Takes a `ClientRequestBuilder`, builds and executes the request,
@@ -14980,11 +21379,9 @@ pub struct AndroidpublisherPurchasesSubscriptionsv2DeferArgs {
     pub packageName: String,
     /// Path parameter: token
     pub token: String,
-    /// Request body.
-    pub body: DeferSubscriptionPurchaseRequest,
 }
 
-/// GET androidpublisher/v3/applications/{packageName}/purchases/subscriptionsv2/tokens/{token}:defer
+/// POST androidpublisher/v3/applications/{packageName}/purchases/subscriptionsv2/tokens/{token}:defer
 /// Defers the renewal of a subscription.
 ///
 /// Simplest API - builds and executes the request in one call.
@@ -15010,7 +21407,6 @@ pub fn androidpublisher_purchases_subscriptionsv2_defer(
         client,
         &args.packageName,
         &args.token,
-        &args.body,
     )?;
     androidpublisher_purchases_subscriptionsv2_defer_execute(builder)
 }
@@ -15184,7 +21580,7 @@ pub fn androidpublisher_purchases_subscriptionsv2_get(
     androidpublisher_purchases_subscriptionsv2_get_execute(builder)
 }
 
-/// GET androidpublisher/v3/applications/{packageName}/purchases/subscriptionsv2/tokens/{token}:revoke
+/// POST androidpublisher/v3/applications/{packageName}/purchases/subscriptionsv2/tokens/{token}:revoke
 /// Revoke a subscription purchase for the user.
 ///
 /// Returns `ClientRequestBuilder` for customization.
@@ -15194,7 +21590,6 @@ pub fn androidpublisher_purchases_subscriptionsv2_revoke_builder(
     client: &SimpleHttpClient,
     packageName: &String,
     token: &String,
-    body: &RevokeSubscriptionPurchaseRequest,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
@@ -15205,15 +21600,13 @@ pub fn androidpublisher_purchases_subscriptionsv2_revoke_builder(
 
     // Build request
     let builder = client
-        .get(&endpoint_url)
+        .post(&endpoint_url)
         .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
 
-    builder
-        .body_json(body)
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+    Ok(builder)
 }
 
-/// GET androidpublisher/v3/applications/{packageName}/purchases/subscriptionsv2/tokens/{token}:revoke
+/// POST androidpublisher/v3/applications/{packageName}/purchases/subscriptionsv2/tokens/{token}:revoke
 /// Revoke a subscription purchase for the user.
 ///
 /// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
@@ -15287,7 +21680,7 @@ pub fn androidpublisher_purchases_subscriptionsv2_revoke_task(
         .map_pending(|_| ApiPending::Sending))
 }
 
-/// GET androidpublisher/v3/applications/{packageName}/purchases/subscriptionsv2/tokens/{token}:revoke
+/// POST androidpublisher/v3/applications/{packageName}/purchases/subscriptionsv2/tokens/{token}:revoke
 /// Revoke a subscription purchase for the user.
 ///
 /// Takes a `ClientRequestBuilder`, builds and executes the request,
@@ -15328,11 +21721,9 @@ pub struct AndroidpublisherPurchasesSubscriptionsv2RevokeArgs {
     pub packageName: String,
     /// Path parameter: token
     pub token: String,
-    /// Request body.
-    pub body: RevokeSubscriptionPurchaseRequest,
 }
 
-/// GET androidpublisher/v3/applications/{packageName}/purchases/subscriptionsv2/tokens/{token}:revoke
+/// POST androidpublisher/v3/applications/{packageName}/purchases/subscriptionsv2/tokens/{token}:revoke
 /// Revoke a subscription purchase for the user.
 ///
 /// Simplest API - builds and executes the request in one call.
@@ -15358,7 +21749,6 @@ pub fn androidpublisher_purchases_subscriptionsv2_revoke(
         client,
         &args.packageName,
         &args.token,
-        &args.body,
     )?;
     androidpublisher_purchases_subscriptionsv2_revoke_execute(builder)
 }
@@ -15372,13 +21762,13 @@ pub fn androidpublisher_purchases_subscriptionsv2_revoke(
 pub fn androidpublisher_purchases_voidedpurchases_list_builder(
     client: &SimpleHttpClient,
     packageName: &String,
-    endTime: &Option<String>,
-    includeQuantityBasedPartialRefund: &Option<bool>,
-    maxResults: &Option<i32>,
-    startIndex: &Option<i32>,
-    startTime: &Option<String>,
-    token: &Option<String>,
-    type_rs: &Option<i32>,
+    endTime: &Option<Option<String>>,
+    includeQuantityBasedPartialRefund: &Option<Option<String>>,
+    maxResults: &Option<Option<String>>,
+    startIndex: &Option<Option<String>>,
+    startTime: &Option<Option<String>>,
+    token: &Option<Option<String>>,
+    type_rs: &Option<Option<String>>,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
@@ -15537,19 +21927,19 @@ pub struct AndroidpublisherPurchasesVoidedpurchasesListArgs {
     /// Path parameter: packageName
     pub packageName: String,
     /// Query parameter: endTime
-    pub endTime: Option<String>,
+    pub endTime: Option<Option<String>>,
     /// Query parameter: includeQuantityBasedPartialRefund
-    pub includeQuantityBasedPartialRefund: Option<bool>,
+    pub includeQuantityBasedPartialRefund: Option<Option<String>>,
     /// Query parameter: maxResults
-    pub maxResults: Option<i32>,
+    pub maxResults: Option<Option<String>>,
     /// Query parameter: startIndex
-    pub startIndex: Option<i32>,
+    pub startIndex: Option<Option<String>>,
     /// Query parameter: startTime
-    pub startTime: Option<String>,
+    pub startTime: Option<Option<String>>,
     /// Query parameter: token
-    pub token: Option<String>,
+    pub token: Option<Option<String>>,
     /// Query parameter: type
-    pub type_rs: Option<i32>,
+    pub type_rs: Option<Option<String>>,
 }
 
 /// GET androidpublisher/v3/applications/{packageName}/purchases/voidedpurchases
@@ -15598,7 +21988,7 @@ pub fn androidpublisher_reviews_get_builder(
     client: &SimpleHttpClient,
     packageName: &String,
     reviewId: &String,
-    translationLanguage: &Option<String>,
+    translationLanguage: &Option<Option<String>>,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
@@ -15737,7 +22127,7 @@ pub struct AndroidpublisherReviewsGetArgs {
     /// Path parameter: reviewId
     pub reviewId: String,
     /// Query parameter: translationLanguage
-    pub translationLanguage: Option<String>,
+    pub translationLanguage: Option<Option<String>>,
 }
 
 /// GET androidpublisher/v3/applications/{packageName}/reviews/{reviewId}
@@ -15776,10 +22166,10 @@ pub fn androidpublisher_reviews_get(
 pub fn androidpublisher_reviews_list_builder(
     client: &SimpleHttpClient,
     packageName: &String,
-    maxResults: &Option<i32>,
-    startIndex: &Option<i32>,
-    token: &Option<String>,
-    translationLanguage: &Option<String>,
+    maxResults: &Option<Option<String>>,
+    startIndex: &Option<Option<String>>,
+    token: &Option<Option<String>>,
+    translationLanguage: &Option<Option<String>>,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
@@ -15927,13 +22317,13 @@ pub struct AndroidpublisherReviewsListArgs {
     /// Path parameter: packageName
     pub packageName: String,
     /// Query parameter: maxResults
-    pub maxResults: Option<i32>,
+    pub maxResults: Option<Option<String>>,
     /// Query parameter: startIndex
-    pub startIndex: Option<i32>,
+    pub startIndex: Option<Option<String>>,
     /// Query parameter: token
-    pub token: Option<String>,
+    pub token: Option<Option<String>>,
     /// Query parameter: translationLanguage
-    pub translationLanguage: Option<String>,
+    pub translationLanguage: Option<Option<String>>,
 }
 
 /// GET androidpublisher/v3/applications/{packageName}/reviews
@@ -15967,7 +22357,7 @@ pub fn androidpublisher_reviews_list(
     androidpublisher_reviews_list_execute(builder)
 }
 
-/// GET androidpublisher/v3/applications/{packageName}/reviews/{reviewId}:reply
+/// POST androidpublisher/v3/applications/{packageName}/reviews/{reviewId}:reply
 /// Replies to a single review, or updates an existing reply.
 ///
 /// Returns `ClientRequestBuilder` for customization.
@@ -15977,7 +22367,6 @@ pub fn androidpublisher_reviews_reply_builder(
     client: &SimpleHttpClient,
     packageName: &String,
     reviewId: &String,
-    body: &ReviewsReplyRequest,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
@@ -15988,15 +22377,13 @@ pub fn androidpublisher_reviews_reply_builder(
 
     // Build request
     let builder = client
-        .get(&endpoint_url)
+        .post(&endpoint_url)
         .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
 
-    builder
-        .body_json(body)
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+    Ok(builder)
 }
 
-/// GET androidpublisher/v3/applications/{packageName}/reviews/{reviewId}:reply
+/// POST androidpublisher/v3/applications/{packageName}/reviews/{reviewId}:reply
 /// Replies to a single review, or updates an existing reply.
 ///
 /// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
@@ -16070,7 +22457,7 @@ pub fn androidpublisher_reviews_reply_task(
         .map_pending(|_| ApiPending::Sending))
 }
 
-/// GET androidpublisher/v3/applications/{packageName}/reviews/{reviewId}:reply
+/// POST androidpublisher/v3/applications/{packageName}/reviews/{reviewId}:reply
 /// Replies to a single review, or updates an existing reply.
 ///
 /// Takes a `ClientRequestBuilder`, builds and executes the request,
@@ -16109,11 +22496,9 @@ pub struct AndroidpublisherReviewsReplyArgs {
     pub packageName: String,
     /// Path parameter: reviewId
     pub reviewId: String,
-    /// Request body.
-    pub body: ReviewsReplyRequest,
 }
 
-/// GET androidpublisher/v3/applications/{packageName}/reviews/{reviewId}:reply
+/// POST androidpublisher/v3/applications/{packageName}/reviews/{reviewId}:reply
 /// Replies to a single review, or updates an existing reply.
 ///
 /// Simplest API - builds and executes the request in one call.
@@ -16133,16 +22518,12 @@ pub fn androidpublisher_reviews_reply(
         + 'static,
     ApiError,
 > {
-    let builder = androidpublisher_reviews_reply_builder(
-        client,
-        &args.packageName,
-        &args.reviewId,
-        &args.body,
-    )?;
+    let builder =
+        androidpublisher_reviews_reply_builder(client, &args.packageName, &args.reviewId)?;
     androidpublisher_reviews_reply_execute(builder)
 }
 
-/// GET androidpublisher/v3/applications/{packageName}/systemApks/{versionCode}/variants
+/// POST androidpublisher/v3/applications/{packageName}/systemApks/{versionCode}/variants
 /// Creates an APK which is suitable for inclusion in a system image from an already uploaded Android App Bundle.
 ///
 /// Returns `ClientRequestBuilder` for customization.
@@ -16152,7 +22533,6 @@ pub fn androidpublisher_systemapks_variants_create_builder(
     client: &SimpleHttpClient,
     packageName: &String,
     versionCode: &String,
-    body: &Variant,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
@@ -16163,15 +22543,13 @@ pub fn androidpublisher_systemapks_variants_create_builder(
 
     // Build request
     let builder = client
-        .get(&endpoint_url)
+        .post(&endpoint_url)
         .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
 
-    builder
-        .body_json(body)
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+    Ok(builder)
 }
 
-/// GET androidpublisher/v3/applications/{packageName}/systemApks/{versionCode}/variants
+/// POST androidpublisher/v3/applications/{packageName}/systemApks/{versionCode}/variants
 /// Creates an APK which is suitable for inclusion in a system image from an already uploaded Android App Bundle.
 ///
 /// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
@@ -16245,7 +22623,7 @@ pub fn androidpublisher_systemapks_variants_create_task(
         .map_pending(|_| ApiPending::Sending))
 }
 
-/// GET androidpublisher/v3/applications/{packageName}/systemApks/{versionCode}/variants
+/// POST androidpublisher/v3/applications/{packageName}/systemApks/{versionCode}/variants
 /// Creates an APK which is suitable for inclusion in a system image from an already uploaded Android App Bundle.
 ///
 /// Takes a `ClientRequestBuilder`, builds and executes the request,
@@ -16282,11 +22660,9 @@ pub struct AndroidpublisherSystemapksVariantsCreateArgs {
     pub packageName: String,
     /// Path parameter: versionCode
     pub versionCode: String,
-    /// Request body.
-    pub body: Variant,
 }
 
-/// GET androidpublisher/v3/applications/{packageName}/systemApks/{versionCode}/variants
+/// POST androidpublisher/v3/applications/{packageName}/systemApks/{versionCode}/variants
 /// Creates an APK which is suitable for inclusion in a system image from an already uploaded Android App Bundle.
 ///
 /// Simplest API - builds and executes the request in one call.
@@ -16308,7 +22684,6 @@ pub fn androidpublisher_systemapks_variants_create(
         client,
         &args.packageName,
         &args.versionCode,
-        &args.body,
     )?;
     androidpublisher_systemapks_variants_create_execute(builder)
 }
@@ -16323,7 +22698,7 @@ pub fn androidpublisher_systemapks_variants_download_builder(
     client: &SimpleHttpClient,
     packageName: &String,
     versionCode: &String,
-    variantId: &i32,
+    variantId: &String,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
@@ -16450,7 +22825,7 @@ pub struct AndroidpublisherSystemapksVariantsDownloadArgs {
     /// Path parameter: versionCode
     pub versionCode: String,
     /// Path parameter: variantId
-    pub variantId: i32,
+    pub variantId: String,
 }
 
 /// GET androidpublisher/v3/applications/{packageName}/systemApks/{versionCode}/variants/{variantId}:download
@@ -16490,7 +22865,7 @@ pub fn androidpublisher_systemapks_variants_get_builder(
     client: &SimpleHttpClient,
     packageName: &String,
     versionCode: &String,
-    variantId: &i32,
+    variantId: &String,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
@@ -16620,7 +22995,7 @@ pub struct AndroidpublisherSystemapksVariantsGetArgs {
     /// Path parameter: versionCode
     pub versionCode: String,
     /// Path parameter: variantId
-    pub variantId: i32,
+    pub variantId: String,
 }
 
 /// GET androidpublisher/v3/applications/{packageName}/systemApks/{versionCode}/variants/{variantId}
@@ -16650,7 +23025,176 @@ pub fn androidpublisher_systemapks_variants_get(
     androidpublisher_systemapks_variants_get_execute(builder)
 }
 
-/// GET androidpublisher/v3/developers/{developersId}/users
+/// GET androidpublisher/v3/applications/{packageName}/systemApks/{versionCode}/variants
+/// Returns the list of previously created system APK variants.
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `androidpublisher_systemapks_variants_list_execute()` to send, or `androidpublisher_systemapks_variants_list` for simplest API.
+
+pub fn androidpublisher_systemapks_variants_list_builder(
+    client: &SimpleHttpClient,
+    packageName: &String,
+    versionCode: &String,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!(
+        "https://androidpublisher.googleapis.com/androidpublisher/v3/applications/{}/systemApks/{}/variants",
+        packageName,
+        versionCode,
+    );
+
+    // Build request
+    let builder = client
+        .get(&endpoint_url)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// GET androidpublisher/v3/applications/{packageName}/systemApks/{versionCode}/variants
+/// Returns the list of previously created system APK variants.
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `androidpublisher_systemapks_variants_list_execute()` or `androidpublisher_systemapks_variants_list`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `androidpublisher_systemapks_variants_list_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn androidpublisher_systemapks_variants_list_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<SystemApksListResponse>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: SystemApksListResponse = serde_json::from_str(&body)
+                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// GET androidpublisher/v3/applications/{packageName}/systemApks/{versionCode}/variants
+/// Returns the list of previously created system APK variants.
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `androidpublisher_systemapks_variants_list_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `androidpublisher_systemapks_variants_list_task()`.
+/// For the simplest API, use `androidpublisher_systemapks_variants_list()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `androidpublisher_systemapks_variants_list_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn androidpublisher_systemapks_variants_list_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<SystemApksListResponse>, ApiError>, P = ApiPending>
+        + Send
+        + 'static,
+    ApiError,
+> {
+    let task = androidpublisher_systemapks_variants_list_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`androidpublisher_systemapks_variants_list`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct AndroidpublisherSystemapksVariantsListArgs {
+    /// Path parameter: packageName
+    pub packageName: String,
+    /// Path parameter: versionCode
+    pub versionCode: String,
+}
+
+/// GET androidpublisher/v3/applications/{packageName}/systemApks/{versionCode}/variants
+/// Returns the list of previously created system APK variants.
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `androidpublisher_systemapks_variants_list_builder()` + `androidpublisher_systemapks_variants_list_execute()`.
+/// For task-level control, use `androidpublisher_systemapks_variants_list_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn androidpublisher_systemapks_variants_list(
+    client: &SimpleHttpClient,
+    args: &AndroidpublisherSystemapksVariantsListArgs,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<SystemApksListResponse>, ApiError>, P = ApiPending>
+        + Send
+        + 'static,
+    ApiError,
+> {
+    let builder = androidpublisher_systemapks_variants_list_builder(
+        client,
+        &args.packageName,
+        &args.versionCode,
+    )?;
+    androidpublisher_systemapks_variants_list_execute(builder)
+}
+
+/// POST androidpublisher/v3/developers/{developersId}/users
 /// Grant access for a user to the given developer account.
 ///
 /// Returns `ClientRequestBuilder` for customization.
@@ -16659,23 +23203,22 @@ pub fn androidpublisher_systemapks_variants_get(
 pub fn androidpublisher_users_create_builder(
     client: &SimpleHttpClient,
     parent: &String,
-    body: &User,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
-    let endpoint_url =
-        format!("https://androidpublisher.googleapis.com/androidpublisher/v3/developers/{}/users",);
+    let endpoint_url = format!(
+        "https://androidpublisher.googleapis.com/androidpublisher/v3/developers/{}/users",
+        parent,
+    );
 
     // Build request
     let builder = client
-        .get(&endpoint_url)
+        .post(&endpoint_url)
         .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
 
-    builder
-        .body_json(body)
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+    Ok(builder)
 }
 
-/// GET androidpublisher/v3/developers/{developersId}/users
+/// POST androidpublisher/v3/developers/{developersId}/users
 /// Grant access for a user to the given developer account.
 ///
 /// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
@@ -16749,7 +23292,7 @@ pub fn androidpublisher_users_create_task(
         .map_pending(|_| ApiPending::Sending))
 }
 
-/// GET androidpublisher/v3/developers/{developersId}/users
+/// POST androidpublisher/v3/developers/{developersId}/users
 /// Grant access for a user to the given developer account.
 ///
 /// Takes a `ClientRequestBuilder`, builds and executes the request,
@@ -16784,11 +23327,9 @@ pub fn androidpublisher_users_create_execute(
 pub struct AndroidpublisherUsersCreateArgs {
     /// Path parameter: parent
     pub parent: String,
-    /// Request body.
-    pub body: User,
 }
 
-/// GET androidpublisher/v3/developers/{developersId}/users
+/// POST androidpublisher/v3/developers/{developersId}/users
 /// Grant access for a user to the given developer account.
 ///
 /// Simplest API - builds and executes the request in one call.
@@ -16806,6 +23347,3704 @@ pub fn androidpublisher_users_create(
     impl StreamIterator<D = Result<ApiResponse<User>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = androidpublisher_users_create_builder(client, &args.parent, &args.body)?;
+    let builder = androidpublisher_users_create_builder(client, &args.parent)?;
     androidpublisher_users_create_execute(builder)
+}
+
+/// DELETE androidpublisher/v3/developers/{developersId}/users/{usersId}
+/// Removes all access for the user to the given developer account.
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `androidpublisher_users_delete_execute()` to send, or `androidpublisher_users_delete` for simplest API.
+
+pub fn androidpublisher_users_delete_builder(
+    client: &SimpleHttpClient,
+    name: &String,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!(
+        "https://androidpublisher.googleapis.com/androidpublisher/v3/developers/{}/users/{usersId}",
+        name,
+    );
+
+    // Build request
+    let builder = client
+        .delete(&endpoint_url)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// DELETE androidpublisher/v3/developers/{developersId}/users/{usersId}
+/// Removes all access for the user to the given developer account.
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `androidpublisher_users_delete_execute()` or `androidpublisher_users_delete`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `androidpublisher_users_delete_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn androidpublisher_users_delete_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<()>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: (),
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// DELETE androidpublisher/v3/developers/{developersId}/users/{usersId}
+/// Removes all access for the user to the given developer account.
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `androidpublisher_users_delete_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `androidpublisher_users_delete_task()`.
+/// For the simplest API, use `androidpublisher_users_delete()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `androidpublisher_users_delete_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn androidpublisher_users_delete_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<()>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let task = androidpublisher_users_delete_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`androidpublisher_users_delete`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct AndroidpublisherUsersDeleteArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
+/// DELETE androidpublisher/v3/developers/{developersId}/users/{usersId}
+/// Removes all access for the user to the given developer account.
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `androidpublisher_users_delete_builder()` + `androidpublisher_users_delete_execute()`.
+/// For task-level control, use `androidpublisher_users_delete_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn androidpublisher_users_delete(
+    client: &SimpleHttpClient,
+    args: &AndroidpublisherUsersDeleteArgs,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<()>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let builder = androidpublisher_users_delete_builder(client, &args.name)?;
+    androidpublisher_users_delete_execute(builder)
+}
+
+/// GET androidpublisher/v3/developers/{developersId}/users
+/// Lists all users with access to a developer account.
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `androidpublisher_users_list_execute()` to send, or `androidpublisher_users_list` for simplest API.
+
+pub fn androidpublisher_users_list_builder(
+    client: &SimpleHttpClient,
+    parent: &String,
+    pageSize: &Option<Option<String>>,
+    pageToken: &Option<Option<String>>,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!(
+        "https://androidpublisher.googleapis.com/androidpublisher/v3/developers/{}/users",
+        parent,
+    );
+
+    // Build request
+    let mut query_parts = Vec::new();
+    if let Some(val) = pageSize.as_ref() {
+        query_parts.push(format!("pageSize={}", val));
+    }
+    if let Some(val) = pageToken.as_ref() {
+        query_parts.push(format!("pageToken={}", val));
+    }
+
+    let url_with_query = if query_parts.is_empty() {
+        endpoint_url
+    } else {
+        format!("{}?{}", endpoint_url, query_parts.join("&"))
+    };
+
+    let builder = client
+        .get(&url_with_query)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// GET androidpublisher/v3/developers/{developersId}/users
+/// Lists all users with access to a developer account.
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `androidpublisher_users_list_execute()` or `androidpublisher_users_list`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `androidpublisher_users_list_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn androidpublisher_users_list_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<ListUsersResponse>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: ListUsersResponse = serde_json::from_str(&body)
+                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// GET androidpublisher/v3/developers/{developersId}/users
+/// Lists all users with access to a developer account.
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `androidpublisher_users_list_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `androidpublisher_users_list_task()`.
+/// For the simplest API, use `androidpublisher_users_list()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `androidpublisher_users_list_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn androidpublisher_users_list_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<ListUsersResponse>, ApiError>, P = ApiPending>
+        + Send
+        + 'static,
+    ApiError,
+> {
+    let task = androidpublisher_users_list_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`androidpublisher_users_list`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct AndroidpublisherUsersListArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Query parameter: pageSize
+    pub pageSize: Option<Option<String>>,
+    /// Query parameter: pageToken
+    pub pageToken: Option<Option<String>>,
+}
+
+/// GET androidpublisher/v3/developers/{developersId}/users
+/// Lists all users with access to a developer account.
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `androidpublisher_users_list_builder()` + `androidpublisher_users_list_execute()`.
+/// For task-level control, use `androidpublisher_users_list_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn androidpublisher_users_list(
+    client: &SimpleHttpClient,
+    args: &AndroidpublisherUsersListArgs,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<ListUsersResponse>, ApiError>, P = ApiPending>
+        + Send
+        + 'static,
+    ApiError,
+> {
+    let builder =
+        androidpublisher_users_list_builder(client, &args.parent, &args.pageSize, &args.pageToken)?;
+    androidpublisher_users_list_execute(builder)
+}
+
+/// PATCH androidpublisher/v3/developers/{developersId}/users/{usersId}
+/// Updates access for the user to the developer account.
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `androidpublisher_users_patch_execute()` to send, or `androidpublisher_users_patch` for simplest API.
+
+pub fn androidpublisher_users_patch_builder(
+    client: &SimpleHttpClient,
+    name: &String,
+    updateMask: &Option<Option<String>>,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!(
+        "https://androidpublisher.googleapis.com/androidpublisher/v3/developers/{}/users/{usersId}",
+        name,
+    );
+
+    // Build request
+    let mut query_parts = Vec::new();
+    if let Some(val) = updateMask.as_ref() {
+        query_parts.push(format!("updateMask={}", val));
+    }
+
+    let url_with_query = if query_parts.is_empty() {
+        endpoint_url
+    } else {
+        format!("{}?{}", endpoint_url, query_parts.join("&"))
+    };
+
+    let builder = client
+        .patch(&url_with_query)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// PATCH androidpublisher/v3/developers/{developersId}/users/{usersId}
+/// Updates access for the user to the developer account.
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `androidpublisher_users_patch_execute()` or `androidpublisher_users_patch`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `androidpublisher_users_patch_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn androidpublisher_users_patch_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<User>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: User = serde_json::from_str(&body)
+                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// PATCH androidpublisher/v3/developers/{developersId}/users/{usersId}
+/// Updates access for the user to the developer account.
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `androidpublisher_users_patch_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `androidpublisher_users_patch_task()`.
+/// For the simplest API, use `androidpublisher_users_patch()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `androidpublisher_users_patch_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn androidpublisher_users_patch_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<User>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let task = androidpublisher_users_patch_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`androidpublisher_users_patch`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct AndroidpublisherUsersPatchArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Query parameter: updateMask
+    pub updateMask: Option<Option<String>>,
+}
+
+/// PATCH androidpublisher/v3/developers/{developersId}/users/{usersId}
+/// Updates access for the user to the developer account.
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `androidpublisher_users_patch_builder()` + `androidpublisher_users_patch_execute()`.
+/// For task-level control, use `androidpublisher_users_patch_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn androidpublisher_users_patch(
+    client: &SimpleHttpClient,
+    args: &AndroidpublisherUsersPatchArgs,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<User>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let builder = androidpublisher_users_patch_builder(client, &args.name, &args.updateMask)?;
+    androidpublisher_users_patch_execute(builder)
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for SafetyLabelsUpdateResponse
+// =============================================================================
+
+/// ResourceIdentifier implementation for SafetyLabelsUpdateResponse with AndroidpublisherApplicationsDataSafetyArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<AndroidpublisherApplicationsDataSafetyArgs> for SafetyLabelsUpdateResponse {
+    fn generate_resource_id(&self, input: &AndroidpublisherApplicationsDataSafetyArgs) -> String {
+        format!(
+            "gcp::androidpublisher::SafetyLabelsUpdateResponse/{}",
+            input.packageName
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::androidpublisher::SafetyLabelsUpdateResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for DeviceTierConfig
+// =============================================================================
+
+/// ResourceIdentifier implementation for DeviceTierConfig with AndroidpublisherApplicationsDeviceTierConfigsCreateArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<AndroidpublisherApplicationsDeviceTierConfigsCreateArgs>
+    for DeviceTierConfig
+{
+    fn generate_resource_id(
+        &self,
+        input: &AndroidpublisherApplicationsDeviceTierConfigsCreateArgs,
+    ) -> String {
+        format!(
+            "gcp::androidpublisher::DeviceTierConfig/{}",
+            input.packageName
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::androidpublisher::DeviceTierConfig"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for DeviceTierConfig
+// =============================================================================
+
+/// ResourceIdentifier implementation for DeviceTierConfig with AndroidpublisherApplicationsDeviceTierConfigsGetArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<AndroidpublisherApplicationsDeviceTierConfigsGetArgs> for DeviceTierConfig {
+    fn generate_resource_id(
+        &self,
+        input: &AndroidpublisherApplicationsDeviceTierConfigsGetArgs,
+    ) -> String {
+        format!(
+            "gcp::androidpublisher::DeviceTierConfig/{}/{}",
+            input.packageName, input.deviceTierConfigId
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::androidpublisher::DeviceTierConfig"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for ListDeviceTierConfigsResponse
+// =============================================================================
+
+/// ResourceIdentifier implementation for ListDeviceTierConfigsResponse with AndroidpublisherApplicationsDeviceTierConfigsListArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<AndroidpublisherApplicationsDeviceTierConfigsListArgs>
+    for ListDeviceTierConfigsResponse
+{
+    fn generate_resource_id(
+        &self,
+        input: &AndroidpublisherApplicationsDeviceTierConfigsListArgs,
+    ) -> String {
+        format!(
+            "gcp::androidpublisher::ListDeviceTierConfigsResponse/{}",
+            input.packageName
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::androidpublisher::ListDeviceTierConfigsResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for ListReleaseSummariesResponse
+// =============================================================================
+
+/// ResourceIdentifier implementation for ListReleaseSummariesResponse with AndroidpublisherApplicationsTracksReleasesListArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<AndroidpublisherApplicationsTracksReleasesListArgs>
+    for ListReleaseSummariesResponse
+{
+    fn generate_resource_id(
+        &self,
+        input: &AndroidpublisherApplicationsTracksReleasesListArgs,
+    ) -> String {
+        format!(
+            "gcp::androidpublisher::ListReleaseSummariesResponse/{}",
+            input.parent
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::androidpublisher::ListReleaseSummariesResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for AddTargetingResponse
+// =============================================================================
+
+/// ResourceIdentifier implementation for AddTargetingResponse with AndroidpublisherApprecoveryAddTargetingArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<AndroidpublisherApprecoveryAddTargetingArgs> for AddTargetingResponse {
+    fn generate_resource_id(&self, input: &AndroidpublisherApprecoveryAddTargetingArgs) -> String {
+        format!(
+            "gcp::androidpublisher::AddTargetingResponse/{}/{}",
+            input.packageName, input.appRecoveryId
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::androidpublisher::AddTargetingResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for CancelAppRecoveryResponse
+// =============================================================================
+
+/// ResourceIdentifier implementation for CancelAppRecoveryResponse with AndroidpublisherApprecoveryCancelArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<AndroidpublisherApprecoveryCancelArgs> for CancelAppRecoveryResponse {
+    fn generate_resource_id(&self, input: &AndroidpublisherApprecoveryCancelArgs) -> String {
+        format!(
+            "gcp::androidpublisher::CancelAppRecoveryResponse/{}/{}",
+            input.packageName, input.appRecoveryId
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::androidpublisher::CancelAppRecoveryResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for AppRecoveryAction
+// =============================================================================
+
+/// ResourceIdentifier implementation for AppRecoveryAction with AndroidpublisherApprecoveryCreateArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<AndroidpublisherApprecoveryCreateArgs> for AppRecoveryAction {
+    fn generate_resource_id(&self, input: &AndroidpublisherApprecoveryCreateArgs) -> String {
+        format!(
+            "gcp::androidpublisher::AppRecoveryAction/{}",
+            input.packageName
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::androidpublisher::AppRecoveryAction"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for DeployAppRecoveryResponse
+// =============================================================================
+
+/// ResourceIdentifier implementation for DeployAppRecoveryResponse with AndroidpublisherApprecoveryDeployArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<AndroidpublisherApprecoveryDeployArgs> for DeployAppRecoveryResponse {
+    fn generate_resource_id(&self, input: &AndroidpublisherApprecoveryDeployArgs) -> String {
+        format!(
+            "gcp::androidpublisher::DeployAppRecoveryResponse/{}/{}",
+            input.packageName, input.appRecoveryId
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::androidpublisher::DeployAppRecoveryResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for ListAppRecoveriesResponse
+// =============================================================================
+
+/// ResourceIdentifier implementation for ListAppRecoveriesResponse with AndroidpublisherApprecoveryListArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<AndroidpublisherApprecoveryListArgs> for ListAppRecoveriesResponse {
+    fn generate_resource_id(&self, input: &AndroidpublisherApprecoveryListArgs) -> String {
+        format!(
+            "gcp::androidpublisher::ListAppRecoveriesResponse/{}",
+            input.packageName
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::androidpublisher::ListAppRecoveriesResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for AppEdit
+// =============================================================================
+
+/// ResourceIdentifier implementation for AppEdit with AndroidpublisherEditsCommitArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<AndroidpublisherEditsCommitArgs> for AppEdit {
+    fn generate_resource_id(&self, input: &AndroidpublisherEditsCommitArgs) -> String {
+        format!(
+            "gcp::androidpublisher::AppEdit/{}/{}",
+            input.packageName, input.editId
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::androidpublisher::AppEdit"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for AppEdit
+// =============================================================================
+
+/// ResourceIdentifier implementation for AppEdit with AndroidpublisherEditsGetArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<AndroidpublisherEditsGetArgs> for AppEdit {
+    fn generate_resource_id(&self, input: &AndroidpublisherEditsGetArgs) -> String {
+        format!(
+            "gcp::androidpublisher::AppEdit/{}/{}",
+            input.packageName, input.editId
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::androidpublisher::AppEdit"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for AppEdit
+// =============================================================================
+
+/// ResourceIdentifier implementation for AppEdit with AndroidpublisherEditsInsertArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<AndroidpublisherEditsInsertArgs> for AppEdit {
+    fn generate_resource_id(&self, input: &AndroidpublisherEditsInsertArgs) -> String {
+        format!("gcp::androidpublisher::AppEdit/{}", input.packageName)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::androidpublisher::AppEdit"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for AppEdit
+// =============================================================================
+
+/// ResourceIdentifier implementation for AppEdit with AndroidpublisherEditsValidateArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<AndroidpublisherEditsValidateArgs> for AppEdit {
+    fn generate_resource_id(&self, input: &AndroidpublisherEditsValidateArgs) -> String {
+        format!(
+            "gcp::androidpublisher::AppEdit/{}/{}",
+            input.packageName, input.editId
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::androidpublisher::AppEdit"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for ApksAddExternallyHostedResponse
+// =============================================================================
+
+/// ResourceIdentifier implementation for ApksAddExternallyHostedResponse with AndroidpublisherEditsApksAddexternallyhostedArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<AndroidpublisherEditsApksAddexternallyhostedArgs>
+    for ApksAddExternallyHostedResponse
+{
+    fn generate_resource_id(
+        &self,
+        input: &AndroidpublisherEditsApksAddexternallyhostedArgs,
+    ) -> String {
+        format!(
+            "gcp::androidpublisher::ApksAddExternallyHostedResponse/{}/{}",
+            input.packageName, input.editId
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::androidpublisher::ApksAddExternallyHostedResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for ApksListResponse
+// =============================================================================
+
+/// ResourceIdentifier implementation for ApksListResponse with AndroidpublisherEditsApksListArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<AndroidpublisherEditsApksListArgs> for ApksListResponse {
+    fn generate_resource_id(&self, input: &AndroidpublisherEditsApksListArgs) -> String {
+        format!(
+            "gcp::androidpublisher::ApksListResponse/{}/{}",
+            input.packageName, input.editId
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::androidpublisher::ApksListResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for Apk
+// =============================================================================
+
+/// ResourceIdentifier implementation for Apk with AndroidpublisherEditsApksUploadArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<AndroidpublisherEditsApksUploadArgs> for Apk {
+    fn generate_resource_id(&self, input: &AndroidpublisherEditsApksUploadArgs) -> String {
+        format!(
+            "gcp::androidpublisher::Apk/{}/{}",
+            input.packageName, input.editId
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::androidpublisher::Apk"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for BundlesListResponse
+// =============================================================================
+
+/// ResourceIdentifier implementation for BundlesListResponse with AndroidpublisherEditsBundlesListArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<AndroidpublisherEditsBundlesListArgs> for BundlesListResponse {
+    fn generate_resource_id(&self, input: &AndroidpublisherEditsBundlesListArgs) -> String {
+        format!(
+            "gcp::androidpublisher::BundlesListResponse/{}/{}",
+            input.packageName, input.editId
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::androidpublisher::BundlesListResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for Bundle
+// =============================================================================
+
+/// ResourceIdentifier implementation for Bundle with AndroidpublisherEditsBundlesUploadArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<AndroidpublisherEditsBundlesUploadArgs> for Bundle {
+    fn generate_resource_id(&self, input: &AndroidpublisherEditsBundlesUploadArgs) -> String {
+        format!(
+            "gcp::androidpublisher::Bundle/{}/{}",
+            input.packageName, input.editId
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::androidpublisher::Bundle"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for TrackCountryAvailability
+// =============================================================================
+
+/// ResourceIdentifier implementation for TrackCountryAvailability with AndroidpublisherEditsCountryavailabilityGetArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<AndroidpublisherEditsCountryavailabilityGetArgs>
+    for TrackCountryAvailability
+{
+    fn generate_resource_id(
+        &self,
+        input: &AndroidpublisherEditsCountryavailabilityGetArgs,
+    ) -> String {
+        format!(
+            "gcp::androidpublisher::TrackCountryAvailability/{}/{}/{}",
+            input.packageName, input.editId, input.track
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::androidpublisher::TrackCountryAvailability"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for DeobfuscationFilesUploadResponse
+// =============================================================================
+
+/// ResourceIdentifier implementation for DeobfuscationFilesUploadResponse with AndroidpublisherEditsDeobfuscationfilesUploadArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<AndroidpublisherEditsDeobfuscationfilesUploadArgs>
+    for DeobfuscationFilesUploadResponse
+{
+    fn generate_resource_id(
+        &self,
+        input: &AndroidpublisherEditsDeobfuscationfilesUploadArgs,
+    ) -> String {
+        format!(
+            "gcp::androidpublisher::DeobfuscationFilesUploadResponse/{}/{}/{}/{}",
+            input.packageName, input.editId, input.apkVersionCode, input.deobfuscationFileType
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::androidpublisher::DeobfuscationFilesUploadResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for AppDetails
+// =============================================================================
+
+/// ResourceIdentifier implementation for AppDetails with AndroidpublisherEditsDetailsGetArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<AndroidpublisherEditsDetailsGetArgs> for AppDetails {
+    fn generate_resource_id(&self, input: &AndroidpublisherEditsDetailsGetArgs) -> String {
+        format!(
+            "gcp::androidpublisher::AppDetails/{}/{}",
+            input.packageName, input.editId
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::androidpublisher::AppDetails"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for AppDetails
+// =============================================================================
+
+/// ResourceIdentifier implementation for AppDetails with AndroidpublisherEditsDetailsPatchArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<AndroidpublisherEditsDetailsPatchArgs> for AppDetails {
+    fn generate_resource_id(&self, input: &AndroidpublisherEditsDetailsPatchArgs) -> String {
+        format!(
+            "gcp::androidpublisher::AppDetails/{}/{}",
+            input.packageName, input.editId
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::androidpublisher::AppDetails"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for AppDetails
+// =============================================================================
+
+/// ResourceIdentifier implementation for AppDetails with AndroidpublisherEditsDetailsUpdateArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<AndroidpublisherEditsDetailsUpdateArgs> for AppDetails {
+    fn generate_resource_id(&self, input: &AndroidpublisherEditsDetailsUpdateArgs) -> String {
+        format!(
+            "gcp::androidpublisher::AppDetails/{}/{}",
+            input.packageName, input.editId
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::androidpublisher::AppDetails"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for ExpansionFile
+// =============================================================================
+
+/// ResourceIdentifier implementation for ExpansionFile with AndroidpublisherEditsExpansionfilesGetArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<AndroidpublisherEditsExpansionfilesGetArgs> for ExpansionFile {
+    fn generate_resource_id(&self, input: &AndroidpublisherEditsExpansionfilesGetArgs) -> String {
+        format!(
+            "gcp::androidpublisher::ExpansionFile/{}/{}/{}/{}",
+            input.packageName, input.editId, input.apkVersionCode, input.expansionFileType
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::androidpublisher::ExpansionFile"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for ExpansionFile
+// =============================================================================
+
+/// ResourceIdentifier implementation for ExpansionFile with AndroidpublisherEditsExpansionfilesPatchArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<AndroidpublisherEditsExpansionfilesPatchArgs> for ExpansionFile {
+    fn generate_resource_id(&self, input: &AndroidpublisherEditsExpansionfilesPatchArgs) -> String {
+        format!(
+            "gcp::androidpublisher::ExpansionFile/{}/{}/{}/{}",
+            input.packageName, input.editId, input.apkVersionCode, input.expansionFileType
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::androidpublisher::ExpansionFile"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for ExpansionFile
+// =============================================================================
+
+/// ResourceIdentifier implementation for ExpansionFile with AndroidpublisherEditsExpansionfilesUpdateArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<AndroidpublisherEditsExpansionfilesUpdateArgs> for ExpansionFile {
+    fn generate_resource_id(
+        &self,
+        input: &AndroidpublisherEditsExpansionfilesUpdateArgs,
+    ) -> String {
+        format!(
+            "gcp::androidpublisher::ExpansionFile/{}/{}/{}/{}",
+            input.packageName, input.editId, input.apkVersionCode, input.expansionFileType
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::androidpublisher::ExpansionFile"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for ExpansionFilesUploadResponse
+// =============================================================================
+
+/// ResourceIdentifier implementation for ExpansionFilesUploadResponse with AndroidpublisherEditsExpansionfilesUploadArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<AndroidpublisherEditsExpansionfilesUploadArgs>
+    for ExpansionFilesUploadResponse
+{
+    fn generate_resource_id(
+        &self,
+        input: &AndroidpublisherEditsExpansionfilesUploadArgs,
+    ) -> String {
+        format!(
+            "gcp::androidpublisher::ExpansionFilesUploadResponse/{}/{}/{}/{}",
+            input.packageName, input.editId, input.apkVersionCode, input.expansionFileType
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::androidpublisher::ExpansionFilesUploadResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for ImagesDeleteAllResponse
+// =============================================================================
+
+/// ResourceIdentifier implementation for ImagesDeleteAllResponse with AndroidpublisherEditsImagesDeleteallArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<AndroidpublisherEditsImagesDeleteallArgs> for ImagesDeleteAllResponse {
+    fn generate_resource_id(&self, input: &AndroidpublisherEditsImagesDeleteallArgs) -> String {
+        format!(
+            "gcp::androidpublisher::ImagesDeleteAllResponse/{}/{}/{}/{}",
+            input.packageName, input.editId, input.language, input.imageType
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::androidpublisher::ImagesDeleteAllResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for ImagesListResponse
+// =============================================================================
+
+/// ResourceIdentifier implementation for ImagesListResponse with AndroidpublisherEditsImagesListArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<AndroidpublisherEditsImagesListArgs> for ImagesListResponse {
+    fn generate_resource_id(&self, input: &AndroidpublisherEditsImagesListArgs) -> String {
+        format!(
+            "gcp::androidpublisher::ImagesListResponse/{}/{}/{}/{}",
+            input.packageName, input.editId, input.language, input.imageType
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::androidpublisher::ImagesListResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for ImagesUploadResponse
+// =============================================================================
+
+/// ResourceIdentifier implementation for ImagesUploadResponse with AndroidpublisherEditsImagesUploadArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<AndroidpublisherEditsImagesUploadArgs> for ImagesUploadResponse {
+    fn generate_resource_id(&self, input: &AndroidpublisherEditsImagesUploadArgs) -> String {
+        format!(
+            "gcp::androidpublisher::ImagesUploadResponse/{}/{}/{}/{}",
+            input.packageName, input.editId, input.language, input.imageType
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::androidpublisher::ImagesUploadResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for Listing
+// =============================================================================
+
+/// ResourceIdentifier implementation for Listing with AndroidpublisherEditsListingsGetArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<AndroidpublisherEditsListingsGetArgs> for Listing {
+    fn generate_resource_id(&self, input: &AndroidpublisherEditsListingsGetArgs) -> String {
+        format!(
+            "gcp::androidpublisher::Listing/{}/{}/{}",
+            input.packageName, input.editId, input.language
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::androidpublisher::Listing"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for ListingsListResponse
+// =============================================================================
+
+/// ResourceIdentifier implementation for ListingsListResponse with AndroidpublisherEditsListingsListArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<AndroidpublisherEditsListingsListArgs> for ListingsListResponse {
+    fn generate_resource_id(&self, input: &AndroidpublisherEditsListingsListArgs) -> String {
+        format!(
+            "gcp::androidpublisher::ListingsListResponse/{}/{}",
+            input.packageName, input.editId
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::androidpublisher::ListingsListResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for Listing
+// =============================================================================
+
+/// ResourceIdentifier implementation for Listing with AndroidpublisherEditsListingsPatchArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<AndroidpublisherEditsListingsPatchArgs> for Listing {
+    fn generate_resource_id(&self, input: &AndroidpublisherEditsListingsPatchArgs) -> String {
+        format!(
+            "gcp::androidpublisher::Listing/{}/{}/{}",
+            input.packageName, input.editId, input.language
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::androidpublisher::Listing"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for Listing
+// =============================================================================
+
+/// ResourceIdentifier implementation for Listing with AndroidpublisherEditsListingsUpdateArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<AndroidpublisherEditsListingsUpdateArgs> for Listing {
+    fn generate_resource_id(&self, input: &AndroidpublisherEditsListingsUpdateArgs) -> String {
+        format!(
+            "gcp::androidpublisher::Listing/{}/{}/{}",
+            input.packageName, input.editId, input.language
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::androidpublisher::Listing"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for Testers
+// =============================================================================
+
+/// ResourceIdentifier implementation for Testers with AndroidpublisherEditsTestersGetArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<AndroidpublisherEditsTestersGetArgs> for Testers {
+    fn generate_resource_id(&self, input: &AndroidpublisherEditsTestersGetArgs) -> String {
+        format!(
+            "gcp::androidpublisher::Testers/{}/{}/{}",
+            input.packageName, input.editId, input.track
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::androidpublisher::Testers"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for Testers
+// =============================================================================
+
+/// ResourceIdentifier implementation for Testers with AndroidpublisherEditsTestersPatchArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<AndroidpublisherEditsTestersPatchArgs> for Testers {
+    fn generate_resource_id(&self, input: &AndroidpublisherEditsTestersPatchArgs) -> String {
+        format!(
+            "gcp::androidpublisher::Testers/{}/{}/{}",
+            input.packageName, input.editId, input.track
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::androidpublisher::Testers"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for Testers
+// =============================================================================
+
+/// ResourceIdentifier implementation for Testers with AndroidpublisherEditsTestersUpdateArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<AndroidpublisherEditsTestersUpdateArgs> for Testers {
+    fn generate_resource_id(&self, input: &AndroidpublisherEditsTestersUpdateArgs) -> String {
+        format!(
+            "gcp::androidpublisher::Testers/{}/{}/{}",
+            input.packageName, input.editId, input.track
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::androidpublisher::Testers"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for Track
+// =============================================================================
+
+/// ResourceIdentifier implementation for Track with AndroidpublisherEditsTracksCreateArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<AndroidpublisherEditsTracksCreateArgs> for Track {
+    fn generate_resource_id(&self, input: &AndroidpublisherEditsTracksCreateArgs) -> String {
+        format!(
+            "gcp::androidpublisher::Track/{}/{}",
+            input.packageName, input.editId
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::androidpublisher::Track"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for Track
+// =============================================================================
+
+/// ResourceIdentifier implementation for Track with AndroidpublisherEditsTracksGetArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<AndroidpublisherEditsTracksGetArgs> for Track {
+    fn generate_resource_id(&self, input: &AndroidpublisherEditsTracksGetArgs) -> String {
+        format!(
+            "gcp::androidpublisher::Track/{}/{}/{}",
+            input.packageName, input.editId, input.track
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::androidpublisher::Track"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for TracksListResponse
+// =============================================================================
+
+/// ResourceIdentifier implementation for TracksListResponse with AndroidpublisherEditsTracksListArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<AndroidpublisherEditsTracksListArgs> for TracksListResponse {
+    fn generate_resource_id(&self, input: &AndroidpublisherEditsTracksListArgs) -> String {
+        format!(
+            "gcp::androidpublisher::TracksListResponse/{}/{}",
+            input.packageName, input.editId
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::androidpublisher::TracksListResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for Track
+// =============================================================================
+
+/// ResourceIdentifier implementation for Track with AndroidpublisherEditsTracksPatchArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<AndroidpublisherEditsTracksPatchArgs> for Track {
+    fn generate_resource_id(&self, input: &AndroidpublisherEditsTracksPatchArgs) -> String {
+        format!(
+            "gcp::androidpublisher::Track/{}/{}/{}",
+            input.packageName, input.editId, input.track
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::androidpublisher::Track"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for Track
+// =============================================================================
+
+/// ResourceIdentifier implementation for Track with AndroidpublisherEditsTracksUpdateArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<AndroidpublisherEditsTracksUpdateArgs> for Track {
+    fn generate_resource_id(&self, input: &AndroidpublisherEditsTracksUpdateArgs) -> String {
+        format!(
+            "gcp::androidpublisher::Track/{}/{}/{}",
+            input.packageName, input.editId, input.track
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::androidpublisher::Track"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for ExternalTransaction
+// =============================================================================
+
+/// ResourceIdentifier implementation for ExternalTransaction with AndroidpublisherExternaltransactionsCreateexternaltransactionArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<AndroidpublisherExternaltransactionsCreateexternaltransactionArgs>
+    for ExternalTransaction
+{
+    fn generate_resource_id(
+        &self,
+        input: &AndroidpublisherExternaltransactionsCreateexternaltransactionArgs,
+    ) -> String {
+        format!(
+            "gcp::androidpublisher::ExternalTransaction/{}",
+            input.parent
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::androidpublisher::ExternalTransaction"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for ExternalTransaction
+// =============================================================================
+
+/// ResourceIdentifier implementation for ExternalTransaction with AndroidpublisherExternaltransactionsGetexternaltransactionArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<AndroidpublisherExternaltransactionsGetexternaltransactionArgs>
+    for ExternalTransaction
+{
+    fn generate_resource_id(
+        &self,
+        input: &AndroidpublisherExternaltransactionsGetexternaltransactionArgs,
+    ) -> String {
+        format!("gcp::androidpublisher::ExternalTransaction/{}", input.name)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::androidpublisher::ExternalTransaction"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for ExternalTransaction
+// =============================================================================
+
+/// ResourceIdentifier implementation for ExternalTransaction with AndroidpublisherExternaltransactionsRefundexternaltransactionArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<AndroidpublisherExternaltransactionsRefundexternaltransactionArgs>
+    for ExternalTransaction
+{
+    fn generate_resource_id(
+        &self,
+        input: &AndroidpublisherExternaltransactionsRefundexternaltransactionArgs,
+    ) -> String {
+        format!("gcp::androidpublisher::ExternalTransaction/{}", input.name)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::androidpublisher::ExternalTransaction"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for GeneratedApksListResponse
+// =============================================================================
+
+/// ResourceIdentifier implementation for GeneratedApksListResponse with AndroidpublisherGeneratedapksListArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<AndroidpublisherGeneratedapksListArgs> for GeneratedApksListResponse {
+    fn generate_resource_id(&self, input: &AndroidpublisherGeneratedapksListArgs) -> String {
+        format!(
+            "gcp::androidpublisher::GeneratedApksListResponse/{}/{}",
+            input.packageName, input.versionCode
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::androidpublisher::GeneratedApksListResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for Grant
+// =============================================================================
+
+/// ResourceIdentifier implementation for Grant with AndroidpublisherGrantsCreateArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<AndroidpublisherGrantsCreateArgs> for Grant {
+    fn generate_resource_id(&self, input: &AndroidpublisherGrantsCreateArgs) -> String {
+        format!("gcp::androidpublisher::Grant/{}", input.parent)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::androidpublisher::Grant"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for Grant
+// =============================================================================
+
+/// ResourceIdentifier implementation for Grant with AndroidpublisherGrantsPatchArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<AndroidpublisherGrantsPatchArgs> for Grant {
+    fn generate_resource_id(&self, input: &AndroidpublisherGrantsPatchArgs) -> String {
+        format!("gcp::androidpublisher::Grant/{}", input.name)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::androidpublisher::Grant"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for InappproductsBatchGetResponse
+// =============================================================================
+
+/// ResourceIdentifier implementation for InappproductsBatchGetResponse with AndroidpublisherInappproductsBatchGetArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<AndroidpublisherInappproductsBatchGetArgs>
+    for InappproductsBatchGetResponse
+{
+    fn generate_resource_id(&self, input: &AndroidpublisherInappproductsBatchGetArgs) -> String {
+        format!(
+            "gcp::androidpublisher::InappproductsBatchGetResponse/{}",
+            input.packageName
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::androidpublisher::InappproductsBatchGetResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for InappproductsBatchUpdateResponse
+// =============================================================================
+
+/// ResourceIdentifier implementation for InappproductsBatchUpdateResponse with AndroidpublisherInappproductsBatchUpdateArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<AndroidpublisherInappproductsBatchUpdateArgs>
+    for InappproductsBatchUpdateResponse
+{
+    fn generate_resource_id(&self, input: &AndroidpublisherInappproductsBatchUpdateArgs) -> String {
+        format!(
+            "gcp::androidpublisher::InappproductsBatchUpdateResponse/{}",
+            input.packageName
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::androidpublisher::InappproductsBatchUpdateResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for InAppProduct
+// =============================================================================
+
+/// ResourceIdentifier implementation for InAppProduct with AndroidpublisherInappproductsGetArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<AndroidpublisherInappproductsGetArgs> for InAppProduct {
+    fn generate_resource_id(&self, input: &AndroidpublisherInappproductsGetArgs) -> String {
+        format!(
+            "gcp::androidpublisher::InAppProduct/{}/{}",
+            input.packageName, input.sku
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::androidpublisher::InAppProduct"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for InAppProduct
+// =============================================================================
+
+/// ResourceIdentifier implementation for InAppProduct with AndroidpublisherInappproductsInsertArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<AndroidpublisherInappproductsInsertArgs> for InAppProduct {
+    fn generate_resource_id(&self, input: &AndroidpublisherInappproductsInsertArgs) -> String {
+        format!("gcp::androidpublisher::InAppProduct/{}", input.packageName)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::androidpublisher::InAppProduct"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for InappproductsListResponse
+// =============================================================================
+
+/// ResourceIdentifier implementation for InappproductsListResponse with AndroidpublisherInappproductsListArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<AndroidpublisherInappproductsListArgs> for InappproductsListResponse {
+    fn generate_resource_id(&self, input: &AndroidpublisherInappproductsListArgs) -> String {
+        format!(
+            "gcp::androidpublisher::InappproductsListResponse/{}",
+            input.packageName
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::androidpublisher::InappproductsListResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for InAppProduct
+// =============================================================================
+
+/// ResourceIdentifier implementation for InAppProduct with AndroidpublisherInappproductsPatchArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<AndroidpublisherInappproductsPatchArgs> for InAppProduct {
+    fn generate_resource_id(&self, input: &AndroidpublisherInappproductsPatchArgs) -> String {
+        format!(
+            "gcp::androidpublisher::InAppProduct/{}/{}",
+            input.packageName, input.sku
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::androidpublisher::InAppProduct"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for InAppProduct
+// =============================================================================
+
+/// ResourceIdentifier implementation for InAppProduct with AndroidpublisherInappproductsUpdateArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<AndroidpublisherInappproductsUpdateArgs> for InAppProduct {
+    fn generate_resource_id(&self, input: &AndroidpublisherInappproductsUpdateArgs) -> String {
+        format!(
+            "gcp::androidpublisher::InAppProduct/{}/{}",
+            input.packageName, input.sku
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::androidpublisher::InAppProduct"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for InternalAppSharingArtifact
+// =============================================================================
+
+/// ResourceIdentifier implementation for InternalAppSharingArtifact with AndroidpublisherInternalappsharingartifactsUploadapkArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<AndroidpublisherInternalappsharingartifactsUploadapkArgs>
+    for InternalAppSharingArtifact
+{
+    fn generate_resource_id(
+        &self,
+        input: &AndroidpublisherInternalappsharingartifactsUploadapkArgs,
+    ) -> String {
+        format!(
+            "gcp::androidpublisher::InternalAppSharingArtifact/{}",
+            input.packageName
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::androidpublisher::InternalAppSharingArtifact"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for InternalAppSharingArtifact
+// =============================================================================
+
+/// ResourceIdentifier implementation for InternalAppSharingArtifact with AndroidpublisherInternalappsharingartifactsUploadbundleArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<AndroidpublisherInternalappsharingartifactsUploadbundleArgs>
+    for InternalAppSharingArtifact
+{
+    fn generate_resource_id(
+        &self,
+        input: &AndroidpublisherInternalappsharingartifactsUploadbundleArgs,
+    ) -> String {
+        format!(
+            "gcp::androidpublisher::InternalAppSharingArtifact/{}",
+            input.packageName
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::androidpublisher::InternalAppSharingArtifact"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for ConvertRegionPricesResponse
+// =============================================================================
+
+/// ResourceIdentifier implementation for ConvertRegionPricesResponse with AndroidpublisherMonetizationConvertRegionPricesArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<AndroidpublisherMonetizationConvertRegionPricesArgs>
+    for ConvertRegionPricesResponse
+{
+    fn generate_resource_id(
+        &self,
+        input: &AndroidpublisherMonetizationConvertRegionPricesArgs,
+    ) -> String {
+        format!(
+            "gcp::androidpublisher::ConvertRegionPricesResponse/{}",
+            input.packageName
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::androidpublisher::ConvertRegionPricesResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for BatchGetOneTimeProductsResponse
+// =============================================================================
+
+/// ResourceIdentifier implementation for BatchGetOneTimeProductsResponse with AndroidpublisherMonetizationOnetimeproductsBatchGetArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<AndroidpublisherMonetizationOnetimeproductsBatchGetArgs>
+    for BatchGetOneTimeProductsResponse
+{
+    fn generate_resource_id(
+        &self,
+        input: &AndroidpublisherMonetizationOnetimeproductsBatchGetArgs,
+    ) -> String {
+        format!(
+            "gcp::androidpublisher::BatchGetOneTimeProductsResponse/{}",
+            input.packageName
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::androidpublisher::BatchGetOneTimeProductsResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for BatchUpdateOneTimeProductsResponse
+// =============================================================================
+
+/// ResourceIdentifier implementation for BatchUpdateOneTimeProductsResponse with AndroidpublisherMonetizationOnetimeproductsBatchUpdateArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<AndroidpublisherMonetizationOnetimeproductsBatchUpdateArgs>
+    for BatchUpdateOneTimeProductsResponse
+{
+    fn generate_resource_id(
+        &self,
+        input: &AndroidpublisherMonetizationOnetimeproductsBatchUpdateArgs,
+    ) -> String {
+        format!(
+            "gcp::androidpublisher::BatchUpdateOneTimeProductsResponse/{}",
+            input.packageName
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::androidpublisher::BatchUpdateOneTimeProductsResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for OneTimeProduct
+// =============================================================================
+
+/// ResourceIdentifier implementation for OneTimeProduct with AndroidpublisherMonetizationOnetimeproductsGetArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<AndroidpublisherMonetizationOnetimeproductsGetArgs> for OneTimeProduct {
+    fn generate_resource_id(
+        &self,
+        input: &AndroidpublisherMonetizationOnetimeproductsGetArgs,
+    ) -> String {
+        format!(
+            "gcp::androidpublisher::OneTimeProduct/{}/{}",
+            input.packageName, input.productId
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::androidpublisher::OneTimeProduct"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for ListOneTimeProductsResponse
+// =============================================================================
+
+/// ResourceIdentifier implementation for ListOneTimeProductsResponse with AndroidpublisherMonetizationOnetimeproductsListArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<AndroidpublisherMonetizationOnetimeproductsListArgs>
+    for ListOneTimeProductsResponse
+{
+    fn generate_resource_id(
+        &self,
+        input: &AndroidpublisherMonetizationOnetimeproductsListArgs,
+    ) -> String {
+        format!(
+            "gcp::androidpublisher::ListOneTimeProductsResponse/{}",
+            input.packageName
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::androidpublisher::ListOneTimeProductsResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for OneTimeProduct
+// =============================================================================
+
+/// ResourceIdentifier implementation for OneTimeProduct with AndroidpublisherMonetizationOnetimeproductsPatchArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<AndroidpublisherMonetizationOnetimeproductsPatchArgs> for OneTimeProduct {
+    fn generate_resource_id(
+        &self,
+        input: &AndroidpublisherMonetizationOnetimeproductsPatchArgs,
+    ) -> String {
+        format!(
+            "gcp::androidpublisher::OneTimeProduct/{}/{}",
+            input.packageName, input.productId
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::androidpublisher::OneTimeProduct"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for BatchUpdatePurchaseOptionStatesResponse
+// =============================================================================
+
+/// ResourceIdentifier implementation for BatchUpdatePurchaseOptionStatesResponse with AndroidpublisherMonetizationOnetimeproductsPurchaseOptionsBatchUpdateStatesArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl
+    ResourceIdentifier<
+        AndroidpublisherMonetizationOnetimeproductsPurchaseOptionsBatchUpdateStatesArgs,
+    > for BatchUpdatePurchaseOptionStatesResponse
+{
+    fn generate_resource_id(
+        &self,
+        input: &AndroidpublisherMonetizationOnetimeproductsPurchaseOptionsBatchUpdateStatesArgs,
+    ) -> String {
+        format!(
+            "gcp::androidpublisher::BatchUpdatePurchaseOptionStatesResponse/{}/{}",
+            input.packageName, input.productId
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::androidpublisher::BatchUpdatePurchaseOptionStatesResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for OneTimeProductOffer
+// =============================================================================
+
+/// ResourceIdentifier implementation for OneTimeProductOffer with AndroidpublisherMonetizationOnetimeproductsPurchaseOptionsOffersActivateArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl
+    ResourceIdentifier<AndroidpublisherMonetizationOnetimeproductsPurchaseOptionsOffersActivateArgs>
+    for OneTimeProductOffer
+{
+    fn generate_resource_id(
+        &self,
+        input: &AndroidpublisherMonetizationOnetimeproductsPurchaseOptionsOffersActivateArgs,
+    ) -> String {
+        format!(
+            "gcp::androidpublisher::OneTimeProductOffer/{}/{}/{}/{}",
+            input.packageName, input.productId, input.purchaseOptionId, input.offerId
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::androidpublisher::OneTimeProductOffer"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for BatchGetOneTimeProductOffersResponse
+// =============================================================================
+
+/// ResourceIdentifier implementation for BatchGetOneTimeProductOffersResponse with AndroidpublisherMonetizationOnetimeproductsPurchaseOptionsOffersBatchGetArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl
+    ResourceIdentifier<AndroidpublisherMonetizationOnetimeproductsPurchaseOptionsOffersBatchGetArgs>
+    for BatchGetOneTimeProductOffersResponse
+{
+    fn generate_resource_id(
+        &self,
+        input: &AndroidpublisherMonetizationOnetimeproductsPurchaseOptionsOffersBatchGetArgs,
+    ) -> String {
+        format!(
+            "gcp::androidpublisher::BatchGetOneTimeProductOffersResponse/{}/{}/{}",
+            input.packageName, input.productId, input.purchaseOptionId
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::androidpublisher::BatchGetOneTimeProductOffersResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for BatchUpdateOneTimeProductOffersResponse
+// =============================================================================
+
+/// ResourceIdentifier implementation for BatchUpdateOneTimeProductOffersResponse with AndroidpublisherMonetizationOnetimeproductsPurchaseOptionsOffersBatchUpdateArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl
+    ResourceIdentifier<
+        AndroidpublisherMonetizationOnetimeproductsPurchaseOptionsOffersBatchUpdateArgs,
+    > for BatchUpdateOneTimeProductOffersResponse
+{
+    fn generate_resource_id(
+        &self,
+        input: &AndroidpublisherMonetizationOnetimeproductsPurchaseOptionsOffersBatchUpdateArgs,
+    ) -> String {
+        format!(
+            "gcp::androidpublisher::BatchUpdateOneTimeProductOffersResponse/{}/{}/{}",
+            input.packageName, input.productId, input.purchaseOptionId
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::androidpublisher::BatchUpdateOneTimeProductOffersResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for BatchUpdateOneTimeProductOfferStatesResponse
+// =============================================================================
+
+/// ResourceIdentifier implementation for BatchUpdateOneTimeProductOfferStatesResponse with AndroidpublisherMonetizationOnetimeproductsPurchaseOptionsOffersBatchUpdateStatesArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl
+    ResourceIdentifier<
+        AndroidpublisherMonetizationOnetimeproductsPurchaseOptionsOffersBatchUpdateStatesArgs,
+    > for BatchUpdateOneTimeProductOfferStatesResponse
+{
+    fn generate_resource_id(
+        &self,
+        input: &AndroidpublisherMonetizationOnetimeproductsPurchaseOptionsOffersBatchUpdateStatesArgs,
+    ) -> String {
+        format!(
+            "gcp::androidpublisher::BatchUpdateOneTimeProductOfferStatesResponse/{}/{}/{}",
+            input.packageName, input.productId, input.purchaseOptionId
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::androidpublisher::BatchUpdateOneTimeProductOfferStatesResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for OneTimeProductOffer
+// =============================================================================
+
+/// ResourceIdentifier implementation for OneTimeProductOffer with AndroidpublisherMonetizationOnetimeproductsPurchaseOptionsOffersCancelArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<AndroidpublisherMonetizationOnetimeproductsPurchaseOptionsOffersCancelArgs>
+    for OneTimeProductOffer
+{
+    fn generate_resource_id(
+        &self,
+        input: &AndroidpublisherMonetizationOnetimeproductsPurchaseOptionsOffersCancelArgs,
+    ) -> String {
+        format!(
+            "gcp::androidpublisher::OneTimeProductOffer/{}/{}/{}/{}",
+            input.packageName, input.productId, input.purchaseOptionId, input.offerId
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::androidpublisher::OneTimeProductOffer"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for OneTimeProductOffer
+// =============================================================================
+
+/// ResourceIdentifier implementation for OneTimeProductOffer with AndroidpublisherMonetizationOnetimeproductsPurchaseOptionsOffersDeactivateArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl
+    ResourceIdentifier<
+        AndroidpublisherMonetizationOnetimeproductsPurchaseOptionsOffersDeactivateArgs,
+    > for OneTimeProductOffer
+{
+    fn generate_resource_id(
+        &self,
+        input: &AndroidpublisherMonetizationOnetimeproductsPurchaseOptionsOffersDeactivateArgs,
+    ) -> String {
+        format!(
+            "gcp::androidpublisher::OneTimeProductOffer/{}/{}/{}/{}",
+            input.packageName, input.productId, input.purchaseOptionId, input.offerId
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::androidpublisher::OneTimeProductOffer"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for ListOneTimeProductOffersResponse
+// =============================================================================
+
+/// ResourceIdentifier implementation for ListOneTimeProductOffersResponse with AndroidpublisherMonetizationOnetimeproductsPurchaseOptionsOffersListArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<AndroidpublisherMonetizationOnetimeproductsPurchaseOptionsOffersListArgs>
+    for ListOneTimeProductOffersResponse
+{
+    fn generate_resource_id(
+        &self,
+        input: &AndroidpublisherMonetizationOnetimeproductsPurchaseOptionsOffersListArgs,
+    ) -> String {
+        format!(
+            "gcp::androidpublisher::ListOneTimeProductOffersResponse/{}/{}/{}",
+            input.packageName, input.productId, input.purchaseOptionId
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::androidpublisher::ListOneTimeProductOffersResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for Subscription
+// =============================================================================
+
+/// ResourceIdentifier implementation for Subscription with AndroidpublisherMonetizationSubscriptionsArchiveArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<AndroidpublisherMonetizationSubscriptionsArchiveArgs> for Subscription {
+    fn generate_resource_id(
+        &self,
+        input: &AndroidpublisherMonetizationSubscriptionsArchiveArgs,
+    ) -> String {
+        format!(
+            "gcp::androidpublisher::Subscription/{}/{}",
+            input.packageName, input.productId
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::androidpublisher::Subscription"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for BatchGetSubscriptionsResponse
+// =============================================================================
+
+/// ResourceIdentifier implementation for BatchGetSubscriptionsResponse with AndroidpublisherMonetizationSubscriptionsBatchGetArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<AndroidpublisherMonetizationSubscriptionsBatchGetArgs>
+    for BatchGetSubscriptionsResponse
+{
+    fn generate_resource_id(
+        &self,
+        input: &AndroidpublisherMonetizationSubscriptionsBatchGetArgs,
+    ) -> String {
+        format!(
+            "gcp::androidpublisher::BatchGetSubscriptionsResponse/{}",
+            input.packageName
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::androidpublisher::BatchGetSubscriptionsResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for BatchUpdateSubscriptionsResponse
+// =============================================================================
+
+/// ResourceIdentifier implementation for BatchUpdateSubscriptionsResponse with AndroidpublisherMonetizationSubscriptionsBatchUpdateArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<AndroidpublisherMonetizationSubscriptionsBatchUpdateArgs>
+    for BatchUpdateSubscriptionsResponse
+{
+    fn generate_resource_id(
+        &self,
+        input: &AndroidpublisherMonetizationSubscriptionsBatchUpdateArgs,
+    ) -> String {
+        format!(
+            "gcp::androidpublisher::BatchUpdateSubscriptionsResponse/{}",
+            input.packageName
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::androidpublisher::BatchUpdateSubscriptionsResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for Subscription
+// =============================================================================
+
+/// ResourceIdentifier implementation for Subscription with AndroidpublisherMonetizationSubscriptionsCreateArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<AndroidpublisherMonetizationSubscriptionsCreateArgs> for Subscription {
+    fn generate_resource_id(
+        &self,
+        input: &AndroidpublisherMonetizationSubscriptionsCreateArgs,
+    ) -> String {
+        format!("gcp::androidpublisher::Subscription/{}", input.packageName)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::androidpublisher::Subscription"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for Subscription
+// =============================================================================
+
+/// ResourceIdentifier implementation for Subscription with AndroidpublisherMonetizationSubscriptionsGetArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<AndroidpublisherMonetizationSubscriptionsGetArgs> for Subscription {
+    fn generate_resource_id(
+        &self,
+        input: &AndroidpublisherMonetizationSubscriptionsGetArgs,
+    ) -> String {
+        format!(
+            "gcp::androidpublisher::Subscription/{}/{}",
+            input.packageName, input.productId
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::androidpublisher::Subscription"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for ListSubscriptionsResponse
+// =============================================================================
+
+/// ResourceIdentifier implementation for ListSubscriptionsResponse with AndroidpublisherMonetizationSubscriptionsListArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<AndroidpublisherMonetizationSubscriptionsListArgs>
+    for ListSubscriptionsResponse
+{
+    fn generate_resource_id(
+        &self,
+        input: &AndroidpublisherMonetizationSubscriptionsListArgs,
+    ) -> String {
+        format!(
+            "gcp::androidpublisher::ListSubscriptionsResponse/{}",
+            input.packageName
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::androidpublisher::ListSubscriptionsResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for Subscription
+// =============================================================================
+
+/// ResourceIdentifier implementation for Subscription with AndroidpublisherMonetizationSubscriptionsPatchArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<AndroidpublisherMonetizationSubscriptionsPatchArgs> for Subscription {
+    fn generate_resource_id(
+        &self,
+        input: &AndroidpublisherMonetizationSubscriptionsPatchArgs,
+    ) -> String {
+        format!(
+            "gcp::androidpublisher::Subscription/{}/{}",
+            input.packageName, input.productId
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::androidpublisher::Subscription"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for Subscription
+// =============================================================================
+
+/// ResourceIdentifier implementation for Subscription with AndroidpublisherMonetizationSubscriptionsBasePlansActivateArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<AndroidpublisherMonetizationSubscriptionsBasePlansActivateArgs>
+    for Subscription
+{
+    fn generate_resource_id(
+        &self,
+        input: &AndroidpublisherMonetizationSubscriptionsBasePlansActivateArgs,
+    ) -> String {
+        format!(
+            "gcp::androidpublisher::Subscription/{}/{}/{}",
+            input.packageName, input.productId, input.basePlanId
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::androidpublisher::Subscription"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for BatchMigrateBasePlanPricesResponse
+// =============================================================================
+
+/// ResourceIdentifier implementation for BatchMigrateBasePlanPricesResponse with AndroidpublisherMonetizationSubscriptionsBasePlansBatchMigratePricesArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<AndroidpublisherMonetizationSubscriptionsBasePlansBatchMigratePricesArgs>
+    for BatchMigrateBasePlanPricesResponse
+{
+    fn generate_resource_id(
+        &self,
+        input: &AndroidpublisherMonetizationSubscriptionsBasePlansBatchMigratePricesArgs,
+    ) -> String {
+        format!(
+            "gcp::androidpublisher::BatchMigrateBasePlanPricesResponse/{}/{}",
+            input.packageName, input.productId
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::androidpublisher::BatchMigrateBasePlanPricesResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for BatchUpdateBasePlanStatesResponse
+// =============================================================================
+
+/// ResourceIdentifier implementation for BatchUpdateBasePlanStatesResponse with AndroidpublisherMonetizationSubscriptionsBasePlansBatchUpdateStatesArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<AndroidpublisherMonetizationSubscriptionsBasePlansBatchUpdateStatesArgs>
+    for BatchUpdateBasePlanStatesResponse
+{
+    fn generate_resource_id(
+        &self,
+        input: &AndroidpublisherMonetizationSubscriptionsBasePlansBatchUpdateStatesArgs,
+    ) -> String {
+        format!(
+            "gcp::androidpublisher::BatchUpdateBasePlanStatesResponse/{}/{}",
+            input.packageName, input.productId
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::androidpublisher::BatchUpdateBasePlanStatesResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for Subscription
+// =============================================================================
+
+/// ResourceIdentifier implementation for Subscription with AndroidpublisherMonetizationSubscriptionsBasePlansDeactivateArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<AndroidpublisherMonetizationSubscriptionsBasePlansDeactivateArgs>
+    for Subscription
+{
+    fn generate_resource_id(
+        &self,
+        input: &AndroidpublisherMonetizationSubscriptionsBasePlansDeactivateArgs,
+    ) -> String {
+        format!(
+            "gcp::androidpublisher::Subscription/{}/{}/{}",
+            input.packageName, input.productId, input.basePlanId
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::androidpublisher::Subscription"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for MigrateBasePlanPricesResponse
+// =============================================================================
+
+/// ResourceIdentifier implementation for MigrateBasePlanPricesResponse with AndroidpublisherMonetizationSubscriptionsBasePlansMigratePricesArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<AndroidpublisherMonetizationSubscriptionsBasePlansMigratePricesArgs>
+    for MigrateBasePlanPricesResponse
+{
+    fn generate_resource_id(
+        &self,
+        input: &AndroidpublisherMonetizationSubscriptionsBasePlansMigratePricesArgs,
+    ) -> String {
+        format!(
+            "gcp::androidpublisher::MigrateBasePlanPricesResponse/{}/{}/{}",
+            input.packageName, input.productId, input.basePlanId
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::androidpublisher::MigrateBasePlanPricesResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for SubscriptionOffer
+// =============================================================================
+
+/// ResourceIdentifier implementation for SubscriptionOffer with AndroidpublisherMonetizationSubscriptionsBasePlansOffersActivateArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<AndroidpublisherMonetizationSubscriptionsBasePlansOffersActivateArgs>
+    for SubscriptionOffer
+{
+    fn generate_resource_id(
+        &self,
+        input: &AndroidpublisherMonetizationSubscriptionsBasePlansOffersActivateArgs,
+    ) -> String {
+        format!(
+            "gcp::androidpublisher::SubscriptionOffer/{}/{}/{}/{}",
+            input.packageName, input.productId, input.basePlanId, input.offerId
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::androidpublisher::SubscriptionOffer"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for BatchGetSubscriptionOffersResponse
+// =============================================================================
+
+/// ResourceIdentifier implementation for BatchGetSubscriptionOffersResponse with AndroidpublisherMonetizationSubscriptionsBasePlansOffersBatchGetArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<AndroidpublisherMonetizationSubscriptionsBasePlansOffersBatchGetArgs>
+    for BatchGetSubscriptionOffersResponse
+{
+    fn generate_resource_id(
+        &self,
+        input: &AndroidpublisherMonetizationSubscriptionsBasePlansOffersBatchGetArgs,
+    ) -> String {
+        format!(
+            "gcp::androidpublisher::BatchGetSubscriptionOffersResponse/{}/{}/{}",
+            input.packageName, input.productId, input.basePlanId
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::androidpublisher::BatchGetSubscriptionOffersResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for BatchUpdateSubscriptionOffersResponse
+// =============================================================================
+
+/// ResourceIdentifier implementation for BatchUpdateSubscriptionOffersResponse with AndroidpublisherMonetizationSubscriptionsBasePlansOffersBatchUpdateArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<AndroidpublisherMonetizationSubscriptionsBasePlansOffersBatchUpdateArgs>
+    for BatchUpdateSubscriptionOffersResponse
+{
+    fn generate_resource_id(
+        &self,
+        input: &AndroidpublisherMonetizationSubscriptionsBasePlansOffersBatchUpdateArgs,
+    ) -> String {
+        format!(
+            "gcp::androidpublisher::BatchUpdateSubscriptionOffersResponse/{}/{}/{}",
+            input.packageName, input.productId, input.basePlanId
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::androidpublisher::BatchUpdateSubscriptionOffersResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for BatchUpdateSubscriptionOfferStatesResponse
+// =============================================================================
+
+/// ResourceIdentifier implementation for BatchUpdateSubscriptionOfferStatesResponse with AndroidpublisherMonetizationSubscriptionsBasePlansOffersBatchUpdateStatesArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl
+    ResourceIdentifier<
+        AndroidpublisherMonetizationSubscriptionsBasePlansOffersBatchUpdateStatesArgs,
+    > for BatchUpdateSubscriptionOfferStatesResponse
+{
+    fn generate_resource_id(
+        &self,
+        input: &AndroidpublisherMonetizationSubscriptionsBasePlansOffersBatchUpdateStatesArgs,
+    ) -> String {
+        format!(
+            "gcp::androidpublisher::BatchUpdateSubscriptionOfferStatesResponse/{}/{}/{}",
+            input.packageName, input.productId, input.basePlanId
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::androidpublisher::BatchUpdateSubscriptionOfferStatesResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for SubscriptionOffer
+// =============================================================================
+
+/// ResourceIdentifier implementation for SubscriptionOffer with AndroidpublisherMonetizationSubscriptionsBasePlansOffersCreateArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<AndroidpublisherMonetizationSubscriptionsBasePlansOffersCreateArgs>
+    for SubscriptionOffer
+{
+    fn generate_resource_id(
+        &self,
+        input: &AndroidpublisherMonetizationSubscriptionsBasePlansOffersCreateArgs,
+    ) -> String {
+        format!(
+            "gcp::androidpublisher::SubscriptionOffer/{}/{}/{}",
+            input.packageName, input.productId, input.basePlanId
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::androidpublisher::SubscriptionOffer"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for SubscriptionOffer
+// =============================================================================
+
+/// ResourceIdentifier implementation for SubscriptionOffer with AndroidpublisherMonetizationSubscriptionsBasePlansOffersDeactivateArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<AndroidpublisherMonetizationSubscriptionsBasePlansOffersDeactivateArgs>
+    for SubscriptionOffer
+{
+    fn generate_resource_id(
+        &self,
+        input: &AndroidpublisherMonetizationSubscriptionsBasePlansOffersDeactivateArgs,
+    ) -> String {
+        format!(
+            "gcp::androidpublisher::SubscriptionOffer/{}/{}/{}/{}",
+            input.packageName, input.productId, input.basePlanId, input.offerId
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::androidpublisher::SubscriptionOffer"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for SubscriptionOffer
+// =============================================================================
+
+/// ResourceIdentifier implementation for SubscriptionOffer with AndroidpublisherMonetizationSubscriptionsBasePlansOffersGetArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<AndroidpublisherMonetizationSubscriptionsBasePlansOffersGetArgs>
+    for SubscriptionOffer
+{
+    fn generate_resource_id(
+        &self,
+        input: &AndroidpublisherMonetizationSubscriptionsBasePlansOffersGetArgs,
+    ) -> String {
+        format!(
+            "gcp::androidpublisher::SubscriptionOffer/{}/{}/{}/{}",
+            input.packageName, input.productId, input.basePlanId, input.offerId
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::androidpublisher::SubscriptionOffer"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for ListSubscriptionOffersResponse
+// =============================================================================
+
+/// ResourceIdentifier implementation for ListSubscriptionOffersResponse with AndroidpublisherMonetizationSubscriptionsBasePlansOffersListArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<AndroidpublisherMonetizationSubscriptionsBasePlansOffersListArgs>
+    for ListSubscriptionOffersResponse
+{
+    fn generate_resource_id(
+        &self,
+        input: &AndroidpublisherMonetizationSubscriptionsBasePlansOffersListArgs,
+    ) -> String {
+        format!(
+            "gcp::androidpublisher::ListSubscriptionOffersResponse/{}/{}/{}",
+            input.packageName, input.productId, input.basePlanId
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::androidpublisher::ListSubscriptionOffersResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for SubscriptionOffer
+// =============================================================================
+
+/// ResourceIdentifier implementation for SubscriptionOffer with AndroidpublisherMonetizationSubscriptionsBasePlansOffersPatchArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<AndroidpublisherMonetizationSubscriptionsBasePlansOffersPatchArgs>
+    for SubscriptionOffer
+{
+    fn generate_resource_id(
+        &self,
+        input: &AndroidpublisherMonetizationSubscriptionsBasePlansOffersPatchArgs,
+    ) -> String {
+        format!(
+            "gcp::androidpublisher::SubscriptionOffer/{}/{}/{}/{}",
+            input.packageName, input.productId, input.basePlanId, input.offerId
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::androidpublisher::SubscriptionOffer"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for BatchGetOrdersResponse
+// =============================================================================
+
+/// ResourceIdentifier implementation for BatchGetOrdersResponse with AndroidpublisherOrdersBatchgetArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<AndroidpublisherOrdersBatchgetArgs> for BatchGetOrdersResponse {
+    fn generate_resource_id(&self, input: &AndroidpublisherOrdersBatchgetArgs) -> String {
+        format!(
+            "gcp::androidpublisher::BatchGetOrdersResponse/{}",
+            input.packageName
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::androidpublisher::BatchGetOrdersResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for Order
+// =============================================================================
+
+/// ResourceIdentifier implementation for Order with AndroidpublisherOrdersGetArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<AndroidpublisherOrdersGetArgs> for Order {
+    fn generate_resource_id(&self, input: &AndroidpublisherOrdersGetArgs) -> String {
+        format!(
+            "gcp::androidpublisher::Order/{}/{}",
+            input.packageName, input.orderId
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::androidpublisher::Order"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for ProductPurchase
+// =============================================================================
+
+/// ResourceIdentifier implementation for ProductPurchase with AndroidpublisherPurchasesProductsGetArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<AndroidpublisherPurchasesProductsGetArgs> for ProductPurchase {
+    fn generate_resource_id(&self, input: &AndroidpublisherPurchasesProductsGetArgs) -> String {
+        format!(
+            "gcp::androidpublisher::ProductPurchase/{}/{}/{}",
+            input.packageName, input.productId, input.token
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::androidpublisher::ProductPurchase"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for ProductPurchaseV2
+// =============================================================================
+
+/// ResourceIdentifier implementation for ProductPurchaseV2 with AndroidpublisherPurchasesProductsv2Getproductpurchasev2Args input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<AndroidpublisherPurchasesProductsv2Getproductpurchasev2Args>
+    for ProductPurchaseV2
+{
+    fn generate_resource_id(
+        &self,
+        input: &AndroidpublisherPurchasesProductsv2Getproductpurchasev2Args,
+    ) -> String {
+        format!(
+            "gcp::androidpublisher::ProductPurchaseV2/{}/{}",
+            input.packageName, input.token
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::androidpublisher::ProductPurchaseV2"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for SubscriptionPurchasesDeferResponse
+// =============================================================================
+
+/// ResourceIdentifier implementation for SubscriptionPurchasesDeferResponse with AndroidpublisherPurchasesSubscriptionsDeferArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<AndroidpublisherPurchasesSubscriptionsDeferArgs>
+    for SubscriptionPurchasesDeferResponse
+{
+    fn generate_resource_id(
+        &self,
+        input: &AndroidpublisherPurchasesSubscriptionsDeferArgs,
+    ) -> String {
+        format!(
+            "gcp::androidpublisher::SubscriptionPurchasesDeferResponse/{}/{}/{}",
+            input.packageName, input.subscriptionId, input.token
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::androidpublisher::SubscriptionPurchasesDeferResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for SubscriptionPurchase
+// =============================================================================
+
+/// ResourceIdentifier implementation for SubscriptionPurchase with AndroidpublisherPurchasesSubscriptionsGetArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<AndroidpublisherPurchasesSubscriptionsGetArgs> for SubscriptionPurchase {
+    fn generate_resource_id(
+        &self,
+        input: &AndroidpublisherPurchasesSubscriptionsGetArgs,
+    ) -> String {
+        format!(
+            "gcp::androidpublisher::SubscriptionPurchase/{}/{}/{}",
+            input.packageName, input.subscriptionId, input.token
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::androidpublisher::SubscriptionPurchase"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for CancelSubscriptionPurchaseResponse
+// =============================================================================
+
+/// ResourceIdentifier implementation for CancelSubscriptionPurchaseResponse with AndroidpublisherPurchasesSubscriptionsv2CancelArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<AndroidpublisherPurchasesSubscriptionsv2CancelArgs>
+    for CancelSubscriptionPurchaseResponse
+{
+    fn generate_resource_id(
+        &self,
+        input: &AndroidpublisherPurchasesSubscriptionsv2CancelArgs,
+    ) -> String {
+        format!(
+            "gcp::androidpublisher::CancelSubscriptionPurchaseResponse/{}/{}",
+            input.packageName, input.token
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::androidpublisher::CancelSubscriptionPurchaseResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for DeferSubscriptionPurchaseResponse
+// =============================================================================
+
+/// ResourceIdentifier implementation for DeferSubscriptionPurchaseResponse with AndroidpublisherPurchasesSubscriptionsv2DeferArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<AndroidpublisherPurchasesSubscriptionsv2DeferArgs>
+    for DeferSubscriptionPurchaseResponse
+{
+    fn generate_resource_id(
+        &self,
+        input: &AndroidpublisherPurchasesSubscriptionsv2DeferArgs,
+    ) -> String {
+        format!(
+            "gcp::androidpublisher::DeferSubscriptionPurchaseResponse/{}/{}",
+            input.packageName, input.token
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::androidpublisher::DeferSubscriptionPurchaseResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for SubscriptionPurchaseV2
+// =============================================================================
+
+/// ResourceIdentifier implementation for SubscriptionPurchaseV2 with AndroidpublisherPurchasesSubscriptionsv2GetArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<AndroidpublisherPurchasesSubscriptionsv2GetArgs>
+    for SubscriptionPurchaseV2
+{
+    fn generate_resource_id(
+        &self,
+        input: &AndroidpublisherPurchasesSubscriptionsv2GetArgs,
+    ) -> String {
+        format!(
+            "gcp::androidpublisher::SubscriptionPurchaseV2/{}/{}",
+            input.packageName, input.token
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::androidpublisher::SubscriptionPurchaseV2"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for RevokeSubscriptionPurchaseResponse
+// =============================================================================
+
+/// ResourceIdentifier implementation for RevokeSubscriptionPurchaseResponse with AndroidpublisherPurchasesSubscriptionsv2RevokeArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<AndroidpublisherPurchasesSubscriptionsv2RevokeArgs>
+    for RevokeSubscriptionPurchaseResponse
+{
+    fn generate_resource_id(
+        &self,
+        input: &AndroidpublisherPurchasesSubscriptionsv2RevokeArgs,
+    ) -> String {
+        format!(
+            "gcp::androidpublisher::RevokeSubscriptionPurchaseResponse/{}/{}",
+            input.packageName, input.token
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::androidpublisher::RevokeSubscriptionPurchaseResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for VoidedPurchasesListResponse
+// =============================================================================
+
+/// ResourceIdentifier implementation for VoidedPurchasesListResponse with AndroidpublisherPurchasesVoidedpurchasesListArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<AndroidpublisherPurchasesVoidedpurchasesListArgs>
+    for VoidedPurchasesListResponse
+{
+    fn generate_resource_id(
+        &self,
+        input: &AndroidpublisherPurchasesVoidedpurchasesListArgs,
+    ) -> String {
+        format!(
+            "gcp::androidpublisher::VoidedPurchasesListResponse/{}",
+            input.packageName
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::androidpublisher::VoidedPurchasesListResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for Review
+// =============================================================================
+
+/// ResourceIdentifier implementation for Review with AndroidpublisherReviewsGetArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<AndroidpublisherReviewsGetArgs> for Review {
+    fn generate_resource_id(&self, input: &AndroidpublisherReviewsGetArgs) -> String {
+        format!(
+            "gcp::androidpublisher::Review/{}/{}",
+            input.packageName, input.reviewId
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::androidpublisher::Review"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for ReviewsListResponse
+// =============================================================================
+
+/// ResourceIdentifier implementation for ReviewsListResponse with AndroidpublisherReviewsListArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<AndroidpublisherReviewsListArgs> for ReviewsListResponse {
+    fn generate_resource_id(&self, input: &AndroidpublisherReviewsListArgs) -> String {
+        format!(
+            "gcp::androidpublisher::ReviewsListResponse/{}",
+            input.packageName
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::androidpublisher::ReviewsListResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for ReviewsReplyResponse
+// =============================================================================
+
+/// ResourceIdentifier implementation for ReviewsReplyResponse with AndroidpublisherReviewsReplyArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<AndroidpublisherReviewsReplyArgs> for ReviewsReplyResponse {
+    fn generate_resource_id(&self, input: &AndroidpublisherReviewsReplyArgs) -> String {
+        format!(
+            "gcp::androidpublisher::ReviewsReplyResponse/{}/{}",
+            input.packageName, input.reviewId
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::androidpublisher::ReviewsReplyResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for Variant
+// =============================================================================
+
+/// ResourceIdentifier implementation for Variant with AndroidpublisherSystemapksVariantsCreateArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<AndroidpublisherSystemapksVariantsCreateArgs> for Variant {
+    fn generate_resource_id(&self, input: &AndroidpublisherSystemapksVariantsCreateArgs) -> String {
+        format!(
+            "gcp::androidpublisher::Variant/{}/{}",
+            input.packageName, input.versionCode
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::androidpublisher::Variant"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for Variant
+// =============================================================================
+
+/// ResourceIdentifier implementation for Variant with AndroidpublisherSystemapksVariantsGetArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<AndroidpublisherSystemapksVariantsGetArgs> for Variant {
+    fn generate_resource_id(&self, input: &AndroidpublisherSystemapksVariantsGetArgs) -> String {
+        format!(
+            "gcp::androidpublisher::Variant/{}/{}/{}",
+            input.packageName, input.versionCode, input.variantId
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::androidpublisher::Variant"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for SystemApksListResponse
+// =============================================================================
+
+/// ResourceIdentifier implementation for SystemApksListResponse with AndroidpublisherSystemapksVariantsListArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<AndroidpublisherSystemapksVariantsListArgs> for SystemApksListResponse {
+    fn generate_resource_id(&self, input: &AndroidpublisherSystemapksVariantsListArgs) -> String {
+        format!(
+            "gcp::androidpublisher::SystemApksListResponse/{}/{}",
+            input.packageName, input.versionCode
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::androidpublisher::SystemApksListResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for User
+// =============================================================================
+
+/// ResourceIdentifier implementation for User with AndroidpublisherUsersCreateArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<AndroidpublisherUsersCreateArgs> for User {
+    fn generate_resource_id(&self, input: &AndroidpublisherUsersCreateArgs) -> String {
+        format!("gcp::androidpublisher::User/{}", input.parent)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::androidpublisher::User"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for ListUsersResponse
+// =============================================================================
+
+/// ResourceIdentifier implementation for ListUsersResponse with AndroidpublisherUsersListArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<AndroidpublisherUsersListArgs> for ListUsersResponse {
+    fn generate_resource_id(&self, input: &AndroidpublisherUsersListArgs) -> String {
+        format!("gcp::androidpublisher::ListUsersResponse/{}", input.parent)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::androidpublisher::ListUsersResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for User
+// =============================================================================
+
+/// ResourceIdentifier implementation for User with AndroidpublisherUsersPatchArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<AndroidpublisherUsersPatchArgs> for User {
+    fn generate_resource_id(&self, input: &AndroidpublisherUsersPatchArgs) -> String {
+        format!("gcp::androidpublisher::User/{}", input.name)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::androidpublisher::User"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
 }

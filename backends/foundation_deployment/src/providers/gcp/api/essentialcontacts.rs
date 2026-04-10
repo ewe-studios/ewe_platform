@@ -12,32 +12,52 @@
 #![cfg(feature = "gcp")]
 
 use crate::providers::gcp::clients::essentialcontacts::{
+    essentialcontacts_folders_contacts_compute_builder, essentialcontacts_folders_contacts_compute_task,
     essentialcontacts_folders_contacts_create_builder, essentialcontacts_folders_contacts_create_task,
     essentialcontacts_folders_contacts_delete_builder, essentialcontacts_folders_contacts_delete_task,
+    essentialcontacts_folders_contacts_get_builder, essentialcontacts_folders_contacts_get_task,
+    essentialcontacts_folders_contacts_list_builder, essentialcontacts_folders_contacts_list_task,
     essentialcontacts_folders_contacts_patch_builder, essentialcontacts_folders_contacts_patch_task,
     essentialcontacts_folders_contacts_send_test_message_builder, essentialcontacts_folders_contacts_send_test_message_task,
+    essentialcontacts_organizations_contacts_compute_builder, essentialcontacts_organizations_contacts_compute_task,
     essentialcontacts_organizations_contacts_create_builder, essentialcontacts_organizations_contacts_create_task,
     essentialcontacts_organizations_contacts_delete_builder, essentialcontacts_organizations_contacts_delete_task,
+    essentialcontacts_organizations_contacts_get_builder, essentialcontacts_organizations_contacts_get_task,
+    essentialcontacts_organizations_contacts_list_builder, essentialcontacts_organizations_contacts_list_task,
     essentialcontacts_organizations_contacts_patch_builder, essentialcontacts_organizations_contacts_patch_task,
     essentialcontacts_organizations_contacts_send_test_message_builder, essentialcontacts_organizations_contacts_send_test_message_task,
+    essentialcontacts_projects_contacts_compute_builder, essentialcontacts_projects_contacts_compute_task,
     essentialcontacts_projects_contacts_create_builder, essentialcontacts_projects_contacts_create_task,
     essentialcontacts_projects_contacts_delete_builder, essentialcontacts_projects_contacts_delete_task,
+    essentialcontacts_projects_contacts_get_builder, essentialcontacts_projects_contacts_get_task,
+    essentialcontacts_projects_contacts_list_builder, essentialcontacts_projects_contacts_list_task,
     essentialcontacts_projects_contacts_patch_builder, essentialcontacts_projects_contacts_patch_task,
     essentialcontacts_projects_contacts_send_test_message_builder, essentialcontacts_projects_contacts_send_test_message_task,
 };
 use crate::providers::gcp::clients::types::{ApiError, ApiPending};
+use crate::providers::gcp::clients::essentialcontacts::GoogleCloudEssentialcontactsV1ComputeContactsResponse;
 use crate::providers::gcp::clients::essentialcontacts::GoogleCloudEssentialcontactsV1Contact;
+use crate::providers::gcp::clients::essentialcontacts::GoogleCloudEssentialcontactsV1ListContactsResponse;
 use crate::providers::gcp::clients::essentialcontacts::GoogleProtobufEmpty;
+use crate::providers::gcp::clients::essentialcontacts::EssentialcontactsFoldersContactsComputeArgs;
 use crate::providers::gcp::clients::essentialcontacts::EssentialcontactsFoldersContactsCreateArgs;
 use crate::providers::gcp::clients::essentialcontacts::EssentialcontactsFoldersContactsDeleteArgs;
+use crate::providers::gcp::clients::essentialcontacts::EssentialcontactsFoldersContactsGetArgs;
+use crate::providers::gcp::clients::essentialcontacts::EssentialcontactsFoldersContactsListArgs;
 use crate::providers::gcp::clients::essentialcontacts::EssentialcontactsFoldersContactsPatchArgs;
 use crate::providers::gcp::clients::essentialcontacts::EssentialcontactsFoldersContactsSendTestMessageArgs;
+use crate::providers::gcp::clients::essentialcontacts::EssentialcontactsOrganizationsContactsComputeArgs;
 use crate::providers::gcp::clients::essentialcontacts::EssentialcontactsOrganizationsContactsCreateArgs;
 use crate::providers::gcp::clients::essentialcontacts::EssentialcontactsOrganizationsContactsDeleteArgs;
+use crate::providers::gcp::clients::essentialcontacts::EssentialcontactsOrganizationsContactsGetArgs;
+use crate::providers::gcp::clients::essentialcontacts::EssentialcontactsOrganizationsContactsListArgs;
 use crate::providers::gcp::clients::essentialcontacts::EssentialcontactsOrganizationsContactsPatchArgs;
 use crate::providers::gcp::clients::essentialcontacts::EssentialcontactsOrganizationsContactsSendTestMessageArgs;
+use crate::providers::gcp::clients::essentialcontacts::EssentialcontactsProjectsContactsComputeArgs;
 use crate::providers::gcp::clients::essentialcontacts::EssentialcontactsProjectsContactsCreateArgs;
 use crate::providers::gcp::clients::essentialcontacts::EssentialcontactsProjectsContactsDeleteArgs;
+use crate::providers::gcp::clients::essentialcontacts::EssentialcontactsProjectsContactsGetArgs;
+use crate::providers::gcp::clients::essentialcontacts::EssentialcontactsProjectsContactsListArgs;
 use crate::providers::gcp::clients::essentialcontacts::EssentialcontactsProjectsContactsPatchArgs;
 use crate::providers::gcp::clients::essentialcontacts::EssentialcontactsProjectsContactsSendTestMessageArgs;
 use crate::provider_client::{ProviderClient, ProviderError};
@@ -79,6 +99,47 @@ where
             client,
             http_client: Arc::new(http_client),
         }
+    }
+
+    /// Essentialcontacts folders contacts compute.
+    ///
+    /// Read-only operation - no state tracking.
+    ///
+    /// # Arguments
+    ///
+    /// * `args` - Request arguments
+    ///
+    /// # Returns
+    ///
+    /// StreamIterator yielding the GoogleCloudEssentialcontactsV1ComputeContactsResponse result.
+    ///
+    /// # Errors
+    ///
+    /// Returns ProviderError if the API request fails.
+    pub fn essentialcontacts_folders_contacts_compute(
+        &self,
+        args: &EssentialcontactsFoldersContactsComputeArgs,
+    ) -> Result<
+        impl StreamIterator<
+            D = Result<GoogleCloudEssentialcontactsV1ComputeContactsResponse, ProviderError<ApiError>>,
+            P = crate::providers::gcp::clients::types::ApiPending,
+        > + Send
+        + 'static,
+        ProviderError<ApiError>,
+    > {
+        let builder = essentialcontacts_folders_contacts_compute_builder(
+            &self.http_client,
+            &args.parent,
+            &args.notificationCategories,
+            &args.pageSize,
+            &args.pageToken,
+        )
+        .map_err(ProviderError::Api)?;
+
+        let task = essentialcontacts_folders_contacts_compute_task(builder)
+            .map_err(ProviderError::Api)?;
+
+        execute(task, None).map_err(|e: String| ProviderError::ExecuteFailed(e.to_string()))
     }
 
     /// Essentialcontacts folders contacts create.
@@ -167,6 +228,84 @@ where
         execute(store_task, None).map_err(|e: String| ProviderError::ExecuteFailed(e.to_string()))
     }
 
+    /// Essentialcontacts folders contacts get.
+    ///
+    /// Read-only operation - no state tracking.
+    ///
+    /// # Arguments
+    ///
+    /// * `args` - Request arguments
+    ///
+    /// # Returns
+    ///
+    /// StreamIterator yielding the GoogleCloudEssentialcontactsV1Contact result.
+    ///
+    /// # Errors
+    ///
+    /// Returns ProviderError if the API request fails.
+    pub fn essentialcontacts_folders_contacts_get(
+        &self,
+        args: &EssentialcontactsFoldersContactsGetArgs,
+    ) -> Result<
+        impl StreamIterator<
+            D = Result<GoogleCloudEssentialcontactsV1Contact, ProviderError<ApiError>>,
+            P = crate::providers::gcp::clients::types::ApiPending,
+        > + Send
+        + 'static,
+        ProviderError<ApiError>,
+    > {
+        let builder = essentialcontacts_folders_contacts_get_builder(
+            &self.http_client,
+            &args.name,
+        )
+        .map_err(ProviderError::Api)?;
+
+        let task = essentialcontacts_folders_contacts_get_task(builder)
+            .map_err(ProviderError::Api)?;
+
+        execute(task, None).map_err(|e: String| ProviderError::ExecuteFailed(e.to_string()))
+    }
+
+    /// Essentialcontacts folders contacts list.
+    ///
+    /// Read-only operation - no state tracking.
+    ///
+    /// # Arguments
+    ///
+    /// * `args` - Request arguments
+    ///
+    /// # Returns
+    ///
+    /// StreamIterator yielding the GoogleCloudEssentialcontactsV1ListContactsResponse result.
+    ///
+    /// # Errors
+    ///
+    /// Returns ProviderError if the API request fails.
+    pub fn essentialcontacts_folders_contacts_list(
+        &self,
+        args: &EssentialcontactsFoldersContactsListArgs,
+    ) -> Result<
+        impl StreamIterator<
+            D = Result<GoogleCloudEssentialcontactsV1ListContactsResponse, ProviderError<ApiError>>,
+            P = crate::providers::gcp::clients::types::ApiPending,
+        > + Send
+        + 'static,
+        ProviderError<ApiError>,
+    > {
+        let builder = essentialcontacts_folders_contacts_list_builder(
+            &self.http_client,
+            &args.parent,
+            &args.pageSize,
+            &args.pageToken,
+        )
+        .map_err(ProviderError::Api)?;
+
+        let task = essentialcontacts_folders_contacts_list_task(builder)
+            .map_err(ProviderError::Api)?;
+
+        execute(task, None).map_err(|e: String| ProviderError::ExecuteFailed(e.to_string()))
+    }
+
     /// Essentialcontacts folders contacts patch.
     ///
     /// Automatically stores the result in the state store on success.
@@ -213,7 +352,7 @@ where
 
     /// Essentialcontacts folders contacts send test message.
     ///
-    /// Automatically stores the result in the state store on success.
+    /// Read-only operation - no state tracking.
     ///
     /// # Arguments
     ///
@@ -225,7 +364,7 @@ where
     ///
     /// # Errors
     ///
-    /// Returns ProviderError if the API request or state storage fails.
+    /// Returns ProviderError if the API request fails.
     pub fn essentialcontacts_folders_contacts_send_test_message(
         &self,
         args: &EssentialcontactsFoldersContactsSendTestMessageArgs,
@@ -246,12 +385,48 @@ where
         let task = essentialcontacts_folders_contacts_send_test_message_task(builder)
             .map_err(ProviderError::Api)?;
 
-        let state_store = self.client.state_store.clone();
-        let stage = Some(self.client.stage.clone());
+        execute(task, None).map_err(|e: String| ProviderError::ExecuteFailed(e.to_string()))
+    }
 
-        let store_task = StoreStateIdentifierTask::new(task, state_store, args, stage);
+    /// Essentialcontacts organizations contacts compute.
+    ///
+    /// Read-only operation - no state tracking.
+    ///
+    /// # Arguments
+    ///
+    /// * `args` - Request arguments
+    ///
+    /// # Returns
+    ///
+    /// StreamIterator yielding the GoogleCloudEssentialcontactsV1ComputeContactsResponse result.
+    ///
+    /// # Errors
+    ///
+    /// Returns ProviderError if the API request fails.
+    pub fn essentialcontacts_organizations_contacts_compute(
+        &self,
+        args: &EssentialcontactsOrganizationsContactsComputeArgs,
+    ) -> Result<
+        impl StreamIterator<
+            D = Result<GoogleCloudEssentialcontactsV1ComputeContactsResponse, ProviderError<ApiError>>,
+            P = crate::providers::gcp::clients::types::ApiPending,
+        > + Send
+        + 'static,
+        ProviderError<ApiError>,
+    > {
+        let builder = essentialcontacts_organizations_contacts_compute_builder(
+            &self.http_client,
+            &args.parent,
+            &args.notificationCategories,
+            &args.pageSize,
+            &args.pageToken,
+        )
+        .map_err(ProviderError::Api)?;
 
-        execute(store_task, None).map_err(|e: String| ProviderError::ExecuteFailed(e.to_string()))
+        let task = essentialcontacts_organizations_contacts_compute_task(builder)
+            .map_err(ProviderError::Api)?;
+
+        execute(task, None).map_err(|e: String| ProviderError::ExecuteFailed(e.to_string()))
     }
 
     /// Essentialcontacts organizations contacts create.
@@ -340,6 +515,84 @@ where
         execute(store_task, None).map_err(|e: String| ProviderError::ExecuteFailed(e.to_string()))
     }
 
+    /// Essentialcontacts organizations contacts get.
+    ///
+    /// Read-only operation - no state tracking.
+    ///
+    /// # Arguments
+    ///
+    /// * `args` - Request arguments
+    ///
+    /// # Returns
+    ///
+    /// StreamIterator yielding the GoogleCloudEssentialcontactsV1Contact result.
+    ///
+    /// # Errors
+    ///
+    /// Returns ProviderError if the API request fails.
+    pub fn essentialcontacts_organizations_contacts_get(
+        &self,
+        args: &EssentialcontactsOrganizationsContactsGetArgs,
+    ) -> Result<
+        impl StreamIterator<
+            D = Result<GoogleCloudEssentialcontactsV1Contact, ProviderError<ApiError>>,
+            P = crate::providers::gcp::clients::types::ApiPending,
+        > + Send
+        + 'static,
+        ProviderError<ApiError>,
+    > {
+        let builder = essentialcontacts_organizations_contacts_get_builder(
+            &self.http_client,
+            &args.name,
+        )
+        .map_err(ProviderError::Api)?;
+
+        let task = essentialcontacts_organizations_contacts_get_task(builder)
+            .map_err(ProviderError::Api)?;
+
+        execute(task, None).map_err(|e: String| ProviderError::ExecuteFailed(e.to_string()))
+    }
+
+    /// Essentialcontacts organizations contacts list.
+    ///
+    /// Read-only operation - no state tracking.
+    ///
+    /// # Arguments
+    ///
+    /// * `args` - Request arguments
+    ///
+    /// # Returns
+    ///
+    /// StreamIterator yielding the GoogleCloudEssentialcontactsV1ListContactsResponse result.
+    ///
+    /// # Errors
+    ///
+    /// Returns ProviderError if the API request fails.
+    pub fn essentialcontacts_organizations_contacts_list(
+        &self,
+        args: &EssentialcontactsOrganizationsContactsListArgs,
+    ) -> Result<
+        impl StreamIterator<
+            D = Result<GoogleCloudEssentialcontactsV1ListContactsResponse, ProviderError<ApiError>>,
+            P = crate::providers::gcp::clients::types::ApiPending,
+        > + Send
+        + 'static,
+        ProviderError<ApiError>,
+    > {
+        let builder = essentialcontacts_organizations_contacts_list_builder(
+            &self.http_client,
+            &args.parent,
+            &args.pageSize,
+            &args.pageToken,
+        )
+        .map_err(ProviderError::Api)?;
+
+        let task = essentialcontacts_organizations_contacts_list_task(builder)
+            .map_err(ProviderError::Api)?;
+
+        execute(task, None).map_err(|e: String| ProviderError::ExecuteFailed(e.to_string()))
+    }
+
     /// Essentialcontacts organizations contacts patch.
     ///
     /// Automatically stores the result in the state store on success.
@@ -386,7 +639,7 @@ where
 
     /// Essentialcontacts organizations contacts send test message.
     ///
-    /// Automatically stores the result in the state store on success.
+    /// Read-only operation - no state tracking.
     ///
     /// # Arguments
     ///
@@ -398,7 +651,7 @@ where
     ///
     /// # Errors
     ///
-    /// Returns ProviderError if the API request or state storage fails.
+    /// Returns ProviderError if the API request fails.
     pub fn essentialcontacts_organizations_contacts_send_test_message(
         &self,
         args: &EssentialcontactsOrganizationsContactsSendTestMessageArgs,
@@ -419,12 +672,48 @@ where
         let task = essentialcontacts_organizations_contacts_send_test_message_task(builder)
             .map_err(ProviderError::Api)?;
 
-        let state_store = self.client.state_store.clone();
-        let stage = Some(self.client.stage.clone());
+        execute(task, None).map_err(|e: String| ProviderError::ExecuteFailed(e.to_string()))
+    }
 
-        let store_task = StoreStateIdentifierTask::new(task, state_store, args, stage);
+    /// Essentialcontacts projects contacts compute.
+    ///
+    /// Read-only operation - no state tracking.
+    ///
+    /// # Arguments
+    ///
+    /// * `args` - Request arguments
+    ///
+    /// # Returns
+    ///
+    /// StreamIterator yielding the GoogleCloudEssentialcontactsV1ComputeContactsResponse result.
+    ///
+    /// # Errors
+    ///
+    /// Returns ProviderError if the API request fails.
+    pub fn essentialcontacts_projects_contacts_compute(
+        &self,
+        args: &EssentialcontactsProjectsContactsComputeArgs,
+    ) -> Result<
+        impl StreamIterator<
+            D = Result<GoogleCloudEssentialcontactsV1ComputeContactsResponse, ProviderError<ApiError>>,
+            P = crate::providers::gcp::clients::types::ApiPending,
+        > + Send
+        + 'static,
+        ProviderError<ApiError>,
+    > {
+        let builder = essentialcontacts_projects_contacts_compute_builder(
+            &self.http_client,
+            &args.parent,
+            &args.notificationCategories,
+            &args.pageSize,
+            &args.pageToken,
+        )
+        .map_err(ProviderError::Api)?;
 
-        execute(store_task, None).map_err(|e: String| ProviderError::ExecuteFailed(e.to_string()))
+        let task = essentialcontacts_projects_contacts_compute_task(builder)
+            .map_err(ProviderError::Api)?;
+
+        execute(task, None).map_err(|e: String| ProviderError::ExecuteFailed(e.to_string()))
     }
 
     /// Essentialcontacts projects contacts create.
@@ -513,6 +802,84 @@ where
         execute(store_task, None).map_err(|e: String| ProviderError::ExecuteFailed(e.to_string()))
     }
 
+    /// Essentialcontacts projects contacts get.
+    ///
+    /// Read-only operation - no state tracking.
+    ///
+    /// # Arguments
+    ///
+    /// * `args` - Request arguments
+    ///
+    /// # Returns
+    ///
+    /// StreamIterator yielding the GoogleCloudEssentialcontactsV1Contact result.
+    ///
+    /// # Errors
+    ///
+    /// Returns ProviderError if the API request fails.
+    pub fn essentialcontacts_projects_contacts_get(
+        &self,
+        args: &EssentialcontactsProjectsContactsGetArgs,
+    ) -> Result<
+        impl StreamIterator<
+            D = Result<GoogleCloudEssentialcontactsV1Contact, ProviderError<ApiError>>,
+            P = crate::providers::gcp::clients::types::ApiPending,
+        > + Send
+        + 'static,
+        ProviderError<ApiError>,
+    > {
+        let builder = essentialcontacts_projects_contacts_get_builder(
+            &self.http_client,
+            &args.name,
+        )
+        .map_err(ProviderError::Api)?;
+
+        let task = essentialcontacts_projects_contacts_get_task(builder)
+            .map_err(ProviderError::Api)?;
+
+        execute(task, None).map_err(|e: String| ProviderError::ExecuteFailed(e.to_string()))
+    }
+
+    /// Essentialcontacts projects contacts list.
+    ///
+    /// Read-only operation - no state tracking.
+    ///
+    /// # Arguments
+    ///
+    /// * `args` - Request arguments
+    ///
+    /// # Returns
+    ///
+    /// StreamIterator yielding the GoogleCloudEssentialcontactsV1ListContactsResponse result.
+    ///
+    /// # Errors
+    ///
+    /// Returns ProviderError if the API request fails.
+    pub fn essentialcontacts_projects_contacts_list(
+        &self,
+        args: &EssentialcontactsProjectsContactsListArgs,
+    ) -> Result<
+        impl StreamIterator<
+            D = Result<GoogleCloudEssentialcontactsV1ListContactsResponse, ProviderError<ApiError>>,
+            P = crate::providers::gcp::clients::types::ApiPending,
+        > + Send
+        + 'static,
+        ProviderError<ApiError>,
+    > {
+        let builder = essentialcontacts_projects_contacts_list_builder(
+            &self.http_client,
+            &args.parent,
+            &args.pageSize,
+            &args.pageToken,
+        )
+        .map_err(ProviderError::Api)?;
+
+        let task = essentialcontacts_projects_contacts_list_task(builder)
+            .map_err(ProviderError::Api)?;
+
+        execute(task, None).map_err(|e: String| ProviderError::ExecuteFailed(e.to_string()))
+    }
+
     /// Essentialcontacts projects contacts patch.
     ///
     /// Automatically stores the result in the state store on success.
@@ -559,7 +926,7 @@ where
 
     /// Essentialcontacts projects contacts send test message.
     ///
-    /// Automatically stores the result in the state store on success.
+    /// Read-only operation - no state tracking.
     ///
     /// # Arguments
     ///
@@ -571,7 +938,7 @@ where
     ///
     /// # Errors
     ///
-    /// Returns ProviderError if the API request or state storage fails.
+    /// Returns ProviderError if the API request fails.
     pub fn essentialcontacts_projects_contacts_send_test_message(
         &self,
         args: &EssentialcontactsProjectsContactsSendTestMessageArgs,
@@ -592,12 +959,7 @@ where
         let task = essentialcontacts_projects_contacts_send_test_message_task(builder)
             .map_err(ProviderError::Api)?;
 
-        let state_store = self.client.state_store.clone();
-        let stage = Some(self.client.stage.clone());
-
-        let store_task = StoreStateIdentifierTask::new(task, state_store, args, stage);
-
-        execute(store_task, None).map_err(|e: String| ProviderError::ExecuteFailed(e.to_string()))
+        execute(task, None).map_err(|e: String| ProviderError::ExecuteFailed(e.to_string()))
     }
 
 }

@@ -7,7 +7,6 @@
 
 #![cfg(feature = "gcp")]
 
-
 use crate::providers::gcp::clients::types::*;
 use crate::providers::gcp::resources::*;
 use foundation_core::valtron::{
@@ -17,10 +16,11 @@ use foundation_core::valtron::{
 use foundation_core::wire::simple_http::client::{
     body_reader, ClientRequestBuilder, RequestIntro, SimpleHttpClient, SystemDnsResolver,
 };
+use foundation_db::state::resource_identifier::ResourceIdentifier;
 use foundation_macros::JsonHash;
 use serde::Serialize;
 
-/// GET v1/documents/{documentId}:batchUpdate
+/// POST v1/documents/{documentId}:batchUpdate
 /// Applies one or more updates to the document. Each request is validated before being applied. If any request is not valid, then the entire request will fail and nothing will be applied. Some requests have replies to give you some information about how they are applied. Other requests do not need to return information; these each return an empty reply. The order of replies matches that of the requests. For example, suppose you call `batchUpdate` with four updates, and only the third one returns information. The response would have two empty replies, the reply to the third request, and another empty reply, in that order. Because other users may be editing the document, the document might not exactly reflect your changes: your changes may be altered with respect to collaborator changes. If there are no collaborators, the document should reflect your changes. In any case, the updates in your request are guaranteed to be applied together atomically.
 ///
 /// Returns `ClientRequestBuilder` for customization.
@@ -29,7 +29,6 @@ use serde::Serialize;
 pub fn docs_documents_batch_update_builder(
     client: &SimpleHttpClient,
     documentId: &String,
-    body: &BatchUpdateDocumentRequest,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
@@ -39,15 +38,13 @@ pub fn docs_documents_batch_update_builder(
 
     // Build request
     let builder = client
-        .get(&endpoint_url)
+        .post(&endpoint_url)
         .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
 
-    builder
-        .body_json(body)
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+    Ok(builder)
 }
 
-/// GET v1/documents/{documentId}:batchUpdate
+/// POST v1/documents/{documentId}:batchUpdate
 /// Applies one or more updates to the document. Each request is validated before being applied. If any request is not valid, then the entire request will fail and nothing will be applied. Some requests have replies to give you some information about how they are applied. Other requests do not need to return information; these each return an empty reply. The order of replies matches that of the requests. For example, suppose you call `batchUpdate` with four updates, and only the third one returns information. The response would have two empty replies, the reply to the third request, and another empty reply, in that order. Because other users may be editing the document, the document might not exactly reflect your changes: your changes may be altered with respect to collaborator changes. If there are no collaborators, the document should reflect your changes. In any case, the updates in your request are guaranteed to be applied together atomically.
 ///
 /// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
@@ -121,7 +118,7 @@ pub fn docs_documents_batch_update_task(
         .map_pending(|_| ApiPending::Sending))
 }
 
-/// GET v1/documents/{documentId}:batchUpdate
+/// POST v1/documents/{documentId}:batchUpdate
 /// Applies one or more updates to the document. Each request is validated before being applied. If any request is not valid, then the entire request will fail and nothing will be applied. Some requests have replies to give you some information about how they are applied. Other requests do not need to return information; these each return an empty reply. The order of replies matches that of the requests. For example, suppose you call `batchUpdate` with four updates, and only the third one returns information. The response would have two empty replies, the reply to the third request, and another empty reply, in that order. Because other users may be editing the document, the document might not exactly reflect your changes: your changes may be altered with respect to collaborator changes. If there are no collaborators, the document should reflect your changes. In any case, the updates in your request are guaranteed to be applied together atomically.
 ///
 /// Takes a `ClientRequestBuilder`, builds and executes the request,
@@ -160,11 +157,9 @@ pub fn docs_documents_batch_update_execute(
 pub struct DocsDocumentsBatchUpdateArgs {
     /// Path parameter: documentId
     pub documentId: String,
-    /// Request body.
-    pub body: BatchUpdateDocumentRequest,
 }
 
-/// GET v1/documents/{documentId}:batchUpdate
+/// POST v1/documents/{documentId}:batchUpdate
 /// Applies one or more updates to the document. Each request is validated before being applied. If any request is not valid, then the entire request will fail and nothing will be applied. Some requests have replies to give you some information about how they are applied. Other requests do not need to return information; these each return an empty reply. The order of replies matches that of the requests. For example, suppose you call `batchUpdate` with four updates, and only the third one returns information. The response would have two empty replies, the reply to the third request, and another empty reply, in that order. Because other users may be editing the document, the document might not exactly reflect your changes: your changes may be altered with respect to collaborator changes. If there are no collaborators, the document should reflect your changes. In any case, the updates in your request are guaranteed to be applied together atomically.
 ///
 /// Simplest API - builds and executes the request in one call.
@@ -186,11 +181,11 @@ pub fn docs_documents_batch_update(
         + 'static,
     ApiError,
 > {
-    let builder = docs_documents_batch_update_builder(client, &args.documentId, &args.body)?;
+    let builder = docs_documents_batch_update_builder(client, &args.documentId)?;
     docs_documents_batch_update_execute(builder)
 }
 
-/// GET v1/documents
+/// POST v1/documents
 /// Creates a blank document using the title given in the request. Other fields in the request, including any provided content, are ignored. Returns the created document.
 ///
 /// Returns `ClientRequestBuilder` for customization.
@@ -198,22 +193,19 @@ pub fn docs_documents_batch_update(
 
 pub fn docs_documents_create_builder(
     client: &SimpleHttpClient,
-    body: &Document,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!("https://docs.googleapis.com/v1/documents",);
 
     // Build request
     let builder = client
-        .get(&endpoint_url)
+        .post(&endpoint_url)
         .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
 
-    builder
-        .body_json(body)
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+    Ok(builder)
 }
 
-/// GET v1/documents
+/// POST v1/documents
 /// Creates a blank document using the title given in the request. Other fields in the request, including any provided content, are ignored. Returns the created document.
 ///
 /// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
@@ -287,7 +279,7 @@ pub fn docs_documents_create_task(
         .map_pending(|_| ApiPending::Sending))
 }
 
-/// GET v1/documents
+/// POST v1/documents
 /// Creates a blank document using the title given in the request. Other fields in the request, including any provided content, are ignored. Returns the created document.
 ///
 /// Takes a `ClientRequestBuilder`, builds and executes the request,
@@ -317,14 +309,7 @@ pub fn docs_documents_create_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
-/// Arguments for [`docs_documents_create`].
-#[derive(Debug, Clone, Serialize, JsonHash)]
-pub struct DocsDocumentsCreateArgs {
-    /// Request body.
-    pub body: Document,
-}
-
-/// GET v1/documents
+/// POST v1/documents
 /// Creates a blank document using the title given in the request. Other fields in the request, including any provided content, are ignored. Returns the created document.
 ///
 /// Simplest API - builds and executes the request in one call.
@@ -337,12 +322,11 @@ pub struct DocsDocumentsCreateArgs {
 
 pub fn docs_documents_create(
     client: &SimpleHttpClient,
-    args: &DocsDocumentsCreateArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Document>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = docs_documents_create_builder(client, &args.body)?;
+    let builder = docs_documents_create_builder(client)?;
     docs_documents_create_execute(builder)
 }
 
@@ -355,8 +339,8 @@ pub fn docs_documents_create(
 pub fn docs_documents_get_builder(
     client: &SimpleHttpClient,
     documentId: &String,
-    includeTabsContent: &Option<bool>,
-    suggestionsViewMode: &Option<String>,
+    includeTabsContent: &Option<Option<String>>,
+    suggestionsViewMode: &Option<Option<String>>,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!("https://docs.googleapis.com/v1/documents/{}", documentId,);
@@ -493,9 +477,9 @@ pub struct DocsDocumentsGetArgs {
     /// Path parameter: documentId
     pub documentId: String,
     /// Query parameter: includeTabsContent
-    pub includeTabsContent: Option<bool>,
+    pub includeTabsContent: Option<Option<String>>,
     /// Query parameter: suggestionsViewMode
-    pub suggestionsViewMode: Option<String>,
+    pub suggestionsViewMode: Option<Option<String>>,
 }
 
 /// GET v1/documents/{documentId}
@@ -523,4 +507,76 @@ pub fn docs_documents_get(
         &args.suggestionsViewMode,
     )?;
     docs_documents_get_execute(builder)
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for BatchUpdateDocumentResponse
+// =============================================================================
+
+/// ResourceIdentifier implementation for BatchUpdateDocumentResponse with DocsDocumentsBatchUpdateArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<DocsDocumentsBatchUpdateArgs> for BatchUpdateDocumentResponse {
+    fn generate_resource_id(&self, input: &DocsDocumentsBatchUpdateArgs) -> String {
+        format!(
+            "gcp::docs::BatchUpdateDocumentResponse/{}",
+            input.documentId
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::docs::BatchUpdateDocumentResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for Document
+// =============================================================================
+
+/// ResourceIdentifier implementation for Document with DocsDocumentsCreateArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<DocsDocumentsCreateArgs> for Document {
+    fn generate_resource_id(&self, input: &DocsDocumentsCreateArgs) -> String {
+        "gcp::docs::Document".to_string()
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::docs::Document"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for Document
+// =============================================================================
+
+/// ResourceIdentifier implementation for Document with DocsDocumentsGetArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<DocsDocumentsGetArgs> for Document {
+    fn generate_resource_id(&self, input: &DocsDocumentsGetArgs) -> String {
+        format!("gcp::docs::Document/{}", input.documentId)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::docs::Document"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
 }

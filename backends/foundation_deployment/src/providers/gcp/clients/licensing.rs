@@ -7,7 +7,6 @@
 
 #![cfg(feature = "gcp")]
 
-
 use crate::providers::gcp::clients::types::*;
 use crate::providers::gcp::resources::*;
 use foundation_core::valtron::{
@@ -17,10 +16,11 @@ use foundation_core::valtron::{
 use foundation_core::wire::simple_http::client::{
     body_reader, ClientRequestBuilder, RequestIntro, SimpleHttpClient, SystemDnsResolver,
 };
+use foundation_db::state::resource_identifier::ResourceIdentifier;
 use foundation_macros::JsonHash;
 use serde::Serialize;
 
-/// GET apps/licensing/v1/product/{productId}/sku/{skuId}/user/{userId}
+/// DELETE apps/licensing/v1/product/{productId}/sku/{skuId}/user/{userId}
 /// Revoke a license.
 ///
 /// Returns `ClientRequestBuilder` for customization.
@@ -40,13 +40,13 @@ pub fn licensing_license_assignments_delete_builder(
 
     // Build request
     let builder = client
-        .get(&endpoint_url)
+        .delete(&endpoint_url)
         .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
 
     Ok(builder)
 }
 
-/// GET apps/licensing/v1/product/{productId}/sku/{skuId}/user/{userId}
+/// DELETE apps/licensing/v1/product/{productId}/sku/{skuId}/user/{userId}
 /// Revoke a license.
 ///
 /// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
@@ -120,7 +120,7 @@ pub fn licensing_license_assignments_delete_task(
         .map_pending(|_| ApiPending::Sending))
 }
 
-/// GET apps/licensing/v1/product/{productId}/sku/{skuId}/user/{userId}
+/// DELETE apps/licensing/v1/product/{productId}/sku/{skuId}/user/{userId}
 /// Revoke a license.
 ///
 /// Takes a `ClientRequestBuilder`, builds and executes the request,
@@ -161,7 +161,7 @@ pub struct LicensingLicenseAssignmentsDeleteArgs {
     pub userId: String,
 }
 
-/// GET apps/licensing/v1/product/{productId}/sku/{skuId}/user/{userId}
+/// DELETE apps/licensing/v1/product/{productId}/sku/{skuId}/user/{userId}
 /// Revoke a license.
 ///
 /// Simplest API - builds and executes the request in one call.
@@ -188,7 +188,179 @@ pub fn licensing_license_assignments_delete(
     licensing_license_assignments_delete_execute(builder)
 }
 
-/// GET apps/licensing/v1/product/{productId}/sku/{skuId}/user
+/// GET apps/licensing/v1/product/{productId}/sku/{skuId}/user/{userId}
+/// Get a specific user's license by product SKU.
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `licensing_license_assignments_get_execute()` to send, or `licensing_license_assignments_get` for simplest API.
+
+pub fn licensing_license_assignments_get_builder(
+    client: &SimpleHttpClient,
+    productId: &String,
+    skuId: &String,
+    userId: &String,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!(
+        "https://licensing.googleapis.com/apps/licensing/v1/product/{}/sku/{}/user/{}",
+        productId, skuId, userId,
+    );
+
+    // Build request
+    let builder = client
+        .get(&endpoint_url)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// GET apps/licensing/v1/product/{productId}/sku/{skuId}/user/{userId}
+/// Get a specific user's license by product SKU.
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `licensing_license_assignments_get_execute()` or `licensing_license_assignments_get`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `licensing_license_assignments_get_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn licensing_license_assignments_get_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<LicenseAssignment>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: LicenseAssignment = serde_json::from_str(&body)
+                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// GET apps/licensing/v1/product/{productId}/sku/{skuId}/user/{userId}
+/// Get a specific user's license by product SKU.
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `licensing_license_assignments_get_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `licensing_license_assignments_get_task()`.
+/// For the simplest API, use `licensing_license_assignments_get()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `licensing_license_assignments_get_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn licensing_license_assignments_get_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<LicenseAssignment>, ApiError>, P = ApiPending>
+        + Send
+        + 'static,
+    ApiError,
+> {
+    let task = licensing_license_assignments_get_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`licensing_license_assignments_get`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct LicensingLicenseAssignmentsGetArgs {
+    /// Path parameter: productId
+    pub productId: String,
+    /// Path parameter: skuId
+    pub skuId: String,
+    /// Path parameter: userId
+    pub userId: String,
+}
+
+/// GET apps/licensing/v1/product/{productId}/sku/{skuId}/user/{userId}
+/// Get a specific user's license by product SKU.
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `licensing_license_assignments_get_builder()` + `licensing_license_assignments_get_execute()`.
+/// For task-level control, use `licensing_license_assignments_get_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn licensing_license_assignments_get(
+    client: &SimpleHttpClient,
+    args: &LicensingLicenseAssignmentsGetArgs,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<LicenseAssignment>, ApiError>, P = ApiPending>
+        + Send
+        + 'static,
+    ApiError,
+> {
+    let builder = licensing_license_assignments_get_builder(
+        client,
+        &args.productId,
+        &args.skuId,
+        &args.userId,
+    )?;
+    licensing_license_assignments_get_execute(builder)
+}
+
+/// POST apps/licensing/v1/product/{productId}/sku/{skuId}/user
 /// Assign a license.
 ///
 /// Returns `ClientRequestBuilder` for customization.
@@ -198,7 +370,6 @@ pub fn licensing_license_assignments_insert_builder(
     client: &SimpleHttpClient,
     productId: &String,
     skuId: &String,
-    body: &LicenseAssignmentInsert,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
@@ -208,15 +379,13 @@ pub fn licensing_license_assignments_insert_builder(
 
     // Build request
     let builder = client
-        .get(&endpoint_url)
+        .post(&endpoint_url)
         .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
 
-    builder
-        .body_json(body)
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+    Ok(builder)
 }
 
-/// GET apps/licensing/v1/product/{productId}/sku/{skuId}/user
+/// POST apps/licensing/v1/product/{productId}/sku/{skuId}/user
 /// Assign a license.
 ///
 /// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
@@ -290,7 +459,7 @@ pub fn licensing_license_assignments_insert_task(
         .map_pending(|_| ApiPending::Sending))
 }
 
-/// GET apps/licensing/v1/product/{productId}/sku/{skuId}/user
+/// POST apps/licensing/v1/product/{productId}/sku/{skuId}/user
 /// Assign a license.
 ///
 /// Takes a `ClientRequestBuilder`, builds and executes the request,
@@ -329,11 +498,9 @@ pub struct LicensingLicenseAssignmentsInsertArgs {
     pub productId: String,
     /// Path parameter: skuId
     pub skuId: String,
-    /// Request body.
-    pub body: LicenseAssignmentInsert,
 }
 
-/// GET apps/licensing/v1/product/{productId}/sku/{skuId}/user
+/// POST apps/licensing/v1/product/{productId}/sku/{skuId}/user
 /// Assign a license.
 ///
 /// Simplest API - builds and executes the request in one call.
@@ -353,11 +520,928 @@ pub fn licensing_license_assignments_insert(
         + 'static,
     ApiError,
 > {
-    let builder = licensing_license_assignments_insert_builder(
+    let builder =
+        licensing_license_assignments_insert_builder(client, &args.productId, &args.skuId)?;
+    licensing_license_assignments_insert_execute(builder)
+}
+
+/// GET apps/licensing/v1/product/{productId}/users
+/// List all users assigned licenses for a specific product SKU.
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `licensing_license_assignments_list_for_product_execute()` to send, or `licensing_license_assignments_list_for_product` for simplest API.
+
+pub fn licensing_license_assignments_list_for_product_builder(
+    client: &SimpleHttpClient,
+    productId: &String,
+    customerId: &Option<Option<String>>,
+    maxResults: &Option<Option<String>>,
+    pageToken: &Option<Option<String>>,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!(
+        "https://licensing.googleapis.com/apps/licensing/v1/product/{}/users",
+        productId,
+    );
+
+    // Build request
+    let mut query_parts = Vec::new();
+    if let Some(val) = customerId.as_ref() {
+        query_parts.push(format!("customerId={}", val));
+    }
+    if let Some(val) = maxResults.as_ref() {
+        query_parts.push(format!("maxResults={}", val));
+    }
+    if let Some(val) = pageToken.as_ref() {
+        query_parts.push(format!("pageToken={}", val));
+    }
+
+    let url_with_query = if query_parts.is_empty() {
+        endpoint_url
+    } else {
+        format!("{}?{}", endpoint_url, query_parts.join("&"))
+    };
+
+    let builder = client
+        .get(&url_with_query)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// GET apps/licensing/v1/product/{productId}/users
+/// List all users assigned licenses for a specific product SKU.
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `licensing_license_assignments_list_for_product_execute()` or `licensing_license_assignments_list_for_product`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `licensing_license_assignments_list_for_product_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn licensing_license_assignments_list_for_product_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<LicenseAssignmentList>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: LicenseAssignmentList = serde_json::from_str(&body)
+                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// GET apps/licensing/v1/product/{productId}/users
+/// List all users assigned licenses for a specific product SKU.
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `licensing_license_assignments_list_for_product_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `licensing_license_assignments_list_for_product_task()`.
+/// For the simplest API, use `licensing_license_assignments_list_for_product()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `licensing_license_assignments_list_for_product_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn licensing_license_assignments_list_for_product_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<LicenseAssignmentList>, ApiError>, P = ApiPending>
+        + Send
+        + 'static,
+    ApiError,
+> {
+    let task = licensing_license_assignments_list_for_product_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`licensing_license_assignments_list_for_product`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct LicensingLicenseAssignmentsListForProductArgs {
+    /// Path parameter: productId
+    pub productId: String,
+    /// Query parameter: customerId
+    pub customerId: Option<Option<String>>,
+    /// Query parameter: maxResults
+    pub maxResults: Option<Option<String>>,
+    /// Query parameter: pageToken
+    pub pageToken: Option<Option<String>>,
+}
+
+/// GET apps/licensing/v1/product/{productId}/users
+/// List all users assigned licenses for a specific product SKU.
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `licensing_license_assignments_list_for_product_builder()` + `licensing_license_assignments_list_for_product_execute()`.
+/// For task-level control, use `licensing_license_assignments_list_for_product_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn licensing_license_assignments_list_for_product(
+    client: &SimpleHttpClient,
+    args: &LicensingLicenseAssignmentsListForProductArgs,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<LicenseAssignmentList>, ApiError>, P = ApiPending>
+        + Send
+        + 'static,
+    ApiError,
+> {
+    let builder = licensing_license_assignments_list_for_product_builder(
+        client,
+        &args.productId,
+        &args.customerId,
+        &args.maxResults,
+        &args.pageToken,
+    )?;
+    licensing_license_assignments_list_for_product_execute(builder)
+}
+
+/// GET apps/licensing/v1/product/{productId}/sku/{skuId}/users
+/// List all users assigned licenses for a specific product SKU.
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `licensing_license_assignments_list_for_product_and_sku_execute()` to send, or `licensing_license_assignments_list_for_product_and_sku` for simplest API.
+
+pub fn licensing_license_assignments_list_for_product_and_sku_builder(
+    client: &SimpleHttpClient,
+    productId: &String,
+    skuId: &String,
+    customerId: &Option<Option<String>>,
+    maxResults: &Option<Option<String>>,
+    pageToken: &Option<Option<String>>,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!(
+        "https://licensing.googleapis.com/apps/licensing/v1/product/{}/sku/{}/users",
+        productId, skuId,
+    );
+
+    // Build request
+    let mut query_parts = Vec::new();
+    if let Some(val) = customerId.as_ref() {
+        query_parts.push(format!("customerId={}", val));
+    }
+    if let Some(val) = maxResults.as_ref() {
+        query_parts.push(format!("maxResults={}", val));
+    }
+    if let Some(val) = pageToken.as_ref() {
+        query_parts.push(format!("pageToken={}", val));
+    }
+
+    let url_with_query = if query_parts.is_empty() {
+        endpoint_url
+    } else {
+        format!("{}?{}", endpoint_url, query_parts.join("&"))
+    };
+
+    let builder = client
+        .get(&url_with_query)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// GET apps/licensing/v1/product/{productId}/sku/{skuId}/users
+/// List all users assigned licenses for a specific product SKU.
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `licensing_license_assignments_list_for_product_and_sku_execute()` or `licensing_license_assignments_list_for_product_and_sku`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `licensing_license_assignments_list_for_product_and_sku_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn licensing_license_assignments_list_for_product_and_sku_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<LicenseAssignmentList>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: LicenseAssignmentList = serde_json::from_str(&body)
+                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// GET apps/licensing/v1/product/{productId}/sku/{skuId}/users
+/// List all users assigned licenses for a specific product SKU.
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `licensing_license_assignments_list_for_product_and_sku_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `licensing_license_assignments_list_for_product_and_sku_task()`.
+/// For the simplest API, use `licensing_license_assignments_list_for_product_and_sku()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `licensing_license_assignments_list_for_product_and_sku_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn licensing_license_assignments_list_for_product_and_sku_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<LicenseAssignmentList>, ApiError>, P = ApiPending>
+        + Send
+        + 'static,
+    ApiError,
+> {
+    let task = licensing_license_assignments_list_for_product_and_sku_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`licensing_license_assignments_list_for_product_and_sku`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct LicensingLicenseAssignmentsListForProductAndSkuArgs {
+    /// Path parameter: productId
+    pub productId: String,
+    /// Path parameter: skuId
+    pub skuId: String,
+    /// Query parameter: customerId
+    pub customerId: Option<Option<String>>,
+    /// Query parameter: maxResults
+    pub maxResults: Option<Option<String>>,
+    /// Query parameter: pageToken
+    pub pageToken: Option<Option<String>>,
+}
+
+/// GET apps/licensing/v1/product/{productId}/sku/{skuId}/users
+/// List all users assigned licenses for a specific product SKU.
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `licensing_license_assignments_list_for_product_and_sku_builder()` + `licensing_license_assignments_list_for_product_and_sku_execute()`.
+/// For task-level control, use `licensing_license_assignments_list_for_product_and_sku_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn licensing_license_assignments_list_for_product_and_sku(
+    client: &SimpleHttpClient,
+    args: &LicensingLicenseAssignmentsListForProductAndSkuArgs,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<LicenseAssignmentList>, ApiError>, P = ApiPending>
+        + Send
+        + 'static,
+    ApiError,
+> {
+    let builder = licensing_license_assignments_list_for_product_and_sku_builder(
         client,
         &args.productId,
         &args.skuId,
-        &args.body,
+        &args.customerId,
+        &args.maxResults,
+        &args.pageToken,
     )?;
-    licensing_license_assignments_insert_execute(builder)
+    licensing_license_assignments_list_for_product_and_sku_execute(builder)
+}
+
+/// PATCH apps/licensing/v1/product/{productId}/sku/{skuId}/user/{userId}
+/// Reassign a user's product SKU with a different SKU in the same product. This method supports patch semantics.
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `licensing_license_assignments_patch_execute()` to send, or `licensing_license_assignments_patch` for simplest API.
+
+pub fn licensing_license_assignments_patch_builder(
+    client: &SimpleHttpClient,
+    productId: &String,
+    skuId: &String,
+    userId: &String,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!(
+        "https://licensing.googleapis.com/apps/licensing/v1/product/{}/sku/{}/user/{}",
+        productId, skuId, userId,
+    );
+
+    // Build request
+    let builder = client
+        .patch(&endpoint_url)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// PATCH apps/licensing/v1/product/{productId}/sku/{skuId}/user/{userId}
+/// Reassign a user's product SKU with a different SKU in the same product. This method supports patch semantics.
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `licensing_license_assignments_patch_execute()` or `licensing_license_assignments_patch`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `licensing_license_assignments_patch_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn licensing_license_assignments_patch_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<LicenseAssignment>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: LicenseAssignment = serde_json::from_str(&body)
+                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// PATCH apps/licensing/v1/product/{productId}/sku/{skuId}/user/{userId}
+/// Reassign a user's product SKU with a different SKU in the same product. This method supports patch semantics.
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `licensing_license_assignments_patch_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `licensing_license_assignments_patch_task()`.
+/// For the simplest API, use `licensing_license_assignments_patch()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `licensing_license_assignments_patch_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn licensing_license_assignments_patch_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<LicenseAssignment>, ApiError>, P = ApiPending>
+        + Send
+        + 'static,
+    ApiError,
+> {
+    let task = licensing_license_assignments_patch_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`licensing_license_assignments_patch`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct LicensingLicenseAssignmentsPatchArgs {
+    /// Path parameter: productId
+    pub productId: String,
+    /// Path parameter: skuId
+    pub skuId: String,
+    /// Path parameter: userId
+    pub userId: String,
+}
+
+/// PATCH apps/licensing/v1/product/{productId}/sku/{skuId}/user/{userId}
+/// Reassign a user's product SKU with a different SKU in the same product. This method supports patch semantics.
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `licensing_license_assignments_patch_builder()` + `licensing_license_assignments_patch_execute()`.
+/// For task-level control, use `licensing_license_assignments_patch_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn licensing_license_assignments_patch(
+    client: &SimpleHttpClient,
+    args: &LicensingLicenseAssignmentsPatchArgs,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<LicenseAssignment>, ApiError>, P = ApiPending>
+        + Send
+        + 'static,
+    ApiError,
+> {
+    let builder = licensing_license_assignments_patch_builder(
+        client,
+        &args.productId,
+        &args.skuId,
+        &args.userId,
+    )?;
+    licensing_license_assignments_patch_execute(builder)
+}
+
+/// PUT apps/licensing/v1/product/{productId}/sku/{skuId}/user/{userId}
+/// Reassign a user's product SKU with a different SKU in the same product.
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `licensing_license_assignments_update_execute()` to send, or `licensing_license_assignments_update` for simplest API.
+
+pub fn licensing_license_assignments_update_builder(
+    client: &SimpleHttpClient,
+    productId: &String,
+    skuId: &String,
+    userId: &String,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!(
+        "https://licensing.googleapis.com/apps/licensing/v1/product/{}/sku/{}/user/{}",
+        productId, skuId, userId,
+    );
+
+    // Build request
+    let builder = client
+        .put(&endpoint_url)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// PUT apps/licensing/v1/product/{productId}/sku/{skuId}/user/{userId}
+/// Reassign a user's product SKU with a different SKU in the same product.
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `licensing_license_assignments_update_execute()` or `licensing_license_assignments_update`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `licensing_license_assignments_update_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn licensing_license_assignments_update_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<LicenseAssignment>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: LicenseAssignment = serde_json::from_str(&body)
+                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// PUT apps/licensing/v1/product/{productId}/sku/{skuId}/user/{userId}
+/// Reassign a user's product SKU with a different SKU in the same product.
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `licensing_license_assignments_update_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `licensing_license_assignments_update_task()`.
+/// For the simplest API, use `licensing_license_assignments_update()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `licensing_license_assignments_update_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn licensing_license_assignments_update_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<LicenseAssignment>, ApiError>, P = ApiPending>
+        + Send
+        + 'static,
+    ApiError,
+> {
+    let task = licensing_license_assignments_update_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`licensing_license_assignments_update`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct LicensingLicenseAssignmentsUpdateArgs {
+    /// Path parameter: productId
+    pub productId: String,
+    /// Path parameter: skuId
+    pub skuId: String,
+    /// Path parameter: userId
+    pub userId: String,
+}
+
+/// PUT apps/licensing/v1/product/{productId}/sku/{skuId}/user/{userId}
+/// Reassign a user's product SKU with a different SKU in the same product.
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `licensing_license_assignments_update_builder()` + `licensing_license_assignments_update_execute()`.
+/// For task-level control, use `licensing_license_assignments_update_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn licensing_license_assignments_update(
+    client: &SimpleHttpClient,
+    args: &LicensingLicenseAssignmentsUpdateArgs,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<LicenseAssignment>, ApiError>, P = ApiPending>
+        + Send
+        + 'static,
+    ApiError,
+> {
+    let builder = licensing_license_assignments_update_builder(
+        client,
+        &args.productId,
+        &args.skuId,
+        &args.userId,
+    )?;
+    licensing_license_assignments_update_execute(builder)
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for Empty
+// =============================================================================
+
+/// ResourceIdentifier implementation for Empty with LicensingLicenseAssignmentsDeleteArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<LicensingLicenseAssignmentsDeleteArgs> for Empty {
+    fn generate_resource_id(&self, input: &LicensingLicenseAssignmentsDeleteArgs) -> String {
+        format!(
+            "gcp::licensing::Empty/{}/{}/{}",
+            input.productId, input.skuId, input.userId
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::licensing::Empty"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for LicenseAssignment
+// =============================================================================
+
+/// ResourceIdentifier implementation for LicenseAssignment with LicensingLicenseAssignmentsGetArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<LicensingLicenseAssignmentsGetArgs> for LicenseAssignment {
+    fn generate_resource_id(&self, input: &LicensingLicenseAssignmentsGetArgs) -> String {
+        format!(
+            "gcp::licensing::LicenseAssignment/{}/{}/{}",
+            input.productId, input.skuId, input.userId
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::licensing::LicenseAssignment"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for LicenseAssignment
+// =============================================================================
+
+/// ResourceIdentifier implementation for LicenseAssignment with LicensingLicenseAssignmentsInsertArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<LicensingLicenseAssignmentsInsertArgs> for LicenseAssignment {
+    fn generate_resource_id(&self, input: &LicensingLicenseAssignmentsInsertArgs) -> String {
+        format!(
+            "gcp::licensing::LicenseAssignment/{}/{}",
+            input.productId, input.skuId
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::licensing::LicenseAssignment"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for LicenseAssignmentList
+// =============================================================================
+
+/// ResourceIdentifier implementation for LicenseAssignmentList with LicensingLicenseAssignmentsListForProductArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<LicensingLicenseAssignmentsListForProductArgs> for LicenseAssignmentList {
+    fn generate_resource_id(
+        &self,
+        input: &LicensingLicenseAssignmentsListForProductArgs,
+    ) -> String {
+        format!("gcp::licensing::LicenseAssignmentList/{}", input.productId)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::licensing::LicenseAssignmentList"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for LicenseAssignmentList
+// =============================================================================
+
+/// ResourceIdentifier implementation for LicenseAssignmentList with LicensingLicenseAssignmentsListForProductAndSkuArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<LicensingLicenseAssignmentsListForProductAndSkuArgs>
+    for LicenseAssignmentList
+{
+    fn generate_resource_id(
+        &self,
+        input: &LicensingLicenseAssignmentsListForProductAndSkuArgs,
+    ) -> String {
+        format!(
+            "gcp::licensing::LicenseAssignmentList/{}/{}",
+            input.productId, input.skuId
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::licensing::LicenseAssignmentList"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for LicenseAssignment
+// =============================================================================
+
+/// ResourceIdentifier implementation for LicenseAssignment with LicensingLicenseAssignmentsPatchArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<LicensingLicenseAssignmentsPatchArgs> for LicenseAssignment {
+    fn generate_resource_id(&self, input: &LicensingLicenseAssignmentsPatchArgs) -> String {
+        format!(
+            "gcp::licensing::LicenseAssignment/{}/{}/{}",
+            input.productId, input.skuId, input.userId
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::licensing::LicenseAssignment"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for LicenseAssignment
+// =============================================================================
+
+/// ResourceIdentifier implementation for LicenseAssignment with LicensingLicenseAssignmentsUpdateArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<LicensingLicenseAssignmentsUpdateArgs> for LicenseAssignment {
+    fn generate_resource_id(&self, input: &LicensingLicenseAssignmentsUpdateArgs) -> String {
+        format!(
+            "gcp::licensing::LicenseAssignment/{}/{}/{}",
+            input.productId, input.skuId, input.userId
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::licensing::LicenseAssignment"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
 }

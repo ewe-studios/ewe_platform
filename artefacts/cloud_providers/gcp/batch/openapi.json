@@ -600,7 +600,7 @@
       }
     }
   },
-  "revision": "20260320",
+  "revision": "20260329",
   "rootUrl": "https://batch.googleapis.com/",
   "schemas": {
     "Accelerator": {

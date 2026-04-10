@@ -12,13 +12,24 @@
 #![cfg(feature = "gcp")]
 
 use crate::providers::gcp::clients::libraryagent::{
+    libraryagent_shelves_get_builder, libraryagent_shelves_get_task,
+    libraryagent_shelves_list_builder, libraryagent_shelves_list_task,
     libraryagent_shelves_books_borrow_builder, libraryagent_shelves_books_borrow_task,
+    libraryagent_shelves_books_get_builder, libraryagent_shelves_books_get_task,
+    libraryagent_shelves_books_list_builder, libraryagent_shelves_books_list_task,
     libraryagent_shelves_books_return_builder, libraryagent_shelves_books_return_task,
 };
 use crate::providers::gcp::clients::types::{ApiError, ApiPending};
 use crate::providers::gcp::clients::libraryagent::GoogleExampleLibraryagentV1Book;
+use crate::providers::gcp::clients::libraryagent::GoogleExampleLibraryagentV1ListBooksResponse;
+use crate::providers::gcp::clients::libraryagent::GoogleExampleLibraryagentV1ListShelvesResponse;
+use crate::providers::gcp::clients::libraryagent::GoogleExampleLibraryagentV1Shelf;
 use crate::providers::gcp::clients::libraryagent::LibraryagentShelvesBooksBorrowArgs;
+use crate::providers::gcp::clients::libraryagent::LibraryagentShelvesBooksGetArgs;
+use crate::providers::gcp::clients::libraryagent::LibraryagentShelvesBooksListArgs;
 use crate::providers::gcp::clients::libraryagent::LibraryagentShelvesBooksReturnArgs;
+use crate::providers::gcp::clients::libraryagent::LibraryagentShelvesGetArgs;
+use crate::providers::gcp::clients::libraryagent::LibraryagentShelvesListArgs;
 use crate::provider_client::{ProviderClient, ProviderError};
 use foundation_core::valtron::{execute, StreamIterator};
 use foundation_core::wire::simple_http::client::SimpleHttpClient;
@@ -58,6 +69,83 @@ where
             client,
             http_client: Arc::new(http_client),
         }
+    }
+
+    /// Libraryagent shelves get.
+    ///
+    /// Read-only operation - no state tracking.
+    ///
+    /// # Arguments
+    ///
+    /// * `args` - Request arguments
+    ///
+    /// # Returns
+    ///
+    /// StreamIterator yielding the GoogleExampleLibraryagentV1Shelf result.
+    ///
+    /// # Errors
+    ///
+    /// Returns ProviderError if the API request fails.
+    pub fn libraryagent_shelves_get(
+        &self,
+        args: &LibraryagentShelvesGetArgs,
+    ) -> Result<
+        impl StreamIterator<
+            D = Result<GoogleExampleLibraryagentV1Shelf, ProviderError<ApiError>>,
+            P = crate::providers::gcp::clients::types::ApiPending,
+        > + Send
+        + 'static,
+        ProviderError<ApiError>,
+    > {
+        let builder = libraryagent_shelves_get_builder(
+            &self.http_client,
+            &args.name,
+        )
+        .map_err(ProviderError::Api)?;
+
+        let task = libraryagent_shelves_get_task(builder)
+            .map_err(ProviderError::Api)?;
+
+        execute(task, None).map_err(|e: String| ProviderError::ExecuteFailed(e.to_string()))
+    }
+
+    /// Libraryagent shelves list.
+    ///
+    /// Read-only operation - no state tracking.
+    ///
+    /// # Arguments
+    ///
+    /// * `args` - Request arguments
+    ///
+    /// # Returns
+    ///
+    /// StreamIterator yielding the GoogleExampleLibraryagentV1ListShelvesResponse result.
+    ///
+    /// # Errors
+    ///
+    /// Returns ProviderError if the API request fails.
+    pub fn libraryagent_shelves_list(
+        &self,
+        args: &LibraryagentShelvesListArgs,
+    ) -> Result<
+        impl StreamIterator<
+            D = Result<GoogleExampleLibraryagentV1ListShelvesResponse, ProviderError<ApiError>>,
+            P = crate::providers::gcp::clients::types::ApiPending,
+        > + Send
+        + 'static,
+        ProviderError<ApiError>,
+    > {
+        let builder = libraryagent_shelves_list_builder(
+            &self.http_client,
+            &args.pageSize,
+            &args.pageToken,
+        )
+        .map_err(ProviderError::Api)?;
+
+        let task = libraryagent_shelves_list_task(builder)
+            .map_err(ProviderError::Api)?;
+
+        execute(task, None).map_err(|e: String| ProviderError::ExecuteFailed(e.to_string()))
     }
 
     /// Libraryagent shelves books borrow.
@@ -101,6 +189,84 @@ where
         let store_task = StoreStateIdentifierTask::new(task, state_store, args, stage);
 
         execute(store_task, None).map_err(|e: String| ProviderError::ExecuteFailed(e.to_string()))
+    }
+
+    /// Libraryagent shelves books get.
+    ///
+    /// Read-only operation - no state tracking.
+    ///
+    /// # Arguments
+    ///
+    /// * `args` - Request arguments
+    ///
+    /// # Returns
+    ///
+    /// StreamIterator yielding the GoogleExampleLibraryagentV1Book result.
+    ///
+    /// # Errors
+    ///
+    /// Returns ProviderError if the API request fails.
+    pub fn libraryagent_shelves_books_get(
+        &self,
+        args: &LibraryagentShelvesBooksGetArgs,
+    ) -> Result<
+        impl StreamIterator<
+            D = Result<GoogleExampleLibraryagentV1Book, ProviderError<ApiError>>,
+            P = crate::providers::gcp::clients::types::ApiPending,
+        > + Send
+        + 'static,
+        ProviderError<ApiError>,
+    > {
+        let builder = libraryagent_shelves_books_get_builder(
+            &self.http_client,
+            &args.name,
+        )
+        .map_err(ProviderError::Api)?;
+
+        let task = libraryagent_shelves_books_get_task(builder)
+            .map_err(ProviderError::Api)?;
+
+        execute(task, None).map_err(|e: String| ProviderError::ExecuteFailed(e.to_string()))
+    }
+
+    /// Libraryagent shelves books list.
+    ///
+    /// Read-only operation - no state tracking.
+    ///
+    /// # Arguments
+    ///
+    /// * `args` - Request arguments
+    ///
+    /// # Returns
+    ///
+    /// StreamIterator yielding the GoogleExampleLibraryagentV1ListBooksResponse result.
+    ///
+    /// # Errors
+    ///
+    /// Returns ProviderError if the API request fails.
+    pub fn libraryagent_shelves_books_list(
+        &self,
+        args: &LibraryagentShelvesBooksListArgs,
+    ) -> Result<
+        impl StreamIterator<
+            D = Result<GoogleExampleLibraryagentV1ListBooksResponse, ProviderError<ApiError>>,
+            P = crate::providers::gcp::clients::types::ApiPending,
+        > + Send
+        + 'static,
+        ProviderError<ApiError>,
+    > {
+        let builder = libraryagent_shelves_books_list_builder(
+            &self.http_client,
+            &args.parent,
+            &args.pageSize,
+            &args.pageToken,
+        )
+        .map_err(ProviderError::Api)?;
+
+        let task = libraryagent_shelves_books_list_task(builder)
+            .map_err(ProviderError::Api)?;
+
+        execute(task, None).map_err(|e: String| ProviderError::ExecuteFailed(e.to_string()))
     }
 
     /// Libraryagent shelves books return.

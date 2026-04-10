@@ -7,7 +7,6 @@
 
 #![cfg(feature = "gcp")]
 
-
 use crate::providers::gcp::clients::types::*;
 use crate::providers::gcp::resources::*;
 use foundation_core::valtron::{
@@ -17,8 +16,323 @@ use foundation_core::valtron::{
 use foundation_core::wire::simple_http::client::{
     body_reader, ClientRequestBuilder, RequestIntro, SimpleHttpClient, SystemDnsResolver,
 };
+use foundation_db::state::resource_identifier::ResourceIdentifier;
 use foundation_macros::JsonHash;
 use serde::Serialize;
+
+/// GET v1/projects/{projectsId}/locations/{locationsId}
+/// Gets information about a location.
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `backupdr_projects_locations_get_execute()` to send, or `backupdr_projects_locations_get` for simplest API.
+
+pub fn backupdr_projects_locations_get_builder(
+    client: &SimpleHttpClient,
+    name: &String,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!(
+        "https://backupdr.googleapis.com/v1/projects/{}/locations/{locationsId}",
+        name,
+    );
+
+    // Build request
+    let builder = client
+        .get(&endpoint_url)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// GET v1/projects/{projectsId}/locations/{locationsId}
+/// Gets information about a location.
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `backupdr_projects_locations_get_execute()` or `backupdr_projects_locations_get`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `backupdr_projects_locations_get_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn backupdr_projects_locations_get_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<Location>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: Location = serde_json::from_str(&body)
+                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// GET v1/projects/{projectsId}/locations/{locationsId}
+/// Gets information about a location.
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `backupdr_projects_locations_get_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `backupdr_projects_locations_get_task()`.
+/// For the simplest API, use `backupdr_projects_locations_get()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `backupdr_projects_locations_get_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn backupdr_projects_locations_get_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<Location>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let task = backupdr_projects_locations_get_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`backupdr_projects_locations_get`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct BackupdrProjectsLocationsGetArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
+/// GET v1/projects/{projectsId}/locations/{locationsId}
+/// Gets information about a location.
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `backupdr_projects_locations_get_builder()` + `backupdr_projects_locations_get_execute()`.
+/// For task-level control, use `backupdr_projects_locations_get_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn backupdr_projects_locations_get(
+    client: &SimpleHttpClient,
+    args: &BackupdrProjectsLocationsGetArgs,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<Location>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let builder = backupdr_projects_locations_get_builder(client, &args.name)?;
+    backupdr_projects_locations_get_execute(builder)
+}
+
+/// GET v1/projects/{projectsId}/locations/{locationsId}/trial
+/// Gets the Trial state for a given project
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `backupdr_projects_locations_get_trial_execute()` to send, or `backupdr_projects_locations_get_trial` for simplest API.
+
+pub fn backupdr_projects_locations_get_trial_builder(
+    client: &SimpleHttpClient,
+    name: &String,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!(
+        "https://backupdr.googleapis.com/v1/projects/{}/locations/{locationsId}/trial",
+        name,
+    );
+
+    // Build request
+    let builder = client
+        .get(&endpoint_url)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// GET v1/projects/{projectsId}/locations/{locationsId}/trial
+/// Gets the Trial state for a given project
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `backupdr_projects_locations_get_trial_execute()` or `backupdr_projects_locations_get_trial`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `backupdr_projects_locations_get_trial_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn backupdr_projects_locations_get_trial_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<Trial>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: Trial = serde_json::from_str(&body)
+                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// GET v1/projects/{projectsId}/locations/{locationsId}/trial
+/// Gets the Trial state for a given project
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `backupdr_projects_locations_get_trial_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `backupdr_projects_locations_get_trial_task()`.
+/// For the simplest API, use `backupdr_projects_locations_get_trial()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `backupdr_projects_locations_get_trial_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn backupdr_projects_locations_get_trial_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<Trial>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let task = backupdr_projects_locations_get_trial_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`backupdr_projects_locations_get_trial`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct BackupdrProjectsLocationsGetTrialArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
+/// GET v1/projects/{projectsId}/locations/{locationsId}/trial
+/// Gets the Trial state for a given project
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `backupdr_projects_locations_get_trial_builder()` + `backupdr_projects_locations_get_trial_execute()`.
+/// For task-level control, use `backupdr_projects_locations_get_trial_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn backupdr_projects_locations_get_trial(
+    client: &SimpleHttpClient,
+    args: &BackupdrProjectsLocationsGetTrialArgs,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<Trial>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let builder = backupdr_projects_locations_get_trial_builder(client, &args.name)?;
+    backupdr_projects_locations_get_trial_execute(builder)
+}
 
 /// GET v1/projects/{projectsId}/locations
 /// Lists information about the supported locations for this service. This method lists locations based on the resource scope provided in the [ListLocationsRequest.name] field: * **Global locations**: If name is empty, the method lists the public locations available to all projects. * **Project-specific locations**: If name follows the format `projects/{project}`, the method lists locations visible to that specific project. This includes public, private, or other project-specific locations enabled for the project. For `gRPC` and client library implementations, the resource name is passed as the name field. For direct service calls, the resource name is incorporated into the request path based on the specific service implementation and version.
@@ -29,13 +343,16 @@ use serde::Serialize;
 pub fn backupdr_projects_locations_list_builder(
     client: &SimpleHttpClient,
     name: &String,
-    extraLocationTypes: &Option<String>,
-    filter: &Option<String>,
-    pageSize: &Option<i32>,
-    pageToken: &Option<String>,
+    extraLocationTypes: &Option<Option<String>>,
+    filter: &Option<Option<String>>,
+    pageSize: &Option<Option<String>>,
+    pageToken: &Option<Option<String>>,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
-    let endpoint_url = format!("https://backupdr.googleapis.com/v1/projects/{}/locations",);
+    let endpoint_url = format!(
+        "https://backupdr.googleapis.com/v1/projects/{}/locations",
+        name,
+    );
 
     // Build request
     let mut query_parts = Vec::new();
@@ -177,13 +494,13 @@ pub struct BackupdrProjectsLocationsListArgs {
     /// Path parameter: name
     pub name: String,
     /// Query parameter: extraLocationTypes
-    pub extraLocationTypes: Option<String>,
+    pub extraLocationTypes: Option<Option<String>>,
     /// Query parameter: filter
-    pub filter: Option<String>,
+    pub filter: Option<Option<String>>,
     /// Query parameter: pageSize
-    pub pageSize: Option<i32>,
+    pub pageSize: Option<Option<String>>,
     /// Query parameter: pageToken
-    pub pageToken: Option<String>,
+    pub pageToken: Option<Option<String>>,
 }
 
 /// GET v1/projects/{projectsId}/locations
@@ -215,4 +532,11395 @@ pub fn backupdr_projects_locations_list(
         &args.pageToken,
     )?;
     backupdr_projects_locations_list_execute(builder)
+}
+
+/// POST v1/projects/{projectsId}/locations/{locationsId}/backupPlanAssociations
+/// Create a BackupPlanAssociation
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `backupdr_projects_locations_backup_plan_associations_create_execute()` to send, or `backupdr_projects_locations_backup_plan_associations_create` for simplest API.
+
+pub fn backupdr_projects_locations_backup_plan_associations_create_builder(
+    client: &SimpleHttpClient,
+    parent: &String,
+    backupPlanAssociationId: &Option<Option<String>>,
+    requestId: &Option<Option<String>>,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!(
+        "https://backupdr.googleapis.com/v1/projects/{}/locations/{locationsId}/backupPlanAssociations",
+        parent,
+    );
+
+    // Build request
+    let mut query_parts = Vec::new();
+    if let Some(val) = backupPlanAssociationId.as_ref() {
+        query_parts.push(format!("backupPlanAssociationId={}", val));
+    }
+    if let Some(val) = requestId.as_ref() {
+        query_parts.push(format!("requestId={}", val));
+    }
+
+    let url_with_query = if query_parts.is_empty() {
+        endpoint_url
+    } else {
+        format!("{}?{}", endpoint_url, query_parts.join("&"))
+    };
+
+    let builder = client
+        .post(&url_with_query)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// POST v1/projects/{projectsId}/locations/{locationsId}/backupPlanAssociations
+/// Create a BackupPlanAssociation
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `backupdr_projects_locations_backup_plan_associations_create_execute()` or `backupdr_projects_locations_backup_plan_associations_create`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `backupdr_projects_locations_backup_plan_associations_create_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn backupdr_projects_locations_backup_plan_associations_create_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<Operation>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: Operation = serde_json::from_str(&body)
+                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// POST v1/projects/{projectsId}/locations/{locationsId}/backupPlanAssociations
+/// Create a BackupPlanAssociation
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `backupdr_projects_locations_backup_plan_associations_create_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `backupdr_projects_locations_backup_plan_associations_create_task()`.
+/// For the simplest API, use `backupdr_projects_locations_backup_plan_associations_create()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `backupdr_projects_locations_backup_plan_associations_create_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn backupdr_projects_locations_backup_plan_associations_create_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<Operation>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let task = backupdr_projects_locations_backup_plan_associations_create_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`backupdr_projects_locations_backup_plan_associations_create`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct BackupdrProjectsLocationsBackupPlanAssociationsCreateArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Query parameter: backupPlanAssociationId
+    pub backupPlanAssociationId: Option<Option<String>>,
+    /// Query parameter: requestId
+    pub requestId: Option<Option<String>>,
+}
+
+/// POST v1/projects/{projectsId}/locations/{locationsId}/backupPlanAssociations
+/// Create a BackupPlanAssociation
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `backupdr_projects_locations_backup_plan_associations_create_builder()` + `backupdr_projects_locations_backup_plan_associations_create_execute()`.
+/// For task-level control, use `backupdr_projects_locations_backup_plan_associations_create_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn backupdr_projects_locations_backup_plan_associations_create(
+    client: &SimpleHttpClient,
+    args: &BackupdrProjectsLocationsBackupPlanAssociationsCreateArgs,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<Operation>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let builder = backupdr_projects_locations_backup_plan_associations_create_builder(
+        client,
+        &args.parent,
+        &args.backupPlanAssociationId,
+        &args.requestId,
+    )?;
+    backupdr_projects_locations_backup_plan_associations_create_execute(builder)
+}
+
+/// DELETE v1/projects/{projectsId}/locations/{locationsId}/backupPlanAssociations/{backupPlanAssociationsId}
+/// Deletes a single BackupPlanAssociation.
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `backupdr_projects_locations_backup_plan_associations_delete_execute()` to send, or `backupdr_projects_locations_backup_plan_associations_delete` for simplest API.
+
+pub fn backupdr_projects_locations_backup_plan_associations_delete_builder(
+    client: &SimpleHttpClient,
+    name: &String,
+    requestId: &Option<Option<String>>,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!(
+        "https://backupdr.googleapis.com/v1/projects/{}/locations/{locationsId}/backupPlanAssociations/{backupPlanAssociationsId}",
+        name,
+    );
+
+    // Build request
+    let mut query_parts = Vec::new();
+    if let Some(val) = requestId.as_ref() {
+        query_parts.push(format!("requestId={}", val));
+    }
+
+    let url_with_query = if query_parts.is_empty() {
+        endpoint_url
+    } else {
+        format!("{}?{}", endpoint_url, query_parts.join("&"))
+    };
+
+    let builder = client
+        .delete(&url_with_query)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// DELETE v1/projects/{projectsId}/locations/{locationsId}/backupPlanAssociations/{backupPlanAssociationsId}
+/// Deletes a single BackupPlanAssociation.
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `backupdr_projects_locations_backup_plan_associations_delete_execute()` or `backupdr_projects_locations_backup_plan_associations_delete`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `backupdr_projects_locations_backup_plan_associations_delete_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn backupdr_projects_locations_backup_plan_associations_delete_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<Operation>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: Operation = serde_json::from_str(&body)
+                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// DELETE v1/projects/{projectsId}/locations/{locationsId}/backupPlanAssociations/{backupPlanAssociationsId}
+/// Deletes a single BackupPlanAssociation.
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `backupdr_projects_locations_backup_plan_associations_delete_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `backupdr_projects_locations_backup_plan_associations_delete_task()`.
+/// For the simplest API, use `backupdr_projects_locations_backup_plan_associations_delete()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `backupdr_projects_locations_backup_plan_associations_delete_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn backupdr_projects_locations_backup_plan_associations_delete_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<Operation>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let task = backupdr_projects_locations_backup_plan_associations_delete_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`backupdr_projects_locations_backup_plan_associations_delete`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct BackupdrProjectsLocationsBackupPlanAssociationsDeleteArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Query parameter: requestId
+    pub requestId: Option<Option<String>>,
+}
+
+/// DELETE v1/projects/{projectsId}/locations/{locationsId}/backupPlanAssociations/{backupPlanAssociationsId}
+/// Deletes a single BackupPlanAssociation.
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `backupdr_projects_locations_backup_plan_associations_delete_builder()` + `backupdr_projects_locations_backup_plan_associations_delete_execute()`.
+/// For task-level control, use `backupdr_projects_locations_backup_plan_associations_delete_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn backupdr_projects_locations_backup_plan_associations_delete(
+    client: &SimpleHttpClient,
+    args: &BackupdrProjectsLocationsBackupPlanAssociationsDeleteArgs,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<Operation>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let builder = backupdr_projects_locations_backup_plan_associations_delete_builder(
+        client,
+        &args.name,
+        &args.requestId,
+    )?;
+    backupdr_projects_locations_backup_plan_associations_delete_execute(builder)
+}
+
+/// GET v1/projects/{projectsId}/locations/{locationsId}/backupPlanAssociations:fetchForResourceType
+/// List BackupPlanAssociations for a given resource type.
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `backupdr_projects_locations_backup_plan_associations_fetch_for_resource_type_execute()` to send, or `backupdr_projects_locations_backup_plan_associations_fetch_for_resource_type` for simplest API.
+
+pub fn backupdr_projects_locations_backup_plan_associations_fetch_for_resource_type_builder(
+    client: &SimpleHttpClient,
+    parent: &String,
+    filter: &Option<Option<String>>,
+    orderBy: &Option<Option<String>>,
+    pageSize: &Option<Option<String>>,
+    pageToken: &Option<Option<String>>,
+    resourceType: &Option<Option<String>>,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!(
+        "https://backupdr.googleapis.com/v1/projects/{}/locations/{locationsId}/backupPlanAssociations:fetchForResourceType",
+        parent,
+    );
+
+    // Build request
+    let mut query_parts = Vec::new();
+    if let Some(val) = filter.as_ref() {
+        query_parts.push(format!("filter={}", val));
+    }
+    if let Some(val) = orderBy.as_ref() {
+        query_parts.push(format!("orderBy={}", val));
+    }
+    if let Some(val) = pageSize.as_ref() {
+        query_parts.push(format!("pageSize={}", val));
+    }
+    if let Some(val) = pageToken.as_ref() {
+        query_parts.push(format!("pageToken={}", val));
+    }
+    if let Some(val) = resourceType.as_ref() {
+        query_parts.push(format!("resourceType={}", val));
+    }
+
+    let url_with_query = if query_parts.is_empty() {
+        endpoint_url
+    } else {
+        format!("{}?{}", endpoint_url, query_parts.join("&"))
+    };
+
+    let builder = client
+        .get(&url_with_query)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// GET v1/projects/{projectsId}/locations/{locationsId}/backupPlanAssociations:fetchForResourceType
+/// List BackupPlanAssociations for a given resource type.
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `backupdr_projects_locations_backup_plan_associations_fetch_for_resource_type_execute()` or `backupdr_projects_locations_backup_plan_associations_fetch_for_resource_type`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `backupdr_projects_locations_backup_plan_associations_fetch_for_resource_type_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn backupdr_projects_locations_backup_plan_associations_fetch_for_resource_type_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<
+                ApiResponse<FetchBackupPlanAssociationsForResourceTypeResponse>,
+                ApiError,
+            >,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: FetchBackupPlanAssociationsForResourceTypeResponse =
+                    serde_json::from_str(&body)
+                        .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// GET v1/projects/{projectsId}/locations/{locationsId}/backupPlanAssociations:fetchForResourceType
+/// List BackupPlanAssociations for a given resource type.
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `backupdr_projects_locations_backup_plan_associations_fetch_for_resource_type_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `backupdr_projects_locations_backup_plan_associations_fetch_for_resource_type_task()`.
+/// For the simplest API, use `backupdr_projects_locations_backup_plan_associations_fetch_for_resource_type()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `backupdr_projects_locations_backup_plan_associations_fetch_for_resource_type_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn backupdr_projects_locations_backup_plan_associations_fetch_for_resource_type_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<
+            D = Result<ApiResponse<FetchBackupPlanAssociationsForResourceTypeResponse>, ApiError>,
+            P = ApiPending,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    let task =
+        backupdr_projects_locations_backup_plan_associations_fetch_for_resource_type_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`backupdr_projects_locations_backup_plan_associations_fetch_for_resource_type`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct BackupdrProjectsLocationsBackupPlanAssociationsFetchForResourceTypeArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Query parameter: filter
+    pub filter: Option<Option<String>>,
+    /// Query parameter: orderBy
+    pub orderBy: Option<Option<String>>,
+    /// Query parameter: pageSize
+    pub pageSize: Option<Option<String>>,
+    /// Query parameter: pageToken
+    pub pageToken: Option<Option<String>>,
+    /// Query parameter: resourceType
+    pub resourceType: Option<Option<String>>,
+}
+
+/// GET v1/projects/{projectsId}/locations/{locationsId}/backupPlanAssociations:fetchForResourceType
+/// List BackupPlanAssociations for a given resource type.
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `backupdr_projects_locations_backup_plan_associations_fetch_for_resource_type_builder()` + `backupdr_projects_locations_backup_plan_associations_fetch_for_resource_type_execute()`.
+/// For task-level control, use `backupdr_projects_locations_backup_plan_associations_fetch_for_resource_type_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn backupdr_projects_locations_backup_plan_associations_fetch_for_resource_type(
+    client: &SimpleHttpClient,
+    args: &BackupdrProjectsLocationsBackupPlanAssociationsFetchForResourceTypeArgs,
+) -> Result<
+    impl StreamIterator<
+            D = Result<ApiResponse<FetchBackupPlanAssociationsForResourceTypeResponse>, ApiError>,
+            P = ApiPending,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    let builder =
+        backupdr_projects_locations_backup_plan_associations_fetch_for_resource_type_builder(
+            client,
+            &args.parent,
+            &args.filter,
+            &args.orderBy,
+            &args.pageSize,
+            &args.pageToken,
+            &args.resourceType,
+        )?;
+    backupdr_projects_locations_backup_plan_associations_fetch_for_resource_type_execute(builder)
+}
+
+/// GET v1/projects/{projectsId}/locations/{locationsId}/backupPlanAssociations/{backupPlanAssociationsId}
+/// Gets details of a single BackupPlanAssociation.
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `backupdr_projects_locations_backup_plan_associations_get_execute()` to send, or `backupdr_projects_locations_backup_plan_associations_get` for simplest API.
+
+pub fn backupdr_projects_locations_backup_plan_associations_get_builder(
+    client: &SimpleHttpClient,
+    name: &String,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!(
+        "https://backupdr.googleapis.com/v1/projects/{}/locations/{locationsId}/backupPlanAssociations/{backupPlanAssociationsId}",
+        name,
+    );
+
+    // Build request
+    let builder = client
+        .get(&endpoint_url)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// GET v1/projects/{projectsId}/locations/{locationsId}/backupPlanAssociations/{backupPlanAssociationsId}
+/// Gets details of a single BackupPlanAssociation.
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `backupdr_projects_locations_backup_plan_associations_get_execute()` or `backupdr_projects_locations_backup_plan_associations_get`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `backupdr_projects_locations_backup_plan_associations_get_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn backupdr_projects_locations_backup_plan_associations_get_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<BackupPlanAssociation>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: BackupPlanAssociation = serde_json::from_str(&body)
+                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// GET v1/projects/{projectsId}/locations/{locationsId}/backupPlanAssociations/{backupPlanAssociationsId}
+/// Gets details of a single BackupPlanAssociation.
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `backupdr_projects_locations_backup_plan_associations_get_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `backupdr_projects_locations_backup_plan_associations_get_task()`.
+/// For the simplest API, use `backupdr_projects_locations_backup_plan_associations_get()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `backupdr_projects_locations_backup_plan_associations_get_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn backupdr_projects_locations_backup_plan_associations_get_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<BackupPlanAssociation>, ApiError>, P = ApiPending>
+        + Send
+        + 'static,
+    ApiError,
+> {
+    let task = backupdr_projects_locations_backup_plan_associations_get_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`backupdr_projects_locations_backup_plan_associations_get`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct BackupdrProjectsLocationsBackupPlanAssociationsGetArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
+/// GET v1/projects/{projectsId}/locations/{locationsId}/backupPlanAssociations/{backupPlanAssociationsId}
+/// Gets details of a single BackupPlanAssociation.
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `backupdr_projects_locations_backup_plan_associations_get_builder()` + `backupdr_projects_locations_backup_plan_associations_get_execute()`.
+/// For task-level control, use `backupdr_projects_locations_backup_plan_associations_get_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn backupdr_projects_locations_backup_plan_associations_get(
+    client: &SimpleHttpClient,
+    args: &BackupdrProjectsLocationsBackupPlanAssociationsGetArgs,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<BackupPlanAssociation>, ApiError>, P = ApiPending>
+        + Send
+        + 'static,
+    ApiError,
+> {
+    let builder =
+        backupdr_projects_locations_backup_plan_associations_get_builder(client, &args.name)?;
+    backupdr_projects_locations_backup_plan_associations_get_execute(builder)
+}
+
+/// GET v1/projects/{projectsId}/locations/{locationsId}/backupPlanAssociations
+/// Lists BackupPlanAssociations in a given project and location.
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `backupdr_projects_locations_backup_plan_associations_list_execute()` to send, or `backupdr_projects_locations_backup_plan_associations_list` for simplest API.
+
+pub fn backupdr_projects_locations_backup_plan_associations_list_builder(
+    client: &SimpleHttpClient,
+    parent: &String,
+    filter: &Option<Option<String>>,
+    pageSize: &Option<Option<String>>,
+    pageToken: &Option<Option<String>>,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!(
+        "https://backupdr.googleapis.com/v1/projects/{}/locations/{locationsId}/backupPlanAssociations",
+        parent,
+    );
+
+    // Build request
+    let mut query_parts = Vec::new();
+    if let Some(val) = filter.as_ref() {
+        query_parts.push(format!("filter={}", val));
+    }
+    if let Some(val) = pageSize.as_ref() {
+        query_parts.push(format!("pageSize={}", val));
+    }
+    if let Some(val) = pageToken.as_ref() {
+        query_parts.push(format!("pageToken={}", val));
+    }
+
+    let url_with_query = if query_parts.is_empty() {
+        endpoint_url
+    } else {
+        format!("{}?{}", endpoint_url, query_parts.join("&"))
+    };
+
+    let builder = client
+        .get(&url_with_query)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// GET v1/projects/{projectsId}/locations/{locationsId}/backupPlanAssociations
+/// Lists BackupPlanAssociations in a given project and location.
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `backupdr_projects_locations_backup_plan_associations_list_execute()` or `backupdr_projects_locations_backup_plan_associations_list`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `backupdr_projects_locations_backup_plan_associations_list_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn backupdr_projects_locations_backup_plan_associations_list_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<ListBackupPlanAssociationsResponse>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: ListBackupPlanAssociationsResponse = serde_json::from_str(&body)
+                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// GET v1/projects/{projectsId}/locations/{locationsId}/backupPlanAssociations
+/// Lists BackupPlanAssociations in a given project and location.
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `backupdr_projects_locations_backup_plan_associations_list_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `backupdr_projects_locations_backup_plan_associations_list_task()`.
+/// For the simplest API, use `backupdr_projects_locations_backup_plan_associations_list()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `backupdr_projects_locations_backup_plan_associations_list_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn backupdr_projects_locations_backup_plan_associations_list_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<
+            D = Result<ApiResponse<ListBackupPlanAssociationsResponse>, ApiError>,
+            P = ApiPending,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    let task = backupdr_projects_locations_backup_plan_associations_list_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`backupdr_projects_locations_backup_plan_associations_list`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct BackupdrProjectsLocationsBackupPlanAssociationsListArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Query parameter: filter
+    pub filter: Option<Option<String>>,
+    /// Query parameter: pageSize
+    pub pageSize: Option<Option<String>>,
+    /// Query parameter: pageToken
+    pub pageToken: Option<Option<String>>,
+}
+
+/// GET v1/projects/{projectsId}/locations/{locationsId}/backupPlanAssociations
+/// Lists BackupPlanAssociations in a given project and location.
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `backupdr_projects_locations_backup_plan_associations_list_builder()` + `backupdr_projects_locations_backup_plan_associations_list_execute()`.
+/// For task-level control, use `backupdr_projects_locations_backup_plan_associations_list_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn backupdr_projects_locations_backup_plan_associations_list(
+    client: &SimpleHttpClient,
+    args: &BackupdrProjectsLocationsBackupPlanAssociationsListArgs,
+) -> Result<
+    impl StreamIterator<
+            D = Result<ApiResponse<ListBackupPlanAssociationsResponse>, ApiError>,
+            P = ApiPending,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    let builder = backupdr_projects_locations_backup_plan_associations_list_builder(
+        client,
+        &args.parent,
+        &args.filter,
+        &args.pageSize,
+        &args.pageToken,
+    )?;
+    backupdr_projects_locations_backup_plan_associations_list_execute(builder)
+}
+
+/// PATCH v1/projects/{projectsId}/locations/{locationsId}/backupPlanAssociations/{backupPlanAssociationsId}
+/// Update a BackupPlanAssociation.
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `backupdr_projects_locations_backup_plan_associations_patch_execute()` to send, or `backupdr_projects_locations_backup_plan_associations_patch` for simplest API.
+
+pub fn backupdr_projects_locations_backup_plan_associations_patch_builder(
+    client: &SimpleHttpClient,
+    name: &String,
+    requestId: &Option<Option<String>>,
+    updateMask: &Option<Option<String>>,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!(
+        "https://backupdr.googleapis.com/v1/projects/{}/locations/{locationsId}/backupPlanAssociations/{backupPlanAssociationsId}",
+        name,
+    );
+
+    // Build request
+    let mut query_parts = Vec::new();
+    if let Some(val) = requestId.as_ref() {
+        query_parts.push(format!("requestId={}", val));
+    }
+    if let Some(val) = updateMask.as_ref() {
+        query_parts.push(format!("updateMask={}", val));
+    }
+
+    let url_with_query = if query_parts.is_empty() {
+        endpoint_url
+    } else {
+        format!("{}?{}", endpoint_url, query_parts.join("&"))
+    };
+
+    let builder = client
+        .patch(&url_with_query)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// PATCH v1/projects/{projectsId}/locations/{locationsId}/backupPlanAssociations/{backupPlanAssociationsId}
+/// Update a BackupPlanAssociation.
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `backupdr_projects_locations_backup_plan_associations_patch_execute()` or `backupdr_projects_locations_backup_plan_associations_patch`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `backupdr_projects_locations_backup_plan_associations_patch_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn backupdr_projects_locations_backup_plan_associations_patch_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<Operation>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: Operation = serde_json::from_str(&body)
+                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// PATCH v1/projects/{projectsId}/locations/{locationsId}/backupPlanAssociations/{backupPlanAssociationsId}
+/// Update a BackupPlanAssociation.
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `backupdr_projects_locations_backup_plan_associations_patch_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `backupdr_projects_locations_backup_plan_associations_patch_task()`.
+/// For the simplest API, use `backupdr_projects_locations_backup_plan_associations_patch()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `backupdr_projects_locations_backup_plan_associations_patch_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn backupdr_projects_locations_backup_plan_associations_patch_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<Operation>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let task = backupdr_projects_locations_backup_plan_associations_patch_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`backupdr_projects_locations_backup_plan_associations_patch`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct BackupdrProjectsLocationsBackupPlanAssociationsPatchArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Query parameter: requestId
+    pub requestId: Option<Option<String>>,
+    /// Query parameter: updateMask
+    pub updateMask: Option<Option<String>>,
+}
+
+/// PATCH v1/projects/{projectsId}/locations/{locationsId}/backupPlanAssociations/{backupPlanAssociationsId}
+/// Update a BackupPlanAssociation.
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `backupdr_projects_locations_backup_plan_associations_patch_builder()` + `backupdr_projects_locations_backup_plan_associations_patch_execute()`.
+/// For task-level control, use `backupdr_projects_locations_backup_plan_associations_patch_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn backupdr_projects_locations_backup_plan_associations_patch(
+    client: &SimpleHttpClient,
+    args: &BackupdrProjectsLocationsBackupPlanAssociationsPatchArgs,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<Operation>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let builder = backupdr_projects_locations_backup_plan_associations_patch_builder(
+        client,
+        &args.name,
+        &args.requestId,
+        &args.updateMask,
+    )?;
+    backupdr_projects_locations_backup_plan_associations_patch_execute(builder)
+}
+
+/// POST v1/projects/{projectsId}/locations/{locationsId}/backupPlanAssociations/{backupPlanAssociationsId}:triggerBackup
+/// Triggers a new Backup.
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `backupdr_projects_locations_backup_plan_associations_trigger_backup_execute()` to send, or `backupdr_projects_locations_backup_plan_associations_trigger_backup` for simplest API.
+
+pub fn backupdr_projects_locations_backup_plan_associations_trigger_backup_builder(
+    client: &SimpleHttpClient,
+    name: &String,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!(
+        "https://backupdr.googleapis.com/v1/projects/{}/locations/{locationsId}/backupPlanAssociations/{backupPlanAssociationsId}:triggerBackup",
+        name,
+    );
+
+    // Build request
+    let builder = client
+        .post(&endpoint_url)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// POST v1/projects/{projectsId}/locations/{locationsId}/backupPlanAssociations/{backupPlanAssociationsId}:triggerBackup
+/// Triggers a new Backup.
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `backupdr_projects_locations_backup_plan_associations_trigger_backup_execute()` or `backupdr_projects_locations_backup_plan_associations_trigger_backup`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `backupdr_projects_locations_backup_plan_associations_trigger_backup_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn backupdr_projects_locations_backup_plan_associations_trigger_backup_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<Operation>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: Operation = serde_json::from_str(&body)
+                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// POST v1/projects/{projectsId}/locations/{locationsId}/backupPlanAssociations/{backupPlanAssociationsId}:triggerBackup
+/// Triggers a new Backup.
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `backupdr_projects_locations_backup_plan_associations_trigger_backup_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `backupdr_projects_locations_backup_plan_associations_trigger_backup_task()`.
+/// For the simplest API, use `backupdr_projects_locations_backup_plan_associations_trigger_backup()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `backupdr_projects_locations_backup_plan_associations_trigger_backup_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn backupdr_projects_locations_backup_plan_associations_trigger_backup_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<Operation>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let task = backupdr_projects_locations_backup_plan_associations_trigger_backup_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`backupdr_projects_locations_backup_plan_associations_trigger_backup`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct BackupdrProjectsLocationsBackupPlanAssociationsTriggerBackupArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
+/// POST v1/projects/{projectsId}/locations/{locationsId}/backupPlanAssociations/{backupPlanAssociationsId}:triggerBackup
+/// Triggers a new Backup.
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `backupdr_projects_locations_backup_plan_associations_trigger_backup_builder()` + `backupdr_projects_locations_backup_plan_associations_trigger_backup_execute()`.
+/// For task-level control, use `backupdr_projects_locations_backup_plan_associations_trigger_backup_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn backupdr_projects_locations_backup_plan_associations_trigger_backup(
+    client: &SimpleHttpClient,
+    args: &BackupdrProjectsLocationsBackupPlanAssociationsTriggerBackupArgs,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<Operation>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let builder = backupdr_projects_locations_backup_plan_associations_trigger_backup_builder(
+        client, &args.name,
+    )?;
+    backupdr_projects_locations_backup_plan_associations_trigger_backup_execute(builder)
+}
+
+/// POST v1/projects/{projectsId}/locations/{locationsId}/backupPlans
+/// Create a BackupPlan
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `backupdr_projects_locations_backup_plans_create_execute()` to send, or `backupdr_projects_locations_backup_plans_create` for simplest API.
+
+pub fn backupdr_projects_locations_backup_plans_create_builder(
+    client: &SimpleHttpClient,
+    parent: &String,
+    backupPlanId: &Option<Option<String>>,
+    requestId: &Option<Option<String>>,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!(
+        "https://backupdr.googleapis.com/v1/projects/{}/locations/{locationsId}/backupPlans",
+        parent,
+    );
+
+    // Build request
+    let mut query_parts = Vec::new();
+    if let Some(val) = backupPlanId.as_ref() {
+        query_parts.push(format!("backupPlanId={}", val));
+    }
+    if let Some(val) = requestId.as_ref() {
+        query_parts.push(format!("requestId={}", val));
+    }
+
+    let url_with_query = if query_parts.is_empty() {
+        endpoint_url
+    } else {
+        format!("{}?{}", endpoint_url, query_parts.join("&"))
+    };
+
+    let builder = client
+        .post(&url_with_query)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// POST v1/projects/{projectsId}/locations/{locationsId}/backupPlans
+/// Create a BackupPlan
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `backupdr_projects_locations_backup_plans_create_execute()` or `backupdr_projects_locations_backup_plans_create`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `backupdr_projects_locations_backup_plans_create_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn backupdr_projects_locations_backup_plans_create_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<Operation>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: Operation = serde_json::from_str(&body)
+                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// POST v1/projects/{projectsId}/locations/{locationsId}/backupPlans
+/// Create a BackupPlan
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `backupdr_projects_locations_backup_plans_create_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `backupdr_projects_locations_backup_plans_create_task()`.
+/// For the simplest API, use `backupdr_projects_locations_backup_plans_create()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `backupdr_projects_locations_backup_plans_create_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn backupdr_projects_locations_backup_plans_create_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<Operation>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let task = backupdr_projects_locations_backup_plans_create_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`backupdr_projects_locations_backup_plans_create`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct BackupdrProjectsLocationsBackupPlansCreateArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Query parameter: backupPlanId
+    pub backupPlanId: Option<Option<String>>,
+    /// Query parameter: requestId
+    pub requestId: Option<Option<String>>,
+}
+
+/// POST v1/projects/{projectsId}/locations/{locationsId}/backupPlans
+/// Create a BackupPlan
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `backupdr_projects_locations_backup_plans_create_builder()` + `backupdr_projects_locations_backup_plans_create_execute()`.
+/// For task-level control, use `backupdr_projects_locations_backup_plans_create_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn backupdr_projects_locations_backup_plans_create(
+    client: &SimpleHttpClient,
+    args: &BackupdrProjectsLocationsBackupPlansCreateArgs,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<Operation>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let builder = backupdr_projects_locations_backup_plans_create_builder(
+        client,
+        &args.parent,
+        &args.backupPlanId,
+        &args.requestId,
+    )?;
+    backupdr_projects_locations_backup_plans_create_execute(builder)
+}
+
+/// DELETE v1/projects/{projectsId}/locations/{locationsId}/backupPlans/{backupPlansId}
+/// Deletes a single BackupPlan.
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `backupdr_projects_locations_backup_plans_delete_execute()` to send, or `backupdr_projects_locations_backup_plans_delete` for simplest API.
+
+pub fn backupdr_projects_locations_backup_plans_delete_builder(
+    client: &SimpleHttpClient,
+    name: &String,
+    requestId: &Option<Option<String>>,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!(
+        "https://backupdr.googleapis.com/v1/projects/{}/locations/{locationsId}/backupPlans/{backupPlansId}",
+        name,
+    );
+
+    // Build request
+    let mut query_parts = Vec::new();
+    if let Some(val) = requestId.as_ref() {
+        query_parts.push(format!("requestId={}", val));
+    }
+
+    let url_with_query = if query_parts.is_empty() {
+        endpoint_url
+    } else {
+        format!("{}?{}", endpoint_url, query_parts.join("&"))
+    };
+
+    let builder = client
+        .delete(&url_with_query)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// DELETE v1/projects/{projectsId}/locations/{locationsId}/backupPlans/{backupPlansId}
+/// Deletes a single BackupPlan.
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `backupdr_projects_locations_backup_plans_delete_execute()` or `backupdr_projects_locations_backup_plans_delete`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `backupdr_projects_locations_backup_plans_delete_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn backupdr_projects_locations_backup_plans_delete_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<Operation>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: Operation = serde_json::from_str(&body)
+                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// DELETE v1/projects/{projectsId}/locations/{locationsId}/backupPlans/{backupPlansId}
+/// Deletes a single BackupPlan.
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `backupdr_projects_locations_backup_plans_delete_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `backupdr_projects_locations_backup_plans_delete_task()`.
+/// For the simplest API, use `backupdr_projects_locations_backup_plans_delete()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `backupdr_projects_locations_backup_plans_delete_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn backupdr_projects_locations_backup_plans_delete_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<Operation>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let task = backupdr_projects_locations_backup_plans_delete_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`backupdr_projects_locations_backup_plans_delete`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct BackupdrProjectsLocationsBackupPlansDeleteArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Query parameter: requestId
+    pub requestId: Option<Option<String>>,
+}
+
+/// DELETE v1/projects/{projectsId}/locations/{locationsId}/backupPlans/{backupPlansId}
+/// Deletes a single BackupPlan.
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `backupdr_projects_locations_backup_plans_delete_builder()` + `backupdr_projects_locations_backup_plans_delete_execute()`.
+/// For task-level control, use `backupdr_projects_locations_backup_plans_delete_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn backupdr_projects_locations_backup_plans_delete(
+    client: &SimpleHttpClient,
+    args: &BackupdrProjectsLocationsBackupPlansDeleteArgs,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<Operation>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let builder = backupdr_projects_locations_backup_plans_delete_builder(
+        client,
+        &args.name,
+        &args.requestId,
+    )?;
+    backupdr_projects_locations_backup_plans_delete_execute(builder)
+}
+
+/// GET v1/projects/{projectsId}/locations/{locationsId}/backupPlans/{backupPlansId}
+/// Gets details of a single BackupPlan.
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `backupdr_projects_locations_backup_plans_get_execute()` to send, or `backupdr_projects_locations_backup_plans_get` for simplest API.
+
+pub fn backupdr_projects_locations_backup_plans_get_builder(
+    client: &SimpleHttpClient,
+    name: &String,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!(
+        "https://backupdr.googleapis.com/v1/projects/{}/locations/{locationsId}/backupPlans/{backupPlansId}",
+        name,
+    );
+
+    // Build request
+    let builder = client
+        .get(&endpoint_url)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// GET v1/projects/{projectsId}/locations/{locationsId}/backupPlans/{backupPlansId}
+/// Gets details of a single BackupPlan.
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `backupdr_projects_locations_backup_plans_get_execute()` or `backupdr_projects_locations_backup_plans_get`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `backupdr_projects_locations_backup_plans_get_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn backupdr_projects_locations_backup_plans_get_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<BackupPlan>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: BackupPlan = serde_json::from_str(&body)
+                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// GET v1/projects/{projectsId}/locations/{locationsId}/backupPlans/{backupPlansId}
+/// Gets details of a single BackupPlan.
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `backupdr_projects_locations_backup_plans_get_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `backupdr_projects_locations_backup_plans_get_task()`.
+/// For the simplest API, use `backupdr_projects_locations_backup_plans_get()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `backupdr_projects_locations_backup_plans_get_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn backupdr_projects_locations_backup_plans_get_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<BackupPlan>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let task = backupdr_projects_locations_backup_plans_get_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`backupdr_projects_locations_backup_plans_get`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct BackupdrProjectsLocationsBackupPlansGetArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
+/// GET v1/projects/{projectsId}/locations/{locationsId}/backupPlans/{backupPlansId}
+/// Gets details of a single BackupPlan.
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `backupdr_projects_locations_backup_plans_get_builder()` + `backupdr_projects_locations_backup_plans_get_execute()`.
+/// For task-level control, use `backupdr_projects_locations_backup_plans_get_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn backupdr_projects_locations_backup_plans_get(
+    client: &SimpleHttpClient,
+    args: &BackupdrProjectsLocationsBackupPlansGetArgs,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<BackupPlan>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let builder = backupdr_projects_locations_backup_plans_get_builder(client, &args.name)?;
+    backupdr_projects_locations_backup_plans_get_execute(builder)
+}
+
+/// GET v1/projects/{projectsId}/locations/{locationsId}/backupPlans
+/// Lists BackupPlans in a given project and location.
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `backupdr_projects_locations_backup_plans_list_execute()` to send, or `backupdr_projects_locations_backup_plans_list` for simplest API.
+
+pub fn backupdr_projects_locations_backup_plans_list_builder(
+    client: &SimpleHttpClient,
+    parent: &String,
+    filter: &Option<Option<String>>,
+    orderBy: &Option<Option<String>>,
+    pageSize: &Option<Option<String>>,
+    pageToken: &Option<Option<String>>,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!(
+        "https://backupdr.googleapis.com/v1/projects/{}/locations/{locationsId}/backupPlans",
+        parent,
+    );
+
+    // Build request
+    let mut query_parts = Vec::new();
+    if let Some(val) = filter.as_ref() {
+        query_parts.push(format!("filter={}", val));
+    }
+    if let Some(val) = orderBy.as_ref() {
+        query_parts.push(format!("orderBy={}", val));
+    }
+    if let Some(val) = pageSize.as_ref() {
+        query_parts.push(format!("pageSize={}", val));
+    }
+    if let Some(val) = pageToken.as_ref() {
+        query_parts.push(format!("pageToken={}", val));
+    }
+
+    let url_with_query = if query_parts.is_empty() {
+        endpoint_url
+    } else {
+        format!("{}?{}", endpoint_url, query_parts.join("&"))
+    };
+
+    let builder = client
+        .get(&url_with_query)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// GET v1/projects/{projectsId}/locations/{locationsId}/backupPlans
+/// Lists BackupPlans in a given project and location.
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `backupdr_projects_locations_backup_plans_list_execute()` or `backupdr_projects_locations_backup_plans_list`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `backupdr_projects_locations_backup_plans_list_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn backupdr_projects_locations_backup_plans_list_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<ListBackupPlansResponse>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: ListBackupPlansResponse = serde_json::from_str(&body)
+                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// GET v1/projects/{projectsId}/locations/{locationsId}/backupPlans
+/// Lists BackupPlans in a given project and location.
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `backupdr_projects_locations_backup_plans_list_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `backupdr_projects_locations_backup_plans_list_task()`.
+/// For the simplest API, use `backupdr_projects_locations_backup_plans_list()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `backupdr_projects_locations_backup_plans_list_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn backupdr_projects_locations_backup_plans_list_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<ListBackupPlansResponse>, ApiError>, P = ApiPending>
+        + Send
+        + 'static,
+    ApiError,
+> {
+    let task = backupdr_projects_locations_backup_plans_list_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`backupdr_projects_locations_backup_plans_list`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct BackupdrProjectsLocationsBackupPlansListArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Query parameter: filter
+    pub filter: Option<Option<String>>,
+    /// Query parameter: orderBy
+    pub orderBy: Option<Option<String>>,
+    /// Query parameter: pageSize
+    pub pageSize: Option<Option<String>>,
+    /// Query parameter: pageToken
+    pub pageToken: Option<Option<String>>,
+}
+
+/// GET v1/projects/{projectsId}/locations/{locationsId}/backupPlans
+/// Lists BackupPlans in a given project and location.
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `backupdr_projects_locations_backup_plans_list_builder()` + `backupdr_projects_locations_backup_plans_list_execute()`.
+/// For task-level control, use `backupdr_projects_locations_backup_plans_list_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn backupdr_projects_locations_backup_plans_list(
+    client: &SimpleHttpClient,
+    args: &BackupdrProjectsLocationsBackupPlansListArgs,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<ListBackupPlansResponse>, ApiError>, P = ApiPending>
+        + Send
+        + 'static,
+    ApiError,
+> {
+    let builder = backupdr_projects_locations_backup_plans_list_builder(
+        client,
+        &args.parent,
+        &args.filter,
+        &args.orderBy,
+        &args.pageSize,
+        &args.pageToken,
+    )?;
+    backupdr_projects_locations_backup_plans_list_execute(builder)
+}
+
+/// PATCH v1/projects/{projectsId}/locations/{locationsId}/backupPlans/{backupPlansId}
+/// Update a BackupPlan.
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `backupdr_projects_locations_backup_plans_patch_execute()` to send, or `backupdr_projects_locations_backup_plans_patch` for simplest API.
+
+pub fn backupdr_projects_locations_backup_plans_patch_builder(
+    client: &SimpleHttpClient,
+    name: &String,
+    requestId: &Option<Option<String>>,
+    updateMask: &Option<Option<String>>,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!(
+        "https://backupdr.googleapis.com/v1/projects/{}/locations/{locationsId}/backupPlans/{backupPlansId}",
+        name,
+    );
+
+    // Build request
+    let mut query_parts = Vec::new();
+    if let Some(val) = requestId.as_ref() {
+        query_parts.push(format!("requestId={}", val));
+    }
+    if let Some(val) = updateMask.as_ref() {
+        query_parts.push(format!("updateMask={}", val));
+    }
+
+    let url_with_query = if query_parts.is_empty() {
+        endpoint_url
+    } else {
+        format!("{}?{}", endpoint_url, query_parts.join("&"))
+    };
+
+    let builder = client
+        .patch(&url_with_query)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// PATCH v1/projects/{projectsId}/locations/{locationsId}/backupPlans/{backupPlansId}
+/// Update a BackupPlan.
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `backupdr_projects_locations_backup_plans_patch_execute()` or `backupdr_projects_locations_backup_plans_patch`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `backupdr_projects_locations_backup_plans_patch_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn backupdr_projects_locations_backup_plans_patch_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<Operation>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: Operation = serde_json::from_str(&body)
+                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// PATCH v1/projects/{projectsId}/locations/{locationsId}/backupPlans/{backupPlansId}
+/// Update a BackupPlan.
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `backupdr_projects_locations_backup_plans_patch_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `backupdr_projects_locations_backup_plans_patch_task()`.
+/// For the simplest API, use `backupdr_projects_locations_backup_plans_patch()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `backupdr_projects_locations_backup_plans_patch_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn backupdr_projects_locations_backup_plans_patch_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<Operation>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let task = backupdr_projects_locations_backup_plans_patch_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`backupdr_projects_locations_backup_plans_patch`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct BackupdrProjectsLocationsBackupPlansPatchArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Query parameter: requestId
+    pub requestId: Option<Option<String>>,
+    /// Query parameter: updateMask
+    pub updateMask: Option<Option<String>>,
+}
+
+/// PATCH v1/projects/{projectsId}/locations/{locationsId}/backupPlans/{backupPlansId}
+/// Update a BackupPlan.
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `backupdr_projects_locations_backup_plans_patch_builder()` + `backupdr_projects_locations_backup_plans_patch_execute()`.
+/// For task-level control, use `backupdr_projects_locations_backup_plans_patch_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn backupdr_projects_locations_backup_plans_patch(
+    client: &SimpleHttpClient,
+    args: &BackupdrProjectsLocationsBackupPlansPatchArgs,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<Operation>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let builder = backupdr_projects_locations_backup_plans_patch_builder(
+        client,
+        &args.name,
+        &args.requestId,
+        &args.updateMask,
+    )?;
+    backupdr_projects_locations_backup_plans_patch_execute(builder)
+}
+
+/// GET v1/projects/{projectsId}/locations/{locationsId}/backupPlans/{backupPlansId}/revisions/{revisionsId}
+/// Gets details of a single BackupPlanRevision.
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `backupdr_projects_locations_backup_plans_revisions_get_execute()` to send, or `backupdr_projects_locations_backup_plans_revisions_get` for simplest API.
+
+pub fn backupdr_projects_locations_backup_plans_revisions_get_builder(
+    client: &SimpleHttpClient,
+    name: &String,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!(
+        "https://backupdr.googleapis.com/v1/projects/{}/locations/{locationsId}/backupPlans/{backupPlansId}/revisions/{revisionsId}",
+        name,
+    );
+
+    // Build request
+    let builder = client
+        .get(&endpoint_url)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// GET v1/projects/{projectsId}/locations/{locationsId}/backupPlans/{backupPlansId}/revisions/{revisionsId}
+/// Gets details of a single BackupPlanRevision.
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `backupdr_projects_locations_backup_plans_revisions_get_execute()` or `backupdr_projects_locations_backup_plans_revisions_get`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `backupdr_projects_locations_backup_plans_revisions_get_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn backupdr_projects_locations_backup_plans_revisions_get_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<BackupPlanRevision>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: BackupPlanRevision = serde_json::from_str(&body)
+                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// GET v1/projects/{projectsId}/locations/{locationsId}/backupPlans/{backupPlansId}/revisions/{revisionsId}
+/// Gets details of a single BackupPlanRevision.
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `backupdr_projects_locations_backup_plans_revisions_get_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `backupdr_projects_locations_backup_plans_revisions_get_task()`.
+/// For the simplest API, use `backupdr_projects_locations_backup_plans_revisions_get()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `backupdr_projects_locations_backup_plans_revisions_get_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn backupdr_projects_locations_backup_plans_revisions_get_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<BackupPlanRevision>, ApiError>, P = ApiPending>
+        + Send
+        + 'static,
+    ApiError,
+> {
+    let task = backupdr_projects_locations_backup_plans_revisions_get_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`backupdr_projects_locations_backup_plans_revisions_get`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct BackupdrProjectsLocationsBackupPlansRevisionsGetArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
+/// GET v1/projects/{projectsId}/locations/{locationsId}/backupPlans/{backupPlansId}/revisions/{revisionsId}
+/// Gets details of a single BackupPlanRevision.
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `backupdr_projects_locations_backup_plans_revisions_get_builder()` + `backupdr_projects_locations_backup_plans_revisions_get_execute()`.
+/// For task-level control, use `backupdr_projects_locations_backup_plans_revisions_get_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn backupdr_projects_locations_backup_plans_revisions_get(
+    client: &SimpleHttpClient,
+    args: &BackupdrProjectsLocationsBackupPlansRevisionsGetArgs,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<BackupPlanRevision>, ApiError>, P = ApiPending>
+        + Send
+        + 'static,
+    ApiError,
+> {
+    let builder =
+        backupdr_projects_locations_backup_plans_revisions_get_builder(client, &args.name)?;
+    backupdr_projects_locations_backup_plans_revisions_get_execute(builder)
+}
+
+/// GET v1/projects/{projectsId}/locations/{locationsId}/backupPlans/{backupPlansId}/revisions
+/// Lists BackupPlanRevisions in a given project and location.
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `backupdr_projects_locations_backup_plans_revisions_list_execute()` to send, or `backupdr_projects_locations_backup_plans_revisions_list` for simplest API.
+
+pub fn backupdr_projects_locations_backup_plans_revisions_list_builder(
+    client: &SimpleHttpClient,
+    parent: &String,
+    pageSize: &Option<Option<String>>,
+    pageToken: &Option<Option<String>>,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!(
+        "https://backupdr.googleapis.com/v1/projects/{}/locations/{locationsId}/backupPlans/{backupPlansId}/revisions",
+        parent,
+    );
+
+    // Build request
+    let mut query_parts = Vec::new();
+    if let Some(val) = pageSize.as_ref() {
+        query_parts.push(format!("pageSize={}", val));
+    }
+    if let Some(val) = pageToken.as_ref() {
+        query_parts.push(format!("pageToken={}", val));
+    }
+
+    let url_with_query = if query_parts.is_empty() {
+        endpoint_url
+    } else {
+        format!("{}?{}", endpoint_url, query_parts.join("&"))
+    };
+
+    let builder = client
+        .get(&url_with_query)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// GET v1/projects/{projectsId}/locations/{locationsId}/backupPlans/{backupPlansId}/revisions
+/// Lists BackupPlanRevisions in a given project and location.
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `backupdr_projects_locations_backup_plans_revisions_list_execute()` or `backupdr_projects_locations_backup_plans_revisions_list`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `backupdr_projects_locations_backup_plans_revisions_list_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn backupdr_projects_locations_backup_plans_revisions_list_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<ListBackupPlanRevisionsResponse>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: ListBackupPlanRevisionsResponse = serde_json::from_str(&body)
+                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// GET v1/projects/{projectsId}/locations/{locationsId}/backupPlans/{backupPlansId}/revisions
+/// Lists BackupPlanRevisions in a given project and location.
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `backupdr_projects_locations_backup_plans_revisions_list_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `backupdr_projects_locations_backup_plans_revisions_list_task()`.
+/// For the simplest API, use `backupdr_projects_locations_backup_plans_revisions_list()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `backupdr_projects_locations_backup_plans_revisions_list_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn backupdr_projects_locations_backup_plans_revisions_list_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<
+            D = Result<ApiResponse<ListBackupPlanRevisionsResponse>, ApiError>,
+            P = ApiPending,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    let task = backupdr_projects_locations_backup_plans_revisions_list_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`backupdr_projects_locations_backup_plans_revisions_list`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct BackupdrProjectsLocationsBackupPlansRevisionsListArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Query parameter: pageSize
+    pub pageSize: Option<Option<String>>,
+    /// Query parameter: pageToken
+    pub pageToken: Option<Option<String>>,
+}
+
+/// GET v1/projects/{projectsId}/locations/{locationsId}/backupPlans/{backupPlansId}/revisions
+/// Lists BackupPlanRevisions in a given project and location.
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `backupdr_projects_locations_backup_plans_revisions_list_builder()` + `backupdr_projects_locations_backup_plans_revisions_list_execute()`.
+/// For task-level control, use `backupdr_projects_locations_backup_plans_revisions_list_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn backupdr_projects_locations_backup_plans_revisions_list(
+    client: &SimpleHttpClient,
+    args: &BackupdrProjectsLocationsBackupPlansRevisionsListArgs,
+) -> Result<
+    impl StreamIterator<
+            D = Result<ApiResponse<ListBackupPlanRevisionsResponse>, ApiError>,
+            P = ApiPending,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    let builder = backupdr_projects_locations_backup_plans_revisions_list_builder(
+        client,
+        &args.parent,
+        &args.pageSize,
+        &args.pageToken,
+    )?;
+    backupdr_projects_locations_backup_plans_revisions_list_execute(builder)
+}
+
+/// POST v1/projects/{projectsId}/locations/{locationsId}/backupVaults
+/// Creates a new BackupVault in a given project and location.
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `backupdr_projects_locations_backup_vaults_create_execute()` to send, or `backupdr_projects_locations_backup_vaults_create` for simplest API.
+
+pub fn backupdr_projects_locations_backup_vaults_create_builder(
+    client: &SimpleHttpClient,
+    parent: &String,
+    backupVaultId: &Option<Option<String>>,
+    requestId: &Option<Option<String>>,
+    validateOnly: &Option<Option<String>>,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!(
+        "https://backupdr.googleapis.com/v1/projects/{}/locations/{locationsId}/backupVaults",
+        parent,
+    );
+
+    // Build request
+    let mut query_parts = Vec::new();
+    if let Some(val) = backupVaultId.as_ref() {
+        query_parts.push(format!("backupVaultId={}", val));
+    }
+    if let Some(val) = requestId.as_ref() {
+        query_parts.push(format!("requestId={}", val));
+    }
+    if let Some(val) = validateOnly.as_ref() {
+        query_parts.push(format!("validateOnly={}", val));
+    }
+
+    let url_with_query = if query_parts.is_empty() {
+        endpoint_url
+    } else {
+        format!("{}?{}", endpoint_url, query_parts.join("&"))
+    };
+
+    let builder = client
+        .post(&url_with_query)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// POST v1/projects/{projectsId}/locations/{locationsId}/backupVaults
+/// Creates a new BackupVault in a given project and location.
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `backupdr_projects_locations_backup_vaults_create_execute()` or `backupdr_projects_locations_backup_vaults_create`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `backupdr_projects_locations_backup_vaults_create_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn backupdr_projects_locations_backup_vaults_create_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<Operation>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: Operation = serde_json::from_str(&body)
+                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// POST v1/projects/{projectsId}/locations/{locationsId}/backupVaults
+/// Creates a new BackupVault in a given project and location.
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `backupdr_projects_locations_backup_vaults_create_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `backupdr_projects_locations_backup_vaults_create_task()`.
+/// For the simplest API, use `backupdr_projects_locations_backup_vaults_create()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `backupdr_projects_locations_backup_vaults_create_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn backupdr_projects_locations_backup_vaults_create_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<Operation>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let task = backupdr_projects_locations_backup_vaults_create_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`backupdr_projects_locations_backup_vaults_create`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct BackupdrProjectsLocationsBackupVaultsCreateArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Query parameter: backupVaultId
+    pub backupVaultId: Option<Option<String>>,
+    /// Query parameter: requestId
+    pub requestId: Option<Option<String>>,
+    /// Query parameter: validateOnly
+    pub validateOnly: Option<Option<String>>,
+}
+
+/// POST v1/projects/{projectsId}/locations/{locationsId}/backupVaults
+/// Creates a new BackupVault in a given project and location.
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `backupdr_projects_locations_backup_vaults_create_builder()` + `backupdr_projects_locations_backup_vaults_create_execute()`.
+/// For task-level control, use `backupdr_projects_locations_backup_vaults_create_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn backupdr_projects_locations_backup_vaults_create(
+    client: &SimpleHttpClient,
+    args: &BackupdrProjectsLocationsBackupVaultsCreateArgs,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<Operation>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let builder = backupdr_projects_locations_backup_vaults_create_builder(
+        client,
+        &args.parent,
+        &args.backupVaultId,
+        &args.requestId,
+        &args.validateOnly,
+    )?;
+    backupdr_projects_locations_backup_vaults_create_execute(builder)
+}
+
+/// DELETE v1/projects/{projectsId}/locations/{locationsId}/backupVaults/{backupVaultsId}
+/// Deletes a BackupVault.
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `backupdr_projects_locations_backup_vaults_delete_execute()` to send, or `backupdr_projects_locations_backup_vaults_delete` for simplest API.
+
+pub fn backupdr_projects_locations_backup_vaults_delete_builder(
+    client: &SimpleHttpClient,
+    name: &String,
+    allowMissing: &Option<Option<String>>,
+    etag: &Option<Option<String>>,
+    force: &Option<Option<String>>,
+    ignoreBackupPlanReferences: &Option<Option<String>>,
+    requestId: &Option<Option<String>>,
+    validateOnly: &Option<Option<String>>,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!(
+        "https://backupdr.googleapis.com/v1/projects/{}/locations/{locationsId}/backupVaults/{backupVaultsId}",
+        name,
+    );
+
+    // Build request
+    let mut query_parts = Vec::new();
+    if let Some(val) = allowMissing.as_ref() {
+        query_parts.push(format!("allowMissing={}", val));
+    }
+    if let Some(val) = etag.as_ref() {
+        query_parts.push(format!("etag={}", val));
+    }
+    if let Some(val) = force.as_ref() {
+        query_parts.push(format!("force={}", val));
+    }
+    if let Some(val) = ignoreBackupPlanReferences.as_ref() {
+        query_parts.push(format!("ignoreBackupPlanReferences={}", val));
+    }
+    if let Some(val) = requestId.as_ref() {
+        query_parts.push(format!("requestId={}", val));
+    }
+    if let Some(val) = validateOnly.as_ref() {
+        query_parts.push(format!("validateOnly={}", val));
+    }
+
+    let url_with_query = if query_parts.is_empty() {
+        endpoint_url
+    } else {
+        format!("{}?{}", endpoint_url, query_parts.join("&"))
+    };
+
+    let builder = client
+        .delete(&url_with_query)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// DELETE v1/projects/{projectsId}/locations/{locationsId}/backupVaults/{backupVaultsId}
+/// Deletes a BackupVault.
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `backupdr_projects_locations_backup_vaults_delete_execute()` or `backupdr_projects_locations_backup_vaults_delete`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `backupdr_projects_locations_backup_vaults_delete_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn backupdr_projects_locations_backup_vaults_delete_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<Operation>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: Operation = serde_json::from_str(&body)
+                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// DELETE v1/projects/{projectsId}/locations/{locationsId}/backupVaults/{backupVaultsId}
+/// Deletes a BackupVault.
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `backupdr_projects_locations_backup_vaults_delete_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `backupdr_projects_locations_backup_vaults_delete_task()`.
+/// For the simplest API, use `backupdr_projects_locations_backup_vaults_delete()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `backupdr_projects_locations_backup_vaults_delete_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn backupdr_projects_locations_backup_vaults_delete_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<Operation>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let task = backupdr_projects_locations_backup_vaults_delete_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`backupdr_projects_locations_backup_vaults_delete`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct BackupdrProjectsLocationsBackupVaultsDeleteArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Query parameter: allowMissing
+    pub allowMissing: Option<Option<String>>,
+    /// Query parameter: etag
+    pub etag: Option<Option<String>>,
+    /// Query parameter: force
+    pub force: Option<Option<String>>,
+    /// Query parameter: ignoreBackupPlanReferences
+    pub ignoreBackupPlanReferences: Option<Option<String>>,
+    /// Query parameter: requestId
+    pub requestId: Option<Option<String>>,
+    /// Query parameter: validateOnly
+    pub validateOnly: Option<Option<String>>,
+}
+
+/// DELETE v1/projects/{projectsId}/locations/{locationsId}/backupVaults/{backupVaultsId}
+/// Deletes a BackupVault.
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `backupdr_projects_locations_backup_vaults_delete_builder()` + `backupdr_projects_locations_backup_vaults_delete_execute()`.
+/// For task-level control, use `backupdr_projects_locations_backup_vaults_delete_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn backupdr_projects_locations_backup_vaults_delete(
+    client: &SimpleHttpClient,
+    args: &BackupdrProjectsLocationsBackupVaultsDeleteArgs,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<Operation>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let builder = backupdr_projects_locations_backup_vaults_delete_builder(
+        client,
+        &args.name,
+        &args.allowMissing,
+        &args.etag,
+        &args.force,
+        &args.ignoreBackupPlanReferences,
+        &args.requestId,
+        &args.validateOnly,
+    )?;
+    backupdr_projects_locations_backup_vaults_delete_execute(builder)
+}
+
+/// GET v1/projects/{projectsId}/locations/{locationsId}/backupVaults:fetchUsable
+/// FetchUsableBackupVaults lists usable BackupVaults in a given project and location. Usable BackupVault are the ones that user has backupdr.`backupVaults`.get permission.
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `backupdr_projects_locations_backup_vaults_fetch_usable_execute()` to send, or `backupdr_projects_locations_backup_vaults_fetch_usable` for simplest API.
+
+pub fn backupdr_projects_locations_backup_vaults_fetch_usable_builder(
+    client: &SimpleHttpClient,
+    parent: &String,
+    filter: &Option<Option<String>>,
+    orderBy: &Option<Option<String>>,
+    pageSize: &Option<Option<String>>,
+    pageToken: &Option<Option<String>>,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!(
+        "https://backupdr.googleapis.com/v1/projects/{}/locations/{locationsId}/backupVaults:fetchUsable",
+        parent,
+    );
+
+    // Build request
+    let mut query_parts = Vec::new();
+    if let Some(val) = filter.as_ref() {
+        query_parts.push(format!("filter={}", val));
+    }
+    if let Some(val) = orderBy.as_ref() {
+        query_parts.push(format!("orderBy={}", val));
+    }
+    if let Some(val) = pageSize.as_ref() {
+        query_parts.push(format!("pageSize={}", val));
+    }
+    if let Some(val) = pageToken.as_ref() {
+        query_parts.push(format!("pageToken={}", val));
+    }
+
+    let url_with_query = if query_parts.is_empty() {
+        endpoint_url
+    } else {
+        format!("{}?{}", endpoint_url, query_parts.join("&"))
+    };
+
+    let builder = client
+        .get(&url_with_query)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// GET v1/projects/{projectsId}/locations/{locationsId}/backupVaults:fetchUsable
+/// FetchUsableBackupVaults lists usable BackupVaults in a given project and location. Usable BackupVault are the ones that user has backupdr.`backupVaults`.get permission.
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `backupdr_projects_locations_backup_vaults_fetch_usable_execute()` or `backupdr_projects_locations_backup_vaults_fetch_usable`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `backupdr_projects_locations_backup_vaults_fetch_usable_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn backupdr_projects_locations_backup_vaults_fetch_usable_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<FetchUsableBackupVaultsResponse>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: FetchUsableBackupVaultsResponse = serde_json::from_str(&body)
+                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// GET v1/projects/{projectsId}/locations/{locationsId}/backupVaults:fetchUsable
+/// FetchUsableBackupVaults lists usable BackupVaults in a given project and location. Usable BackupVault are the ones that user has backupdr.`backupVaults`.get permission.
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `backupdr_projects_locations_backup_vaults_fetch_usable_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `backupdr_projects_locations_backup_vaults_fetch_usable_task()`.
+/// For the simplest API, use `backupdr_projects_locations_backup_vaults_fetch_usable()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `backupdr_projects_locations_backup_vaults_fetch_usable_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn backupdr_projects_locations_backup_vaults_fetch_usable_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<
+            D = Result<ApiResponse<FetchUsableBackupVaultsResponse>, ApiError>,
+            P = ApiPending,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    let task = backupdr_projects_locations_backup_vaults_fetch_usable_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`backupdr_projects_locations_backup_vaults_fetch_usable`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct BackupdrProjectsLocationsBackupVaultsFetchUsableArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Query parameter: filter
+    pub filter: Option<Option<String>>,
+    /// Query parameter: orderBy
+    pub orderBy: Option<Option<String>>,
+    /// Query parameter: pageSize
+    pub pageSize: Option<Option<String>>,
+    /// Query parameter: pageToken
+    pub pageToken: Option<Option<String>>,
+}
+
+/// GET v1/projects/{projectsId}/locations/{locationsId}/backupVaults:fetchUsable
+/// FetchUsableBackupVaults lists usable BackupVaults in a given project and location. Usable BackupVault are the ones that user has backupdr.`backupVaults`.get permission.
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `backupdr_projects_locations_backup_vaults_fetch_usable_builder()` + `backupdr_projects_locations_backup_vaults_fetch_usable_execute()`.
+/// For task-level control, use `backupdr_projects_locations_backup_vaults_fetch_usable_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn backupdr_projects_locations_backup_vaults_fetch_usable(
+    client: &SimpleHttpClient,
+    args: &BackupdrProjectsLocationsBackupVaultsFetchUsableArgs,
+) -> Result<
+    impl StreamIterator<
+            D = Result<ApiResponse<FetchUsableBackupVaultsResponse>, ApiError>,
+            P = ApiPending,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    let builder = backupdr_projects_locations_backup_vaults_fetch_usable_builder(
+        client,
+        &args.parent,
+        &args.filter,
+        &args.orderBy,
+        &args.pageSize,
+        &args.pageToken,
+    )?;
+    backupdr_projects_locations_backup_vaults_fetch_usable_execute(builder)
+}
+
+/// GET v1/projects/{projectsId}/locations/{locationsId}/backupVaults/{backupVaultsId}
+/// Gets details of a BackupVault.
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `backupdr_projects_locations_backup_vaults_get_execute()` to send, or `backupdr_projects_locations_backup_vaults_get` for simplest API.
+
+pub fn backupdr_projects_locations_backup_vaults_get_builder(
+    client: &SimpleHttpClient,
+    name: &String,
+    view: &Option<Option<String>>,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!(
+        "https://backupdr.googleapis.com/v1/projects/{}/locations/{locationsId}/backupVaults/{backupVaultsId}",
+        name,
+    );
+
+    // Build request
+    let mut query_parts = Vec::new();
+    if let Some(val) = view.as_ref() {
+        query_parts.push(format!("view={}", val));
+    }
+
+    let url_with_query = if query_parts.is_empty() {
+        endpoint_url
+    } else {
+        format!("{}?{}", endpoint_url, query_parts.join("&"))
+    };
+
+    let builder = client
+        .get(&url_with_query)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// GET v1/projects/{projectsId}/locations/{locationsId}/backupVaults/{backupVaultsId}
+/// Gets details of a BackupVault.
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `backupdr_projects_locations_backup_vaults_get_execute()` or `backupdr_projects_locations_backup_vaults_get`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `backupdr_projects_locations_backup_vaults_get_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn backupdr_projects_locations_backup_vaults_get_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<BackupVault>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: BackupVault = serde_json::from_str(&body)
+                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// GET v1/projects/{projectsId}/locations/{locationsId}/backupVaults/{backupVaultsId}
+/// Gets details of a BackupVault.
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `backupdr_projects_locations_backup_vaults_get_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `backupdr_projects_locations_backup_vaults_get_task()`.
+/// For the simplest API, use `backupdr_projects_locations_backup_vaults_get()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `backupdr_projects_locations_backup_vaults_get_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn backupdr_projects_locations_backup_vaults_get_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<BackupVault>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let task = backupdr_projects_locations_backup_vaults_get_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`backupdr_projects_locations_backup_vaults_get`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct BackupdrProjectsLocationsBackupVaultsGetArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Query parameter: view
+    pub view: Option<Option<String>>,
+}
+
+/// GET v1/projects/{projectsId}/locations/{locationsId}/backupVaults/{backupVaultsId}
+/// Gets details of a BackupVault.
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `backupdr_projects_locations_backup_vaults_get_builder()` + `backupdr_projects_locations_backup_vaults_get_execute()`.
+/// For task-level control, use `backupdr_projects_locations_backup_vaults_get_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn backupdr_projects_locations_backup_vaults_get(
+    client: &SimpleHttpClient,
+    args: &BackupdrProjectsLocationsBackupVaultsGetArgs,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<BackupVault>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let builder =
+        backupdr_projects_locations_backup_vaults_get_builder(client, &args.name, &args.view)?;
+    backupdr_projects_locations_backup_vaults_get_execute(builder)
+}
+
+/// GET v1/projects/{projectsId}/locations/{locationsId}/backupVaults
+/// Lists BackupVaults in a given project and location.
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `backupdr_projects_locations_backup_vaults_list_execute()` to send, or `backupdr_projects_locations_backup_vaults_list` for simplest API.
+
+pub fn backupdr_projects_locations_backup_vaults_list_builder(
+    client: &SimpleHttpClient,
+    parent: &String,
+    filter: &Option<Option<String>>,
+    orderBy: &Option<Option<String>>,
+    pageSize: &Option<Option<String>>,
+    pageToken: &Option<Option<String>>,
+    view: &Option<Option<String>>,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!(
+        "https://backupdr.googleapis.com/v1/projects/{}/locations/{locationsId}/backupVaults",
+        parent,
+    );
+
+    // Build request
+    let mut query_parts = Vec::new();
+    if let Some(val) = filter.as_ref() {
+        query_parts.push(format!("filter={}", val));
+    }
+    if let Some(val) = orderBy.as_ref() {
+        query_parts.push(format!("orderBy={}", val));
+    }
+    if let Some(val) = pageSize.as_ref() {
+        query_parts.push(format!("pageSize={}", val));
+    }
+    if let Some(val) = pageToken.as_ref() {
+        query_parts.push(format!("pageToken={}", val));
+    }
+    if let Some(val) = view.as_ref() {
+        query_parts.push(format!("view={}", val));
+    }
+
+    let url_with_query = if query_parts.is_empty() {
+        endpoint_url
+    } else {
+        format!("{}?{}", endpoint_url, query_parts.join("&"))
+    };
+
+    let builder = client
+        .get(&url_with_query)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// GET v1/projects/{projectsId}/locations/{locationsId}/backupVaults
+/// Lists BackupVaults in a given project and location.
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `backupdr_projects_locations_backup_vaults_list_execute()` or `backupdr_projects_locations_backup_vaults_list`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `backupdr_projects_locations_backup_vaults_list_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn backupdr_projects_locations_backup_vaults_list_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<ListBackupVaultsResponse>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: ListBackupVaultsResponse = serde_json::from_str(&body)
+                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// GET v1/projects/{projectsId}/locations/{locationsId}/backupVaults
+/// Lists BackupVaults in a given project and location.
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `backupdr_projects_locations_backup_vaults_list_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `backupdr_projects_locations_backup_vaults_list_task()`.
+/// For the simplest API, use `backupdr_projects_locations_backup_vaults_list()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `backupdr_projects_locations_backup_vaults_list_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn backupdr_projects_locations_backup_vaults_list_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<ListBackupVaultsResponse>, ApiError>, P = ApiPending>
+        + Send
+        + 'static,
+    ApiError,
+> {
+    let task = backupdr_projects_locations_backup_vaults_list_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`backupdr_projects_locations_backup_vaults_list`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct BackupdrProjectsLocationsBackupVaultsListArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Query parameter: filter
+    pub filter: Option<Option<String>>,
+    /// Query parameter: orderBy
+    pub orderBy: Option<Option<String>>,
+    /// Query parameter: pageSize
+    pub pageSize: Option<Option<String>>,
+    /// Query parameter: pageToken
+    pub pageToken: Option<Option<String>>,
+    /// Query parameter: view
+    pub view: Option<Option<String>>,
+}
+
+/// GET v1/projects/{projectsId}/locations/{locationsId}/backupVaults
+/// Lists BackupVaults in a given project and location.
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `backupdr_projects_locations_backup_vaults_list_builder()` + `backupdr_projects_locations_backup_vaults_list_execute()`.
+/// For task-level control, use `backupdr_projects_locations_backup_vaults_list_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn backupdr_projects_locations_backup_vaults_list(
+    client: &SimpleHttpClient,
+    args: &BackupdrProjectsLocationsBackupVaultsListArgs,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<ListBackupVaultsResponse>, ApiError>, P = ApiPending>
+        + Send
+        + 'static,
+    ApiError,
+> {
+    let builder = backupdr_projects_locations_backup_vaults_list_builder(
+        client,
+        &args.parent,
+        &args.filter,
+        &args.orderBy,
+        &args.pageSize,
+        &args.pageToken,
+        &args.view,
+    )?;
+    backupdr_projects_locations_backup_vaults_list_execute(builder)
+}
+
+/// PATCH v1/projects/{projectsId}/locations/{locationsId}/backupVaults/{backupVaultsId}
+/// Updates the settings of a BackupVault.
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `backupdr_projects_locations_backup_vaults_patch_execute()` to send, or `backupdr_projects_locations_backup_vaults_patch` for simplest API.
+
+pub fn backupdr_projects_locations_backup_vaults_patch_builder(
+    client: &SimpleHttpClient,
+    name: &String,
+    force: &Option<Option<String>>,
+    forceUpdateAccessRestriction: &Option<Option<String>>,
+    requestId: &Option<Option<String>>,
+    updateMask: &Option<Option<String>>,
+    validateOnly: &Option<Option<String>>,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!(
+        "https://backupdr.googleapis.com/v1/projects/{}/locations/{locationsId}/backupVaults/{backupVaultsId}",
+        name,
+    );
+
+    // Build request
+    let mut query_parts = Vec::new();
+    if let Some(val) = force.as_ref() {
+        query_parts.push(format!("force={}", val));
+    }
+    if let Some(val) = forceUpdateAccessRestriction.as_ref() {
+        query_parts.push(format!("forceUpdateAccessRestriction={}", val));
+    }
+    if let Some(val) = requestId.as_ref() {
+        query_parts.push(format!("requestId={}", val));
+    }
+    if let Some(val) = updateMask.as_ref() {
+        query_parts.push(format!("updateMask={}", val));
+    }
+    if let Some(val) = validateOnly.as_ref() {
+        query_parts.push(format!("validateOnly={}", val));
+    }
+
+    let url_with_query = if query_parts.is_empty() {
+        endpoint_url
+    } else {
+        format!("{}?{}", endpoint_url, query_parts.join("&"))
+    };
+
+    let builder = client
+        .patch(&url_with_query)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// PATCH v1/projects/{projectsId}/locations/{locationsId}/backupVaults/{backupVaultsId}
+/// Updates the settings of a BackupVault.
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `backupdr_projects_locations_backup_vaults_patch_execute()` or `backupdr_projects_locations_backup_vaults_patch`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `backupdr_projects_locations_backup_vaults_patch_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn backupdr_projects_locations_backup_vaults_patch_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<Operation>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: Operation = serde_json::from_str(&body)
+                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// PATCH v1/projects/{projectsId}/locations/{locationsId}/backupVaults/{backupVaultsId}
+/// Updates the settings of a BackupVault.
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `backupdr_projects_locations_backup_vaults_patch_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `backupdr_projects_locations_backup_vaults_patch_task()`.
+/// For the simplest API, use `backupdr_projects_locations_backup_vaults_patch()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `backupdr_projects_locations_backup_vaults_patch_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn backupdr_projects_locations_backup_vaults_patch_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<Operation>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let task = backupdr_projects_locations_backup_vaults_patch_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`backupdr_projects_locations_backup_vaults_patch`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct BackupdrProjectsLocationsBackupVaultsPatchArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Query parameter: force
+    pub force: Option<Option<String>>,
+    /// Query parameter: forceUpdateAccessRestriction
+    pub forceUpdateAccessRestriction: Option<Option<String>>,
+    /// Query parameter: requestId
+    pub requestId: Option<Option<String>>,
+    /// Query parameter: updateMask
+    pub updateMask: Option<Option<String>>,
+    /// Query parameter: validateOnly
+    pub validateOnly: Option<Option<String>>,
+}
+
+/// PATCH v1/projects/{projectsId}/locations/{locationsId}/backupVaults/{backupVaultsId}
+/// Updates the settings of a BackupVault.
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `backupdr_projects_locations_backup_vaults_patch_builder()` + `backupdr_projects_locations_backup_vaults_patch_execute()`.
+/// For task-level control, use `backupdr_projects_locations_backup_vaults_patch_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn backupdr_projects_locations_backup_vaults_patch(
+    client: &SimpleHttpClient,
+    args: &BackupdrProjectsLocationsBackupVaultsPatchArgs,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<Operation>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let builder = backupdr_projects_locations_backup_vaults_patch_builder(
+        client,
+        &args.name,
+        &args.force,
+        &args.forceUpdateAccessRestriction,
+        &args.requestId,
+        &args.updateMask,
+        &args.validateOnly,
+    )?;
+    backupdr_projects_locations_backup_vaults_patch_execute(builder)
+}
+
+/// POST v1/projects/{projectsId}/locations/{locationsId}/backupVaults/{backupVaultsId}:testIamPermissions
+/// Returns the caller's permissions on a BackupVault resource. A caller is not required to have Google IAM permission to make this request.
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `backupdr_projects_locations_backup_vaults_test_iam_permissions_execute()` to send, or `backupdr_projects_locations_backup_vaults_test_iam_permissions` for simplest API.
+
+pub fn backupdr_projects_locations_backup_vaults_test_iam_permissions_builder(
+    client: &SimpleHttpClient,
+    resource: &String,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!(
+        "https://backupdr.googleapis.com/v1/projects/{}/locations/{locationsId}/backupVaults/{backupVaultsId}:testIamPermissions",
+        resource,
+    );
+
+    // Build request
+    let builder = client
+        .post(&endpoint_url)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// POST v1/projects/{projectsId}/locations/{locationsId}/backupVaults/{backupVaultsId}:testIamPermissions
+/// Returns the caller's permissions on a BackupVault resource. A caller is not required to have Google IAM permission to make this request.
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `backupdr_projects_locations_backup_vaults_test_iam_permissions_execute()` or `backupdr_projects_locations_backup_vaults_test_iam_permissions`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `backupdr_projects_locations_backup_vaults_test_iam_permissions_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn backupdr_projects_locations_backup_vaults_test_iam_permissions_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<TestIamPermissionsResponse>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: TestIamPermissionsResponse = serde_json::from_str(&body)
+                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// POST v1/projects/{projectsId}/locations/{locationsId}/backupVaults/{backupVaultsId}:testIamPermissions
+/// Returns the caller's permissions on a BackupVault resource. A caller is not required to have Google IAM permission to make this request.
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `backupdr_projects_locations_backup_vaults_test_iam_permissions_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `backupdr_projects_locations_backup_vaults_test_iam_permissions_task()`.
+/// For the simplest API, use `backupdr_projects_locations_backup_vaults_test_iam_permissions()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `backupdr_projects_locations_backup_vaults_test_iam_permissions_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn backupdr_projects_locations_backup_vaults_test_iam_permissions_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<
+            D = Result<ApiResponse<TestIamPermissionsResponse>, ApiError>,
+            P = ApiPending,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    let task = backupdr_projects_locations_backup_vaults_test_iam_permissions_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`backupdr_projects_locations_backup_vaults_test_iam_permissions`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct BackupdrProjectsLocationsBackupVaultsTestIamPermissionsArgs {
+    /// Path parameter: resource
+    pub resource: String,
+}
+
+/// POST v1/projects/{projectsId}/locations/{locationsId}/backupVaults/{backupVaultsId}:testIamPermissions
+/// Returns the caller's permissions on a BackupVault resource. A caller is not required to have Google IAM permission to make this request.
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `backupdr_projects_locations_backup_vaults_test_iam_permissions_builder()` + `backupdr_projects_locations_backup_vaults_test_iam_permissions_execute()`.
+/// For task-level control, use `backupdr_projects_locations_backup_vaults_test_iam_permissions_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn backupdr_projects_locations_backup_vaults_test_iam_permissions(
+    client: &SimpleHttpClient,
+    args: &BackupdrProjectsLocationsBackupVaultsTestIamPermissionsArgs,
+) -> Result<
+    impl StreamIterator<
+            D = Result<ApiResponse<TestIamPermissionsResponse>, ApiError>,
+            P = ApiPending,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    let builder = backupdr_projects_locations_backup_vaults_test_iam_permissions_builder(
+        client,
+        &args.resource,
+    )?;
+    backupdr_projects_locations_backup_vaults_test_iam_permissions_execute(builder)
+}
+
+/// POST v1/projects/{projectsId}/locations/{locationsId}/backupVaults/{backupVaultsId}/dataSources/{dataSourcesId}:abandonBackup
+/// Internal only. Abandons a backup.
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `backupdr_projects_locations_backup_vaults_data_sources_abandon_backup_execute()` to send, or `backupdr_projects_locations_backup_vaults_data_sources_abandon_backup` for simplest API.
+
+pub fn backupdr_projects_locations_backup_vaults_data_sources_abandon_backup_builder(
+    client: &SimpleHttpClient,
+    dataSource: &String,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!(
+        "https://backupdr.googleapis.com/v1/projects/{}/locations/{locationsId}/backupVaults/{backupVaultsId}/dataSources/{dataSourcesId}:abandonBackup",
+        dataSource,
+    );
+
+    // Build request
+    let builder = client
+        .post(&endpoint_url)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// POST v1/projects/{projectsId}/locations/{locationsId}/backupVaults/{backupVaultsId}/dataSources/{dataSourcesId}:abandonBackup
+/// Internal only. Abandons a backup.
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `backupdr_projects_locations_backup_vaults_data_sources_abandon_backup_execute()` or `backupdr_projects_locations_backup_vaults_data_sources_abandon_backup`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `backupdr_projects_locations_backup_vaults_data_sources_abandon_backup_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn backupdr_projects_locations_backup_vaults_data_sources_abandon_backup_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<Operation>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: Operation = serde_json::from_str(&body)
+                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// POST v1/projects/{projectsId}/locations/{locationsId}/backupVaults/{backupVaultsId}/dataSources/{dataSourcesId}:abandonBackup
+/// Internal only. Abandons a backup.
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `backupdr_projects_locations_backup_vaults_data_sources_abandon_backup_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `backupdr_projects_locations_backup_vaults_data_sources_abandon_backup_task()`.
+/// For the simplest API, use `backupdr_projects_locations_backup_vaults_data_sources_abandon_backup()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `backupdr_projects_locations_backup_vaults_data_sources_abandon_backup_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn backupdr_projects_locations_backup_vaults_data_sources_abandon_backup_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<Operation>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let task = backupdr_projects_locations_backup_vaults_data_sources_abandon_backup_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`backupdr_projects_locations_backup_vaults_data_sources_abandon_backup`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct BackupdrProjectsLocationsBackupVaultsDataSourcesAbandonBackupArgs {
+    /// Path parameter: dataSource
+    pub dataSource: String,
+}
+
+/// POST v1/projects/{projectsId}/locations/{locationsId}/backupVaults/{backupVaultsId}/dataSources/{dataSourcesId}:abandonBackup
+/// Internal only. Abandons a backup.
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `backupdr_projects_locations_backup_vaults_data_sources_abandon_backup_builder()` + `backupdr_projects_locations_backup_vaults_data_sources_abandon_backup_execute()`.
+/// For task-level control, use `backupdr_projects_locations_backup_vaults_data_sources_abandon_backup_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn backupdr_projects_locations_backup_vaults_data_sources_abandon_backup(
+    client: &SimpleHttpClient,
+    args: &BackupdrProjectsLocationsBackupVaultsDataSourcesAbandonBackupArgs,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<Operation>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let builder = backupdr_projects_locations_backup_vaults_data_sources_abandon_backup_builder(
+        client,
+        &args.dataSource,
+    )?;
+    backupdr_projects_locations_backup_vaults_data_sources_abandon_backup_execute(builder)
+}
+
+/// POST v1/projects/{projectsId}/locations/{locationsId}/backupVaults/{backupVaultsId}/dataSources/{dataSourcesId}:fetchAccessToken
+/// Internal only. Fetch access token for a given data source.
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `backupdr_projects_locations_backup_vaults_data_sources_fetch_access_token_execute()` to send, or `backupdr_projects_locations_backup_vaults_data_sources_fetch_access_token` for simplest API.
+
+pub fn backupdr_projects_locations_backup_vaults_data_sources_fetch_access_token_builder(
+    client: &SimpleHttpClient,
+    name: &String,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!(
+        "https://backupdr.googleapis.com/v1/projects/{}/locations/{locationsId}/backupVaults/{backupVaultsId}/dataSources/{dataSourcesId}:fetchAccessToken",
+        name,
+    );
+
+    // Build request
+    let builder = client
+        .post(&endpoint_url)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// POST v1/projects/{projectsId}/locations/{locationsId}/backupVaults/{backupVaultsId}/dataSources/{dataSourcesId}:fetchAccessToken
+/// Internal only. Fetch access token for a given data source.
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `backupdr_projects_locations_backup_vaults_data_sources_fetch_access_token_execute()` or `backupdr_projects_locations_backup_vaults_data_sources_fetch_access_token`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `backupdr_projects_locations_backup_vaults_data_sources_fetch_access_token_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn backupdr_projects_locations_backup_vaults_data_sources_fetch_access_token_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<FetchAccessTokenResponse>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: FetchAccessTokenResponse = serde_json::from_str(&body)
+                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// POST v1/projects/{projectsId}/locations/{locationsId}/backupVaults/{backupVaultsId}/dataSources/{dataSourcesId}:fetchAccessToken
+/// Internal only. Fetch access token for a given data source.
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `backupdr_projects_locations_backup_vaults_data_sources_fetch_access_token_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `backupdr_projects_locations_backup_vaults_data_sources_fetch_access_token_task()`.
+/// For the simplest API, use `backupdr_projects_locations_backup_vaults_data_sources_fetch_access_token()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `backupdr_projects_locations_backup_vaults_data_sources_fetch_access_token_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn backupdr_projects_locations_backup_vaults_data_sources_fetch_access_token_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<FetchAccessTokenResponse>, ApiError>, P = ApiPending>
+        + Send
+        + 'static,
+    ApiError,
+> {
+    let task =
+        backupdr_projects_locations_backup_vaults_data_sources_fetch_access_token_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`backupdr_projects_locations_backup_vaults_data_sources_fetch_access_token`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct BackupdrProjectsLocationsBackupVaultsDataSourcesFetchAccessTokenArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
+/// POST v1/projects/{projectsId}/locations/{locationsId}/backupVaults/{backupVaultsId}/dataSources/{dataSourcesId}:fetchAccessToken
+/// Internal only. Fetch access token for a given data source.
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `backupdr_projects_locations_backup_vaults_data_sources_fetch_access_token_builder()` + `backupdr_projects_locations_backup_vaults_data_sources_fetch_access_token_execute()`.
+/// For task-level control, use `backupdr_projects_locations_backup_vaults_data_sources_fetch_access_token_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn backupdr_projects_locations_backup_vaults_data_sources_fetch_access_token(
+    client: &SimpleHttpClient,
+    args: &BackupdrProjectsLocationsBackupVaultsDataSourcesFetchAccessTokenArgs,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<FetchAccessTokenResponse>, ApiError>, P = ApiPending>
+        + Send
+        + 'static,
+    ApiError,
+> {
+    let builder =
+        backupdr_projects_locations_backup_vaults_data_sources_fetch_access_token_builder(
+            client, &args.name,
+        )?;
+    backupdr_projects_locations_backup_vaults_data_sources_fetch_access_token_execute(builder)
+}
+
+/// POST v1/projects/{projectsId}/locations/{locationsId}/backupVaults/{backupVaultsId}/dataSources/{dataSourcesId}:finalizeBackup
+/// Internal only. Finalize a backup that was started by a call to InitiateBackup.
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `backupdr_projects_locations_backup_vaults_data_sources_finalize_backup_execute()` to send, or `backupdr_projects_locations_backup_vaults_data_sources_finalize_backup` for simplest API.
+
+pub fn backupdr_projects_locations_backup_vaults_data_sources_finalize_backup_builder(
+    client: &SimpleHttpClient,
+    dataSource: &String,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!(
+        "https://backupdr.googleapis.com/v1/projects/{}/locations/{locationsId}/backupVaults/{backupVaultsId}/dataSources/{dataSourcesId}:finalizeBackup",
+        dataSource,
+    );
+
+    // Build request
+    let builder = client
+        .post(&endpoint_url)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// POST v1/projects/{projectsId}/locations/{locationsId}/backupVaults/{backupVaultsId}/dataSources/{dataSourcesId}:finalizeBackup
+/// Internal only. Finalize a backup that was started by a call to InitiateBackup.
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `backupdr_projects_locations_backup_vaults_data_sources_finalize_backup_execute()` or `backupdr_projects_locations_backup_vaults_data_sources_finalize_backup`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `backupdr_projects_locations_backup_vaults_data_sources_finalize_backup_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn backupdr_projects_locations_backup_vaults_data_sources_finalize_backup_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<Operation>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: Operation = serde_json::from_str(&body)
+                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// POST v1/projects/{projectsId}/locations/{locationsId}/backupVaults/{backupVaultsId}/dataSources/{dataSourcesId}:finalizeBackup
+/// Internal only. Finalize a backup that was started by a call to InitiateBackup.
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `backupdr_projects_locations_backup_vaults_data_sources_finalize_backup_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `backupdr_projects_locations_backup_vaults_data_sources_finalize_backup_task()`.
+/// For the simplest API, use `backupdr_projects_locations_backup_vaults_data_sources_finalize_backup()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `backupdr_projects_locations_backup_vaults_data_sources_finalize_backup_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn backupdr_projects_locations_backup_vaults_data_sources_finalize_backup_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<Operation>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let task =
+        backupdr_projects_locations_backup_vaults_data_sources_finalize_backup_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`backupdr_projects_locations_backup_vaults_data_sources_finalize_backup`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct BackupdrProjectsLocationsBackupVaultsDataSourcesFinalizeBackupArgs {
+    /// Path parameter: dataSource
+    pub dataSource: String,
+}
+
+/// POST v1/projects/{projectsId}/locations/{locationsId}/backupVaults/{backupVaultsId}/dataSources/{dataSourcesId}:finalizeBackup
+/// Internal only. Finalize a backup that was started by a call to InitiateBackup.
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `backupdr_projects_locations_backup_vaults_data_sources_finalize_backup_builder()` + `backupdr_projects_locations_backup_vaults_data_sources_finalize_backup_execute()`.
+/// For task-level control, use `backupdr_projects_locations_backup_vaults_data_sources_finalize_backup_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn backupdr_projects_locations_backup_vaults_data_sources_finalize_backup(
+    client: &SimpleHttpClient,
+    args: &BackupdrProjectsLocationsBackupVaultsDataSourcesFinalizeBackupArgs,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<Operation>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let builder = backupdr_projects_locations_backup_vaults_data_sources_finalize_backup_builder(
+        client,
+        &args.dataSource,
+    )?;
+    backupdr_projects_locations_backup_vaults_data_sources_finalize_backup_execute(builder)
+}
+
+/// GET v1/projects/{projectsId}/locations/{locationsId}/backupVaults/{backupVaultsId}/dataSources/{dataSourcesId}
+/// Gets details of a DataSource.
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `backupdr_projects_locations_backup_vaults_data_sources_get_execute()` to send, or `backupdr_projects_locations_backup_vaults_data_sources_get` for simplest API.
+
+pub fn backupdr_projects_locations_backup_vaults_data_sources_get_builder(
+    client: &SimpleHttpClient,
+    name: &String,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!(
+        "https://backupdr.googleapis.com/v1/projects/{}/locations/{locationsId}/backupVaults/{backupVaultsId}/dataSources/{dataSourcesId}",
+        name,
+    );
+
+    // Build request
+    let builder = client
+        .get(&endpoint_url)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// GET v1/projects/{projectsId}/locations/{locationsId}/backupVaults/{backupVaultsId}/dataSources/{dataSourcesId}
+/// Gets details of a DataSource.
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `backupdr_projects_locations_backup_vaults_data_sources_get_execute()` or `backupdr_projects_locations_backup_vaults_data_sources_get`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `backupdr_projects_locations_backup_vaults_data_sources_get_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn backupdr_projects_locations_backup_vaults_data_sources_get_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<DataSource>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: DataSource = serde_json::from_str(&body)
+                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// GET v1/projects/{projectsId}/locations/{locationsId}/backupVaults/{backupVaultsId}/dataSources/{dataSourcesId}
+/// Gets details of a DataSource.
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `backupdr_projects_locations_backup_vaults_data_sources_get_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `backupdr_projects_locations_backup_vaults_data_sources_get_task()`.
+/// For the simplest API, use `backupdr_projects_locations_backup_vaults_data_sources_get()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `backupdr_projects_locations_backup_vaults_data_sources_get_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn backupdr_projects_locations_backup_vaults_data_sources_get_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<DataSource>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let task = backupdr_projects_locations_backup_vaults_data_sources_get_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`backupdr_projects_locations_backup_vaults_data_sources_get`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct BackupdrProjectsLocationsBackupVaultsDataSourcesGetArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
+/// GET v1/projects/{projectsId}/locations/{locationsId}/backupVaults/{backupVaultsId}/dataSources/{dataSourcesId}
+/// Gets details of a DataSource.
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `backupdr_projects_locations_backup_vaults_data_sources_get_builder()` + `backupdr_projects_locations_backup_vaults_data_sources_get_execute()`.
+/// For task-level control, use `backupdr_projects_locations_backup_vaults_data_sources_get_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn backupdr_projects_locations_backup_vaults_data_sources_get(
+    client: &SimpleHttpClient,
+    args: &BackupdrProjectsLocationsBackupVaultsDataSourcesGetArgs,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<DataSource>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let builder =
+        backupdr_projects_locations_backup_vaults_data_sources_get_builder(client, &args.name)?;
+    backupdr_projects_locations_backup_vaults_data_sources_get_execute(builder)
+}
+
+/// POST v1/projects/{projectsId}/locations/{locationsId}/backupVaults/{backupVaultsId}/dataSources/{dataSourcesId}:initiateBackup
+/// Internal only. Initiates a backup.
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `backupdr_projects_locations_backup_vaults_data_sources_initiate_backup_execute()` to send, or `backupdr_projects_locations_backup_vaults_data_sources_initiate_backup` for simplest API.
+
+pub fn backupdr_projects_locations_backup_vaults_data_sources_initiate_backup_builder(
+    client: &SimpleHttpClient,
+    dataSource: &String,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!(
+        "https://backupdr.googleapis.com/v1/projects/{}/locations/{locationsId}/backupVaults/{backupVaultsId}/dataSources/{dataSourcesId}:initiateBackup",
+        dataSource,
+    );
+
+    // Build request
+    let builder = client
+        .post(&endpoint_url)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// POST v1/projects/{projectsId}/locations/{locationsId}/backupVaults/{backupVaultsId}/dataSources/{dataSourcesId}:initiateBackup
+/// Internal only. Initiates a backup.
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `backupdr_projects_locations_backup_vaults_data_sources_initiate_backup_execute()` or `backupdr_projects_locations_backup_vaults_data_sources_initiate_backup`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `backupdr_projects_locations_backup_vaults_data_sources_initiate_backup_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn backupdr_projects_locations_backup_vaults_data_sources_initiate_backup_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<InitiateBackupResponse>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: InitiateBackupResponse = serde_json::from_str(&body)
+                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// POST v1/projects/{projectsId}/locations/{locationsId}/backupVaults/{backupVaultsId}/dataSources/{dataSourcesId}:initiateBackup
+/// Internal only. Initiates a backup.
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `backupdr_projects_locations_backup_vaults_data_sources_initiate_backup_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `backupdr_projects_locations_backup_vaults_data_sources_initiate_backup_task()`.
+/// For the simplest API, use `backupdr_projects_locations_backup_vaults_data_sources_initiate_backup()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `backupdr_projects_locations_backup_vaults_data_sources_initiate_backup_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn backupdr_projects_locations_backup_vaults_data_sources_initiate_backup_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<InitiateBackupResponse>, ApiError>, P = ApiPending>
+        + Send
+        + 'static,
+    ApiError,
+> {
+    let task =
+        backupdr_projects_locations_backup_vaults_data_sources_initiate_backup_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`backupdr_projects_locations_backup_vaults_data_sources_initiate_backup`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct BackupdrProjectsLocationsBackupVaultsDataSourcesInitiateBackupArgs {
+    /// Path parameter: dataSource
+    pub dataSource: String,
+}
+
+/// POST v1/projects/{projectsId}/locations/{locationsId}/backupVaults/{backupVaultsId}/dataSources/{dataSourcesId}:initiateBackup
+/// Internal only. Initiates a backup.
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `backupdr_projects_locations_backup_vaults_data_sources_initiate_backup_builder()` + `backupdr_projects_locations_backup_vaults_data_sources_initiate_backup_execute()`.
+/// For task-level control, use `backupdr_projects_locations_backup_vaults_data_sources_initiate_backup_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn backupdr_projects_locations_backup_vaults_data_sources_initiate_backup(
+    client: &SimpleHttpClient,
+    args: &BackupdrProjectsLocationsBackupVaultsDataSourcesInitiateBackupArgs,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<InitiateBackupResponse>, ApiError>, P = ApiPending>
+        + Send
+        + 'static,
+    ApiError,
+> {
+    let builder = backupdr_projects_locations_backup_vaults_data_sources_initiate_backup_builder(
+        client,
+        &args.dataSource,
+    )?;
+    backupdr_projects_locations_backup_vaults_data_sources_initiate_backup_execute(builder)
+}
+
+/// GET v1/projects/{projectsId}/locations/{locationsId}/backupVaults/{backupVaultsId}/dataSources
+/// Lists DataSources in a given project and location.
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `backupdr_projects_locations_backup_vaults_data_sources_list_execute()` to send, or `backupdr_projects_locations_backup_vaults_data_sources_list` for simplest API.
+
+pub fn backupdr_projects_locations_backup_vaults_data_sources_list_builder(
+    client: &SimpleHttpClient,
+    parent: &String,
+    filter: &Option<Option<String>>,
+    orderBy: &Option<Option<String>>,
+    pageSize: &Option<Option<String>>,
+    pageToken: &Option<Option<String>>,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!(
+        "https://backupdr.googleapis.com/v1/projects/{}/locations/{locationsId}/backupVaults/{backupVaultsId}/dataSources",
+        parent,
+    );
+
+    // Build request
+    let mut query_parts = Vec::new();
+    if let Some(val) = filter.as_ref() {
+        query_parts.push(format!("filter={}", val));
+    }
+    if let Some(val) = orderBy.as_ref() {
+        query_parts.push(format!("orderBy={}", val));
+    }
+    if let Some(val) = pageSize.as_ref() {
+        query_parts.push(format!("pageSize={}", val));
+    }
+    if let Some(val) = pageToken.as_ref() {
+        query_parts.push(format!("pageToken={}", val));
+    }
+
+    let url_with_query = if query_parts.is_empty() {
+        endpoint_url
+    } else {
+        format!("{}?{}", endpoint_url, query_parts.join("&"))
+    };
+
+    let builder = client
+        .get(&url_with_query)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// GET v1/projects/{projectsId}/locations/{locationsId}/backupVaults/{backupVaultsId}/dataSources
+/// Lists DataSources in a given project and location.
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `backupdr_projects_locations_backup_vaults_data_sources_list_execute()` or `backupdr_projects_locations_backup_vaults_data_sources_list`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `backupdr_projects_locations_backup_vaults_data_sources_list_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn backupdr_projects_locations_backup_vaults_data_sources_list_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<ListDataSourcesResponse>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: ListDataSourcesResponse = serde_json::from_str(&body)
+                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// GET v1/projects/{projectsId}/locations/{locationsId}/backupVaults/{backupVaultsId}/dataSources
+/// Lists DataSources in a given project and location.
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `backupdr_projects_locations_backup_vaults_data_sources_list_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `backupdr_projects_locations_backup_vaults_data_sources_list_task()`.
+/// For the simplest API, use `backupdr_projects_locations_backup_vaults_data_sources_list()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `backupdr_projects_locations_backup_vaults_data_sources_list_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn backupdr_projects_locations_backup_vaults_data_sources_list_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<ListDataSourcesResponse>, ApiError>, P = ApiPending>
+        + Send
+        + 'static,
+    ApiError,
+> {
+    let task = backupdr_projects_locations_backup_vaults_data_sources_list_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`backupdr_projects_locations_backup_vaults_data_sources_list`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct BackupdrProjectsLocationsBackupVaultsDataSourcesListArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Query parameter: filter
+    pub filter: Option<Option<String>>,
+    /// Query parameter: orderBy
+    pub orderBy: Option<Option<String>>,
+    /// Query parameter: pageSize
+    pub pageSize: Option<Option<String>>,
+    /// Query parameter: pageToken
+    pub pageToken: Option<Option<String>>,
+}
+
+/// GET v1/projects/{projectsId}/locations/{locationsId}/backupVaults/{backupVaultsId}/dataSources
+/// Lists DataSources in a given project and location.
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `backupdr_projects_locations_backup_vaults_data_sources_list_builder()` + `backupdr_projects_locations_backup_vaults_data_sources_list_execute()`.
+/// For task-level control, use `backupdr_projects_locations_backup_vaults_data_sources_list_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn backupdr_projects_locations_backup_vaults_data_sources_list(
+    client: &SimpleHttpClient,
+    args: &BackupdrProjectsLocationsBackupVaultsDataSourcesListArgs,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<ListDataSourcesResponse>, ApiError>, P = ApiPending>
+        + Send
+        + 'static,
+    ApiError,
+> {
+    let builder = backupdr_projects_locations_backup_vaults_data_sources_list_builder(
+        client,
+        &args.parent,
+        &args.filter,
+        &args.orderBy,
+        &args.pageSize,
+        &args.pageToken,
+    )?;
+    backupdr_projects_locations_backup_vaults_data_sources_list_execute(builder)
+}
+
+/// PATCH v1/projects/{projectsId}/locations/{locationsId}/backupVaults/{backupVaultsId}/dataSources/{dataSourcesId}
+/// Updates the settings of a DataSource.
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `backupdr_projects_locations_backup_vaults_data_sources_patch_execute()` to send, or `backupdr_projects_locations_backup_vaults_data_sources_patch` for simplest API.
+
+pub fn backupdr_projects_locations_backup_vaults_data_sources_patch_builder(
+    client: &SimpleHttpClient,
+    name: &String,
+    allowMissing: &Option<Option<String>>,
+    requestId: &Option<Option<String>>,
+    updateMask: &Option<Option<String>>,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!(
+        "https://backupdr.googleapis.com/v1/projects/{}/locations/{locationsId}/backupVaults/{backupVaultsId}/dataSources/{dataSourcesId}",
+        name,
+    );
+
+    // Build request
+    let mut query_parts = Vec::new();
+    if let Some(val) = allowMissing.as_ref() {
+        query_parts.push(format!("allowMissing={}", val));
+    }
+    if let Some(val) = requestId.as_ref() {
+        query_parts.push(format!("requestId={}", val));
+    }
+    if let Some(val) = updateMask.as_ref() {
+        query_parts.push(format!("updateMask={}", val));
+    }
+
+    let url_with_query = if query_parts.is_empty() {
+        endpoint_url
+    } else {
+        format!("{}?{}", endpoint_url, query_parts.join("&"))
+    };
+
+    let builder = client
+        .patch(&url_with_query)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// PATCH v1/projects/{projectsId}/locations/{locationsId}/backupVaults/{backupVaultsId}/dataSources/{dataSourcesId}
+/// Updates the settings of a DataSource.
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `backupdr_projects_locations_backup_vaults_data_sources_patch_execute()` or `backupdr_projects_locations_backup_vaults_data_sources_patch`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `backupdr_projects_locations_backup_vaults_data_sources_patch_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn backupdr_projects_locations_backup_vaults_data_sources_patch_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<Operation>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: Operation = serde_json::from_str(&body)
+                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// PATCH v1/projects/{projectsId}/locations/{locationsId}/backupVaults/{backupVaultsId}/dataSources/{dataSourcesId}
+/// Updates the settings of a DataSource.
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `backupdr_projects_locations_backup_vaults_data_sources_patch_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `backupdr_projects_locations_backup_vaults_data_sources_patch_task()`.
+/// For the simplest API, use `backupdr_projects_locations_backup_vaults_data_sources_patch()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `backupdr_projects_locations_backup_vaults_data_sources_patch_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn backupdr_projects_locations_backup_vaults_data_sources_patch_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<Operation>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let task = backupdr_projects_locations_backup_vaults_data_sources_patch_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`backupdr_projects_locations_backup_vaults_data_sources_patch`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct BackupdrProjectsLocationsBackupVaultsDataSourcesPatchArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Query parameter: allowMissing
+    pub allowMissing: Option<Option<String>>,
+    /// Query parameter: requestId
+    pub requestId: Option<Option<String>>,
+    /// Query parameter: updateMask
+    pub updateMask: Option<Option<String>>,
+}
+
+/// PATCH v1/projects/{projectsId}/locations/{locationsId}/backupVaults/{backupVaultsId}/dataSources/{dataSourcesId}
+/// Updates the settings of a DataSource.
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `backupdr_projects_locations_backup_vaults_data_sources_patch_builder()` + `backupdr_projects_locations_backup_vaults_data_sources_patch_execute()`.
+/// For task-level control, use `backupdr_projects_locations_backup_vaults_data_sources_patch_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn backupdr_projects_locations_backup_vaults_data_sources_patch(
+    client: &SimpleHttpClient,
+    args: &BackupdrProjectsLocationsBackupVaultsDataSourcesPatchArgs,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<Operation>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let builder = backupdr_projects_locations_backup_vaults_data_sources_patch_builder(
+        client,
+        &args.name,
+        &args.allowMissing,
+        &args.requestId,
+        &args.updateMask,
+    )?;
+    backupdr_projects_locations_backup_vaults_data_sources_patch_execute(builder)
+}
+
+/// POST v1/projects/{projectsId}/locations/{locationsId}/backupVaults/{backupVaultsId}/dataSources/{dataSourcesId}:remove
+/// Deletes a DataSource. This is a custom method instead of a standard delete method because external clients will not delete DataSources except for BackupDR backup appliances.
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `backupdr_projects_locations_backup_vaults_data_sources_remove_execute()` to send, or `backupdr_projects_locations_backup_vaults_data_sources_remove` for simplest API.
+
+pub fn backupdr_projects_locations_backup_vaults_data_sources_remove_builder(
+    client: &SimpleHttpClient,
+    name: &String,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!(
+        "https://backupdr.googleapis.com/v1/projects/{}/locations/{locationsId}/backupVaults/{backupVaultsId}/dataSources/{dataSourcesId}:remove",
+        name,
+    );
+
+    // Build request
+    let builder = client
+        .post(&endpoint_url)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// POST v1/projects/{projectsId}/locations/{locationsId}/backupVaults/{backupVaultsId}/dataSources/{dataSourcesId}:remove
+/// Deletes a DataSource. This is a custom method instead of a standard delete method because external clients will not delete DataSources except for BackupDR backup appliances.
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `backupdr_projects_locations_backup_vaults_data_sources_remove_execute()` or `backupdr_projects_locations_backup_vaults_data_sources_remove`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `backupdr_projects_locations_backup_vaults_data_sources_remove_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn backupdr_projects_locations_backup_vaults_data_sources_remove_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<Operation>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: Operation = serde_json::from_str(&body)
+                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// POST v1/projects/{projectsId}/locations/{locationsId}/backupVaults/{backupVaultsId}/dataSources/{dataSourcesId}:remove
+/// Deletes a DataSource. This is a custom method instead of a standard delete method because external clients will not delete DataSources except for BackupDR backup appliances.
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `backupdr_projects_locations_backup_vaults_data_sources_remove_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `backupdr_projects_locations_backup_vaults_data_sources_remove_task()`.
+/// For the simplest API, use `backupdr_projects_locations_backup_vaults_data_sources_remove()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `backupdr_projects_locations_backup_vaults_data_sources_remove_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn backupdr_projects_locations_backup_vaults_data_sources_remove_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<Operation>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let task = backupdr_projects_locations_backup_vaults_data_sources_remove_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`backupdr_projects_locations_backup_vaults_data_sources_remove`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct BackupdrProjectsLocationsBackupVaultsDataSourcesRemoveArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
+/// POST v1/projects/{projectsId}/locations/{locationsId}/backupVaults/{backupVaultsId}/dataSources/{dataSourcesId}:remove
+/// Deletes a DataSource. This is a custom method instead of a standard delete method because external clients will not delete DataSources except for BackupDR backup appliances.
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `backupdr_projects_locations_backup_vaults_data_sources_remove_builder()` + `backupdr_projects_locations_backup_vaults_data_sources_remove_execute()`.
+/// For task-level control, use `backupdr_projects_locations_backup_vaults_data_sources_remove_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn backupdr_projects_locations_backup_vaults_data_sources_remove(
+    client: &SimpleHttpClient,
+    args: &BackupdrProjectsLocationsBackupVaultsDataSourcesRemoveArgs,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<Operation>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let builder =
+        backupdr_projects_locations_backup_vaults_data_sources_remove_builder(client, &args.name)?;
+    backupdr_projects_locations_backup_vaults_data_sources_remove_execute(builder)
+}
+
+/// POST v1/projects/{projectsId}/locations/{locationsId}/backupVaults/{backupVaultsId}/dataSources/{dataSourcesId}:setInternalStatus
+/// Sets the internal status of a DataSource.
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `backupdr_projects_locations_backup_vaults_data_sources_set_internal_status_execute()` to send, or `backupdr_projects_locations_backup_vaults_data_sources_set_internal_status` for simplest API.
+
+pub fn backupdr_projects_locations_backup_vaults_data_sources_set_internal_status_builder(
+    client: &SimpleHttpClient,
+    dataSource: &String,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!(
+        "https://backupdr.googleapis.com/v1/projects/{}/locations/{locationsId}/backupVaults/{backupVaultsId}/dataSources/{dataSourcesId}:setInternalStatus",
+        dataSource,
+    );
+
+    // Build request
+    let builder = client
+        .post(&endpoint_url)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// POST v1/projects/{projectsId}/locations/{locationsId}/backupVaults/{backupVaultsId}/dataSources/{dataSourcesId}:setInternalStatus
+/// Sets the internal status of a DataSource.
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `backupdr_projects_locations_backup_vaults_data_sources_set_internal_status_execute()` or `backupdr_projects_locations_backup_vaults_data_sources_set_internal_status`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `backupdr_projects_locations_backup_vaults_data_sources_set_internal_status_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn backupdr_projects_locations_backup_vaults_data_sources_set_internal_status_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<Operation>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: Operation = serde_json::from_str(&body)
+                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// POST v1/projects/{projectsId}/locations/{locationsId}/backupVaults/{backupVaultsId}/dataSources/{dataSourcesId}:setInternalStatus
+/// Sets the internal status of a DataSource.
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `backupdr_projects_locations_backup_vaults_data_sources_set_internal_status_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `backupdr_projects_locations_backup_vaults_data_sources_set_internal_status_task()`.
+/// For the simplest API, use `backupdr_projects_locations_backup_vaults_data_sources_set_internal_status()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `backupdr_projects_locations_backup_vaults_data_sources_set_internal_status_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn backupdr_projects_locations_backup_vaults_data_sources_set_internal_status_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<Operation>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let task =
+        backupdr_projects_locations_backup_vaults_data_sources_set_internal_status_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`backupdr_projects_locations_backup_vaults_data_sources_set_internal_status`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct BackupdrProjectsLocationsBackupVaultsDataSourcesSetInternalStatusArgs {
+    /// Path parameter: dataSource
+    pub dataSource: String,
+}
+
+/// POST v1/projects/{projectsId}/locations/{locationsId}/backupVaults/{backupVaultsId}/dataSources/{dataSourcesId}:setInternalStatus
+/// Sets the internal status of a DataSource.
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `backupdr_projects_locations_backup_vaults_data_sources_set_internal_status_builder()` + `backupdr_projects_locations_backup_vaults_data_sources_set_internal_status_execute()`.
+/// For task-level control, use `backupdr_projects_locations_backup_vaults_data_sources_set_internal_status_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn backupdr_projects_locations_backup_vaults_data_sources_set_internal_status(
+    client: &SimpleHttpClient,
+    args: &BackupdrProjectsLocationsBackupVaultsDataSourcesSetInternalStatusArgs,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<Operation>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let builder =
+        backupdr_projects_locations_backup_vaults_data_sources_set_internal_status_builder(
+            client,
+            &args.dataSource,
+        )?;
+    backupdr_projects_locations_backup_vaults_data_sources_set_internal_status_execute(builder)
+}
+
+/// DELETE v1/projects/{projectsId}/locations/{locationsId}/backupVaults/{backupVaultsId}/dataSources/{dataSourcesId}/backups/{backupsId}
+/// Deletes a Backup.
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `backupdr_projects_locations_backup_vaults_data_sources_backups_delete_execute()` to send, or `backupdr_projects_locations_backup_vaults_data_sources_backups_delete` for simplest API.
+
+pub fn backupdr_projects_locations_backup_vaults_data_sources_backups_delete_builder(
+    client: &SimpleHttpClient,
+    name: &String,
+    requestId: &Option<Option<String>>,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!(
+        "https://backupdr.googleapis.com/v1/projects/{}/locations/{locationsId}/backupVaults/{backupVaultsId}/dataSources/{dataSourcesId}/backups/{backupsId}",
+        name,
+    );
+
+    // Build request
+    let mut query_parts = Vec::new();
+    if let Some(val) = requestId.as_ref() {
+        query_parts.push(format!("requestId={}", val));
+    }
+
+    let url_with_query = if query_parts.is_empty() {
+        endpoint_url
+    } else {
+        format!("{}?{}", endpoint_url, query_parts.join("&"))
+    };
+
+    let builder = client
+        .delete(&url_with_query)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// DELETE v1/projects/{projectsId}/locations/{locationsId}/backupVaults/{backupVaultsId}/dataSources/{dataSourcesId}/backups/{backupsId}
+/// Deletes a Backup.
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `backupdr_projects_locations_backup_vaults_data_sources_backups_delete_execute()` or `backupdr_projects_locations_backup_vaults_data_sources_backups_delete`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `backupdr_projects_locations_backup_vaults_data_sources_backups_delete_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn backupdr_projects_locations_backup_vaults_data_sources_backups_delete_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<Operation>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: Operation = serde_json::from_str(&body)
+                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// DELETE v1/projects/{projectsId}/locations/{locationsId}/backupVaults/{backupVaultsId}/dataSources/{dataSourcesId}/backups/{backupsId}
+/// Deletes a Backup.
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `backupdr_projects_locations_backup_vaults_data_sources_backups_delete_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `backupdr_projects_locations_backup_vaults_data_sources_backups_delete_task()`.
+/// For the simplest API, use `backupdr_projects_locations_backup_vaults_data_sources_backups_delete()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `backupdr_projects_locations_backup_vaults_data_sources_backups_delete_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn backupdr_projects_locations_backup_vaults_data_sources_backups_delete_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<Operation>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let task = backupdr_projects_locations_backup_vaults_data_sources_backups_delete_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`backupdr_projects_locations_backup_vaults_data_sources_backups_delete`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct BackupdrProjectsLocationsBackupVaultsDataSourcesBackupsDeleteArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Query parameter: requestId
+    pub requestId: Option<Option<String>>,
+}
+
+/// DELETE v1/projects/{projectsId}/locations/{locationsId}/backupVaults/{backupVaultsId}/dataSources/{dataSourcesId}/backups/{backupsId}
+/// Deletes a Backup.
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `backupdr_projects_locations_backup_vaults_data_sources_backups_delete_builder()` + `backupdr_projects_locations_backup_vaults_data_sources_backups_delete_execute()`.
+/// For task-level control, use `backupdr_projects_locations_backup_vaults_data_sources_backups_delete_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn backupdr_projects_locations_backup_vaults_data_sources_backups_delete(
+    client: &SimpleHttpClient,
+    args: &BackupdrProjectsLocationsBackupVaultsDataSourcesBackupsDeleteArgs,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<Operation>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let builder = backupdr_projects_locations_backup_vaults_data_sources_backups_delete_builder(
+        client,
+        &args.name,
+        &args.requestId,
+    )?;
+    backupdr_projects_locations_backup_vaults_data_sources_backups_delete_execute(builder)
+}
+
+/// GET v1/projects/{projectsId}/locations/{locationsId}/backupVaults/{backupVaultsId}/dataSources/{dataSourcesId}/backups:fetchForResourceType
+/// Fetch Backups for a given resource type.
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `backupdr_projects_locations_backup_vaults_data_sources_backups_fetch_for_resource_type_execute()` to send, or `backupdr_projects_locations_backup_vaults_data_sources_backups_fetch_for_resource_type` for simplest API.
+
+pub fn backupdr_projects_locations_backup_vaults_data_sources_backups_fetch_for_resource_type_builder(
+    client: &SimpleHttpClient,
+    parent: &String,
+    filter: &Option<Option<String>>,
+    orderBy: &Option<Option<String>>,
+    pageSize: &Option<Option<String>>,
+    pageToken: &Option<Option<String>>,
+    resourceType: &Option<Option<String>>,
+    view: &Option<Option<String>>,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!(
+        "https://backupdr.googleapis.com/v1/projects/{}/locations/{locationsId}/backupVaults/{backupVaultsId}/dataSources/{dataSourcesId}/backups:fetchForResourceType",
+        parent,
+    );
+
+    // Build request
+    let mut query_parts = Vec::new();
+    if let Some(val) = filter.as_ref() {
+        query_parts.push(format!("filter={}", val));
+    }
+    if let Some(val) = orderBy.as_ref() {
+        query_parts.push(format!("orderBy={}", val));
+    }
+    if let Some(val) = pageSize.as_ref() {
+        query_parts.push(format!("pageSize={}", val));
+    }
+    if let Some(val) = pageToken.as_ref() {
+        query_parts.push(format!("pageToken={}", val));
+    }
+    if let Some(val) = resourceType.as_ref() {
+        query_parts.push(format!("resourceType={}", val));
+    }
+    if let Some(val) = view.as_ref() {
+        query_parts.push(format!("view={}", val));
+    }
+
+    let url_with_query = if query_parts.is_empty() {
+        endpoint_url
+    } else {
+        format!("{}?{}", endpoint_url, query_parts.join("&"))
+    };
+
+    let builder = client
+        .get(&url_with_query)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// GET v1/projects/{projectsId}/locations/{locationsId}/backupVaults/{backupVaultsId}/dataSources/{dataSourcesId}/backups:fetchForResourceType
+/// Fetch Backups for a given resource type.
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `backupdr_projects_locations_backup_vaults_data_sources_backups_fetch_for_resource_type_execute()` or `backupdr_projects_locations_backup_vaults_data_sources_backups_fetch_for_resource_type`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `backupdr_projects_locations_backup_vaults_data_sources_backups_fetch_for_resource_type_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn backupdr_projects_locations_backup_vaults_data_sources_backups_fetch_for_resource_type_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<FetchBackupsForResourceTypeResponse>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: FetchBackupsForResourceTypeResponse = serde_json::from_str(&body)
+                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// GET v1/projects/{projectsId}/locations/{locationsId}/backupVaults/{backupVaultsId}/dataSources/{dataSourcesId}/backups:fetchForResourceType
+/// Fetch Backups for a given resource type.
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `backupdr_projects_locations_backup_vaults_data_sources_backups_fetch_for_resource_type_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `backupdr_projects_locations_backup_vaults_data_sources_backups_fetch_for_resource_type_task()`.
+/// For the simplest API, use `backupdr_projects_locations_backup_vaults_data_sources_backups_fetch_for_resource_type()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `backupdr_projects_locations_backup_vaults_data_sources_backups_fetch_for_resource_type_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn backupdr_projects_locations_backup_vaults_data_sources_backups_fetch_for_resource_type_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<
+            D = Result<ApiResponse<FetchBackupsForResourceTypeResponse>, ApiError>,
+            P = ApiPending,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    let task = backupdr_projects_locations_backup_vaults_data_sources_backups_fetch_for_resource_type_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`backupdr_projects_locations_backup_vaults_data_sources_backups_fetch_for_resource_type`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct BackupdrProjectsLocationsBackupVaultsDataSourcesBackupsFetchForResourceTypeArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Query parameter: filter
+    pub filter: Option<Option<String>>,
+    /// Query parameter: orderBy
+    pub orderBy: Option<Option<String>>,
+    /// Query parameter: pageSize
+    pub pageSize: Option<Option<String>>,
+    /// Query parameter: pageToken
+    pub pageToken: Option<Option<String>>,
+    /// Query parameter: resourceType
+    pub resourceType: Option<Option<String>>,
+    /// Query parameter: view
+    pub view: Option<Option<String>>,
+}
+
+/// GET v1/projects/{projectsId}/locations/{locationsId}/backupVaults/{backupVaultsId}/dataSources/{dataSourcesId}/backups:fetchForResourceType
+/// Fetch Backups for a given resource type.
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `backupdr_projects_locations_backup_vaults_data_sources_backups_fetch_for_resource_type_builder()` + `backupdr_projects_locations_backup_vaults_data_sources_backups_fetch_for_resource_type_execute()`.
+/// For task-level control, use `backupdr_projects_locations_backup_vaults_data_sources_backups_fetch_for_resource_type_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn backupdr_projects_locations_backup_vaults_data_sources_backups_fetch_for_resource_type(
+    client: &SimpleHttpClient,
+    args: &BackupdrProjectsLocationsBackupVaultsDataSourcesBackupsFetchForResourceTypeArgs,
+) -> Result<
+    impl StreamIterator<
+            D = Result<ApiResponse<FetchBackupsForResourceTypeResponse>, ApiError>,
+            P = ApiPending,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    let builder = backupdr_projects_locations_backup_vaults_data_sources_backups_fetch_for_resource_type_builder(client, &args.parent, &args.filter, &args.orderBy, &args.pageSize, &args.pageToken, &args.resourceType, &args.view)?;
+    backupdr_projects_locations_backup_vaults_data_sources_backups_fetch_for_resource_type_execute(
+        builder,
+    )
+}
+
+/// GET v1/projects/{projectsId}/locations/{locationsId}/backupVaults/{backupVaultsId}/dataSources/{dataSourcesId}/backups/{backupsId}
+/// Gets details of a Backup.
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `backupdr_projects_locations_backup_vaults_data_sources_backups_get_execute()` to send, or `backupdr_projects_locations_backup_vaults_data_sources_backups_get` for simplest API.
+
+pub fn backupdr_projects_locations_backup_vaults_data_sources_backups_get_builder(
+    client: &SimpleHttpClient,
+    name: &String,
+    view: &Option<Option<String>>,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!(
+        "https://backupdr.googleapis.com/v1/projects/{}/locations/{locationsId}/backupVaults/{backupVaultsId}/dataSources/{dataSourcesId}/backups/{backupsId}",
+        name,
+    );
+
+    // Build request
+    let mut query_parts = Vec::new();
+    if let Some(val) = view.as_ref() {
+        query_parts.push(format!("view={}", val));
+    }
+
+    let url_with_query = if query_parts.is_empty() {
+        endpoint_url
+    } else {
+        format!("{}?{}", endpoint_url, query_parts.join("&"))
+    };
+
+    let builder = client
+        .get(&url_with_query)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// GET v1/projects/{projectsId}/locations/{locationsId}/backupVaults/{backupVaultsId}/dataSources/{dataSourcesId}/backups/{backupsId}
+/// Gets details of a Backup.
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `backupdr_projects_locations_backup_vaults_data_sources_backups_get_execute()` or `backupdr_projects_locations_backup_vaults_data_sources_backups_get`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `backupdr_projects_locations_backup_vaults_data_sources_backups_get_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn backupdr_projects_locations_backup_vaults_data_sources_backups_get_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<Backup>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: Backup = serde_json::from_str(&body)
+                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// GET v1/projects/{projectsId}/locations/{locationsId}/backupVaults/{backupVaultsId}/dataSources/{dataSourcesId}/backups/{backupsId}
+/// Gets details of a Backup.
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `backupdr_projects_locations_backup_vaults_data_sources_backups_get_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `backupdr_projects_locations_backup_vaults_data_sources_backups_get_task()`.
+/// For the simplest API, use `backupdr_projects_locations_backup_vaults_data_sources_backups_get()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `backupdr_projects_locations_backup_vaults_data_sources_backups_get_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn backupdr_projects_locations_backup_vaults_data_sources_backups_get_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<Backup>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let task = backupdr_projects_locations_backup_vaults_data_sources_backups_get_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`backupdr_projects_locations_backup_vaults_data_sources_backups_get`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct BackupdrProjectsLocationsBackupVaultsDataSourcesBackupsGetArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Query parameter: view
+    pub view: Option<Option<String>>,
+}
+
+/// GET v1/projects/{projectsId}/locations/{locationsId}/backupVaults/{backupVaultsId}/dataSources/{dataSourcesId}/backups/{backupsId}
+/// Gets details of a Backup.
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `backupdr_projects_locations_backup_vaults_data_sources_backups_get_builder()` + `backupdr_projects_locations_backup_vaults_data_sources_backups_get_execute()`.
+/// For task-level control, use `backupdr_projects_locations_backup_vaults_data_sources_backups_get_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn backupdr_projects_locations_backup_vaults_data_sources_backups_get(
+    client: &SimpleHttpClient,
+    args: &BackupdrProjectsLocationsBackupVaultsDataSourcesBackupsGetArgs,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<Backup>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let builder = backupdr_projects_locations_backup_vaults_data_sources_backups_get_builder(
+        client, &args.name, &args.view,
+    )?;
+    backupdr_projects_locations_backup_vaults_data_sources_backups_get_execute(builder)
+}
+
+/// GET v1/projects/{projectsId}/locations/{locationsId}/backupVaults/{backupVaultsId}/dataSources/{dataSourcesId}/backups
+/// Lists Backups in a given project and location.
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `backupdr_projects_locations_backup_vaults_data_sources_backups_list_execute()` to send, or `backupdr_projects_locations_backup_vaults_data_sources_backups_list` for simplest API.
+
+pub fn backupdr_projects_locations_backup_vaults_data_sources_backups_list_builder(
+    client: &SimpleHttpClient,
+    parent: &String,
+    filter: &Option<Option<String>>,
+    orderBy: &Option<Option<String>>,
+    pageSize: &Option<Option<String>>,
+    pageToken: &Option<Option<String>>,
+    view: &Option<Option<String>>,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!(
+        "https://backupdr.googleapis.com/v1/projects/{}/locations/{locationsId}/backupVaults/{backupVaultsId}/dataSources/{dataSourcesId}/backups",
+        parent,
+    );
+
+    // Build request
+    let mut query_parts = Vec::new();
+    if let Some(val) = filter.as_ref() {
+        query_parts.push(format!("filter={}", val));
+    }
+    if let Some(val) = orderBy.as_ref() {
+        query_parts.push(format!("orderBy={}", val));
+    }
+    if let Some(val) = pageSize.as_ref() {
+        query_parts.push(format!("pageSize={}", val));
+    }
+    if let Some(val) = pageToken.as_ref() {
+        query_parts.push(format!("pageToken={}", val));
+    }
+    if let Some(val) = view.as_ref() {
+        query_parts.push(format!("view={}", val));
+    }
+
+    let url_with_query = if query_parts.is_empty() {
+        endpoint_url
+    } else {
+        format!("{}?{}", endpoint_url, query_parts.join("&"))
+    };
+
+    let builder = client
+        .get(&url_with_query)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// GET v1/projects/{projectsId}/locations/{locationsId}/backupVaults/{backupVaultsId}/dataSources/{dataSourcesId}/backups
+/// Lists Backups in a given project and location.
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `backupdr_projects_locations_backup_vaults_data_sources_backups_list_execute()` or `backupdr_projects_locations_backup_vaults_data_sources_backups_list`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `backupdr_projects_locations_backup_vaults_data_sources_backups_list_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn backupdr_projects_locations_backup_vaults_data_sources_backups_list_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<ListBackupsResponse>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: ListBackupsResponse = serde_json::from_str(&body)
+                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// GET v1/projects/{projectsId}/locations/{locationsId}/backupVaults/{backupVaultsId}/dataSources/{dataSourcesId}/backups
+/// Lists Backups in a given project and location.
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `backupdr_projects_locations_backup_vaults_data_sources_backups_list_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `backupdr_projects_locations_backup_vaults_data_sources_backups_list_task()`.
+/// For the simplest API, use `backupdr_projects_locations_backup_vaults_data_sources_backups_list()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `backupdr_projects_locations_backup_vaults_data_sources_backups_list_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn backupdr_projects_locations_backup_vaults_data_sources_backups_list_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<ListBackupsResponse>, ApiError>, P = ApiPending>
+        + Send
+        + 'static,
+    ApiError,
+> {
+    let task = backupdr_projects_locations_backup_vaults_data_sources_backups_list_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`backupdr_projects_locations_backup_vaults_data_sources_backups_list`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct BackupdrProjectsLocationsBackupVaultsDataSourcesBackupsListArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Query parameter: filter
+    pub filter: Option<Option<String>>,
+    /// Query parameter: orderBy
+    pub orderBy: Option<Option<String>>,
+    /// Query parameter: pageSize
+    pub pageSize: Option<Option<String>>,
+    /// Query parameter: pageToken
+    pub pageToken: Option<Option<String>>,
+    /// Query parameter: view
+    pub view: Option<Option<String>>,
+}
+
+/// GET v1/projects/{projectsId}/locations/{locationsId}/backupVaults/{backupVaultsId}/dataSources/{dataSourcesId}/backups
+/// Lists Backups in a given project and location.
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `backupdr_projects_locations_backup_vaults_data_sources_backups_list_builder()` + `backupdr_projects_locations_backup_vaults_data_sources_backups_list_execute()`.
+/// For task-level control, use `backupdr_projects_locations_backup_vaults_data_sources_backups_list_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn backupdr_projects_locations_backup_vaults_data_sources_backups_list(
+    client: &SimpleHttpClient,
+    args: &BackupdrProjectsLocationsBackupVaultsDataSourcesBackupsListArgs,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<ListBackupsResponse>, ApiError>, P = ApiPending>
+        + Send
+        + 'static,
+    ApiError,
+> {
+    let builder = backupdr_projects_locations_backup_vaults_data_sources_backups_list_builder(
+        client,
+        &args.parent,
+        &args.filter,
+        &args.orderBy,
+        &args.pageSize,
+        &args.pageToken,
+        &args.view,
+    )?;
+    backupdr_projects_locations_backup_vaults_data_sources_backups_list_execute(builder)
+}
+
+/// PATCH v1/projects/{projectsId}/locations/{locationsId}/backupVaults/{backupVaultsId}/dataSources/{dataSourcesId}/backups/{backupsId}
+/// Updates the settings of a Backup.
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `backupdr_projects_locations_backup_vaults_data_sources_backups_patch_execute()` to send, or `backupdr_projects_locations_backup_vaults_data_sources_backups_patch` for simplest API.
+
+pub fn backupdr_projects_locations_backup_vaults_data_sources_backups_patch_builder(
+    client: &SimpleHttpClient,
+    name: &String,
+    requestId: &Option<Option<String>>,
+    updateMask: &Option<Option<String>>,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!(
+        "https://backupdr.googleapis.com/v1/projects/{}/locations/{locationsId}/backupVaults/{backupVaultsId}/dataSources/{dataSourcesId}/backups/{backupsId}",
+        name,
+    );
+
+    // Build request
+    let mut query_parts = Vec::new();
+    if let Some(val) = requestId.as_ref() {
+        query_parts.push(format!("requestId={}", val));
+    }
+    if let Some(val) = updateMask.as_ref() {
+        query_parts.push(format!("updateMask={}", val));
+    }
+
+    let url_with_query = if query_parts.is_empty() {
+        endpoint_url
+    } else {
+        format!("{}?{}", endpoint_url, query_parts.join("&"))
+    };
+
+    let builder = client
+        .patch(&url_with_query)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// PATCH v1/projects/{projectsId}/locations/{locationsId}/backupVaults/{backupVaultsId}/dataSources/{dataSourcesId}/backups/{backupsId}
+/// Updates the settings of a Backup.
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `backupdr_projects_locations_backup_vaults_data_sources_backups_patch_execute()` or `backupdr_projects_locations_backup_vaults_data_sources_backups_patch`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `backupdr_projects_locations_backup_vaults_data_sources_backups_patch_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn backupdr_projects_locations_backup_vaults_data_sources_backups_patch_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<Operation>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: Operation = serde_json::from_str(&body)
+                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// PATCH v1/projects/{projectsId}/locations/{locationsId}/backupVaults/{backupVaultsId}/dataSources/{dataSourcesId}/backups/{backupsId}
+/// Updates the settings of a Backup.
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `backupdr_projects_locations_backup_vaults_data_sources_backups_patch_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `backupdr_projects_locations_backup_vaults_data_sources_backups_patch_task()`.
+/// For the simplest API, use `backupdr_projects_locations_backup_vaults_data_sources_backups_patch()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `backupdr_projects_locations_backup_vaults_data_sources_backups_patch_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn backupdr_projects_locations_backup_vaults_data_sources_backups_patch_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<Operation>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let task = backupdr_projects_locations_backup_vaults_data_sources_backups_patch_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`backupdr_projects_locations_backup_vaults_data_sources_backups_patch`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct BackupdrProjectsLocationsBackupVaultsDataSourcesBackupsPatchArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Query parameter: requestId
+    pub requestId: Option<Option<String>>,
+    /// Query parameter: updateMask
+    pub updateMask: Option<Option<String>>,
+}
+
+/// PATCH v1/projects/{projectsId}/locations/{locationsId}/backupVaults/{backupVaultsId}/dataSources/{dataSourcesId}/backups/{backupsId}
+/// Updates the settings of a Backup.
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `backupdr_projects_locations_backup_vaults_data_sources_backups_patch_builder()` + `backupdr_projects_locations_backup_vaults_data_sources_backups_patch_execute()`.
+/// For task-level control, use `backupdr_projects_locations_backup_vaults_data_sources_backups_patch_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn backupdr_projects_locations_backup_vaults_data_sources_backups_patch(
+    client: &SimpleHttpClient,
+    args: &BackupdrProjectsLocationsBackupVaultsDataSourcesBackupsPatchArgs,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<Operation>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let builder = backupdr_projects_locations_backup_vaults_data_sources_backups_patch_builder(
+        client,
+        &args.name,
+        &args.requestId,
+        &args.updateMask,
+    )?;
+    backupdr_projects_locations_backup_vaults_data_sources_backups_patch_execute(builder)
+}
+
+/// POST v1/projects/{projectsId}/locations/{locationsId}/backupVaults/{backupVaultsId}/dataSources/{dataSourcesId}/backups/{backupsId}:restore
+/// Restore from a Backup
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `backupdr_projects_locations_backup_vaults_data_sources_backups_restore_execute()` to send, or `backupdr_projects_locations_backup_vaults_data_sources_backups_restore` for simplest API.
+
+pub fn backupdr_projects_locations_backup_vaults_data_sources_backups_restore_builder(
+    client: &SimpleHttpClient,
+    name: &String,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!(
+        "https://backupdr.googleapis.com/v1/projects/{}/locations/{locationsId}/backupVaults/{backupVaultsId}/dataSources/{dataSourcesId}/backups/{backupsId}:restore",
+        name,
+    );
+
+    // Build request
+    let builder = client
+        .post(&endpoint_url)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// POST v1/projects/{projectsId}/locations/{locationsId}/backupVaults/{backupVaultsId}/dataSources/{dataSourcesId}/backups/{backupsId}:restore
+/// Restore from a Backup
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `backupdr_projects_locations_backup_vaults_data_sources_backups_restore_execute()` or `backupdr_projects_locations_backup_vaults_data_sources_backups_restore`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `backupdr_projects_locations_backup_vaults_data_sources_backups_restore_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn backupdr_projects_locations_backup_vaults_data_sources_backups_restore_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<Operation>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: Operation = serde_json::from_str(&body)
+                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// POST v1/projects/{projectsId}/locations/{locationsId}/backupVaults/{backupVaultsId}/dataSources/{dataSourcesId}/backups/{backupsId}:restore
+/// Restore from a Backup
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `backupdr_projects_locations_backup_vaults_data_sources_backups_restore_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `backupdr_projects_locations_backup_vaults_data_sources_backups_restore_task()`.
+/// For the simplest API, use `backupdr_projects_locations_backup_vaults_data_sources_backups_restore()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `backupdr_projects_locations_backup_vaults_data_sources_backups_restore_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn backupdr_projects_locations_backup_vaults_data_sources_backups_restore_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<Operation>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let task =
+        backupdr_projects_locations_backup_vaults_data_sources_backups_restore_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`backupdr_projects_locations_backup_vaults_data_sources_backups_restore`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct BackupdrProjectsLocationsBackupVaultsDataSourcesBackupsRestoreArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
+/// POST v1/projects/{projectsId}/locations/{locationsId}/backupVaults/{backupVaultsId}/dataSources/{dataSourcesId}/backups/{backupsId}:restore
+/// Restore from a Backup
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `backupdr_projects_locations_backup_vaults_data_sources_backups_restore_builder()` + `backupdr_projects_locations_backup_vaults_data_sources_backups_restore_execute()`.
+/// For task-level control, use `backupdr_projects_locations_backup_vaults_data_sources_backups_restore_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn backupdr_projects_locations_backup_vaults_data_sources_backups_restore(
+    client: &SimpleHttpClient,
+    args: &BackupdrProjectsLocationsBackupVaultsDataSourcesBackupsRestoreArgs,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<Operation>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let builder = backupdr_projects_locations_backup_vaults_data_sources_backups_restore_builder(
+        client, &args.name,
+    )?;
+    backupdr_projects_locations_backup_vaults_data_sources_backups_restore_execute(builder)
+}
+
+/// GET v1/projects/{projectsId}/locations/{locationsId}/dataSourceReferences:fetchForResourceType
+/// Fetch DataSourceReferences for a given project, location and resource type.
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `backupdr_projects_locations_data_source_references_fetch_for_resource_type_execute()` to send, or `backupdr_projects_locations_data_source_references_fetch_for_resource_type` for simplest API.
+
+pub fn backupdr_projects_locations_data_source_references_fetch_for_resource_type_builder(
+    client: &SimpleHttpClient,
+    parent: &String,
+    filter: &Option<Option<String>>,
+    orderBy: &Option<Option<String>>,
+    pageSize: &Option<Option<String>>,
+    pageToken: &Option<Option<String>>,
+    resourceType: &Option<Option<String>>,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!(
+        "https://backupdr.googleapis.com/v1/projects/{}/locations/{locationsId}/dataSourceReferences:fetchForResourceType",
+        parent,
+    );
+
+    // Build request
+    let mut query_parts = Vec::new();
+    if let Some(val) = filter.as_ref() {
+        query_parts.push(format!("filter={}", val));
+    }
+    if let Some(val) = orderBy.as_ref() {
+        query_parts.push(format!("orderBy={}", val));
+    }
+    if let Some(val) = pageSize.as_ref() {
+        query_parts.push(format!("pageSize={}", val));
+    }
+    if let Some(val) = pageToken.as_ref() {
+        query_parts.push(format!("pageToken={}", val));
+    }
+    if let Some(val) = resourceType.as_ref() {
+        query_parts.push(format!("resourceType={}", val));
+    }
+
+    let url_with_query = if query_parts.is_empty() {
+        endpoint_url
+    } else {
+        format!("{}?{}", endpoint_url, query_parts.join("&"))
+    };
+
+    let builder = client
+        .get(&url_with_query)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// GET v1/projects/{projectsId}/locations/{locationsId}/dataSourceReferences:fetchForResourceType
+/// Fetch DataSourceReferences for a given project, location and resource type.
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `backupdr_projects_locations_data_source_references_fetch_for_resource_type_execute()` or `backupdr_projects_locations_data_source_references_fetch_for_resource_type`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `backupdr_projects_locations_data_source_references_fetch_for_resource_type_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn backupdr_projects_locations_data_source_references_fetch_for_resource_type_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<FetchDataSourceReferencesForResourceTypeResponse>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: FetchDataSourceReferencesForResourceTypeResponse =
+                    serde_json::from_str(&body)
+                        .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// GET v1/projects/{projectsId}/locations/{locationsId}/dataSourceReferences:fetchForResourceType
+/// Fetch DataSourceReferences for a given project, location and resource type.
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `backupdr_projects_locations_data_source_references_fetch_for_resource_type_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `backupdr_projects_locations_data_source_references_fetch_for_resource_type_task()`.
+/// For the simplest API, use `backupdr_projects_locations_data_source_references_fetch_for_resource_type()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `backupdr_projects_locations_data_source_references_fetch_for_resource_type_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn backupdr_projects_locations_data_source_references_fetch_for_resource_type_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<
+            D = Result<ApiResponse<FetchDataSourceReferencesForResourceTypeResponse>, ApiError>,
+            P = ApiPending,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    let task =
+        backupdr_projects_locations_data_source_references_fetch_for_resource_type_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`backupdr_projects_locations_data_source_references_fetch_for_resource_type`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct BackupdrProjectsLocationsDataSourceReferencesFetchForResourceTypeArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Query parameter: filter
+    pub filter: Option<Option<String>>,
+    /// Query parameter: orderBy
+    pub orderBy: Option<Option<String>>,
+    /// Query parameter: pageSize
+    pub pageSize: Option<Option<String>>,
+    /// Query parameter: pageToken
+    pub pageToken: Option<Option<String>>,
+    /// Query parameter: resourceType
+    pub resourceType: Option<Option<String>>,
+}
+
+/// GET v1/projects/{projectsId}/locations/{locationsId}/dataSourceReferences:fetchForResourceType
+/// Fetch DataSourceReferences for a given project, location and resource type.
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `backupdr_projects_locations_data_source_references_fetch_for_resource_type_builder()` + `backupdr_projects_locations_data_source_references_fetch_for_resource_type_execute()`.
+/// For task-level control, use `backupdr_projects_locations_data_source_references_fetch_for_resource_type_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn backupdr_projects_locations_data_source_references_fetch_for_resource_type(
+    client: &SimpleHttpClient,
+    args: &BackupdrProjectsLocationsDataSourceReferencesFetchForResourceTypeArgs,
+) -> Result<
+    impl StreamIterator<
+            D = Result<ApiResponse<FetchDataSourceReferencesForResourceTypeResponse>, ApiError>,
+            P = ApiPending,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    let builder =
+        backupdr_projects_locations_data_source_references_fetch_for_resource_type_builder(
+            client,
+            &args.parent,
+            &args.filter,
+            &args.orderBy,
+            &args.pageSize,
+            &args.pageToken,
+            &args.resourceType,
+        )?;
+    backupdr_projects_locations_data_source_references_fetch_for_resource_type_execute(builder)
+}
+
+/// GET v1/projects/{projectsId}/locations/{locationsId}/dataSourceReferences/{dataSourceReferencesId}
+/// Gets details of a single DataSourceReference.
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `backupdr_projects_locations_data_source_references_get_execute()` to send, or `backupdr_projects_locations_data_source_references_get` for simplest API.
+
+pub fn backupdr_projects_locations_data_source_references_get_builder(
+    client: &SimpleHttpClient,
+    name: &String,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!(
+        "https://backupdr.googleapis.com/v1/projects/{}/locations/{locationsId}/dataSourceReferences/{dataSourceReferencesId}",
+        name,
+    );
+
+    // Build request
+    let builder = client
+        .get(&endpoint_url)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// GET v1/projects/{projectsId}/locations/{locationsId}/dataSourceReferences/{dataSourceReferencesId}
+/// Gets details of a single DataSourceReference.
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `backupdr_projects_locations_data_source_references_get_execute()` or `backupdr_projects_locations_data_source_references_get`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `backupdr_projects_locations_data_source_references_get_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn backupdr_projects_locations_data_source_references_get_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<DataSourceReference>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: DataSourceReference = serde_json::from_str(&body)
+                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// GET v1/projects/{projectsId}/locations/{locationsId}/dataSourceReferences/{dataSourceReferencesId}
+/// Gets details of a single DataSourceReference.
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `backupdr_projects_locations_data_source_references_get_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `backupdr_projects_locations_data_source_references_get_task()`.
+/// For the simplest API, use `backupdr_projects_locations_data_source_references_get()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `backupdr_projects_locations_data_source_references_get_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn backupdr_projects_locations_data_source_references_get_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<DataSourceReference>, ApiError>, P = ApiPending>
+        + Send
+        + 'static,
+    ApiError,
+> {
+    let task = backupdr_projects_locations_data_source_references_get_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`backupdr_projects_locations_data_source_references_get`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct BackupdrProjectsLocationsDataSourceReferencesGetArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
+/// GET v1/projects/{projectsId}/locations/{locationsId}/dataSourceReferences/{dataSourceReferencesId}
+/// Gets details of a single DataSourceReference.
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `backupdr_projects_locations_data_source_references_get_builder()` + `backupdr_projects_locations_data_source_references_get_execute()`.
+/// For task-level control, use `backupdr_projects_locations_data_source_references_get_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn backupdr_projects_locations_data_source_references_get(
+    client: &SimpleHttpClient,
+    args: &BackupdrProjectsLocationsDataSourceReferencesGetArgs,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<DataSourceReference>, ApiError>, P = ApiPending>
+        + Send
+        + 'static,
+    ApiError,
+> {
+    let builder =
+        backupdr_projects_locations_data_source_references_get_builder(client, &args.name)?;
+    backupdr_projects_locations_data_source_references_get_execute(builder)
+}
+
+/// GET v1/projects/{projectsId}/locations/{locationsId}/dataSourceReferences
+/// Lists DataSourceReferences for a given project and location.
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `backupdr_projects_locations_data_source_references_list_execute()` to send, or `backupdr_projects_locations_data_source_references_list` for simplest API.
+
+pub fn backupdr_projects_locations_data_source_references_list_builder(
+    client: &SimpleHttpClient,
+    parent: &String,
+    filter: &Option<Option<String>>,
+    orderBy: &Option<Option<String>>,
+    pageSize: &Option<Option<String>>,
+    pageToken: &Option<Option<String>>,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!(
+        "https://backupdr.googleapis.com/v1/projects/{}/locations/{locationsId}/dataSourceReferences",
+        parent,
+    );
+
+    // Build request
+    let mut query_parts = Vec::new();
+    if let Some(val) = filter.as_ref() {
+        query_parts.push(format!("filter={}", val));
+    }
+    if let Some(val) = orderBy.as_ref() {
+        query_parts.push(format!("orderBy={}", val));
+    }
+    if let Some(val) = pageSize.as_ref() {
+        query_parts.push(format!("pageSize={}", val));
+    }
+    if let Some(val) = pageToken.as_ref() {
+        query_parts.push(format!("pageToken={}", val));
+    }
+
+    let url_with_query = if query_parts.is_empty() {
+        endpoint_url
+    } else {
+        format!("{}?{}", endpoint_url, query_parts.join("&"))
+    };
+
+    let builder = client
+        .get(&url_with_query)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// GET v1/projects/{projectsId}/locations/{locationsId}/dataSourceReferences
+/// Lists DataSourceReferences for a given project and location.
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `backupdr_projects_locations_data_source_references_list_execute()` or `backupdr_projects_locations_data_source_references_list`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `backupdr_projects_locations_data_source_references_list_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn backupdr_projects_locations_data_source_references_list_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<ListDataSourceReferencesResponse>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: ListDataSourceReferencesResponse = serde_json::from_str(&body)
+                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// GET v1/projects/{projectsId}/locations/{locationsId}/dataSourceReferences
+/// Lists DataSourceReferences for a given project and location.
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `backupdr_projects_locations_data_source_references_list_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `backupdr_projects_locations_data_source_references_list_task()`.
+/// For the simplest API, use `backupdr_projects_locations_data_source_references_list()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `backupdr_projects_locations_data_source_references_list_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn backupdr_projects_locations_data_source_references_list_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<
+            D = Result<ApiResponse<ListDataSourceReferencesResponse>, ApiError>,
+            P = ApiPending,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    let task = backupdr_projects_locations_data_source_references_list_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`backupdr_projects_locations_data_source_references_list`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct BackupdrProjectsLocationsDataSourceReferencesListArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Query parameter: filter
+    pub filter: Option<Option<String>>,
+    /// Query parameter: orderBy
+    pub orderBy: Option<Option<String>>,
+    /// Query parameter: pageSize
+    pub pageSize: Option<Option<String>>,
+    /// Query parameter: pageToken
+    pub pageToken: Option<Option<String>>,
+}
+
+/// GET v1/projects/{projectsId}/locations/{locationsId}/dataSourceReferences
+/// Lists DataSourceReferences for a given project and location.
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `backupdr_projects_locations_data_source_references_list_builder()` + `backupdr_projects_locations_data_source_references_list_execute()`.
+/// For task-level control, use `backupdr_projects_locations_data_source_references_list_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn backupdr_projects_locations_data_source_references_list(
+    client: &SimpleHttpClient,
+    args: &BackupdrProjectsLocationsDataSourceReferencesListArgs,
+) -> Result<
+    impl StreamIterator<
+            D = Result<ApiResponse<ListDataSourceReferencesResponse>, ApiError>,
+            P = ApiPending,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    let builder = backupdr_projects_locations_data_source_references_list_builder(
+        client,
+        &args.parent,
+        &args.filter,
+        &args.orderBy,
+        &args.pageSize,
+        &args.pageToken,
+    )?;
+    backupdr_projects_locations_data_source_references_list_execute(builder)
+}
+
+/// POST v1/projects/{projectsId}/locations/{locationsId}/managementServers
+/// Creates a new ManagementServer in a given project and location.
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `backupdr_projects_locations_management_servers_create_execute()` to send, or `backupdr_projects_locations_management_servers_create` for simplest API.
+
+pub fn backupdr_projects_locations_management_servers_create_builder(
+    client: &SimpleHttpClient,
+    parent: &String,
+    managementServerId: &Option<Option<String>>,
+    requestId: &Option<Option<String>>,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!(
+        "https://backupdr.googleapis.com/v1/projects/{}/locations/{locationsId}/managementServers",
+        parent,
+    );
+
+    // Build request
+    let mut query_parts = Vec::new();
+    if let Some(val) = managementServerId.as_ref() {
+        query_parts.push(format!("managementServerId={}", val));
+    }
+    if let Some(val) = requestId.as_ref() {
+        query_parts.push(format!("requestId={}", val));
+    }
+
+    let url_with_query = if query_parts.is_empty() {
+        endpoint_url
+    } else {
+        format!("{}?{}", endpoint_url, query_parts.join("&"))
+    };
+
+    let builder = client
+        .post(&url_with_query)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// POST v1/projects/{projectsId}/locations/{locationsId}/managementServers
+/// Creates a new ManagementServer in a given project and location.
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `backupdr_projects_locations_management_servers_create_execute()` or `backupdr_projects_locations_management_servers_create`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `backupdr_projects_locations_management_servers_create_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn backupdr_projects_locations_management_servers_create_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<Operation>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: Operation = serde_json::from_str(&body)
+                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// POST v1/projects/{projectsId}/locations/{locationsId}/managementServers
+/// Creates a new ManagementServer in a given project and location.
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `backupdr_projects_locations_management_servers_create_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `backupdr_projects_locations_management_servers_create_task()`.
+/// For the simplest API, use `backupdr_projects_locations_management_servers_create()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `backupdr_projects_locations_management_servers_create_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn backupdr_projects_locations_management_servers_create_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<Operation>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let task = backupdr_projects_locations_management_servers_create_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`backupdr_projects_locations_management_servers_create`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct BackupdrProjectsLocationsManagementServersCreateArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Query parameter: managementServerId
+    pub managementServerId: Option<Option<String>>,
+    /// Query parameter: requestId
+    pub requestId: Option<Option<String>>,
+}
+
+/// POST v1/projects/{projectsId}/locations/{locationsId}/managementServers
+/// Creates a new ManagementServer in a given project and location.
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `backupdr_projects_locations_management_servers_create_builder()` + `backupdr_projects_locations_management_servers_create_execute()`.
+/// For task-level control, use `backupdr_projects_locations_management_servers_create_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn backupdr_projects_locations_management_servers_create(
+    client: &SimpleHttpClient,
+    args: &BackupdrProjectsLocationsManagementServersCreateArgs,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<Operation>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let builder = backupdr_projects_locations_management_servers_create_builder(
+        client,
+        &args.parent,
+        &args.managementServerId,
+        &args.requestId,
+    )?;
+    backupdr_projects_locations_management_servers_create_execute(builder)
+}
+
+/// DELETE v1/projects/{projectsId}/locations/{locationsId}/managementServers/{managementServersId}
+/// Deletes a single ManagementServer.
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `backupdr_projects_locations_management_servers_delete_execute()` to send, or `backupdr_projects_locations_management_servers_delete` for simplest API.
+
+pub fn backupdr_projects_locations_management_servers_delete_builder(
+    client: &SimpleHttpClient,
+    name: &String,
+    requestId: &Option<Option<String>>,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!(
+        "https://backupdr.googleapis.com/v1/projects/{}/locations/{locationsId}/managementServers/{managementServersId}",
+        name,
+    );
+
+    // Build request
+    let mut query_parts = Vec::new();
+    if let Some(val) = requestId.as_ref() {
+        query_parts.push(format!("requestId={}", val));
+    }
+
+    let url_with_query = if query_parts.is_empty() {
+        endpoint_url
+    } else {
+        format!("{}?{}", endpoint_url, query_parts.join("&"))
+    };
+
+    let builder = client
+        .delete(&url_with_query)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// DELETE v1/projects/{projectsId}/locations/{locationsId}/managementServers/{managementServersId}
+/// Deletes a single ManagementServer.
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `backupdr_projects_locations_management_servers_delete_execute()` or `backupdr_projects_locations_management_servers_delete`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `backupdr_projects_locations_management_servers_delete_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn backupdr_projects_locations_management_servers_delete_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<Operation>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: Operation = serde_json::from_str(&body)
+                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// DELETE v1/projects/{projectsId}/locations/{locationsId}/managementServers/{managementServersId}
+/// Deletes a single ManagementServer.
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `backupdr_projects_locations_management_servers_delete_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `backupdr_projects_locations_management_servers_delete_task()`.
+/// For the simplest API, use `backupdr_projects_locations_management_servers_delete()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `backupdr_projects_locations_management_servers_delete_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn backupdr_projects_locations_management_servers_delete_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<Operation>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let task = backupdr_projects_locations_management_servers_delete_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`backupdr_projects_locations_management_servers_delete`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct BackupdrProjectsLocationsManagementServersDeleteArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Query parameter: requestId
+    pub requestId: Option<Option<String>>,
+}
+
+/// DELETE v1/projects/{projectsId}/locations/{locationsId}/managementServers/{managementServersId}
+/// Deletes a single ManagementServer.
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `backupdr_projects_locations_management_servers_delete_builder()` + `backupdr_projects_locations_management_servers_delete_execute()`.
+/// For task-level control, use `backupdr_projects_locations_management_servers_delete_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn backupdr_projects_locations_management_servers_delete(
+    client: &SimpleHttpClient,
+    args: &BackupdrProjectsLocationsManagementServersDeleteArgs,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<Operation>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let builder = backupdr_projects_locations_management_servers_delete_builder(
+        client,
+        &args.name,
+        &args.requestId,
+    )?;
+    backupdr_projects_locations_management_servers_delete_execute(builder)
+}
+
+/// GET v1/projects/{projectsId}/locations/{locationsId}/managementServers/{managementServersId}
+/// Gets details of a single ManagementServer.
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `backupdr_projects_locations_management_servers_get_execute()` to send, or `backupdr_projects_locations_management_servers_get` for simplest API.
+
+pub fn backupdr_projects_locations_management_servers_get_builder(
+    client: &SimpleHttpClient,
+    name: &String,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!(
+        "https://backupdr.googleapis.com/v1/projects/{}/locations/{locationsId}/managementServers/{managementServersId}",
+        name,
+    );
+
+    // Build request
+    let builder = client
+        .get(&endpoint_url)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// GET v1/projects/{projectsId}/locations/{locationsId}/managementServers/{managementServersId}
+/// Gets details of a single ManagementServer.
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `backupdr_projects_locations_management_servers_get_execute()` or `backupdr_projects_locations_management_servers_get`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `backupdr_projects_locations_management_servers_get_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn backupdr_projects_locations_management_servers_get_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<ManagementServer>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: ManagementServer = serde_json::from_str(&body)
+                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// GET v1/projects/{projectsId}/locations/{locationsId}/managementServers/{managementServersId}
+/// Gets details of a single ManagementServer.
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `backupdr_projects_locations_management_servers_get_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `backupdr_projects_locations_management_servers_get_task()`.
+/// For the simplest API, use `backupdr_projects_locations_management_servers_get()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `backupdr_projects_locations_management_servers_get_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn backupdr_projects_locations_management_servers_get_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<ManagementServer>, ApiError>, P = ApiPending>
+        + Send
+        + 'static,
+    ApiError,
+> {
+    let task = backupdr_projects_locations_management_servers_get_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`backupdr_projects_locations_management_servers_get`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct BackupdrProjectsLocationsManagementServersGetArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
+/// GET v1/projects/{projectsId}/locations/{locationsId}/managementServers/{managementServersId}
+/// Gets details of a single ManagementServer.
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `backupdr_projects_locations_management_servers_get_builder()` + `backupdr_projects_locations_management_servers_get_execute()`.
+/// For task-level control, use `backupdr_projects_locations_management_servers_get_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn backupdr_projects_locations_management_servers_get(
+    client: &SimpleHttpClient,
+    args: &BackupdrProjectsLocationsManagementServersGetArgs,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<ManagementServer>, ApiError>, P = ApiPending>
+        + Send
+        + 'static,
+    ApiError,
+> {
+    let builder = backupdr_projects_locations_management_servers_get_builder(client, &args.name)?;
+    backupdr_projects_locations_management_servers_get_execute(builder)
+}
+
+/// GET v1/projects/{projectsId}/locations/{locationsId}/managementServers/{managementServersId}:getIamPolicy
+/// Gets the access control policy for a resource. Returns an empty policy if the resource exists and does not have a policy set.
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `backupdr_projects_locations_management_servers_get_iam_policy_execute()` to send, or `backupdr_projects_locations_management_servers_get_iam_policy` for simplest API.
+
+pub fn backupdr_projects_locations_management_servers_get_iam_policy_builder(
+    client: &SimpleHttpClient,
+    resource: &String,
+    options_requestedPolicyVersion: &Option<Option<String>>,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!(
+        "https://backupdr.googleapis.com/v1/projects/{}/locations/{locationsId}/managementServers/{managementServersId}:getIamPolicy",
+        resource,
+    );
+
+    // Build request
+    let mut query_parts = Vec::new();
+    if let Some(val) = options_requestedPolicyVersion.as_ref() {
+        query_parts.push(format!("options.requestedPolicyVersion={}", val));
+    }
+
+    let url_with_query = if query_parts.is_empty() {
+        endpoint_url
+    } else {
+        format!("{}?{}", endpoint_url, query_parts.join("&"))
+    };
+
+    let builder = client
+        .get(&url_with_query)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// GET v1/projects/{projectsId}/locations/{locationsId}/managementServers/{managementServersId}:getIamPolicy
+/// Gets the access control policy for a resource. Returns an empty policy if the resource exists and does not have a policy set.
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `backupdr_projects_locations_management_servers_get_iam_policy_execute()` or `backupdr_projects_locations_management_servers_get_iam_policy`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `backupdr_projects_locations_management_servers_get_iam_policy_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn backupdr_projects_locations_management_servers_get_iam_policy_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<Policy>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: Policy = serde_json::from_str(&body)
+                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// GET v1/projects/{projectsId}/locations/{locationsId}/managementServers/{managementServersId}:getIamPolicy
+/// Gets the access control policy for a resource. Returns an empty policy if the resource exists and does not have a policy set.
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `backupdr_projects_locations_management_servers_get_iam_policy_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `backupdr_projects_locations_management_servers_get_iam_policy_task()`.
+/// For the simplest API, use `backupdr_projects_locations_management_servers_get_iam_policy()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `backupdr_projects_locations_management_servers_get_iam_policy_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn backupdr_projects_locations_management_servers_get_iam_policy_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<Policy>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let task = backupdr_projects_locations_management_servers_get_iam_policy_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`backupdr_projects_locations_management_servers_get_iam_policy`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct BackupdrProjectsLocationsManagementServersGetIamPolicyArgs {
+    /// Path parameter: resource
+    pub resource: String,
+    /// Query parameter: options_requestedPolicyVersion
+    pub options_requestedPolicyVersion: Option<Option<String>>,
+}
+
+/// GET v1/projects/{projectsId}/locations/{locationsId}/managementServers/{managementServersId}:getIamPolicy
+/// Gets the access control policy for a resource. Returns an empty policy if the resource exists and does not have a policy set.
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `backupdr_projects_locations_management_servers_get_iam_policy_builder()` + `backupdr_projects_locations_management_servers_get_iam_policy_execute()`.
+/// For task-level control, use `backupdr_projects_locations_management_servers_get_iam_policy_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn backupdr_projects_locations_management_servers_get_iam_policy(
+    client: &SimpleHttpClient,
+    args: &BackupdrProjectsLocationsManagementServersGetIamPolicyArgs,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<Policy>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let builder = backupdr_projects_locations_management_servers_get_iam_policy_builder(
+        client,
+        &args.resource,
+        &args.options_requestedPolicyVersion,
+    )?;
+    backupdr_projects_locations_management_servers_get_iam_policy_execute(builder)
+}
+
+/// GET v1/projects/{projectsId}/locations/{locationsId}/managementServers
+/// Lists ManagementServers in a given project and location.
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `backupdr_projects_locations_management_servers_list_execute()` to send, or `backupdr_projects_locations_management_servers_list` for simplest API.
+
+pub fn backupdr_projects_locations_management_servers_list_builder(
+    client: &SimpleHttpClient,
+    parent: &String,
+    filter: &Option<Option<String>>,
+    orderBy: &Option<Option<String>>,
+    pageSize: &Option<Option<String>>,
+    pageToken: &Option<Option<String>>,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!(
+        "https://backupdr.googleapis.com/v1/projects/{}/locations/{locationsId}/managementServers",
+        parent,
+    );
+
+    // Build request
+    let mut query_parts = Vec::new();
+    if let Some(val) = filter.as_ref() {
+        query_parts.push(format!("filter={}", val));
+    }
+    if let Some(val) = orderBy.as_ref() {
+        query_parts.push(format!("orderBy={}", val));
+    }
+    if let Some(val) = pageSize.as_ref() {
+        query_parts.push(format!("pageSize={}", val));
+    }
+    if let Some(val) = pageToken.as_ref() {
+        query_parts.push(format!("pageToken={}", val));
+    }
+
+    let url_with_query = if query_parts.is_empty() {
+        endpoint_url
+    } else {
+        format!("{}?{}", endpoint_url, query_parts.join("&"))
+    };
+
+    let builder = client
+        .get(&url_with_query)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// GET v1/projects/{projectsId}/locations/{locationsId}/managementServers
+/// Lists ManagementServers in a given project and location.
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `backupdr_projects_locations_management_servers_list_execute()` or `backupdr_projects_locations_management_servers_list`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `backupdr_projects_locations_management_servers_list_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn backupdr_projects_locations_management_servers_list_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<ListManagementServersResponse>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: ListManagementServersResponse = serde_json::from_str(&body)
+                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// GET v1/projects/{projectsId}/locations/{locationsId}/managementServers
+/// Lists ManagementServers in a given project and location.
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `backupdr_projects_locations_management_servers_list_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `backupdr_projects_locations_management_servers_list_task()`.
+/// For the simplest API, use `backupdr_projects_locations_management_servers_list()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `backupdr_projects_locations_management_servers_list_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn backupdr_projects_locations_management_servers_list_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<
+            D = Result<ApiResponse<ListManagementServersResponse>, ApiError>,
+            P = ApiPending,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    let task = backupdr_projects_locations_management_servers_list_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`backupdr_projects_locations_management_servers_list`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct BackupdrProjectsLocationsManagementServersListArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Query parameter: filter
+    pub filter: Option<Option<String>>,
+    /// Query parameter: orderBy
+    pub orderBy: Option<Option<String>>,
+    /// Query parameter: pageSize
+    pub pageSize: Option<Option<String>>,
+    /// Query parameter: pageToken
+    pub pageToken: Option<Option<String>>,
+}
+
+/// GET v1/projects/{projectsId}/locations/{locationsId}/managementServers
+/// Lists ManagementServers in a given project and location.
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `backupdr_projects_locations_management_servers_list_builder()` + `backupdr_projects_locations_management_servers_list_execute()`.
+/// For task-level control, use `backupdr_projects_locations_management_servers_list_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn backupdr_projects_locations_management_servers_list(
+    client: &SimpleHttpClient,
+    args: &BackupdrProjectsLocationsManagementServersListArgs,
+) -> Result<
+    impl StreamIterator<
+            D = Result<ApiResponse<ListManagementServersResponse>, ApiError>,
+            P = ApiPending,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    let builder = backupdr_projects_locations_management_servers_list_builder(
+        client,
+        &args.parent,
+        &args.filter,
+        &args.orderBy,
+        &args.pageSize,
+        &args.pageToken,
+    )?;
+    backupdr_projects_locations_management_servers_list_execute(builder)
+}
+
+/// POST v1/projects/{projectsId}/locations/{locationsId}/managementServers:msComplianceMetadata
+/// Returns the Assured Workloads compliance metadata for a given project.
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `backupdr_projects_locations_management_servers_ms_compliance_metadata_execute()` to send, or `backupdr_projects_locations_management_servers_ms_compliance_metadata` for simplest API.
+
+pub fn backupdr_projects_locations_management_servers_ms_compliance_metadata_builder(
+    client: &SimpleHttpClient,
+    parent: &String,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!(
+        "https://backupdr.googleapis.com/v1/projects/{}/locations/{locationsId}/managementServers:msComplianceMetadata",
+        parent,
+    );
+
+    // Build request
+    let builder = client
+        .post(&endpoint_url)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// POST v1/projects/{projectsId}/locations/{locationsId}/managementServers:msComplianceMetadata
+/// Returns the Assured Workloads compliance metadata for a given project.
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `backupdr_projects_locations_management_servers_ms_compliance_metadata_execute()` or `backupdr_projects_locations_management_servers_ms_compliance_metadata`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `backupdr_projects_locations_management_servers_ms_compliance_metadata_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn backupdr_projects_locations_management_servers_ms_compliance_metadata_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<FetchMsComplianceMetadataResponse>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: FetchMsComplianceMetadataResponse = serde_json::from_str(&body)
+                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// POST v1/projects/{projectsId}/locations/{locationsId}/managementServers:msComplianceMetadata
+/// Returns the Assured Workloads compliance metadata for a given project.
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `backupdr_projects_locations_management_servers_ms_compliance_metadata_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `backupdr_projects_locations_management_servers_ms_compliance_metadata_task()`.
+/// For the simplest API, use `backupdr_projects_locations_management_servers_ms_compliance_metadata()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `backupdr_projects_locations_management_servers_ms_compliance_metadata_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn backupdr_projects_locations_management_servers_ms_compliance_metadata_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<
+            D = Result<ApiResponse<FetchMsComplianceMetadataResponse>, ApiError>,
+            P = ApiPending,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    let task = backupdr_projects_locations_management_servers_ms_compliance_metadata_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`backupdr_projects_locations_management_servers_ms_compliance_metadata`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct BackupdrProjectsLocationsManagementServersMsComplianceMetadataArgs {
+    /// Path parameter: parent
+    pub parent: String,
+}
+
+/// POST v1/projects/{projectsId}/locations/{locationsId}/managementServers:msComplianceMetadata
+/// Returns the Assured Workloads compliance metadata for a given project.
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `backupdr_projects_locations_management_servers_ms_compliance_metadata_builder()` + `backupdr_projects_locations_management_servers_ms_compliance_metadata_execute()`.
+/// For task-level control, use `backupdr_projects_locations_management_servers_ms_compliance_metadata_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn backupdr_projects_locations_management_servers_ms_compliance_metadata(
+    client: &SimpleHttpClient,
+    args: &BackupdrProjectsLocationsManagementServersMsComplianceMetadataArgs,
+) -> Result<
+    impl StreamIterator<
+            D = Result<ApiResponse<FetchMsComplianceMetadataResponse>, ApiError>,
+            P = ApiPending,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    let builder = backupdr_projects_locations_management_servers_ms_compliance_metadata_builder(
+        client,
+        &args.parent,
+    )?;
+    backupdr_projects_locations_management_servers_ms_compliance_metadata_execute(builder)
+}
+
+/// POST v1/projects/{projectsId}/locations/{locationsId}/managementServers/{managementServersId}:setIamPolicy
+/// Sets the access control policy on the specified resource. Replaces any existing policy. Can return NOT_FOUND, INVALID_ARGUMENT, and PERMISSION_DENIED errors.
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `backupdr_projects_locations_management_servers_set_iam_policy_execute()` to send, or `backupdr_projects_locations_management_servers_set_iam_policy` for simplest API.
+
+pub fn backupdr_projects_locations_management_servers_set_iam_policy_builder(
+    client: &SimpleHttpClient,
+    resource: &String,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!(
+        "https://backupdr.googleapis.com/v1/projects/{}/locations/{locationsId}/managementServers/{managementServersId}:setIamPolicy",
+        resource,
+    );
+
+    // Build request
+    let builder = client
+        .post(&endpoint_url)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// POST v1/projects/{projectsId}/locations/{locationsId}/managementServers/{managementServersId}:setIamPolicy
+/// Sets the access control policy on the specified resource. Replaces any existing policy. Can return NOT_FOUND, INVALID_ARGUMENT, and PERMISSION_DENIED errors.
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `backupdr_projects_locations_management_servers_set_iam_policy_execute()` or `backupdr_projects_locations_management_servers_set_iam_policy`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `backupdr_projects_locations_management_servers_set_iam_policy_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn backupdr_projects_locations_management_servers_set_iam_policy_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<Policy>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: Policy = serde_json::from_str(&body)
+                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// POST v1/projects/{projectsId}/locations/{locationsId}/managementServers/{managementServersId}:setIamPolicy
+/// Sets the access control policy on the specified resource. Replaces any existing policy. Can return NOT_FOUND, INVALID_ARGUMENT, and PERMISSION_DENIED errors.
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `backupdr_projects_locations_management_servers_set_iam_policy_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `backupdr_projects_locations_management_servers_set_iam_policy_task()`.
+/// For the simplest API, use `backupdr_projects_locations_management_servers_set_iam_policy()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `backupdr_projects_locations_management_servers_set_iam_policy_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn backupdr_projects_locations_management_servers_set_iam_policy_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<Policy>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let task = backupdr_projects_locations_management_servers_set_iam_policy_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`backupdr_projects_locations_management_servers_set_iam_policy`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct BackupdrProjectsLocationsManagementServersSetIamPolicyArgs {
+    /// Path parameter: resource
+    pub resource: String,
+}
+
+/// POST v1/projects/{projectsId}/locations/{locationsId}/managementServers/{managementServersId}:setIamPolicy
+/// Sets the access control policy on the specified resource. Replaces any existing policy. Can return NOT_FOUND, INVALID_ARGUMENT, and PERMISSION_DENIED errors.
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `backupdr_projects_locations_management_servers_set_iam_policy_builder()` + `backupdr_projects_locations_management_servers_set_iam_policy_execute()`.
+/// For task-level control, use `backupdr_projects_locations_management_servers_set_iam_policy_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn backupdr_projects_locations_management_servers_set_iam_policy(
+    client: &SimpleHttpClient,
+    args: &BackupdrProjectsLocationsManagementServersSetIamPolicyArgs,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<Policy>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let builder = backupdr_projects_locations_management_servers_set_iam_policy_builder(
+        client,
+        &args.resource,
+    )?;
+    backupdr_projects_locations_management_servers_set_iam_policy_execute(builder)
+}
+
+/// POST v1/projects/{projectsId}/locations/{locationsId}/managementServers/{managementServersId}:testIamPermissions
+/// Returns permissions that a caller has on the specified resource. If the resource does not exist, this will return an empty set of permissions, not a NOT_FOUND error. Note: This operation is designed to be used for building permission-aware UIs and command-line tools, not for authorization checking. This operation may "fail open" without warning.
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `backupdr_projects_locations_management_servers_test_iam_permissions_execute()` to send, or `backupdr_projects_locations_management_servers_test_iam_permissions` for simplest API.
+
+pub fn backupdr_projects_locations_management_servers_test_iam_permissions_builder(
+    client: &SimpleHttpClient,
+    resource: &String,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!(
+        "https://backupdr.googleapis.com/v1/projects/{}/locations/{locationsId}/managementServers/{managementServersId}:testIamPermissions",
+        resource,
+    );
+
+    // Build request
+    let builder = client
+        .post(&endpoint_url)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// POST v1/projects/{projectsId}/locations/{locationsId}/managementServers/{managementServersId}:testIamPermissions
+/// Returns permissions that a caller has on the specified resource. If the resource does not exist, this will return an empty set of permissions, not a NOT_FOUND error. Note: This operation is designed to be used for building permission-aware UIs and command-line tools, not for authorization checking. This operation may "fail open" without warning.
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `backupdr_projects_locations_management_servers_test_iam_permissions_execute()` or `backupdr_projects_locations_management_servers_test_iam_permissions`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `backupdr_projects_locations_management_servers_test_iam_permissions_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn backupdr_projects_locations_management_servers_test_iam_permissions_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<TestIamPermissionsResponse>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: TestIamPermissionsResponse = serde_json::from_str(&body)
+                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// POST v1/projects/{projectsId}/locations/{locationsId}/managementServers/{managementServersId}:testIamPermissions
+/// Returns permissions that a caller has on the specified resource. If the resource does not exist, this will return an empty set of permissions, not a NOT_FOUND error. Note: This operation is designed to be used for building permission-aware UIs and command-line tools, not for authorization checking. This operation may "fail open" without warning.
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `backupdr_projects_locations_management_servers_test_iam_permissions_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `backupdr_projects_locations_management_servers_test_iam_permissions_task()`.
+/// For the simplest API, use `backupdr_projects_locations_management_servers_test_iam_permissions()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `backupdr_projects_locations_management_servers_test_iam_permissions_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn backupdr_projects_locations_management_servers_test_iam_permissions_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<
+            D = Result<ApiResponse<TestIamPermissionsResponse>, ApiError>,
+            P = ApiPending,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    let task = backupdr_projects_locations_management_servers_test_iam_permissions_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`backupdr_projects_locations_management_servers_test_iam_permissions`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct BackupdrProjectsLocationsManagementServersTestIamPermissionsArgs {
+    /// Path parameter: resource
+    pub resource: String,
+}
+
+/// POST v1/projects/{projectsId}/locations/{locationsId}/managementServers/{managementServersId}:testIamPermissions
+/// Returns permissions that a caller has on the specified resource. If the resource does not exist, this will return an empty set of permissions, not a NOT_FOUND error. Note: This operation is designed to be used for building permission-aware UIs and command-line tools, not for authorization checking. This operation may "fail open" without warning.
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `backupdr_projects_locations_management_servers_test_iam_permissions_builder()` + `backupdr_projects_locations_management_servers_test_iam_permissions_execute()`.
+/// For task-level control, use `backupdr_projects_locations_management_servers_test_iam_permissions_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn backupdr_projects_locations_management_servers_test_iam_permissions(
+    client: &SimpleHttpClient,
+    args: &BackupdrProjectsLocationsManagementServersTestIamPermissionsArgs,
+) -> Result<
+    impl StreamIterator<
+            D = Result<ApiResponse<TestIamPermissionsResponse>, ApiError>,
+            P = ApiPending,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    let builder = backupdr_projects_locations_management_servers_test_iam_permissions_builder(
+        client,
+        &args.resource,
+    )?;
+    backupdr_projects_locations_management_servers_test_iam_permissions_execute(builder)
+}
+
+/// POST v1/projects/{projectsId}/locations/{locationsId}/operations/{operationsId}:cancel
+/// Starts asynchronous cancellation on a long-running operation. The server makes a best effort to cancel the operation, but success is not guaranteed. If the server doesn't support this method, it returns google.rpc.Code.UNIMPLEMENTED. Clients can use Operations.GetOperation or other methods to check whether the cancellation succeeded or whether the operation completed despite cancellation. On successful cancellation, the operation is not deleted; instead, it becomes an operation with an Operation.error value with a google.rpc.Status.code of 1, corresponding to Code.CANCELLED.
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `backupdr_projects_locations_operations_cancel_execute()` to send, or `backupdr_projects_locations_operations_cancel` for simplest API.
+
+pub fn backupdr_projects_locations_operations_cancel_builder(
+    client: &SimpleHttpClient,
+    name: &String,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!(
+        "https://backupdr.googleapis.com/v1/projects/{}/locations/{locationsId}/operations/{operationsId}:cancel",
+        name,
+    );
+
+    // Build request
+    let builder = client
+        .post(&endpoint_url)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// POST v1/projects/{projectsId}/locations/{locationsId}/operations/{operationsId}:cancel
+/// Starts asynchronous cancellation on a long-running operation. The server makes a best effort to cancel the operation, but success is not guaranteed. If the server doesn't support this method, it returns google.rpc.Code.UNIMPLEMENTED. Clients can use Operations.GetOperation or other methods to check whether the cancellation succeeded or whether the operation completed despite cancellation. On successful cancellation, the operation is not deleted; instead, it becomes an operation with an Operation.error value with a google.rpc.Status.code of 1, corresponding to Code.CANCELLED.
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `backupdr_projects_locations_operations_cancel_execute()` or `backupdr_projects_locations_operations_cancel`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `backupdr_projects_locations_operations_cancel_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn backupdr_projects_locations_operations_cancel_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<Empty>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: Empty = serde_json::from_str(&body)
+                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// POST v1/projects/{projectsId}/locations/{locationsId}/operations/{operationsId}:cancel
+/// Starts asynchronous cancellation on a long-running operation. The server makes a best effort to cancel the operation, but success is not guaranteed. If the server doesn't support this method, it returns google.rpc.Code.UNIMPLEMENTED. Clients can use Operations.GetOperation or other methods to check whether the cancellation succeeded or whether the operation completed despite cancellation. On successful cancellation, the operation is not deleted; instead, it becomes an operation with an Operation.error value with a google.rpc.Status.code of 1, corresponding to Code.CANCELLED.
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `backupdr_projects_locations_operations_cancel_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `backupdr_projects_locations_operations_cancel_task()`.
+/// For the simplest API, use `backupdr_projects_locations_operations_cancel()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `backupdr_projects_locations_operations_cancel_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn backupdr_projects_locations_operations_cancel_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<Empty>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let task = backupdr_projects_locations_operations_cancel_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`backupdr_projects_locations_operations_cancel`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct BackupdrProjectsLocationsOperationsCancelArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
+/// POST v1/projects/{projectsId}/locations/{locationsId}/operations/{operationsId}:cancel
+/// Starts asynchronous cancellation on a long-running operation. The server makes a best effort to cancel the operation, but success is not guaranteed. If the server doesn't support this method, it returns google.rpc.Code.UNIMPLEMENTED. Clients can use Operations.GetOperation or other methods to check whether the cancellation succeeded or whether the operation completed despite cancellation. On successful cancellation, the operation is not deleted; instead, it becomes an operation with an Operation.error value with a google.rpc.Status.code of 1, corresponding to Code.CANCELLED.
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `backupdr_projects_locations_operations_cancel_builder()` + `backupdr_projects_locations_operations_cancel_execute()`.
+/// For task-level control, use `backupdr_projects_locations_operations_cancel_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn backupdr_projects_locations_operations_cancel(
+    client: &SimpleHttpClient,
+    args: &BackupdrProjectsLocationsOperationsCancelArgs,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<Empty>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let builder = backupdr_projects_locations_operations_cancel_builder(client, &args.name)?;
+    backupdr_projects_locations_operations_cancel_execute(builder)
+}
+
+/// DELETE v1/projects/{projectsId}/locations/{locationsId}/operations/{operationsId}
+/// Deletes a long-running operation. This method indicates that the client is no longer interested in the operation result. It does not cancel the operation. If the server doesn't support this method, it returns google.rpc.Code.UNIMPLEMENTED.
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `backupdr_projects_locations_operations_delete_execute()` to send, or `backupdr_projects_locations_operations_delete` for simplest API.
+
+pub fn backupdr_projects_locations_operations_delete_builder(
+    client: &SimpleHttpClient,
+    name: &String,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!(
+        "https://backupdr.googleapis.com/v1/projects/{}/locations/{locationsId}/operations/{operationsId}",
+        name,
+    );
+
+    // Build request
+    let builder = client
+        .delete(&endpoint_url)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// DELETE v1/projects/{projectsId}/locations/{locationsId}/operations/{operationsId}
+/// Deletes a long-running operation. This method indicates that the client is no longer interested in the operation result. It does not cancel the operation. If the server doesn't support this method, it returns google.rpc.Code.UNIMPLEMENTED.
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `backupdr_projects_locations_operations_delete_execute()` or `backupdr_projects_locations_operations_delete`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `backupdr_projects_locations_operations_delete_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn backupdr_projects_locations_operations_delete_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<Empty>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: Empty = serde_json::from_str(&body)
+                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// DELETE v1/projects/{projectsId}/locations/{locationsId}/operations/{operationsId}
+/// Deletes a long-running operation. This method indicates that the client is no longer interested in the operation result. It does not cancel the operation. If the server doesn't support this method, it returns google.rpc.Code.UNIMPLEMENTED.
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `backupdr_projects_locations_operations_delete_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `backupdr_projects_locations_operations_delete_task()`.
+/// For the simplest API, use `backupdr_projects_locations_operations_delete()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `backupdr_projects_locations_operations_delete_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn backupdr_projects_locations_operations_delete_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<Empty>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let task = backupdr_projects_locations_operations_delete_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`backupdr_projects_locations_operations_delete`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct BackupdrProjectsLocationsOperationsDeleteArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
+/// DELETE v1/projects/{projectsId}/locations/{locationsId}/operations/{operationsId}
+/// Deletes a long-running operation. This method indicates that the client is no longer interested in the operation result. It does not cancel the operation. If the server doesn't support this method, it returns google.rpc.Code.UNIMPLEMENTED.
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `backupdr_projects_locations_operations_delete_builder()` + `backupdr_projects_locations_operations_delete_execute()`.
+/// For task-level control, use `backupdr_projects_locations_operations_delete_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn backupdr_projects_locations_operations_delete(
+    client: &SimpleHttpClient,
+    args: &BackupdrProjectsLocationsOperationsDeleteArgs,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<Empty>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let builder = backupdr_projects_locations_operations_delete_builder(client, &args.name)?;
+    backupdr_projects_locations_operations_delete_execute(builder)
+}
+
+/// GET v1/projects/{projectsId}/locations/{locationsId}/operations/{operationsId}
+/// Gets the latest state of a long-running operation. Clients can use this method to poll the operation result at intervals as recommended by the API service.
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `backupdr_projects_locations_operations_get_execute()` to send, or `backupdr_projects_locations_operations_get` for simplest API.
+
+pub fn backupdr_projects_locations_operations_get_builder(
+    client: &SimpleHttpClient,
+    name: &String,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!(
+        "https://backupdr.googleapis.com/v1/projects/{}/locations/{locationsId}/operations/{operationsId}",
+        name,
+    );
+
+    // Build request
+    let builder = client
+        .get(&endpoint_url)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// GET v1/projects/{projectsId}/locations/{locationsId}/operations/{operationsId}
+/// Gets the latest state of a long-running operation. Clients can use this method to poll the operation result at intervals as recommended by the API service.
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `backupdr_projects_locations_operations_get_execute()` or `backupdr_projects_locations_operations_get`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `backupdr_projects_locations_operations_get_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn backupdr_projects_locations_operations_get_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<Operation>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: Operation = serde_json::from_str(&body)
+                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// GET v1/projects/{projectsId}/locations/{locationsId}/operations/{operationsId}
+/// Gets the latest state of a long-running operation. Clients can use this method to poll the operation result at intervals as recommended by the API service.
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `backupdr_projects_locations_operations_get_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `backupdr_projects_locations_operations_get_task()`.
+/// For the simplest API, use `backupdr_projects_locations_operations_get()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `backupdr_projects_locations_operations_get_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn backupdr_projects_locations_operations_get_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<Operation>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let task = backupdr_projects_locations_operations_get_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`backupdr_projects_locations_operations_get`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct BackupdrProjectsLocationsOperationsGetArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
+/// GET v1/projects/{projectsId}/locations/{locationsId}/operations/{operationsId}
+/// Gets the latest state of a long-running operation. Clients can use this method to poll the operation result at intervals as recommended by the API service.
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `backupdr_projects_locations_operations_get_builder()` + `backupdr_projects_locations_operations_get_execute()`.
+/// For task-level control, use `backupdr_projects_locations_operations_get_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn backupdr_projects_locations_operations_get(
+    client: &SimpleHttpClient,
+    args: &BackupdrProjectsLocationsOperationsGetArgs,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<Operation>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let builder = backupdr_projects_locations_operations_get_builder(client, &args.name)?;
+    backupdr_projects_locations_operations_get_execute(builder)
+}
+
+/// GET v1/projects/{projectsId}/locations/{locationsId}/operations
+/// Lists operations that match the specified filter in the request. If the server doesn't support this method, it returns UNIMPLEMENTED.
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `backupdr_projects_locations_operations_list_execute()` to send, or `backupdr_projects_locations_operations_list` for simplest API.
+
+pub fn backupdr_projects_locations_operations_list_builder(
+    client: &SimpleHttpClient,
+    name: &String,
+    filter: &Option<Option<String>>,
+    pageSize: &Option<Option<String>>,
+    pageToken: &Option<Option<String>>,
+    returnPartialSuccess: &Option<Option<String>>,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!(
+        "https://backupdr.googleapis.com/v1/projects/{}/locations/{locationsId}/operations",
+        name,
+    );
+
+    // Build request
+    let mut query_parts = Vec::new();
+    if let Some(val) = filter.as_ref() {
+        query_parts.push(format!("filter={}", val));
+    }
+    if let Some(val) = pageSize.as_ref() {
+        query_parts.push(format!("pageSize={}", val));
+    }
+    if let Some(val) = pageToken.as_ref() {
+        query_parts.push(format!("pageToken={}", val));
+    }
+    if let Some(val) = returnPartialSuccess.as_ref() {
+        query_parts.push(format!("returnPartialSuccess={}", val));
+    }
+
+    let url_with_query = if query_parts.is_empty() {
+        endpoint_url
+    } else {
+        format!("{}?{}", endpoint_url, query_parts.join("&"))
+    };
+
+    let builder = client
+        .get(&url_with_query)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// GET v1/projects/{projectsId}/locations/{locationsId}/operations
+/// Lists operations that match the specified filter in the request. If the server doesn't support this method, it returns UNIMPLEMENTED.
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `backupdr_projects_locations_operations_list_execute()` or `backupdr_projects_locations_operations_list`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `backupdr_projects_locations_operations_list_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn backupdr_projects_locations_operations_list_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<ListOperationsResponse>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: ListOperationsResponse = serde_json::from_str(&body)
+                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// GET v1/projects/{projectsId}/locations/{locationsId}/operations
+/// Lists operations that match the specified filter in the request. If the server doesn't support this method, it returns UNIMPLEMENTED.
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `backupdr_projects_locations_operations_list_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `backupdr_projects_locations_operations_list_task()`.
+/// For the simplest API, use `backupdr_projects_locations_operations_list()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `backupdr_projects_locations_operations_list_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn backupdr_projects_locations_operations_list_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<ListOperationsResponse>, ApiError>, P = ApiPending>
+        + Send
+        + 'static,
+    ApiError,
+> {
+    let task = backupdr_projects_locations_operations_list_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`backupdr_projects_locations_operations_list`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct BackupdrProjectsLocationsOperationsListArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Query parameter: filter
+    pub filter: Option<Option<String>>,
+    /// Query parameter: pageSize
+    pub pageSize: Option<Option<String>>,
+    /// Query parameter: pageToken
+    pub pageToken: Option<Option<String>>,
+    /// Query parameter: returnPartialSuccess
+    pub returnPartialSuccess: Option<Option<String>>,
+}
+
+/// GET v1/projects/{projectsId}/locations/{locationsId}/operations
+/// Lists operations that match the specified filter in the request. If the server doesn't support this method, it returns UNIMPLEMENTED.
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `backupdr_projects_locations_operations_list_builder()` + `backupdr_projects_locations_operations_list_execute()`.
+/// For task-level control, use `backupdr_projects_locations_operations_list_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn backupdr_projects_locations_operations_list(
+    client: &SimpleHttpClient,
+    args: &BackupdrProjectsLocationsOperationsListArgs,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<ListOperationsResponse>, ApiError>, P = ApiPending>
+        + Send
+        + 'static,
+    ApiError,
+> {
+    let builder = backupdr_projects_locations_operations_list_builder(
+        client,
+        &args.name,
+        &args.filter,
+        &args.pageSize,
+        &args.pageToken,
+        &args.returnPartialSuccess,
+    )?;
+    backupdr_projects_locations_operations_list_execute(builder)
+}
+
+/// GET v1/projects/{projectsId}/locations/{locationsId}/resourceBackupConfigs
+/// Lists ResourceBackupConfigs.
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `backupdr_projects_locations_resource_backup_configs_list_execute()` to send, or `backupdr_projects_locations_resource_backup_configs_list` for simplest API.
+
+pub fn backupdr_projects_locations_resource_backup_configs_list_builder(
+    client: &SimpleHttpClient,
+    parent: &String,
+    filter: &Option<Option<String>>,
+    orderBy: &Option<Option<String>>,
+    pageSize: &Option<Option<String>>,
+    pageToken: &Option<Option<String>>,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!(
+        "https://backupdr.googleapis.com/v1/projects/{}/locations/{locationsId}/resourceBackupConfigs",
+        parent,
+    );
+
+    // Build request
+    let mut query_parts = Vec::new();
+    if let Some(val) = filter.as_ref() {
+        query_parts.push(format!("filter={}", val));
+    }
+    if let Some(val) = orderBy.as_ref() {
+        query_parts.push(format!("orderBy={}", val));
+    }
+    if let Some(val) = pageSize.as_ref() {
+        query_parts.push(format!("pageSize={}", val));
+    }
+    if let Some(val) = pageToken.as_ref() {
+        query_parts.push(format!("pageToken={}", val));
+    }
+
+    let url_with_query = if query_parts.is_empty() {
+        endpoint_url
+    } else {
+        format!("{}?{}", endpoint_url, query_parts.join("&"))
+    };
+
+    let builder = client
+        .get(&url_with_query)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// GET v1/projects/{projectsId}/locations/{locationsId}/resourceBackupConfigs
+/// Lists ResourceBackupConfigs.
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `backupdr_projects_locations_resource_backup_configs_list_execute()` or `backupdr_projects_locations_resource_backup_configs_list`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `backupdr_projects_locations_resource_backup_configs_list_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn backupdr_projects_locations_resource_backup_configs_list_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<ListResourceBackupConfigsResponse>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: ListResourceBackupConfigsResponse = serde_json::from_str(&body)
+                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// GET v1/projects/{projectsId}/locations/{locationsId}/resourceBackupConfigs
+/// Lists ResourceBackupConfigs.
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `backupdr_projects_locations_resource_backup_configs_list_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `backupdr_projects_locations_resource_backup_configs_list_task()`.
+/// For the simplest API, use `backupdr_projects_locations_resource_backup_configs_list()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `backupdr_projects_locations_resource_backup_configs_list_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn backupdr_projects_locations_resource_backup_configs_list_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<
+            D = Result<ApiResponse<ListResourceBackupConfigsResponse>, ApiError>,
+            P = ApiPending,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    let task = backupdr_projects_locations_resource_backup_configs_list_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`backupdr_projects_locations_resource_backup_configs_list`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct BackupdrProjectsLocationsResourceBackupConfigsListArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Query parameter: filter
+    pub filter: Option<Option<String>>,
+    /// Query parameter: orderBy
+    pub orderBy: Option<Option<String>>,
+    /// Query parameter: pageSize
+    pub pageSize: Option<Option<String>>,
+    /// Query parameter: pageToken
+    pub pageToken: Option<Option<String>>,
+}
+
+/// GET v1/projects/{projectsId}/locations/{locationsId}/resourceBackupConfigs
+/// Lists ResourceBackupConfigs.
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `backupdr_projects_locations_resource_backup_configs_list_builder()` + `backupdr_projects_locations_resource_backup_configs_list_execute()`.
+/// For task-level control, use `backupdr_projects_locations_resource_backup_configs_list_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn backupdr_projects_locations_resource_backup_configs_list(
+    client: &SimpleHttpClient,
+    args: &BackupdrProjectsLocationsResourceBackupConfigsListArgs,
+) -> Result<
+    impl StreamIterator<
+            D = Result<ApiResponse<ListResourceBackupConfigsResponse>, ApiError>,
+            P = ApiPending,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    let builder = backupdr_projects_locations_resource_backup_configs_list_builder(
+        client,
+        &args.parent,
+        &args.filter,
+        &args.orderBy,
+        &args.pageSize,
+        &args.pageToken,
+    )?;
+    backupdr_projects_locations_resource_backup_configs_list_execute(builder)
+}
+
+/// POST v1/projects/{projectsId}/locations/{locationsId}/serviceConfig:initialize
+/// Initializes the service related config for a project.
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `backupdr_projects_locations_service_config_initialize_execute()` to send, or `backupdr_projects_locations_service_config_initialize` for simplest API.
+
+pub fn backupdr_projects_locations_service_config_initialize_builder(
+    client: &SimpleHttpClient,
+    name: &String,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!(
+        "https://backupdr.googleapis.com/v1/projects/{}/locations/{locationsId}/serviceConfig:initialize",
+        name,
+    );
+
+    // Build request
+    let builder = client
+        .post(&endpoint_url)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// POST v1/projects/{projectsId}/locations/{locationsId}/serviceConfig:initialize
+/// Initializes the service related config for a project.
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `backupdr_projects_locations_service_config_initialize_execute()` or `backupdr_projects_locations_service_config_initialize`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `backupdr_projects_locations_service_config_initialize_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn backupdr_projects_locations_service_config_initialize_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<Operation>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: Operation = serde_json::from_str(&body)
+                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// POST v1/projects/{projectsId}/locations/{locationsId}/serviceConfig:initialize
+/// Initializes the service related config for a project.
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `backupdr_projects_locations_service_config_initialize_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `backupdr_projects_locations_service_config_initialize_task()`.
+/// For the simplest API, use `backupdr_projects_locations_service_config_initialize()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `backupdr_projects_locations_service_config_initialize_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn backupdr_projects_locations_service_config_initialize_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<Operation>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let task = backupdr_projects_locations_service_config_initialize_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`backupdr_projects_locations_service_config_initialize`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct BackupdrProjectsLocationsServiceConfigInitializeArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
+/// POST v1/projects/{projectsId}/locations/{locationsId}/serviceConfig:initialize
+/// Initializes the service related config for a project.
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `backupdr_projects_locations_service_config_initialize_builder()` + `backupdr_projects_locations_service_config_initialize_execute()`.
+/// For task-level control, use `backupdr_projects_locations_service_config_initialize_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn backupdr_projects_locations_service_config_initialize(
+    client: &SimpleHttpClient,
+    args: &BackupdrProjectsLocationsServiceConfigInitializeArgs,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<Operation>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let builder =
+        backupdr_projects_locations_service_config_initialize_builder(client, &args.name)?;
+    backupdr_projects_locations_service_config_initialize_execute(builder)
+}
+
+/// POST v1/projects/{projectsId}/locations/{locationsId}/trial:end
+/// Ends the trial for a project
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `backupdr_projects_locations_trial_end_execute()` to send, or `backupdr_projects_locations_trial_end` for simplest API.
+
+pub fn backupdr_projects_locations_trial_end_builder(
+    client: &SimpleHttpClient,
+    parent: &String,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!(
+        "https://backupdr.googleapis.com/v1/projects/{}/locations/{locationsId}/trial:end",
+        parent,
+    );
+
+    // Build request
+    let builder = client
+        .post(&endpoint_url)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// POST v1/projects/{projectsId}/locations/{locationsId}/trial:end
+/// Ends the trial for a project
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `backupdr_projects_locations_trial_end_execute()` or `backupdr_projects_locations_trial_end`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `backupdr_projects_locations_trial_end_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn backupdr_projects_locations_trial_end_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<Trial>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: Trial = serde_json::from_str(&body)
+                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// POST v1/projects/{projectsId}/locations/{locationsId}/trial:end
+/// Ends the trial for a project
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `backupdr_projects_locations_trial_end_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `backupdr_projects_locations_trial_end_task()`.
+/// For the simplest API, use `backupdr_projects_locations_trial_end()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `backupdr_projects_locations_trial_end_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn backupdr_projects_locations_trial_end_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<Trial>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let task = backupdr_projects_locations_trial_end_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`backupdr_projects_locations_trial_end`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct BackupdrProjectsLocationsTrialEndArgs {
+    /// Path parameter: parent
+    pub parent: String,
+}
+
+/// POST v1/projects/{projectsId}/locations/{locationsId}/trial:end
+/// Ends the trial for a project
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `backupdr_projects_locations_trial_end_builder()` + `backupdr_projects_locations_trial_end_execute()`.
+/// For task-level control, use `backupdr_projects_locations_trial_end_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn backupdr_projects_locations_trial_end(
+    client: &SimpleHttpClient,
+    args: &BackupdrProjectsLocationsTrialEndArgs,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<Trial>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let builder = backupdr_projects_locations_trial_end_builder(client, &args.parent)?;
+    backupdr_projects_locations_trial_end_execute(builder)
+}
+
+/// POST v1/projects/{projectsId}/locations/{locationsId}/trial:subscribe
+/// Subscribes to a trial for a project
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `backupdr_projects_locations_trial_subscribe_execute()` to send, or `backupdr_projects_locations_trial_subscribe` for simplest API.
+
+pub fn backupdr_projects_locations_trial_subscribe_builder(
+    client: &SimpleHttpClient,
+    parent: &String,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!(
+        "https://backupdr.googleapis.com/v1/projects/{}/locations/{locationsId}/trial:subscribe",
+        parent,
+    );
+
+    // Build request
+    let builder = client
+        .post(&endpoint_url)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// POST v1/projects/{projectsId}/locations/{locationsId}/trial:subscribe
+/// Subscribes to a trial for a project
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `backupdr_projects_locations_trial_subscribe_execute()` or `backupdr_projects_locations_trial_subscribe`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `backupdr_projects_locations_trial_subscribe_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn backupdr_projects_locations_trial_subscribe_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<Trial>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: Trial = serde_json::from_str(&body)
+                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// POST v1/projects/{projectsId}/locations/{locationsId}/trial:subscribe
+/// Subscribes to a trial for a project
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `backupdr_projects_locations_trial_subscribe_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `backupdr_projects_locations_trial_subscribe_task()`.
+/// For the simplest API, use `backupdr_projects_locations_trial_subscribe()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `backupdr_projects_locations_trial_subscribe_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn backupdr_projects_locations_trial_subscribe_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<Trial>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let task = backupdr_projects_locations_trial_subscribe_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`backupdr_projects_locations_trial_subscribe`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct BackupdrProjectsLocationsTrialSubscribeArgs {
+    /// Path parameter: parent
+    pub parent: String,
+}
+
+/// POST v1/projects/{projectsId}/locations/{locationsId}/trial:subscribe
+/// Subscribes to a trial for a project
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `backupdr_projects_locations_trial_subscribe_builder()` + `backupdr_projects_locations_trial_subscribe_execute()`.
+/// For task-level control, use `backupdr_projects_locations_trial_subscribe_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn backupdr_projects_locations_trial_subscribe(
+    client: &SimpleHttpClient,
+    args: &BackupdrProjectsLocationsTrialSubscribeArgs,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<Trial>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let builder = backupdr_projects_locations_trial_subscribe_builder(client, &args.parent)?;
+    backupdr_projects_locations_trial_subscribe_execute(builder)
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for Location
+// =============================================================================
+
+/// ResourceIdentifier implementation for Location with BackupdrProjectsLocationsGetArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<BackupdrProjectsLocationsGetArgs> for Location {
+    fn generate_resource_id(&self, input: &BackupdrProjectsLocationsGetArgs) -> String {
+        format!("gcp::backupdr::Location/{}", input.name)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::backupdr::Location"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for Trial
+// =============================================================================
+
+/// ResourceIdentifier implementation for Trial with BackupdrProjectsLocationsGetTrialArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<BackupdrProjectsLocationsGetTrialArgs> for Trial {
+    fn generate_resource_id(&self, input: &BackupdrProjectsLocationsGetTrialArgs) -> String {
+        format!("gcp::backupdr::Trial/{}", input.name)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::backupdr::Trial"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for ListLocationsResponse
+// =============================================================================
+
+/// ResourceIdentifier implementation for ListLocationsResponse with BackupdrProjectsLocationsListArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<BackupdrProjectsLocationsListArgs> for ListLocationsResponse {
+    fn generate_resource_id(&self, input: &BackupdrProjectsLocationsListArgs) -> String {
+        format!("gcp::backupdr::ListLocationsResponse/{}", input.name)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::backupdr::ListLocationsResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for Operation
+// =============================================================================
+
+/// ResourceIdentifier implementation for Operation with BackupdrProjectsLocationsBackupPlanAssociationsCreateArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<BackupdrProjectsLocationsBackupPlanAssociationsCreateArgs> for Operation {
+    fn generate_resource_id(
+        &self,
+        input: &BackupdrProjectsLocationsBackupPlanAssociationsCreateArgs,
+    ) -> String {
+        format!("gcp::backupdr::Operation/{}", input.parent)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::backupdr::Operation"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for Operation
+// =============================================================================
+
+/// ResourceIdentifier implementation for Operation with BackupdrProjectsLocationsBackupPlanAssociationsDeleteArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<BackupdrProjectsLocationsBackupPlanAssociationsDeleteArgs> for Operation {
+    fn generate_resource_id(
+        &self,
+        input: &BackupdrProjectsLocationsBackupPlanAssociationsDeleteArgs,
+    ) -> String {
+        format!("gcp::backupdr::Operation/{}", input.name)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::backupdr::Operation"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for FetchBackupPlanAssociationsForResourceTypeResponse
+// =============================================================================
+
+/// ResourceIdentifier implementation for FetchBackupPlanAssociationsForResourceTypeResponse with BackupdrProjectsLocationsBackupPlanAssociationsFetchForResourceTypeArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<BackupdrProjectsLocationsBackupPlanAssociationsFetchForResourceTypeArgs>
+    for FetchBackupPlanAssociationsForResourceTypeResponse
+{
+    fn generate_resource_id(
+        &self,
+        input: &BackupdrProjectsLocationsBackupPlanAssociationsFetchForResourceTypeArgs,
+    ) -> String {
+        format!(
+            "gcp::backupdr::FetchBackupPlanAssociationsForResourceTypeResponse/{}",
+            input.parent
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::backupdr::FetchBackupPlanAssociationsForResourceTypeResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for BackupPlanAssociation
+// =============================================================================
+
+/// ResourceIdentifier implementation for BackupPlanAssociation with BackupdrProjectsLocationsBackupPlanAssociationsGetArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<BackupdrProjectsLocationsBackupPlanAssociationsGetArgs>
+    for BackupPlanAssociation
+{
+    fn generate_resource_id(
+        &self,
+        input: &BackupdrProjectsLocationsBackupPlanAssociationsGetArgs,
+    ) -> String {
+        format!("gcp::backupdr::BackupPlanAssociation/{}", input.name)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::backupdr::BackupPlanAssociation"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for ListBackupPlanAssociationsResponse
+// =============================================================================
+
+/// ResourceIdentifier implementation for ListBackupPlanAssociationsResponse with BackupdrProjectsLocationsBackupPlanAssociationsListArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<BackupdrProjectsLocationsBackupPlanAssociationsListArgs>
+    for ListBackupPlanAssociationsResponse
+{
+    fn generate_resource_id(
+        &self,
+        input: &BackupdrProjectsLocationsBackupPlanAssociationsListArgs,
+    ) -> String {
+        format!(
+            "gcp::backupdr::ListBackupPlanAssociationsResponse/{}",
+            input.parent
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::backupdr::ListBackupPlanAssociationsResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for Operation
+// =============================================================================
+
+/// ResourceIdentifier implementation for Operation with BackupdrProjectsLocationsBackupPlanAssociationsPatchArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<BackupdrProjectsLocationsBackupPlanAssociationsPatchArgs> for Operation {
+    fn generate_resource_id(
+        &self,
+        input: &BackupdrProjectsLocationsBackupPlanAssociationsPatchArgs,
+    ) -> String {
+        format!("gcp::backupdr::Operation/{}", input.name)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::backupdr::Operation"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for Operation
+// =============================================================================
+
+/// ResourceIdentifier implementation for Operation with BackupdrProjectsLocationsBackupPlanAssociationsTriggerBackupArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<BackupdrProjectsLocationsBackupPlanAssociationsTriggerBackupArgs>
+    for Operation
+{
+    fn generate_resource_id(
+        &self,
+        input: &BackupdrProjectsLocationsBackupPlanAssociationsTriggerBackupArgs,
+    ) -> String {
+        format!("gcp::backupdr::Operation/{}", input.name)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::backupdr::Operation"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for Operation
+// =============================================================================
+
+/// ResourceIdentifier implementation for Operation with BackupdrProjectsLocationsBackupPlansCreateArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<BackupdrProjectsLocationsBackupPlansCreateArgs> for Operation {
+    fn generate_resource_id(
+        &self,
+        input: &BackupdrProjectsLocationsBackupPlansCreateArgs,
+    ) -> String {
+        format!("gcp::backupdr::Operation/{}", input.parent)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::backupdr::Operation"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for Operation
+// =============================================================================
+
+/// ResourceIdentifier implementation for Operation with BackupdrProjectsLocationsBackupPlansDeleteArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<BackupdrProjectsLocationsBackupPlansDeleteArgs> for Operation {
+    fn generate_resource_id(
+        &self,
+        input: &BackupdrProjectsLocationsBackupPlansDeleteArgs,
+    ) -> String {
+        format!("gcp::backupdr::Operation/{}", input.name)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::backupdr::Operation"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for BackupPlan
+// =============================================================================
+
+/// ResourceIdentifier implementation for BackupPlan with BackupdrProjectsLocationsBackupPlansGetArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<BackupdrProjectsLocationsBackupPlansGetArgs> for BackupPlan {
+    fn generate_resource_id(&self, input: &BackupdrProjectsLocationsBackupPlansGetArgs) -> String {
+        format!("gcp::backupdr::BackupPlan/{}", input.name)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::backupdr::BackupPlan"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for ListBackupPlansResponse
+// =============================================================================
+
+/// ResourceIdentifier implementation for ListBackupPlansResponse with BackupdrProjectsLocationsBackupPlansListArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<BackupdrProjectsLocationsBackupPlansListArgs> for ListBackupPlansResponse {
+    fn generate_resource_id(&self, input: &BackupdrProjectsLocationsBackupPlansListArgs) -> String {
+        format!("gcp::backupdr::ListBackupPlansResponse/{}", input.parent)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::backupdr::ListBackupPlansResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for Operation
+// =============================================================================
+
+/// ResourceIdentifier implementation for Operation with BackupdrProjectsLocationsBackupPlansPatchArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<BackupdrProjectsLocationsBackupPlansPatchArgs> for Operation {
+    fn generate_resource_id(
+        &self,
+        input: &BackupdrProjectsLocationsBackupPlansPatchArgs,
+    ) -> String {
+        format!("gcp::backupdr::Operation/{}", input.name)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::backupdr::Operation"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for BackupPlanRevision
+// =============================================================================
+
+/// ResourceIdentifier implementation for BackupPlanRevision with BackupdrProjectsLocationsBackupPlansRevisionsGetArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<BackupdrProjectsLocationsBackupPlansRevisionsGetArgs>
+    for BackupPlanRevision
+{
+    fn generate_resource_id(
+        &self,
+        input: &BackupdrProjectsLocationsBackupPlansRevisionsGetArgs,
+    ) -> String {
+        format!("gcp::backupdr::BackupPlanRevision/{}", input.name)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::backupdr::BackupPlanRevision"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for ListBackupPlanRevisionsResponse
+// =============================================================================
+
+/// ResourceIdentifier implementation for ListBackupPlanRevisionsResponse with BackupdrProjectsLocationsBackupPlansRevisionsListArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<BackupdrProjectsLocationsBackupPlansRevisionsListArgs>
+    for ListBackupPlanRevisionsResponse
+{
+    fn generate_resource_id(
+        &self,
+        input: &BackupdrProjectsLocationsBackupPlansRevisionsListArgs,
+    ) -> String {
+        format!(
+            "gcp::backupdr::ListBackupPlanRevisionsResponse/{}",
+            input.parent
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::backupdr::ListBackupPlanRevisionsResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for Operation
+// =============================================================================
+
+/// ResourceIdentifier implementation for Operation with BackupdrProjectsLocationsBackupVaultsCreateArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<BackupdrProjectsLocationsBackupVaultsCreateArgs> for Operation {
+    fn generate_resource_id(
+        &self,
+        input: &BackupdrProjectsLocationsBackupVaultsCreateArgs,
+    ) -> String {
+        format!("gcp::backupdr::Operation/{}", input.parent)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::backupdr::Operation"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for Operation
+// =============================================================================
+
+/// ResourceIdentifier implementation for Operation with BackupdrProjectsLocationsBackupVaultsDeleteArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<BackupdrProjectsLocationsBackupVaultsDeleteArgs> for Operation {
+    fn generate_resource_id(
+        &self,
+        input: &BackupdrProjectsLocationsBackupVaultsDeleteArgs,
+    ) -> String {
+        format!("gcp::backupdr::Operation/{}", input.name)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::backupdr::Operation"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for FetchUsableBackupVaultsResponse
+// =============================================================================
+
+/// ResourceIdentifier implementation for FetchUsableBackupVaultsResponse with BackupdrProjectsLocationsBackupVaultsFetchUsableArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<BackupdrProjectsLocationsBackupVaultsFetchUsableArgs>
+    for FetchUsableBackupVaultsResponse
+{
+    fn generate_resource_id(
+        &self,
+        input: &BackupdrProjectsLocationsBackupVaultsFetchUsableArgs,
+    ) -> String {
+        format!(
+            "gcp::backupdr::FetchUsableBackupVaultsResponse/{}",
+            input.parent
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::backupdr::FetchUsableBackupVaultsResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for BackupVault
+// =============================================================================
+
+/// ResourceIdentifier implementation for BackupVault with BackupdrProjectsLocationsBackupVaultsGetArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<BackupdrProjectsLocationsBackupVaultsGetArgs> for BackupVault {
+    fn generate_resource_id(&self, input: &BackupdrProjectsLocationsBackupVaultsGetArgs) -> String {
+        format!("gcp::backupdr::BackupVault/{}", input.name)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::backupdr::BackupVault"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for ListBackupVaultsResponse
+// =============================================================================
+
+/// ResourceIdentifier implementation for ListBackupVaultsResponse with BackupdrProjectsLocationsBackupVaultsListArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<BackupdrProjectsLocationsBackupVaultsListArgs>
+    for ListBackupVaultsResponse
+{
+    fn generate_resource_id(
+        &self,
+        input: &BackupdrProjectsLocationsBackupVaultsListArgs,
+    ) -> String {
+        format!("gcp::backupdr::ListBackupVaultsResponse/{}", input.parent)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::backupdr::ListBackupVaultsResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for Operation
+// =============================================================================
+
+/// ResourceIdentifier implementation for Operation with BackupdrProjectsLocationsBackupVaultsPatchArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<BackupdrProjectsLocationsBackupVaultsPatchArgs> for Operation {
+    fn generate_resource_id(
+        &self,
+        input: &BackupdrProjectsLocationsBackupVaultsPatchArgs,
+    ) -> String {
+        format!("gcp::backupdr::Operation/{}", input.name)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::backupdr::Operation"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for TestIamPermissionsResponse
+// =============================================================================
+
+/// ResourceIdentifier implementation for TestIamPermissionsResponse with BackupdrProjectsLocationsBackupVaultsTestIamPermissionsArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<BackupdrProjectsLocationsBackupVaultsTestIamPermissionsArgs>
+    for TestIamPermissionsResponse
+{
+    fn generate_resource_id(
+        &self,
+        input: &BackupdrProjectsLocationsBackupVaultsTestIamPermissionsArgs,
+    ) -> String {
+        format!(
+            "gcp::backupdr::TestIamPermissionsResponse/{}",
+            input.resource
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::backupdr::TestIamPermissionsResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for Operation
+// =============================================================================
+
+/// ResourceIdentifier implementation for Operation with BackupdrProjectsLocationsBackupVaultsDataSourcesAbandonBackupArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<BackupdrProjectsLocationsBackupVaultsDataSourcesAbandonBackupArgs>
+    for Operation
+{
+    fn generate_resource_id(
+        &self,
+        input: &BackupdrProjectsLocationsBackupVaultsDataSourcesAbandonBackupArgs,
+    ) -> String {
+        format!("gcp::backupdr::Operation/{}", input.dataSource)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::backupdr::Operation"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for FetchAccessTokenResponse
+// =============================================================================
+
+/// ResourceIdentifier implementation for FetchAccessTokenResponse with BackupdrProjectsLocationsBackupVaultsDataSourcesFetchAccessTokenArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<BackupdrProjectsLocationsBackupVaultsDataSourcesFetchAccessTokenArgs>
+    for FetchAccessTokenResponse
+{
+    fn generate_resource_id(
+        &self,
+        input: &BackupdrProjectsLocationsBackupVaultsDataSourcesFetchAccessTokenArgs,
+    ) -> String {
+        format!("gcp::backupdr::FetchAccessTokenResponse/{}", input.name)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::backupdr::FetchAccessTokenResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for Operation
+// =============================================================================
+
+/// ResourceIdentifier implementation for Operation with BackupdrProjectsLocationsBackupVaultsDataSourcesFinalizeBackupArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<BackupdrProjectsLocationsBackupVaultsDataSourcesFinalizeBackupArgs>
+    for Operation
+{
+    fn generate_resource_id(
+        &self,
+        input: &BackupdrProjectsLocationsBackupVaultsDataSourcesFinalizeBackupArgs,
+    ) -> String {
+        format!("gcp::backupdr::Operation/{}", input.dataSource)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::backupdr::Operation"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for DataSource
+// =============================================================================
+
+/// ResourceIdentifier implementation for DataSource with BackupdrProjectsLocationsBackupVaultsDataSourcesGetArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<BackupdrProjectsLocationsBackupVaultsDataSourcesGetArgs> for DataSource {
+    fn generate_resource_id(
+        &self,
+        input: &BackupdrProjectsLocationsBackupVaultsDataSourcesGetArgs,
+    ) -> String {
+        format!("gcp::backupdr::DataSource/{}", input.name)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::backupdr::DataSource"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for InitiateBackupResponse
+// =============================================================================
+
+/// ResourceIdentifier implementation for InitiateBackupResponse with BackupdrProjectsLocationsBackupVaultsDataSourcesInitiateBackupArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<BackupdrProjectsLocationsBackupVaultsDataSourcesInitiateBackupArgs>
+    for InitiateBackupResponse
+{
+    fn generate_resource_id(
+        &self,
+        input: &BackupdrProjectsLocationsBackupVaultsDataSourcesInitiateBackupArgs,
+    ) -> String {
+        format!("gcp::backupdr::InitiateBackupResponse/{}", input.dataSource)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::backupdr::InitiateBackupResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for ListDataSourcesResponse
+// =============================================================================
+
+/// ResourceIdentifier implementation for ListDataSourcesResponse with BackupdrProjectsLocationsBackupVaultsDataSourcesListArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<BackupdrProjectsLocationsBackupVaultsDataSourcesListArgs>
+    for ListDataSourcesResponse
+{
+    fn generate_resource_id(
+        &self,
+        input: &BackupdrProjectsLocationsBackupVaultsDataSourcesListArgs,
+    ) -> String {
+        format!("gcp::backupdr::ListDataSourcesResponse/{}", input.parent)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::backupdr::ListDataSourcesResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for Operation
+// =============================================================================
+
+/// ResourceIdentifier implementation for Operation with BackupdrProjectsLocationsBackupVaultsDataSourcesPatchArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<BackupdrProjectsLocationsBackupVaultsDataSourcesPatchArgs> for Operation {
+    fn generate_resource_id(
+        &self,
+        input: &BackupdrProjectsLocationsBackupVaultsDataSourcesPatchArgs,
+    ) -> String {
+        format!("gcp::backupdr::Operation/{}", input.name)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::backupdr::Operation"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for Operation
+// =============================================================================
+
+/// ResourceIdentifier implementation for Operation with BackupdrProjectsLocationsBackupVaultsDataSourcesRemoveArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<BackupdrProjectsLocationsBackupVaultsDataSourcesRemoveArgs> for Operation {
+    fn generate_resource_id(
+        &self,
+        input: &BackupdrProjectsLocationsBackupVaultsDataSourcesRemoveArgs,
+    ) -> String {
+        format!("gcp::backupdr::Operation/{}", input.name)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::backupdr::Operation"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for Operation
+// =============================================================================
+
+/// ResourceIdentifier implementation for Operation with BackupdrProjectsLocationsBackupVaultsDataSourcesSetInternalStatusArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<BackupdrProjectsLocationsBackupVaultsDataSourcesSetInternalStatusArgs>
+    for Operation
+{
+    fn generate_resource_id(
+        &self,
+        input: &BackupdrProjectsLocationsBackupVaultsDataSourcesSetInternalStatusArgs,
+    ) -> String {
+        format!("gcp::backupdr::Operation/{}", input.dataSource)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::backupdr::Operation"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for Operation
+// =============================================================================
+
+/// ResourceIdentifier implementation for Operation with BackupdrProjectsLocationsBackupVaultsDataSourcesBackupsDeleteArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<BackupdrProjectsLocationsBackupVaultsDataSourcesBackupsDeleteArgs>
+    for Operation
+{
+    fn generate_resource_id(
+        &self,
+        input: &BackupdrProjectsLocationsBackupVaultsDataSourcesBackupsDeleteArgs,
+    ) -> String {
+        format!("gcp::backupdr::Operation/{}", input.name)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::backupdr::Operation"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for FetchBackupsForResourceTypeResponse
+// =============================================================================
+
+/// ResourceIdentifier implementation for FetchBackupsForResourceTypeResponse with BackupdrProjectsLocationsBackupVaultsDataSourcesBackupsFetchForResourceTypeArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl
+    ResourceIdentifier<
+        BackupdrProjectsLocationsBackupVaultsDataSourcesBackupsFetchForResourceTypeArgs,
+    > for FetchBackupsForResourceTypeResponse
+{
+    fn generate_resource_id(
+        &self,
+        input: &BackupdrProjectsLocationsBackupVaultsDataSourcesBackupsFetchForResourceTypeArgs,
+    ) -> String {
+        format!(
+            "gcp::backupdr::FetchBackupsForResourceTypeResponse/{}",
+            input.parent
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::backupdr::FetchBackupsForResourceTypeResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for Backup
+// =============================================================================
+
+/// ResourceIdentifier implementation for Backup with BackupdrProjectsLocationsBackupVaultsDataSourcesBackupsGetArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<BackupdrProjectsLocationsBackupVaultsDataSourcesBackupsGetArgs> for Backup {
+    fn generate_resource_id(
+        &self,
+        input: &BackupdrProjectsLocationsBackupVaultsDataSourcesBackupsGetArgs,
+    ) -> String {
+        format!("gcp::backupdr::Backup/{}", input.name)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::backupdr::Backup"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for ListBackupsResponse
+// =============================================================================
+
+/// ResourceIdentifier implementation for ListBackupsResponse with BackupdrProjectsLocationsBackupVaultsDataSourcesBackupsListArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<BackupdrProjectsLocationsBackupVaultsDataSourcesBackupsListArgs>
+    for ListBackupsResponse
+{
+    fn generate_resource_id(
+        &self,
+        input: &BackupdrProjectsLocationsBackupVaultsDataSourcesBackupsListArgs,
+    ) -> String {
+        format!("gcp::backupdr::ListBackupsResponse/{}", input.parent)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::backupdr::ListBackupsResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for Operation
+// =============================================================================
+
+/// ResourceIdentifier implementation for Operation with BackupdrProjectsLocationsBackupVaultsDataSourcesBackupsPatchArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<BackupdrProjectsLocationsBackupVaultsDataSourcesBackupsPatchArgs>
+    for Operation
+{
+    fn generate_resource_id(
+        &self,
+        input: &BackupdrProjectsLocationsBackupVaultsDataSourcesBackupsPatchArgs,
+    ) -> String {
+        format!("gcp::backupdr::Operation/{}", input.name)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::backupdr::Operation"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for Operation
+// =============================================================================
+
+/// ResourceIdentifier implementation for Operation with BackupdrProjectsLocationsBackupVaultsDataSourcesBackupsRestoreArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<BackupdrProjectsLocationsBackupVaultsDataSourcesBackupsRestoreArgs>
+    for Operation
+{
+    fn generate_resource_id(
+        &self,
+        input: &BackupdrProjectsLocationsBackupVaultsDataSourcesBackupsRestoreArgs,
+    ) -> String {
+        format!("gcp::backupdr::Operation/{}", input.name)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::backupdr::Operation"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for FetchDataSourceReferencesForResourceTypeResponse
+// =============================================================================
+
+/// ResourceIdentifier implementation for FetchDataSourceReferencesForResourceTypeResponse with BackupdrProjectsLocationsDataSourceReferencesFetchForResourceTypeArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<BackupdrProjectsLocationsDataSourceReferencesFetchForResourceTypeArgs>
+    for FetchDataSourceReferencesForResourceTypeResponse
+{
+    fn generate_resource_id(
+        &self,
+        input: &BackupdrProjectsLocationsDataSourceReferencesFetchForResourceTypeArgs,
+    ) -> String {
+        format!(
+            "gcp::backupdr::FetchDataSourceReferencesForResourceTypeResponse/{}",
+            input.parent
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::backupdr::FetchDataSourceReferencesForResourceTypeResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for DataSourceReference
+// =============================================================================
+
+/// ResourceIdentifier implementation for DataSourceReference with BackupdrProjectsLocationsDataSourceReferencesGetArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<BackupdrProjectsLocationsDataSourceReferencesGetArgs>
+    for DataSourceReference
+{
+    fn generate_resource_id(
+        &self,
+        input: &BackupdrProjectsLocationsDataSourceReferencesGetArgs,
+    ) -> String {
+        format!("gcp::backupdr::DataSourceReference/{}", input.name)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::backupdr::DataSourceReference"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for ListDataSourceReferencesResponse
+// =============================================================================
+
+/// ResourceIdentifier implementation for ListDataSourceReferencesResponse with BackupdrProjectsLocationsDataSourceReferencesListArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<BackupdrProjectsLocationsDataSourceReferencesListArgs>
+    for ListDataSourceReferencesResponse
+{
+    fn generate_resource_id(
+        &self,
+        input: &BackupdrProjectsLocationsDataSourceReferencesListArgs,
+    ) -> String {
+        format!(
+            "gcp::backupdr::ListDataSourceReferencesResponse/{}",
+            input.parent
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::backupdr::ListDataSourceReferencesResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for Operation
+// =============================================================================
+
+/// ResourceIdentifier implementation for Operation with BackupdrProjectsLocationsManagementServersCreateArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<BackupdrProjectsLocationsManagementServersCreateArgs> for Operation {
+    fn generate_resource_id(
+        &self,
+        input: &BackupdrProjectsLocationsManagementServersCreateArgs,
+    ) -> String {
+        format!("gcp::backupdr::Operation/{}", input.parent)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::backupdr::Operation"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for Operation
+// =============================================================================
+
+/// ResourceIdentifier implementation for Operation with BackupdrProjectsLocationsManagementServersDeleteArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<BackupdrProjectsLocationsManagementServersDeleteArgs> for Operation {
+    fn generate_resource_id(
+        &self,
+        input: &BackupdrProjectsLocationsManagementServersDeleteArgs,
+    ) -> String {
+        format!("gcp::backupdr::Operation/{}", input.name)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::backupdr::Operation"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for ManagementServer
+// =============================================================================
+
+/// ResourceIdentifier implementation for ManagementServer with BackupdrProjectsLocationsManagementServersGetArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<BackupdrProjectsLocationsManagementServersGetArgs> for ManagementServer {
+    fn generate_resource_id(
+        &self,
+        input: &BackupdrProjectsLocationsManagementServersGetArgs,
+    ) -> String {
+        format!("gcp::backupdr::ManagementServer/{}", input.name)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::backupdr::ManagementServer"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for Policy
+// =============================================================================
+
+/// ResourceIdentifier implementation for Policy with BackupdrProjectsLocationsManagementServersGetIamPolicyArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<BackupdrProjectsLocationsManagementServersGetIamPolicyArgs> for Policy {
+    fn generate_resource_id(
+        &self,
+        input: &BackupdrProjectsLocationsManagementServersGetIamPolicyArgs,
+    ) -> String {
+        format!("gcp::backupdr::Policy/{}", input.resource)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::backupdr::Policy"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for ListManagementServersResponse
+// =============================================================================
+
+/// ResourceIdentifier implementation for ListManagementServersResponse with BackupdrProjectsLocationsManagementServersListArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<BackupdrProjectsLocationsManagementServersListArgs>
+    for ListManagementServersResponse
+{
+    fn generate_resource_id(
+        &self,
+        input: &BackupdrProjectsLocationsManagementServersListArgs,
+    ) -> String {
+        format!(
+            "gcp::backupdr::ListManagementServersResponse/{}",
+            input.parent
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::backupdr::ListManagementServersResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for FetchMsComplianceMetadataResponse
+// =============================================================================
+
+/// ResourceIdentifier implementation for FetchMsComplianceMetadataResponse with BackupdrProjectsLocationsManagementServersMsComplianceMetadataArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<BackupdrProjectsLocationsManagementServersMsComplianceMetadataArgs>
+    for FetchMsComplianceMetadataResponse
+{
+    fn generate_resource_id(
+        &self,
+        input: &BackupdrProjectsLocationsManagementServersMsComplianceMetadataArgs,
+    ) -> String {
+        format!(
+            "gcp::backupdr::FetchMsComplianceMetadataResponse/{}",
+            input.parent
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::backupdr::FetchMsComplianceMetadataResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for Policy
+// =============================================================================
+
+/// ResourceIdentifier implementation for Policy with BackupdrProjectsLocationsManagementServersSetIamPolicyArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<BackupdrProjectsLocationsManagementServersSetIamPolicyArgs> for Policy {
+    fn generate_resource_id(
+        &self,
+        input: &BackupdrProjectsLocationsManagementServersSetIamPolicyArgs,
+    ) -> String {
+        format!("gcp::backupdr::Policy/{}", input.resource)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::backupdr::Policy"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for TestIamPermissionsResponse
+// =============================================================================
+
+/// ResourceIdentifier implementation for TestIamPermissionsResponse with BackupdrProjectsLocationsManagementServersTestIamPermissionsArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<BackupdrProjectsLocationsManagementServersTestIamPermissionsArgs>
+    for TestIamPermissionsResponse
+{
+    fn generate_resource_id(
+        &self,
+        input: &BackupdrProjectsLocationsManagementServersTestIamPermissionsArgs,
+    ) -> String {
+        format!(
+            "gcp::backupdr::TestIamPermissionsResponse/{}",
+            input.resource
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::backupdr::TestIamPermissionsResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for Empty
+// =============================================================================
+
+/// ResourceIdentifier implementation for Empty with BackupdrProjectsLocationsOperationsCancelArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<BackupdrProjectsLocationsOperationsCancelArgs> for Empty {
+    fn generate_resource_id(
+        &self,
+        input: &BackupdrProjectsLocationsOperationsCancelArgs,
+    ) -> String {
+        format!("gcp::backupdr::Empty/{}", input.name)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::backupdr::Empty"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for Empty
+// =============================================================================
+
+/// ResourceIdentifier implementation for Empty with BackupdrProjectsLocationsOperationsDeleteArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<BackupdrProjectsLocationsOperationsDeleteArgs> for Empty {
+    fn generate_resource_id(
+        &self,
+        input: &BackupdrProjectsLocationsOperationsDeleteArgs,
+    ) -> String {
+        format!("gcp::backupdr::Empty/{}", input.name)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::backupdr::Empty"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for Operation
+// =============================================================================
+
+/// ResourceIdentifier implementation for Operation with BackupdrProjectsLocationsOperationsGetArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<BackupdrProjectsLocationsOperationsGetArgs> for Operation {
+    fn generate_resource_id(&self, input: &BackupdrProjectsLocationsOperationsGetArgs) -> String {
+        format!("gcp::backupdr::Operation/{}", input.name)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::backupdr::Operation"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for ListOperationsResponse
+// =============================================================================
+
+/// ResourceIdentifier implementation for ListOperationsResponse with BackupdrProjectsLocationsOperationsListArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<BackupdrProjectsLocationsOperationsListArgs> for ListOperationsResponse {
+    fn generate_resource_id(&self, input: &BackupdrProjectsLocationsOperationsListArgs) -> String {
+        format!("gcp::backupdr::ListOperationsResponse/{}", input.name)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::backupdr::ListOperationsResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for ListResourceBackupConfigsResponse
+// =============================================================================
+
+/// ResourceIdentifier implementation for ListResourceBackupConfigsResponse with BackupdrProjectsLocationsResourceBackupConfigsListArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<BackupdrProjectsLocationsResourceBackupConfigsListArgs>
+    for ListResourceBackupConfigsResponse
+{
+    fn generate_resource_id(
+        &self,
+        input: &BackupdrProjectsLocationsResourceBackupConfigsListArgs,
+    ) -> String {
+        format!(
+            "gcp::backupdr::ListResourceBackupConfigsResponse/{}",
+            input.parent
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::backupdr::ListResourceBackupConfigsResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for Operation
+// =============================================================================
+
+/// ResourceIdentifier implementation for Operation with BackupdrProjectsLocationsServiceConfigInitializeArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<BackupdrProjectsLocationsServiceConfigInitializeArgs> for Operation {
+    fn generate_resource_id(
+        &self,
+        input: &BackupdrProjectsLocationsServiceConfigInitializeArgs,
+    ) -> String {
+        format!("gcp::backupdr::Operation/{}", input.name)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::backupdr::Operation"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for Trial
+// =============================================================================
+
+/// ResourceIdentifier implementation for Trial with BackupdrProjectsLocationsTrialEndArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<BackupdrProjectsLocationsTrialEndArgs> for Trial {
+    fn generate_resource_id(&self, input: &BackupdrProjectsLocationsTrialEndArgs) -> String {
+        format!("gcp::backupdr::Trial/{}", input.parent)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::backupdr::Trial"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for Trial
+// =============================================================================
+
+/// ResourceIdentifier implementation for Trial with BackupdrProjectsLocationsTrialSubscribeArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<BackupdrProjectsLocationsTrialSubscribeArgs> for Trial {
+    fn generate_resource_id(&self, input: &BackupdrProjectsLocationsTrialSubscribeArgs) -> String {
+        format!("gcp::backupdr::Trial/{}", input.parent)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::backupdr::Trial"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
 }

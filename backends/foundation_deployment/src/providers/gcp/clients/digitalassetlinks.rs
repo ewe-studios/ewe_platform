@@ -7,7 +7,6 @@
 
 #![cfg(feature = "gcp")]
 
-
 use crate::providers::gcp::clients::types::*;
 use crate::providers::gcp::resources::*;
 use foundation_core::valtron::{
@@ -17,10 +16,11 @@ use foundation_core::valtron::{
 use foundation_core::wire::simple_http::client::{
     body_reader, ClientRequestBuilder, RequestIntro, SimpleHttpClient, SystemDnsResolver,
 };
+use foundation_db::state::resource_identifier::ResourceIdentifier;
 use foundation_macros::JsonHash;
 use serde::Serialize;
 
-/// GET v1/assetlinks:bulkCheck
+/// POST v1/assetlinks:bulkCheck
 /// Send a bundle of statement checks in a single RPC to minimize latency and service load. Statements need not be all for the same source `and/or` target. We recommend using this method when you need to check more than one statement in a short period of time.
 ///
 /// Returns `ClientRequestBuilder` for customization.
@@ -28,22 +28,19 @@ use serde::Serialize;
 
 pub fn digitalassetlinks_assetlinks_bulk_check_builder(
     client: &SimpleHttpClient,
-    body: &BulkCheckRequest,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!("https://digitalassetlinks.googleapis.com/v1/assetlinks:bulkCheck",);
 
     // Build request
     let builder = client
-        .get(&endpoint_url)
+        .post(&endpoint_url)
         .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
 
-    builder
-        .body_json(body)
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+    Ok(builder)
 }
 
-/// GET v1/assetlinks:bulkCheck
+/// POST v1/assetlinks:bulkCheck
 /// Send a bundle of statement checks in a single RPC to minimize latency and service load. Statements need not be all for the same source `and/or` target. We recommend using this method when you need to check more than one statement in a short period of time.
 ///
 /// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
@@ -117,7 +114,7 @@ pub fn digitalassetlinks_assetlinks_bulk_check_task(
         .map_pending(|_| ApiPending::Sending))
 }
 
-/// GET v1/assetlinks:bulkCheck
+/// POST v1/assetlinks:bulkCheck
 /// Send a bundle of statement checks in a single RPC to minimize latency and service load. Statements need not be all for the same source `and/or` target. We recommend using this method when you need to check more than one statement in a short period of time.
 ///
 /// Takes a `ClientRequestBuilder`, builds and executes the request,
@@ -149,14 +146,7 @@ pub fn digitalassetlinks_assetlinks_bulk_check_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
-/// Arguments for [`digitalassetlinks_assetlinks_bulk_check`].
-#[derive(Debug, Clone, Serialize, JsonHash)]
-pub struct DigitalassetlinksAssetlinksBulkCheckArgs {
-    /// Request body.
-    pub body: BulkCheckRequest,
-}
-
-/// GET v1/assetlinks:bulkCheck
+/// POST v1/assetlinks:bulkCheck
 /// Send a bundle of statement checks in a single RPC to minimize latency and service load. Statements need not be all for the same source `and/or` target. We recommend using this method when you need to check more than one statement in a short period of time.
 ///
 /// Simplest API - builds and executes the request in one call.
@@ -169,14 +159,13 @@ pub struct DigitalassetlinksAssetlinksBulkCheckArgs {
 
 pub fn digitalassetlinks_assetlinks_bulk_check(
     client: &SimpleHttpClient,
-    args: &DigitalassetlinksAssetlinksBulkCheckArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<BulkCheckResponse>, ApiError>, P = ApiPending>
         + Send
         + 'static,
     ApiError,
 > {
-    let builder = digitalassetlinks_assetlinks_bulk_check_builder(client, &args.body)?;
+    let builder = digitalassetlinks_assetlinks_bulk_check_builder(client)?;
     digitalassetlinks_assetlinks_bulk_check_execute(builder)
 }
 
@@ -188,14 +177,14 @@ pub fn digitalassetlinks_assetlinks_bulk_check(
 
 pub fn digitalassetlinks_assetlinks_check_builder(
     client: &SimpleHttpClient,
-    relation: &Option<String>,
-    returnRelationExtensions: &Option<bool>,
-    source_androidApp_certificate_sha256Fingerprint: &Option<String>,
-    source_androidApp_packageName: &Option<String>,
-    source_web_site: &Option<String>,
-    target_androidApp_certificate_sha256Fingerprint: &Option<String>,
-    target_androidApp_packageName: &Option<String>,
-    target_web_site: &Option<String>,
+    relation: &Option<Option<String>>,
+    returnRelationExtensions: &Option<Option<String>>,
+    source_androidApp_certificate_sha256Fingerprint: &Option<Option<String>>,
+    source_androidApp_packageName: &Option<Option<String>>,
+    source_web_site: &Option<Option<String>>,
+    target_androidApp_certificate_sha256Fingerprint: &Option<Option<String>>,
+    target_androidApp_packageName: &Option<Option<String>>,
+    target_web_site: &Option<Option<String>>,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!("https://digitalassetlinks.googleapis.com/v1/assetlinks:check",);
@@ -356,21 +345,21 @@ pub fn digitalassetlinks_assetlinks_check_execute(
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct DigitalassetlinksAssetlinksCheckArgs {
     /// Query parameter: relation
-    pub relation: Option<String>,
+    pub relation: Option<Option<String>>,
     /// Query parameter: returnRelationExtensions
-    pub returnRelationExtensions: Option<bool>,
+    pub returnRelationExtensions: Option<Option<String>>,
     /// Query parameter: source_androidApp_certificate_sha256Fingerprint
-    pub source_androidApp_certificate_sha256Fingerprint: Option<String>,
+    pub source_androidApp_certificate_sha256Fingerprint: Option<Option<String>>,
     /// Query parameter: source_androidApp_packageName
-    pub source_androidApp_packageName: Option<String>,
+    pub source_androidApp_packageName: Option<Option<String>>,
     /// Query parameter: source_web_site
-    pub source_web_site: Option<String>,
+    pub source_web_site: Option<Option<String>>,
     /// Query parameter: target_androidApp_certificate_sha256Fingerprint
-    pub target_androidApp_certificate_sha256Fingerprint: Option<String>,
+    pub target_androidApp_certificate_sha256Fingerprint: Option<Option<String>>,
     /// Query parameter: target_androidApp_packageName
-    pub target_androidApp_packageName: Option<String>,
+    pub target_androidApp_packageName: Option<Option<String>>,
     /// Query parameter: target_web_site
-    pub target_web_site: Option<String>,
+    pub target_web_site: Option<Option<String>>,
 }
 
 /// GET v1/assetlinks:check
@@ -415,11 +404,11 @@ pub fn digitalassetlinks_assetlinks_check(
 
 pub fn digitalassetlinks_statements_list_builder(
     client: &SimpleHttpClient,
-    relation: &Option<String>,
-    returnRelationExtensions: &Option<bool>,
-    source_androidApp_certificate_sha256Fingerprint: &Option<String>,
-    source_androidApp_packageName: &Option<String>,
-    source_web_site: &Option<String>,
+    relation: &Option<Option<String>>,
+    returnRelationExtensions: &Option<Option<String>>,
+    source_androidApp_certificate_sha256Fingerprint: &Option<Option<String>>,
+    source_androidApp_packageName: &Option<Option<String>>,
+    source_web_site: &Option<Option<String>>,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!("https://digitalassetlinks.googleapis.com/v1/statements:list",);
@@ -568,15 +557,15 @@ pub fn digitalassetlinks_statements_list_execute(
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct DigitalassetlinksStatementsListArgs {
     /// Query parameter: relation
-    pub relation: Option<String>,
+    pub relation: Option<Option<String>>,
     /// Query parameter: returnRelationExtensions
-    pub returnRelationExtensions: Option<bool>,
+    pub returnRelationExtensions: Option<Option<String>>,
     /// Query parameter: source_androidApp_certificate_sha256Fingerprint
-    pub source_androidApp_certificate_sha256Fingerprint: Option<String>,
+    pub source_androidApp_certificate_sha256Fingerprint: Option<Option<String>>,
     /// Query parameter: source_androidApp_packageName
-    pub source_androidApp_packageName: Option<String>,
+    pub source_androidApp_packageName: Option<Option<String>>,
     /// Query parameter: source_web_site
-    pub source_web_site: Option<String>,
+    pub source_web_site: Option<Option<String>>,
 }
 
 /// GET v1/statements:list
@@ -608,4 +597,73 @@ pub fn digitalassetlinks_statements_list(
         &args.source_web_site,
     )?;
     digitalassetlinks_statements_list_execute(builder)
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for BulkCheckResponse
+// =============================================================================
+
+/// ResourceIdentifier implementation for BulkCheckResponse with DigitalassetlinksAssetlinksBulkCheckArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<DigitalassetlinksAssetlinksBulkCheckArgs> for BulkCheckResponse {
+    fn generate_resource_id(&self, input: &DigitalassetlinksAssetlinksBulkCheckArgs) -> String {
+        "gcp::digitalassetlinks::BulkCheckResponse".to_string()
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::digitalassetlinks::BulkCheckResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for CheckResponse
+// =============================================================================
+
+/// ResourceIdentifier implementation for CheckResponse with DigitalassetlinksAssetlinksCheckArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<DigitalassetlinksAssetlinksCheckArgs> for CheckResponse {
+    fn generate_resource_id(&self, input: &DigitalassetlinksAssetlinksCheckArgs) -> String {
+        "gcp::digitalassetlinks::CheckResponse".to_string()
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::digitalassetlinks::CheckResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for ListResponse
+// =============================================================================
+
+/// ResourceIdentifier implementation for ListResponse with DigitalassetlinksStatementsListArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<DigitalassetlinksStatementsListArgs> for ListResponse {
+    fn generate_resource_id(&self, input: &DigitalassetlinksStatementsListArgs) -> String {
+        "gcp::digitalassetlinks::ListResponse".to_string()
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::digitalassetlinks::ListResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
 }

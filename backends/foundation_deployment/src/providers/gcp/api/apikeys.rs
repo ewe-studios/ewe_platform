@@ -12,15 +12,29 @@
 #![cfg(feature = "gcp")]
 
 use crate::providers::gcp::clients::apikeys::{
+    apikeys_keys_lookup_key_builder, apikeys_keys_lookup_key_task,
+    apikeys_operations_get_builder, apikeys_operations_get_task,
     apikeys_projects_locations_keys_create_builder, apikeys_projects_locations_keys_create_task,
     apikeys_projects_locations_keys_delete_builder, apikeys_projects_locations_keys_delete_task,
+    apikeys_projects_locations_keys_get_builder, apikeys_projects_locations_keys_get_task,
+    apikeys_projects_locations_keys_get_key_string_builder, apikeys_projects_locations_keys_get_key_string_task,
+    apikeys_projects_locations_keys_list_builder, apikeys_projects_locations_keys_list_task,
     apikeys_projects_locations_keys_patch_builder, apikeys_projects_locations_keys_patch_task,
     apikeys_projects_locations_keys_undelete_builder, apikeys_projects_locations_keys_undelete_task,
 };
 use crate::providers::gcp::clients::types::{ApiError, ApiPending};
 use crate::providers::gcp::clients::apikeys::Operation;
+use crate::providers::gcp::clients::apikeys::V2GetKeyStringResponse;
+use crate::providers::gcp::clients::apikeys::V2Key;
+use crate::providers::gcp::clients::apikeys::V2ListKeysResponse;
+use crate::providers::gcp::clients::apikeys::V2LookupKeyResponse;
+use crate::providers::gcp::clients::apikeys::ApikeysKeysLookupKeyArgs;
+use crate::providers::gcp::clients::apikeys::ApikeysOperationsGetArgs;
 use crate::providers::gcp::clients::apikeys::ApikeysProjectsLocationsKeysCreateArgs;
 use crate::providers::gcp::clients::apikeys::ApikeysProjectsLocationsKeysDeleteArgs;
+use crate::providers::gcp::clients::apikeys::ApikeysProjectsLocationsKeysGetArgs;
+use crate::providers::gcp::clients::apikeys::ApikeysProjectsLocationsKeysGetKeyStringArgs;
+use crate::providers::gcp::clients::apikeys::ApikeysProjectsLocationsKeysListArgs;
 use crate::providers::gcp::clients::apikeys::ApikeysProjectsLocationsKeysPatchArgs;
 use crate::providers::gcp::clients::apikeys::ApikeysProjectsLocationsKeysUndeleteArgs;
 use crate::provider_client::{ProviderClient, ProviderError};
@@ -62,6 +76,82 @@ where
             client,
             http_client: Arc::new(http_client),
         }
+    }
+
+    /// Apikeys keys lookup key.
+    ///
+    /// Read-only operation - no state tracking.
+    ///
+    /// # Arguments
+    ///
+    /// * `args` - Request arguments
+    ///
+    /// # Returns
+    ///
+    /// StreamIterator yielding the V2LookupKeyResponse result.
+    ///
+    /// # Errors
+    ///
+    /// Returns ProviderError if the API request fails.
+    pub fn apikeys_keys_lookup_key(
+        &self,
+        args: &ApikeysKeysLookupKeyArgs,
+    ) -> Result<
+        impl StreamIterator<
+            D = Result<V2LookupKeyResponse, ProviderError<ApiError>>,
+            P = crate::providers::gcp::clients::types::ApiPending,
+        > + Send
+        + 'static,
+        ProviderError<ApiError>,
+    > {
+        let builder = apikeys_keys_lookup_key_builder(
+            &self.http_client,
+            &args.keyString,
+        )
+        .map_err(ProviderError::Api)?;
+
+        let task = apikeys_keys_lookup_key_task(builder)
+            .map_err(ProviderError::Api)?;
+
+        execute(task, None).map_err(|e: String| ProviderError::ExecuteFailed(e.to_string()))
+    }
+
+    /// Apikeys operations get.
+    ///
+    /// Read-only operation - no state tracking.
+    ///
+    /// # Arguments
+    ///
+    /// * `args` - Request arguments
+    ///
+    /// # Returns
+    ///
+    /// StreamIterator yielding the Operation result.
+    ///
+    /// # Errors
+    ///
+    /// Returns ProviderError if the API request fails.
+    pub fn apikeys_operations_get(
+        &self,
+        args: &ApikeysOperationsGetArgs,
+    ) -> Result<
+        impl StreamIterator<
+            D = Result<Operation, ProviderError<ApiError>>,
+            P = crate::providers::gcp::clients::types::ApiPending,
+        > + Send
+        + 'static,
+        ProviderError<ApiError>,
+    > {
+        let builder = apikeys_operations_get_builder(
+            &self.http_client,
+            &args.name,
+        )
+        .map_err(ProviderError::Api)?;
+
+        let task = apikeys_operations_get_task(builder)
+            .map_err(ProviderError::Api)?;
+
+        execute(task, None).map_err(|e: String| ProviderError::ExecuteFailed(e.to_string()))
     }
 
     /// Apikeys projects locations keys create.
@@ -150,6 +240,123 @@ where
         let store_task = StoreStateIdentifierTask::new(task, state_store, args, stage);
 
         execute(store_task, None).map_err(|e: String| ProviderError::ExecuteFailed(e.to_string()))
+    }
+
+    /// Apikeys projects locations keys get.
+    ///
+    /// Read-only operation - no state tracking.
+    ///
+    /// # Arguments
+    ///
+    /// * `args` - Request arguments
+    ///
+    /// # Returns
+    ///
+    /// StreamIterator yielding the V2Key result.
+    ///
+    /// # Errors
+    ///
+    /// Returns ProviderError if the API request fails.
+    pub fn apikeys_projects_locations_keys_get(
+        &self,
+        args: &ApikeysProjectsLocationsKeysGetArgs,
+    ) -> Result<
+        impl StreamIterator<
+            D = Result<V2Key, ProviderError<ApiError>>,
+            P = crate::providers::gcp::clients::types::ApiPending,
+        > + Send
+        + 'static,
+        ProviderError<ApiError>,
+    > {
+        let builder = apikeys_projects_locations_keys_get_builder(
+            &self.http_client,
+            &args.name,
+        )
+        .map_err(ProviderError::Api)?;
+
+        let task = apikeys_projects_locations_keys_get_task(builder)
+            .map_err(ProviderError::Api)?;
+
+        execute(task, None).map_err(|e: String| ProviderError::ExecuteFailed(e.to_string()))
+    }
+
+    /// Apikeys projects locations keys get key string.
+    ///
+    /// Read-only operation - no state tracking.
+    ///
+    /// # Arguments
+    ///
+    /// * `args` - Request arguments
+    ///
+    /// # Returns
+    ///
+    /// StreamIterator yielding the V2GetKeyStringResponse result.
+    ///
+    /// # Errors
+    ///
+    /// Returns ProviderError if the API request fails.
+    pub fn apikeys_projects_locations_keys_get_key_string(
+        &self,
+        args: &ApikeysProjectsLocationsKeysGetKeyStringArgs,
+    ) -> Result<
+        impl StreamIterator<
+            D = Result<V2GetKeyStringResponse, ProviderError<ApiError>>,
+            P = crate::providers::gcp::clients::types::ApiPending,
+        > + Send
+        + 'static,
+        ProviderError<ApiError>,
+    > {
+        let builder = apikeys_projects_locations_keys_get_key_string_builder(
+            &self.http_client,
+            &args.name,
+        )
+        .map_err(ProviderError::Api)?;
+
+        let task = apikeys_projects_locations_keys_get_key_string_task(builder)
+            .map_err(ProviderError::Api)?;
+
+        execute(task, None).map_err(|e: String| ProviderError::ExecuteFailed(e.to_string()))
+    }
+
+    /// Apikeys projects locations keys list.
+    ///
+    /// Read-only operation - no state tracking.
+    ///
+    /// # Arguments
+    ///
+    /// * `args` - Request arguments
+    ///
+    /// # Returns
+    ///
+    /// StreamIterator yielding the V2ListKeysResponse result.
+    ///
+    /// # Errors
+    ///
+    /// Returns ProviderError if the API request fails.
+    pub fn apikeys_projects_locations_keys_list(
+        &self,
+        args: &ApikeysProjectsLocationsKeysListArgs,
+    ) -> Result<
+        impl StreamIterator<
+            D = Result<V2ListKeysResponse, ProviderError<ApiError>>,
+            P = crate::providers::gcp::clients::types::ApiPending,
+        > + Send
+        + 'static,
+        ProviderError<ApiError>,
+    > {
+        let builder = apikeys_projects_locations_keys_list_builder(
+            &self.http_client,
+            &args.parent,
+            &args.pageSize,
+            &args.pageToken,
+            &args.showDeleted,
+        )
+        .map_err(ProviderError::Api)?;
+
+        let task = apikeys_projects_locations_keys_list_task(builder)
+            .map_err(ProviderError::Api)?;
+
+        execute(task, None).map_err(|e: String| ProviderError::ExecuteFailed(e.to_string()))
     }
 
     /// Apikeys projects locations keys patch.

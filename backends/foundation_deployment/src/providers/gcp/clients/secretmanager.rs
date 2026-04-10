@@ -7,7 +7,6 @@
 
 #![cfg(feature = "gcp")]
 
-
 use crate::providers::gcp::clients::types::*;
 use crate::providers::gcp::resources::*;
 use foundation_core::valtron::{
@@ -17,8 +16,166 @@ use foundation_core::valtron::{
 use foundation_core::wire::simple_http::client::{
     body_reader, ClientRequestBuilder, RequestIntro, SimpleHttpClient, SystemDnsResolver,
 };
+use foundation_db::state::resource_identifier::ResourceIdentifier;
 use foundation_macros::JsonHash;
 use serde::Serialize;
+
+/// GET v1/projects/{projectsId}/locations/{locationsId}
+/// Gets information about a location.
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `secretmanager_projects_locations_get_execute()` to send, or `secretmanager_projects_locations_get` for simplest API.
+
+pub fn secretmanager_projects_locations_get_builder(
+    client: &SimpleHttpClient,
+    name: &String,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!(
+        "https://secretmanager.googleapis.com/v1/projects/{}/locations/{locationsId}",
+        name,
+    );
+
+    // Build request
+    let builder = client
+        .get(&endpoint_url)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// GET v1/projects/{projectsId}/locations/{locationsId}
+/// Gets information about a location.
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `secretmanager_projects_locations_get_execute()` or `secretmanager_projects_locations_get`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `secretmanager_projects_locations_get_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn secretmanager_projects_locations_get_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<Location>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: Location = serde_json::from_str(&body)
+                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// GET v1/projects/{projectsId}/locations/{locationsId}
+/// Gets information about a location.
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `secretmanager_projects_locations_get_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `secretmanager_projects_locations_get_task()`.
+/// For the simplest API, use `secretmanager_projects_locations_get()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `secretmanager_projects_locations_get_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn secretmanager_projects_locations_get_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<Location>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let task = secretmanager_projects_locations_get_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`secretmanager_projects_locations_get`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct SecretmanagerProjectsLocationsGetArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
+/// GET v1/projects/{projectsId}/locations/{locationsId}
+/// Gets information about a location.
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `secretmanager_projects_locations_get_builder()` + `secretmanager_projects_locations_get_execute()`.
+/// For task-level control, use `secretmanager_projects_locations_get_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn secretmanager_projects_locations_get(
+    client: &SimpleHttpClient,
+    args: &SecretmanagerProjectsLocationsGetArgs,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<Location>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let builder = secretmanager_projects_locations_get_builder(client, &args.name)?;
+    secretmanager_projects_locations_get_execute(builder)
+}
 
 /// GET v1/projects/{projectsId}/locations
 /// Lists information about the supported locations for this service. This method can be called in two ways: * **List all public locations:** Use the path GET /v1/locations. * **List project-visible locations:** Use the path GET /v1/`projects/{project_id}/locations`. This may include public locations as well as private or other locations specifically visible to the project.
@@ -29,13 +186,16 @@ use serde::Serialize;
 pub fn secretmanager_projects_locations_list_builder(
     client: &SimpleHttpClient,
     name: &String,
-    extraLocationTypes: &Option<String>,
-    filter: &Option<String>,
-    pageSize: &Option<i32>,
-    pageToken: &Option<String>,
+    extraLocationTypes: &Option<Option<String>>,
+    filter: &Option<Option<String>>,
+    pageSize: &Option<Option<String>>,
+    pageToken: &Option<Option<String>>,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
-    let endpoint_url = format!("https://secretmanager.googleapis.com/v1/projects/{}/locations",);
+    let endpoint_url = format!(
+        "https://secretmanager.googleapis.com/v1/projects/{}/locations",
+        name,
+    );
 
     // Build request
     let mut query_parts = Vec::new();
@@ -177,13 +337,13 @@ pub struct SecretmanagerProjectsLocationsListArgs {
     /// Path parameter: name
     pub name: String,
     /// Query parameter: extraLocationTypes
-    pub extraLocationTypes: Option<String>,
+    pub extraLocationTypes: Option<Option<String>>,
     /// Query parameter: filter
-    pub filter: Option<String>,
+    pub filter: Option<Option<String>>,
     /// Query parameter: pageSize
-    pub pageSize: Option<i32>,
+    pub pageSize: Option<Option<String>>,
     /// Query parameter: pageToken
-    pub pageToken: Option<String>,
+    pub pageToken: Option<Option<String>>,
 }
 
 /// GET v1/projects/{projectsId}/locations
@@ -217,20 +377,184 @@ pub fn secretmanager_projects_locations_list(
     secretmanager_projects_locations_list_execute(builder)
 }
 
-/// GET v1/projects/{projectsId}/secrets
+/// POST v1/projects/{projectsId}/locations/{locationsId}/secrets/{secretsId}:addVersion
+/// Creates a new SecretVersion containing secret data and attaches it to an existing Secret.
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `secretmanager_projects_locations_secrets_add_version_execute()` to send, or `secretmanager_projects_locations_secrets_add_version` for simplest API.
+
+pub fn secretmanager_projects_locations_secrets_add_version_builder(
+    client: &SimpleHttpClient,
+    parent: &String,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!(
+        "https://secretmanager.googleapis.com/v1/projects/{}/locations/{locationsId}/secrets/{secretsId}:addVersion",
+        parent,
+    );
+
+    // Build request
+    let builder = client
+        .post(&endpoint_url)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// POST v1/projects/{projectsId}/locations/{locationsId}/secrets/{secretsId}:addVersion
+/// Creates a new SecretVersion containing secret data and attaches it to an existing Secret.
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `secretmanager_projects_locations_secrets_add_version_execute()` or `secretmanager_projects_locations_secrets_add_version`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `secretmanager_projects_locations_secrets_add_version_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn secretmanager_projects_locations_secrets_add_version_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<SecretVersion>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: SecretVersion = serde_json::from_str(&body)
+                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// POST v1/projects/{projectsId}/locations/{locationsId}/secrets/{secretsId}:addVersion
+/// Creates a new SecretVersion containing secret data and attaches it to an existing Secret.
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `secretmanager_projects_locations_secrets_add_version_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `secretmanager_projects_locations_secrets_add_version_task()`.
+/// For the simplest API, use `secretmanager_projects_locations_secrets_add_version()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `secretmanager_projects_locations_secrets_add_version_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn secretmanager_projects_locations_secrets_add_version_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<SecretVersion>, ApiError>, P = ApiPending>
+        + Send
+        + 'static,
+    ApiError,
+> {
+    let task = secretmanager_projects_locations_secrets_add_version_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`secretmanager_projects_locations_secrets_add_version`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct SecretmanagerProjectsLocationsSecretsAddVersionArgs {
+    /// Path parameter: parent
+    pub parent: String,
+}
+
+/// POST v1/projects/{projectsId}/locations/{locationsId}/secrets/{secretsId}:addVersion
+/// Creates a new SecretVersion containing secret data and attaches it to an existing Secret.
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `secretmanager_projects_locations_secrets_add_version_builder()` + `secretmanager_projects_locations_secrets_add_version_execute()`.
+/// For task-level control, use `secretmanager_projects_locations_secrets_add_version_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn secretmanager_projects_locations_secrets_add_version(
+    client: &SimpleHttpClient,
+    args: &SecretmanagerProjectsLocationsSecretsAddVersionArgs,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<SecretVersion>, ApiError>, P = ApiPending>
+        + Send
+        + 'static,
+    ApiError,
+> {
+    let builder =
+        secretmanager_projects_locations_secrets_add_version_builder(client, &args.parent)?;
+    secretmanager_projects_locations_secrets_add_version_execute(builder)
+}
+
+/// POST v1/projects/{projectsId}/locations/{locationsId}/secrets
 /// Creates a new Secret containing no SecretVersions.
 ///
 /// Returns `ClientRequestBuilder` for customization.
-/// Use `secretmanager_projects_secrets_create_execute()` to send, or `secretmanager_projects_secrets_create` for simplest API.
+/// Use `secretmanager_projects_locations_secrets_create_execute()` to send, or `secretmanager_projects_locations_secrets_create` for simplest API.
 
-pub fn secretmanager_projects_secrets_create_builder(
+pub fn secretmanager_projects_locations_secrets_create_builder(
     client: &SimpleHttpClient,
     parent: &String,
-    secretId: &Option<String>,
-    body: &Secret,
+    secretId: &Option<Option<String>>,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
-    let endpoint_url = format!("https://secretmanager.googleapis.com/v1/projects/{}/secrets",);
+    let endpoint_url = format!(
+        "https://secretmanager.googleapis.com/v1/projects/{}/locations/{locationsId}/secrets",
+        parent,
+    );
 
     // Build request
     let mut query_parts = Vec::new();
@@ -245,15 +569,2558 @@ pub fn secretmanager_projects_secrets_create_builder(
     };
 
     let builder = client
+        .post(&url_with_query)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// POST v1/projects/{projectsId}/locations/{locationsId}/secrets
+/// Creates a new Secret containing no SecretVersions.
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `secretmanager_projects_locations_secrets_create_execute()` or `secretmanager_projects_locations_secrets_create`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `secretmanager_projects_locations_secrets_create_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn secretmanager_projects_locations_secrets_create_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<Secret>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: Secret = serde_json::from_str(&body)
+                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// POST v1/projects/{projectsId}/locations/{locationsId}/secrets
+/// Creates a new Secret containing no SecretVersions.
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `secretmanager_projects_locations_secrets_create_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `secretmanager_projects_locations_secrets_create_task()`.
+/// For the simplest API, use `secretmanager_projects_locations_secrets_create()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `secretmanager_projects_locations_secrets_create_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn secretmanager_projects_locations_secrets_create_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<Secret>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let task = secretmanager_projects_locations_secrets_create_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`secretmanager_projects_locations_secrets_create`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct SecretmanagerProjectsLocationsSecretsCreateArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Query parameter: secretId
+    pub secretId: Option<Option<String>>,
+}
+
+/// POST v1/projects/{projectsId}/locations/{locationsId}/secrets
+/// Creates a new Secret containing no SecretVersions.
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `secretmanager_projects_locations_secrets_create_builder()` + `secretmanager_projects_locations_secrets_create_execute()`.
+/// For task-level control, use `secretmanager_projects_locations_secrets_create_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn secretmanager_projects_locations_secrets_create(
+    client: &SimpleHttpClient,
+    args: &SecretmanagerProjectsLocationsSecretsCreateArgs,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<Secret>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let builder = secretmanager_projects_locations_secrets_create_builder(
+        client,
+        &args.parent,
+        &args.secretId,
+    )?;
+    secretmanager_projects_locations_secrets_create_execute(builder)
+}
+
+/// DELETE v1/projects/{projectsId}/locations/{locationsId}/secrets/{secretsId}
+/// Deletes a Secret.
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `secretmanager_projects_locations_secrets_delete_execute()` to send, or `secretmanager_projects_locations_secrets_delete` for simplest API.
+
+pub fn secretmanager_projects_locations_secrets_delete_builder(
+    client: &SimpleHttpClient,
+    name: &String,
+    etag: &Option<Option<String>>,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!(
+        "https://secretmanager.googleapis.com/v1/projects/{}/locations/{locationsId}/secrets/{secretsId}",
+        name,
+    );
+
+    // Build request
+    let mut query_parts = Vec::new();
+    if let Some(val) = etag.as_ref() {
+        query_parts.push(format!("etag={}", val));
+    }
+
+    let url_with_query = if query_parts.is_empty() {
+        endpoint_url
+    } else {
+        format!("{}?{}", endpoint_url, query_parts.join("&"))
+    };
+
+    let builder = client
+        .delete(&url_with_query)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// DELETE v1/projects/{projectsId}/locations/{locationsId}/secrets/{secretsId}
+/// Deletes a Secret.
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `secretmanager_projects_locations_secrets_delete_execute()` or `secretmanager_projects_locations_secrets_delete`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `secretmanager_projects_locations_secrets_delete_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn secretmanager_projects_locations_secrets_delete_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<Empty>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: Empty = serde_json::from_str(&body)
+                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// DELETE v1/projects/{projectsId}/locations/{locationsId}/secrets/{secretsId}
+/// Deletes a Secret.
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `secretmanager_projects_locations_secrets_delete_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `secretmanager_projects_locations_secrets_delete_task()`.
+/// For the simplest API, use `secretmanager_projects_locations_secrets_delete()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `secretmanager_projects_locations_secrets_delete_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn secretmanager_projects_locations_secrets_delete_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<Empty>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let task = secretmanager_projects_locations_secrets_delete_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`secretmanager_projects_locations_secrets_delete`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct SecretmanagerProjectsLocationsSecretsDeleteArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Query parameter: etag
+    pub etag: Option<Option<String>>,
+}
+
+/// DELETE v1/projects/{projectsId}/locations/{locationsId}/secrets/{secretsId}
+/// Deletes a Secret.
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `secretmanager_projects_locations_secrets_delete_builder()` + `secretmanager_projects_locations_secrets_delete_execute()`.
+/// For task-level control, use `secretmanager_projects_locations_secrets_delete_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn secretmanager_projects_locations_secrets_delete(
+    client: &SimpleHttpClient,
+    args: &SecretmanagerProjectsLocationsSecretsDeleteArgs,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<Empty>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let builder =
+        secretmanager_projects_locations_secrets_delete_builder(client, &args.name, &args.etag)?;
+    secretmanager_projects_locations_secrets_delete_execute(builder)
+}
+
+/// GET v1/projects/{projectsId}/locations/{locationsId}/secrets/{secretsId}
+/// Gets metadata for a given Secret.
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `secretmanager_projects_locations_secrets_get_execute()` to send, or `secretmanager_projects_locations_secrets_get` for simplest API.
+
+pub fn secretmanager_projects_locations_secrets_get_builder(
+    client: &SimpleHttpClient,
+    name: &String,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!(
+        "https://secretmanager.googleapis.com/v1/projects/{}/locations/{locationsId}/secrets/{secretsId}",
+        name,
+    );
+
+    // Build request
+    let builder = client
+        .get(&endpoint_url)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// GET v1/projects/{projectsId}/locations/{locationsId}/secrets/{secretsId}
+/// Gets metadata for a given Secret.
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `secretmanager_projects_locations_secrets_get_execute()` or `secretmanager_projects_locations_secrets_get`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `secretmanager_projects_locations_secrets_get_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn secretmanager_projects_locations_secrets_get_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<Secret>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: Secret = serde_json::from_str(&body)
+                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// GET v1/projects/{projectsId}/locations/{locationsId}/secrets/{secretsId}
+/// Gets metadata for a given Secret.
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `secretmanager_projects_locations_secrets_get_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `secretmanager_projects_locations_secrets_get_task()`.
+/// For the simplest API, use `secretmanager_projects_locations_secrets_get()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `secretmanager_projects_locations_secrets_get_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn secretmanager_projects_locations_secrets_get_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<Secret>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let task = secretmanager_projects_locations_secrets_get_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`secretmanager_projects_locations_secrets_get`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct SecretmanagerProjectsLocationsSecretsGetArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
+/// GET v1/projects/{projectsId}/locations/{locationsId}/secrets/{secretsId}
+/// Gets metadata for a given Secret.
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `secretmanager_projects_locations_secrets_get_builder()` + `secretmanager_projects_locations_secrets_get_execute()`.
+/// For task-level control, use `secretmanager_projects_locations_secrets_get_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn secretmanager_projects_locations_secrets_get(
+    client: &SimpleHttpClient,
+    args: &SecretmanagerProjectsLocationsSecretsGetArgs,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<Secret>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let builder = secretmanager_projects_locations_secrets_get_builder(client, &args.name)?;
+    secretmanager_projects_locations_secrets_get_execute(builder)
+}
+
+/// GET v1/projects/{projectsId}/locations/{locationsId}/secrets/{secretsId}:getIamPolicy
+/// Gets the access control policy for a secret. Returns empty policy if the secret exists and does not have a policy set.
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `secretmanager_projects_locations_secrets_get_iam_policy_execute()` to send, or `secretmanager_projects_locations_secrets_get_iam_policy` for simplest API.
+
+pub fn secretmanager_projects_locations_secrets_get_iam_policy_builder(
+    client: &SimpleHttpClient,
+    resource: &String,
+    options_requestedPolicyVersion: &Option<Option<String>>,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!(
+        "https://secretmanager.googleapis.com/v1/projects/{}/locations/{locationsId}/secrets/{secretsId}:getIamPolicy",
+        resource,
+    );
+
+    // Build request
+    let mut query_parts = Vec::new();
+    if let Some(val) = options_requestedPolicyVersion.as_ref() {
+        query_parts.push(format!("options.requestedPolicyVersion={}", val));
+    }
+
+    let url_with_query = if query_parts.is_empty() {
+        endpoint_url
+    } else {
+        format!("{}?{}", endpoint_url, query_parts.join("&"))
+    };
+
+    let builder = client
         .get(&url_with_query)
         .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
 
-    builder
-        .body_json(body)
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+    Ok(builder)
 }
 
-/// GET v1/projects/{projectsId}/secrets
+/// GET v1/projects/{projectsId}/locations/{locationsId}/secrets/{secretsId}:getIamPolicy
+/// Gets the access control policy for a secret. Returns empty policy if the secret exists and does not have a policy set.
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `secretmanager_projects_locations_secrets_get_iam_policy_execute()` or `secretmanager_projects_locations_secrets_get_iam_policy`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `secretmanager_projects_locations_secrets_get_iam_policy_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn secretmanager_projects_locations_secrets_get_iam_policy_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<Policy>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: Policy = serde_json::from_str(&body)
+                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// GET v1/projects/{projectsId}/locations/{locationsId}/secrets/{secretsId}:getIamPolicy
+/// Gets the access control policy for a secret. Returns empty policy if the secret exists and does not have a policy set.
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `secretmanager_projects_locations_secrets_get_iam_policy_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `secretmanager_projects_locations_secrets_get_iam_policy_task()`.
+/// For the simplest API, use `secretmanager_projects_locations_secrets_get_iam_policy()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `secretmanager_projects_locations_secrets_get_iam_policy_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn secretmanager_projects_locations_secrets_get_iam_policy_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<Policy>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let task = secretmanager_projects_locations_secrets_get_iam_policy_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`secretmanager_projects_locations_secrets_get_iam_policy`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct SecretmanagerProjectsLocationsSecretsGetIamPolicyArgs {
+    /// Path parameter: resource
+    pub resource: String,
+    /// Query parameter: options_requestedPolicyVersion
+    pub options_requestedPolicyVersion: Option<Option<String>>,
+}
+
+/// GET v1/projects/{projectsId}/locations/{locationsId}/secrets/{secretsId}:getIamPolicy
+/// Gets the access control policy for a secret. Returns empty policy if the secret exists and does not have a policy set.
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `secretmanager_projects_locations_secrets_get_iam_policy_builder()` + `secretmanager_projects_locations_secrets_get_iam_policy_execute()`.
+/// For task-level control, use `secretmanager_projects_locations_secrets_get_iam_policy_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn secretmanager_projects_locations_secrets_get_iam_policy(
+    client: &SimpleHttpClient,
+    args: &SecretmanagerProjectsLocationsSecretsGetIamPolicyArgs,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<Policy>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let builder = secretmanager_projects_locations_secrets_get_iam_policy_builder(
+        client,
+        &args.resource,
+        &args.options_requestedPolicyVersion,
+    )?;
+    secretmanager_projects_locations_secrets_get_iam_policy_execute(builder)
+}
+
+/// GET v1/projects/{projectsId}/locations/{locationsId}/secrets
+/// Lists Secrets.
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `secretmanager_projects_locations_secrets_list_execute()` to send, or `secretmanager_projects_locations_secrets_list` for simplest API.
+
+pub fn secretmanager_projects_locations_secrets_list_builder(
+    client: &SimpleHttpClient,
+    parent: &String,
+    filter: &Option<Option<String>>,
+    pageSize: &Option<Option<String>>,
+    pageToken: &Option<Option<String>>,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!(
+        "https://secretmanager.googleapis.com/v1/projects/{}/locations/{locationsId}/secrets",
+        parent,
+    );
+
+    // Build request
+    let mut query_parts = Vec::new();
+    if let Some(val) = filter.as_ref() {
+        query_parts.push(format!("filter={}", val));
+    }
+    if let Some(val) = pageSize.as_ref() {
+        query_parts.push(format!("pageSize={}", val));
+    }
+    if let Some(val) = pageToken.as_ref() {
+        query_parts.push(format!("pageToken={}", val));
+    }
+
+    let url_with_query = if query_parts.is_empty() {
+        endpoint_url
+    } else {
+        format!("{}?{}", endpoint_url, query_parts.join("&"))
+    };
+
+    let builder = client
+        .get(&url_with_query)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// GET v1/projects/{projectsId}/locations/{locationsId}/secrets
+/// Lists Secrets.
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `secretmanager_projects_locations_secrets_list_execute()` or `secretmanager_projects_locations_secrets_list`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `secretmanager_projects_locations_secrets_list_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn secretmanager_projects_locations_secrets_list_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<ListSecretsResponse>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: ListSecretsResponse = serde_json::from_str(&body)
+                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// GET v1/projects/{projectsId}/locations/{locationsId}/secrets
+/// Lists Secrets.
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `secretmanager_projects_locations_secrets_list_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `secretmanager_projects_locations_secrets_list_task()`.
+/// For the simplest API, use `secretmanager_projects_locations_secrets_list()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `secretmanager_projects_locations_secrets_list_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn secretmanager_projects_locations_secrets_list_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<ListSecretsResponse>, ApiError>, P = ApiPending>
+        + Send
+        + 'static,
+    ApiError,
+> {
+    let task = secretmanager_projects_locations_secrets_list_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`secretmanager_projects_locations_secrets_list`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct SecretmanagerProjectsLocationsSecretsListArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Query parameter: filter
+    pub filter: Option<Option<String>>,
+    /// Query parameter: pageSize
+    pub pageSize: Option<Option<String>>,
+    /// Query parameter: pageToken
+    pub pageToken: Option<Option<String>>,
+}
+
+/// GET v1/projects/{projectsId}/locations/{locationsId}/secrets
+/// Lists Secrets.
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `secretmanager_projects_locations_secrets_list_builder()` + `secretmanager_projects_locations_secrets_list_execute()`.
+/// For task-level control, use `secretmanager_projects_locations_secrets_list_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn secretmanager_projects_locations_secrets_list(
+    client: &SimpleHttpClient,
+    args: &SecretmanagerProjectsLocationsSecretsListArgs,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<ListSecretsResponse>, ApiError>, P = ApiPending>
+        + Send
+        + 'static,
+    ApiError,
+> {
+    let builder = secretmanager_projects_locations_secrets_list_builder(
+        client,
+        &args.parent,
+        &args.filter,
+        &args.pageSize,
+        &args.pageToken,
+    )?;
+    secretmanager_projects_locations_secrets_list_execute(builder)
+}
+
+/// PATCH v1/projects/{projectsId}/locations/{locationsId}/secrets/{secretsId}
+/// Updates metadata of an existing Secret.
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `secretmanager_projects_locations_secrets_patch_execute()` to send, or `secretmanager_projects_locations_secrets_patch` for simplest API.
+
+pub fn secretmanager_projects_locations_secrets_patch_builder(
+    client: &SimpleHttpClient,
+    name: &String,
+    updateMask: &Option<Option<String>>,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!(
+        "https://secretmanager.googleapis.com/v1/projects/{}/locations/{locationsId}/secrets/{secretsId}",
+        name,
+    );
+
+    // Build request
+    let mut query_parts = Vec::new();
+    if let Some(val) = updateMask.as_ref() {
+        query_parts.push(format!("updateMask={}", val));
+    }
+
+    let url_with_query = if query_parts.is_empty() {
+        endpoint_url
+    } else {
+        format!("{}?{}", endpoint_url, query_parts.join("&"))
+    };
+
+    let builder = client
+        .patch(&url_with_query)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// PATCH v1/projects/{projectsId}/locations/{locationsId}/secrets/{secretsId}
+/// Updates metadata of an existing Secret.
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `secretmanager_projects_locations_secrets_patch_execute()` or `secretmanager_projects_locations_secrets_patch`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `secretmanager_projects_locations_secrets_patch_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn secretmanager_projects_locations_secrets_patch_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<Secret>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: Secret = serde_json::from_str(&body)
+                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// PATCH v1/projects/{projectsId}/locations/{locationsId}/secrets/{secretsId}
+/// Updates metadata of an existing Secret.
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `secretmanager_projects_locations_secrets_patch_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `secretmanager_projects_locations_secrets_patch_task()`.
+/// For the simplest API, use `secretmanager_projects_locations_secrets_patch()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `secretmanager_projects_locations_secrets_patch_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn secretmanager_projects_locations_secrets_patch_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<Secret>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let task = secretmanager_projects_locations_secrets_patch_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`secretmanager_projects_locations_secrets_patch`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct SecretmanagerProjectsLocationsSecretsPatchArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Query parameter: updateMask
+    pub updateMask: Option<Option<String>>,
+}
+
+/// PATCH v1/projects/{projectsId}/locations/{locationsId}/secrets/{secretsId}
+/// Updates metadata of an existing Secret.
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `secretmanager_projects_locations_secrets_patch_builder()` + `secretmanager_projects_locations_secrets_patch_execute()`.
+/// For task-level control, use `secretmanager_projects_locations_secrets_patch_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn secretmanager_projects_locations_secrets_patch(
+    client: &SimpleHttpClient,
+    args: &SecretmanagerProjectsLocationsSecretsPatchArgs,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<Secret>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let builder = secretmanager_projects_locations_secrets_patch_builder(
+        client,
+        &args.name,
+        &args.updateMask,
+    )?;
+    secretmanager_projects_locations_secrets_patch_execute(builder)
+}
+
+/// POST v1/projects/{projectsId}/locations/{locationsId}/secrets/{secretsId}:setIamPolicy
+/// Sets the access control policy on the specified secret. Replaces any existing policy. Permissions on SecretVersions are enforced according to the policy set on the associated Secret.
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `secretmanager_projects_locations_secrets_set_iam_policy_execute()` to send, or `secretmanager_projects_locations_secrets_set_iam_policy` for simplest API.
+
+pub fn secretmanager_projects_locations_secrets_set_iam_policy_builder(
+    client: &SimpleHttpClient,
+    resource: &String,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!(
+        "https://secretmanager.googleapis.com/v1/projects/{}/locations/{locationsId}/secrets/{secretsId}:setIamPolicy",
+        resource,
+    );
+
+    // Build request
+    let builder = client
+        .post(&endpoint_url)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// POST v1/projects/{projectsId}/locations/{locationsId}/secrets/{secretsId}:setIamPolicy
+/// Sets the access control policy on the specified secret. Replaces any existing policy. Permissions on SecretVersions are enforced according to the policy set on the associated Secret.
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `secretmanager_projects_locations_secrets_set_iam_policy_execute()` or `secretmanager_projects_locations_secrets_set_iam_policy`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `secretmanager_projects_locations_secrets_set_iam_policy_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn secretmanager_projects_locations_secrets_set_iam_policy_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<Policy>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: Policy = serde_json::from_str(&body)
+                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// POST v1/projects/{projectsId}/locations/{locationsId}/secrets/{secretsId}:setIamPolicy
+/// Sets the access control policy on the specified secret. Replaces any existing policy. Permissions on SecretVersions are enforced according to the policy set on the associated Secret.
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `secretmanager_projects_locations_secrets_set_iam_policy_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `secretmanager_projects_locations_secrets_set_iam_policy_task()`.
+/// For the simplest API, use `secretmanager_projects_locations_secrets_set_iam_policy()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `secretmanager_projects_locations_secrets_set_iam_policy_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn secretmanager_projects_locations_secrets_set_iam_policy_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<Policy>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let task = secretmanager_projects_locations_secrets_set_iam_policy_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`secretmanager_projects_locations_secrets_set_iam_policy`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct SecretmanagerProjectsLocationsSecretsSetIamPolicyArgs {
+    /// Path parameter: resource
+    pub resource: String,
+}
+
+/// POST v1/projects/{projectsId}/locations/{locationsId}/secrets/{secretsId}:setIamPolicy
+/// Sets the access control policy on the specified secret. Replaces any existing policy. Permissions on SecretVersions are enforced according to the policy set on the associated Secret.
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `secretmanager_projects_locations_secrets_set_iam_policy_builder()` + `secretmanager_projects_locations_secrets_set_iam_policy_execute()`.
+/// For task-level control, use `secretmanager_projects_locations_secrets_set_iam_policy_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn secretmanager_projects_locations_secrets_set_iam_policy(
+    client: &SimpleHttpClient,
+    args: &SecretmanagerProjectsLocationsSecretsSetIamPolicyArgs,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<Policy>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let builder =
+        secretmanager_projects_locations_secrets_set_iam_policy_builder(client, &args.resource)?;
+    secretmanager_projects_locations_secrets_set_iam_policy_execute(builder)
+}
+
+/// POST v1/projects/{projectsId}/locations/{locationsId}/secrets/{secretsId}:testIamPermissions
+/// Returns permissions that a caller has for the specified secret. If the secret does not exist, this call returns an empty set of permissions, not a NOT_FOUND error. Note: This operation is designed to be used for building permission-aware UIs and command-line tools, not for authorization checking. This operation may "fail open" without warning.
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `secretmanager_projects_locations_secrets_test_iam_permissions_execute()` to send, or `secretmanager_projects_locations_secrets_test_iam_permissions` for simplest API.
+
+pub fn secretmanager_projects_locations_secrets_test_iam_permissions_builder(
+    client: &SimpleHttpClient,
+    resource: &String,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!(
+        "https://secretmanager.googleapis.com/v1/projects/{}/locations/{locationsId}/secrets/{secretsId}:testIamPermissions",
+        resource,
+    );
+
+    // Build request
+    let builder = client
+        .post(&endpoint_url)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// POST v1/projects/{projectsId}/locations/{locationsId}/secrets/{secretsId}:testIamPermissions
+/// Returns permissions that a caller has for the specified secret. If the secret does not exist, this call returns an empty set of permissions, not a NOT_FOUND error. Note: This operation is designed to be used for building permission-aware UIs and command-line tools, not for authorization checking. This operation may "fail open" without warning.
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `secretmanager_projects_locations_secrets_test_iam_permissions_execute()` or `secretmanager_projects_locations_secrets_test_iam_permissions`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `secretmanager_projects_locations_secrets_test_iam_permissions_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn secretmanager_projects_locations_secrets_test_iam_permissions_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<TestIamPermissionsResponse>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: TestIamPermissionsResponse = serde_json::from_str(&body)
+                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// POST v1/projects/{projectsId}/locations/{locationsId}/secrets/{secretsId}:testIamPermissions
+/// Returns permissions that a caller has for the specified secret. If the secret does not exist, this call returns an empty set of permissions, not a NOT_FOUND error. Note: This operation is designed to be used for building permission-aware UIs and command-line tools, not for authorization checking. This operation may "fail open" without warning.
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `secretmanager_projects_locations_secrets_test_iam_permissions_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `secretmanager_projects_locations_secrets_test_iam_permissions_task()`.
+/// For the simplest API, use `secretmanager_projects_locations_secrets_test_iam_permissions()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `secretmanager_projects_locations_secrets_test_iam_permissions_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn secretmanager_projects_locations_secrets_test_iam_permissions_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<
+            D = Result<ApiResponse<TestIamPermissionsResponse>, ApiError>,
+            P = ApiPending,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    let task = secretmanager_projects_locations_secrets_test_iam_permissions_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`secretmanager_projects_locations_secrets_test_iam_permissions`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct SecretmanagerProjectsLocationsSecretsTestIamPermissionsArgs {
+    /// Path parameter: resource
+    pub resource: String,
+}
+
+/// POST v1/projects/{projectsId}/locations/{locationsId}/secrets/{secretsId}:testIamPermissions
+/// Returns permissions that a caller has for the specified secret. If the secret does not exist, this call returns an empty set of permissions, not a NOT_FOUND error. Note: This operation is designed to be used for building permission-aware UIs and command-line tools, not for authorization checking. This operation may "fail open" without warning.
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `secretmanager_projects_locations_secrets_test_iam_permissions_builder()` + `secretmanager_projects_locations_secrets_test_iam_permissions_execute()`.
+/// For task-level control, use `secretmanager_projects_locations_secrets_test_iam_permissions_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn secretmanager_projects_locations_secrets_test_iam_permissions(
+    client: &SimpleHttpClient,
+    args: &SecretmanagerProjectsLocationsSecretsTestIamPermissionsArgs,
+) -> Result<
+    impl StreamIterator<
+            D = Result<ApiResponse<TestIamPermissionsResponse>, ApiError>,
+            P = ApiPending,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    let builder = secretmanager_projects_locations_secrets_test_iam_permissions_builder(
+        client,
+        &args.resource,
+    )?;
+    secretmanager_projects_locations_secrets_test_iam_permissions_execute(builder)
+}
+
+/// GET v1/projects/{projectsId}/locations/{locationsId}/secrets/{secretsId}/versions/{versionsId}:access
+/// Accesses a SecretVersion. This call returns the secret data. projects/*/secrets/*/`versions/latest` is an alias to the most recently created SecretVersion.
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `secretmanager_projects_locations_secrets_versions_access_execute()` to send, or `secretmanager_projects_locations_secrets_versions_access` for simplest API.
+
+pub fn secretmanager_projects_locations_secrets_versions_access_builder(
+    client: &SimpleHttpClient,
+    name: &String,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!(
+        "https://secretmanager.googleapis.com/v1/projects/{}/locations/{locationsId}/secrets/{secretsId}/versions/{versionsId}:access",
+        name,
+    );
+
+    // Build request
+    let builder = client
+        .get(&endpoint_url)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// GET v1/projects/{projectsId}/locations/{locationsId}/secrets/{secretsId}/versions/{versionsId}:access
+/// Accesses a SecretVersion. This call returns the secret data. projects/*/secrets/*/`versions/latest` is an alias to the most recently created SecretVersion.
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `secretmanager_projects_locations_secrets_versions_access_execute()` or `secretmanager_projects_locations_secrets_versions_access`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `secretmanager_projects_locations_secrets_versions_access_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn secretmanager_projects_locations_secrets_versions_access_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<AccessSecretVersionResponse>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: AccessSecretVersionResponse = serde_json::from_str(&body)
+                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// GET v1/projects/{projectsId}/locations/{locationsId}/secrets/{secretsId}/versions/{versionsId}:access
+/// Accesses a SecretVersion. This call returns the secret data. projects/*/secrets/*/`versions/latest` is an alias to the most recently created SecretVersion.
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `secretmanager_projects_locations_secrets_versions_access_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `secretmanager_projects_locations_secrets_versions_access_task()`.
+/// For the simplest API, use `secretmanager_projects_locations_secrets_versions_access()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `secretmanager_projects_locations_secrets_versions_access_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn secretmanager_projects_locations_secrets_versions_access_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<
+            D = Result<ApiResponse<AccessSecretVersionResponse>, ApiError>,
+            P = ApiPending,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    let task = secretmanager_projects_locations_secrets_versions_access_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`secretmanager_projects_locations_secrets_versions_access`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct SecretmanagerProjectsLocationsSecretsVersionsAccessArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
+/// GET v1/projects/{projectsId}/locations/{locationsId}/secrets/{secretsId}/versions/{versionsId}:access
+/// Accesses a SecretVersion. This call returns the secret data. projects/*/secrets/*/`versions/latest` is an alias to the most recently created SecretVersion.
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `secretmanager_projects_locations_secrets_versions_access_builder()` + `secretmanager_projects_locations_secrets_versions_access_execute()`.
+/// For task-level control, use `secretmanager_projects_locations_secrets_versions_access_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn secretmanager_projects_locations_secrets_versions_access(
+    client: &SimpleHttpClient,
+    args: &SecretmanagerProjectsLocationsSecretsVersionsAccessArgs,
+) -> Result<
+    impl StreamIterator<
+            D = Result<ApiResponse<AccessSecretVersionResponse>, ApiError>,
+            P = ApiPending,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    let builder =
+        secretmanager_projects_locations_secrets_versions_access_builder(client, &args.name)?;
+    secretmanager_projects_locations_secrets_versions_access_execute(builder)
+}
+
+/// POST v1/projects/{projectsId}/locations/{locationsId}/secrets/{secretsId}/versions/{versionsId}:destroy
+/// Destroys a SecretVersion. Sets the state of the SecretVersion to DESTROYED and irrevocably destroys the secret data.
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `secretmanager_projects_locations_secrets_versions_destroy_execute()` to send, or `secretmanager_projects_locations_secrets_versions_destroy` for simplest API.
+
+pub fn secretmanager_projects_locations_secrets_versions_destroy_builder(
+    client: &SimpleHttpClient,
+    name: &String,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!(
+        "https://secretmanager.googleapis.com/v1/projects/{}/locations/{locationsId}/secrets/{secretsId}/versions/{versionsId}:destroy",
+        name,
+    );
+
+    // Build request
+    let builder = client
+        .post(&endpoint_url)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// POST v1/projects/{projectsId}/locations/{locationsId}/secrets/{secretsId}/versions/{versionsId}:destroy
+/// Destroys a SecretVersion. Sets the state of the SecretVersion to DESTROYED and irrevocably destroys the secret data.
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `secretmanager_projects_locations_secrets_versions_destroy_execute()` or `secretmanager_projects_locations_secrets_versions_destroy`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `secretmanager_projects_locations_secrets_versions_destroy_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn secretmanager_projects_locations_secrets_versions_destroy_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<SecretVersion>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: SecretVersion = serde_json::from_str(&body)
+                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// POST v1/projects/{projectsId}/locations/{locationsId}/secrets/{secretsId}/versions/{versionsId}:destroy
+/// Destroys a SecretVersion. Sets the state of the SecretVersion to DESTROYED and irrevocably destroys the secret data.
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `secretmanager_projects_locations_secrets_versions_destroy_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `secretmanager_projects_locations_secrets_versions_destroy_task()`.
+/// For the simplest API, use `secretmanager_projects_locations_secrets_versions_destroy()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `secretmanager_projects_locations_secrets_versions_destroy_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn secretmanager_projects_locations_secrets_versions_destroy_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<SecretVersion>, ApiError>, P = ApiPending>
+        + Send
+        + 'static,
+    ApiError,
+> {
+    let task = secretmanager_projects_locations_secrets_versions_destroy_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`secretmanager_projects_locations_secrets_versions_destroy`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct SecretmanagerProjectsLocationsSecretsVersionsDestroyArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
+/// POST v1/projects/{projectsId}/locations/{locationsId}/secrets/{secretsId}/versions/{versionsId}:destroy
+/// Destroys a SecretVersion. Sets the state of the SecretVersion to DESTROYED and irrevocably destroys the secret data.
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `secretmanager_projects_locations_secrets_versions_destroy_builder()` + `secretmanager_projects_locations_secrets_versions_destroy_execute()`.
+/// For task-level control, use `secretmanager_projects_locations_secrets_versions_destroy_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn secretmanager_projects_locations_secrets_versions_destroy(
+    client: &SimpleHttpClient,
+    args: &SecretmanagerProjectsLocationsSecretsVersionsDestroyArgs,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<SecretVersion>, ApiError>, P = ApiPending>
+        + Send
+        + 'static,
+    ApiError,
+> {
+    let builder =
+        secretmanager_projects_locations_secrets_versions_destroy_builder(client, &args.name)?;
+    secretmanager_projects_locations_secrets_versions_destroy_execute(builder)
+}
+
+/// POST v1/projects/{projectsId}/locations/{locationsId}/secrets/{secretsId}/versions/{versionsId}:disable
+/// Disables a SecretVersion. Sets the state of the SecretVersion to DISABLED.
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `secretmanager_projects_locations_secrets_versions_disable_execute()` to send, or `secretmanager_projects_locations_secrets_versions_disable` for simplest API.
+
+pub fn secretmanager_projects_locations_secrets_versions_disable_builder(
+    client: &SimpleHttpClient,
+    name: &String,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!(
+        "https://secretmanager.googleapis.com/v1/projects/{}/locations/{locationsId}/secrets/{secretsId}/versions/{versionsId}:disable",
+        name,
+    );
+
+    // Build request
+    let builder = client
+        .post(&endpoint_url)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// POST v1/projects/{projectsId}/locations/{locationsId}/secrets/{secretsId}/versions/{versionsId}:disable
+/// Disables a SecretVersion. Sets the state of the SecretVersion to DISABLED.
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `secretmanager_projects_locations_secrets_versions_disable_execute()` or `secretmanager_projects_locations_secrets_versions_disable`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `secretmanager_projects_locations_secrets_versions_disable_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn secretmanager_projects_locations_secrets_versions_disable_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<SecretVersion>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: SecretVersion = serde_json::from_str(&body)
+                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// POST v1/projects/{projectsId}/locations/{locationsId}/secrets/{secretsId}/versions/{versionsId}:disable
+/// Disables a SecretVersion. Sets the state of the SecretVersion to DISABLED.
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `secretmanager_projects_locations_secrets_versions_disable_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `secretmanager_projects_locations_secrets_versions_disable_task()`.
+/// For the simplest API, use `secretmanager_projects_locations_secrets_versions_disable()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `secretmanager_projects_locations_secrets_versions_disable_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn secretmanager_projects_locations_secrets_versions_disable_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<SecretVersion>, ApiError>, P = ApiPending>
+        + Send
+        + 'static,
+    ApiError,
+> {
+    let task = secretmanager_projects_locations_secrets_versions_disable_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`secretmanager_projects_locations_secrets_versions_disable`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct SecretmanagerProjectsLocationsSecretsVersionsDisableArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
+/// POST v1/projects/{projectsId}/locations/{locationsId}/secrets/{secretsId}/versions/{versionsId}:disable
+/// Disables a SecretVersion. Sets the state of the SecretVersion to DISABLED.
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `secretmanager_projects_locations_secrets_versions_disable_builder()` + `secretmanager_projects_locations_secrets_versions_disable_execute()`.
+/// For task-level control, use `secretmanager_projects_locations_secrets_versions_disable_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn secretmanager_projects_locations_secrets_versions_disable(
+    client: &SimpleHttpClient,
+    args: &SecretmanagerProjectsLocationsSecretsVersionsDisableArgs,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<SecretVersion>, ApiError>, P = ApiPending>
+        + Send
+        + 'static,
+    ApiError,
+> {
+    let builder =
+        secretmanager_projects_locations_secrets_versions_disable_builder(client, &args.name)?;
+    secretmanager_projects_locations_secrets_versions_disable_execute(builder)
+}
+
+/// POST v1/projects/{projectsId}/locations/{locationsId}/secrets/{secretsId}/versions/{versionsId}:enable
+/// Enables a SecretVersion. Sets the state of the SecretVersion to ENABLED.
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `secretmanager_projects_locations_secrets_versions_enable_execute()` to send, or `secretmanager_projects_locations_secrets_versions_enable` for simplest API.
+
+pub fn secretmanager_projects_locations_secrets_versions_enable_builder(
+    client: &SimpleHttpClient,
+    name: &String,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!(
+        "https://secretmanager.googleapis.com/v1/projects/{}/locations/{locationsId}/secrets/{secretsId}/versions/{versionsId}:enable",
+        name,
+    );
+
+    // Build request
+    let builder = client
+        .post(&endpoint_url)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// POST v1/projects/{projectsId}/locations/{locationsId}/secrets/{secretsId}/versions/{versionsId}:enable
+/// Enables a SecretVersion. Sets the state of the SecretVersion to ENABLED.
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `secretmanager_projects_locations_secrets_versions_enable_execute()` or `secretmanager_projects_locations_secrets_versions_enable`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `secretmanager_projects_locations_secrets_versions_enable_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn secretmanager_projects_locations_secrets_versions_enable_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<SecretVersion>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: SecretVersion = serde_json::from_str(&body)
+                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// POST v1/projects/{projectsId}/locations/{locationsId}/secrets/{secretsId}/versions/{versionsId}:enable
+/// Enables a SecretVersion. Sets the state of the SecretVersion to ENABLED.
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `secretmanager_projects_locations_secrets_versions_enable_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `secretmanager_projects_locations_secrets_versions_enable_task()`.
+/// For the simplest API, use `secretmanager_projects_locations_secrets_versions_enable()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `secretmanager_projects_locations_secrets_versions_enable_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn secretmanager_projects_locations_secrets_versions_enable_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<SecretVersion>, ApiError>, P = ApiPending>
+        + Send
+        + 'static,
+    ApiError,
+> {
+    let task = secretmanager_projects_locations_secrets_versions_enable_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`secretmanager_projects_locations_secrets_versions_enable`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct SecretmanagerProjectsLocationsSecretsVersionsEnableArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
+/// POST v1/projects/{projectsId}/locations/{locationsId}/secrets/{secretsId}/versions/{versionsId}:enable
+/// Enables a SecretVersion. Sets the state of the SecretVersion to ENABLED.
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `secretmanager_projects_locations_secrets_versions_enable_builder()` + `secretmanager_projects_locations_secrets_versions_enable_execute()`.
+/// For task-level control, use `secretmanager_projects_locations_secrets_versions_enable_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn secretmanager_projects_locations_secrets_versions_enable(
+    client: &SimpleHttpClient,
+    args: &SecretmanagerProjectsLocationsSecretsVersionsEnableArgs,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<SecretVersion>, ApiError>, P = ApiPending>
+        + Send
+        + 'static,
+    ApiError,
+> {
+    let builder =
+        secretmanager_projects_locations_secrets_versions_enable_builder(client, &args.name)?;
+    secretmanager_projects_locations_secrets_versions_enable_execute(builder)
+}
+
+/// GET v1/projects/{projectsId}/locations/{locationsId}/secrets/{secretsId}/versions/{versionsId}
+/// Gets metadata for a SecretVersion. projects/*/secrets/*/`versions/latest` is an alias to the most recently created SecretVersion.
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `secretmanager_projects_locations_secrets_versions_get_execute()` to send, or `secretmanager_projects_locations_secrets_versions_get` for simplest API.
+
+pub fn secretmanager_projects_locations_secrets_versions_get_builder(
+    client: &SimpleHttpClient,
+    name: &String,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!(
+        "https://secretmanager.googleapis.com/v1/projects/{}/locations/{locationsId}/secrets/{secretsId}/versions/{versionsId}",
+        name,
+    );
+
+    // Build request
+    let builder = client
+        .get(&endpoint_url)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// GET v1/projects/{projectsId}/locations/{locationsId}/secrets/{secretsId}/versions/{versionsId}
+/// Gets metadata for a SecretVersion. projects/*/secrets/*/`versions/latest` is an alias to the most recently created SecretVersion.
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `secretmanager_projects_locations_secrets_versions_get_execute()` or `secretmanager_projects_locations_secrets_versions_get`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `secretmanager_projects_locations_secrets_versions_get_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn secretmanager_projects_locations_secrets_versions_get_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<SecretVersion>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: SecretVersion = serde_json::from_str(&body)
+                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// GET v1/projects/{projectsId}/locations/{locationsId}/secrets/{secretsId}/versions/{versionsId}
+/// Gets metadata for a SecretVersion. projects/*/secrets/*/`versions/latest` is an alias to the most recently created SecretVersion.
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `secretmanager_projects_locations_secrets_versions_get_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `secretmanager_projects_locations_secrets_versions_get_task()`.
+/// For the simplest API, use `secretmanager_projects_locations_secrets_versions_get()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `secretmanager_projects_locations_secrets_versions_get_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn secretmanager_projects_locations_secrets_versions_get_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<SecretVersion>, ApiError>, P = ApiPending>
+        + Send
+        + 'static,
+    ApiError,
+> {
+    let task = secretmanager_projects_locations_secrets_versions_get_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`secretmanager_projects_locations_secrets_versions_get`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct SecretmanagerProjectsLocationsSecretsVersionsGetArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
+/// GET v1/projects/{projectsId}/locations/{locationsId}/secrets/{secretsId}/versions/{versionsId}
+/// Gets metadata for a SecretVersion. projects/*/secrets/*/`versions/latest` is an alias to the most recently created SecretVersion.
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `secretmanager_projects_locations_secrets_versions_get_builder()` + `secretmanager_projects_locations_secrets_versions_get_execute()`.
+/// For task-level control, use `secretmanager_projects_locations_secrets_versions_get_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn secretmanager_projects_locations_secrets_versions_get(
+    client: &SimpleHttpClient,
+    args: &SecretmanagerProjectsLocationsSecretsVersionsGetArgs,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<SecretVersion>, ApiError>, P = ApiPending>
+        + Send
+        + 'static,
+    ApiError,
+> {
+    let builder =
+        secretmanager_projects_locations_secrets_versions_get_builder(client, &args.name)?;
+    secretmanager_projects_locations_secrets_versions_get_execute(builder)
+}
+
+/// GET v1/projects/{projectsId}/locations/{locationsId}/secrets/{secretsId}/versions
+/// Lists SecretVersions. This call does not return secret data.
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `secretmanager_projects_locations_secrets_versions_list_execute()` to send, or `secretmanager_projects_locations_secrets_versions_list` for simplest API.
+
+pub fn secretmanager_projects_locations_secrets_versions_list_builder(
+    client: &SimpleHttpClient,
+    parent: &String,
+    filter: &Option<Option<String>>,
+    pageSize: &Option<Option<String>>,
+    pageToken: &Option<Option<String>>,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!(
+        "https://secretmanager.googleapis.com/v1/projects/{}/locations/{locationsId}/secrets/{secretsId}/versions",
+        parent,
+    );
+
+    // Build request
+    let mut query_parts = Vec::new();
+    if let Some(val) = filter.as_ref() {
+        query_parts.push(format!("filter={}", val));
+    }
+    if let Some(val) = pageSize.as_ref() {
+        query_parts.push(format!("pageSize={}", val));
+    }
+    if let Some(val) = pageToken.as_ref() {
+        query_parts.push(format!("pageToken={}", val));
+    }
+
+    let url_with_query = if query_parts.is_empty() {
+        endpoint_url
+    } else {
+        format!("{}?{}", endpoint_url, query_parts.join("&"))
+    };
+
+    let builder = client
+        .get(&url_with_query)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// GET v1/projects/{projectsId}/locations/{locationsId}/secrets/{secretsId}/versions
+/// Lists SecretVersions. This call does not return secret data.
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `secretmanager_projects_locations_secrets_versions_list_execute()` or `secretmanager_projects_locations_secrets_versions_list`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `secretmanager_projects_locations_secrets_versions_list_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn secretmanager_projects_locations_secrets_versions_list_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<ListSecretVersionsResponse>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: ListSecretVersionsResponse = serde_json::from_str(&body)
+                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// GET v1/projects/{projectsId}/locations/{locationsId}/secrets/{secretsId}/versions
+/// Lists SecretVersions. This call does not return secret data.
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `secretmanager_projects_locations_secrets_versions_list_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `secretmanager_projects_locations_secrets_versions_list_task()`.
+/// For the simplest API, use `secretmanager_projects_locations_secrets_versions_list()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `secretmanager_projects_locations_secrets_versions_list_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn secretmanager_projects_locations_secrets_versions_list_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<
+            D = Result<ApiResponse<ListSecretVersionsResponse>, ApiError>,
+            P = ApiPending,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    let task = secretmanager_projects_locations_secrets_versions_list_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`secretmanager_projects_locations_secrets_versions_list`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct SecretmanagerProjectsLocationsSecretsVersionsListArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Query parameter: filter
+    pub filter: Option<Option<String>>,
+    /// Query parameter: pageSize
+    pub pageSize: Option<Option<String>>,
+    /// Query parameter: pageToken
+    pub pageToken: Option<Option<String>>,
+}
+
+/// GET v1/projects/{projectsId}/locations/{locationsId}/secrets/{secretsId}/versions
+/// Lists SecretVersions. This call does not return secret data.
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `secretmanager_projects_locations_secrets_versions_list_builder()` + `secretmanager_projects_locations_secrets_versions_list_execute()`.
+/// For task-level control, use `secretmanager_projects_locations_secrets_versions_list_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn secretmanager_projects_locations_secrets_versions_list(
+    client: &SimpleHttpClient,
+    args: &SecretmanagerProjectsLocationsSecretsVersionsListArgs,
+) -> Result<
+    impl StreamIterator<
+            D = Result<ApiResponse<ListSecretVersionsResponse>, ApiError>,
+            P = ApiPending,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    let builder = secretmanager_projects_locations_secrets_versions_list_builder(
+        client,
+        &args.parent,
+        &args.filter,
+        &args.pageSize,
+        &args.pageToken,
+    )?;
+    secretmanager_projects_locations_secrets_versions_list_execute(builder)
+}
+
+/// POST v1/projects/{projectsId}/secrets/{secretsId}:addVersion
+/// Creates a new SecretVersion containing secret data and attaches it to an existing Secret.
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `secretmanager_projects_secrets_add_version_execute()` to send, or `secretmanager_projects_secrets_add_version` for simplest API.
+
+pub fn secretmanager_projects_secrets_add_version_builder(
+    client: &SimpleHttpClient,
+    parent: &String,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!(
+        "https://secretmanager.googleapis.com/v1/projects/{}/secrets/{secretsId}:addVersion",
+        parent,
+    );
+
+    // Build request
+    let builder = client
+        .post(&endpoint_url)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// POST v1/projects/{projectsId}/secrets/{secretsId}:addVersion
+/// Creates a new SecretVersion containing secret data and attaches it to an existing Secret.
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `secretmanager_projects_secrets_add_version_execute()` or `secretmanager_projects_secrets_add_version`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `secretmanager_projects_secrets_add_version_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn secretmanager_projects_secrets_add_version_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<SecretVersion>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: SecretVersion = serde_json::from_str(&body)
+                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// POST v1/projects/{projectsId}/secrets/{secretsId}:addVersion
+/// Creates a new SecretVersion containing secret data and attaches it to an existing Secret.
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `secretmanager_projects_secrets_add_version_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `secretmanager_projects_secrets_add_version_task()`.
+/// For the simplest API, use `secretmanager_projects_secrets_add_version()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `secretmanager_projects_secrets_add_version_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn secretmanager_projects_secrets_add_version_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<SecretVersion>, ApiError>, P = ApiPending>
+        + Send
+        + 'static,
+    ApiError,
+> {
+    let task = secretmanager_projects_secrets_add_version_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`secretmanager_projects_secrets_add_version`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct SecretmanagerProjectsSecretsAddVersionArgs {
+    /// Path parameter: parent
+    pub parent: String,
+}
+
+/// POST v1/projects/{projectsId}/secrets/{secretsId}:addVersion
+/// Creates a new SecretVersion containing secret data and attaches it to an existing Secret.
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `secretmanager_projects_secrets_add_version_builder()` + `secretmanager_projects_secrets_add_version_execute()`.
+/// For task-level control, use `secretmanager_projects_secrets_add_version_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn secretmanager_projects_secrets_add_version(
+    client: &SimpleHttpClient,
+    args: &SecretmanagerProjectsSecretsAddVersionArgs,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<SecretVersion>, ApiError>, P = ApiPending>
+        + Send
+        + 'static,
+    ApiError,
+> {
+    let builder = secretmanager_projects_secrets_add_version_builder(client, &args.parent)?;
+    secretmanager_projects_secrets_add_version_execute(builder)
+}
+
+/// POST v1/projects/{projectsId}/secrets
+/// Creates a new Secret containing no SecretVersions.
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `secretmanager_projects_secrets_create_execute()` to send, or `secretmanager_projects_secrets_create` for simplest API.
+
+pub fn secretmanager_projects_secrets_create_builder(
+    client: &SimpleHttpClient,
+    parent: &String,
+    secretId: &Option<Option<String>>,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!(
+        "https://secretmanager.googleapis.com/v1/projects/{}/secrets",
+        parent,
+    );
+
+    // Build request
+    let mut query_parts = Vec::new();
+    if let Some(val) = secretId.as_ref() {
+        query_parts.push(format!("secretId={}", val));
+    }
+
+    let url_with_query = if query_parts.is_empty() {
+        endpoint_url
+    } else {
+        format!("{}?{}", endpoint_url, query_parts.join("&"))
+    };
+
+    let builder = client
+        .post(&url_with_query)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// POST v1/projects/{projectsId}/secrets
 /// Creates a new Secret containing no SecretVersions.
 ///
 /// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
@@ -327,7 +3194,7 @@ pub fn secretmanager_projects_secrets_create_task(
         .map_pending(|_| ApiPending::Sending))
 }
 
-/// GET v1/projects/{projectsId}/secrets
+/// POST v1/projects/{projectsId}/secrets
 /// Creates a new Secret containing no SecretVersions.
 ///
 /// Takes a `ClientRequestBuilder`, builds and executes the request,
@@ -363,12 +3230,10 @@ pub struct SecretmanagerProjectsSecretsCreateArgs {
     /// Path parameter: parent
     pub parent: String,
     /// Query parameter: secretId
-    pub secretId: Option<String>,
-    /// Request body.
-    pub body: Secret,
+    pub secretId: Option<Option<String>>,
 }
 
-/// GET v1/projects/{projectsId}/secrets
+/// POST v1/projects/{projectsId}/secrets
 /// Creates a new Secret containing no SecretVersions.
 ///
 /// Simplest API - builds and executes the request in one call.
@@ -386,11 +3251,3031 @@ pub fn secretmanager_projects_secrets_create(
     impl StreamIterator<D = Result<ApiResponse<Secret>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = secretmanager_projects_secrets_create_builder(
+    let builder =
+        secretmanager_projects_secrets_create_builder(client, &args.parent, &args.secretId)?;
+    secretmanager_projects_secrets_create_execute(builder)
+}
+
+/// DELETE v1/projects/{projectsId}/secrets/{secretsId}
+/// Deletes a Secret.
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `secretmanager_projects_secrets_delete_execute()` to send, or `secretmanager_projects_secrets_delete` for simplest API.
+
+pub fn secretmanager_projects_secrets_delete_builder(
+    client: &SimpleHttpClient,
+    name: &String,
+    etag: &Option<Option<String>>,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!(
+        "https://secretmanager.googleapis.com/v1/projects/{}/secrets/{secretsId}",
+        name,
+    );
+
+    // Build request
+    let mut query_parts = Vec::new();
+    if let Some(val) = etag.as_ref() {
+        query_parts.push(format!("etag={}", val));
+    }
+
+    let url_with_query = if query_parts.is_empty() {
+        endpoint_url
+    } else {
+        format!("{}?{}", endpoint_url, query_parts.join("&"))
+    };
+
+    let builder = client
+        .delete(&url_with_query)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// DELETE v1/projects/{projectsId}/secrets/{secretsId}
+/// Deletes a Secret.
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `secretmanager_projects_secrets_delete_execute()` or `secretmanager_projects_secrets_delete`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `secretmanager_projects_secrets_delete_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn secretmanager_projects_secrets_delete_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<Empty>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: Empty = serde_json::from_str(&body)
+                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// DELETE v1/projects/{projectsId}/secrets/{secretsId}
+/// Deletes a Secret.
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `secretmanager_projects_secrets_delete_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `secretmanager_projects_secrets_delete_task()`.
+/// For the simplest API, use `secretmanager_projects_secrets_delete()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `secretmanager_projects_secrets_delete_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn secretmanager_projects_secrets_delete_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<Empty>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let task = secretmanager_projects_secrets_delete_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`secretmanager_projects_secrets_delete`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct SecretmanagerProjectsSecretsDeleteArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Query parameter: etag
+    pub etag: Option<Option<String>>,
+}
+
+/// DELETE v1/projects/{projectsId}/secrets/{secretsId}
+/// Deletes a Secret.
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `secretmanager_projects_secrets_delete_builder()` + `secretmanager_projects_secrets_delete_execute()`.
+/// For task-level control, use `secretmanager_projects_secrets_delete_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn secretmanager_projects_secrets_delete(
+    client: &SimpleHttpClient,
+    args: &SecretmanagerProjectsSecretsDeleteArgs,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<Empty>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let builder = secretmanager_projects_secrets_delete_builder(client, &args.name, &args.etag)?;
+    secretmanager_projects_secrets_delete_execute(builder)
+}
+
+/// GET v1/projects/{projectsId}/secrets/{secretsId}
+/// Gets metadata for a given Secret.
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `secretmanager_projects_secrets_get_execute()` to send, or `secretmanager_projects_secrets_get` for simplest API.
+
+pub fn secretmanager_projects_secrets_get_builder(
+    client: &SimpleHttpClient,
+    name: &String,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!(
+        "https://secretmanager.googleapis.com/v1/projects/{}/secrets/{secretsId}",
+        name,
+    );
+
+    // Build request
+    let builder = client
+        .get(&endpoint_url)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// GET v1/projects/{projectsId}/secrets/{secretsId}
+/// Gets metadata for a given Secret.
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `secretmanager_projects_secrets_get_execute()` or `secretmanager_projects_secrets_get`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `secretmanager_projects_secrets_get_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn secretmanager_projects_secrets_get_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<Secret>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: Secret = serde_json::from_str(&body)
+                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// GET v1/projects/{projectsId}/secrets/{secretsId}
+/// Gets metadata for a given Secret.
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `secretmanager_projects_secrets_get_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `secretmanager_projects_secrets_get_task()`.
+/// For the simplest API, use `secretmanager_projects_secrets_get()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `secretmanager_projects_secrets_get_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn secretmanager_projects_secrets_get_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<Secret>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let task = secretmanager_projects_secrets_get_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`secretmanager_projects_secrets_get`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct SecretmanagerProjectsSecretsGetArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
+/// GET v1/projects/{projectsId}/secrets/{secretsId}
+/// Gets metadata for a given Secret.
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `secretmanager_projects_secrets_get_builder()` + `secretmanager_projects_secrets_get_execute()`.
+/// For task-level control, use `secretmanager_projects_secrets_get_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn secretmanager_projects_secrets_get(
+    client: &SimpleHttpClient,
+    args: &SecretmanagerProjectsSecretsGetArgs,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<Secret>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let builder = secretmanager_projects_secrets_get_builder(client, &args.name)?;
+    secretmanager_projects_secrets_get_execute(builder)
+}
+
+/// GET v1/projects/{projectsId}/secrets/{secretsId}:getIamPolicy
+/// Gets the access control policy for a secret. Returns empty policy if the secret exists and does not have a policy set.
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `secretmanager_projects_secrets_get_iam_policy_execute()` to send, or `secretmanager_projects_secrets_get_iam_policy` for simplest API.
+
+pub fn secretmanager_projects_secrets_get_iam_policy_builder(
+    client: &SimpleHttpClient,
+    resource: &String,
+    options_requestedPolicyVersion: &Option<Option<String>>,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!(
+        "https://secretmanager.googleapis.com/v1/projects/{}/secrets/{secretsId}:getIamPolicy",
+        resource,
+    );
+
+    // Build request
+    let mut query_parts = Vec::new();
+    if let Some(val) = options_requestedPolicyVersion.as_ref() {
+        query_parts.push(format!("options.requestedPolicyVersion={}", val));
+    }
+
+    let url_with_query = if query_parts.is_empty() {
+        endpoint_url
+    } else {
+        format!("{}?{}", endpoint_url, query_parts.join("&"))
+    };
+
+    let builder = client
+        .get(&url_with_query)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// GET v1/projects/{projectsId}/secrets/{secretsId}:getIamPolicy
+/// Gets the access control policy for a secret. Returns empty policy if the secret exists and does not have a policy set.
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `secretmanager_projects_secrets_get_iam_policy_execute()` or `secretmanager_projects_secrets_get_iam_policy`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `secretmanager_projects_secrets_get_iam_policy_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn secretmanager_projects_secrets_get_iam_policy_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<Policy>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: Policy = serde_json::from_str(&body)
+                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// GET v1/projects/{projectsId}/secrets/{secretsId}:getIamPolicy
+/// Gets the access control policy for a secret. Returns empty policy if the secret exists and does not have a policy set.
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `secretmanager_projects_secrets_get_iam_policy_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `secretmanager_projects_secrets_get_iam_policy_task()`.
+/// For the simplest API, use `secretmanager_projects_secrets_get_iam_policy()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `secretmanager_projects_secrets_get_iam_policy_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn secretmanager_projects_secrets_get_iam_policy_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<Policy>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let task = secretmanager_projects_secrets_get_iam_policy_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`secretmanager_projects_secrets_get_iam_policy`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct SecretmanagerProjectsSecretsGetIamPolicyArgs {
+    /// Path parameter: resource
+    pub resource: String,
+    /// Query parameter: options_requestedPolicyVersion
+    pub options_requestedPolicyVersion: Option<Option<String>>,
+}
+
+/// GET v1/projects/{projectsId}/secrets/{secretsId}:getIamPolicy
+/// Gets the access control policy for a secret. Returns empty policy if the secret exists and does not have a policy set.
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `secretmanager_projects_secrets_get_iam_policy_builder()` + `secretmanager_projects_secrets_get_iam_policy_execute()`.
+/// For task-level control, use `secretmanager_projects_secrets_get_iam_policy_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn secretmanager_projects_secrets_get_iam_policy(
+    client: &SimpleHttpClient,
+    args: &SecretmanagerProjectsSecretsGetIamPolicyArgs,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<Policy>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let builder = secretmanager_projects_secrets_get_iam_policy_builder(
+        client,
+        &args.resource,
+        &args.options_requestedPolicyVersion,
+    )?;
+    secretmanager_projects_secrets_get_iam_policy_execute(builder)
+}
+
+/// GET v1/projects/{projectsId}/secrets
+/// Lists Secrets.
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `secretmanager_projects_secrets_list_execute()` to send, or `secretmanager_projects_secrets_list` for simplest API.
+
+pub fn secretmanager_projects_secrets_list_builder(
+    client: &SimpleHttpClient,
+    parent: &String,
+    filter: &Option<Option<String>>,
+    pageSize: &Option<Option<String>>,
+    pageToken: &Option<Option<String>>,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!(
+        "https://secretmanager.googleapis.com/v1/projects/{}/secrets",
+        parent,
+    );
+
+    // Build request
+    let mut query_parts = Vec::new();
+    if let Some(val) = filter.as_ref() {
+        query_parts.push(format!("filter={}", val));
+    }
+    if let Some(val) = pageSize.as_ref() {
+        query_parts.push(format!("pageSize={}", val));
+    }
+    if let Some(val) = pageToken.as_ref() {
+        query_parts.push(format!("pageToken={}", val));
+    }
+
+    let url_with_query = if query_parts.is_empty() {
+        endpoint_url
+    } else {
+        format!("{}?{}", endpoint_url, query_parts.join("&"))
+    };
+
+    let builder = client
+        .get(&url_with_query)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// GET v1/projects/{projectsId}/secrets
+/// Lists Secrets.
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `secretmanager_projects_secrets_list_execute()` or `secretmanager_projects_secrets_list`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `secretmanager_projects_secrets_list_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn secretmanager_projects_secrets_list_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<ListSecretsResponse>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: ListSecretsResponse = serde_json::from_str(&body)
+                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// GET v1/projects/{projectsId}/secrets
+/// Lists Secrets.
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `secretmanager_projects_secrets_list_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `secretmanager_projects_secrets_list_task()`.
+/// For the simplest API, use `secretmanager_projects_secrets_list()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `secretmanager_projects_secrets_list_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn secretmanager_projects_secrets_list_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<ListSecretsResponse>, ApiError>, P = ApiPending>
+        + Send
+        + 'static,
+    ApiError,
+> {
+    let task = secretmanager_projects_secrets_list_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`secretmanager_projects_secrets_list`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct SecretmanagerProjectsSecretsListArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Query parameter: filter
+    pub filter: Option<Option<String>>,
+    /// Query parameter: pageSize
+    pub pageSize: Option<Option<String>>,
+    /// Query parameter: pageToken
+    pub pageToken: Option<Option<String>>,
+}
+
+/// GET v1/projects/{projectsId}/secrets
+/// Lists Secrets.
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `secretmanager_projects_secrets_list_builder()` + `secretmanager_projects_secrets_list_execute()`.
+/// For task-level control, use `secretmanager_projects_secrets_list_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn secretmanager_projects_secrets_list(
+    client: &SimpleHttpClient,
+    args: &SecretmanagerProjectsSecretsListArgs,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<ListSecretsResponse>, ApiError>, P = ApiPending>
+        + Send
+        + 'static,
+    ApiError,
+> {
+    let builder = secretmanager_projects_secrets_list_builder(
         client,
         &args.parent,
-        &args.secretId,
-        &args.body,
+        &args.filter,
+        &args.pageSize,
+        &args.pageToken,
     )?;
-    secretmanager_projects_secrets_create_execute(builder)
+    secretmanager_projects_secrets_list_execute(builder)
+}
+
+/// PATCH v1/projects/{projectsId}/secrets/{secretsId}
+/// Updates metadata of an existing Secret.
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `secretmanager_projects_secrets_patch_execute()` to send, or `secretmanager_projects_secrets_patch` for simplest API.
+
+pub fn secretmanager_projects_secrets_patch_builder(
+    client: &SimpleHttpClient,
+    name: &String,
+    updateMask: &Option<Option<String>>,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!(
+        "https://secretmanager.googleapis.com/v1/projects/{}/secrets/{secretsId}",
+        name,
+    );
+
+    // Build request
+    let mut query_parts = Vec::new();
+    if let Some(val) = updateMask.as_ref() {
+        query_parts.push(format!("updateMask={}", val));
+    }
+
+    let url_with_query = if query_parts.is_empty() {
+        endpoint_url
+    } else {
+        format!("{}?{}", endpoint_url, query_parts.join("&"))
+    };
+
+    let builder = client
+        .patch(&url_with_query)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// PATCH v1/projects/{projectsId}/secrets/{secretsId}
+/// Updates metadata of an existing Secret.
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `secretmanager_projects_secrets_patch_execute()` or `secretmanager_projects_secrets_patch`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `secretmanager_projects_secrets_patch_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn secretmanager_projects_secrets_patch_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<Secret>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: Secret = serde_json::from_str(&body)
+                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// PATCH v1/projects/{projectsId}/secrets/{secretsId}
+/// Updates metadata of an existing Secret.
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `secretmanager_projects_secrets_patch_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `secretmanager_projects_secrets_patch_task()`.
+/// For the simplest API, use `secretmanager_projects_secrets_patch()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `secretmanager_projects_secrets_patch_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn secretmanager_projects_secrets_patch_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<Secret>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let task = secretmanager_projects_secrets_patch_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`secretmanager_projects_secrets_patch`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct SecretmanagerProjectsSecretsPatchArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Query parameter: updateMask
+    pub updateMask: Option<Option<String>>,
+}
+
+/// PATCH v1/projects/{projectsId}/secrets/{secretsId}
+/// Updates metadata of an existing Secret.
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `secretmanager_projects_secrets_patch_builder()` + `secretmanager_projects_secrets_patch_execute()`.
+/// For task-level control, use `secretmanager_projects_secrets_patch_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn secretmanager_projects_secrets_patch(
+    client: &SimpleHttpClient,
+    args: &SecretmanagerProjectsSecretsPatchArgs,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<Secret>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let builder =
+        secretmanager_projects_secrets_patch_builder(client, &args.name, &args.updateMask)?;
+    secretmanager_projects_secrets_patch_execute(builder)
+}
+
+/// POST v1/projects/{projectsId}/secrets/{secretsId}:setIamPolicy
+/// Sets the access control policy on the specified secret. Replaces any existing policy. Permissions on SecretVersions are enforced according to the policy set on the associated Secret.
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `secretmanager_projects_secrets_set_iam_policy_execute()` to send, or `secretmanager_projects_secrets_set_iam_policy` for simplest API.
+
+pub fn secretmanager_projects_secrets_set_iam_policy_builder(
+    client: &SimpleHttpClient,
+    resource: &String,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!(
+        "https://secretmanager.googleapis.com/v1/projects/{}/secrets/{secretsId}:setIamPolicy",
+        resource,
+    );
+
+    // Build request
+    let builder = client
+        .post(&endpoint_url)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// POST v1/projects/{projectsId}/secrets/{secretsId}:setIamPolicy
+/// Sets the access control policy on the specified secret. Replaces any existing policy. Permissions on SecretVersions are enforced according to the policy set on the associated Secret.
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `secretmanager_projects_secrets_set_iam_policy_execute()` or `secretmanager_projects_secrets_set_iam_policy`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `secretmanager_projects_secrets_set_iam_policy_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn secretmanager_projects_secrets_set_iam_policy_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<Policy>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: Policy = serde_json::from_str(&body)
+                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// POST v1/projects/{projectsId}/secrets/{secretsId}:setIamPolicy
+/// Sets the access control policy on the specified secret. Replaces any existing policy. Permissions on SecretVersions are enforced according to the policy set on the associated Secret.
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `secretmanager_projects_secrets_set_iam_policy_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `secretmanager_projects_secrets_set_iam_policy_task()`.
+/// For the simplest API, use `secretmanager_projects_secrets_set_iam_policy()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `secretmanager_projects_secrets_set_iam_policy_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn secretmanager_projects_secrets_set_iam_policy_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<Policy>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let task = secretmanager_projects_secrets_set_iam_policy_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`secretmanager_projects_secrets_set_iam_policy`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct SecretmanagerProjectsSecretsSetIamPolicyArgs {
+    /// Path parameter: resource
+    pub resource: String,
+}
+
+/// POST v1/projects/{projectsId}/secrets/{secretsId}:setIamPolicy
+/// Sets the access control policy on the specified secret. Replaces any existing policy. Permissions on SecretVersions are enforced according to the policy set on the associated Secret.
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `secretmanager_projects_secrets_set_iam_policy_builder()` + `secretmanager_projects_secrets_set_iam_policy_execute()`.
+/// For task-level control, use `secretmanager_projects_secrets_set_iam_policy_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn secretmanager_projects_secrets_set_iam_policy(
+    client: &SimpleHttpClient,
+    args: &SecretmanagerProjectsSecretsSetIamPolicyArgs,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<Policy>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let builder = secretmanager_projects_secrets_set_iam_policy_builder(client, &args.resource)?;
+    secretmanager_projects_secrets_set_iam_policy_execute(builder)
+}
+
+/// POST v1/projects/{projectsId}/secrets/{secretsId}:testIamPermissions
+/// Returns permissions that a caller has for the specified secret. If the secret does not exist, this call returns an empty set of permissions, not a NOT_FOUND error. Note: This operation is designed to be used for building permission-aware UIs and command-line tools, not for authorization checking. This operation may "fail open" without warning.
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `secretmanager_projects_secrets_test_iam_permissions_execute()` to send, or `secretmanager_projects_secrets_test_iam_permissions` for simplest API.
+
+pub fn secretmanager_projects_secrets_test_iam_permissions_builder(
+    client: &SimpleHttpClient,
+    resource: &String,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!(
+        "https://secretmanager.googleapis.com/v1/projects/{}/secrets/{secretsId}:testIamPermissions",
+        resource,
+    );
+
+    // Build request
+    let builder = client
+        .post(&endpoint_url)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// POST v1/projects/{projectsId}/secrets/{secretsId}:testIamPermissions
+/// Returns permissions that a caller has for the specified secret. If the secret does not exist, this call returns an empty set of permissions, not a NOT_FOUND error. Note: This operation is designed to be used for building permission-aware UIs and command-line tools, not for authorization checking. This operation may "fail open" without warning.
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `secretmanager_projects_secrets_test_iam_permissions_execute()` or `secretmanager_projects_secrets_test_iam_permissions`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `secretmanager_projects_secrets_test_iam_permissions_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn secretmanager_projects_secrets_test_iam_permissions_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<TestIamPermissionsResponse>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: TestIamPermissionsResponse = serde_json::from_str(&body)
+                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// POST v1/projects/{projectsId}/secrets/{secretsId}:testIamPermissions
+/// Returns permissions that a caller has for the specified secret. If the secret does not exist, this call returns an empty set of permissions, not a NOT_FOUND error. Note: This operation is designed to be used for building permission-aware UIs and command-line tools, not for authorization checking. This operation may "fail open" without warning.
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `secretmanager_projects_secrets_test_iam_permissions_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `secretmanager_projects_secrets_test_iam_permissions_task()`.
+/// For the simplest API, use `secretmanager_projects_secrets_test_iam_permissions()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `secretmanager_projects_secrets_test_iam_permissions_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn secretmanager_projects_secrets_test_iam_permissions_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<
+            D = Result<ApiResponse<TestIamPermissionsResponse>, ApiError>,
+            P = ApiPending,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    let task = secretmanager_projects_secrets_test_iam_permissions_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`secretmanager_projects_secrets_test_iam_permissions`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct SecretmanagerProjectsSecretsTestIamPermissionsArgs {
+    /// Path parameter: resource
+    pub resource: String,
+}
+
+/// POST v1/projects/{projectsId}/secrets/{secretsId}:testIamPermissions
+/// Returns permissions that a caller has for the specified secret. If the secret does not exist, this call returns an empty set of permissions, not a NOT_FOUND error. Note: This operation is designed to be used for building permission-aware UIs and command-line tools, not for authorization checking. This operation may "fail open" without warning.
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `secretmanager_projects_secrets_test_iam_permissions_builder()` + `secretmanager_projects_secrets_test_iam_permissions_execute()`.
+/// For task-level control, use `secretmanager_projects_secrets_test_iam_permissions_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn secretmanager_projects_secrets_test_iam_permissions(
+    client: &SimpleHttpClient,
+    args: &SecretmanagerProjectsSecretsTestIamPermissionsArgs,
+) -> Result<
+    impl StreamIterator<
+            D = Result<ApiResponse<TestIamPermissionsResponse>, ApiError>,
+            P = ApiPending,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    let builder =
+        secretmanager_projects_secrets_test_iam_permissions_builder(client, &args.resource)?;
+    secretmanager_projects_secrets_test_iam_permissions_execute(builder)
+}
+
+/// GET v1/projects/{projectsId}/secrets/{secretsId}/versions/{versionsId}:access
+/// Accesses a SecretVersion. This call returns the secret data. projects/*/secrets/*/`versions/latest` is an alias to the most recently created SecretVersion.
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `secretmanager_projects_secrets_versions_access_execute()` to send, or `secretmanager_projects_secrets_versions_access` for simplest API.
+
+pub fn secretmanager_projects_secrets_versions_access_builder(
+    client: &SimpleHttpClient,
+    name: &String,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!(
+        "https://secretmanager.googleapis.com/v1/projects/{}/secrets/{secretsId}/versions/{versionsId}:access",
+        name,
+    );
+
+    // Build request
+    let builder = client
+        .get(&endpoint_url)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// GET v1/projects/{projectsId}/secrets/{secretsId}/versions/{versionsId}:access
+/// Accesses a SecretVersion. This call returns the secret data. projects/*/secrets/*/`versions/latest` is an alias to the most recently created SecretVersion.
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `secretmanager_projects_secrets_versions_access_execute()` or `secretmanager_projects_secrets_versions_access`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `secretmanager_projects_secrets_versions_access_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn secretmanager_projects_secrets_versions_access_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<AccessSecretVersionResponse>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: AccessSecretVersionResponse = serde_json::from_str(&body)
+                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// GET v1/projects/{projectsId}/secrets/{secretsId}/versions/{versionsId}:access
+/// Accesses a SecretVersion. This call returns the secret data. projects/*/secrets/*/`versions/latest` is an alias to the most recently created SecretVersion.
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `secretmanager_projects_secrets_versions_access_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `secretmanager_projects_secrets_versions_access_task()`.
+/// For the simplest API, use `secretmanager_projects_secrets_versions_access()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `secretmanager_projects_secrets_versions_access_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn secretmanager_projects_secrets_versions_access_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<
+            D = Result<ApiResponse<AccessSecretVersionResponse>, ApiError>,
+            P = ApiPending,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    let task = secretmanager_projects_secrets_versions_access_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`secretmanager_projects_secrets_versions_access`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct SecretmanagerProjectsSecretsVersionsAccessArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
+/// GET v1/projects/{projectsId}/secrets/{secretsId}/versions/{versionsId}:access
+/// Accesses a SecretVersion. This call returns the secret data. projects/*/secrets/*/`versions/latest` is an alias to the most recently created SecretVersion.
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `secretmanager_projects_secrets_versions_access_builder()` + `secretmanager_projects_secrets_versions_access_execute()`.
+/// For task-level control, use `secretmanager_projects_secrets_versions_access_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn secretmanager_projects_secrets_versions_access(
+    client: &SimpleHttpClient,
+    args: &SecretmanagerProjectsSecretsVersionsAccessArgs,
+) -> Result<
+    impl StreamIterator<
+            D = Result<ApiResponse<AccessSecretVersionResponse>, ApiError>,
+            P = ApiPending,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    let builder = secretmanager_projects_secrets_versions_access_builder(client, &args.name)?;
+    secretmanager_projects_secrets_versions_access_execute(builder)
+}
+
+/// POST v1/projects/{projectsId}/secrets/{secretsId}/versions/{versionsId}:destroy
+/// Destroys a SecretVersion. Sets the state of the SecretVersion to DESTROYED and irrevocably destroys the secret data.
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `secretmanager_projects_secrets_versions_destroy_execute()` to send, or `secretmanager_projects_secrets_versions_destroy` for simplest API.
+
+pub fn secretmanager_projects_secrets_versions_destroy_builder(
+    client: &SimpleHttpClient,
+    name: &String,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!(
+        "https://secretmanager.googleapis.com/v1/projects/{}/secrets/{secretsId}/versions/{versionsId}:destroy",
+        name,
+    );
+
+    // Build request
+    let builder = client
+        .post(&endpoint_url)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// POST v1/projects/{projectsId}/secrets/{secretsId}/versions/{versionsId}:destroy
+/// Destroys a SecretVersion. Sets the state of the SecretVersion to DESTROYED and irrevocably destroys the secret data.
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `secretmanager_projects_secrets_versions_destroy_execute()` or `secretmanager_projects_secrets_versions_destroy`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `secretmanager_projects_secrets_versions_destroy_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn secretmanager_projects_secrets_versions_destroy_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<SecretVersion>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: SecretVersion = serde_json::from_str(&body)
+                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// POST v1/projects/{projectsId}/secrets/{secretsId}/versions/{versionsId}:destroy
+/// Destroys a SecretVersion. Sets the state of the SecretVersion to DESTROYED and irrevocably destroys the secret data.
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `secretmanager_projects_secrets_versions_destroy_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `secretmanager_projects_secrets_versions_destroy_task()`.
+/// For the simplest API, use `secretmanager_projects_secrets_versions_destroy()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `secretmanager_projects_secrets_versions_destroy_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn secretmanager_projects_secrets_versions_destroy_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<SecretVersion>, ApiError>, P = ApiPending>
+        + Send
+        + 'static,
+    ApiError,
+> {
+    let task = secretmanager_projects_secrets_versions_destroy_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`secretmanager_projects_secrets_versions_destroy`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct SecretmanagerProjectsSecretsVersionsDestroyArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
+/// POST v1/projects/{projectsId}/secrets/{secretsId}/versions/{versionsId}:destroy
+/// Destroys a SecretVersion. Sets the state of the SecretVersion to DESTROYED and irrevocably destroys the secret data.
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `secretmanager_projects_secrets_versions_destroy_builder()` + `secretmanager_projects_secrets_versions_destroy_execute()`.
+/// For task-level control, use `secretmanager_projects_secrets_versions_destroy_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn secretmanager_projects_secrets_versions_destroy(
+    client: &SimpleHttpClient,
+    args: &SecretmanagerProjectsSecretsVersionsDestroyArgs,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<SecretVersion>, ApiError>, P = ApiPending>
+        + Send
+        + 'static,
+    ApiError,
+> {
+    let builder = secretmanager_projects_secrets_versions_destroy_builder(client, &args.name)?;
+    secretmanager_projects_secrets_versions_destroy_execute(builder)
+}
+
+/// POST v1/projects/{projectsId}/secrets/{secretsId}/versions/{versionsId}:disable
+/// Disables a SecretVersion. Sets the state of the SecretVersion to DISABLED.
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `secretmanager_projects_secrets_versions_disable_execute()` to send, or `secretmanager_projects_secrets_versions_disable` for simplest API.
+
+pub fn secretmanager_projects_secrets_versions_disable_builder(
+    client: &SimpleHttpClient,
+    name: &String,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!(
+        "https://secretmanager.googleapis.com/v1/projects/{}/secrets/{secretsId}/versions/{versionsId}:disable",
+        name,
+    );
+
+    // Build request
+    let builder = client
+        .post(&endpoint_url)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// POST v1/projects/{projectsId}/secrets/{secretsId}/versions/{versionsId}:disable
+/// Disables a SecretVersion. Sets the state of the SecretVersion to DISABLED.
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `secretmanager_projects_secrets_versions_disable_execute()` or `secretmanager_projects_secrets_versions_disable`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `secretmanager_projects_secrets_versions_disable_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn secretmanager_projects_secrets_versions_disable_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<SecretVersion>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: SecretVersion = serde_json::from_str(&body)
+                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// POST v1/projects/{projectsId}/secrets/{secretsId}/versions/{versionsId}:disable
+/// Disables a SecretVersion. Sets the state of the SecretVersion to DISABLED.
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `secretmanager_projects_secrets_versions_disable_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `secretmanager_projects_secrets_versions_disable_task()`.
+/// For the simplest API, use `secretmanager_projects_secrets_versions_disable()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `secretmanager_projects_secrets_versions_disable_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn secretmanager_projects_secrets_versions_disable_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<SecretVersion>, ApiError>, P = ApiPending>
+        + Send
+        + 'static,
+    ApiError,
+> {
+    let task = secretmanager_projects_secrets_versions_disable_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`secretmanager_projects_secrets_versions_disable`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct SecretmanagerProjectsSecretsVersionsDisableArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
+/// POST v1/projects/{projectsId}/secrets/{secretsId}/versions/{versionsId}:disable
+/// Disables a SecretVersion. Sets the state of the SecretVersion to DISABLED.
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `secretmanager_projects_secrets_versions_disable_builder()` + `secretmanager_projects_secrets_versions_disable_execute()`.
+/// For task-level control, use `secretmanager_projects_secrets_versions_disable_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn secretmanager_projects_secrets_versions_disable(
+    client: &SimpleHttpClient,
+    args: &SecretmanagerProjectsSecretsVersionsDisableArgs,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<SecretVersion>, ApiError>, P = ApiPending>
+        + Send
+        + 'static,
+    ApiError,
+> {
+    let builder = secretmanager_projects_secrets_versions_disable_builder(client, &args.name)?;
+    secretmanager_projects_secrets_versions_disable_execute(builder)
+}
+
+/// POST v1/projects/{projectsId}/secrets/{secretsId}/versions/{versionsId}:enable
+/// Enables a SecretVersion. Sets the state of the SecretVersion to ENABLED.
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `secretmanager_projects_secrets_versions_enable_execute()` to send, or `secretmanager_projects_secrets_versions_enable` for simplest API.
+
+pub fn secretmanager_projects_secrets_versions_enable_builder(
+    client: &SimpleHttpClient,
+    name: &String,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!(
+        "https://secretmanager.googleapis.com/v1/projects/{}/secrets/{secretsId}/versions/{versionsId}:enable",
+        name,
+    );
+
+    // Build request
+    let builder = client
+        .post(&endpoint_url)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// POST v1/projects/{projectsId}/secrets/{secretsId}/versions/{versionsId}:enable
+/// Enables a SecretVersion. Sets the state of the SecretVersion to ENABLED.
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `secretmanager_projects_secrets_versions_enable_execute()` or `secretmanager_projects_secrets_versions_enable`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `secretmanager_projects_secrets_versions_enable_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn secretmanager_projects_secrets_versions_enable_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<SecretVersion>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: SecretVersion = serde_json::from_str(&body)
+                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// POST v1/projects/{projectsId}/secrets/{secretsId}/versions/{versionsId}:enable
+/// Enables a SecretVersion. Sets the state of the SecretVersion to ENABLED.
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `secretmanager_projects_secrets_versions_enable_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `secretmanager_projects_secrets_versions_enable_task()`.
+/// For the simplest API, use `secretmanager_projects_secrets_versions_enable()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `secretmanager_projects_secrets_versions_enable_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn secretmanager_projects_secrets_versions_enable_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<SecretVersion>, ApiError>, P = ApiPending>
+        + Send
+        + 'static,
+    ApiError,
+> {
+    let task = secretmanager_projects_secrets_versions_enable_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`secretmanager_projects_secrets_versions_enable`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct SecretmanagerProjectsSecretsVersionsEnableArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
+/// POST v1/projects/{projectsId}/secrets/{secretsId}/versions/{versionsId}:enable
+/// Enables a SecretVersion. Sets the state of the SecretVersion to ENABLED.
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `secretmanager_projects_secrets_versions_enable_builder()` + `secretmanager_projects_secrets_versions_enable_execute()`.
+/// For task-level control, use `secretmanager_projects_secrets_versions_enable_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn secretmanager_projects_secrets_versions_enable(
+    client: &SimpleHttpClient,
+    args: &SecretmanagerProjectsSecretsVersionsEnableArgs,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<SecretVersion>, ApiError>, P = ApiPending>
+        + Send
+        + 'static,
+    ApiError,
+> {
+    let builder = secretmanager_projects_secrets_versions_enable_builder(client, &args.name)?;
+    secretmanager_projects_secrets_versions_enable_execute(builder)
+}
+
+/// GET v1/projects/{projectsId}/secrets/{secretsId}/versions/{versionsId}
+/// Gets metadata for a SecretVersion. projects/*/secrets/*/`versions/latest` is an alias to the most recently created SecretVersion.
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `secretmanager_projects_secrets_versions_get_execute()` to send, or `secretmanager_projects_secrets_versions_get` for simplest API.
+
+pub fn secretmanager_projects_secrets_versions_get_builder(
+    client: &SimpleHttpClient,
+    name: &String,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!(
+        "https://secretmanager.googleapis.com/v1/projects/{}/secrets/{secretsId}/versions/{versionsId}",
+        name,
+    );
+
+    // Build request
+    let builder = client
+        .get(&endpoint_url)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// GET v1/projects/{projectsId}/secrets/{secretsId}/versions/{versionsId}
+/// Gets metadata for a SecretVersion. projects/*/secrets/*/`versions/latest` is an alias to the most recently created SecretVersion.
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `secretmanager_projects_secrets_versions_get_execute()` or `secretmanager_projects_secrets_versions_get`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `secretmanager_projects_secrets_versions_get_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn secretmanager_projects_secrets_versions_get_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<SecretVersion>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: SecretVersion = serde_json::from_str(&body)
+                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// GET v1/projects/{projectsId}/secrets/{secretsId}/versions/{versionsId}
+/// Gets metadata for a SecretVersion. projects/*/secrets/*/`versions/latest` is an alias to the most recently created SecretVersion.
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `secretmanager_projects_secrets_versions_get_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `secretmanager_projects_secrets_versions_get_task()`.
+/// For the simplest API, use `secretmanager_projects_secrets_versions_get()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `secretmanager_projects_secrets_versions_get_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn secretmanager_projects_secrets_versions_get_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<SecretVersion>, ApiError>, P = ApiPending>
+        + Send
+        + 'static,
+    ApiError,
+> {
+    let task = secretmanager_projects_secrets_versions_get_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`secretmanager_projects_secrets_versions_get`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct SecretmanagerProjectsSecretsVersionsGetArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
+/// GET v1/projects/{projectsId}/secrets/{secretsId}/versions/{versionsId}
+/// Gets metadata for a SecretVersion. projects/*/secrets/*/`versions/latest` is an alias to the most recently created SecretVersion.
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `secretmanager_projects_secrets_versions_get_builder()` + `secretmanager_projects_secrets_versions_get_execute()`.
+/// For task-level control, use `secretmanager_projects_secrets_versions_get_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn secretmanager_projects_secrets_versions_get(
+    client: &SimpleHttpClient,
+    args: &SecretmanagerProjectsSecretsVersionsGetArgs,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<SecretVersion>, ApiError>, P = ApiPending>
+        + Send
+        + 'static,
+    ApiError,
+> {
+    let builder = secretmanager_projects_secrets_versions_get_builder(client, &args.name)?;
+    secretmanager_projects_secrets_versions_get_execute(builder)
+}
+
+/// GET v1/projects/{projectsId}/secrets/{secretsId}/versions
+/// Lists SecretVersions. This call does not return secret data.
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `secretmanager_projects_secrets_versions_list_execute()` to send, or `secretmanager_projects_secrets_versions_list` for simplest API.
+
+pub fn secretmanager_projects_secrets_versions_list_builder(
+    client: &SimpleHttpClient,
+    parent: &String,
+    filter: &Option<Option<String>>,
+    pageSize: &Option<Option<String>>,
+    pageToken: &Option<Option<String>>,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!(
+        "https://secretmanager.googleapis.com/v1/projects/{}/secrets/{secretsId}/versions",
+        parent,
+    );
+
+    // Build request
+    let mut query_parts = Vec::new();
+    if let Some(val) = filter.as_ref() {
+        query_parts.push(format!("filter={}", val));
+    }
+    if let Some(val) = pageSize.as_ref() {
+        query_parts.push(format!("pageSize={}", val));
+    }
+    if let Some(val) = pageToken.as_ref() {
+        query_parts.push(format!("pageToken={}", val));
+    }
+
+    let url_with_query = if query_parts.is_empty() {
+        endpoint_url
+    } else {
+        format!("{}?{}", endpoint_url, query_parts.join("&"))
+    };
+
+    let builder = client
+        .get(&url_with_query)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// GET v1/projects/{projectsId}/secrets/{secretsId}/versions
+/// Lists SecretVersions. This call does not return secret data.
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `secretmanager_projects_secrets_versions_list_execute()` or `secretmanager_projects_secrets_versions_list`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `secretmanager_projects_secrets_versions_list_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn secretmanager_projects_secrets_versions_list_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<ListSecretVersionsResponse>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: ListSecretVersionsResponse = serde_json::from_str(&body)
+                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// GET v1/projects/{projectsId}/secrets/{secretsId}/versions
+/// Lists SecretVersions. This call does not return secret data.
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `secretmanager_projects_secrets_versions_list_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `secretmanager_projects_secrets_versions_list_task()`.
+/// For the simplest API, use `secretmanager_projects_secrets_versions_list()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `secretmanager_projects_secrets_versions_list_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn secretmanager_projects_secrets_versions_list_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<
+            D = Result<ApiResponse<ListSecretVersionsResponse>, ApiError>,
+            P = ApiPending,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    let task = secretmanager_projects_secrets_versions_list_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`secretmanager_projects_secrets_versions_list`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct SecretmanagerProjectsSecretsVersionsListArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Query parameter: filter
+    pub filter: Option<Option<String>>,
+    /// Query parameter: pageSize
+    pub pageSize: Option<Option<String>>,
+    /// Query parameter: pageToken
+    pub pageToken: Option<Option<String>>,
+}
+
+/// GET v1/projects/{projectsId}/secrets/{secretsId}/versions
+/// Lists SecretVersions. This call does not return secret data.
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `secretmanager_projects_secrets_versions_list_builder()` + `secretmanager_projects_secrets_versions_list_execute()`.
+/// For task-level control, use `secretmanager_projects_secrets_versions_list_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn secretmanager_projects_secrets_versions_list(
+    client: &SimpleHttpClient,
+    args: &SecretmanagerProjectsSecretsVersionsListArgs,
+) -> Result<
+    impl StreamIterator<
+            D = Result<ApiResponse<ListSecretVersionsResponse>, ApiError>,
+            P = ApiPending,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    let builder = secretmanager_projects_secrets_versions_list_builder(
+        client,
+        &args.parent,
+        &args.filter,
+        &args.pageSize,
+        &args.pageToken,
+    )?;
+    secretmanager_projects_secrets_versions_list_execute(builder)
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for Location
+// =============================================================================
+
+/// ResourceIdentifier implementation for Location with SecretmanagerProjectsLocationsGetArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<SecretmanagerProjectsLocationsGetArgs> for Location {
+    fn generate_resource_id(&self, input: &SecretmanagerProjectsLocationsGetArgs) -> String {
+        format!("gcp::secretmanager::Location/{}", input.name)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::secretmanager::Location"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for ListLocationsResponse
+// =============================================================================
+
+/// ResourceIdentifier implementation for ListLocationsResponse with SecretmanagerProjectsLocationsListArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<SecretmanagerProjectsLocationsListArgs> for ListLocationsResponse {
+    fn generate_resource_id(&self, input: &SecretmanagerProjectsLocationsListArgs) -> String {
+        format!("gcp::secretmanager::ListLocationsResponse/{}", input.name)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::secretmanager::ListLocationsResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for SecretVersion
+// =============================================================================
+
+/// ResourceIdentifier implementation for SecretVersion with SecretmanagerProjectsLocationsSecretsAddVersionArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<SecretmanagerProjectsLocationsSecretsAddVersionArgs> for SecretVersion {
+    fn generate_resource_id(
+        &self,
+        input: &SecretmanagerProjectsLocationsSecretsAddVersionArgs,
+    ) -> String {
+        format!("gcp::secretmanager::SecretVersion/{}", input.parent)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::secretmanager::SecretVersion"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for Secret
+// =============================================================================
+
+/// ResourceIdentifier implementation for Secret with SecretmanagerProjectsLocationsSecretsCreateArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<SecretmanagerProjectsLocationsSecretsCreateArgs> for Secret {
+    fn generate_resource_id(
+        &self,
+        input: &SecretmanagerProjectsLocationsSecretsCreateArgs,
+    ) -> String {
+        format!("gcp::secretmanager::Secret/{}", input.parent)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::secretmanager::Secret"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for Empty
+// =============================================================================
+
+/// ResourceIdentifier implementation for Empty with SecretmanagerProjectsLocationsSecretsDeleteArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<SecretmanagerProjectsLocationsSecretsDeleteArgs> for Empty {
+    fn generate_resource_id(
+        &self,
+        input: &SecretmanagerProjectsLocationsSecretsDeleteArgs,
+    ) -> String {
+        format!("gcp::secretmanager::Empty/{}", input.name)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::secretmanager::Empty"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for Secret
+// =============================================================================
+
+/// ResourceIdentifier implementation for Secret with SecretmanagerProjectsLocationsSecretsGetArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<SecretmanagerProjectsLocationsSecretsGetArgs> for Secret {
+    fn generate_resource_id(&self, input: &SecretmanagerProjectsLocationsSecretsGetArgs) -> String {
+        format!("gcp::secretmanager::Secret/{}", input.name)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::secretmanager::Secret"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for Policy
+// =============================================================================
+
+/// ResourceIdentifier implementation for Policy with SecretmanagerProjectsLocationsSecretsGetIamPolicyArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<SecretmanagerProjectsLocationsSecretsGetIamPolicyArgs> for Policy {
+    fn generate_resource_id(
+        &self,
+        input: &SecretmanagerProjectsLocationsSecretsGetIamPolicyArgs,
+    ) -> String {
+        format!("gcp::secretmanager::Policy/{}", input.resource)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::secretmanager::Policy"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for ListSecretsResponse
+// =============================================================================
+
+/// ResourceIdentifier implementation for ListSecretsResponse with SecretmanagerProjectsLocationsSecretsListArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<SecretmanagerProjectsLocationsSecretsListArgs> for ListSecretsResponse {
+    fn generate_resource_id(
+        &self,
+        input: &SecretmanagerProjectsLocationsSecretsListArgs,
+    ) -> String {
+        format!("gcp::secretmanager::ListSecretsResponse/{}", input.parent)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::secretmanager::ListSecretsResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for Secret
+// =============================================================================
+
+/// ResourceIdentifier implementation for Secret with SecretmanagerProjectsLocationsSecretsPatchArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<SecretmanagerProjectsLocationsSecretsPatchArgs> for Secret {
+    fn generate_resource_id(
+        &self,
+        input: &SecretmanagerProjectsLocationsSecretsPatchArgs,
+    ) -> String {
+        format!("gcp::secretmanager::Secret/{}", input.name)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::secretmanager::Secret"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for Policy
+// =============================================================================
+
+/// ResourceIdentifier implementation for Policy with SecretmanagerProjectsLocationsSecretsSetIamPolicyArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<SecretmanagerProjectsLocationsSecretsSetIamPolicyArgs> for Policy {
+    fn generate_resource_id(
+        &self,
+        input: &SecretmanagerProjectsLocationsSecretsSetIamPolicyArgs,
+    ) -> String {
+        format!("gcp::secretmanager::Policy/{}", input.resource)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::secretmanager::Policy"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for TestIamPermissionsResponse
+// =============================================================================
+
+/// ResourceIdentifier implementation for TestIamPermissionsResponse with SecretmanagerProjectsLocationsSecretsTestIamPermissionsArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<SecretmanagerProjectsLocationsSecretsTestIamPermissionsArgs>
+    for TestIamPermissionsResponse
+{
+    fn generate_resource_id(
+        &self,
+        input: &SecretmanagerProjectsLocationsSecretsTestIamPermissionsArgs,
+    ) -> String {
+        format!(
+            "gcp::secretmanager::TestIamPermissionsResponse/{}",
+            input.resource
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::secretmanager::TestIamPermissionsResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for AccessSecretVersionResponse
+// =============================================================================
+
+/// ResourceIdentifier implementation for AccessSecretVersionResponse with SecretmanagerProjectsLocationsSecretsVersionsAccessArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<SecretmanagerProjectsLocationsSecretsVersionsAccessArgs>
+    for AccessSecretVersionResponse
+{
+    fn generate_resource_id(
+        &self,
+        input: &SecretmanagerProjectsLocationsSecretsVersionsAccessArgs,
+    ) -> String {
+        format!(
+            "gcp::secretmanager::AccessSecretVersionResponse/{}",
+            input.name
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::secretmanager::AccessSecretVersionResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for SecretVersion
+// =============================================================================
+
+/// ResourceIdentifier implementation for SecretVersion with SecretmanagerProjectsLocationsSecretsVersionsDestroyArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<SecretmanagerProjectsLocationsSecretsVersionsDestroyArgs>
+    for SecretVersion
+{
+    fn generate_resource_id(
+        &self,
+        input: &SecretmanagerProjectsLocationsSecretsVersionsDestroyArgs,
+    ) -> String {
+        format!("gcp::secretmanager::SecretVersion/{}", input.name)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::secretmanager::SecretVersion"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for SecretVersion
+// =============================================================================
+
+/// ResourceIdentifier implementation for SecretVersion with SecretmanagerProjectsLocationsSecretsVersionsDisableArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<SecretmanagerProjectsLocationsSecretsVersionsDisableArgs>
+    for SecretVersion
+{
+    fn generate_resource_id(
+        &self,
+        input: &SecretmanagerProjectsLocationsSecretsVersionsDisableArgs,
+    ) -> String {
+        format!("gcp::secretmanager::SecretVersion/{}", input.name)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::secretmanager::SecretVersion"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for SecretVersion
+// =============================================================================
+
+/// ResourceIdentifier implementation for SecretVersion with SecretmanagerProjectsLocationsSecretsVersionsEnableArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<SecretmanagerProjectsLocationsSecretsVersionsEnableArgs> for SecretVersion {
+    fn generate_resource_id(
+        &self,
+        input: &SecretmanagerProjectsLocationsSecretsVersionsEnableArgs,
+    ) -> String {
+        format!("gcp::secretmanager::SecretVersion/{}", input.name)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::secretmanager::SecretVersion"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for SecretVersion
+// =============================================================================
+
+/// ResourceIdentifier implementation for SecretVersion with SecretmanagerProjectsLocationsSecretsVersionsGetArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<SecretmanagerProjectsLocationsSecretsVersionsGetArgs> for SecretVersion {
+    fn generate_resource_id(
+        &self,
+        input: &SecretmanagerProjectsLocationsSecretsVersionsGetArgs,
+    ) -> String {
+        format!("gcp::secretmanager::SecretVersion/{}", input.name)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::secretmanager::SecretVersion"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for ListSecretVersionsResponse
+// =============================================================================
+
+/// ResourceIdentifier implementation for ListSecretVersionsResponse with SecretmanagerProjectsLocationsSecretsVersionsListArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<SecretmanagerProjectsLocationsSecretsVersionsListArgs>
+    for ListSecretVersionsResponse
+{
+    fn generate_resource_id(
+        &self,
+        input: &SecretmanagerProjectsLocationsSecretsVersionsListArgs,
+    ) -> String {
+        format!(
+            "gcp::secretmanager::ListSecretVersionsResponse/{}",
+            input.parent
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::secretmanager::ListSecretVersionsResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for SecretVersion
+// =============================================================================
+
+/// ResourceIdentifier implementation for SecretVersion with SecretmanagerProjectsSecretsAddVersionArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<SecretmanagerProjectsSecretsAddVersionArgs> for SecretVersion {
+    fn generate_resource_id(&self, input: &SecretmanagerProjectsSecretsAddVersionArgs) -> String {
+        format!("gcp::secretmanager::SecretVersion/{}", input.parent)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::secretmanager::SecretVersion"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for Secret
+// =============================================================================
+
+/// ResourceIdentifier implementation for Secret with SecretmanagerProjectsSecretsCreateArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<SecretmanagerProjectsSecretsCreateArgs> for Secret {
+    fn generate_resource_id(&self, input: &SecretmanagerProjectsSecretsCreateArgs) -> String {
+        format!("gcp::secretmanager::Secret/{}", input.parent)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::secretmanager::Secret"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for Empty
+// =============================================================================
+
+/// ResourceIdentifier implementation for Empty with SecretmanagerProjectsSecretsDeleteArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<SecretmanagerProjectsSecretsDeleteArgs> for Empty {
+    fn generate_resource_id(&self, input: &SecretmanagerProjectsSecretsDeleteArgs) -> String {
+        format!("gcp::secretmanager::Empty/{}", input.name)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::secretmanager::Empty"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for Secret
+// =============================================================================
+
+/// ResourceIdentifier implementation for Secret with SecretmanagerProjectsSecretsGetArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<SecretmanagerProjectsSecretsGetArgs> for Secret {
+    fn generate_resource_id(&self, input: &SecretmanagerProjectsSecretsGetArgs) -> String {
+        format!("gcp::secretmanager::Secret/{}", input.name)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::secretmanager::Secret"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for Policy
+// =============================================================================
+
+/// ResourceIdentifier implementation for Policy with SecretmanagerProjectsSecretsGetIamPolicyArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<SecretmanagerProjectsSecretsGetIamPolicyArgs> for Policy {
+    fn generate_resource_id(&self, input: &SecretmanagerProjectsSecretsGetIamPolicyArgs) -> String {
+        format!("gcp::secretmanager::Policy/{}", input.resource)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::secretmanager::Policy"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for ListSecretsResponse
+// =============================================================================
+
+/// ResourceIdentifier implementation for ListSecretsResponse with SecretmanagerProjectsSecretsListArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<SecretmanagerProjectsSecretsListArgs> for ListSecretsResponse {
+    fn generate_resource_id(&self, input: &SecretmanagerProjectsSecretsListArgs) -> String {
+        format!("gcp::secretmanager::ListSecretsResponse/{}", input.parent)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::secretmanager::ListSecretsResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for Secret
+// =============================================================================
+
+/// ResourceIdentifier implementation for Secret with SecretmanagerProjectsSecretsPatchArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<SecretmanagerProjectsSecretsPatchArgs> for Secret {
+    fn generate_resource_id(&self, input: &SecretmanagerProjectsSecretsPatchArgs) -> String {
+        format!("gcp::secretmanager::Secret/{}", input.name)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::secretmanager::Secret"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for Policy
+// =============================================================================
+
+/// ResourceIdentifier implementation for Policy with SecretmanagerProjectsSecretsSetIamPolicyArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<SecretmanagerProjectsSecretsSetIamPolicyArgs> for Policy {
+    fn generate_resource_id(&self, input: &SecretmanagerProjectsSecretsSetIamPolicyArgs) -> String {
+        format!("gcp::secretmanager::Policy/{}", input.resource)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::secretmanager::Policy"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for TestIamPermissionsResponse
+// =============================================================================
+
+/// ResourceIdentifier implementation for TestIamPermissionsResponse with SecretmanagerProjectsSecretsTestIamPermissionsArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<SecretmanagerProjectsSecretsTestIamPermissionsArgs>
+    for TestIamPermissionsResponse
+{
+    fn generate_resource_id(
+        &self,
+        input: &SecretmanagerProjectsSecretsTestIamPermissionsArgs,
+    ) -> String {
+        format!(
+            "gcp::secretmanager::TestIamPermissionsResponse/{}",
+            input.resource
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::secretmanager::TestIamPermissionsResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for AccessSecretVersionResponse
+// =============================================================================
+
+/// ResourceIdentifier implementation for AccessSecretVersionResponse with SecretmanagerProjectsSecretsVersionsAccessArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<SecretmanagerProjectsSecretsVersionsAccessArgs>
+    for AccessSecretVersionResponse
+{
+    fn generate_resource_id(
+        &self,
+        input: &SecretmanagerProjectsSecretsVersionsAccessArgs,
+    ) -> String {
+        format!(
+            "gcp::secretmanager::AccessSecretVersionResponse/{}",
+            input.name
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::secretmanager::AccessSecretVersionResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for SecretVersion
+// =============================================================================
+
+/// ResourceIdentifier implementation for SecretVersion with SecretmanagerProjectsSecretsVersionsDestroyArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<SecretmanagerProjectsSecretsVersionsDestroyArgs> for SecretVersion {
+    fn generate_resource_id(
+        &self,
+        input: &SecretmanagerProjectsSecretsVersionsDestroyArgs,
+    ) -> String {
+        format!("gcp::secretmanager::SecretVersion/{}", input.name)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::secretmanager::SecretVersion"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for SecretVersion
+// =============================================================================
+
+/// ResourceIdentifier implementation for SecretVersion with SecretmanagerProjectsSecretsVersionsDisableArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<SecretmanagerProjectsSecretsVersionsDisableArgs> for SecretVersion {
+    fn generate_resource_id(
+        &self,
+        input: &SecretmanagerProjectsSecretsVersionsDisableArgs,
+    ) -> String {
+        format!("gcp::secretmanager::SecretVersion/{}", input.name)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::secretmanager::SecretVersion"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for SecretVersion
+// =============================================================================
+
+/// ResourceIdentifier implementation for SecretVersion with SecretmanagerProjectsSecretsVersionsEnableArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<SecretmanagerProjectsSecretsVersionsEnableArgs> for SecretVersion {
+    fn generate_resource_id(
+        &self,
+        input: &SecretmanagerProjectsSecretsVersionsEnableArgs,
+    ) -> String {
+        format!("gcp::secretmanager::SecretVersion/{}", input.name)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::secretmanager::SecretVersion"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for SecretVersion
+// =============================================================================
+
+/// ResourceIdentifier implementation for SecretVersion with SecretmanagerProjectsSecretsVersionsGetArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<SecretmanagerProjectsSecretsVersionsGetArgs> for SecretVersion {
+    fn generate_resource_id(&self, input: &SecretmanagerProjectsSecretsVersionsGetArgs) -> String {
+        format!("gcp::secretmanager::SecretVersion/{}", input.name)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::secretmanager::SecretVersion"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for ListSecretVersionsResponse
+// =============================================================================
+
+/// ResourceIdentifier implementation for ListSecretVersionsResponse with SecretmanagerProjectsSecretsVersionsListArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<SecretmanagerProjectsSecretsVersionsListArgs>
+    for ListSecretVersionsResponse
+{
+    fn generate_resource_id(&self, input: &SecretmanagerProjectsSecretsVersionsListArgs) -> String {
+        format!(
+            "gcp::secretmanager::ListSecretVersionsResponse/{}",
+            input.parent
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::secretmanager::ListSecretVersionsResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
 }

@@ -12,25 +12,43 @@
 #![cfg(feature = "gcp")]
 
 use crate::providers::gcp::clients::dialogflow::{
+    dialogflow_projects_locations_get_builder, dialogflow_projects_locations_get_task,
+    dialogflow_projects_locations_list_builder, dialogflow_projects_locations_list_task,
     dialogflow_projects_locations_agents_create_builder, dialogflow_projects_locations_agents_create_task,
     dialogflow_projects_locations_agents_delete_builder, dialogflow_projects_locations_agents_delete_task,
     dialogflow_projects_locations_agents_export_builder, dialogflow_projects_locations_agents_export_task,
+    dialogflow_projects_locations_agents_get_builder, dialogflow_projects_locations_agents_get_task,
+    dialogflow_projects_locations_agents_get_generative_settings_builder, dialogflow_projects_locations_agents_get_generative_settings_task,
+    dialogflow_projects_locations_agents_get_validation_result_builder, dialogflow_projects_locations_agents_get_validation_result_task,
+    dialogflow_projects_locations_agents_list_builder, dialogflow_projects_locations_agents_list_task,
     dialogflow_projects_locations_agents_patch_builder, dialogflow_projects_locations_agents_patch_task,
     dialogflow_projects_locations_agents_restore_builder, dialogflow_projects_locations_agents_restore_task,
     dialogflow_projects_locations_agents_update_generative_settings_builder, dialogflow_projects_locations_agents_update_generative_settings_task,
     dialogflow_projects_locations_agents_validate_builder, dialogflow_projects_locations_agents_validate_task,
+    dialogflow_projects_locations_agents_changelogs_get_builder, dialogflow_projects_locations_agents_changelogs_get_task,
+    dialogflow_projects_locations_agents_changelogs_list_builder, dialogflow_projects_locations_agents_changelogs_list_task,
     dialogflow_projects_locations_agents_entity_types_create_builder, dialogflow_projects_locations_agents_entity_types_create_task,
     dialogflow_projects_locations_agents_entity_types_delete_builder, dialogflow_projects_locations_agents_entity_types_delete_task,
     dialogflow_projects_locations_agents_entity_types_export_builder, dialogflow_projects_locations_agents_entity_types_export_task,
+    dialogflow_projects_locations_agents_entity_types_get_builder, dialogflow_projects_locations_agents_entity_types_get_task,
     dialogflow_projects_locations_agents_entity_types_import_builder, dialogflow_projects_locations_agents_entity_types_import_task,
+    dialogflow_projects_locations_agents_entity_types_list_builder, dialogflow_projects_locations_agents_entity_types_list_task,
     dialogflow_projects_locations_agents_entity_types_patch_builder, dialogflow_projects_locations_agents_entity_types_patch_task,
     dialogflow_projects_locations_agents_environments_create_builder, dialogflow_projects_locations_agents_environments_create_task,
     dialogflow_projects_locations_agents_environments_delete_builder, dialogflow_projects_locations_agents_environments_delete_task,
     dialogflow_projects_locations_agents_environments_deploy_flow_builder, dialogflow_projects_locations_agents_environments_deploy_flow_task,
+    dialogflow_projects_locations_agents_environments_get_builder, dialogflow_projects_locations_agents_environments_get_task,
+    dialogflow_projects_locations_agents_environments_list_builder, dialogflow_projects_locations_agents_environments_list_task,
+    dialogflow_projects_locations_agents_environments_lookup_environment_history_builder, dialogflow_projects_locations_agents_environments_lookup_environment_history_task,
     dialogflow_projects_locations_agents_environments_patch_builder, dialogflow_projects_locations_agents_environments_patch_task,
     dialogflow_projects_locations_agents_environments_run_continuous_test_builder, dialogflow_projects_locations_agents_environments_run_continuous_test_task,
+    dialogflow_projects_locations_agents_environments_continuous_test_results_list_builder, dialogflow_projects_locations_agents_environments_continuous_test_results_list_task,
+    dialogflow_projects_locations_agents_environments_deployments_get_builder, dialogflow_projects_locations_agents_environments_deployments_get_task,
+    dialogflow_projects_locations_agents_environments_deployments_list_builder, dialogflow_projects_locations_agents_environments_deployments_list_task,
     dialogflow_projects_locations_agents_environments_experiments_create_builder, dialogflow_projects_locations_agents_environments_experiments_create_task,
     dialogflow_projects_locations_agents_environments_experiments_delete_builder, dialogflow_projects_locations_agents_environments_experiments_delete_task,
+    dialogflow_projects_locations_agents_environments_experiments_get_builder, dialogflow_projects_locations_agents_environments_experiments_get_task,
+    dialogflow_projects_locations_agents_environments_experiments_list_builder, dialogflow_projects_locations_agents_environments_experiments_list_task,
     dialogflow_projects_locations_agents_environments_experiments_patch_builder, dialogflow_projects_locations_agents_environments_experiments_patch_task,
     dialogflow_projects_locations_agents_environments_experiments_start_builder, dialogflow_projects_locations_agents_environments_experiments_start_task,
     dialogflow_projects_locations_agents_environments_experiments_stop_builder, dialogflow_projects_locations_agents_environments_experiments_stop_task,
@@ -40,43 +58,64 @@ use crate::providers::gcp::clients::dialogflow::{
     dialogflow_projects_locations_agents_environments_sessions_server_streaming_detect_intent_builder, dialogflow_projects_locations_agents_environments_sessions_server_streaming_detect_intent_task,
     dialogflow_projects_locations_agents_environments_sessions_entity_types_create_builder, dialogflow_projects_locations_agents_environments_sessions_entity_types_create_task,
     dialogflow_projects_locations_agents_environments_sessions_entity_types_delete_builder, dialogflow_projects_locations_agents_environments_sessions_entity_types_delete_task,
+    dialogflow_projects_locations_agents_environments_sessions_entity_types_get_builder, dialogflow_projects_locations_agents_environments_sessions_entity_types_get_task,
+    dialogflow_projects_locations_agents_environments_sessions_entity_types_list_builder, dialogflow_projects_locations_agents_environments_sessions_entity_types_list_task,
     dialogflow_projects_locations_agents_environments_sessions_entity_types_patch_builder, dialogflow_projects_locations_agents_environments_sessions_entity_types_patch_task,
     dialogflow_projects_locations_agents_flows_create_builder, dialogflow_projects_locations_agents_flows_create_task,
     dialogflow_projects_locations_agents_flows_delete_builder, dialogflow_projects_locations_agents_flows_delete_task,
     dialogflow_projects_locations_agents_flows_export_builder, dialogflow_projects_locations_agents_flows_export_task,
+    dialogflow_projects_locations_agents_flows_get_builder, dialogflow_projects_locations_agents_flows_get_task,
+    dialogflow_projects_locations_agents_flows_get_validation_result_builder, dialogflow_projects_locations_agents_flows_get_validation_result_task,
     dialogflow_projects_locations_agents_flows_import_builder, dialogflow_projects_locations_agents_flows_import_task,
+    dialogflow_projects_locations_agents_flows_list_builder, dialogflow_projects_locations_agents_flows_list_task,
     dialogflow_projects_locations_agents_flows_patch_builder, dialogflow_projects_locations_agents_flows_patch_task,
     dialogflow_projects_locations_agents_flows_train_builder, dialogflow_projects_locations_agents_flows_train_task,
     dialogflow_projects_locations_agents_flows_validate_builder, dialogflow_projects_locations_agents_flows_validate_task,
     dialogflow_projects_locations_agents_flows_pages_create_builder, dialogflow_projects_locations_agents_flows_pages_create_task,
     dialogflow_projects_locations_agents_flows_pages_delete_builder, dialogflow_projects_locations_agents_flows_pages_delete_task,
+    dialogflow_projects_locations_agents_flows_pages_get_builder, dialogflow_projects_locations_agents_flows_pages_get_task,
+    dialogflow_projects_locations_agents_flows_pages_list_builder, dialogflow_projects_locations_agents_flows_pages_list_task,
     dialogflow_projects_locations_agents_flows_pages_patch_builder, dialogflow_projects_locations_agents_flows_pages_patch_task,
     dialogflow_projects_locations_agents_flows_transition_route_groups_create_builder, dialogflow_projects_locations_agents_flows_transition_route_groups_create_task,
     dialogflow_projects_locations_agents_flows_transition_route_groups_delete_builder, dialogflow_projects_locations_agents_flows_transition_route_groups_delete_task,
+    dialogflow_projects_locations_agents_flows_transition_route_groups_get_builder, dialogflow_projects_locations_agents_flows_transition_route_groups_get_task,
+    dialogflow_projects_locations_agents_flows_transition_route_groups_list_builder, dialogflow_projects_locations_agents_flows_transition_route_groups_list_task,
     dialogflow_projects_locations_agents_flows_transition_route_groups_patch_builder, dialogflow_projects_locations_agents_flows_transition_route_groups_patch_task,
     dialogflow_projects_locations_agents_flows_versions_compare_versions_builder, dialogflow_projects_locations_agents_flows_versions_compare_versions_task,
     dialogflow_projects_locations_agents_flows_versions_create_builder, dialogflow_projects_locations_agents_flows_versions_create_task,
     dialogflow_projects_locations_agents_flows_versions_delete_builder, dialogflow_projects_locations_agents_flows_versions_delete_task,
+    dialogflow_projects_locations_agents_flows_versions_get_builder, dialogflow_projects_locations_agents_flows_versions_get_task,
+    dialogflow_projects_locations_agents_flows_versions_list_builder, dialogflow_projects_locations_agents_flows_versions_list_task,
     dialogflow_projects_locations_agents_flows_versions_load_builder, dialogflow_projects_locations_agents_flows_versions_load_task,
     dialogflow_projects_locations_agents_flows_versions_patch_builder, dialogflow_projects_locations_agents_flows_versions_patch_task,
     dialogflow_projects_locations_agents_generators_create_builder, dialogflow_projects_locations_agents_generators_create_task,
     dialogflow_projects_locations_agents_generators_delete_builder, dialogflow_projects_locations_agents_generators_delete_task,
+    dialogflow_projects_locations_agents_generators_get_builder, dialogflow_projects_locations_agents_generators_get_task,
+    dialogflow_projects_locations_agents_generators_list_builder, dialogflow_projects_locations_agents_generators_list_task,
     dialogflow_projects_locations_agents_generators_patch_builder, dialogflow_projects_locations_agents_generators_patch_task,
     dialogflow_projects_locations_agents_intents_create_builder, dialogflow_projects_locations_agents_intents_create_task,
     dialogflow_projects_locations_agents_intents_delete_builder, dialogflow_projects_locations_agents_intents_delete_task,
     dialogflow_projects_locations_agents_intents_export_builder, dialogflow_projects_locations_agents_intents_export_task,
+    dialogflow_projects_locations_agents_intents_get_builder, dialogflow_projects_locations_agents_intents_get_task,
     dialogflow_projects_locations_agents_intents_import_builder, dialogflow_projects_locations_agents_intents_import_task,
+    dialogflow_projects_locations_agents_intents_list_builder, dialogflow_projects_locations_agents_intents_list_task,
     dialogflow_projects_locations_agents_intents_patch_builder, dialogflow_projects_locations_agents_intents_patch_task,
     dialogflow_projects_locations_agents_playbooks_create_builder, dialogflow_projects_locations_agents_playbooks_create_task,
     dialogflow_projects_locations_agents_playbooks_delete_builder, dialogflow_projects_locations_agents_playbooks_delete_task,
     dialogflow_projects_locations_agents_playbooks_export_builder, dialogflow_projects_locations_agents_playbooks_export_task,
+    dialogflow_projects_locations_agents_playbooks_get_builder, dialogflow_projects_locations_agents_playbooks_get_task,
     dialogflow_projects_locations_agents_playbooks_import_builder, dialogflow_projects_locations_agents_playbooks_import_task,
+    dialogflow_projects_locations_agents_playbooks_list_builder, dialogflow_projects_locations_agents_playbooks_list_task,
     dialogflow_projects_locations_agents_playbooks_patch_builder, dialogflow_projects_locations_agents_playbooks_patch_task,
     dialogflow_projects_locations_agents_playbooks_examples_create_builder, dialogflow_projects_locations_agents_playbooks_examples_create_task,
     dialogflow_projects_locations_agents_playbooks_examples_delete_builder, dialogflow_projects_locations_agents_playbooks_examples_delete_task,
+    dialogflow_projects_locations_agents_playbooks_examples_get_builder, dialogflow_projects_locations_agents_playbooks_examples_get_task,
+    dialogflow_projects_locations_agents_playbooks_examples_list_builder, dialogflow_projects_locations_agents_playbooks_examples_list_task,
     dialogflow_projects_locations_agents_playbooks_examples_patch_builder, dialogflow_projects_locations_agents_playbooks_examples_patch_task,
     dialogflow_projects_locations_agents_playbooks_versions_create_builder, dialogflow_projects_locations_agents_playbooks_versions_create_task,
     dialogflow_projects_locations_agents_playbooks_versions_delete_builder, dialogflow_projects_locations_agents_playbooks_versions_delete_task,
+    dialogflow_projects_locations_agents_playbooks_versions_get_builder, dialogflow_projects_locations_agents_playbooks_versions_get_task,
+    dialogflow_projects_locations_agents_playbooks_versions_list_builder, dialogflow_projects_locations_agents_playbooks_versions_list_task,
     dialogflow_projects_locations_agents_playbooks_versions_restore_builder, dialogflow_projects_locations_agents_playbooks_versions_restore_task,
     dialogflow_projects_locations_agents_sessions_detect_intent_builder, dialogflow_projects_locations_agents_sessions_detect_intent_task,
     dialogflow_projects_locations_agents_sessions_fulfill_intent_builder, dialogflow_projects_locations_agents_sessions_fulfill_intent_task,
@@ -85,39 +124,64 @@ use crate::providers::gcp::clients::dialogflow::{
     dialogflow_projects_locations_agents_sessions_submit_answer_feedback_builder, dialogflow_projects_locations_agents_sessions_submit_answer_feedback_task,
     dialogflow_projects_locations_agents_sessions_entity_types_create_builder, dialogflow_projects_locations_agents_sessions_entity_types_create_task,
     dialogflow_projects_locations_agents_sessions_entity_types_delete_builder, dialogflow_projects_locations_agents_sessions_entity_types_delete_task,
+    dialogflow_projects_locations_agents_sessions_entity_types_get_builder, dialogflow_projects_locations_agents_sessions_entity_types_get_task,
+    dialogflow_projects_locations_agents_sessions_entity_types_list_builder, dialogflow_projects_locations_agents_sessions_entity_types_list_task,
     dialogflow_projects_locations_agents_sessions_entity_types_patch_builder, dialogflow_projects_locations_agents_sessions_entity_types_patch_task,
     dialogflow_projects_locations_agents_test_cases_batch_delete_builder, dialogflow_projects_locations_agents_test_cases_batch_delete_task,
     dialogflow_projects_locations_agents_test_cases_batch_run_builder, dialogflow_projects_locations_agents_test_cases_batch_run_task,
+    dialogflow_projects_locations_agents_test_cases_calculate_coverage_builder, dialogflow_projects_locations_agents_test_cases_calculate_coverage_task,
     dialogflow_projects_locations_agents_test_cases_create_builder, dialogflow_projects_locations_agents_test_cases_create_task,
     dialogflow_projects_locations_agents_test_cases_export_builder, dialogflow_projects_locations_agents_test_cases_export_task,
+    dialogflow_projects_locations_agents_test_cases_get_builder, dialogflow_projects_locations_agents_test_cases_get_task,
     dialogflow_projects_locations_agents_test_cases_import_builder, dialogflow_projects_locations_agents_test_cases_import_task,
+    dialogflow_projects_locations_agents_test_cases_list_builder, dialogflow_projects_locations_agents_test_cases_list_task,
     dialogflow_projects_locations_agents_test_cases_patch_builder, dialogflow_projects_locations_agents_test_cases_patch_task,
     dialogflow_projects_locations_agents_test_cases_run_builder, dialogflow_projects_locations_agents_test_cases_run_task,
+    dialogflow_projects_locations_agents_test_cases_results_get_builder, dialogflow_projects_locations_agents_test_cases_results_get_task,
+    dialogflow_projects_locations_agents_test_cases_results_list_builder, dialogflow_projects_locations_agents_test_cases_results_list_task,
     dialogflow_projects_locations_agents_tools_create_builder, dialogflow_projects_locations_agents_tools_create_task,
     dialogflow_projects_locations_agents_tools_delete_builder, dialogflow_projects_locations_agents_tools_delete_task,
+    dialogflow_projects_locations_agents_tools_get_builder, dialogflow_projects_locations_agents_tools_get_task,
+    dialogflow_projects_locations_agents_tools_list_builder, dialogflow_projects_locations_agents_tools_list_task,
     dialogflow_projects_locations_agents_tools_patch_builder, dialogflow_projects_locations_agents_tools_patch_task,
     dialogflow_projects_locations_agents_tools_versions_create_builder, dialogflow_projects_locations_agents_tools_versions_create_task,
     dialogflow_projects_locations_agents_tools_versions_delete_builder, dialogflow_projects_locations_agents_tools_versions_delete_task,
+    dialogflow_projects_locations_agents_tools_versions_get_builder, dialogflow_projects_locations_agents_tools_versions_get_task,
+    dialogflow_projects_locations_agents_tools_versions_list_builder, dialogflow_projects_locations_agents_tools_versions_list_task,
     dialogflow_projects_locations_agents_tools_versions_restore_builder, dialogflow_projects_locations_agents_tools_versions_restore_task,
     dialogflow_projects_locations_agents_transition_route_groups_create_builder, dialogflow_projects_locations_agents_transition_route_groups_create_task,
     dialogflow_projects_locations_agents_transition_route_groups_delete_builder, dialogflow_projects_locations_agents_transition_route_groups_delete_task,
+    dialogflow_projects_locations_agents_transition_route_groups_get_builder, dialogflow_projects_locations_agents_transition_route_groups_get_task,
+    dialogflow_projects_locations_agents_transition_route_groups_list_builder, dialogflow_projects_locations_agents_transition_route_groups_list_task,
     dialogflow_projects_locations_agents_transition_route_groups_patch_builder, dialogflow_projects_locations_agents_transition_route_groups_patch_task,
     dialogflow_projects_locations_agents_webhooks_create_builder, dialogflow_projects_locations_agents_webhooks_create_task,
     dialogflow_projects_locations_agents_webhooks_delete_builder, dialogflow_projects_locations_agents_webhooks_delete_task,
+    dialogflow_projects_locations_agents_webhooks_get_builder, dialogflow_projects_locations_agents_webhooks_get_task,
+    dialogflow_projects_locations_agents_webhooks_list_builder, dialogflow_projects_locations_agents_webhooks_list_task,
     dialogflow_projects_locations_agents_webhooks_patch_builder, dialogflow_projects_locations_agents_webhooks_patch_task,
     dialogflow_projects_locations_operations_cancel_builder, dialogflow_projects_locations_operations_cancel_task,
+    dialogflow_projects_locations_operations_get_builder, dialogflow_projects_locations_operations_get_task,
+    dialogflow_projects_locations_operations_list_builder, dialogflow_projects_locations_operations_list_task,
     dialogflow_projects_locations_security_settings_create_builder, dialogflow_projects_locations_security_settings_create_task,
     dialogflow_projects_locations_security_settings_delete_builder, dialogflow_projects_locations_security_settings_delete_task,
+    dialogflow_projects_locations_security_settings_get_builder, dialogflow_projects_locations_security_settings_get_task,
+    dialogflow_projects_locations_security_settings_list_builder, dialogflow_projects_locations_security_settings_list_task,
     dialogflow_projects_locations_security_settings_patch_builder, dialogflow_projects_locations_security_settings_patch_task,
     dialogflow_projects_operations_cancel_builder, dialogflow_projects_operations_cancel_task,
+    dialogflow_projects_operations_get_builder, dialogflow_projects_operations_get_task,
+    dialogflow_projects_operations_list_builder, dialogflow_projects_operations_list_task,
 };
 use crate::providers::gcp::clients::types::{ApiError, ApiPending};
 use crate::providers::gcp::clients::dialogflow::GoogleCloudDialogflowCxV3Agent;
 use crate::providers::gcp::clients::dialogflow::GoogleCloudDialogflowCxV3AgentValidationResult;
 use crate::providers::gcp::clients::dialogflow::GoogleCloudDialogflowCxV3AnswerFeedback;
+use crate::providers::gcp::clients::dialogflow::GoogleCloudDialogflowCxV3CalculateCoverageResponse;
+use crate::providers::gcp::clients::dialogflow::GoogleCloudDialogflowCxV3Changelog;
 use crate::providers::gcp::clients::dialogflow::GoogleCloudDialogflowCxV3CompareVersionsResponse;
+use crate::providers::gcp::clients::dialogflow::GoogleCloudDialogflowCxV3Deployment;
 use crate::providers::gcp::clients::dialogflow::GoogleCloudDialogflowCxV3DetectIntentResponse;
 use crate::providers::gcp::clients::dialogflow::GoogleCloudDialogflowCxV3EntityType;
+use crate::providers::gcp::clients::dialogflow::GoogleCloudDialogflowCxV3Environment;
 use crate::providers::gcp::clients::dialogflow::GoogleCloudDialogflowCxV3Example;
 use crate::providers::gcp::clients::dialogflow::GoogleCloudDialogflowCxV3Experiment;
 use crate::providers::gcp::clients::dialogflow::GoogleCloudDialogflowCxV3Flow;
@@ -126,6 +190,30 @@ use crate::providers::gcp::clients::dialogflow::GoogleCloudDialogflowCxV3Fulfill
 use crate::providers::gcp::clients::dialogflow::GoogleCloudDialogflowCxV3GenerativeSettings;
 use crate::providers::gcp::clients::dialogflow::GoogleCloudDialogflowCxV3Generator;
 use crate::providers::gcp::clients::dialogflow::GoogleCloudDialogflowCxV3Intent;
+use crate::providers::gcp::clients::dialogflow::GoogleCloudDialogflowCxV3ListAgentsResponse;
+use crate::providers::gcp::clients::dialogflow::GoogleCloudDialogflowCxV3ListChangelogsResponse;
+use crate::providers::gcp::clients::dialogflow::GoogleCloudDialogflowCxV3ListContinuousTestResultsResponse;
+use crate::providers::gcp::clients::dialogflow::GoogleCloudDialogflowCxV3ListDeploymentsResponse;
+use crate::providers::gcp::clients::dialogflow::GoogleCloudDialogflowCxV3ListEntityTypesResponse;
+use crate::providers::gcp::clients::dialogflow::GoogleCloudDialogflowCxV3ListEnvironmentsResponse;
+use crate::providers::gcp::clients::dialogflow::GoogleCloudDialogflowCxV3ListExamplesResponse;
+use crate::providers::gcp::clients::dialogflow::GoogleCloudDialogflowCxV3ListExperimentsResponse;
+use crate::providers::gcp::clients::dialogflow::GoogleCloudDialogflowCxV3ListFlowsResponse;
+use crate::providers::gcp::clients::dialogflow::GoogleCloudDialogflowCxV3ListGeneratorsResponse;
+use crate::providers::gcp::clients::dialogflow::GoogleCloudDialogflowCxV3ListIntentsResponse;
+use crate::providers::gcp::clients::dialogflow::GoogleCloudDialogflowCxV3ListPagesResponse;
+use crate::providers::gcp::clients::dialogflow::GoogleCloudDialogflowCxV3ListPlaybookVersionsResponse;
+use crate::providers::gcp::clients::dialogflow::GoogleCloudDialogflowCxV3ListPlaybooksResponse;
+use crate::providers::gcp::clients::dialogflow::GoogleCloudDialogflowCxV3ListSecuritySettingsResponse;
+use crate::providers::gcp::clients::dialogflow::GoogleCloudDialogflowCxV3ListSessionEntityTypesResponse;
+use crate::providers::gcp::clients::dialogflow::GoogleCloudDialogflowCxV3ListTestCaseResultsResponse;
+use crate::providers::gcp::clients::dialogflow::GoogleCloudDialogflowCxV3ListTestCasesResponse;
+use crate::providers::gcp::clients::dialogflow::GoogleCloudDialogflowCxV3ListToolVersionsResponse;
+use crate::providers::gcp::clients::dialogflow::GoogleCloudDialogflowCxV3ListToolsResponse;
+use crate::providers::gcp::clients::dialogflow::GoogleCloudDialogflowCxV3ListTransitionRouteGroupsResponse;
+use crate::providers::gcp::clients::dialogflow::GoogleCloudDialogflowCxV3ListVersionsResponse;
+use crate::providers::gcp::clients::dialogflow::GoogleCloudDialogflowCxV3ListWebhooksResponse;
+use crate::providers::gcp::clients::dialogflow::GoogleCloudDialogflowCxV3LookupEnvironmentHistoryResponse;
 use crate::providers::gcp::clients::dialogflow::GoogleCloudDialogflowCxV3MatchIntentResponse;
 use crate::providers::gcp::clients::dialogflow::GoogleCloudDialogflowCxV3Page;
 use crate::providers::gcp::clients::dialogflow::GoogleCloudDialogflowCxV3Playbook;
@@ -135,33 +223,51 @@ use crate::providers::gcp::clients::dialogflow::GoogleCloudDialogflowCxV3Restore
 use crate::providers::gcp::clients::dialogflow::GoogleCloudDialogflowCxV3SecuritySettings;
 use crate::providers::gcp::clients::dialogflow::GoogleCloudDialogflowCxV3SessionEntityType;
 use crate::providers::gcp::clients::dialogflow::GoogleCloudDialogflowCxV3TestCase;
+use crate::providers::gcp::clients::dialogflow::GoogleCloudDialogflowCxV3TestCaseResult;
 use crate::providers::gcp::clients::dialogflow::GoogleCloudDialogflowCxV3Tool;
 use crate::providers::gcp::clients::dialogflow::GoogleCloudDialogflowCxV3ToolVersion;
 use crate::providers::gcp::clients::dialogflow::GoogleCloudDialogflowCxV3TransitionRouteGroup;
 use crate::providers::gcp::clients::dialogflow::GoogleCloudDialogflowCxV3Version;
 use crate::providers::gcp::clients::dialogflow::GoogleCloudDialogflowCxV3Webhook;
+use crate::providers::gcp::clients::dialogflow::GoogleCloudLocationListLocationsResponse;
+use crate::providers::gcp::clients::dialogflow::GoogleCloudLocationLocation;
+use crate::providers::gcp::clients::dialogflow::GoogleLongrunningListOperationsResponse;
 use crate::providers::gcp::clients::dialogflow::GoogleLongrunningOperation;
 use crate::providers::gcp::clients::dialogflow::GoogleProtobufEmpty;
+use crate::providers::gcp::clients::dialogflow::DialogflowProjectsLocationsAgentsChangelogsGetArgs;
+use crate::providers::gcp::clients::dialogflow::DialogflowProjectsLocationsAgentsChangelogsListArgs;
 use crate::providers::gcp::clients::dialogflow::DialogflowProjectsLocationsAgentsCreateArgs;
 use crate::providers::gcp::clients::dialogflow::DialogflowProjectsLocationsAgentsDeleteArgs;
 use crate::providers::gcp::clients::dialogflow::DialogflowProjectsLocationsAgentsEntityTypesCreateArgs;
 use crate::providers::gcp::clients::dialogflow::DialogflowProjectsLocationsAgentsEntityTypesDeleteArgs;
 use crate::providers::gcp::clients::dialogflow::DialogflowProjectsLocationsAgentsEntityTypesExportArgs;
+use crate::providers::gcp::clients::dialogflow::DialogflowProjectsLocationsAgentsEntityTypesGetArgs;
 use crate::providers::gcp::clients::dialogflow::DialogflowProjectsLocationsAgentsEntityTypesImportArgs;
+use crate::providers::gcp::clients::dialogflow::DialogflowProjectsLocationsAgentsEntityTypesListArgs;
 use crate::providers::gcp::clients::dialogflow::DialogflowProjectsLocationsAgentsEntityTypesPatchArgs;
+use crate::providers::gcp::clients::dialogflow::DialogflowProjectsLocationsAgentsEnvironmentsContinuousTestResultsListArgs;
 use crate::providers::gcp::clients::dialogflow::DialogflowProjectsLocationsAgentsEnvironmentsCreateArgs;
 use crate::providers::gcp::clients::dialogflow::DialogflowProjectsLocationsAgentsEnvironmentsDeleteArgs;
 use crate::providers::gcp::clients::dialogflow::DialogflowProjectsLocationsAgentsEnvironmentsDeployFlowArgs;
+use crate::providers::gcp::clients::dialogflow::DialogflowProjectsLocationsAgentsEnvironmentsDeploymentsGetArgs;
+use crate::providers::gcp::clients::dialogflow::DialogflowProjectsLocationsAgentsEnvironmentsDeploymentsListArgs;
 use crate::providers::gcp::clients::dialogflow::DialogflowProjectsLocationsAgentsEnvironmentsExperimentsCreateArgs;
 use crate::providers::gcp::clients::dialogflow::DialogflowProjectsLocationsAgentsEnvironmentsExperimentsDeleteArgs;
+use crate::providers::gcp::clients::dialogflow::DialogflowProjectsLocationsAgentsEnvironmentsExperimentsGetArgs;
+use crate::providers::gcp::clients::dialogflow::DialogflowProjectsLocationsAgentsEnvironmentsExperimentsListArgs;
 use crate::providers::gcp::clients::dialogflow::DialogflowProjectsLocationsAgentsEnvironmentsExperimentsPatchArgs;
 use crate::providers::gcp::clients::dialogflow::DialogflowProjectsLocationsAgentsEnvironmentsExperimentsStartArgs;
 use crate::providers::gcp::clients::dialogflow::DialogflowProjectsLocationsAgentsEnvironmentsExperimentsStopArgs;
+use crate::providers::gcp::clients::dialogflow::DialogflowProjectsLocationsAgentsEnvironmentsGetArgs;
+use crate::providers::gcp::clients::dialogflow::DialogflowProjectsLocationsAgentsEnvironmentsListArgs;
+use crate::providers::gcp::clients::dialogflow::DialogflowProjectsLocationsAgentsEnvironmentsLookupEnvironmentHistoryArgs;
 use crate::providers::gcp::clients::dialogflow::DialogflowProjectsLocationsAgentsEnvironmentsPatchArgs;
 use crate::providers::gcp::clients::dialogflow::DialogflowProjectsLocationsAgentsEnvironmentsRunContinuousTestArgs;
 use crate::providers::gcp::clients::dialogflow::DialogflowProjectsLocationsAgentsEnvironmentsSessionsDetectIntentArgs;
 use crate::providers::gcp::clients::dialogflow::DialogflowProjectsLocationsAgentsEnvironmentsSessionsEntityTypesCreateArgs;
 use crate::providers::gcp::clients::dialogflow::DialogflowProjectsLocationsAgentsEnvironmentsSessionsEntityTypesDeleteArgs;
+use crate::providers::gcp::clients::dialogflow::DialogflowProjectsLocationsAgentsEnvironmentsSessionsEntityTypesGetArgs;
+use crate::providers::gcp::clients::dialogflow::DialogflowProjectsLocationsAgentsEnvironmentsSessionsEntityTypesListArgs;
 use crate::providers::gcp::clients::dialogflow::DialogflowProjectsLocationsAgentsEnvironmentsSessionsEntityTypesPatchArgs;
 use crate::providers::gcp::clients::dialogflow::DialogflowProjectsLocationsAgentsEnvironmentsSessionsFulfillIntentArgs;
 use crate::providers::gcp::clients::dialogflow::DialogflowProjectsLocationsAgentsEnvironmentsSessionsMatchIntentArgs;
@@ -170,45 +276,70 @@ use crate::providers::gcp::clients::dialogflow::DialogflowProjectsLocationsAgent
 use crate::providers::gcp::clients::dialogflow::DialogflowProjectsLocationsAgentsFlowsCreateArgs;
 use crate::providers::gcp::clients::dialogflow::DialogflowProjectsLocationsAgentsFlowsDeleteArgs;
 use crate::providers::gcp::clients::dialogflow::DialogflowProjectsLocationsAgentsFlowsExportArgs;
+use crate::providers::gcp::clients::dialogflow::DialogflowProjectsLocationsAgentsFlowsGetArgs;
+use crate::providers::gcp::clients::dialogflow::DialogflowProjectsLocationsAgentsFlowsGetValidationResultArgs;
 use crate::providers::gcp::clients::dialogflow::DialogflowProjectsLocationsAgentsFlowsImportArgs;
+use crate::providers::gcp::clients::dialogflow::DialogflowProjectsLocationsAgentsFlowsListArgs;
 use crate::providers::gcp::clients::dialogflow::DialogflowProjectsLocationsAgentsFlowsPagesCreateArgs;
 use crate::providers::gcp::clients::dialogflow::DialogflowProjectsLocationsAgentsFlowsPagesDeleteArgs;
+use crate::providers::gcp::clients::dialogflow::DialogflowProjectsLocationsAgentsFlowsPagesGetArgs;
+use crate::providers::gcp::clients::dialogflow::DialogflowProjectsLocationsAgentsFlowsPagesListArgs;
 use crate::providers::gcp::clients::dialogflow::DialogflowProjectsLocationsAgentsFlowsPagesPatchArgs;
 use crate::providers::gcp::clients::dialogflow::DialogflowProjectsLocationsAgentsFlowsPatchArgs;
 use crate::providers::gcp::clients::dialogflow::DialogflowProjectsLocationsAgentsFlowsTrainArgs;
 use crate::providers::gcp::clients::dialogflow::DialogflowProjectsLocationsAgentsFlowsTransitionRouteGroupsCreateArgs;
 use crate::providers::gcp::clients::dialogflow::DialogflowProjectsLocationsAgentsFlowsTransitionRouteGroupsDeleteArgs;
+use crate::providers::gcp::clients::dialogflow::DialogflowProjectsLocationsAgentsFlowsTransitionRouteGroupsGetArgs;
+use crate::providers::gcp::clients::dialogflow::DialogflowProjectsLocationsAgentsFlowsTransitionRouteGroupsListArgs;
 use crate::providers::gcp::clients::dialogflow::DialogflowProjectsLocationsAgentsFlowsTransitionRouteGroupsPatchArgs;
 use crate::providers::gcp::clients::dialogflow::DialogflowProjectsLocationsAgentsFlowsValidateArgs;
 use crate::providers::gcp::clients::dialogflow::DialogflowProjectsLocationsAgentsFlowsVersionsCompareVersionsArgs;
 use crate::providers::gcp::clients::dialogflow::DialogflowProjectsLocationsAgentsFlowsVersionsCreateArgs;
 use crate::providers::gcp::clients::dialogflow::DialogflowProjectsLocationsAgentsFlowsVersionsDeleteArgs;
+use crate::providers::gcp::clients::dialogflow::DialogflowProjectsLocationsAgentsFlowsVersionsGetArgs;
+use crate::providers::gcp::clients::dialogflow::DialogflowProjectsLocationsAgentsFlowsVersionsListArgs;
 use crate::providers::gcp::clients::dialogflow::DialogflowProjectsLocationsAgentsFlowsVersionsLoadArgs;
 use crate::providers::gcp::clients::dialogflow::DialogflowProjectsLocationsAgentsFlowsVersionsPatchArgs;
 use crate::providers::gcp::clients::dialogflow::DialogflowProjectsLocationsAgentsGeneratorsCreateArgs;
 use crate::providers::gcp::clients::dialogflow::DialogflowProjectsLocationsAgentsGeneratorsDeleteArgs;
+use crate::providers::gcp::clients::dialogflow::DialogflowProjectsLocationsAgentsGeneratorsGetArgs;
+use crate::providers::gcp::clients::dialogflow::DialogflowProjectsLocationsAgentsGeneratorsListArgs;
 use crate::providers::gcp::clients::dialogflow::DialogflowProjectsLocationsAgentsGeneratorsPatchArgs;
+use crate::providers::gcp::clients::dialogflow::DialogflowProjectsLocationsAgentsGetArgs;
+use crate::providers::gcp::clients::dialogflow::DialogflowProjectsLocationsAgentsGetGenerativeSettingsArgs;
+use crate::providers::gcp::clients::dialogflow::DialogflowProjectsLocationsAgentsGetValidationResultArgs;
 use crate::providers::gcp::clients::dialogflow::DialogflowProjectsLocationsAgentsIntentsCreateArgs;
 use crate::providers::gcp::clients::dialogflow::DialogflowProjectsLocationsAgentsIntentsDeleteArgs;
 use crate::providers::gcp::clients::dialogflow::DialogflowProjectsLocationsAgentsIntentsExportArgs;
+use crate::providers::gcp::clients::dialogflow::DialogflowProjectsLocationsAgentsIntentsGetArgs;
 use crate::providers::gcp::clients::dialogflow::DialogflowProjectsLocationsAgentsIntentsImportArgs;
+use crate::providers::gcp::clients::dialogflow::DialogflowProjectsLocationsAgentsIntentsListArgs;
 use crate::providers::gcp::clients::dialogflow::DialogflowProjectsLocationsAgentsIntentsPatchArgs;
+use crate::providers::gcp::clients::dialogflow::DialogflowProjectsLocationsAgentsListArgs;
 use crate::providers::gcp::clients::dialogflow::DialogflowProjectsLocationsAgentsPatchArgs;
 use crate::providers::gcp::clients::dialogflow::DialogflowProjectsLocationsAgentsPlaybooksCreateArgs;
 use crate::providers::gcp::clients::dialogflow::DialogflowProjectsLocationsAgentsPlaybooksDeleteArgs;
 use crate::providers::gcp::clients::dialogflow::DialogflowProjectsLocationsAgentsPlaybooksExamplesCreateArgs;
 use crate::providers::gcp::clients::dialogflow::DialogflowProjectsLocationsAgentsPlaybooksExamplesDeleteArgs;
+use crate::providers::gcp::clients::dialogflow::DialogflowProjectsLocationsAgentsPlaybooksExamplesGetArgs;
+use crate::providers::gcp::clients::dialogflow::DialogflowProjectsLocationsAgentsPlaybooksExamplesListArgs;
 use crate::providers::gcp::clients::dialogflow::DialogflowProjectsLocationsAgentsPlaybooksExamplesPatchArgs;
 use crate::providers::gcp::clients::dialogflow::DialogflowProjectsLocationsAgentsPlaybooksExportArgs;
+use crate::providers::gcp::clients::dialogflow::DialogflowProjectsLocationsAgentsPlaybooksGetArgs;
 use crate::providers::gcp::clients::dialogflow::DialogflowProjectsLocationsAgentsPlaybooksImportArgs;
+use crate::providers::gcp::clients::dialogflow::DialogflowProjectsLocationsAgentsPlaybooksListArgs;
 use crate::providers::gcp::clients::dialogflow::DialogflowProjectsLocationsAgentsPlaybooksPatchArgs;
 use crate::providers::gcp::clients::dialogflow::DialogflowProjectsLocationsAgentsPlaybooksVersionsCreateArgs;
 use crate::providers::gcp::clients::dialogflow::DialogflowProjectsLocationsAgentsPlaybooksVersionsDeleteArgs;
+use crate::providers::gcp::clients::dialogflow::DialogflowProjectsLocationsAgentsPlaybooksVersionsGetArgs;
+use crate::providers::gcp::clients::dialogflow::DialogflowProjectsLocationsAgentsPlaybooksVersionsListArgs;
 use crate::providers::gcp::clients::dialogflow::DialogflowProjectsLocationsAgentsPlaybooksVersionsRestoreArgs;
 use crate::providers::gcp::clients::dialogflow::DialogflowProjectsLocationsAgentsRestoreArgs;
 use crate::providers::gcp::clients::dialogflow::DialogflowProjectsLocationsAgentsSessionsDetectIntentArgs;
 use crate::providers::gcp::clients::dialogflow::DialogflowProjectsLocationsAgentsSessionsEntityTypesCreateArgs;
 use crate::providers::gcp::clients::dialogflow::DialogflowProjectsLocationsAgentsSessionsEntityTypesDeleteArgs;
+use crate::providers::gcp::clients::dialogflow::DialogflowProjectsLocationsAgentsSessionsEntityTypesGetArgs;
+use crate::providers::gcp::clients::dialogflow::DialogflowProjectsLocationsAgentsSessionsEntityTypesListArgs;
 use crate::providers::gcp::clients::dialogflow::DialogflowProjectsLocationsAgentsSessionsEntityTypesPatchArgs;
 use crate::providers::gcp::clients::dialogflow::DialogflowProjectsLocationsAgentsSessionsFulfillIntentArgs;
 use crate::providers::gcp::clients::dialogflow::DialogflowProjectsLocationsAgentsSessionsMatchIntentArgs;
@@ -216,30 +347,51 @@ use crate::providers::gcp::clients::dialogflow::DialogflowProjectsLocationsAgent
 use crate::providers::gcp::clients::dialogflow::DialogflowProjectsLocationsAgentsSessionsSubmitAnswerFeedbackArgs;
 use crate::providers::gcp::clients::dialogflow::DialogflowProjectsLocationsAgentsTestCasesBatchDeleteArgs;
 use crate::providers::gcp::clients::dialogflow::DialogflowProjectsLocationsAgentsTestCasesBatchRunArgs;
+use crate::providers::gcp::clients::dialogflow::DialogflowProjectsLocationsAgentsTestCasesCalculateCoverageArgs;
 use crate::providers::gcp::clients::dialogflow::DialogflowProjectsLocationsAgentsTestCasesCreateArgs;
 use crate::providers::gcp::clients::dialogflow::DialogflowProjectsLocationsAgentsTestCasesExportArgs;
+use crate::providers::gcp::clients::dialogflow::DialogflowProjectsLocationsAgentsTestCasesGetArgs;
 use crate::providers::gcp::clients::dialogflow::DialogflowProjectsLocationsAgentsTestCasesImportArgs;
+use crate::providers::gcp::clients::dialogflow::DialogflowProjectsLocationsAgentsTestCasesListArgs;
 use crate::providers::gcp::clients::dialogflow::DialogflowProjectsLocationsAgentsTestCasesPatchArgs;
+use crate::providers::gcp::clients::dialogflow::DialogflowProjectsLocationsAgentsTestCasesResultsGetArgs;
+use crate::providers::gcp::clients::dialogflow::DialogflowProjectsLocationsAgentsTestCasesResultsListArgs;
 use crate::providers::gcp::clients::dialogflow::DialogflowProjectsLocationsAgentsTestCasesRunArgs;
 use crate::providers::gcp::clients::dialogflow::DialogflowProjectsLocationsAgentsToolsCreateArgs;
 use crate::providers::gcp::clients::dialogflow::DialogflowProjectsLocationsAgentsToolsDeleteArgs;
+use crate::providers::gcp::clients::dialogflow::DialogflowProjectsLocationsAgentsToolsGetArgs;
+use crate::providers::gcp::clients::dialogflow::DialogflowProjectsLocationsAgentsToolsListArgs;
 use crate::providers::gcp::clients::dialogflow::DialogflowProjectsLocationsAgentsToolsPatchArgs;
 use crate::providers::gcp::clients::dialogflow::DialogflowProjectsLocationsAgentsToolsVersionsCreateArgs;
 use crate::providers::gcp::clients::dialogflow::DialogflowProjectsLocationsAgentsToolsVersionsDeleteArgs;
+use crate::providers::gcp::clients::dialogflow::DialogflowProjectsLocationsAgentsToolsVersionsGetArgs;
+use crate::providers::gcp::clients::dialogflow::DialogflowProjectsLocationsAgentsToolsVersionsListArgs;
 use crate::providers::gcp::clients::dialogflow::DialogflowProjectsLocationsAgentsToolsVersionsRestoreArgs;
 use crate::providers::gcp::clients::dialogflow::DialogflowProjectsLocationsAgentsTransitionRouteGroupsCreateArgs;
 use crate::providers::gcp::clients::dialogflow::DialogflowProjectsLocationsAgentsTransitionRouteGroupsDeleteArgs;
+use crate::providers::gcp::clients::dialogflow::DialogflowProjectsLocationsAgentsTransitionRouteGroupsGetArgs;
+use crate::providers::gcp::clients::dialogflow::DialogflowProjectsLocationsAgentsTransitionRouteGroupsListArgs;
 use crate::providers::gcp::clients::dialogflow::DialogflowProjectsLocationsAgentsTransitionRouteGroupsPatchArgs;
 use crate::providers::gcp::clients::dialogflow::DialogflowProjectsLocationsAgentsUpdateGenerativeSettingsArgs;
 use crate::providers::gcp::clients::dialogflow::DialogflowProjectsLocationsAgentsValidateArgs;
 use crate::providers::gcp::clients::dialogflow::DialogflowProjectsLocationsAgentsWebhooksCreateArgs;
 use crate::providers::gcp::clients::dialogflow::DialogflowProjectsLocationsAgentsWebhooksDeleteArgs;
+use crate::providers::gcp::clients::dialogflow::DialogflowProjectsLocationsAgentsWebhooksGetArgs;
+use crate::providers::gcp::clients::dialogflow::DialogflowProjectsLocationsAgentsWebhooksListArgs;
 use crate::providers::gcp::clients::dialogflow::DialogflowProjectsLocationsAgentsWebhooksPatchArgs;
+use crate::providers::gcp::clients::dialogflow::DialogflowProjectsLocationsGetArgs;
+use crate::providers::gcp::clients::dialogflow::DialogflowProjectsLocationsListArgs;
 use crate::providers::gcp::clients::dialogflow::DialogflowProjectsLocationsOperationsCancelArgs;
+use crate::providers::gcp::clients::dialogflow::DialogflowProjectsLocationsOperationsGetArgs;
+use crate::providers::gcp::clients::dialogflow::DialogflowProjectsLocationsOperationsListArgs;
 use crate::providers::gcp::clients::dialogflow::DialogflowProjectsLocationsSecuritySettingsCreateArgs;
 use crate::providers::gcp::clients::dialogflow::DialogflowProjectsLocationsSecuritySettingsDeleteArgs;
+use crate::providers::gcp::clients::dialogflow::DialogflowProjectsLocationsSecuritySettingsGetArgs;
+use crate::providers::gcp::clients::dialogflow::DialogflowProjectsLocationsSecuritySettingsListArgs;
 use crate::providers::gcp::clients::dialogflow::DialogflowProjectsLocationsSecuritySettingsPatchArgs;
 use crate::providers::gcp::clients::dialogflow::DialogflowProjectsOperationsCancelArgs;
+use crate::providers::gcp::clients::dialogflow::DialogflowProjectsOperationsGetArgs;
+use crate::providers::gcp::clients::dialogflow::DialogflowProjectsOperationsListArgs;
 use crate::provider_client::{ProviderClient, ProviderError};
 use foundation_core::valtron::{execute, StreamIterator};
 use foundation_core::wire::simple_http::client::SimpleHttpClient;
@@ -279,6 +431,86 @@ where
             client,
             http_client: Arc::new(http_client),
         }
+    }
+
+    /// Dialogflow projects locations get.
+    ///
+    /// Read-only operation - no state tracking.
+    ///
+    /// # Arguments
+    ///
+    /// * `args` - Request arguments
+    ///
+    /// # Returns
+    ///
+    /// StreamIterator yielding the GoogleCloudLocationLocation result.
+    ///
+    /// # Errors
+    ///
+    /// Returns ProviderError if the API request fails.
+    pub fn dialogflow_projects_locations_get(
+        &self,
+        args: &DialogflowProjectsLocationsGetArgs,
+    ) -> Result<
+        impl StreamIterator<
+            D = Result<GoogleCloudLocationLocation, ProviderError<ApiError>>,
+            P = crate::providers::gcp::clients::types::ApiPending,
+        > + Send
+        + 'static,
+        ProviderError<ApiError>,
+    > {
+        let builder = dialogflow_projects_locations_get_builder(
+            &self.http_client,
+            &args.name,
+        )
+        .map_err(ProviderError::Api)?;
+
+        let task = dialogflow_projects_locations_get_task(builder)
+            .map_err(ProviderError::Api)?;
+
+        execute(task, None).map_err(|e: String| ProviderError::ExecuteFailed(e.to_string()))
+    }
+
+    /// Dialogflow projects locations list.
+    ///
+    /// Read-only operation - no state tracking.
+    ///
+    /// # Arguments
+    ///
+    /// * `args` - Request arguments
+    ///
+    /// # Returns
+    ///
+    /// StreamIterator yielding the GoogleCloudLocationListLocationsResponse result.
+    ///
+    /// # Errors
+    ///
+    /// Returns ProviderError if the API request fails.
+    pub fn dialogflow_projects_locations_list(
+        &self,
+        args: &DialogflowProjectsLocationsListArgs,
+    ) -> Result<
+        impl StreamIterator<
+            D = Result<GoogleCloudLocationListLocationsResponse, ProviderError<ApiError>>,
+            P = crate::providers::gcp::clients::types::ApiPending,
+        > + Send
+        + 'static,
+        ProviderError<ApiError>,
+    > {
+        let builder = dialogflow_projects_locations_list_builder(
+            &self.http_client,
+            &args.name,
+            &args.extraLocationTypes,
+            &args.filter,
+            &args.pageSize,
+            &args.pageToken,
+        )
+        .map_err(ProviderError::Api)?;
+
+        let task = dialogflow_projects_locations_list_task(builder)
+            .map_err(ProviderError::Api)?;
+
+        execute(task, None).map_err(|e: String| ProviderError::ExecuteFailed(e.to_string()))
     }
 
     /// Dialogflow projects locations agents create.
@@ -369,7 +601,7 @@ where
 
     /// Dialogflow projects locations agents export.
     ///
-    /// Automatically stores the result in the state store on success.
+    /// Read-only operation - no state tracking.
     ///
     /// # Arguments
     ///
@@ -381,7 +613,7 @@ where
     ///
     /// # Errors
     ///
-    /// Returns ProviderError if the API request or state storage fails.
+    /// Returns ProviderError if the API request fails.
     pub fn dialogflow_projects_locations_agents_export(
         &self,
         args: &DialogflowProjectsLocationsAgentsExportArgs,
@@ -402,12 +634,163 @@ where
         let task = dialogflow_projects_locations_agents_export_task(builder)
             .map_err(ProviderError::Api)?;
 
-        let state_store = self.client.state_store.clone();
-        let stage = Some(self.client.stage.clone());
+        execute(task, None).map_err(|e: String| ProviderError::ExecuteFailed(e.to_string()))
+    }
 
-        let store_task = StoreStateIdentifierTask::new(task, state_store, args, stage);
+    /// Dialogflow projects locations agents get.
+    ///
+    /// Read-only operation - no state tracking.
+    ///
+    /// # Arguments
+    ///
+    /// * `args` - Request arguments
+    ///
+    /// # Returns
+    ///
+    /// StreamIterator yielding the GoogleCloudDialogflowCxV3Agent result.
+    ///
+    /// # Errors
+    ///
+    /// Returns ProviderError if the API request fails.
+    pub fn dialogflow_projects_locations_agents_get(
+        &self,
+        args: &DialogflowProjectsLocationsAgentsGetArgs,
+    ) -> Result<
+        impl StreamIterator<
+            D = Result<GoogleCloudDialogflowCxV3Agent, ProviderError<ApiError>>,
+            P = crate::providers::gcp::clients::types::ApiPending,
+        > + Send
+        + 'static,
+        ProviderError<ApiError>,
+    > {
+        let builder = dialogflow_projects_locations_agents_get_builder(
+            &self.http_client,
+            &args.name,
+        )
+        .map_err(ProviderError::Api)?;
 
-        execute(store_task, None).map_err(|e: String| ProviderError::ExecuteFailed(e.to_string()))
+        let task = dialogflow_projects_locations_agents_get_task(builder)
+            .map_err(ProviderError::Api)?;
+
+        execute(task, None).map_err(|e: String| ProviderError::ExecuteFailed(e.to_string()))
+    }
+
+    /// Dialogflow projects locations agents get generative settings.
+    ///
+    /// Read-only operation - no state tracking.
+    ///
+    /// # Arguments
+    ///
+    /// * `args` - Request arguments
+    ///
+    /// # Returns
+    ///
+    /// StreamIterator yielding the GoogleCloudDialogflowCxV3GenerativeSettings result.
+    ///
+    /// # Errors
+    ///
+    /// Returns ProviderError if the API request fails.
+    pub fn dialogflow_projects_locations_agents_get_generative_settings(
+        &self,
+        args: &DialogflowProjectsLocationsAgentsGetGenerativeSettingsArgs,
+    ) -> Result<
+        impl StreamIterator<
+            D = Result<GoogleCloudDialogflowCxV3GenerativeSettings, ProviderError<ApiError>>,
+            P = crate::providers::gcp::clients::types::ApiPending,
+        > + Send
+        + 'static,
+        ProviderError<ApiError>,
+    > {
+        let builder = dialogflow_projects_locations_agents_get_generative_settings_builder(
+            &self.http_client,
+            &args.name,
+            &args.languageCode,
+        )
+        .map_err(ProviderError::Api)?;
+
+        let task = dialogflow_projects_locations_agents_get_generative_settings_task(builder)
+            .map_err(ProviderError::Api)?;
+
+        execute(task, None).map_err(|e: String| ProviderError::ExecuteFailed(e.to_string()))
+    }
+
+    /// Dialogflow projects locations agents get validation result.
+    ///
+    /// Read-only operation - no state tracking.
+    ///
+    /// # Arguments
+    ///
+    /// * `args` - Request arguments
+    ///
+    /// # Returns
+    ///
+    /// StreamIterator yielding the GoogleCloudDialogflowCxV3AgentValidationResult result.
+    ///
+    /// # Errors
+    ///
+    /// Returns ProviderError if the API request fails.
+    pub fn dialogflow_projects_locations_agents_get_validation_result(
+        &self,
+        args: &DialogflowProjectsLocationsAgentsGetValidationResultArgs,
+    ) -> Result<
+        impl StreamIterator<
+            D = Result<GoogleCloudDialogflowCxV3AgentValidationResult, ProviderError<ApiError>>,
+            P = crate::providers::gcp::clients::types::ApiPending,
+        > + Send
+        + 'static,
+        ProviderError<ApiError>,
+    > {
+        let builder = dialogflow_projects_locations_agents_get_validation_result_builder(
+            &self.http_client,
+            &args.name,
+            &args.languageCode,
+        )
+        .map_err(ProviderError::Api)?;
+
+        let task = dialogflow_projects_locations_agents_get_validation_result_task(builder)
+            .map_err(ProviderError::Api)?;
+
+        execute(task, None).map_err(|e: String| ProviderError::ExecuteFailed(e.to_string()))
+    }
+
+    /// Dialogflow projects locations agents list.
+    ///
+    /// Read-only operation - no state tracking.
+    ///
+    /// # Arguments
+    ///
+    /// * `args` - Request arguments
+    ///
+    /// # Returns
+    ///
+    /// StreamIterator yielding the GoogleCloudDialogflowCxV3ListAgentsResponse result.
+    ///
+    /// # Errors
+    ///
+    /// Returns ProviderError if the API request fails.
+    pub fn dialogflow_projects_locations_agents_list(
+        &self,
+        args: &DialogflowProjectsLocationsAgentsListArgs,
+    ) -> Result<
+        impl StreamIterator<
+            D = Result<GoogleCloudDialogflowCxV3ListAgentsResponse, ProviderError<ApiError>>,
+            P = crate::providers::gcp::clients::types::ApiPending,
+        > + Send
+        + 'static,
+        ProviderError<ApiError>,
+    > {
+        let builder = dialogflow_projects_locations_agents_list_builder(
+            &self.http_client,
+            &args.parent,
+            &args.pageSize,
+            &args.pageToken,
+        )
+        .map_err(ProviderError::Api)?;
+
+        let task = dialogflow_projects_locations_agents_list_task(builder)
+            .map_err(ProviderError::Api)?;
+
+        execute(task, None).map_err(|e: String| ProviderError::ExecuteFailed(e.to_string()))
     }
 
     /// Dialogflow projects locations agents patch.
@@ -543,7 +926,7 @@ where
 
     /// Dialogflow projects locations agents validate.
     ///
-    /// Automatically stores the result in the state store on success.
+    /// Read-only operation - no state tracking.
     ///
     /// # Arguments
     ///
@@ -555,7 +938,7 @@ where
     ///
     /// # Errors
     ///
-    /// Returns ProviderError if the API request or state storage fails.
+    /// Returns ProviderError if the API request fails.
     pub fn dialogflow_projects_locations_agents_validate(
         &self,
         args: &DialogflowProjectsLocationsAgentsValidateArgs,
@@ -576,12 +959,86 @@ where
         let task = dialogflow_projects_locations_agents_validate_task(builder)
             .map_err(ProviderError::Api)?;
 
-        let state_store = self.client.state_store.clone();
-        let stage = Some(self.client.stage.clone());
+        execute(task, None).map_err(|e: String| ProviderError::ExecuteFailed(e.to_string()))
+    }
 
-        let store_task = StoreStateIdentifierTask::new(task, state_store, args, stage);
+    /// Dialogflow projects locations agents changelogs get.
+    ///
+    /// Read-only operation - no state tracking.
+    ///
+    /// # Arguments
+    ///
+    /// * `args` - Request arguments
+    ///
+    /// # Returns
+    ///
+    /// StreamIterator yielding the GoogleCloudDialogflowCxV3Changelog result.
+    ///
+    /// # Errors
+    ///
+    /// Returns ProviderError if the API request fails.
+    pub fn dialogflow_projects_locations_agents_changelogs_get(
+        &self,
+        args: &DialogflowProjectsLocationsAgentsChangelogsGetArgs,
+    ) -> Result<
+        impl StreamIterator<
+            D = Result<GoogleCloudDialogflowCxV3Changelog, ProviderError<ApiError>>,
+            P = crate::providers::gcp::clients::types::ApiPending,
+        > + Send
+        + 'static,
+        ProviderError<ApiError>,
+    > {
+        let builder = dialogflow_projects_locations_agents_changelogs_get_builder(
+            &self.http_client,
+            &args.name,
+        )
+        .map_err(ProviderError::Api)?;
 
-        execute(store_task, None).map_err(|e: String| ProviderError::ExecuteFailed(e.to_string()))
+        let task = dialogflow_projects_locations_agents_changelogs_get_task(builder)
+            .map_err(ProviderError::Api)?;
+
+        execute(task, None).map_err(|e: String| ProviderError::ExecuteFailed(e.to_string()))
+    }
+
+    /// Dialogflow projects locations agents changelogs list.
+    ///
+    /// Read-only operation - no state tracking.
+    ///
+    /// # Arguments
+    ///
+    /// * `args` - Request arguments
+    ///
+    /// # Returns
+    ///
+    /// StreamIterator yielding the GoogleCloudDialogflowCxV3ListChangelogsResponse result.
+    ///
+    /// # Errors
+    ///
+    /// Returns ProviderError if the API request fails.
+    pub fn dialogflow_projects_locations_agents_changelogs_list(
+        &self,
+        args: &DialogflowProjectsLocationsAgentsChangelogsListArgs,
+    ) -> Result<
+        impl StreamIterator<
+            D = Result<GoogleCloudDialogflowCxV3ListChangelogsResponse, ProviderError<ApiError>>,
+            P = crate::providers::gcp::clients::types::ApiPending,
+        > + Send
+        + 'static,
+        ProviderError<ApiError>,
+    > {
+        let builder = dialogflow_projects_locations_agents_changelogs_list_builder(
+            &self.http_client,
+            &args.parent,
+            &args.filter,
+            &args.pageSize,
+            &args.pageToken,
+        )
+        .map_err(ProviderError::Api)?;
+
+        let task = dialogflow_projects_locations_agents_changelogs_list_task(builder)
+            .map_err(ProviderError::Api)?;
+
+        execute(task, None).map_err(|e: String| ProviderError::ExecuteFailed(e.to_string()))
     }
 
     /// Dialogflow projects locations agents entity types create.
@@ -674,7 +1131,7 @@ where
 
     /// Dialogflow projects locations agents entity types export.
     ///
-    /// Automatically stores the result in the state store on success.
+    /// Read-only operation - no state tracking.
     ///
     /// # Arguments
     ///
@@ -686,7 +1143,7 @@ where
     ///
     /// # Errors
     ///
-    /// Returns ProviderError if the API request or state storage fails.
+    /// Returns ProviderError if the API request fails.
     pub fn dialogflow_projects_locations_agents_entity_types_export(
         &self,
         args: &DialogflowProjectsLocationsAgentsEntityTypesExportArgs,
@@ -707,12 +1164,46 @@ where
         let task = dialogflow_projects_locations_agents_entity_types_export_task(builder)
             .map_err(ProviderError::Api)?;
 
-        let state_store = self.client.state_store.clone();
-        let stage = Some(self.client.stage.clone());
+        execute(task, None).map_err(|e: String| ProviderError::ExecuteFailed(e.to_string()))
+    }
 
-        let store_task = StoreStateIdentifierTask::new(task, state_store, args, stage);
+    /// Dialogflow projects locations agents entity types get.
+    ///
+    /// Read-only operation - no state tracking.
+    ///
+    /// # Arguments
+    ///
+    /// * `args` - Request arguments
+    ///
+    /// # Returns
+    ///
+    /// StreamIterator yielding the GoogleCloudDialogflowCxV3EntityType result.
+    ///
+    /// # Errors
+    ///
+    /// Returns ProviderError if the API request fails.
+    pub fn dialogflow_projects_locations_agents_entity_types_get(
+        &self,
+        args: &DialogflowProjectsLocationsAgentsEntityTypesGetArgs,
+    ) -> Result<
+        impl StreamIterator<
+            D = Result<GoogleCloudDialogflowCxV3EntityType, ProviderError<ApiError>>,
+            P = crate::providers::gcp::clients::types::ApiPending,
+        > + Send
+        + 'static,
+        ProviderError<ApiError>,
+    > {
+        let builder = dialogflow_projects_locations_agents_entity_types_get_builder(
+            &self.http_client,
+            &args.name,
+            &args.languageCode,
+        )
+        .map_err(ProviderError::Api)?;
 
-        execute(store_task, None).map_err(|e: String| ProviderError::ExecuteFailed(e.to_string()))
+        let task = dialogflow_projects_locations_agents_entity_types_get_task(builder)
+            .map_err(ProviderError::Api)?;
+
+        execute(task, None).map_err(|e: String| ProviderError::ExecuteFailed(e.to_string()))
     }
 
     /// Dialogflow projects locations agents entity types import.
@@ -756,6 +1247,47 @@ where
         let store_task = StoreStateIdentifierTask::new(task, state_store, args, stage);
 
         execute(store_task, None).map_err(|e: String| ProviderError::ExecuteFailed(e.to_string()))
+    }
+
+    /// Dialogflow projects locations agents entity types list.
+    ///
+    /// Read-only operation - no state tracking.
+    ///
+    /// # Arguments
+    ///
+    /// * `args` - Request arguments
+    ///
+    /// # Returns
+    ///
+    /// StreamIterator yielding the GoogleCloudDialogflowCxV3ListEntityTypesResponse result.
+    ///
+    /// # Errors
+    ///
+    /// Returns ProviderError if the API request fails.
+    pub fn dialogflow_projects_locations_agents_entity_types_list(
+        &self,
+        args: &DialogflowProjectsLocationsAgentsEntityTypesListArgs,
+    ) -> Result<
+        impl StreamIterator<
+            D = Result<GoogleCloudDialogflowCxV3ListEntityTypesResponse, ProviderError<ApiError>>,
+            P = crate::providers::gcp::clients::types::ApiPending,
+        > + Send
+        + 'static,
+        ProviderError<ApiError>,
+    > {
+        let builder = dialogflow_projects_locations_agents_entity_types_list_builder(
+            &self.http_client,
+            &args.parent,
+            &args.languageCode,
+            &args.pageSize,
+            &args.pageToken,
+        )
+        .map_err(ProviderError::Api)?;
+
+        let task = dialogflow_projects_locations_agents_entity_types_list_task(builder)
+            .map_err(ProviderError::Api)?;
+
+        execute(task, None).map_err(|e: String| ProviderError::ExecuteFailed(e.to_string()))
     }
 
     /// Dialogflow projects locations agents entity types patch.
@@ -932,6 +1464,124 @@ where
         execute(store_task, None).map_err(|e: String| ProviderError::ExecuteFailed(e.to_string()))
     }
 
+    /// Dialogflow projects locations agents environments get.
+    ///
+    /// Read-only operation - no state tracking.
+    ///
+    /// # Arguments
+    ///
+    /// * `args` - Request arguments
+    ///
+    /// # Returns
+    ///
+    /// StreamIterator yielding the GoogleCloudDialogflowCxV3Environment result.
+    ///
+    /// # Errors
+    ///
+    /// Returns ProviderError if the API request fails.
+    pub fn dialogflow_projects_locations_agents_environments_get(
+        &self,
+        args: &DialogflowProjectsLocationsAgentsEnvironmentsGetArgs,
+    ) -> Result<
+        impl StreamIterator<
+            D = Result<GoogleCloudDialogflowCxV3Environment, ProviderError<ApiError>>,
+            P = crate::providers::gcp::clients::types::ApiPending,
+        > + Send
+        + 'static,
+        ProviderError<ApiError>,
+    > {
+        let builder = dialogflow_projects_locations_agents_environments_get_builder(
+            &self.http_client,
+            &args.name,
+        )
+        .map_err(ProviderError::Api)?;
+
+        let task = dialogflow_projects_locations_agents_environments_get_task(builder)
+            .map_err(ProviderError::Api)?;
+
+        execute(task, None).map_err(|e: String| ProviderError::ExecuteFailed(e.to_string()))
+    }
+
+    /// Dialogflow projects locations agents environments list.
+    ///
+    /// Read-only operation - no state tracking.
+    ///
+    /// # Arguments
+    ///
+    /// * `args` - Request arguments
+    ///
+    /// # Returns
+    ///
+    /// StreamIterator yielding the GoogleCloudDialogflowCxV3ListEnvironmentsResponse result.
+    ///
+    /// # Errors
+    ///
+    /// Returns ProviderError if the API request fails.
+    pub fn dialogflow_projects_locations_agents_environments_list(
+        &self,
+        args: &DialogflowProjectsLocationsAgentsEnvironmentsListArgs,
+    ) -> Result<
+        impl StreamIterator<
+            D = Result<GoogleCloudDialogflowCxV3ListEnvironmentsResponse, ProviderError<ApiError>>,
+            P = crate::providers::gcp::clients::types::ApiPending,
+        > + Send
+        + 'static,
+        ProviderError<ApiError>,
+    > {
+        let builder = dialogflow_projects_locations_agents_environments_list_builder(
+            &self.http_client,
+            &args.parent,
+            &args.pageSize,
+            &args.pageToken,
+        )
+        .map_err(ProviderError::Api)?;
+
+        let task = dialogflow_projects_locations_agents_environments_list_task(builder)
+            .map_err(ProviderError::Api)?;
+
+        execute(task, None).map_err(|e: String| ProviderError::ExecuteFailed(e.to_string()))
+    }
+
+    /// Dialogflow projects locations agents environments lookup environment history.
+    ///
+    /// Read-only operation - no state tracking.
+    ///
+    /// # Arguments
+    ///
+    /// * `args` - Request arguments
+    ///
+    /// # Returns
+    ///
+    /// StreamIterator yielding the GoogleCloudDialogflowCxV3LookupEnvironmentHistoryResponse result.
+    ///
+    /// # Errors
+    ///
+    /// Returns ProviderError if the API request fails.
+    pub fn dialogflow_projects_locations_agents_environments_lookup_environment_history(
+        &self,
+        args: &DialogflowProjectsLocationsAgentsEnvironmentsLookupEnvironmentHistoryArgs,
+    ) -> Result<
+        impl StreamIterator<
+            D = Result<GoogleCloudDialogflowCxV3LookupEnvironmentHistoryResponse, ProviderError<ApiError>>,
+            P = crate::providers::gcp::clients::types::ApiPending,
+        > + Send
+        + 'static,
+        ProviderError<ApiError>,
+    > {
+        let builder = dialogflow_projects_locations_agents_environments_lookup_environment_history_builder(
+            &self.http_client,
+            &args.name,
+            &args.pageSize,
+            &args.pageToken,
+        )
+        .map_err(ProviderError::Api)?;
+
+        let task = dialogflow_projects_locations_agents_environments_lookup_environment_history_task(builder)
+            .map_err(ProviderError::Api)?;
+
+        execute(task, None).map_err(|e: String| ProviderError::ExecuteFailed(e.to_string()))
+    }
+
     /// Dialogflow projects locations agents environments patch.
     ///
     /// Automatically stores the result in the state store on success.
@@ -1019,6 +1669,124 @@ where
         execute(store_task, None).map_err(|e: String| ProviderError::ExecuteFailed(e.to_string()))
     }
 
+    /// Dialogflow projects locations agents environments continuous test results list.
+    ///
+    /// Read-only operation - no state tracking.
+    ///
+    /// # Arguments
+    ///
+    /// * `args` - Request arguments
+    ///
+    /// # Returns
+    ///
+    /// StreamIterator yielding the GoogleCloudDialogflowCxV3ListContinuousTestResultsResponse result.
+    ///
+    /// # Errors
+    ///
+    /// Returns ProviderError if the API request fails.
+    pub fn dialogflow_projects_locations_agents_environments_continuous_test_results_list(
+        &self,
+        args: &DialogflowProjectsLocationsAgentsEnvironmentsContinuousTestResultsListArgs,
+    ) -> Result<
+        impl StreamIterator<
+            D = Result<GoogleCloudDialogflowCxV3ListContinuousTestResultsResponse, ProviderError<ApiError>>,
+            P = crate::providers::gcp::clients::types::ApiPending,
+        > + Send
+        + 'static,
+        ProviderError<ApiError>,
+    > {
+        let builder = dialogflow_projects_locations_agents_environments_continuous_test_results_list_builder(
+            &self.http_client,
+            &args.parent,
+            &args.pageSize,
+            &args.pageToken,
+        )
+        .map_err(ProviderError::Api)?;
+
+        let task = dialogflow_projects_locations_agents_environments_continuous_test_results_list_task(builder)
+            .map_err(ProviderError::Api)?;
+
+        execute(task, None).map_err(|e: String| ProviderError::ExecuteFailed(e.to_string()))
+    }
+
+    /// Dialogflow projects locations agents environments deployments get.
+    ///
+    /// Read-only operation - no state tracking.
+    ///
+    /// # Arguments
+    ///
+    /// * `args` - Request arguments
+    ///
+    /// # Returns
+    ///
+    /// StreamIterator yielding the GoogleCloudDialogflowCxV3Deployment result.
+    ///
+    /// # Errors
+    ///
+    /// Returns ProviderError if the API request fails.
+    pub fn dialogflow_projects_locations_agents_environments_deployments_get(
+        &self,
+        args: &DialogflowProjectsLocationsAgentsEnvironmentsDeploymentsGetArgs,
+    ) -> Result<
+        impl StreamIterator<
+            D = Result<GoogleCloudDialogflowCxV3Deployment, ProviderError<ApiError>>,
+            P = crate::providers::gcp::clients::types::ApiPending,
+        > + Send
+        + 'static,
+        ProviderError<ApiError>,
+    > {
+        let builder = dialogflow_projects_locations_agents_environments_deployments_get_builder(
+            &self.http_client,
+            &args.name,
+        )
+        .map_err(ProviderError::Api)?;
+
+        let task = dialogflow_projects_locations_agents_environments_deployments_get_task(builder)
+            .map_err(ProviderError::Api)?;
+
+        execute(task, None).map_err(|e: String| ProviderError::ExecuteFailed(e.to_string()))
+    }
+
+    /// Dialogflow projects locations agents environments deployments list.
+    ///
+    /// Read-only operation - no state tracking.
+    ///
+    /// # Arguments
+    ///
+    /// * `args` - Request arguments
+    ///
+    /// # Returns
+    ///
+    /// StreamIterator yielding the GoogleCloudDialogflowCxV3ListDeploymentsResponse result.
+    ///
+    /// # Errors
+    ///
+    /// Returns ProviderError if the API request fails.
+    pub fn dialogflow_projects_locations_agents_environments_deployments_list(
+        &self,
+        args: &DialogflowProjectsLocationsAgentsEnvironmentsDeploymentsListArgs,
+    ) -> Result<
+        impl StreamIterator<
+            D = Result<GoogleCloudDialogflowCxV3ListDeploymentsResponse, ProviderError<ApiError>>,
+            P = crate::providers::gcp::clients::types::ApiPending,
+        > + Send
+        + 'static,
+        ProviderError<ApiError>,
+    > {
+        let builder = dialogflow_projects_locations_agents_environments_deployments_list_builder(
+            &self.http_client,
+            &args.parent,
+            &args.pageSize,
+            &args.pageToken,
+        )
+        .map_err(ProviderError::Api)?;
+
+        let task = dialogflow_projects_locations_agents_environments_deployments_list_task(builder)
+            .map_err(ProviderError::Api)?;
+
+        execute(task, None).map_err(|e: String| ProviderError::ExecuteFailed(e.to_string()))
+    }
+
     /// Dialogflow projects locations agents environments experiments create.
     ///
     /// Automatically stores the result in the state store on success.
@@ -1103,6 +1871,84 @@ where
         let store_task = StoreStateIdentifierTask::new(task, state_store, args, stage);
 
         execute(store_task, None).map_err(|e: String| ProviderError::ExecuteFailed(e.to_string()))
+    }
+
+    /// Dialogflow projects locations agents environments experiments get.
+    ///
+    /// Read-only operation - no state tracking.
+    ///
+    /// # Arguments
+    ///
+    /// * `args` - Request arguments
+    ///
+    /// # Returns
+    ///
+    /// StreamIterator yielding the GoogleCloudDialogflowCxV3Experiment result.
+    ///
+    /// # Errors
+    ///
+    /// Returns ProviderError if the API request fails.
+    pub fn dialogflow_projects_locations_agents_environments_experiments_get(
+        &self,
+        args: &DialogflowProjectsLocationsAgentsEnvironmentsExperimentsGetArgs,
+    ) -> Result<
+        impl StreamIterator<
+            D = Result<GoogleCloudDialogflowCxV3Experiment, ProviderError<ApiError>>,
+            P = crate::providers::gcp::clients::types::ApiPending,
+        > + Send
+        + 'static,
+        ProviderError<ApiError>,
+    > {
+        let builder = dialogflow_projects_locations_agents_environments_experiments_get_builder(
+            &self.http_client,
+            &args.name,
+        )
+        .map_err(ProviderError::Api)?;
+
+        let task = dialogflow_projects_locations_agents_environments_experiments_get_task(builder)
+            .map_err(ProviderError::Api)?;
+
+        execute(task, None).map_err(|e: String| ProviderError::ExecuteFailed(e.to_string()))
+    }
+
+    /// Dialogflow projects locations agents environments experiments list.
+    ///
+    /// Read-only operation - no state tracking.
+    ///
+    /// # Arguments
+    ///
+    /// * `args` - Request arguments
+    ///
+    /// # Returns
+    ///
+    /// StreamIterator yielding the GoogleCloudDialogflowCxV3ListExperimentsResponse result.
+    ///
+    /// # Errors
+    ///
+    /// Returns ProviderError if the API request fails.
+    pub fn dialogflow_projects_locations_agents_environments_experiments_list(
+        &self,
+        args: &DialogflowProjectsLocationsAgentsEnvironmentsExperimentsListArgs,
+    ) -> Result<
+        impl StreamIterator<
+            D = Result<GoogleCloudDialogflowCxV3ListExperimentsResponse, ProviderError<ApiError>>,
+            P = crate::providers::gcp::clients::types::ApiPending,
+        > + Send
+        + 'static,
+        ProviderError<ApiError>,
+    > {
+        let builder = dialogflow_projects_locations_agents_environments_experiments_list_builder(
+            &self.http_client,
+            &args.parent,
+            &args.pageSize,
+            &args.pageToken,
+        )
+        .map_err(ProviderError::Api)?;
+
+        let task = dialogflow_projects_locations_agents_environments_experiments_list_task(builder)
+            .map_err(ProviderError::Api)?;
+
+        execute(task, None).map_err(|e: String| ProviderError::ExecuteFailed(e.to_string()))
     }
 
     /// Dialogflow projects locations agents environments experiments patch.
@@ -1493,6 +2339,84 @@ where
         execute(store_task, None).map_err(|e: String| ProviderError::ExecuteFailed(e.to_string()))
     }
 
+    /// Dialogflow projects locations agents environments sessions entity types get.
+    ///
+    /// Read-only operation - no state tracking.
+    ///
+    /// # Arguments
+    ///
+    /// * `args` - Request arguments
+    ///
+    /// # Returns
+    ///
+    /// StreamIterator yielding the GoogleCloudDialogflowCxV3SessionEntityType result.
+    ///
+    /// # Errors
+    ///
+    /// Returns ProviderError if the API request fails.
+    pub fn dialogflow_projects_locations_agents_environments_sessions_entity_types_get(
+        &self,
+        args: &DialogflowProjectsLocationsAgentsEnvironmentsSessionsEntityTypesGetArgs,
+    ) -> Result<
+        impl StreamIterator<
+            D = Result<GoogleCloudDialogflowCxV3SessionEntityType, ProviderError<ApiError>>,
+            P = crate::providers::gcp::clients::types::ApiPending,
+        > + Send
+        + 'static,
+        ProviderError<ApiError>,
+    > {
+        let builder = dialogflow_projects_locations_agents_environments_sessions_entity_types_get_builder(
+            &self.http_client,
+            &args.name,
+        )
+        .map_err(ProviderError::Api)?;
+
+        let task = dialogflow_projects_locations_agents_environments_sessions_entity_types_get_task(builder)
+            .map_err(ProviderError::Api)?;
+
+        execute(task, None).map_err(|e: String| ProviderError::ExecuteFailed(e.to_string()))
+    }
+
+    /// Dialogflow projects locations agents environments sessions entity types list.
+    ///
+    /// Read-only operation - no state tracking.
+    ///
+    /// # Arguments
+    ///
+    /// * `args` - Request arguments
+    ///
+    /// # Returns
+    ///
+    /// StreamIterator yielding the GoogleCloudDialogflowCxV3ListSessionEntityTypesResponse result.
+    ///
+    /// # Errors
+    ///
+    /// Returns ProviderError if the API request fails.
+    pub fn dialogflow_projects_locations_agents_environments_sessions_entity_types_list(
+        &self,
+        args: &DialogflowProjectsLocationsAgentsEnvironmentsSessionsEntityTypesListArgs,
+    ) -> Result<
+        impl StreamIterator<
+            D = Result<GoogleCloudDialogflowCxV3ListSessionEntityTypesResponse, ProviderError<ApiError>>,
+            P = crate::providers::gcp::clients::types::ApiPending,
+        > + Send
+        + 'static,
+        ProviderError<ApiError>,
+    > {
+        let builder = dialogflow_projects_locations_agents_environments_sessions_entity_types_list_builder(
+            &self.http_client,
+            &args.parent,
+            &args.pageSize,
+            &args.pageToken,
+        )
+        .map_err(ProviderError::Api)?;
+
+        let task = dialogflow_projects_locations_agents_environments_sessions_entity_types_list_task(builder)
+            .map_err(ProviderError::Api)?;
+
+        execute(task, None).map_err(|e: String| ProviderError::ExecuteFailed(e.to_string()))
+    }
+
     /// Dialogflow projects locations agents environments sessions entity types patch.
     ///
     /// Automatically stores the result in the state store on success.
@@ -1627,7 +2551,7 @@ where
 
     /// Dialogflow projects locations agents flows export.
     ///
-    /// Automatically stores the result in the state store on success.
+    /// Read-only operation - no state tracking.
     ///
     /// # Arguments
     ///
@@ -1639,7 +2563,7 @@ where
     ///
     /// # Errors
     ///
-    /// Returns ProviderError if the API request or state storage fails.
+    /// Returns ProviderError if the API request fails.
     pub fn dialogflow_projects_locations_agents_flows_export(
         &self,
         args: &DialogflowProjectsLocationsAgentsFlowsExportArgs,
@@ -1660,12 +2584,85 @@ where
         let task = dialogflow_projects_locations_agents_flows_export_task(builder)
             .map_err(ProviderError::Api)?;
 
-        let state_store = self.client.state_store.clone();
-        let stage = Some(self.client.stage.clone());
+        execute(task, None).map_err(|e: String| ProviderError::ExecuteFailed(e.to_string()))
+    }
 
-        let store_task = StoreStateIdentifierTask::new(task, state_store, args, stage);
+    /// Dialogflow projects locations agents flows get.
+    ///
+    /// Read-only operation - no state tracking.
+    ///
+    /// # Arguments
+    ///
+    /// * `args` - Request arguments
+    ///
+    /// # Returns
+    ///
+    /// StreamIterator yielding the GoogleCloudDialogflowCxV3Flow result.
+    ///
+    /// # Errors
+    ///
+    /// Returns ProviderError if the API request fails.
+    pub fn dialogflow_projects_locations_agents_flows_get(
+        &self,
+        args: &DialogflowProjectsLocationsAgentsFlowsGetArgs,
+    ) -> Result<
+        impl StreamIterator<
+            D = Result<GoogleCloudDialogflowCxV3Flow, ProviderError<ApiError>>,
+            P = crate::providers::gcp::clients::types::ApiPending,
+        > + Send
+        + 'static,
+        ProviderError<ApiError>,
+    > {
+        let builder = dialogflow_projects_locations_agents_flows_get_builder(
+            &self.http_client,
+            &args.name,
+            &args.languageCode,
+        )
+        .map_err(ProviderError::Api)?;
 
-        execute(store_task, None).map_err(|e: String| ProviderError::ExecuteFailed(e.to_string()))
+        let task = dialogflow_projects_locations_agents_flows_get_task(builder)
+            .map_err(ProviderError::Api)?;
+
+        execute(task, None).map_err(|e: String| ProviderError::ExecuteFailed(e.to_string()))
+    }
+
+    /// Dialogflow projects locations agents flows get validation result.
+    ///
+    /// Read-only operation - no state tracking.
+    ///
+    /// # Arguments
+    ///
+    /// * `args` - Request arguments
+    ///
+    /// # Returns
+    ///
+    /// StreamIterator yielding the GoogleCloudDialogflowCxV3FlowValidationResult result.
+    ///
+    /// # Errors
+    ///
+    /// Returns ProviderError if the API request fails.
+    pub fn dialogflow_projects_locations_agents_flows_get_validation_result(
+        &self,
+        args: &DialogflowProjectsLocationsAgentsFlowsGetValidationResultArgs,
+    ) -> Result<
+        impl StreamIterator<
+            D = Result<GoogleCloudDialogflowCxV3FlowValidationResult, ProviderError<ApiError>>,
+            P = crate::providers::gcp::clients::types::ApiPending,
+        > + Send
+        + 'static,
+        ProviderError<ApiError>,
+    > {
+        let builder = dialogflow_projects_locations_agents_flows_get_validation_result_builder(
+            &self.http_client,
+            &args.name,
+            &args.languageCode,
+        )
+        .map_err(ProviderError::Api)?;
+
+        let task = dialogflow_projects_locations_agents_flows_get_validation_result_task(builder)
+            .map_err(ProviderError::Api)?;
+
+        execute(task, None).map_err(|e: String| ProviderError::ExecuteFailed(e.to_string()))
     }
 
     /// Dialogflow projects locations agents flows import.
@@ -1709,6 +2706,47 @@ where
         let store_task = StoreStateIdentifierTask::new(task, state_store, args, stage);
 
         execute(store_task, None).map_err(|e: String| ProviderError::ExecuteFailed(e.to_string()))
+    }
+
+    /// Dialogflow projects locations agents flows list.
+    ///
+    /// Read-only operation - no state tracking.
+    ///
+    /// # Arguments
+    ///
+    /// * `args` - Request arguments
+    ///
+    /// # Returns
+    ///
+    /// StreamIterator yielding the GoogleCloudDialogflowCxV3ListFlowsResponse result.
+    ///
+    /// # Errors
+    ///
+    /// Returns ProviderError if the API request fails.
+    pub fn dialogflow_projects_locations_agents_flows_list(
+        &self,
+        args: &DialogflowProjectsLocationsAgentsFlowsListArgs,
+    ) -> Result<
+        impl StreamIterator<
+            D = Result<GoogleCloudDialogflowCxV3ListFlowsResponse, ProviderError<ApiError>>,
+            P = crate::providers::gcp::clients::types::ApiPending,
+        > + Send
+        + 'static,
+        ProviderError<ApiError>,
+    > {
+        let builder = dialogflow_projects_locations_agents_flows_list_builder(
+            &self.http_client,
+            &args.parent,
+            &args.languageCode,
+            &args.pageSize,
+            &args.pageToken,
+        )
+        .map_err(ProviderError::Api)?;
+
+        let task = dialogflow_projects_locations_agents_flows_list_task(builder)
+            .map_err(ProviderError::Api)?;
+
+        execute(task, None).map_err(|e: String| ProviderError::ExecuteFailed(e.to_string()))
     }
 
     /// Dialogflow projects locations agents flows patch.
@@ -1801,7 +2839,7 @@ where
 
     /// Dialogflow projects locations agents flows validate.
     ///
-    /// Automatically stores the result in the state store on success.
+    /// Read-only operation - no state tracking.
     ///
     /// # Arguments
     ///
@@ -1813,7 +2851,7 @@ where
     ///
     /// # Errors
     ///
-    /// Returns ProviderError if the API request or state storage fails.
+    /// Returns ProviderError if the API request fails.
     pub fn dialogflow_projects_locations_agents_flows_validate(
         &self,
         args: &DialogflowProjectsLocationsAgentsFlowsValidateArgs,
@@ -1834,12 +2872,7 @@ where
         let task = dialogflow_projects_locations_agents_flows_validate_task(builder)
             .map_err(ProviderError::Api)?;
 
-        let state_store = self.client.state_store.clone();
-        let stage = Some(self.client.stage.clone());
-
-        let store_task = StoreStateIdentifierTask::new(task, state_store, args, stage);
-
-        execute(store_task, None).map_err(|e: String| ProviderError::ExecuteFailed(e.to_string()))
+        execute(task, None).map_err(|e: String| ProviderError::ExecuteFailed(e.to_string()))
     }
 
     /// Dialogflow projects locations agents flows pages create.
@@ -1928,6 +2961,86 @@ where
         let store_task = StoreStateIdentifierTask::new(task, state_store, args, stage);
 
         execute(store_task, None).map_err(|e: String| ProviderError::ExecuteFailed(e.to_string()))
+    }
+
+    /// Dialogflow projects locations agents flows pages get.
+    ///
+    /// Read-only operation - no state tracking.
+    ///
+    /// # Arguments
+    ///
+    /// * `args` - Request arguments
+    ///
+    /// # Returns
+    ///
+    /// StreamIterator yielding the GoogleCloudDialogflowCxV3Page result.
+    ///
+    /// # Errors
+    ///
+    /// Returns ProviderError if the API request fails.
+    pub fn dialogflow_projects_locations_agents_flows_pages_get(
+        &self,
+        args: &DialogflowProjectsLocationsAgentsFlowsPagesGetArgs,
+    ) -> Result<
+        impl StreamIterator<
+            D = Result<GoogleCloudDialogflowCxV3Page, ProviderError<ApiError>>,
+            P = crate::providers::gcp::clients::types::ApiPending,
+        > + Send
+        + 'static,
+        ProviderError<ApiError>,
+    > {
+        let builder = dialogflow_projects_locations_agents_flows_pages_get_builder(
+            &self.http_client,
+            &args.name,
+            &args.languageCode,
+        )
+        .map_err(ProviderError::Api)?;
+
+        let task = dialogflow_projects_locations_agents_flows_pages_get_task(builder)
+            .map_err(ProviderError::Api)?;
+
+        execute(task, None).map_err(|e: String| ProviderError::ExecuteFailed(e.to_string()))
+    }
+
+    /// Dialogflow projects locations agents flows pages list.
+    ///
+    /// Read-only operation - no state tracking.
+    ///
+    /// # Arguments
+    ///
+    /// * `args` - Request arguments
+    ///
+    /// # Returns
+    ///
+    /// StreamIterator yielding the GoogleCloudDialogflowCxV3ListPagesResponse result.
+    ///
+    /// # Errors
+    ///
+    /// Returns ProviderError if the API request fails.
+    pub fn dialogflow_projects_locations_agents_flows_pages_list(
+        &self,
+        args: &DialogflowProjectsLocationsAgentsFlowsPagesListArgs,
+    ) -> Result<
+        impl StreamIterator<
+            D = Result<GoogleCloudDialogflowCxV3ListPagesResponse, ProviderError<ApiError>>,
+            P = crate::providers::gcp::clients::types::ApiPending,
+        > + Send
+        + 'static,
+        ProviderError<ApiError>,
+    > {
+        let builder = dialogflow_projects_locations_agents_flows_pages_list_builder(
+            &self.http_client,
+            &args.parent,
+            &args.languageCode,
+            &args.pageSize,
+            &args.pageToken,
+        )
+        .map_err(ProviderError::Api)?;
+
+        let task = dialogflow_projects_locations_agents_flows_pages_list_task(builder)
+            .map_err(ProviderError::Api)?;
+
+        execute(task, None).map_err(|e: String| ProviderError::ExecuteFailed(e.to_string()))
     }
 
     /// Dialogflow projects locations agents flows pages patch.
@@ -2061,6 +3174,86 @@ where
         let store_task = StoreStateIdentifierTask::new(task, state_store, args, stage);
 
         execute(store_task, None).map_err(|e: String| ProviderError::ExecuteFailed(e.to_string()))
+    }
+
+    /// Dialogflow projects locations agents flows transition route groups get.
+    ///
+    /// Read-only operation - no state tracking.
+    ///
+    /// # Arguments
+    ///
+    /// * `args` - Request arguments
+    ///
+    /// # Returns
+    ///
+    /// StreamIterator yielding the GoogleCloudDialogflowCxV3TransitionRouteGroup result.
+    ///
+    /// # Errors
+    ///
+    /// Returns ProviderError if the API request fails.
+    pub fn dialogflow_projects_locations_agents_flows_transition_route_groups_get(
+        &self,
+        args: &DialogflowProjectsLocationsAgentsFlowsTransitionRouteGroupsGetArgs,
+    ) -> Result<
+        impl StreamIterator<
+            D = Result<GoogleCloudDialogflowCxV3TransitionRouteGroup, ProviderError<ApiError>>,
+            P = crate::providers::gcp::clients::types::ApiPending,
+        > + Send
+        + 'static,
+        ProviderError<ApiError>,
+    > {
+        let builder = dialogflow_projects_locations_agents_flows_transition_route_groups_get_builder(
+            &self.http_client,
+            &args.name,
+            &args.languageCode,
+        )
+        .map_err(ProviderError::Api)?;
+
+        let task = dialogflow_projects_locations_agents_flows_transition_route_groups_get_task(builder)
+            .map_err(ProviderError::Api)?;
+
+        execute(task, None).map_err(|e: String| ProviderError::ExecuteFailed(e.to_string()))
+    }
+
+    /// Dialogflow projects locations agents flows transition route groups list.
+    ///
+    /// Read-only operation - no state tracking.
+    ///
+    /// # Arguments
+    ///
+    /// * `args` - Request arguments
+    ///
+    /// # Returns
+    ///
+    /// StreamIterator yielding the GoogleCloudDialogflowCxV3ListTransitionRouteGroupsResponse result.
+    ///
+    /// # Errors
+    ///
+    /// Returns ProviderError if the API request fails.
+    pub fn dialogflow_projects_locations_agents_flows_transition_route_groups_list(
+        &self,
+        args: &DialogflowProjectsLocationsAgentsFlowsTransitionRouteGroupsListArgs,
+    ) -> Result<
+        impl StreamIterator<
+            D = Result<GoogleCloudDialogflowCxV3ListTransitionRouteGroupsResponse, ProviderError<ApiError>>,
+            P = crate::providers::gcp::clients::types::ApiPending,
+        > + Send
+        + 'static,
+        ProviderError<ApiError>,
+    > {
+        let builder = dialogflow_projects_locations_agents_flows_transition_route_groups_list_builder(
+            &self.http_client,
+            &args.parent,
+            &args.languageCode,
+            &args.pageSize,
+            &args.pageToken,
+        )
+        .map_err(ProviderError::Api)?;
+
+        let task = dialogflow_projects_locations_agents_flows_transition_route_groups_list_task(builder)
+            .map_err(ProviderError::Api)?;
+
+        execute(task, None).map_err(|e: String| ProviderError::ExecuteFailed(e.to_string()))
     }
 
     /// Dialogflow projects locations agents flows transition route groups patch.
@@ -2235,6 +3428,84 @@ where
         let store_task = StoreStateIdentifierTask::new(task, state_store, args, stage);
 
         execute(store_task, None).map_err(|e: String| ProviderError::ExecuteFailed(e.to_string()))
+    }
+
+    /// Dialogflow projects locations agents flows versions get.
+    ///
+    /// Read-only operation - no state tracking.
+    ///
+    /// # Arguments
+    ///
+    /// * `args` - Request arguments
+    ///
+    /// # Returns
+    ///
+    /// StreamIterator yielding the GoogleCloudDialogflowCxV3Version result.
+    ///
+    /// # Errors
+    ///
+    /// Returns ProviderError if the API request fails.
+    pub fn dialogflow_projects_locations_agents_flows_versions_get(
+        &self,
+        args: &DialogflowProjectsLocationsAgentsFlowsVersionsGetArgs,
+    ) -> Result<
+        impl StreamIterator<
+            D = Result<GoogleCloudDialogflowCxV3Version, ProviderError<ApiError>>,
+            P = crate::providers::gcp::clients::types::ApiPending,
+        > + Send
+        + 'static,
+        ProviderError<ApiError>,
+    > {
+        let builder = dialogflow_projects_locations_agents_flows_versions_get_builder(
+            &self.http_client,
+            &args.name,
+        )
+        .map_err(ProviderError::Api)?;
+
+        let task = dialogflow_projects_locations_agents_flows_versions_get_task(builder)
+            .map_err(ProviderError::Api)?;
+
+        execute(task, None).map_err(|e: String| ProviderError::ExecuteFailed(e.to_string()))
+    }
+
+    /// Dialogflow projects locations agents flows versions list.
+    ///
+    /// Read-only operation - no state tracking.
+    ///
+    /// # Arguments
+    ///
+    /// * `args` - Request arguments
+    ///
+    /// # Returns
+    ///
+    /// StreamIterator yielding the GoogleCloudDialogflowCxV3ListVersionsResponse result.
+    ///
+    /// # Errors
+    ///
+    /// Returns ProviderError if the API request fails.
+    pub fn dialogflow_projects_locations_agents_flows_versions_list(
+        &self,
+        args: &DialogflowProjectsLocationsAgentsFlowsVersionsListArgs,
+    ) -> Result<
+        impl StreamIterator<
+            D = Result<GoogleCloudDialogflowCxV3ListVersionsResponse, ProviderError<ApiError>>,
+            P = crate::providers::gcp::clients::types::ApiPending,
+        > + Send
+        + 'static,
+        ProviderError<ApiError>,
+    > {
+        let builder = dialogflow_projects_locations_agents_flows_versions_list_builder(
+            &self.http_client,
+            &args.parent,
+            &args.pageSize,
+            &args.pageToken,
+        )
+        .map_err(ProviderError::Api)?;
+
+        let task = dialogflow_projects_locations_agents_flows_versions_list_task(builder)
+            .map_err(ProviderError::Api)?;
+
+        execute(task, None).map_err(|e: String| ProviderError::ExecuteFailed(e.to_string()))
     }
 
     /// Dialogflow projects locations agents flows versions load.
@@ -2412,6 +3683,86 @@ where
         execute(store_task, None).map_err(|e: String| ProviderError::ExecuteFailed(e.to_string()))
     }
 
+    /// Dialogflow projects locations agents generators get.
+    ///
+    /// Read-only operation - no state tracking.
+    ///
+    /// # Arguments
+    ///
+    /// * `args` - Request arguments
+    ///
+    /// # Returns
+    ///
+    /// StreamIterator yielding the GoogleCloudDialogflowCxV3Generator result.
+    ///
+    /// # Errors
+    ///
+    /// Returns ProviderError if the API request fails.
+    pub fn dialogflow_projects_locations_agents_generators_get(
+        &self,
+        args: &DialogflowProjectsLocationsAgentsGeneratorsGetArgs,
+    ) -> Result<
+        impl StreamIterator<
+            D = Result<GoogleCloudDialogflowCxV3Generator, ProviderError<ApiError>>,
+            P = crate::providers::gcp::clients::types::ApiPending,
+        > + Send
+        + 'static,
+        ProviderError<ApiError>,
+    > {
+        let builder = dialogflow_projects_locations_agents_generators_get_builder(
+            &self.http_client,
+            &args.name,
+            &args.languageCode,
+        )
+        .map_err(ProviderError::Api)?;
+
+        let task = dialogflow_projects_locations_agents_generators_get_task(builder)
+            .map_err(ProviderError::Api)?;
+
+        execute(task, None).map_err(|e: String| ProviderError::ExecuteFailed(e.to_string()))
+    }
+
+    /// Dialogflow projects locations agents generators list.
+    ///
+    /// Read-only operation - no state tracking.
+    ///
+    /// # Arguments
+    ///
+    /// * `args` - Request arguments
+    ///
+    /// # Returns
+    ///
+    /// StreamIterator yielding the GoogleCloudDialogflowCxV3ListGeneratorsResponse result.
+    ///
+    /// # Errors
+    ///
+    /// Returns ProviderError if the API request fails.
+    pub fn dialogflow_projects_locations_agents_generators_list(
+        &self,
+        args: &DialogflowProjectsLocationsAgentsGeneratorsListArgs,
+    ) -> Result<
+        impl StreamIterator<
+            D = Result<GoogleCloudDialogflowCxV3ListGeneratorsResponse, ProviderError<ApiError>>,
+            P = crate::providers::gcp::clients::types::ApiPending,
+        > + Send
+        + 'static,
+        ProviderError<ApiError>,
+    > {
+        let builder = dialogflow_projects_locations_agents_generators_list_builder(
+            &self.http_client,
+            &args.parent,
+            &args.languageCode,
+            &args.pageSize,
+            &args.pageToken,
+        )
+        .map_err(ProviderError::Api)?;
+
+        let task = dialogflow_projects_locations_agents_generators_list_task(builder)
+            .map_err(ProviderError::Api)?;
+
+        execute(task, None).map_err(|e: String| ProviderError::ExecuteFailed(e.to_string()))
+    }
+
     /// Dialogflow projects locations agents generators patch.
     ///
     /// Automatically stores the result in the state store on success.
@@ -2546,7 +3897,7 @@ where
 
     /// Dialogflow projects locations agents intents export.
     ///
-    /// Automatically stores the result in the state store on success.
+    /// Read-only operation - no state tracking.
     ///
     /// # Arguments
     ///
@@ -2558,7 +3909,7 @@ where
     ///
     /// # Errors
     ///
-    /// Returns ProviderError if the API request or state storage fails.
+    /// Returns ProviderError if the API request fails.
     pub fn dialogflow_projects_locations_agents_intents_export(
         &self,
         args: &DialogflowProjectsLocationsAgentsIntentsExportArgs,
@@ -2579,12 +3930,46 @@ where
         let task = dialogflow_projects_locations_agents_intents_export_task(builder)
             .map_err(ProviderError::Api)?;
 
-        let state_store = self.client.state_store.clone();
-        let stage = Some(self.client.stage.clone());
+        execute(task, None).map_err(|e: String| ProviderError::ExecuteFailed(e.to_string()))
+    }
 
-        let store_task = StoreStateIdentifierTask::new(task, state_store, args, stage);
+    /// Dialogflow projects locations agents intents get.
+    ///
+    /// Read-only operation - no state tracking.
+    ///
+    /// # Arguments
+    ///
+    /// * `args` - Request arguments
+    ///
+    /// # Returns
+    ///
+    /// StreamIterator yielding the GoogleCloudDialogflowCxV3Intent result.
+    ///
+    /// # Errors
+    ///
+    /// Returns ProviderError if the API request fails.
+    pub fn dialogflow_projects_locations_agents_intents_get(
+        &self,
+        args: &DialogflowProjectsLocationsAgentsIntentsGetArgs,
+    ) -> Result<
+        impl StreamIterator<
+            D = Result<GoogleCloudDialogflowCxV3Intent, ProviderError<ApiError>>,
+            P = crate::providers::gcp::clients::types::ApiPending,
+        > + Send
+        + 'static,
+        ProviderError<ApiError>,
+    > {
+        let builder = dialogflow_projects_locations_agents_intents_get_builder(
+            &self.http_client,
+            &args.name,
+            &args.languageCode,
+        )
+        .map_err(ProviderError::Api)?;
 
-        execute(store_task, None).map_err(|e: String| ProviderError::ExecuteFailed(e.to_string()))
+        let task = dialogflow_projects_locations_agents_intents_get_task(builder)
+            .map_err(ProviderError::Api)?;
+
+        execute(task, None).map_err(|e: String| ProviderError::ExecuteFailed(e.to_string()))
     }
 
     /// Dialogflow projects locations agents intents import.
@@ -2628,6 +4013,48 @@ where
         let store_task = StoreStateIdentifierTask::new(task, state_store, args, stage);
 
         execute(store_task, None).map_err(|e: String| ProviderError::ExecuteFailed(e.to_string()))
+    }
+
+    /// Dialogflow projects locations agents intents list.
+    ///
+    /// Read-only operation - no state tracking.
+    ///
+    /// # Arguments
+    ///
+    /// * `args` - Request arguments
+    ///
+    /// # Returns
+    ///
+    /// StreamIterator yielding the GoogleCloudDialogflowCxV3ListIntentsResponse result.
+    ///
+    /// # Errors
+    ///
+    /// Returns ProviderError if the API request fails.
+    pub fn dialogflow_projects_locations_agents_intents_list(
+        &self,
+        args: &DialogflowProjectsLocationsAgentsIntentsListArgs,
+    ) -> Result<
+        impl StreamIterator<
+            D = Result<GoogleCloudDialogflowCxV3ListIntentsResponse, ProviderError<ApiError>>,
+            P = crate::providers::gcp::clients::types::ApiPending,
+        > + Send
+        + 'static,
+        ProviderError<ApiError>,
+    > {
+        let builder = dialogflow_projects_locations_agents_intents_list_builder(
+            &self.http_client,
+            &args.parent,
+            &args.intentView,
+            &args.languageCode,
+            &args.pageSize,
+            &args.pageToken,
+        )
+        .map_err(ProviderError::Api)?;
+
+        let task = dialogflow_projects_locations_agents_intents_list_task(builder)
+            .map_err(ProviderError::Api)?;
+
+        execute(task, None).map_err(|e: String| ProviderError::ExecuteFailed(e.to_string()))
     }
 
     /// Dialogflow projects locations agents intents patch.
@@ -2763,7 +4190,7 @@ where
 
     /// Dialogflow projects locations agents playbooks export.
     ///
-    /// Automatically stores the result in the state store on success.
+    /// Read-only operation - no state tracking.
     ///
     /// # Arguments
     ///
@@ -2775,7 +4202,7 @@ where
     ///
     /// # Errors
     ///
-    /// Returns ProviderError if the API request or state storage fails.
+    /// Returns ProviderError if the API request fails.
     pub fn dialogflow_projects_locations_agents_playbooks_export(
         &self,
         args: &DialogflowProjectsLocationsAgentsPlaybooksExportArgs,
@@ -2796,12 +4223,45 @@ where
         let task = dialogflow_projects_locations_agents_playbooks_export_task(builder)
             .map_err(ProviderError::Api)?;
 
-        let state_store = self.client.state_store.clone();
-        let stage = Some(self.client.stage.clone());
+        execute(task, None).map_err(|e: String| ProviderError::ExecuteFailed(e.to_string()))
+    }
 
-        let store_task = StoreStateIdentifierTask::new(task, state_store, args, stage);
+    /// Dialogflow projects locations agents playbooks get.
+    ///
+    /// Read-only operation - no state tracking.
+    ///
+    /// # Arguments
+    ///
+    /// * `args` - Request arguments
+    ///
+    /// # Returns
+    ///
+    /// StreamIterator yielding the GoogleCloudDialogflowCxV3Playbook result.
+    ///
+    /// # Errors
+    ///
+    /// Returns ProviderError if the API request fails.
+    pub fn dialogflow_projects_locations_agents_playbooks_get(
+        &self,
+        args: &DialogflowProjectsLocationsAgentsPlaybooksGetArgs,
+    ) -> Result<
+        impl StreamIterator<
+            D = Result<GoogleCloudDialogflowCxV3Playbook, ProviderError<ApiError>>,
+            P = crate::providers::gcp::clients::types::ApiPending,
+        > + Send
+        + 'static,
+        ProviderError<ApiError>,
+    > {
+        let builder = dialogflow_projects_locations_agents_playbooks_get_builder(
+            &self.http_client,
+            &args.name,
+        )
+        .map_err(ProviderError::Api)?;
 
-        execute(store_task, None).map_err(|e: String| ProviderError::ExecuteFailed(e.to_string()))
+        let task = dialogflow_projects_locations_agents_playbooks_get_task(builder)
+            .map_err(ProviderError::Api)?;
+
+        execute(task, None).map_err(|e: String| ProviderError::ExecuteFailed(e.to_string()))
     }
 
     /// Dialogflow projects locations agents playbooks import.
@@ -2845,6 +4305,46 @@ where
         let store_task = StoreStateIdentifierTask::new(task, state_store, args, stage);
 
         execute(store_task, None).map_err(|e: String| ProviderError::ExecuteFailed(e.to_string()))
+    }
+
+    /// Dialogflow projects locations agents playbooks list.
+    ///
+    /// Read-only operation - no state tracking.
+    ///
+    /// # Arguments
+    ///
+    /// * `args` - Request arguments
+    ///
+    /// # Returns
+    ///
+    /// StreamIterator yielding the GoogleCloudDialogflowCxV3ListPlaybooksResponse result.
+    ///
+    /// # Errors
+    ///
+    /// Returns ProviderError if the API request fails.
+    pub fn dialogflow_projects_locations_agents_playbooks_list(
+        &self,
+        args: &DialogflowProjectsLocationsAgentsPlaybooksListArgs,
+    ) -> Result<
+        impl StreamIterator<
+            D = Result<GoogleCloudDialogflowCxV3ListPlaybooksResponse, ProviderError<ApiError>>,
+            P = crate::providers::gcp::clients::types::ApiPending,
+        > + Send
+        + 'static,
+        ProviderError<ApiError>,
+    > {
+        let builder = dialogflow_projects_locations_agents_playbooks_list_builder(
+            &self.http_client,
+            &args.parent,
+            &args.pageSize,
+            &args.pageToken,
+        )
+        .map_err(ProviderError::Api)?;
+
+        let task = dialogflow_projects_locations_agents_playbooks_list_task(builder)
+            .map_err(ProviderError::Api)?;
+
+        execute(task, None).map_err(|e: String| ProviderError::ExecuteFailed(e.to_string()))
     }
 
     /// Dialogflow projects locations agents playbooks patch.
@@ -2977,6 +4477,85 @@ where
         execute(store_task, None).map_err(|e: String| ProviderError::ExecuteFailed(e.to_string()))
     }
 
+    /// Dialogflow projects locations agents playbooks examples get.
+    ///
+    /// Read-only operation - no state tracking.
+    ///
+    /// # Arguments
+    ///
+    /// * `args` - Request arguments
+    ///
+    /// # Returns
+    ///
+    /// StreamIterator yielding the GoogleCloudDialogflowCxV3Example result.
+    ///
+    /// # Errors
+    ///
+    /// Returns ProviderError if the API request fails.
+    pub fn dialogflow_projects_locations_agents_playbooks_examples_get(
+        &self,
+        args: &DialogflowProjectsLocationsAgentsPlaybooksExamplesGetArgs,
+    ) -> Result<
+        impl StreamIterator<
+            D = Result<GoogleCloudDialogflowCxV3Example, ProviderError<ApiError>>,
+            P = crate::providers::gcp::clients::types::ApiPending,
+        > + Send
+        + 'static,
+        ProviderError<ApiError>,
+    > {
+        let builder = dialogflow_projects_locations_agents_playbooks_examples_get_builder(
+            &self.http_client,
+            &args.name,
+        )
+        .map_err(ProviderError::Api)?;
+
+        let task = dialogflow_projects_locations_agents_playbooks_examples_get_task(builder)
+            .map_err(ProviderError::Api)?;
+
+        execute(task, None).map_err(|e: String| ProviderError::ExecuteFailed(e.to_string()))
+    }
+
+    /// Dialogflow projects locations agents playbooks examples list.
+    ///
+    /// Read-only operation - no state tracking.
+    ///
+    /// # Arguments
+    ///
+    /// * `args` - Request arguments
+    ///
+    /// # Returns
+    ///
+    /// StreamIterator yielding the GoogleCloudDialogflowCxV3ListExamplesResponse result.
+    ///
+    /// # Errors
+    ///
+    /// Returns ProviderError if the API request fails.
+    pub fn dialogflow_projects_locations_agents_playbooks_examples_list(
+        &self,
+        args: &DialogflowProjectsLocationsAgentsPlaybooksExamplesListArgs,
+    ) -> Result<
+        impl StreamIterator<
+            D = Result<GoogleCloudDialogflowCxV3ListExamplesResponse, ProviderError<ApiError>>,
+            P = crate::providers::gcp::clients::types::ApiPending,
+        > + Send
+        + 'static,
+        ProviderError<ApiError>,
+    > {
+        let builder = dialogflow_projects_locations_agents_playbooks_examples_list_builder(
+            &self.http_client,
+            &args.parent,
+            &args.languageCode,
+            &args.pageSize,
+            &args.pageToken,
+        )
+        .map_err(ProviderError::Api)?;
+
+        let task = dialogflow_projects_locations_agents_playbooks_examples_list_task(builder)
+            .map_err(ProviderError::Api)?;
+
+        execute(task, None).map_err(|e: String| ProviderError::ExecuteFailed(e.to_string()))
+    }
+
     /// Dialogflow projects locations agents playbooks examples patch.
     ///
     /// Automatically stores the result in the state store on success.
@@ -3105,6 +4684,84 @@ where
         let store_task = StoreStateIdentifierTask::new(task, state_store, args, stage);
 
         execute(store_task, None).map_err(|e: String| ProviderError::ExecuteFailed(e.to_string()))
+    }
+
+    /// Dialogflow projects locations agents playbooks versions get.
+    ///
+    /// Read-only operation - no state tracking.
+    ///
+    /// # Arguments
+    ///
+    /// * `args` - Request arguments
+    ///
+    /// # Returns
+    ///
+    /// StreamIterator yielding the GoogleCloudDialogflowCxV3PlaybookVersion result.
+    ///
+    /// # Errors
+    ///
+    /// Returns ProviderError if the API request fails.
+    pub fn dialogflow_projects_locations_agents_playbooks_versions_get(
+        &self,
+        args: &DialogflowProjectsLocationsAgentsPlaybooksVersionsGetArgs,
+    ) -> Result<
+        impl StreamIterator<
+            D = Result<GoogleCloudDialogflowCxV3PlaybookVersion, ProviderError<ApiError>>,
+            P = crate::providers::gcp::clients::types::ApiPending,
+        > + Send
+        + 'static,
+        ProviderError<ApiError>,
+    > {
+        let builder = dialogflow_projects_locations_agents_playbooks_versions_get_builder(
+            &self.http_client,
+            &args.name,
+        )
+        .map_err(ProviderError::Api)?;
+
+        let task = dialogflow_projects_locations_agents_playbooks_versions_get_task(builder)
+            .map_err(ProviderError::Api)?;
+
+        execute(task, None).map_err(|e: String| ProviderError::ExecuteFailed(e.to_string()))
+    }
+
+    /// Dialogflow projects locations agents playbooks versions list.
+    ///
+    /// Read-only operation - no state tracking.
+    ///
+    /// # Arguments
+    ///
+    /// * `args` - Request arguments
+    ///
+    /// # Returns
+    ///
+    /// StreamIterator yielding the GoogleCloudDialogflowCxV3ListPlaybookVersionsResponse result.
+    ///
+    /// # Errors
+    ///
+    /// Returns ProviderError if the API request fails.
+    pub fn dialogflow_projects_locations_agents_playbooks_versions_list(
+        &self,
+        args: &DialogflowProjectsLocationsAgentsPlaybooksVersionsListArgs,
+    ) -> Result<
+        impl StreamIterator<
+            D = Result<GoogleCloudDialogflowCxV3ListPlaybookVersionsResponse, ProviderError<ApiError>>,
+            P = crate::providers::gcp::clients::types::ApiPending,
+        > + Send
+        + 'static,
+        ProviderError<ApiError>,
+    > {
+        let builder = dialogflow_projects_locations_agents_playbooks_versions_list_builder(
+            &self.http_client,
+            &args.parent,
+            &args.pageSize,
+            &args.pageToken,
+        )
+        .map_err(ProviderError::Api)?;
+
+        let task = dialogflow_projects_locations_agents_playbooks_versions_list_task(builder)
+            .map_err(ProviderError::Api)?;
+
+        execute(task, None).map_err(|e: String| ProviderError::ExecuteFailed(e.to_string()))
     }
 
     /// Dialogflow projects locations agents playbooks versions restore.
@@ -3451,6 +5108,84 @@ where
         execute(store_task, None).map_err(|e: String| ProviderError::ExecuteFailed(e.to_string()))
     }
 
+    /// Dialogflow projects locations agents sessions entity types get.
+    ///
+    /// Read-only operation - no state tracking.
+    ///
+    /// # Arguments
+    ///
+    /// * `args` - Request arguments
+    ///
+    /// # Returns
+    ///
+    /// StreamIterator yielding the GoogleCloudDialogflowCxV3SessionEntityType result.
+    ///
+    /// # Errors
+    ///
+    /// Returns ProviderError if the API request fails.
+    pub fn dialogflow_projects_locations_agents_sessions_entity_types_get(
+        &self,
+        args: &DialogflowProjectsLocationsAgentsSessionsEntityTypesGetArgs,
+    ) -> Result<
+        impl StreamIterator<
+            D = Result<GoogleCloudDialogflowCxV3SessionEntityType, ProviderError<ApiError>>,
+            P = crate::providers::gcp::clients::types::ApiPending,
+        > + Send
+        + 'static,
+        ProviderError<ApiError>,
+    > {
+        let builder = dialogflow_projects_locations_agents_sessions_entity_types_get_builder(
+            &self.http_client,
+            &args.name,
+        )
+        .map_err(ProviderError::Api)?;
+
+        let task = dialogflow_projects_locations_agents_sessions_entity_types_get_task(builder)
+            .map_err(ProviderError::Api)?;
+
+        execute(task, None).map_err(|e: String| ProviderError::ExecuteFailed(e.to_string()))
+    }
+
+    /// Dialogflow projects locations agents sessions entity types list.
+    ///
+    /// Read-only operation - no state tracking.
+    ///
+    /// # Arguments
+    ///
+    /// * `args` - Request arguments
+    ///
+    /// # Returns
+    ///
+    /// StreamIterator yielding the GoogleCloudDialogflowCxV3ListSessionEntityTypesResponse result.
+    ///
+    /// # Errors
+    ///
+    /// Returns ProviderError if the API request fails.
+    pub fn dialogflow_projects_locations_agents_sessions_entity_types_list(
+        &self,
+        args: &DialogflowProjectsLocationsAgentsSessionsEntityTypesListArgs,
+    ) -> Result<
+        impl StreamIterator<
+            D = Result<GoogleCloudDialogflowCxV3ListSessionEntityTypesResponse, ProviderError<ApiError>>,
+            P = crate::providers::gcp::clients::types::ApiPending,
+        > + Send
+        + 'static,
+        ProviderError<ApiError>,
+    > {
+        let builder = dialogflow_projects_locations_agents_sessions_entity_types_list_builder(
+            &self.http_client,
+            &args.parent,
+            &args.pageSize,
+            &args.pageToken,
+        )
+        .map_err(ProviderError::Api)?;
+
+        let task = dialogflow_projects_locations_agents_sessions_entity_types_list_task(builder)
+            .map_err(ProviderError::Api)?;
+
+        execute(task, None).map_err(|e: String| ProviderError::ExecuteFailed(e.to_string()))
+    }
+
     /// Dialogflow projects locations agents sessions entity types patch.
     ///
     /// Automatically stores the result in the state store on success.
@@ -3581,6 +5316,45 @@ where
         execute(store_task, None).map_err(|e: String| ProviderError::ExecuteFailed(e.to_string()))
     }
 
+    /// Dialogflow projects locations agents test cases calculate coverage.
+    ///
+    /// Read-only operation - no state tracking.
+    ///
+    /// # Arguments
+    ///
+    /// * `args` - Request arguments
+    ///
+    /// # Returns
+    ///
+    /// StreamIterator yielding the GoogleCloudDialogflowCxV3CalculateCoverageResponse result.
+    ///
+    /// # Errors
+    ///
+    /// Returns ProviderError if the API request fails.
+    pub fn dialogflow_projects_locations_agents_test_cases_calculate_coverage(
+        &self,
+        args: &DialogflowProjectsLocationsAgentsTestCasesCalculateCoverageArgs,
+    ) -> Result<
+        impl StreamIterator<
+            D = Result<GoogleCloudDialogflowCxV3CalculateCoverageResponse, ProviderError<ApiError>>,
+            P = crate::providers::gcp::clients::types::ApiPending,
+        > + Send
+        + 'static,
+        ProviderError<ApiError>,
+    > {
+        let builder = dialogflow_projects_locations_agents_test_cases_calculate_coverage_builder(
+            &self.http_client,
+            &args.agent,
+            &args.type_rs,
+        )
+        .map_err(ProviderError::Api)?;
+
+        let task = dialogflow_projects_locations_agents_test_cases_calculate_coverage_task(builder)
+            .map_err(ProviderError::Api)?;
+
+        execute(task, None).map_err(|e: String| ProviderError::ExecuteFailed(e.to_string()))
+    }
+
     /// Dialogflow projects locations agents test cases create.
     ///
     /// Automatically stores the result in the state store on success.
@@ -3626,7 +5400,7 @@ where
 
     /// Dialogflow projects locations agents test cases export.
     ///
-    /// Automatically stores the result in the state store on success.
+    /// Read-only operation - no state tracking.
     ///
     /// # Arguments
     ///
@@ -3638,7 +5412,7 @@ where
     ///
     /// # Errors
     ///
-    /// Returns ProviderError if the API request or state storage fails.
+    /// Returns ProviderError if the API request fails.
     pub fn dialogflow_projects_locations_agents_test_cases_export(
         &self,
         args: &DialogflowProjectsLocationsAgentsTestCasesExportArgs,
@@ -3659,17 +5433,50 @@ where
         let task = dialogflow_projects_locations_agents_test_cases_export_task(builder)
             .map_err(ProviderError::Api)?;
 
-        let state_store = self.client.state_store.clone();
-        let stage = Some(self.client.stage.clone());
+        execute(task, None).map_err(|e: String| ProviderError::ExecuteFailed(e.to_string()))
+    }
 
-        let store_task = StoreStateIdentifierTask::new(task, state_store, args, stage);
+    /// Dialogflow projects locations agents test cases get.
+    ///
+    /// Read-only operation - no state tracking.
+    ///
+    /// # Arguments
+    ///
+    /// * `args` - Request arguments
+    ///
+    /// # Returns
+    ///
+    /// StreamIterator yielding the GoogleCloudDialogflowCxV3TestCase result.
+    ///
+    /// # Errors
+    ///
+    /// Returns ProviderError if the API request fails.
+    pub fn dialogflow_projects_locations_agents_test_cases_get(
+        &self,
+        args: &DialogflowProjectsLocationsAgentsTestCasesGetArgs,
+    ) -> Result<
+        impl StreamIterator<
+            D = Result<GoogleCloudDialogflowCxV3TestCase, ProviderError<ApiError>>,
+            P = crate::providers::gcp::clients::types::ApiPending,
+        > + Send
+        + 'static,
+        ProviderError<ApiError>,
+    > {
+        let builder = dialogflow_projects_locations_agents_test_cases_get_builder(
+            &self.http_client,
+            &args.name,
+        )
+        .map_err(ProviderError::Api)?;
 
-        execute(store_task, None).map_err(|e: String| ProviderError::ExecuteFailed(e.to_string()))
+        let task = dialogflow_projects_locations_agents_test_cases_get_task(builder)
+            .map_err(ProviderError::Api)?;
+
+        execute(task, None).map_err(|e: String| ProviderError::ExecuteFailed(e.to_string()))
     }
 
     /// Dialogflow projects locations agents test cases import.
     ///
-    /// Automatically stores the result in the state store on success.
+    /// Read-only operation - no state tracking.
     ///
     /// # Arguments
     ///
@@ -3681,7 +5488,7 @@ where
     ///
     /// # Errors
     ///
-    /// Returns ProviderError if the API request or state storage fails.
+    /// Returns ProviderError if the API request fails.
     pub fn dialogflow_projects_locations_agents_test_cases_import(
         &self,
         args: &DialogflowProjectsLocationsAgentsTestCasesImportArgs,
@@ -3702,12 +5509,48 @@ where
         let task = dialogflow_projects_locations_agents_test_cases_import_task(builder)
             .map_err(ProviderError::Api)?;
 
-        let state_store = self.client.state_store.clone();
-        let stage = Some(self.client.stage.clone());
+        execute(task, None).map_err(|e: String| ProviderError::ExecuteFailed(e.to_string()))
+    }
 
-        let store_task = StoreStateIdentifierTask::new(task, state_store, args, stage);
+    /// Dialogflow projects locations agents test cases list.
+    ///
+    /// Read-only operation - no state tracking.
+    ///
+    /// # Arguments
+    ///
+    /// * `args` - Request arguments
+    ///
+    /// # Returns
+    ///
+    /// StreamIterator yielding the GoogleCloudDialogflowCxV3ListTestCasesResponse result.
+    ///
+    /// # Errors
+    ///
+    /// Returns ProviderError if the API request fails.
+    pub fn dialogflow_projects_locations_agents_test_cases_list(
+        &self,
+        args: &DialogflowProjectsLocationsAgentsTestCasesListArgs,
+    ) -> Result<
+        impl StreamIterator<
+            D = Result<GoogleCloudDialogflowCxV3ListTestCasesResponse, ProviderError<ApiError>>,
+            P = crate::providers::gcp::clients::types::ApiPending,
+        > + Send
+        + 'static,
+        ProviderError<ApiError>,
+    > {
+        let builder = dialogflow_projects_locations_agents_test_cases_list_builder(
+            &self.http_client,
+            &args.parent,
+            &args.pageSize,
+            &args.pageToken,
+            &args.view,
+        )
+        .map_err(ProviderError::Api)?;
 
-        execute(store_task, None).map_err(|e: String| ProviderError::ExecuteFailed(e.to_string()))
+        let task = dialogflow_projects_locations_agents_test_cases_list_task(builder)
+            .map_err(ProviderError::Api)?;
+
+        execute(task, None).map_err(|e: String| ProviderError::ExecuteFailed(e.to_string()))
     }
 
     /// Dialogflow projects locations agents test cases patch.
@@ -3797,6 +5640,85 @@ where
         execute(store_task, None).map_err(|e: String| ProviderError::ExecuteFailed(e.to_string()))
     }
 
+    /// Dialogflow projects locations agents test cases results get.
+    ///
+    /// Read-only operation - no state tracking.
+    ///
+    /// # Arguments
+    ///
+    /// * `args` - Request arguments
+    ///
+    /// # Returns
+    ///
+    /// StreamIterator yielding the GoogleCloudDialogflowCxV3TestCaseResult result.
+    ///
+    /// # Errors
+    ///
+    /// Returns ProviderError if the API request fails.
+    pub fn dialogflow_projects_locations_agents_test_cases_results_get(
+        &self,
+        args: &DialogflowProjectsLocationsAgentsTestCasesResultsGetArgs,
+    ) -> Result<
+        impl StreamIterator<
+            D = Result<GoogleCloudDialogflowCxV3TestCaseResult, ProviderError<ApiError>>,
+            P = crate::providers::gcp::clients::types::ApiPending,
+        > + Send
+        + 'static,
+        ProviderError<ApiError>,
+    > {
+        let builder = dialogflow_projects_locations_agents_test_cases_results_get_builder(
+            &self.http_client,
+            &args.name,
+        )
+        .map_err(ProviderError::Api)?;
+
+        let task = dialogflow_projects_locations_agents_test_cases_results_get_task(builder)
+            .map_err(ProviderError::Api)?;
+
+        execute(task, None).map_err(|e: String| ProviderError::ExecuteFailed(e.to_string()))
+    }
+
+    /// Dialogflow projects locations agents test cases results list.
+    ///
+    /// Read-only operation - no state tracking.
+    ///
+    /// # Arguments
+    ///
+    /// * `args` - Request arguments
+    ///
+    /// # Returns
+    ///
+    /// StreamIterator yielding the GoogleCloudDialogflowCxV3ListTestCaseResultsResponse result.
+    ///
+    /// # Errors
+    ///
+    /// Returns ProviderError if the API request fails.
+    pub fn dialogflow_projects_locations_agents_test_cases_results_list(
+        &self,
+        args: &DialogflowProjectsLocationsAgentsTestCasesResultsListArgs,
+    ) -> Result<
+        impl StreamIterator<
+            D = Result<GoogleCloudDialogflowCxV3ListTestCaseResultsResponse, ProviderError<ApiError>>,
+            P = crate::providers::gcp::clients::types::ApiPending,
+        > + Send
+        + 'static,
+        ProviderError<ApiError>,
+    > {
+        let builder = dialogflow_projects_locations_agents_test_cases_results_list_builder(
+            &self.http_client,
+            &args.parent,
+            &args.filter,
+            &args.pageSize,
+            &args.pageToken,
+        )
+        .map_err(ProviderError::Api)?;
+
+        let task = dialogflow_projects_locations_agents_test_cases_results_list_task(builder)
+            .map_err(ProviderError::Api)?;
+
+        execute(task, None).map_err(|e: String| ProviderError::ExecuteFailed(e.to_string()))
+    }
+
     /// Dialogflow projects locations agents tools create.
     ///
     /// Automatically stores the result in the state store on success.
@@ -3882,6 +5804,84 @@ where
         let store_task = StoreStateIdentifierTask::new(task, state_store, args, stage);
 
         execute(store_task, None).map_err(|e: String| ProviderError::ExecuteFailed(e.to_string()))
+    }
+
+    /// Dialogflow projects locations agents tools get.
+    ///
+    /// Read-only operation - no state tracking.
+    ///
+    /// # Arguments
+    ///
+    /// * `args` - Request arguments
+    ///
+    /// # Returns
+    ///
+    /// StreamIterator yielding the GoogleCloudDialogflowCxV3Tool result.
+    ///
+    /// # Errors
+    ///
+    /// Returns ProviderError if the API request fails.
+    pub fn dialogflow_projects_locations_agents_tools_get(
+        &self,
+        args: &DialogflowProjectsLocationsAgentsToolsGetArgs,
+    ) -> Result<
+        impl StreamIterator<
+            D = Result<GoogleCloudDialogflowCxV3Tool, ProviderError<ApiError>>,
+            P = crate::providers::gcp::clients::types::ApiPending,
+        > + Send
+        + 'static,
+        ProviderError<ApiError>,
+    > {
+        let builder = dialogflow_projects_locations_agents_tools_get_builder(
+            &self.http_client,
+            &args.name,
+        )
+        .map_err(ProviderError::Api)?;
+
+        let task = dialogflow_projects_locations_agents_tools_get_task(builder)
+            .map_err(ProviderError::Api)?;
+
+        execute(task, None).map_err(|e: String| ProviderError::ExecuteFailed(e.to_string()))
+    }
+
+    /// Dialogflow projects locations agents tools list.
+    ///
+    /// Read-only operation - no state tracking.
+    ///
+    /// # Arguments
+    ///
+    /// * `args` - Request arguments
+    ///
+    /// # Returns
+    ///
+    /// StreamIterator yielding the GoogleCloudDialogflowCxV3ListToolsResponse result.
+    ///
+    /// # Errors
+    ///
+    /// Returns ProviderError if the API request fails.
+    pub fn dialogflow_projects_locations_agents_tools_list(
+        &self,
+        args: &DialogflowProjectsLocationsAgentsToolsListArgs,
+    ) -> Result<
+        impl StreamIterator<
+            D = Result<GoogleCloudDialogflowCxV3ListToolsResponse, ProviderError<ApiError>>,
+            P = crate::providers::gcp::clients::types::ApiPending,
+        > + Send
+        + 'static,
+        ProviderError<ApiError>,
+    > {
+        let builder = dialogflow_projects_locations_agents_tools_list_builder(
+            &self.http_client,
+            &args.parent,
+            &args.pageSize,
+            &args.pageToken,
+        )
+        .map_err(ProviderError::Api)?;
+
+        let task = dialogflow_projects_locations_agents_tools_list_task(builder)
+            .map_err(ProviderError::Api)?;
+
+        execute(task, None).map_err(|e: String| ProviderError::ExecuteFailed(e.to_string()))
     }
 
     /// Dialogflow projects locations agents tools patch.
@@ -4015,6 +6015,84 @@ where
         execute(store_task, None).map_err(|e: String| ProviderError::ExecuteFailed(e.to_string()))
     }
 
+    /// Dialogflow projects locations agents tools versions get.
+    ///
+    /// Read-only operation - no state tracking.
+    ///
+    /// # Arguments
+    ///
+    /// * `args` - Request arguments
+    ///
+    /// # Returns
+    ///
+    /// StreamIterator yielding the GoogleCloudDialogflowCxV3ToolVersion result.
+    ///
+    /// # Errors
+    ///
+    /// Returns ProviderError if the API request fails.
+    pub fn dialogflow_projects_locations_agents_tools_versions_get(
+        &self,
+        args: &DialogflowProjectsLocationsAgentsToolsVersionsGetArgs,
+    ) -> Result<
+        impl StreamIterator<
+            D = Result<GoogleCloudDialogflowCxV3ToolVersion, ProviderError<ApiError>>,
+            P = crate::providers::gcp::clients::types::ApiPending,
+        > + Send
+        + 'static,
+        ProviderError<ApiError>,
+    > {
+        let builder = dialogflow_projects_locations_agents_tools_versions_get_builder(
+            &self.http_client,
+            &args.name,
+        )
+        .map_err(ProviderError::Api)?;
+
+        let task = dialogflow_projects_locations_agents_tools_versions_get_task(builder)
+            .map_err(ProviderError::Api)?;
+
+        execute(task, None).map_err(|e: String| ProviderError::ExecuteFailed(e.to_string()))
+    }
+
+    /// Dialogflow projects locations agents tools versions list.
+    ///
+    /// Read-only operation - no state tracking.
+    ///
+    /// # Arguments
+    ///
+    /// * `args` - Request arguments
+    ///
+    /// # Returns
+    ///
+    /// StreamIterator yielding the GoogleCloudDialogflowCxV3ListToolVersionsResponse result.
+    ///
+    /// # Errors
+    ///
+    /// Returns ProviderError if the API request fails.
+    pub fn dialogflow_projects_locations_agents_tools_versions_list(
+        &self,
+        args: &DialogflowProjectsLocationsAgentsToolsVersionsListArgs,
+    ) -> Result<
+        impl StreamIterator<
+            D = Result<GoogleCloudDialogflowCxV3ListToolVersionsResponse, ProviderError<ApiError>>,
+            P = crate::providers::gcp::clients::types::ApiPending,
+        > + Send
+        + 'static,
+        ProviderError<ApiError>,
+    > {
+        let builder = dialogflow_projects_locations_agents_tools_versions_list_builder(
+            &self.http_client,
+            &args.parent,
+            &args.pageSize,
+            &args.pageToken,
+        )
+        .map_err(ProviderError::Api)?;
+
+        let task = dialogflow_projects_locations_agents_tools_versions_list_task(builder)
+            .map_err(ProviderError::Api)?;
+
+        execute(task, None).map_err(|e: String| ProviderError::ExecuteFailed(e.to_string()))
+    }
+
     /// Dialogflow projects locations agents tools versions restore.
     ///
     /// Automatically stores the result in the state store on success.
@@ -4144,6 +6222,86 @@ where
         let store_task = StoreStateIdentifierTask::new(task, state_store, args, stage);
 
         execute(store_task, None).map_err(|e: String| ProviderError::ExecuteFailed(e.to_string()))
+    }
+
+    /// Dialogflow projects locations agents transition route groups get.
+    ///
+    /// Read-only operation - no state tracking.
+    ///
+    /// # Arguments
+    ///
+    /// * `args` - Request arguments
+    ///
+    /// # Returns
+    ///
+    /// StreamIterator yielding the GoogleCloudDialogflowCxV3TransitionRouteGroup result.
+    ///
+    /// # Errors
+    ///
+    /// Returns ProviderError if the API request fails.
+    pub fn dialogflow_projects_locations_agents_transition_route_groups_get(
+        &self,
+        args: &DialogflowProjectsLocationsAgentsTransitionRouteGroupsGetArgs,
+    ) -> Result<
+        impl StreamIterator<
+            D = Result<GoogleCloudDialogflowCxV3TransitionRouteGroup, ProviderError<ApiError>>,
+            P = crate::providers::gcp::clients::types::ApiPending,
+        > + Send
+        + 'static,
+        ProviderError<ApiError>,
+    > {
+        let builder = dialogflow_projects_locations_agents_transition_route_groups_get_builder(
+            &self.http_client,
+            &args.name,
+            &args.languageCode,
+        )
+        .map_err(ProviderError::Api)?;
+
+        let task = dialogflow_projects_locations_agents_transition_route_groups_get_task(builder)
+            .map_err(ProviderError::Api)?;
+
+        execute(task, None).map_err(|e: String| ProviderError::ExecuteFailed(e.to_string()))
+    }
+
+    /// Dialogflow projects locations agents transition route groups list.
+    ///
+    /// Read-only operation - no state tracking.
+    ///
+    /// # Arguments
+    ///
+    /// * `args` - Request arguments
+    ///
+    /// # Returns
+    ///
+    /// StreamIterator yielding the GoogleCloudDialogflowCxV3ListTransitionRouteGroupsResponse result.
+    ///
+    /// # Errors
+    ///
+    /// Returns ProviderError if the API request fails.
+    pub fn dialogflow_projects_locations_agents_transition_route_groups_list(
+        &self,
+        args: &DialogflowProjectsLocationsAgentsTransitionRouteGroupsListArgs,
+    ) -> Result<
+        impl StreamIterator<
+            D = Result<GoogleCloudDialogflowCxV3ListTransitionRouteGroupsResponse, ProviderError<ApiError>>,
+            P = crate::providers::gcp::clients::types::ApiPending,
+        > + Send
+        + 'static,
+        ProviderError<ApiError>,
+    > {
+        let builder = dialogflow_projects_locations_agents_transition_route_groups_list_builder(
+            &self.http_client,
+            &args.parent,
+            &args.languageCode,
+            &args.pageSize,
+            &args.pageToken,
+        )
+        .map_err(ProviderError::Api)?;
+
+        let task = dialogflow_projects_locations_agents_transition_route_groups_list_task(builder)
+            .map_err(ProviderError::Api)?;
+
+        execute(task, None).map_err(|e: String| ProviderError::ExecuteFailed(e.to_string()))
     }
 
     /// Dialogflow projects locations agents transition route groups patch.
@@ -4278,6 +6436,84 @@ where
         execute(store_task, None).map_err(|e: String| ProviderError::ExecuteFailed(e.to_string()))
     }
 
+    /// Dialogflow projects locations agents webhooks get.
+    ///
+    /// Read-only operation - no state tracking.
+    ///
+    /// # Arguments
+    ///
+    /// * `args` - Request arguments
+    ///
+    /// # Returns
+    ///
+    /// StreamIterator yielding the GoogleCloudDialogflowCxV3Webhook result.
+    ///
+    /// # Errors
+    ///
+    /// Returns ProviderError if the API request fails.
+    pub fn dialogflow_projects_locations_agents_webhooks_get(
+        &self,
+        args: &DialogflowProjectsLocationsAgentsWebhooksGetArgs,
+    ) -> Result<
+        impl StreamIterator<
+            D = Result<GoogleCloudDialogflowCxV3Webhook, ProviderError<ApiError>>,
+            P = crate::providers::gcp::clients::types::ApiPending,
+        > + Send
+        + 'static,
+        ProviderError<ApiError>,
+    > {
+        let builder = dialogflow_projects_locations_agents_webhooks_get_builder(
+            &self.http_client,
+            &args.name,
+        )
+        .map_err(ProviderError::Api)?;
+
+        let task = dialogflow_projects_locations_agents_webhooks_get_task(builder)
+            .map_err(ProviderError::Api)?;
+
+        execute(task, None).map_err(|e: String| ProviderError::ExecuteFailed(e.to_string()))
+    }
+
+    /// Dialogflow projects locations agents webhooks list.
+    ///
+    /// Read-only operation - no state tracking.
+    ///
+    /// # Arguments
+    ///
+    /// * `args` - Request arguments
+    ///
+    /// # Returns
+    ///
+    /// StreamIterator yielding the GoogleCloudDialogflowCxV3ListWebhooksResponse result.
+    ///
+    /// # Errors
+    ///
+    /// Returns ProviderError if the API request fails.
+    pub fn dialogflow_projects_locations_agents_webhooks_list(
+        &self,
+        args: &DialogflowProjectsLocationsAgentsWebhooksListArgs,
+    ) -> Result<
+        impl StreamIterator<
+            D = Result<GoogleCloudDialogflowCxV3ListWebhooksResponse, ProviderError<ApiError>>,
+            P = crate::providers::gcp::clients::types::ApiPending,
+        > + Send
+        + 'static,
+        ProviderError<ApiError>,
+    > {
+        let builder = dialogflow_projects_locations_agents_webhooks_list_builder(
+            &self.http_client,
+            &args.parent,
+            &args.pageSize,
+            &args.pageToken,
+        )
+        .map_err(ProviderError::Api)?;
+
+        let task = dialogflow_projects_locations_agents_webhooks_list_task(builder)
+            .map_err(ProviderError::Api)?;
+
+        execute(task, None).map_err(|e: String| ProviderError::ExecuteFailed(e.to_string()))
+    }
+
     /// Dialogflow projects locations agents webhooks patch.
     ///
     /// Automatically stores the result in the state store on success.
@@ -4363,6 +6599,86 @@ where
         let store_task = StoreStateIdentifierTask::new(task, state_store, args, stage);
 
         execute(store_task, None).map_err(|e: String| ProviderError::ExecuteFailed(e.to_string()))
+    }
+
+    /// Dialogflow projects locations operations get.
+    ///
+    /// Read-only operation - no state tracking.
+    ///
+    /// # Arguments
+    ///
+    /// * `args` - Request arguments
+    ///
+    /// # Returns
+    ///
+    /// StreamIterator yielding the GoogleLongrunningOperation result.
+    ///
+    /// # Errors
+    ///
+    /// Returns ProviderError if the API request fails.
+    pub fn dialogflow_projects_locations_operations_get(
+        &self,
+        args: &DialogflowProjectsLocationsOperationsGetArgs,
+    ) -> Result<
+        impl StreamIterator<
+            D = Result<GoogleLongrunningOperation, ProviderError<ApiError>>,
+            P = crate::providers::gcp::clients::types::ApiPending,
+        > + Send
+        + 'static,
+        ProviderError<ApiError>,
+    > {
+        let builder = dialogflow_projects_locations_operations_get_builder(
+            &self.http_client,
+            &args.name,
+        )
+        .map_err(ProviderError::Api)?;
+
+        let task = dialogflow_projects_locations_operations_get_task(builder)
+            .map_err(ProviderError::Api)?;
+
+        execute(task, None).map_err(|e: String| ProviderError::ExecuteFailed(e.to_string()))
+    }
+
+    /// Dialogflow projects locations operations list.
+    ///
+    /// Read-only operation - no state tracking.
+    ///
+    /// # Arguments
+    ///
+    /// * `args` - Request arguments
+    ///
+    /// # Returns
+    ///
+    /// StreamIterator yielding the GoogleLongrunningListOperationsResponse result.
+    ///
+    /// # Errors
+    ///
+    /// Returns ProviderError if the API request fails.
+    pub fn dialogflow_projects_locations_operations_list(
+        &self,
+        args: &DialogflowProjectsLocationsOperationsListArgs,
+    ) -> Result<
+        impl StreamIterator<
+            D = Result<GoogleLongrunningListOperationsResponse, ProviderError<ApiError>>,
+            P = crate::providers::gcp::clients::types::ApiPending,
+        > + Send
+        + 'static,
+        ProviderError<ApiError>,
+    > {
+        let builder = dialogflow_projects_locations_operations_list_builder(
+            &self.http_client,
+            &args.name,
+            &args.filter,
+            &args.pageSize,
+            &args.pageToken,
+            &args.returnPartialSuccess,
+        )
+        .map_err(ProviderError::Api)?;
+
+        let task = dialogflow_projects_locations_operations_list_task(builder)
+            .map_err(ProviderError::Api)?;
+
+        execute(task, None).map_err(|e: String| ProviderError::ExecuteFailed(e.to_string()))
     }
 
     /// Dialogflow projects locations security settings create.
@@ -4451,6 +6767,84 @@ where
         execute(store_task, None).map_err(|e: String| ProviderError::ExecuteFailed(e.to_string()))
     }
 
+    /// Dialogflow projects locations security settings get.
+    ///
+    /// Read-only operation - no state tracking.
+    ///
+    /// # Arguments
+    ///
+    /// * `args` - Request arguments
+    ///
+    /// # Returns
+    ///
+    /// StreamIterator yielding the GoogleCloudDialogflowCxV3SecuritySettings result.
+    ///
+    /// # Errors
+    ///
+    /// Returns ProviderError if the API request fails.
+    pub fn dialogflow_projects_locations_security_settings_get(
+        &self,
+        args: &DialogflowProjectsLocationsSecuritySettingsGetArgs,
+    ) -> Result<
+        impl StreamIterator<
+            D = Result<GoogleCloudDialogflowCxV3SecuritySettings, ProviderError<ApiError>>,
+            P = crate::providers::gcp::clients::types::ApiPending,
+        > + Send
+        + 'static,
+        ProviderError<ApiError>,
+    > {
+        let builder = dialogflow_projects_locations_security_settings_get_builder(
+            &self.http_client,
+            &args.name,
+        )
+        .map_err(ProviderError::Api)?;
+
+        let task = dialogflow_projects_locations_security_settings_get_task(builder)
+            .map_err(ProviderError::Api)?;
+
+        execute(task, None).map_err(|e: String| ProviderError::ExecuteFailed(e.to_string()))
+    }
+
+    /// Dialogflow projects locations security settings list.
+    ///
+    /// Read-only operation - no state tracking.
+    ///
+    /// # Arguments
+    ///
+    /// * `args` - Request arguments
+    ///
+    /// # Returns
+    ///
+    /// StreamIterator yielding the GoogleCloudDialogflowCxV3ListSecuritySettingsResponse result.
+    ///
+    /// # Errors
+    ///
+    /// Returns ProviderError if the API request fails.
+    pub fn dialogflow_projects_locations_security_settings_list(
+        &self,
+        args: &DialogflowProjectsLocationsSecuritySettingsListArgs,
+    ) -> Result<
+        impl StreamIterator<
+            D = Result<GoogleCloudDialogflowCxV3ListSecuritySettingsResponse, ProviderError<ApiError>>,
+            P = crate::providers::gcp::clients::types::ApiPending,
+        > + Send
+        + 'static,
+        ProviderError<ApiError>,
+    > {
+        let builder = dialogflow_projects_locations_security_settings_list_builder(
+            &self.http_client,
+            &args.parent,
+            &args.pageSize,
+            &args.pageToken,
+        )
+        .map_err(ProviderError::Api)?;
+
+        let task = dialogflow_projects_locations_security_settings_list_task(builder)
+            .map_err(ProviderError::Api)?;
+
+        execute(task, None).map_err(|e: String| ProviderError::ExecuteFailed(e.to_string()))
+    }
+
     /// Dialogflow projects locations security settings patch.
     ///
     /// Automatically stores the result in the state store on success.
@@ -4536,6 +6930,86 @@ where
         let store_task = StoreStateIdentifierTask::new(task, state_store, args, stage);
 
         execute(store_task, None).map_err(|e: String| ProviderError::ExecuteFailed(e.to_string()))
+    }
+
+    /// Dialogflow projects operations get.
+    ///
+    /// Read-only operation - no state tracking.
+    ///
+    /// # Arguments
+    ///
+    /// * `args` - Request arguments
+    ///
+    /// # Returns
+    ///
+    /// StreamIterator yielding the GoogleLongrunningOperation result.
+    ///
+    /// # Errors
+    ///
+    /// Returns ProviderError if the API request fails.
+    pub fn dialogflow_projects_operations_get(
+        &self,
+        args: &DialogflowProjectsOperationsGetArgs,
+    ) -> Result<
+        impl StreamIterator<
+            D = Result<GoogleLongrunningOperation, ProviderError<ApiError>>,
+            P = crate::providers::gcp::clients::types::ApiPending,
+        > + Send
+        + 'static,
+        ProviderError<ApiError>,
+    > {
+        let builder = dialogflow_projects_operations_get_builder(
+            &self.http_client,
+            &args.name,
+        )
+        .map_err(ProviderError::Api)?;
+
+        let task = dialogflow_projects_operations_get_task(builder)
+            .map_err(ProviderError::Api)?;
+
+        execute(task, None).map_err(|e: String| ProviderError::ExecuteFailed(e.to_string()))
+    }
+
+    /// Dialogflow projects operations list.
+    ///
+    /// Read-only operation - no state tracking.
+    ///
+    /// # Arguments
+    ///
+    /// * `args` - Request arguments
+    ///
+    /// # Returns
+    ///
+    /// StreamIterator yielding the GoogleLongrunningListOperationsResponse result.
+    ///
+    /// # Errors
+    ///
+    /// Returns ProviderError if the API request fails.
+    pub fn dialogflow_projects_operations_list(
+        &self,
+        args: &DialogflowProjectsOperationsListArgs,
+    ) -> Result<
+        impl StreamIterator<
+            D = Result<GoogleLongrunningListOperationsResponse, ProviderError<ApiError>>,
+            P = crate::providers::gcp::clients::types::ApiPending,
+        > + Send
+        + 'static,
+        ProviderError<ApiError>,
+    > {
+        let builder = dialogflow_projects_operations_list_builder(
+            &self.http_client,
+            &args.name,
+            &args.filter,
+            &args.pageSize,
+            &args.pageToken,
+            &args.returnPartialSuccess,
+        )
+        .map_err(ProviderError::Api)?;
+
+        let task = dialogflow_projects_operations_list_task(builder)
+            .map_err(ProviderError::Api)?;
+
+        execute(task, None).map_err(|e: String| ProviderError::ExecuteFailed(e.to_string()))
     }
 
 }

@@ -7,7 +7,6 @@
 
 #![cfg(feature = "gcp")]
 
-
 use crate::providers::gcp::clients::types::*;
 use crate::providers::gcp::resources::*;
 use foundation_core::valtron::{
@@ -17,10 +16,11 @@ use foundation_core::valtron::{
 use foundation_core::wire::simple_http::client::{
     body_reader, ClientRequestBuilder, RequestIntro, SimpleHttpClient, SystemDnsResolver,
 };
+use foundation_db::state::resource_identifier::ResourceIdentifier;
 use foundation_macros::JsonHash;
 use serde::Serialize;
 
-/// GET v1beta1/alerts:batchDelete
+/// POST v1beta1/alerts:batchDelete
 /// Performs batch delete operation on alerts.
 ///
 /// Returns `ClientRequestBuilder` for customization.
@@ -28,22 +28,19 @@ use serde::Serialize;
 
 pub fn alertcenter_alerts_batch_delete_builder(
     client: &SimpleHttpClient,
-    body: &BatchDeleteAlertsRequest,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!("https://alertcenter.googleapis.com/v1beta1/alerts:batchDelete",);
 
     // Build request
     let builder = client
-        .get(&endpoint_url)
+        .post(&endpoint_url)
         .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
 
-    builder
-        .body_json(body)
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+    Ok(builder)
 }
 
-/// GET v1beta1/alerts:batchDelete
+/// POST v1beta1/alerts:batchDelete
 /// Performs batch delete operation on alerts.
 ///
 /// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
@@ -117,7 +114,7 @@ pub fn alertcenter_alerts_batch_delete_task(
         .map_pending(|_| ApiPending::Sending))
 }
 
-/// GET v1beta1/alerts:batchDelete
+/// POST v1beta1/alerts:batchDelete
 /// Performs batch delete operation on alerts.
 ///
 /// Takes a `ClientRequestBuilder`, builds and executes the request,
@@ -149,14 +146,7 @@ pub fn alertcenter_alerts_batch_delete_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
-/// Arguments for [`alertcenter_alerts_batch_delete`].
-#[derive(Debug, Clone, Serialize, JsonHash)]
-pub struct AlertcenterAlertsBatchDeleteArgs {
-    /// Request body.
-    pub body: BatchDeleteAlertsRequest,
-}
-
-/// GET v1beta1/alerts:batchDelete
+/// POST v1beta1/alerts:batchDelete
 /// Performs batch delete operation on alerts.
 ///
 /// Simplest API - builds and executes the request in one call.
@@ -169,18 +159,17 @@ pub struct AlertcenterAlertsBatchDeleteArgs {
 
 pub fn alertcenter_alerts_batch_delete(
     client: &SimpleHttpClient,
-    args: &AlertcenterAlertsBatchDeleteArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<BatchDeleteAlertsResponse>, ApiError>, P = ApiPending>
         + Send
         + 'static,
     ApiError,
 > {
-    let builder = alertcenter_alerts_batch_delete_builder(client, &args.body)?;
+    let builder = alertcenter_alerts_batch_delete_builder(client)?;
     alertcenter_alerts_batch_delete_execute(builder)
 }
 
-/// GET v1beta1/alerts:batchUndelete
+/// POST v1beta1/alerts:batchUndelete
 /// Performs batch undelete operation on alerts.
 ///
 /// Returns `ClientRequestBuilder` for customization.
@@ -188,22 +177,19 @@ pub fn alertcenter_alerts_batch_delete(
 
 pub fn alertcenter_alerts_batch_undelete_builder(
     client: &SimpleHttpClient,
-    body: &BatchUndeleteAlertsRequest,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!("https://alertcenter.googleapis.com/v1beta1/alerts:batchUndelete",);
 
     // Build request
     let builder = client
-        .get(&endpoint_url)
+        .post(&endpoint_url)
         .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
 
-    builder
-        .body_json(body)
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+    Ok(builder)
 }
 
-/// GET v1beta1/alerts:batchUndelete
+/// POST v1beta1/alerts:batchUndelete
 /// Performs batch undelete operation on alerts.
 ///
 /// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
@@ -277,7 +263,7 @@ pub fn alertcenter_alerts_batch_undelete_task(
         .map_pending(|_| ApiPending::Sending))
 }
 
-/// GET v1beta1/alerts:batchUndelete
+/// POST v1beta1/alerts:batchUndelete
 /// Performs batch undelete operation on alerts.
 ///
 /// Takes a `ClientRequestBuilder`, builds and executes the request,
@@ -311,14 +297,7 @@ pub fn alertcenter_alerts_batch_undelete_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
-/// Arguments for [`alertcenter_alerts_batch_undelete`].
-#[derive(Debug, Clone, Serialize, JsonHash)]
-pub struct AlertcenterAlertsBatchUndeleteArgs {
-    /// Request body.
-    pub body: BatchUndeleteAlertsRequest,
-}
-
-/// GET v1beta1/alerts:batchUndelete
+/// POST v1beta1/alerts:batchUndelete
 /// Performs batch undelete operation on alerts.
 ///
 /// Simplest API - builds and executes the request in one call.
@@ -331,7 +310,6 @@ pub struct AlertcenterAlertsBatchUndeleteArgs {
 
 pub fn alertcenter_alerts_batch_undelete(
     client: &SimpleHttpClient,
-    args: &AlertcenterAlertsBatchUndeleteArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<BatchUndeleteAlertsResponse>, ApiError>,
@@ -340,11 +318,11 @@ pub fn alertcenter_alerts_batch_undelete(
         + 'static,
     ApiError,
 > {
-    let builder = alertcenter_alerts_batch_undelete_builder(client, &args.body)?;
+    let builder = alertcenter_alerts_batch_undelete_builder(client)?;
     alertcenter_alerts_batch_undelete_execute(builder)
 }
 
-/// GET v1beta1/alerts/{alertId}
+/// DELETE v1beta1/alerts/{alertId}
 /// Marks the specified alert for deletion. An alert that has been marked for deletion is removed from Alert Center after 30 days. Marking an alert for deletion has no effect on an alert which has already been marked for deletion. Attempting to mark a nonexistent alert for deletion results in a NOT_FOUND error.
 ///
 /// Returns `ClientRequestBuilder` for customization.
@@ -353,7 +331,7 @@ pub fn alertcenter_alerts_batch_undelete(
 pub fn alertcenter_alerts_delete_builder(
     client: &SimpleHttpClient,
     alertId: &String,
-    customerId: &Option<String>,
+    customerId: &Option<Option<String>>,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
@@ -374,13 +352,13 @@ pub fn alertcenter_alerts_delete_builder(
     };
 
     let builder = client
-        .get(&url_with_query)
+        .delete(&url_with_query)
         .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
 
     Ok(builder)
 }
 
-/// GET v1beta1/alerts/{alertId}
+/// DELETE v1beta1/alerts/{alertId}
 /// Marks the specified alert for deletion. An alert that has been marked for deletion is removed from Alert Center after 30 days. Marking an alert for deletion has no effect on an alert which has already been marked for deletion. Attempting to mark a nonexistent alert for deletion results in a NOT_FOUND error.
 ///
 /// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
@@ -454,7 +432,7 @@ pub fn alertcenter_alerts_delete_task(
         .map_pending(|_| ApiPending::Sending))
 }
 
-/// GET v1beta1/alerts/{alertId}
+/// DELETE v1beta1/alerts/{alertId}
 /// Marks the specified alert for deletion. An alert that has been marked for deletion is removed from Alert Center after 30 days. Marking an alert for deletion has no effect on an alert which has already been marked for deletion. Attempting to mark a nonexistent alert for deletion results in a NOT_FOUND error.
 ///
 /// Takes a `ClientRequestBuilder`, builds and executes the request,
@@ -490,10 +468,10 @@ pub struct AlertcenterAlertsDeleteArgs {
     /// Path parameter: alertId
     pub alertId: String,
     /// Query parameter: customerId
-    pub customerId: Option<String>,
+    pub customerId: Option<Option<String>>,
 }
 
-/// GET v1beta1/alerts/{alertId}
+/// DELETE v1beta1/alerts/{alertId}
 /// Marks the specified alert for deletion. An alert that has been marked for deletion is removed from Alert Center after 30 days. Marking an alert for deletion has no effect on an alert which has already been marked for deletion. Attempting to mark a nonexistent alert for deletion results in a NOT_FOUND error.
 ///
 /// Simplest API - builds and executes the request in one call.
@@ -515,6 +493,177 @@ pub fn alertcenter_alerts_delete(
     alertcenter_alerts_delete_execute(builder)
 }
 
+/// GET v1beta1/alerts/{alertId}
+/// Gets the specified alert. Attempting to get a nonexistent alert returns NOT_FOUND error.
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `alertcenter_alerts_get_execute()` to send, or `alertcenter_alerts_get` for simplest API.
+
+pub fn alertcenter_alerts_get_builder(
+    client: &SimpleHttpClient,
+    alertId: &String,
+    customerId: &Option<Option<String>>,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!(
+        "https://alertcenter.googleapis.com/v1beta1/alerts/{}",
+        alertId,
+    );
+
+    // Build request
+    let mut query_parts = Vec::new();
+    if let Some(val) = customerId.as_ref() {
+        query_parts.push(format!("customerId={}", val));
+    }
+
+    let url_with_query = if query_parts.is_empty() {
+        endpoint_url
+    } else {
+        format!("{}?{}", endpoint_url, query_parts.join("&"))
+    };
+
+    let builder = client
+        .get(&url_with_query)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// GET v1beta1/alerts/{alertId}
+/// Gets the specified alert. Attempting to get a nonexistent alert returns NOT_FOUND error.
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `alertcenter_alerts_get_execute()` or `alertcenter_alerts_get`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `alertcenter_alerts_get_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn alertcenter_alerts_get_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<Alert>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: Alert = serde_json::from_str(&body)
+                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// GET v1beta1/alerts/{alertId}
+/// Gets the specified alert. Attempting to get a nonexistent alert returns NOT_FOUND error.
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `alertcenter_alerts_get_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `alertcenter_alerts_get_task()`.
+/// For the simplest API, use `alertcenter_alerts_get()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `alertcenter_alerts_get_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn alertcenter_alerts_get_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<Alert>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let task = alertcenter_alerts_get_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`alertcenter_alerts_get`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct AlertcenterAlertsGetArgs {
+    /// Path parameter: alertId
+    pub alertId: String,
+    /// Query parameter: customerId
+    pub customerId: Option<Option<String>>,
+}
+
+/// GET v1beta1/alerts/{alertId}
+/// Gets the specified alert. Attempting to get a nonexistent alert returns NOT_FOUND error.
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `alertcenter_alerts_get_builder()` + `alertcenter_alerts_get_execute()`.
+/// For task-level control, use `alertcenter_alerts_get_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn alertcenter_alerts_get(
+    client: &SimpleHttpClient,
+    args: &AlertcenterAlertsGetArgs,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<Alert>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let builder = alertcenter_alerts_get_builder(client, &args.alertId, &args.customerId)?;
+    alertcenter_alerts_get_execute(builder)
+}
+
 /// GET v1beta1/alerts/{alertId}/metadata
 /// Returns the metadata of an alert. Attempting to get metadata for a non-existent alert returns NOT_FOUND error.
 ///
@@ -524,7 +673,7 @@ pub fn alertcenter_alerts_delete(
 pub fn alertcenter_alerts_get_metadata_builder(
     client: &SimpleHttpClient,
     alertId: &String,
-    customerId: &Option<String>,
+    customerId: &Option<Option<String>>,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
@@ -663,7 +812,7 @@ pub struct AlertcenterAlertsGetMetadataArgs {
     /// Path parameter: alertId
     pub alertId: String,
     /// Query parameter: customerId
-    pub customerId: Option<String>,
+    pub customerId: Option<Option<String>>,
 }
 
 /// GET v1beta1/alerts/{alertId}/metadata
@@ -698,11 +847,11 @@ pub fn alertcenter_alerts_get_metadata(
 
 pub fn alertcenter_alerts_list_builder(
     client: &SimpleHttpClient,
-    customerId: &Option<String>,
-    filter: &Option<String>,
-    orderBy: &Option<String>,
-    pageSize: &Option<i32>,
-    pageToken: &Option<String>,
+    customerId: &Option<Option<String>>,
+    filter: &Option<Option<String>>,
+    orderBy: &Option<Option<String>>,
+    pageSize: &Option<Option<String>>,
+    pageToken: &Option<Option<String>>,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!("https://alertcenter.googleapis.com/v1beta1/alerts",);
@@ -848,15 +997,15 @@ pub fn alertcenter_alerts_list_execute(
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct AlertcenterAlertsListArgs {
     /// Query parameter: customerId
-    pub customerId: Option<String>,
+    pub customerId: Option<Option<String>>,
     /// Query parameter: filter
-    pub filter: Option<String>,
+    pub filter: Option<Option<String>>,
     /// Query parameter: orderBy
-    pub orderBy: Option<String>,
+    pub orderBy: Option<Option<String>>,
     /// Query parameter: pageSize
-    pub pageSize: Option<i32>,
+    pub pageSize: Option<Option<String>>,
     /// Query parameter: pageToken
-    pub pageToken: Option<String>,
+    pub pageToken: Option<Option<String>>,
 }
 
 /// GET v1beta1/alerts
@@ -890,7 +1039,7 @@ pub fn alertcenter_alerts_list(
     alertcenter_alerts_list_execute(builder)
 }
 
-/// GET v1beta1/alerts/{alertId}:undelete
+/// POST v1beta1/alerts/{alertId}:undelete
 /// Restores, or "undeletes", an alert that was marked for deletion within the past 30 days. Attempting to undelete an alert which was marked for deletion over 30 days ago (which has been removed from the Alert Center database) or a nonexistent alert returns a NOT_FOUND error. Attempting to undelete an alert which has not been marked for deletion has no effect.
 ///
 /// Returns `ClientRequestBuilder` for customization.
@@ -899,7 +1048,6 @@ pub fn alertcenter_alerts_list(
 pub fn alertcenter_alerts_undelete_builder(
     client: &SimpleHttpClient,
     alertId: &String,
-    body: &UndeleteAlertRequest,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
@@ -909,15 +1057,13 @@ pub fn alertcenter_alerts_undelete_builder(
 
     // Build request
     let builder = client
-        .get(&endpoint_url)
+        .post(&endpoint_url)
         .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
 
-    builder
-        .body_json(body)
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+    Ok(builder)
 }
 
-/// GET v1beta1/alerts/{alertId}:undelete
+/// POST v1beta1/alerts/{alertId}:undelete
 /// Restores, or "undeletes", an alert that was marked for deletion within the past 30 days. Attempting to undelete an alert which was marked for deletion over 30 days ago (which has been removed from the Alert Center database) or a nonexistent alert returns a NOT_FOUND error. Attempting to undelete an alert which has not been marked for deletion has no effect.
 ///
 /// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
@@ -991,7 +1137,7 @@ pub fn alertcenter_alerts_undelete_task(
         .map_pending(|_| ApiPending::Sending))
 }
 
-/// GET v1beta1/alerts/{alertId}:undelete
+/// POST v1beta1/alerts/{alertId}:undelete
 /// Restores, or "undeletes", an alert that was marked for deletion within the past 30 days. Attempting to undelete an alert which was marked for deletion over 30 days ago (which has been removed from the Alert Center database) or a nonexistent alert returns a NOT_FOUND error. Attempting to undelete an alert which has not been marked for deletion has no effect.
 ///
 /// Takes a `ClientRequestBuilder`, builds and executes the request,
@@ -1026,11 +1172,9 @@ pub fn alertcenter_alerts_undelete_execute(
 pub struct AlertcenterAlertsUndeleteArgs {
     /// Path parameter: alertId
     pub alertId: String,
-    /// Request body.
-    pub body: UndeleteAlertRequest,
 }
 
-/// GET v1beta1/alerts/{alertId}:undelete
+/// POST v1beta1/alerts/{alertId}:undelete
 /// Restores, or "undeletes", an alert that was marked for deletion within the past 30 days. Attempting to undelete an alert which was marked for deletion over 30 days ago (which has been removed from the Alert Center database) or a nonexistent alert returns a NOT_FOUND error. Attempting to undelete an alert which has not been marked for deletion has no effect.
 ///
 /// Simplest API - builds and executes the request in one call.
@@ -1048,11 +1192,11 @@ pub fn alertcenter_alerts_undelete(
     impl StreamIterator<D = Result<ApiResponse<Alert>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = alertcenter_alerts_undelete_builder(client, &args.alertId, &args.body)?;
+    let builder = alertcenter_alerts_undelete_builder(client, &args.alertId)?;
     alertcenter_alerts_undelete_execute(builder)
 }
 
-/// GET v1beta1/alerts/{alertId}/feedback
+/// POST v1beta1/alerts/{alertId}/feedback
 /// Creates new feedback for an alert. Attempting to create a feedback for a non-existent alert returns NOT_FOUND error. Attempting to create a feedback for an alert that is marked for deletion returns FAILED_PRECONDITION' error.
 ///
 /// Returns `ClientRequestBuilder` for customization.
@@ -1061,8 +1205,7 @@ pub fn alertcenter_alerts_undelete(
 pub fn alertcenter_alerts_feedback_create_builder(
     client: &SimpleHttpClient,
     alertId: &String,
-    customerId: &Option<String>,
-    body: &AlertFeedback,
+    customerId: &Option<Option<String>>,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
@@ -1083,15 +1226,13 @@ pub fn alertcenter_alerts_feedback_create_builder(
     };
 
     let builder = client
-        .get(&url_with_query)
+        .post(&url_with_query)
         .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
 
-    builder
-        .body_json(body)
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+    Ok(builder)
 }
 
-/// GET v1beta1/alerts/{alertId}/feedback
+/// POST v1beta1/alerts/{alertId}/feedback
 /// Creates new feedback for an alert. Attempting to create a feedback for a non-existent alert returns NOT_FOUND error. Attempting to create a feedback for an alert that is marked for deletion returns FAILED_PRECONDITION' error.
 ///
 /// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
@@ -1165,7 +1306,7 @@ pub fn alertcenter_alerts_feedback_create_task(
         .map_pending(|_| ApiPending::Sending))
 }
 
-/// GET v1beta1/alerts/{alertId}/feedback
+/// POST v1beta1/alerts/{alertId}/feedback
 /// Creates new feedback for an alert. Attempting to create a feedback for a non-existent alert returns NOT_FOUND error. Attempting to create a feedback for an alert that is marked for deletion returns FAILED_PRECONDITION' error.
 ///
 /// Takes a `ClientRequestBuilder`, builds and executes the request,
@@ -1203,12 +1344,10 @@ pub struct AlertcenterAlertsFeedbackCreateArgs {
     /// Path parameter: alertId
     pub alertId: String,
     /// Query parameter: customerId
-    pub customerId: Option<String>,
-    /// Request body.
-    pub body: AlertFeedback,
+    pub customerId: Option<Option<String>>,
 }
 
-/// GET v1beta1/alerts/{alertId}/feedback
+/// POST v1beta1/alerts/{alertId}/feedback
 /// Creates new feedback for an alert. Attempting to create a feedback for a non-existent alert returns NOT_FOUND error. Attempting to create a feedback for an alert that is marked for deletion returns FAILED_PRECONDITION' error.
 ///
 /// Simplest API - builds and executes the request in one call.
@@ -1228,13 +1367,195 @@ pub fn alertcenter_alerts_feedback_create(
         + 'static,
     ApiError,
 > {
-    let builder = alertcenter_alerts_feedback_create_builder(
+    let builder =
+        alertcenter_alerts_feedback_create_builder(client, &args.alertId, &args.customerId)?;
+    alertcenter_alerts_feedback_create_execute(builder)
+}
+
+/// GET v1beta1/alerts/{alertId}/feedback
+/// Lists all the feedback for an alert. Attempting to list feedbacks for a non-existent alert returns NOT_FOUND error.
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `alertcenter_alerts_feedback_list_execute()` to send, or `alertcenter_alerts_feedback_list` for simplest API.
+
+pub fn alertcenter_alerts_feedback_list_builder(
+    client: &SimpleHttpClient,
+    alertId: &String,
+    customerId: &Option<Option<String>>,
+    filter: &Option<Option<String>>,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!(
+        "https://alertcenter.googleapis.com/v1beta1/alerts/{}/feedback",
+        alertId,
+    );
+
+    // Build request
+    let mut query_parts = Vec::new();
+    if let Some(val) = customerId.as_ref() {
+        query_parts.push(format!("customerId={}", val));
+    }
+    if let Some(val) = filter.as_ref() {
+        query_parts.push(format!("filter={}", val));
+    }
+
+    let url_with_query = if query_parts.is_empty() {
+        endpoint_url
+    } else {
+        format!("{}?{}", endpoint_url, query_parts.join("&"))
+    };
+
+    let builder = client
+        .get(&url_with_query)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// GET v1beta1/alerts/{alertId}/feedback
+/// Lists all the feedback for an alert. Attempting to list feedbacks for a non-existent alert returns NOT_FOUND error.
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `alertcenter_alerts_feedback_list_execute()` or `alertcenter_alerts_feedback_list`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `alertcenter_alerts_feedback_list_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn alertcenter_alerts_feedback_list_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<ListAlertFeedbackResponse>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: ListAlertFeedbackResponse = serde_json::from_str(&body)
+                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// GET v1beta1/alerts/{alertId}/feedback
+/// Lists all the feedback for an alert. Attempting to list feedbacks for a non-existent alert returns NOT_FOUND error.
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `alertcenter_alerts_feedback_list_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `alertcenter_alerts_feedback_list_task()`.
+/// For the simplest API, use `alertcenter_alerts_feedback_list()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `alertcenter_alerts_feedback_list_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn alertcenter_alerts_feedback_list_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<ListAlertFeedbackResponse>, ApiError>, P = ApiPending>
+        + Send
+        + 'static,
+    ApiError,
+> {
+    let task = alertcenter_alerts_feedback_list_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`alertcenter_alerts_feedback_list`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct AlertcenterAlertsFeedbackListArgs {
+    /// Path parameter: alertId
+    pub alertId: String,
+    /// Query parameter: customerId
+    pub customerId: Option<Option<String>>,
+    /// Query parameter: filter
+    pub filter: Option<Option<String>>,
+}
+
+/// GET v1beta1/alerts/{alertId}/feedback
+/// Lists all the feedback for an alert. Attempting to list feedbacks for a non-existent alert returns NOT_FOUND error.
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `alertcenter_alerts_feedback_list_builder()` + `alertcenter_alerts_feedback_list_execute()`.
+/// For task-level control, use `alertcenter_alerts_feedback_list_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn alertcenter_alerts_feedback_list(
+    client: &SimpleHttpClient,
+    args: &AlertcenterAlertsFeedbackListArgs,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<ListAlertFeedbackResponse>, ApiError>, P = ApiPending>
+        + Send
+        + 'static,
+    ApiError,
+> {
+    let builder = alertcenter_alerts_feedback_list_builder(
         client,
         &args.alertId,
         &args.customerId,
-        &args.body,
+        &args.filter,
     )?;
-    alertcenter_alerts_feedback_create_execute(builder)
+    alertcenter_alerts_feedback_list_execute(builder)
 }
 
 /// GET v1beta1/settings
@@ -1245,7 +1566,7 @@ pub fn alertcenter_alerts_feedback_create(
 
 pub fn alertcenter_get_settings_builder(
     client: &SimpleHttpClient,
-    customerId: &Option<String>,
+    customerId: &Option<Option<String>>,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!("https://alertcenter.googleapis.com/v1beta1/settings",);
@@ -1377,7 +1698,7 @@ pub fn alertcenter_get_settings_execute(
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct AlertcenterGetSettingsArgs {
     /// Query parameter: customerId
-    pub customerId: Option<String>,
+    pub customerId: Option<Option<String>>,
 }
 
 /// GET v1beta1/settings
@@ -1400,4 +1721,425 @@ pub fn alertcenter_get_settings(
 > {
     let builder = alertcenter_get_settings_builder(client, &args.customerId)?;
     alertcenter_get_settings_execute(builder)
+}
+
+/// PATCH v1beta1/settings
+/// Updates the customer-level settings.
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `alertcenter_update_settings_execute()` to send, or `alertcenter_update_settings` for simplest API.
+
+pub fn alertcenter_update_settings_builder(
+    client: &SimpleHttpClient,
+    customerId: &Option<Option<String>>,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!("https://alertcenter.googleapis.com/v1beta1/settings",);
+
+    // Build request
+    let mut query_parts = Vec::new();
+    if let Some(val) = customerId.as_ref() {
+        query_parts.push(format!("customerId={}", val));
+    }
+
+    let url_with_query = if query_parts.is_empty() {
+        endpoint_url
+    } else {
+        format!("{}?{}", endpoint_url, query_parts.join("&"))
+    };
+
+    let builder = client
+        .patch(&url_with_query)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// PATCH v1beta1/settings
+/// Updates the customer-level settings.
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `alertcenter_update_settings_execute()` or `alertcenter_update_settings`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `alertcenter_update_settings_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn alertcenter_update_settings_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<Settings>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: Settings = serde_json::from_str(&body)
+                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// PATCH v1beta1/settings
+/// Updates the customer-level settings.
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `alertcenter_update_settings_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `alertcenter_update_settings_task()`.
+/// For the simplest API, use `alertcenter_update_settings()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `alertcenter_update_settings_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn alertcenter_update_settings_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<Settings>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let task = alertcenter_update_settings_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`alertcenter_update_settings`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct AlertcenterUpdateSettingsArgs {
+    /// Query parameter: customerId
+    pub customerId: Option<Option<String>>,
+}
+
+/// PATCH v1beta1/settings
+/// Updates the customer-level settings.
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `alertcenter_update_settings_builder()` + `alertcenter_update_settings_execute()`.
+/// For task-level control, use `alertcenter_update_settings_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn alertcenter_update_settings(
+    client: &SimpleHttpClient,
+    args: &AlertcenterUpdateSettingsArgs,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<Settings>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let builder = alertcenter_update_settings_builder(client, &args.customerId)?;
+    alertcenter_update_settings_execute(builder)
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for BatchDeleteAlertsResponse
+// =============================================================================
+
+/// ResourceIdentifier implementation for BatchDeleteAlertsResponse with AlertcenterAlertsBatchDeleteArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<AlertcenterAlertsBatchDeleteArgs> for BatchDeleteAlertsResponse {
+    fn generate_resource_id(&self, input: &AlertcenterAlertsBatchDeleteArgs) -> String {
+        "gcp::alertcenter::BatchDeleteAlertsResponse".to_string()
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::alertcenter::BatchDeleteAlertsResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for BatchUndeleteAlertsResponse
+// =============================================================================
+
+/// ResourceIdentifier implementation for BatchUndeleteAlertsResponse with AlertcenterAlertsBatchUndeleteArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<AlertcenterAlertsBatchUndeleteArgs> for BatchUndeleteAlertsResponse {
+    fn generate_resource_id(&self, input: &AlertcenterAlertsBatchUndeleteArgs) -> String {
+        "gcp::alertcenter::BatchUndeleteAlertsResponse".to_string()
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::alertcenter::BatchUndeleteAlertsResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for Empty
+// =============================================================================
+
+/// ResourceIdentifier implementation for Empty with AlertcenterAlertsDeleteArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<AlertcenterAlertsDeleteArgs> for Empty {
+    fn generate_resource_id(&self, input: &AlertcenterAlertsDeleteArgs) -> String {
+        format!("gcp::alertcenter::Empty/{}", input.alertId)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::alertcenter::Empty"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for Alert
+// =============================================================================
+
+/// ResourceIdentifier implementation for Alert with AlertcenterAlertsGetArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<AlertcenterAlertsGetArgs> for Alert {
+    fn generate_resource_id(&self, input: &AlertcenterAlertsGetArgs) -> String {
+        format!("gcp::alertcenter::Alert/{}", input.alertId)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::alertcenter::Alert"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for AlertMetadata
+// =============================================================================
+
+/// ResourceIdentifier implementation for AlertMetadata with AlertcenterAlertsGetMetadataArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<AlertcenterAlertsGetMetadataArgs> for AlertMetadata {
+    fn generate_resource_id(&self, input: &AlertcenterAlertsGetMetadataArgs) -> String {
+        format!("gcp::alertcenter::AlertMetadata/{}", input.alertId)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::alertcenter::AlertMetadata"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for ListAlertsResponse
+// =============================================================================
+
+/// ResourceIdentifier implementation for ListAlertsResponse with AlertcenterAlertsListArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<AlertcenterAlertsListArgs> for ListAlertsResponse {
+    fn generate_resource_id(&self, input: &AlertcenterAlertsListArgs) -> String {
+        "gcp::alertcenter::ListAlertsResponse".to_string()
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::alertcenter::ListAlertsResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for Alert
+// =============================================================================
+
+/// ResourceIdentifier implementation for Alert with AlertcenterAlertsUndeleteArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<AlertcenterAlertsUndeleteArgs> for Alert {
+    fn generate_resource_id(&self, input: &AlertcenterAlertsUndeleteArgs) -> String {
+        format!("gcp::alertcenter::Alert/{}", input.alertId)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::alertcenter::Alert"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for AlertFeedback
+// =============================================================================
+
+/// ResourceIdentifier implementation for AlertFeedback with AlertcenterAlertsFeedbackCreateArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<AlertcenterAlertsFeedbackCreateArgs> for AlertFeedback {
+    fn generate_resource_id(&self, input: &AlertcenterAlertsFeedbackCreateArgs) -> String {
+        format!("gcp::alertcenter::AlertFeedback/{}", input.alertId)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::alertcenter::AlertFeedback"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for ListAlertFeedbackResponse
+// =============================================================================
+
+/// ResourceIdentifier implementation for ListAlertFeedbackResponse with AlertcenterAlertsFeedbackListArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<AlertcenterAlertsFeedbackListArgs> for ListAlertFeedbackResponse {
+    fn generate_resource_id(&self, input: &AlertcenterAlertsFeedbackListArgs) -> String {
+        format!(
+            "gcp::alertcenter::ListAlertFeedbackResponse/{}",
+            input.alertId
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::alertcenter::ListAlertFeedbackResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for Settings
+// =============================================================================
+
+/// ResourceIdentifier implementation for Settings with AlertcenterGetSettingsArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<AlertcenterGetSettingsArgs> for Settings {
+    fn generate_resource_id(&self, input: &AlertcenterGetSettingsArgs) -> String {
+        "gcp::alertcenter::Settings".to_string()
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::alertcenter::Settings"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for Settings
+// =============================================================================
+
+/// ResourceIdentifier implementation for Settings with AlertcenterUpdateSettingsArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<AlertcenterUpdateSettingsArgs> for Settings {
+    fn generate_resource_id(&self, input: &AlertcenterUpdateSettingsArgs) -> String {
+        "gcp::alertcenter::Settings".to_string()
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::alertcenter::Settings"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
 }

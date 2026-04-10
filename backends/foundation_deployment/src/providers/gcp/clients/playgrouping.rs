@@ -7,7 +7,6 @@
 
 #![cfg(feature = "gcp")]
 
-
 use crate::providers::gcp::clients::types::*;
 use crate::providers::gcp::resources::*;
 use foundation_core::valtron::{
@@ -17,10 +16,11 @@ use foundation_core::valtron::{
 use foundation_core::wire::simple_http::client::{
     body_reader, ClientRequestBuilder, RequestIntro, SimpleHttpClient, SystemDnsResolver,
 };
+use foundation_db::state::resource_identifier::ResourceIdentifier;
 use foundation_macros::JsonHash;
 use serde::Serialize;
 
-/// GET v1alpha1/apps/{appsId}/tokens/{tokensId}:verify
+/// POST v1alpha1/apps/{appsId}/tokens/{tokensId}:verify
 /// Verify an API token by asserting the app and persona it belongs to. The verification is a protection against client-side attacks and will fail if the contents of the token don't match the provided values. A token must be verified before it can be used to manipulate user tags.
 ///
 /// Returns `ClientRequestBuilder` for customization.
@@ -30,23 +30,22 @@ pub fn playgrouping_apps_tokens_verify_builder(
     client: &SimpleHttpClient,
     appPackage: &String,
     token: &String,
-    body: &VerifyTokenRequest,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
-    let endpoint_url =
-        format!("https://playgrouping.googleapis.com/v1alpha1/apps/{}/tokens/{}:verify",);
+    let endpoint_url = format!(
+        "https://playgrouping.googleapis.com/v1alpha1/apps/{}/tokens/{}:verify",
+        appPackage, token,
+    );
 
     // Build request
     let builder = client
-        .get(&endpoint_url)
+        .post(&endpoint_url)
         .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
 
-    builder
-        .body_json(body)
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+    Ok(builder)
 }
 
-/// GET v1alpha1/apps/{appsId}/tokens/{tokensId}:verify
+/// POST v1alpha1/apps/{appsId}/tokens/{tokensId}:verify
 /// Verify an API token by asserting the app and persona it belongs to. The verification is a protection against client-side attacks and will fail if the contents of the token don't match the provided values. A token must be verified before it can be used to manipulate user tags.
 ///
 /// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
@@ -120,7 +119,7 @@ pub fn playgrouping_apps_tokens_verify_task(
         .map_pending(|_| ApiPending::Sending))
 }
 
-/// GET v1alpha1/apps/{appsId}/tokens/{tokensId}:verify
+/// POST v1alpha1/apps/{appsId}/tokens/{tokensId}:verify
 /// Verify an API token by asserting the app and persona it belongs to. The verification is a protection against client-side attacks and will fail if the contents of the token don't match the provided values. A token must be verified before it can be used to manipulate user tags.
 ///
 /// Takes a `ClientRequestBuilder`, builds and executes the request,
@@ -159,11 +158,9 @@ pub struct PlaygroupingAppsTokensVerifyArgs {
     pub appPackage: String,
     /// Path parameter: token
     pub token: String,
-    /// Request body.
-    pub body: VerifyTokenRequest,
 }
 
-/// GET v1alpha1/apps/{appsId}/tokens/{tokensId}:verify
+/// POST v1alpha1/apps/{appsId}/tokens/{tokensId}:verify
 /// Verify an API token by asserting the app and persona it belongs to. The verification is a protection against client-side attacks and will fail if the contents of the token don't match the provided values. A token must be verified before it can be used to manipulate user tags.
 ///
 /// Simplest API - builds and executes the request in one call.
@@ -183,12 +180,11 @@ pub fn playgrouping_apps_tokens_verify(
         + 'static,
     ApiError,
 > {
-    let builder =
-        playgrouping_apps_tokens_verify_builder(client, &args.appPackage, &args.token, &args.body)?;
+    let builder = playgrouping_apps_tokens_verify_builder(client, &args.appPackage, &args.token)?;
     playgrouping_apps_tokens_verify_execute(builder)
 }
 
-/// GET v1alpha1/apps/{appsId}/tokens/{tokensId}/tags:createOrUpdate
+/// POST v1alpha1/apps/{appsId}/tokens/{tokensId}/tags:createOrUpdate
 /// Create or update tags for the user and app that are represented by the given token.
 ///
 /// Returns `ClientRequestBuilder` for customization.
@@ -198,24 +194,22 @@ pub fn playgrouping_apps_tokens_tags_create_or_update_builder(
     client: &SimpleHttpClient,
     appPackage: &String,
     token: &String,
-    body: &CreateOrUpdateTagsRequest,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
         "https://playgrouping.googleapis.com/v1alpha1/apps/{}/tokens/{}/tags:createOrUpdate",
+        appPackage, token,
     );
 
     // Build request
     let builder = client
-        .get(&endpoint_url)
+        .post(&endpoint_url)
         .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
 
-    builder
-        .body_json(body)
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+    Ok(builder)
 }
 
-/// GET v1alpha1/apps/{appsId}/tokens/{tokensId}/tags:createOrUpdate
+/// POST v1alpha1/apps/{appsId}/tokens/{tokensId}/tags:createOrUpdate
 /// Create or update tags for the user and app that are represented by the given token.
 ///
 /// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
@@ -289,7 +283,7 @@ pub fn playgrouping_apps_tokens_tags_create_or_update_task(
         .map_pending(|_| ApiPending::Sending))
 }
 
-/// GET v1alpha1/apps/{appsId}/tokens/{tokensId}/tags:createOrUpdate
+/// POST v1alpha1/apps/{appsId}/tokens/{tokensId}/tags:createOrUpdate
 /// Create or update tags for the user and app that are represented by the given token.
 ///
 /// Takes a `ClientRequestBuilder`, builds and executes the request,
@@ -330,11 +324,9 @@ pub struct PlaygroupingAppsTokensTagsCreateOrUpdateArgs {
     pub appPackage: String,
     /// Path parameter: token
     pub token: String,
-    /// Request body.
-    pub body: CreateOrUpdateTagsRequest,
 }
 
-/// GET v1alpha1/apps/{appsId}/tokens/{tokensId}/tags:createOrUpdate
+/// POST v1alpha1/apps/{appsId}/tokens/{tokensId}/tags:createOrUpdate
 /// Create or update tags for the user and app that are represented by the given token.
 ///
 /// Simplest API - builds and executes the request in one call.
@@ -360,7 +352,60 @@ pub fn playgrouping_apps_tokens_tags_create_or_update(
         client,
         &args.appPackage,
         &args.token,
-        &args.body,
     )?;
     playgrouping_apps_tokens_tags_create_or_update_execute(builder)
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for VerifyTokenResponse
+// =============================================================================
+
+/// ResourceIdentifier implementation for VerifyTokenResponse with PlaygroupingAppsTokensVerifyArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<PlaygroupingAppsTokensVerifyArgs> for VerifyTokenResponse {
+    fn generate_resource_id(&self, input: &PlaygroupingAppsTokensVerifyArgs) -> String {
+        format!(
+            "gcp::playgrouping::VerifyTokenResponse/{}/{}",
+            input.appPackage, input.token
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::playgrouping::VerifyTokenResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for CreateOrUpdateTagsResponse
+// =============================================================================
+
+/// ResourceIdentifier implementation for CreateOrUpdateTagsResponse with PlaygroupingAppsTokensTagsCreateOrUpdateArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<PlaygroupingAppsTokensTagsCreateOrUpdateArgs>
+    for CreateOrUpdateTagsResponse
+{
+    fn generate_resource_id(&self, input: &PlaygroupingAppsTokensTagsCreateOrUpdateArgs) -> String {
+        format!(
+            "gcp::playgrouping::CreateOrUpdateTagsResponse/{}/{}",
+            input.appPackage, input.token
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::playgrouping::CreateOrUpdateTagsResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
 }

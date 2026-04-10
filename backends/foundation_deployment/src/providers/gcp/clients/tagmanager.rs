@@ -7,7 +7,6 @@
 
 #![cfg(feature = "gcp")]
 
-
 use crate::providers::gcp::clients::types::*;
 use crate::providers::gcp::resources::*;
 use foundation_core::valtron::{
@@ -17,6 +16,7 @@ use foundation_core::valtron::{
 use foundation_core::wire::simple_http::client::{
     body_reader, ClientRequestBuilder, RequestIntro, SimpleHttpClient, SystemDnsResolver,
 };
+use foundation_db::state::resource_identifier::ResourceIdentifier;
 use foundation_macros::JsonHash;
 use serde::Serialize;
 
@@ -31,7 +31,10 @@ pub fn tagmanager_accounts_get_builder(
     path: &String,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
-    let endpoint_url = format!("https://tagmanager.googleapis.com/tagmanager/v2/accounts/{}",);
+    let endpoint_url = format!(
+        "https://tagmanager.googleapis.com/tagmanager/v2/accounts/{}",
+        path,
+    );
 
     // Build request
     let builder = client
@@ -182,8 +185,8 @@ pub fn tagmanager_accounts_get(
 
 pub fn tagmanager_accounts_list_builder(
     client: &SimpleHttpClient,
-    includeGoogleTags: &Option<bool>,
-    pageToken: &Option<String>,
+    includeGoogleTags: &Option<Option<String>>,
+    pageToken: &Option<Option<String>>,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!("https://tagmanager.googleapis.com/tagmanager/v2/accounts",);
@@ -320,9 +323,9 @@ pub fn tagmanager_accounts_list_execute(
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct TagmanagerAccountsListArgs {
     /// Query parameter: includeGoogleTags
-    pub includeGoogleTags: Option<bool>,
+    pub includeGoogleTags: Option<Option<String>>,
     /// Query parameter: pageToken
-    pub pageToken: Option<String>,
+    pub pageToken: Option<Option<String>>,
 }
 
 /// GET tagmanager/v2/accounts
@@ -350,7 +353,367 @@ pub fn tagmanager_accounts_list(
     tagmanager_accounts_list_execute(builder)
 }
 
-/// GET tagmanager/v2/accounts/{accountsId}/containers
+/// PUT tagmanager/v2/accounts/{accountsId}
+/// Updates a GTM Account.
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `tagmanager_accounts_update_execute()` to send, or `tagmanager_accounts_update` for simplest API.
+
+pub fn tagmanager_accounts_update_builder(
+    client: &SimpleHttpClient,
+    path: &String,
+    fingerprint: &Option<Option<String>>,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!(
+        "https://tagmanager.googleapis.com/tagmanager/v2/accounts/{}",
+        path,
+    );
+
+    // Build request
+    let mut query_parts = Vec::new();
+    if let Some(val) = fingerprint.as_ref() {
+        query_parts.push(format!("fingerprint={}", val));
+    }
+
+    let url_with_query = if query_parts.is_empty() {
+        endpoint_url
+    } else {
+        format!("{}?{}", endpoint_url, query_parts.join("&"))
+    };
+
+    let builder = client
+        .put(&url_with_query)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// PUT tagmanager/v2/accounts/{accountsId}
+/// Updates a GTM Account.
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `tagmanager_accounts_update_execute()` or `tagmanager_accounts_update`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `tagmanager_accounts_update_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn tagmanager_accounts_update_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<Account>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: Account = serde_json::from_str(&body)
+                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// PUT tagmanager/v2/accounts/{accountsId}
+/// Updates a GTM Account.
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `tagmanager_accounts_update_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `tagmanager_accounts_update_task()`.
+/// For the simplest API, use `tagmanager_accounts_update()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `tagmanager_accounts_update_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn tagmanager_accounts_update_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<Account>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let task = tagmanager_accounts_update_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`tagmanager_accounts_update`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct TagmanagerAccountsUpdateArgs {
+    /// Path parameter: path
+    pub path: String,
+    /// Query parameter: fingerprint
+    pub fingerprint: Option<Option<String>>,
+}
+
+/// PUT tagmanager/v2/accounts/{accountsId}
+/// Updates a GTM Account.
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `tagmanager_accounts_update_builder()` + `tagmanager_accounts_update_execute()`.
+/// For task-level control, use `tagmanager_accounts_update_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn tagmanager_accounts_update(
+    client: &SimpleHttpClient,
+    args: &TagmanagerAccountsUpdateArgs,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<Account>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let builder = tagmanager_accounts_update_builder(client, &args.path, &args.fingerprint)?;
+    tagmanager_accounts_update_execute(builder)
+}
+
+/// POST tagmanager/v2/accounts/{accountsId}/containers/{containersId}:combine
+/// Combines Containers.
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `tagmanager_accounts_containers_combine_execute()` to send, or `tagmanager_accounts_containers_combine` for simplest API.
+
+pub fn tagmanager_accounts_containers_combine_builder(
+    client: &SimpleHttpClient,
+    path: &String,
+    allowUserPermissionFeatureUpdate: &Option<Option<String>>,
+    containerId: &Option<Option<String>>,
+    settingSource: &Option<Option<String>>,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!(
+        "https://tagmanager.googleapis.com/tagmanager/v2/accounts/{}/containers/{containersId}:combine",
+        path,
+    );
+
+    // Build request
+    let mut query_parts = Vec::new();
+    if let Some(val) = allowUserPermissionFeatureUpdate.as_ref() {
+        query_parts.push(format!("allowUserPermissionFeatureUpdate={}", val));
+    }
+    if let Some(val) = containerId.as_ref() {
+        query_parts.push(format!("containerId={}", val));
+    }
+    if let Some(val) = settingSource.as_ref() {
+        query_parts.push(format!("settingSource={}", val));
+    }
+
+    let url_with_query = if query_parts.is_empty() {
+        endpoint_url
+    } else {
+        format!("{}?{}", endpoint_url, query_parts.join("&"))
+    };
+
+    let builder = client
+        .post(&url_with_query)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// POST tagmanager/v2/accounts/{accountsId}/containers/{containersId}:combine
+/// Combines Containers.
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `tagmanager_accounts_containers_combine_execute()` or `tagmanager_accounts_containers_combine`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `tagmanager_accounts_containers_combine_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn tagmanager_accounts_containers_combine_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<Container>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: Container = serde_json::from_str(&body)
+                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// POST tagmanager/v2/accounts/{accountsId}/containers/{containersId}:combine
+/// Combines Containers.
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `tagmanager_accounts_containers_combine_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `tagmanager_accounts_containers_combine_task()`.
+/// For the simplest API, use `tagmanager_accounts_containers_combine()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `tagmanager_accounts_containers_combine_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn tagmanager_accounts_containers_combine_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<Container>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let task = tagmanager_accounts_containers_combine_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`tagmanager_accounts_containers_combine`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct TagmanagerAccountsContainersCombineArgs {
+    /// Path parameter: path
+    pub path: String,
+    /// Query parameter: allowUserPermissionFeatureUpdate
+    pub allowUserPermissionFeatureUpdate: Option<Option<String>>,
+    /// Query parameter: containerId
+    pub containerId: Option<Option<String>>,
+    /// Query parameter: settingSource
+    pub settingSource: Option<Option<String>>,
+}
+
+/// POST tagmanager/v2/accounts/{accountsId}/containers/{containersId}:combine
+/// Combines Containers.
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `tagmanager_accounts_containers_combine_builder()` + `tagmanager_accounts_containers_combine_execute()`.
+/// For task-level control, use `tagmanager_accounts_containers_combine_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn tagmanager_accounts_containers_combine(
+    client: &SimpleHttpClient,
+    args: &TagmanagerAccountsContainersCombineArgs,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<Container>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let builder = tagmanager_accounts_containers_combine_builder(
+        client,
+        &args.path,
+        &args.allowUserPermissionFeatureUpdate,
+        &args.containerId,
+        &args.settingSource,
+    )?;
+    tagmanager_accounts_containers_combine_execute(builder)
+}
+
+/// POST tagmanager/v2/accounts/{accountsId}/containers
 /// Creates a Container.
 ///
 /// Returns `ClientRequestBuilder` for customization.
@@ -359,23 +722,22 @@ pub fn tagmanager_accounts_list(
 pub fn tagmanager_accounts_containers_create_builder(
     client: &SimpleHttpClient,
     parent: &String,
-    body: &Container,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
-    let endpoint_url =
-        format!("https://tagmanager.googleapis.com/tagmanager/v2/accounts/{}/containers",);
+    let endpoint_url = format!(
+        "https://tagmanager.googleapis.com/tagmanager/v2/accounts/{}/containers",
+        parent,
+    );
 
     // Build request
     let builder = client
-        .get(&endpoint_url)
+        .post(&endpoint_url)
         .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
 
-    builder
-        .body_json(body)
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+    Ok(builder)
 }
 
-/// GET tagmanager/v2/accounts/{accountsId}/containers
+/// POST tagmanager/v2/accounts/{accountsId}/containers
 /// Creates a Container.
 ///
 /// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
@@ -449,7 +811,7 @@ pub fn tagmanager_accounts_containers_create_task(
         .map_pending(|_| ApiPending::Sending))
 }
 
-/// GET tagmanager/v2/accounts/{accountsId}/containers
+/// POST tagmanager/v2/accounts/{accountsId}/containers
 /// Creates a Container.
 ///
 /// Takes a `ClientRequestBuilder`, builds and executes the request,
@@ -484,11 +846,9 @@ pub fn tagmanager_accounts_containers_create_execute(
 pub struct TagmanagerAccountsContainersCreateArgs {
     /// Path parameter: parent
     pub parent: String,
-    /// Request body.
-    pub body: Container,
 }
 
-/// GET tagmanager/v2/accounts/{accountsId}/containers
+/// POST tagmanager/v2/accounts/{accountsId}/containers
 /// Creates a Container.
 ///
 /// Simplest API - builds and executes the request in one call.
@@ -506,8 +866,495 @@ pub fn tagmanager_accounts_containers_create(
     impl StreamIterator<D = Result<ApiResponse<Container>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = tagmanager_accounts_containers_create_builder(client, &args.parent, &args.body)?;
+    let builder = tagmanager_accounts_containers_create_builder(client, &args.parent)?;
     tagmanager_accounts_containers_create_execute(builder)
+}
+
+/// DELETE tagmanager/v2/accounts/{accountsId}/containers/{containersId}
+/// Deletes a Container.
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `tagmanager_accounts_containers_delete_execute()` to send, or `tagmanager_accounts_containers_delete` for simplest API.
+
+pub fn tagmanager_accounts_containers_delete_builder(
+    client: &SimpleHttpClient,
+    path: &String,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!(
+        "https://tagmanager.googleapis.com/tagmanager/v2/accounts/{}/containers/{containersId}",
+        path,
+    );
+
+    // Build request
+    let builder = client
+        .delete(&endpoint_url)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// DELETE tagmanager/v2/accounts/{accountsId}/containers/{containersId}
+/// Deletes a Container.
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `tagmanager_accounts_containers_delete_execute()` or `tagmanager_accounts_containers_delete`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `tagmanager_accounts_containers_delete_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn tagmanager_accounts_containers_delete_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<()>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: (),
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// DELETE tagmanager/v2/accounts/{accountsId}/containers/{containersId}
+/// Deletes a Container.
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `tagmanager_accounts_containers_delete_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `tagmanager_accounts_containers_delete_task()`.
+/// For the simplest API, use `tagmanager_accounts_containers_delete()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `tagmanager_accounts_containers_delete_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn tagmanager_accounts_containers_delete_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<()>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let task = tagmanager_accounts_containers_delete_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`tagmanager_accounts_containers_delete`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct TagmanagerAccountsContainersDeleteArgs {
+    /// Path parameter: path
+    pub path: String,
+}
+
+/// DELETE tagmanager/v2/accounts/{accountsId}/containers/{containersId}
+/// Deletes a Container.
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `tagmanager_accounts_containers_delete_builder()` + `tagmanager_accounts_containers_delete_execute()`.
+/// For task-level control, use `tagmanager_accounts_containers_delete_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn tagmanager_accounts_containers_delete(
+    client: &SimpleHttpClient,
+    args: &TagmanagerAccountsContainersDeleteArgs,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<()>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let builder = tagmanager_accounts_containers_delete_builder(client, &args.path)?;
+    tagmanager_accounts_containers_delete_execute(builder)
+}
+
+/// GET tagmanager/v2/accounts/{accountsId}/containers/{containersId}
+/// Gets a Container.
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `tagmanager_accounts_containers_get_execute()` to send, or `tagmanager_accounts_containers_get` for simplest API.
+
+pub fn tagmanager_accounts_containers_get_builder(
+    client: &SimpleHttpClient,
+    path: &String,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!(
+        "https://tagmanager.googleapis.com/tagmanager/v2/accounts/{}/containers/{containersId}",
+        path,
+    );
+
+    // Build request
+    let builder = client
+        .get(&endpoint_url)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// GET tagmanager/v2/accounts/{accountsId}/containers/{containersId}
+/// Gets a Container.
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `tagmanager_accounts_containers_get_execute()` or `tagmanager_accounts_containers_get`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `tagmanager_accounts_containers_get_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn tagmanager_accounts_containers_get_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<Container>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: Container = serde_json::from_str(&body)
+                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// GET tagmanager/v2/accounts/{accountsId}/containers/{containersId}
+/// Gets a Container.
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `tagmanager_accounts_containers_get_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `tagmanager_accounts_containers_get_task()`.
+/// For the simplest API, use `tagmanager_accounts_containers_get()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `tagmanager_accounts_containers_get_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn tagmanager_accounts_containers_get_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<Container>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let task = tagmanager_accounts_containers_get_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`tagmanager_accounts_containers_get`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct TagmanagerAccountsContainersGetArgs {
+    /// Path parameter: path
+    pub path: String,
+}
+
+/// GET tagmanager/v2/accounts/{accountsId}/containers/{containersId}
+/// Gets a Container.
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `tagmanager_accounts_containers_get_builder()` + `tagmanager_accounts_containers_get_execute()`.
+/// For task-level control, use `tagmanager_accounts_containers_get_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn tagmanager_accounts_containers_get(
+    client: &SimpleHttpClient,
+    args: &TagmanagerAccountsContainersGetArgs,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<Container>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let builder = tagmanager_accounts_containers_get_builder(client, &args.path)?;
+    tagmanager_accounts_containers_get_execute(builder)
+}
+
+/// GET tagmanager/v2/accounts/{accountsId}/containers
+/// Lists all Containers that belongs to a GTM Account.
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `tagmanager_accounts_containers_list_execute()` to send, or `tagmanager_accounts_containers_list` for simplest API.
+
+pub fn tagmanager_accounts_containers_list_builder(
+    client: &SimpleHttpClient,
+    parent: &String,
+    pageToken: &Option<Option<String>>,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!(
+        "https://tagmanager.googleapis.com/tagmanager/v2/accounts/{}/containers",
+        parent,
+    );
+
+    // Build request
+    let mut query_parts = Vec::new();
+    if let Some(val) = pageToken.as_ref() {
+        query_parts.push(format!("pageToken={}", val));
+    }
+
+    let url_with_query = if query_parts.is_empty() {
+        endpoint_url
+    } else {
+        format!("{}?{}", endpoint_url, query_parts.join("&"))
+    };
+
+    let builder = client
+        .get(&url_with_query)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// GET tagmanager/v2/accounts/{accountsId}/containers
+/// Lists all Containers that belongs to a GTM Account.
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `tagmanager_accounts_containers_list_execute()` or `tagmanager_accounts_containers_list`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `tagmanager_accounts_containers_list_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn tagmanager_accounts_containers_list_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<ListContainersResponse>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: ListContainersResponse = serde_json::from_str(&body)
+                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// GET tagmanager/v2/accounts/{accountsId}/containers
+/// Lists all Containers that belongs to a GTM Account.
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `tagmanager_accounts_containers_list_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `tagmanager_accounts_containers_list_task()`.
+/// For the simplest API, use `tagmanager_accounts_containers_list()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `tagmanager_accounts_containers_list_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn tagmanager_accounts_containers_list_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<ListContainersResponse>, ApiError>, P = ApiPending>
+        + Send
+        + 'static,
+    ApiError,
+> {
+    let task = tagmanager_accounts_containers_list_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`tagmanager_accounts_containers_list`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct TagmanagerAccountsContainersListArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Query parameter: pageToken
+    pub pageToken: Option<Option<String>>,
+}
+
+/// GET tagmanager/v2/accounts/{accountsId}/containers
+/// Lists all Containers that belongs to a GTM Account.
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `tagmanager_accounts_containers_list_builder()` + `tagmanager_accounts_containers_list_execute()`.
+/// For task-level control, use `tagmanager_accounts_containers_list_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn tagmanager_accounts_containers_list(
+    client: &SimpleHttpClient,
+    args: &TagmanagerAccountsContainersListArgs,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<ListContainersResponse>, ApiError>, P = ApiPending>
+        + Send
+        + 'static,
+    ApiError,
+> {
+    let builder =
+        tagmanager_accounts_containers_list_builder(client, &args.parent, &args.pageToken)?;
+    tagmanager_accounts_containers_list_execute(builder)
 }
 
 /// GET tagmanager/v2/accounts/containers:lookup
@@ -518,8 +1365,8 @@ pub fn tagmanager_accounts_containers_create(
 
 pub fn tagmanager_accounts_containers_lookup_builder(
     client: &SimpleHttpClient,
-    destinationId: &Option<String>,
-    tagId: &Option<String>,
+    destinationId: &Option<Option<String>>,
+    tagId: &Option<Option<String>>,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url =
@@ -655,9 +1502,9 @@ pub fn tagmanager_accounts_containers_lookup_execute(
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct TagmanagerAccountsContainersLookupArgs {
     /// Query parameter: destinationId
-    pub destinationId: Option<String>,
+    pub destinationId: Option<Option<String>>,
     /// Query parameter: tagId
-    pub tagId: Option<String>,
+    pub tagId: Option<Option<String>>,
 }
 
 /// GET tagmanager/v2/accounts/containers:lookup
@@ -683,7 +1530,15557 @@ pub fn tagmanager_accounts_containers_lookup(
     tagmanager_accounts_containers_lookup_execute(builder)
 }
 
-/// GET tagmanager/v2/accounts/{accountsId}/user_permissions
+/// POST tagmanager/v2/accounts/{accountsId}/containers/{containersId}:move_tag_id
+/// Move Tag ID out of a Container.
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `tagmanager_accounts_containers_move_tag_id_execute()` to send, or `tagmanager_accounts_containers_move_tag_id` for simplest API.
+
+pub fn tagmanager_accounts_containers_move_tag_id_builder(
+    client: &SimpleHttpClient,
+    path: &String,
+    allowUserPermissionFeatureUpdate: &Option<Option<String>>,
+    copySettings: &Option<Option<String>>,
+    copyTermsOfService: &Option<Option<String>>,
+    copyUsers: &Option<Option<String>>,
+    tagId: &Option<Option<String>>,
+    tagName: &Option<Option<String>>,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!(
+        "https://tagmanager.googleapis.com/tagmanager/v2/accounts/{}/containers/{containersId}:move_tag_id",
+        path,
+    );
+
+    // Build request
+    let mut query_parts = Vec::new();
+    if let Some(val) = allowUserPermissionFeatureUpdate.as_ref() {
+        query_parts.push(format!("allowUserPermissionFeatureUpdate={}", val));
+    }
+    if let Some(val) = copySettings.as_ref() {
+        query_parts.push(format!("copySettings={}", val));
+    }
+    if let Some(val) = copyTermsOfService.as_ref() {
+        query_parts.push(format!("copyTermsOfService={}", val));
+    }
+    if let Some(val) = copyUsers.as_ref() {
+        query_parts.push(format!("copyUsers={}", val));
+    }
+    if let Some(val) = tagId.as_ref() {
+        query_parts.push(format!("tagId={}", val));
+    }
+    if let Some(val) = tagName.as_ref() {
+        query_parts.push(format!("tagName={}", val));
+    }
+
+    let url_with_query = if query_parts.is_empty() {
+        endpoint_url
+    } else {
+        format!("{}?{}", endpoint_url, query_parts.join("&"))
+    };
+
+    let builder = client
+        .post(&url_with_query)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// POST tagmanager/v2/accounts/{accountsId}/containers/{containersId}:move_tag_id
+/// Move Tag ID out of a Container.
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `tagmanager_accounts_containers_move_tag_id_execute()` or `tagmanager_accounts_containers_move_tag_id`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `tagmanager_accounts_containers_move_tag_id_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn tagmanager_accounts_containers_move_tag_id_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<Container>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: Container = serde_json::from_str(&body)
+                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// POST tagmanager/v2/accounts/{accountsId}/containers/{containersId}:move_tag_id
+/// Move Tag ID out of a Container.
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `tagmanager_accounts_containers_move_tag_id_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `tagmanager_accounts_containers_move_tag_id_task()`.
+/// For the simplest API, use `tagmanager_accounts_containers_move_tag_id()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `tagmanager_accounts_containers_move_tag_id_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn tagmanager_accounts_containers_move_tag_id_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<Container>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let task = tagmanager_accounts_containers_move_tag_id_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`tagmanager_accounts_containers_move_tag_id`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct TagmanagerAccountsContainersMoveTagIdArgs {
+    /// Path parameter: path
+    pub path: String,
+    /// Query parameter: allowUserPermissionFeatureUpdate
+    pub allowUserPermissionFeatureUpdate: Option<Option<String>>,
+    /// Query parameter: copySettings
+    pub copySettings: Option<Option<String>>,
+    /// Query parameter: copyTermsOfService
+    pub copyTermsOfService: Option<Option<String>>,
+    /// Query parameter: copyUsers
+    pub copyUsers: Option<Option<String>>,
+    /// Query parameter: tagId
+    pub tagId: Option<Option<String>>,
+    /// Query parameter: tagName
+    pub tagName: Option<Option<String>>,
+}
+
+/// POST tagmanager/v2/accounts/{accountsId}/containers/{containersId}:move_tag_id
+/// Move Tag ID out of a Container.
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `tagmanager_accounts_containers_move_tag_id_builder()` + `tagmanager_accounts_containers_move_tag_id_execute()`.
+/// For task-level control, use `tagmanager_accounts_containers_move_tag_id_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn tagmanager_accounts_containers_move_tag_id(
+    client: &SimpleHttpClient,
+    args: &TagmanagerAccountsContainersMoveTagIdArgs,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<Container>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let builder = tagmanager_accounts_containers_move_tag_id_builder(
+        client,
+        &args.path,
+        &args.allowUserPermissionFeatureUpdate,
+        &args.copySettings,
+        &args.copyTermsOfService,
+        &args.copyUsers,
+        &args.tagId,
+        &args.tagName,
+    )?;
+    tagmanager_accounts_containers_move_tag_id_execute(builder)
+}
+
+/// GET tagmanager/v2/accounts/{accountsId}/containers/{containersId}:snippet
+/// Gets the tagging snippet for a Container.
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `tagmanager_accounts_containers_snippet_execute()` to send, or `tagmanager_accounts_containers_snippet` for simplest API.
+
+pub fn tagmanager_accounts_containers_snippet_builder(
+    client: &SimpleHttpClient,
+    path: &String,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!(
+        "https://tagmanager.googleapis.com/tagmanager/v2/accounts/{}/containers/{containersId}:snippet",
+        path,
+    );
+
+    // Build request
+    let builder = client
+        .get(&endpoint_url)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// GET tagmanager/v2/accounts/{accountsId}/containers/{containersId}:snippet
+/// Gets the tagging snippet for a Container.
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `tagmanager_accounts_containers_snippet_execute()` or `tagmanager_accounts_containers_snippet`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `tagmanager_accounts_containers_snippet_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn tagmanager_accounts_containers_snippet_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<GetContainerSnippetResponse>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: GetContainerSnippetResponse = serde_json::from_str(&body)
+                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// GET tagmanager/v2/accounts/{accountsId}/containers/{containersId}:snippet
+/// Gets the tagging snippet for a Container.
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `tagmanager_accounts_containers_snippet_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `tagmanager_accounts_containers_snippet_task()`.
+/// For the simplest API, use `tagmanager_accounts_containers_snippet()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `tagmanager_accounts_containers_snippet_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn tagmanager_accounts_containers_snippet_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<
+            D = Result<ApiResponse<GetContainerSnippetResponse>, ApiError>,
+            P = ApiPending,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    let task = tagmanager_accounts_containers_snippet_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`tagmanager_accounts_containers_snippet`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct TagmanagerAccountsContainersSnippetArgs {
+    /// Path parameter: path
+    pub path: String,
+}
+
+/// GET tagmanager/v2/accounts/{accountsId}/containers/{containersId}:snippet
+/// Gets the tagging snippet for a Container.
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `tagmanager_accounts_containers_snippet_builder()` + `tagmanager_accounts_containers_snippet_execute()`.
+/// For task-level control, use `tagmanager_accounts_containers_snippet_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn tagmanager_accounts_containers_snippet(
+    client: &SimpleHttpClient,
+    args: &TagmanagerAccountsContainersSnippetArgs,
+) -> Result<
+    impl StreamIterator<
+            D = Result<ApiResponse<GetContainerSnippetResponse>, ApiError>,
+            P = ApiPending,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    let builder = tagmanager_accounts_containers_snippet_builder(client, &args.path)?;
+    tagmanager_accounts_containers_snippet_execute(builder)
+}
+
+/// PUT tagmanager/v2/accounts/{accountsId}/containers/{containersId}
+/// Updates a Container.
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `tagmanager_accounts_containers_update_execute()` to send, or `tagmanager_accounts_containers_update` for simplest API.
+
+pub fn tagmanager_accounts_containers_update_builder(
+    client: &SimpleHttpClient,
+    path: &String,
+    fingerprint: &Option<Option<String>>,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!(
+        "https://tagmanager.googleapis.com/tagmanager/v2/accounts/{}/containers/{containersId}",
+        path,
+    );
+
+    // Build request
+    let mut query_parts = Vec::new();
+    if let Some(val) = fingerprint.as_ref() {
+        query_parts.push(format!("fingerprint={}", val));
+    }
+
+    let url_with_query = if query_parts.is_empty() {
+        endpoint_url
+    } else {
+        format!("{}?{}", endpoint_url, query_parts.join("&"))
+    };
+
+    let builder = client
+        .put(&url_with_query)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// PUT tagmanager/v2/accounts/{accountsId}/containers/{containersId}
+/// Updates a Container.
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `tagmanager_accounts_containers_update_execute()` or `tagmanager_accounts_containers_update`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `tagmanager_accounts_containers_update_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn tagmanager_accounts_containers_update_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<Container>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: Container = serde_json::from_str(&body)
+                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// PUT tagmanager/v2/accounts/{accountsId}/containers/{containersId}
+/// Updates a Container.
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `tagmanager_accounts_containers_update_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `tagmanager_accounts_containers_update_task()`.
+/// For the simplest API, use `tagmanager_accounts_containers_update()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `tagmanager_accounts_containers_update_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn tagmanager_accounts_containers_update_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<Container>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let task = tagmanager_accounts_containers_update_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`tagmanager_accounts_containers_update`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct TagmanagerAccountsContainersUpdateArgs {
+    /// Path parameter: path
+    pub path: String,
+    /// Query parameter: fingerprint
+    pub fingerprint: Option<Option<String>>,
+}
+
+/// PUT tagmanager/v2/accounts/{accountsId}/containers/{containersId}
+/// Updates a Container.
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `tagmanager_accounts_containers_update_builder()` + `tagmanager_accounts_containers_update_execute()`.
+/// For task-level control, use `tagmanager_accounts_containers_update_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn tagmanager_accounts_containers_update(
+    client: &SimpleHttpClient,
+    args: &TagmanagerAccountsContainersUpdateArgs,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<Container>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let builder =
+        tagmanager_accounts_containers_update_builder(client, &args.path, &args.fingerprint)?;
+    tagmanager_accounts_containers_update_execute(builder)
+}
+
+/// GET tagmanager/v2/accounts/{accountsId}/containers/{containersId}/destinations/{destinationsId}
+/// Gets a Destination.
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `tagmanager_accounts_containers_destinations_get_execute()` to send, or `tagmanager_accounts_containers_destinations_get` for simplest API.
+
+pub fn tagmanager_accounts_containers_destinations_get_builder(
+    client: &SimpleHttpClient,
+    path: &String,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!(
+        "https://tagmanager.googleapis.com/tagmanager/v2/accounts/{}/containers/{containersId}/destinations/{destinationsId}",
+        path,
+    );
+
+    // Build request
+    let builder = client
+        .get(&endpoint_url)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// GET tagmanager/v2/accounts/{accountsId}/containers/{containersId}/destinations/{destinationsId}
+/// Gets a Destination.
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `tagmanager_accounts_containers_destinations_get_execute()` or `tagmanager_accounts_containers_destinations_get`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `tagmanager_accounts_containers_destinations_get_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn tagmanager_accounts_containers_destinations_get_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<Destination>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: Destination = serde_json::from_str(&body)
+                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// GET tagmanager/v2/accounts/{accountsId}/containers/{containersId}/destinations/{destinationsId}
+/// Gets a Destination.
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `tagmanager_accounts_containers_destinations_get_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `tagmanager_accounts_containers_destinations_get_task()`.
+/// For the simplest API, use `tagmanager_accounts_containers_destinations_get()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `tagmanager_accounts_containers_destinations_get_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn tagmanager_accounts_containers_destinations_get_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<Destination>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let task = tagmanager_accounts_containers_destinations_get_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`tagmanager_accounts_containers_destinations_get`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct TagmanagerAccountsContainersDestinationsGetArgs {
+    /// Path parameter: path
+    pub path: String,
+}
+
+/// GET tagmanager/v2/accounts/{accountsId}/containers/{containersId}/destinations/{destinationsId}
+/// Gets a Destination.
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `tagmanager_accounts_containers_destinations_get_builder()` + `tagmanager_accounts_containers_destinations_get_execute()`.
+/// For task-level control, use `tagmanager_accounts_containers_destinations_get_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn tagmanager_accounts_containers_destinations_get(
+    client: &SimpleHttpClient,
+    args: &TagmanagerAccountsContainersDestinationsGetArgs,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<Destination>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let builder = tagmanager_accounts_containers_destinations_get_builder(client, &args.path)?;
+    tagmanager_accounts_containers_destinations_get_execute(builder)
+}
+
+/// POST tagmanager/v2/accounts/{accountsId}/containers/{containersId}/destinations:link
+/// Adds a Destination to this Container and removes it from the Container to which it is currently linked.
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `tagmanager_accounts_containers_destinations_link_execute()` to send, or `tagmanager_accounts_containers_destinations_link` for simplest API.
+
+pub fn tagmanager_accounts_containers_destinations_link_builder(
+    client: &SimpleHttpClient,
+    parent: &String,
+    allowUserPermissionFeatureUpdate: &Option<Option<String>>,
+    destinationId: &Option<Option<String>>,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!(
+        "https://tagmanager.googleapis.com/tagmanager/v2/accounts/{}/containers/{containersId}/destinations:link",
+        parent,
+    );
+
+    // Build request
+    let mut query_parts = Vec::new();
+    if let Some(val) = allowUserPermissionFeatureUpdate.as_ref() {
+        query_parts.push(format!("allowUserPermissionFeatureUpdate={}", val));
+    }
+    if let Some(val) = destinationId.as_ref() {
+        query_parts.push(format!("destinationId={}", val));
+    }
+
+    let url_with_query = if query_parts.is_empty() {
+        endpoint_url
+    } else {
+        format!("{}?{}", endpoint_url, query_parts.join("&"))
+    };
+
+    let builder = client
+        .post(&url_with_query)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// POST tagmanager/v2/accounts/{accountsId}/containers/{containersId}/destinations:link
+/// Adds a Destination to this Container and removes it from the Container to which it is currently linked.
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `tagmanager_accounts_containers_destinations_link_execute()` or `tagmanager_accounts_containers_destinations_link`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `tagmanager_accounts_containers_destinations_link_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn tagmanager_accounts_containers_destinations_link_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<Destination>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: Destination = serde_json::from_str(&body)
+                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// POST tagmanager/v2/accounts/{accountsId}/containers/{containersId}/destinations:link
+/// Adds a Destination to this Container and removes it from the Container to which it is currently linked.
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `tagmanager_accounts_containers_destinations_link_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `tagmanager_accounts_containers_destinations_link_task()`.
+/// For the simplest API, use `tagmanager_accounts_containers_destinations_link()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `tagmanager_accounts_containers_destinations_link_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn tagmanager_accounts_containers_destinations_link_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<Destination>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let task = tagmanager_accounts_containers_destinations_link_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`tagmanager_accounts_containers_destinations_link`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct TagmanagerAccountsContainersDestinationsLinkArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Query parameter: allowUserPermissionFeatureUpdate
+    pub allowUserPermissionFeatureUpdate: Option<Option<String>>,
+    /// Query parameter: destinationId
+    pub destinationId: Option<Option<String>>,
+}
+
+/// POST tagmanager/v2/accounts/{accountsId}/containers/{containersId}/destinations:link
+/// Adds a Destination to this Container and removes it from the Container to which it is currently linked.
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `tagmanager_accounts_containers_destinations_link_builder()` + `tagmanager_accounts_containers_destinations_link_execute()`.
+/// For task-level control, use `tagmanager_accounts_containers_destinations_link_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn tagmanager_accounts_containers_destinations_link(
+    client: &SimpleHttpClient,
+    args: &TagmanagerAccountsContainersDestinationsLinkArgs,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<Destination>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let builder = tagmanager_accounts_containers_destinations_link_builder(
+        client,
+        &args.parent,
+        &args.allowUserPermissionFeatureUpdate,
+        &args.destinationId,
+    )?;
+    tagmanager_accounts_containers_destinations_link_execute(builder)
+}
+
+/// GET tagmanager/v2/accounts/{accountsId}/containers/{containersId}/destinations
+/// Lists all Destinations linked to a GTM Container.
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `tagmanager_accounts_containers_destinations_list_execute()` to send, or `tagmanager_accounts_containers_destinations_list` for simplest API.
+
+pub fn tagmanager_accounts_containers_destinations_list_builder(
+    client: &SimpleHttpClient,
+    parent: &String,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!(
+        "https://tagmanager.googleapis.com/tagmanager/v2/accounts/{}/containers/{containersId}/destinations",
+        parent,
+    );
+
+    // Build request
+    let builder = client
+        .get(&endpoint_url)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// GET tagmanager/v2/accounts/{accountsId}/containers/{containersId}/destinations
+/// Lists all Destinations linked to a GTM Container.
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `tagmanager_accounts_containers_destinations_list_execute()` or `tagmanager_accounts_containers_destinations_list`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `tagmanager_accounts_containers_destinations_list_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn tagmanager_accounts_containers_destinations_list_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<ListDestinationsResponse>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: ListDestinationsResponse = serde_json::from_str(&body)
+                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// GET tagmanager/v2/accounts/{accountsId}/containers/{containersId}/destinations
+/// Lists all Destinations linked to a GTM Container.
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `tagmanager_accounts_containers_destinations_list_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `tagmanager_accounts_containers_destinations_list_task()`.
+/// For the simplest API, use `tagmanager_accounts_containers_destinations_list()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `tagmanager_accounts_containers_destinations_list_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn tagmanager_accounts_containers_destinations_list_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<ListDestinationsResponse>, ApiError>, P = ApiPending>
+        + Send
+        + 'static,
+    ApiError,
+> {
+    let task = tagmanager_accounts_containers_destinations_list_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`tagmanager_accounts_containers_destinations_list`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct TagmanagerAccountsContainersDestinationsListArgs {
+    /// Path parameter: parent
+    pub parent: String,
+}
+
+/// GET tagmanager/v2/accounts/{accountsId}/containers/{containersId}/destinations
+/// Lists all Destinations linked to a GTM Container.
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `tagmanager_accounts_containers_destinations_list_builder()` + `tagmanager_accounts_containers_destinations_list_execute()`.
+/// For task-level control, use `tagmanager_accounts_containers_destinations_list_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn tagmanager_accounts_containers_destinations_list(
+    client: &SimpleHttpClient,
+    args: &TagmanagerAccountsContainersDestinationsListArgs,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<ListDestinationsResponse>, ApiError>, P = ApiPending>
+        + Send
+        + 'static,
+    ApiError,
+> {
+    let builder = tagmanager_accounts_containers_destinations_list_builder(client, &args.parent)?;
+    tagmanager_accounts_containers_destinations_list_execute(builder)
+}
+
+/// POST tagmanager/v2/accounts/{accountsId}/containers/{containersId}/environments
+/// Creates a GTM Environment.
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `tagmanager_accounts_containers_environments_create_execute()` to send, or `tagmanager_accounts_containers_environments_create` for simplest API.
+
+pub fn tagmanager_accounts_containers_environments_create_builder(
+    client: &SimpleHttpClient,
+    parent: &String,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!(
+        "https://tagmanager.googleapis.com/tagmanager/v2/accounts/{}/containers/{containersId}/environments",
+        parent,
+    );
+
+    // Build request
+    let builder = client
+        .post(&endpoint_url)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// POST tagmanager/v2/accounts/{accountsId}/containers/{containersId}/environments
+/// Creates a GTM Environment.
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `tagmanager_accounts_containers_environments_create_execute()` or `tagmanager_accounts_containers_environments_create`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `tagmanager_accounts_containers_environments_create_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn tagmanager_accounts_containers_environments_create_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<Environment>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: Environment = serde_json::from_str(&body)
+                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// POST tagmanager/v2/accounts/{accountsId}/containers/{containersId}/environments
+/// Creates a GTM Environment.
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `tagmanager_accounts_containers_environments_create_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `tagmanager_accounts_containers_environments_create_task()`.
+/// For the simplest API, use `tagmanager_accounts_containers_environments_create()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `tagmanager_accounts_containers_environments_create_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn tagmanager_accounts_containers_environments_create_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<Environment>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let task = tagmanager_accounts_containers_environments_create_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`tagmanager_accounts_containers_environments_create`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct TagmanagerAccountsContainersEnvironmentsCreateArgs {
+    /// Path parameter: parent
+    pub parent: String,
+}
+
+/// POST tagmanager/v2/accounts/{accountsId}/containers/{containersId}/environments
+/// Creates a GTM Environment.
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `tagmanager_accounts_containers_environments_create_builder()` + `tagmanager_accounts_containers_environments_create_execute()`.
+/// For task-level control, use `tagmanager_accounts_containers_environments_create_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn tagmanager_accounts_containers_environments_create(
+    client: &SimpleHttpClient,
+    args: &TagmanagerAccountsContainersEnvironmentsCreateArgs,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<Environment>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let builder = tagmanager_accounts_containers_environments_create_builder(client, &args.parent)?;
+    tagmanager_accounts_containers_environments_create_execute(builder)
+}
+
+/// DELETE tagmanager/v2/accounts/{accountsId}/containers/{containersId}/environments/{environmentsId}
+/// Deletes a GTM Environment.
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `tagmanager_accounts_containers_environments_delete_execute()` to send, or `tagmanager_accounts_containers_environments_delete` for simplest API.
+
+pub fn tagmanager_accounts_containers_environments_delete_builder(
+    client: &SimpleHttpClient,
+    path: &String,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!(
+        "https://tagmanager.googleapis.com/tagmanager/v2/accounts/{}/containers/{containersId}/environments/{environmentsId}",
+        path,
+    );
+
+    // Build request
+    let builder = client
+        .delete(&endpoint_url)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// DELETE tagmanager/v2/accounts/{accountsId}/containers/{containersId}/environments/{environmentsId}
+/// Deletes a GTM Environment.
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `tagmanager_accounts_containers_environments_delete_execute()` or `tagmanager_accounts_containers_environments_delete`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `tagmanager_accounts_containers_environments_delete_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn tagmanager_accounts_containers_environments_delete_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<()>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: (),
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// DELETE tagmanager/v2/accounts/{accountsId}/containers/{containersId}/environments/{environmentsId}
+/// Deletes a GTM Environment.
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `tagmanager_accounts_containers_environments_delete_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `tagmanager_accounts_containers_environments_delete_task()`.
+/// For the simplest API, use `tagmanager_accounts_containers_environments_delete()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `tagmanager_accounts_containers_environments_delete_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn tagmanager_accounts_containers_environments_delete_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<()>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let task = tagmanager_accounts_containers_environments_delete_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`tagmanager_accounts_containers_environments_delete`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct TagmanagerAccountsContainersEnvironmentsDeleteArgs {
+    /// Path parameter: path
+    pub path: String,
+}
+
+/// DELETE tagmanager/v2/accounts/{accountsId}/containers/{containersId}/environments/{environmentsId}
+/// Deletes a GTM Environment.
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `tagmanager_accounts_containers_environments_delete_builder()` + `tagmanager_accounts_containers_environments_delete_execute()`.
+/// For task-level control, use `tagmanager_accounts_containers_environments_delete_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn tagmanager_accounts_containers_environments_delete(
+    client: &SimpleHttpClient,
+    args: &TagmanagerAccountsContainersEnvironmentsDeleteArgs,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<()>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let builder = tagmanager_accounts_containers_environments_delete_builder(client, &args.path)?;
+    tagmanager_accounts_containers_environments_delete_execute(builder)
+}
+
+/// GET tagmanager/v2/accounts/{accountsId}/containers/{containersId}/environments/{environmentsId}
+/// Gets a GTM Environment.
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `tagmanager_accounts_containers_environments_get_execute()` to send, or `tagmanager_accounts_containers_environments_get` for simplest API.
+
+pub fn tagmanager_accounts_containers_environments_get_builder(
+    client: &SimpleHttpClient,
+    path: &String,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!(
+        "https://tagmanager.googleapis.com/tagmanager/v2/accounts/{}/containers/{containersId}/environments/{environmentsId}",
+        path,
+    );
+
+    // Build request
+    let builder = client
+        .get(&endpoint_url)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// GET tagmanager/v2/accounts/{accountsId}/containers/{containersId}/environments/{environmentsId}
+/// Gets a GTM Environment.
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `tagmanager_accounts_containers_environments_get_execute()` or `tagmanager_accounts_containers_environments_get`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `tagmanager_accounts_containers_environments_get_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn tagmanager_accounts_containers_environments_get_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<Environment>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: Environment = serde_json::from_str(&body)
+                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// GET tagmanager/v2/accounts/{accountsId}/containers/{containersId}/environments/{environmentsId}
+/// Gets a GTM Environment.
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `tagmanager_accounts_containers_environments_get_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `tagmanager_accounts_containers_environments_get_task()`.
+/// For the simplest API, use `tagmanager_accounts_containers_environments_get()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `tagmanager_accounts_containers_environments_get_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn tagmanager_accounts_containers_environments_get_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<Environment>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let task = tagmanager_accounts_containers_environments_get_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`tagmanager_accounts_containers_environments_get`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct TagmanagerAccountsContainersEnvironmentsGetArgs {
+    /// Path parameter: path
+    pub path: String,
+}
+
+/// GET tagmanager/v2/accounts/{accountsId}/containers/{containersId}/environments/{environmentsId}
+/// Gets a GTM Environment.
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `tagmanager_accounts_containers_environments_get_builder()` + `tagmanager_accounts_containers_environments_get_execute()`.
+/// For task-level control, use `tagmanager_accounts_containers_environments_get_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn tagmanager_accounts_containers_environments_get(
+    client: &SimpleHttpClient,
+    args: &TagmanagerAccountsContainersEnvironmentsGetArgs,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<Environment>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let builder = tagmanager_accounts_containers_environments_get_builder(client, &args.path)?;
+    tagmanager_accounts_containers_environments_get_execute(builder)
+}
+
+/// GET tagmanager/v2/accounts/{accountsId}/containers/{containersId}/environments
+/// Lists all GTM Environments of a GTM Container.
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `tagmanager_accounts_containers_environments_list_execute()` to send, or `tagmanager_accounts_containers_environments_list` for simplest API.
+
+pub fn tagmanager_accounts_containers_environments_list_builder(
+    client: &SimpleHttpClient,
+    parent: &String,
+    pageToken: &Option<Option<String>>,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!(
+        "https://tagmanager.googleapis.com/tagmanager/v2/accounts/{}/containers/{containersId}/environments",
+        parent,
+    );
+
+    // Build request
+    let mut query_parts = Vec::new();
+    if let Some(val) = pageToken.as_ref() {
+        query_parts.push(format!("pageToken={}", val));
+    }
+
+    let url_with_query = if query_parts.is_empty() {
+        endpoint_url
+    } else {
+        format!("{}?{}", endpoint_url, query_parts.join("&"))
+    };
+
+    let builder = client
+        .get(&url_with_query)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// GET tagmanager/v2/accounts/{accountsId}/containers/{containersId}/environments
+/// Lists all GTM Environments of a GTM Container.
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `tagmanager_accounts_containers_environments_list_execute()` or `tagmanager_accounts_containers_environments_list`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `tagmanager_accounts_containers_environments_list_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn tagmanager_accounts_containers_environments_list_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<ListEnvironmentsResponse>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: ListEnvironmentsResponse = serde_json::from_str(&body)
+                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// GET tagmanager/v2/accounts/{accountsId}/containers/{containersId}/environments
+/// Lists all GTM Environments of a GTM Container.
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `tagmanager_accounts_containers_environments_list_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `tagmanager_accounts_containers_environments_list_task()`.
+/// For the simplest API, use `tagmanager_accounts_containers_environments_list()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `tagmanager_accounts_containers_environments_list_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn tagmanager_accounts_containers_environments_list_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<ListEnvironmentsResponse>, ApiError>, P = ApiPending>
+        + Send
+        + 'static,
+    ApiError,
+> {
+    let task = tagmanager_accounts_containers_environments_list_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`tagmanager_accounts_containers_environments_list`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct TagmanagerAccountsContainersEnvironmentsListArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Query parameter: pageToken
+    pub pageToken: Option<Option<String>>,
+}
+
+/// GET tagmanager/v2/accounts/{accountsId}/containers/{containersId}/environments
+/// Lists all GTM Environments of a GTM Container.
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `tagmanager_accounts_containers_environments_list_builder()` + `tagmanager_accounts_containers_environments_list_execute()`.
+/// For task-level control, use `tagmanager_accounts_containers_environments_list_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn tagmanager_accounts_containers_environments_list(
+    client: &SimpleHttpClient,
+    args: &TagmanagerAccountsContainersEnvironmentsListArgs,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<ListEnvironmentsResponse>, ApiError>, P = ApiPending>
+        + Send
+        + 'static,
+    ApiError,
+> {
+    let builder = tagmanager_accounts_containers_environments_list_builder(
+        client,
+        &args.parent,
+        &args.pageToken,
+    )?;
+    tagmanager_accounts_containers_environments_list_execute(builder)
+}
+
+/// POST tagmanager/v2/accounts/{accountsId}/containers/{containersId}/environments/{environmentsId}:reauthorize
+/// Re-generates the authorization code for a GTM Environment.
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `tagmanager_accounts_containers_environments_reauthorize_execute()` to send, or `tagmanager_accounts_containers_environments_reauthorize` for simplest API.
+
+pub fn tagmanager_accounts_containers_environments_reauthorize_builder(
+    client: &SimpleHttpClient,
+    path: &String,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!(
+        "https://tagmanager.googleapis.com/tagmanager/v2/accounts/{}/containers/{containersId}/environments/{environmentsId}:reauthorize",
+        path,
+    );
+
+    // Build request
+    let builder = client
+        .post(&endpoint_url)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// POST tagmanager/v2/accounts/{accountsId}/containers/{containersId}/environments/{environmentsId}:reauthorize
+/// Re-generates the authorization code for a GTM Environment.
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `tagmanager_accounts_containers_environments_reauthorize_execute()` or `tagmanager_accounts_containers_environments_reauthorize`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `tagmanager_accounts_containers_environments_reauthorize_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn tagmanager_accounts_containers_environments_reauthorize_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<Environment>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: Environment = serde_json::from_str(&body)
+                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// POST tagmanager/v2/accounts/{accountsId}/containers/{containersId}/environments/{environmentsId}:reauthorize
+/// Re-generates the authorization code for a GTM Environment.
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `tagmanager_accounts_containers_environments_reauthorize_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `tagmanager_accounts_containers_environments_reauthorize_task()`.
+/// For the simplest API, use `tagmanager_accounts_containers_environments_reauthorize()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `tagmanager_accounts_containers_environments_reauthorize_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn tagmanager_accounts_containers_environments_reauthorize_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<Environment>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let task = tagmanager_accounts_containers_environments_reauthorize_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`tagmanager_accounts_containers_environments_reauthorize`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct TagmanagerAccountsContainersEnvironmentsReauthorizeArgs {
+    /// Path parameter: path
+    pub path: String,
+}
+
+/// POST tagmanager/v2/accounts/{accountsId}/containers/{containersId}/environments/{environmentsId}:reauthorize
+/// Re-generates the authorization code for a GTM Environment.
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `tagmanager_accounts_containers_environments_reauthorize_builder()` + `tagmanager_accounts_containers_environments_reauthorize_execute()`.
+/// For task-level control, use `tagmanager_accounts_containers_environments_reauthorize_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn tagmanager_accounts_containers_environments_reauthorize(
+    client: &SimpleHttpClient,
+    args: &TagmanagerAccountsContainersEnvironmentsReauthorizeArgs,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<Environment>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let builder =
+        tagmanager_accounts_containers_environments_reauthorize_builder(client, &args.path)?;
+    tagmanager_accounts_containers_environments_reauthorize_execute(builder)
+}
+
+/// PUT tagmanager/v2/accounts/{accountsId}/containers/{containersId}/environments/{environmentsId}
+/// Updates a GTM Environment.
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `tagmanager_accounts_containers_environments_update_execute()` to send, or `tagmanager_accounts_containers_environments_update` for simplest API.
+
+pub fn tagmanager_accounts_containers_environments_update_builder(
+    client: &SimpleHttpClient,
+    path: &String,
+    fingerprint: &Option<Option<String>>,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!(
+        "https://tagmanager.googleapis.com/tagmanager/v2/accounts/{}/containers/{containersId}/environments/{environmentsId}",
+        path,
+    );
+
+    // Build request
+    let mut query_parts = Vec::new();
+    if let Some(val) = fingerprint.as_ref() {
+        query_parts.push(format!("fingerprint={}", val));
+    }
+
+    let url_with_query = if query_parts.is_empty() {
+        endpoint_url
+    } else {
+        format!("{}?{}", endpoint_url, query_parts.join("&"))
+    };
+
+    let builder = client
+        .put(&url_with_query)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// PUT tagmanager/v2/accounts/{accountsId}/containers/{containersId}/environments/{environmentsId}
+/// Updates a GTM Environment.
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `tagmanager_accounts_containers_environments_update_execute()` or `tagmanager_accounts_containers_environments_update`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `tagmanager_accounts_containers_environments_update_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn tagmanager_accounts_containers_environments_update_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<Environment>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: Environment = serde_json::from_str(&body)
+                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// PUT tagmanager/v2/accounts/{accountsId}/containers/{containersId}/environments/{environmentsId}
+/// Updates a GTM Environment.
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `tagmanager_accounts_containers_environments_update_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `tagmanager_accounts_containers_environments_update_task()`.
+/// For the simplest API, use `tagmanager_accounts_containers_environments_update()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `tagmanager_accounts_containers_environments_update_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn tagmanager_accounts_containers_environments_update_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<Environment>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let task = tagmanager_accounts_containers_environments_update_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`tagmanager_accounts_containers_environments_update`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct TagmanagerAccountsContainersEnvironmentsUpdateArgs {
+    /// Path parameter: path
+    pub path: String,
+    /// Query parameter: fingerprint
+    pub fingerprint: Option<Option<String>>,
+}
+
+/// PUT tagmanager/v2/accounts/{accountsId}/containers/{containersId}/environments/{environmentsId}
+/// Updates a GTM Environment.
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `tagmanager_accounts_containers_environments_update_builder()` + `tagmanager_accounts_containers_environments_update_execute()`.
+/// For task-level control, use `tagmanager_accounts_containers_environments_update_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn tagmanager_accounts_containers_environments_update(
+    client: &SimpleHttpClient,
+    args: &TagmanagerAccountsContainersEnvironmentsUpdateArgs,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<Environment>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let builder = tagmanager_accounts_containers_environments_update_builder(
+        client,
+        &args.path,
+        &args.fingerprint,
+    )?;
+    tagmanager_accounts_containers_environments_update_execute(builder)
+}
+
+/// GET tagmanager/v2/accounts/{accountsId}/containers/{containersId}/version_headers:latest
+/// Gets the latest container version header
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `tagmanager_accounts_containers_version_headers_latest_execute()` to send, or `tagmanager_accounts_containers_version_headers_latest` for simplest API.
+
+pub fn tagmanager_accounts_containers_version_headers_latest_builder(
+    client: &SimpleHttpClient,
+    parent: &String,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!(
+        "https://tagmanager.googleapis.com/tagmanager/v2/accounts/{}/containers/{containersId}/version_headers:latest",
+        parent,
+    );
+
+    // Build request
+    let builder = client
+        .get(&endpoint_url)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// GET tagmanager/v2/accounts/{accountsId}/containers/{containersId}/version_headers:latest
+/// Gets the latest container version header
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `tagmanager_accounts_containers_version_headers_latest_execute()` or `tagmanager_accounts_containers_version_headers_latest`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `tagmanager_accounts_containers_version_headers_latest_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn tagmanager_accounts_containers_version_headers_latest_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<ContainerVersionHeader>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: ContainerVersionHeader = serde_json::from_str(&body)
+                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// GET tagmanager/v2/accounts/{accountsId}/containers/{containersId}/version_headers:latest
+/// Gets the latest container version header
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `tagmanager_accounts_containers_version_headers_latest_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `tagmanager_accounts_containers_version_headers_latest_task()`.
+/// For the simplest API, use `tagmanager_accounts_containers_version_headers_latest()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `tagmanager_accounts_containers_version_headers_latest_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn tagmanager_accounts_containers_version_headers_latest_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<ContainerVersionHeader>, ApiError>, P = ApiPending>
+        + Send
+        + 'static,
+    ApiError,
+> {
+    let task = tagmanager_accounts_containers_version_headers_latest_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`tagmanager_accounts_containers_version_headers_latest`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct TagmanagerAccountsContainersVersionHeadersLatestArgs {
+    /// Path parameter: parent
+    pub parent: String,
+}
+
+/// GET tagmanager/v2/accounts/{accountsId}/containers/{containersId}/version_headers:latest
+/// Gets the latest container version header
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `tagmanager_accounts_containers_version_headers_latest_builder()` + `tagmanager_accounts_containers_version_headers_latest_execute()`.
+/// For task-level control, use `tagmanager_accounts_containers_version_headers_latest_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn tagmanager_accounts_containers_version_headers_latest(
+    client: &SimpleHttpClient,
+    args: &TagmanagerAccountsContainersVersionHeadersLatestArgs,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<ContainerVersionHeader>, ApiError>, P = ApiPending>
+        + Send
+        + 'static,
+    ApiError,
+> {
+    let builder =
+        tagmanager_accounts_containers_version_headers_latest_builder(client, &args.parent)?;
+    tagmanager_accounts_containers_version_headers_latest_execute(builder)
+}
+
+/// GET tagmanager/v2/accounts/{accountsId}/containers/{containersId}/version_headers
+/// Lists all Container Versions of a GTM Container.
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `tagmanager_accounts_containers_version_headers_list_execute()` to send, or `tagmanager_accounts_containers_version_headers_list` for simplest API.
+
+pub fn tagmanager_accounts_containers_version_headers_list_builder(
+    client: &SimpleHttpClient,
+    parent: &String,
+    includeDeleted: &Option<Option<String>>,
+    pageToken: &Option<Option<String>>,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!(
+        "https://tagmanager.googleapis.com/tagmanager/v2/accounts/{}/containers/{containersId}/version_headers",
+        parent,
+    );
+
+    // Build request
+    let mut query_parts = Vec::new();
+    if let Some(val) = includeDeleted.as_ref() {
+        query_parts.push(format!("includeDeleted={}", val));
+    }
+    if let Some(val) = pageToken.as_ref() {
+        query_parts.push(format!("pageToken={}", val));
+    }
+
+    let url_with_query = if query_parts.is_empty() {
+        endpoint_url
+    } else {
+        format!("{}?{}", endpoint_url, query_parts.join("&"))
+    };
+
+    let builder = client
+        .get(&url_with_query)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// GET tagmanager/v2/accounts/{accountsId}/containers/{containersId}/version_headers
+/// Lists all Container Versions of a GTM Container.
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `tagmanager_accounts_containers_version_headers_list_execute()` or `tagmanager_accounts_containers_version_headers_list`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `tagmanager_accounts_containers_version_headers_list_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn tagmanager_accounts_containers_version_headers_list_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<ListContainerVersionsResponse>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: ListContainerVersionsResponse = serde_json::from_str(&body)
+                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// GET tagmanager/v2/accounts/{accountsId}/containers/{containersId}/version_headers
+/// Lists all Container Versions of a GTM Container.
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `tagmanager_accounts_containers_version_headers_list_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `tagmanager_accounts_containers_version_headers_list_task()`.
+/// For the simplest API, use `tagmanager_accounts_containers_version_headers_list()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `tagmanager_accounts_containers_version_headers_list_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn tagmanager_accounts_containers_version_headers_list_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<
+            D = Result<ApiResponse<ListContainerVersionsResponse>, ApiError>,
+            P = ApiPending,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    let task = tagmanager_accounts_containers_version_headers_list_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`tagmanager_accounts_containers_version_headers_list`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct TagmanagerAccountsContainersVersionHeadersListArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Query parameter: includeDeleted
+    pub includeDeleted: Option<Option<String>>,
+    /// Query parameter: pageToken
+    pub pageToken: Option<Option<String>>,
+}
+
+/// GET tagmanager/v2/accounts/{accountsId}/containers/{containersId}/version_headers
+/// Lists all Container Versions of a GTM Container.
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `tagmanager_accounts_containers_version_headers_list_builder()` + `tagmanager_accounts_containers_version_headers_list_execute()`.
+/// For task-level control, use `tagmanager_accounts_containers_version_headers_list_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn tagmanager_accounts_containers_version_headers_list(
+    client: &SimpleHttpClient,
+    args: &TagmanagerAccountsContainersVersionHeadersListArgs,
+) -> Result<
+    impl StreamIterator<
+            D = Result<ApiResponse<ListContainerVersionsResponse>, ApiError>,
+            P = ApiPending,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    let builder = tagmanager_accounts_containers_version_headers_list_builder(
+        client,
+        &args.parent,
+        &args.includeDeleted,
+        &args.pageToken,
+    )?;
+    tagmanager_accounts_containers_version_headers_list_execute(builder)
+}
+
+/// DELETE tagmanager/v2/accounts/{accountsId}/containers/{containersId}/versions/{versionsId}
+/// Deletes a Container Version.
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `tagmanager_accounts_containers_versions_delete_execute()` to send, or `tagmanager_accounts_containers_versions_delete` for simplest API.
+
+pub fn tagmanager_accounts_containers_versions_delete_builder(
+    client: &SimpleHttpClient,
+    path: &String,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!(
+        "https://tagmanager.googleapis.com/tagmanager/v2/accounts/{}/containers/{containersId}/versions/{versionsId}",
+        path,
+    );
+
+    // Build request
+    let builder = client
+        .delete(&endpoint_url)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// DELETE tagmanager/v2/accounts/{accountsId}/containers/{containersId}/versions/{versionsId}
+/// Deletes a Container Version.
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `tagmanager_accounts_containers_versions_delete_execute()` or `tagmanager_accounts_containers_versions_delete`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `tagmanager_accounts_containers_versions_delete_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn tagmanager_accounts_containers_versions_delete_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<()>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: (),
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// DELETE tagmanager/v2/accounts/{accountsId}/containers/{containersId}/versions/{versionsId}
+/// Deletes a Container Version.
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `tagmanager_accounts_containers_versions_delete_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `tagmanager_accounts_containers_versions_delete_task()`.
+/// For the simplest API, use `tagmanager_accounts_containers_versions_delete()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `tagmanager_accounts_containers_versions_delete_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn tagmanager_accounts_containers_versions_delete_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<()>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let task = tagmanager_accounts_containers_versions_delete_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`tagmanager_accounts_containers_versions_delete`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct TagmanagerAccountsContainersVersionsDeleteArgs {
+    /// Path parameter: path
+    pub path: String,
+}
+
+/// DELETE tagmanager/v2/accounts/{accountsId}/containers/{containersId}/versions/{versionsId}
+/// Deletes a Container Version.
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `tagmanager_accounts_containers_versions_delete_builder()` + `tagmanager_accounts_containers_versions_delete_execute()`.
+/// For task-level control, use `tagmanager_accounts_containers_versions_delete_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn tagmanager_accounts_containers_versions_delete(
+    client: &SimpleHttpClient,
+    args: &TagmanagerAccountsContainersVersionsDeleteArgs,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<()>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let builder = tagmanager_accounts_containers_versions_delete_builder(client, &args.path)?;
+    tagmanager_accounts_containers_versions_delete_execute(builder)
+}
+
+/// GET tagmanager/v2/accounts/{accountsId}/containers/{containersId}/versions/{versionsId}
+/// Gets a Container Version.
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `tagmanager_accounts_containers_versions_get_execute()` to send, or `tagmanager_accounts_containers_versions_get` for simplest API.
+
+pub fn tagmanager_accounts_containers_versions_get_builder(
+    client: &SimpleHttpClient,
+    path: &String,
+    containerVersionId: &Option<Option<String>>,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!(
+        "https://tagmanager.googleapis.com/tagmanager/v2/accounts/{}/containers/{containersId}/versions/{versionsId}",
+        path,
+    );
+
+    // Build request
+    let mut query_parts = Vec::new();
+    if let Some(val) = containerVersionId.as_ref() {
+        query_parts.push(format!("containerVersionId={}", val));
+    }
+
+    let url_with_query = if query_parts.is_empty() {
+        endpoint_url
+    } else {
+        format!("{}?{}", endpoint_url, query_parts.join("&"))
+    };
+
+    let builder = client
+        .get(&url_with_query)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// GET tagmanager/v2/accounts/{accountsId}/containers/{containersId}/versions/{versionsId}
+/// Gets a Container Version.
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `tagmanager_accounts_containers_versions_get_execute()` or `tagmanager_accounts_containers_versions_get`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `tagmanager_accounts_containers_versions_get_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn tagmanager_accounts_containers_versions_get_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<ContainerVersion>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: ContainerVersion = serde_json::from_str(&body)
+                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// GET tagmanager/v2/accounts/{accountsId}/containers/{containersId}/versions/{versionsId}
+/// Gets a Container Version.
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `tagmanager_accounts_containers_versions_get_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `tagmanager_accounts_containers_versions_get_task()`.
+/// For the simplest API, use `tagmanager_accounts_containers_versions_get()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `tagmanager_accounts_containers_versions_get_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn tagmanager_accounts_containers_versions_get_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<ContainerVersion>, ApiError>, P = ApiPending>
+        + Send
+        + 'static,
+    ApiError,
+> {
+    let task = tagmanager_accounts_containers_versions_get_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`tagmanager_accounts_containers_versions_get`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct TagmanagerAccountsContainersVersionsGetArgs {
+    /// Path parameter: path
+    pub path: String,
+    /// Query parameter: containerVersionId
+    pub containerVersionId: Option<Option<String>>,
+}
+
+/// GET tagmanager/v2/accounts/{accountsId}/containers/{containersId}/versions/{versionsId}
+/// Gets a Container Version.
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `tagmanager_accounts_containers_versions_get_builder()` + `tagmanager_accounts_containers_versions_get_execute()`.
+/// For task-level control, use `tagmanager_accounts_containers_versions_get_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn tagmanager_accounts_containers_versions_get(
+    client: &SimpleHttpClient,
+    args: &TagmanagerAccountsContainersVersionsGetArgs,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<ContainerVersion>, ApiError>, P = ApiPending>
+        + Send
+        + 'static,
+    ApiError,
+> {
+    let builder = tagmanager_accounts_containers_versions_get_builder(
+        client,
+        &args.path,
+        &args.containerVersionId,
+    )?;
+    tagmanager_accounts_containers_versions_get_execute(builder)
+}
+
+/// GET tagmanager/v2/accounts/{accountsId}/containers/{containersId}/versions:live
+/// Gets the live (i.e. published) container version
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `tagmanager_accounts_containers_versions_live_execute()` to send, or `tagmanager_accounts_containers_versions_live` for simplest API.
+
+pub fn tagmanager_accounts_containers_versions_live_builder(
+    client: &SimpleHttpClient,
+    parent: &String,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!(
+        "https://tagmanager.googleapis.com/tagmanager/v2/accounts/{}/containers/{containersId}/versions:live",
+        parent,
+    );
+
+    // Build request
+    let builder = client
+        .get(&endpoint_url)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// GET tagmanager/v2/accounts/{accountsId}/containers/{containersId}/versions:live
+/// Gets the live (i.e. published) container version
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `tagmanager_accounts_containers_versions_live_execute()` or `tagmanager_accounts_containers_versions_live`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `tagmanager_accounts_containers_versions_live_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn tagmanager_accounts_containers_versions_live_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<ContainerVersion>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: ContainerVersion = serde_json::from_str(&body)
+                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// GET tagmanager/v2/accounts/{accountsId}/containers/{containersId}/versions:live
+/// Gets the live (i.e. published) container version
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `tagmanager_accounts_containers_versions_live_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `tagmanager_accounts_containers_versions_live_task()`.
+/// For the simplest API, use `tagmanager_accounts_containers_versions_live()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `tagmanager_accounts_containers_versions_live_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn tagmanager_accounts_containers_versions_live_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<ContainerVersion>, ApiError>, P = ApiPending>
+        + Send
+        + 'static,
+    ApiError,
+> {
+    let task = tagmanager_accounts_containers_versions_live_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`tagmanager_accounts_containers_versions_live`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct TagmanagerAccountsContainersVersionsLiveArgs {
+    /// Path parameter: parent
+    pub parent: String,
+}
+
+/// GET tagmanager/v2/accounts/{accountsId}/containers/{containersId}/versions:live
+/// Gets the live (i.e. published) container version
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `tagmanager_accounts_containers_versions_live_builder()` + `tagmanager_accounts_containers_versions_live_execute()`.
+/// For task-level control, use `tagmanager_accounts_containers_versions_live_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn tagmanager_accounts_containers_versions_live(
+    client: &SimpleHttpClient,
+    args: &TagmanagerAccountsContainersVersionsLiveArgs,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<ContainerVersion>, ApiError>, P = ApiPending>
+        + Send
+        + 'static,
+    ApiError,
+> {
+    let builder = tagmanager_accounts_containers_versions_live_builder(client, &args.parent)?;
+    tagmanager_accounts_containers_versions_live_execute(builder)
+}
+
+/// POST tagmanager/v2/accounts/{accountsId}/containers/{containersId}/versions/{versionsId}:publish
+/// Publishes a Container Version.
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `tagmanager_accounts_containers_versions_publish_execute()` to send, or `tagmanager_accounts_containers_versions_publish` for simplest API.
+
+pub fn tagmanager_accounts_containers_versions_publish_builder(
+    client: &SimpleHttpClient,
+    path: &String,
+    fingerprint: &Option<Option<String>>,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!(
+        "https://tagmanager.googleapis.com/tagmanager/v2/accounts/{}/containers/{containersId}/versions/{versionsId}:publish",
+        path,
+    );
+
+    // Build request
+    let mut query_parts = Vec::new();
+    if let Some(val) = fingerprint.as_ref() {
+        query_parts.push(format!("fingerprint={}", val));
+    }
+
+    let url_with_query = if query_parts.is_empty() {
+        endpoint_url
+    } else {
+        format!("{}?{}", endpoint_url, query_parts.join("&"))
+    };
+
+    let builder = client
+        .post(&url_with_query)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// POST tagmanager/v2/accounts/{accountsId}/containers/{containersId}/versions/{versionsId}:publish
+/// Publishes a Container Version.
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `tagmanager_accounts_containers_versions_publish_execute()` or `tagmanager_accounts_containers_versions_publish`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `tagmanager_accounts_containers_versions_publish_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn tagmanager_accounts_containers_versions_publish_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<PublishContainerVersionResponse>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: PublishContainerVersionResponse = serde_json::from_str(&body)
+                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// POST tagmanager/v2/accounts/{accountsId}/containers/{containersId}/versions/{versionsId}:publish
+/// Publishes a Container Version.
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `tagmanager_accounts_containers_versions_publish_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `tagmanager_accounts_containers_versions_publish_task()`.
+/// For the simplest API, use `tagmanager_accounts_containers_versions_publish()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `tagmanager_accounts_containers_versions_publish_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn tagmanager_accounts_containers_versions_publish_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<
+            D = Result<ApiResponse<PublishContainerVersionResponse>, ApiError>,
+            P = ApiPending,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    let task = tagmanager_accounts_containers_versions_publish_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`tagmanager_accounts_containers_versions_publish`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct TagmanagerAccountsContainersVersionsPublishArgs {
+    /// Path parameter: path
+    pub path: String,
+    /// Query parameter: fingerprint
+    pub fingerprint: Option<Option<String>>,
+}
+
+/// POST tagmanager/v2/accounts/{accountsId}/containers/{containersId}/versions/{versionsId}:publish
+/// Publishes a Container Version.
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `tagmanager_accounts_containers_versions_publish_builder()` + `tagmanager_accounts_containers_versions_publish_execute()`.
+/// For task-level control, use `tagmanager_accounts_containers_versions_publish_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn tagmanager_accounts_containers_versions_publish(
+    client: &SimpleHttpClient,
+    args: &TagmanagerAccountsContainersVersionsPublishArgs,
+) -> Result<
+    impl StreamIterator<
+            D = Result<ApiResponse<PublishContainerVersionResponse>, ApiError>,
+            P = ApiPending,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    let builder = tagmanager_accounts_containers_versions_publish_builder(
+        client,
+        &args.path,
+        &args.fingerprint,
+    )?;
+    tagmanager_accounts_containers_versions_publish_execute(builder)
+}
+
+/// POST tagmanager/v2/accounts/{accountsId}/containers/{containersId}/versions/{versionsId}:set_latest
+/// Sets the latest version used for synchronization of workspaces when detecting conflicts and errors.
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `tagmanager_accounts_containers_versions_set_latest_execute()` to send, or `tagmanager_accounts_containers_versions_set_latest` for simplest API.
+
+pub fn tagmanager_accounts_containers_versions_set_latest_builder(
+    client: &SimpleHttpClient,
+    path: &String,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!(
+        "https://tagmanager.googleapis.com/tagmanager/v2/accounts/{}/containers/{containersId}/versions/{versionsId}:set_latest",
+        path,
+    );
+
+    // Build request
+    let builder = client
+        .post(&endpoint_url)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// POST tagmanager/v2/accounts/{accountsId}/containers/{containersId}/versions/{versionsId}:set_latest
+/// Sets the latest version used for synchronization of workspaces when detecting conflicts and errors.
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `tagmanager_accounts_containers_versions_set_latest_execute()` or `tagmanager_accounts_containers_versions_set_latest`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `tagmanager_accounts_containers_versions_set_latest_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn tagmanager_accounts_containers_versions_set_latest_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<ContainerVersion>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: ContainerVersion = serde_json::from_str(&body)
+                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// POST tagmanager/v2/accounts/{accountsId}/containers/{containersId}/versions/{versionsId}:set_latest
+/// Sets the latest version used for synchronization of workspaces when detecting conflicts and errors.
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `tagmanager_accounts_containers_versions_set_latest_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `tagmanager_accounts_containers_versions_set_latest_task()`.
+/// For the simplest API, use `tagmanager_accounts_containers_versions_set_latest()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `tagmanager_accounts_containers_versions_set_latest_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn tagmanager_accounts_containers_versions_set_latest_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<ContainerVersion>, ApiError>, P = ApiPending>
+        + Send
+        + 'static,
+    ApiError,
+> {
+    let task = tagmanager_accounts_containers_versions_set_latest_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`tagmanager_accounts_containers_versions_set_latest`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct TagmanagerAccountsContainersVersionsSetLatestArgs {
+    /// Path parameter: path
+    pub path: String,
+}
+
+/// POST tagmanager/v2/accounts/{accountsId}/containers/{containersId}/versions/{versionsId}:set_latest
+/// Sets the latest version used for synchronization of workspaces when detecting conflicts and errors.
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `tagmanager_accounts_containers_versions_set_latest_builder()` + `tagmanager_accounts_containers_versions_set_latest_execute()`.
+/// For task-level control, use `tagmanager_accounts_containers_versions_set_latest_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn tagmanager_accounts_containers_versions_set_latest(
+    client: &SimpleHttpClient,
+    args: &TagmanagerAccountsContainersVersionsSetLatestArgs,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<ContainerVersion>, ApiError>, P = ApiPending>
+        + Send
+        + 'static,
+    ApiError,
+> {
+    let builder = tagmanager_accounts_containers_versions_set_latest_builder(client, &args.path)?;
+    tagmanager_accounts_containers_versions_set_latest_execute(builder)
+}
+
+/// POST tagmanager/v2/accounts/{accountsId}/containers/{containersId}/versions/{versionsId}:undelete
+/// Undeletes a Container Version.
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `tagmanager_accounts_containers_versions_undelete_execute()` to send, or `tagmanager_accounts_containers_versions_undelete` for simplest API.
+
+pub fn tagmanager_accounts_containers_versions_undelete_builder(
+    client: &SimpleHttpClient,
+    path: &String,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!(
+        "https://tagmanager.googleapis.com/tagmanager/v2/accounts/{}/containers/{containersId}/versions/{versionsId}:undelete",
+        path,
+    );
+
+    // Build request
+    let builder = client
+        .post(&endpoint_url)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// POST tagmanager/v2/accounts/{accountsId}/containers/{containersId}/versions/{versionsId}:undelete
+/// Undeletes a Container Version.
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `tagmanager_accounts_containers_versions_undelete_execute()` or `tagmanager_accounts_containers_versions_undelete`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `tagmanager_accounts_containers_versions_undelete_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn tagmanager_accounts_containers_versions_undelete_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<ContainerVersion>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: ContainerVersion = serde_json::from_str(&body)
+                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// POST tagmanager/v2/accounts/{accountsId}/containers/{containersId}/versions/{versionsId}:undelete
+/// Undeletes a Container Version.
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `tagmanager_accounts_containers_versions_undelete_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `tagmanager_accounts_containers_versions_undelete_task()`.
+/// For the simplest API, use `tagmanager_accounts_containers_versions_undelete()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `tagmanager_accounts_containers_versions_undelete_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn tagmanager_accounts_containers_versions_undelete_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<ContainerVersion>, ApiError>, P = ApiPending>
+        + Send
+        + 'static,
+    ApiError,
+> {
+    let task = tagmanager_accounts_containers_versions_undelete_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`tagmanager_accounts_containers_versions_undelete`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct TagmanagerAccountsContainersVersionsUndeleteArgs {
+    /// Path parameter: path
+    pub path: String,
+}
+
+/// POST tagmanager/v2/accounts/{accountsId}/containers/{containersId}/versions/{versionsId}:undelete
+/// Undeletes a Container Version.
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `tagmanager_accounts_containers_versions_undelete_builder()` + `tagmanager_accounts_containers_versions_undelete_execute()`.
+/// For task-level control, use `tagmanager_accounts_containers_versions_undelete_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn tagmanager_accounts_containers_versions_undelete(
+    client: &SimpleHttpClient,
+    args: &TagmanagerAccountsContainersVersionsUndeleteArgs,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<ContainerVersion>, ApiError>, P = ApiPending>
+        + Send
+        + 'static,
+    ApiError,
+> {
+    let builder = tagmanager_accounts_containers_versions_undelete_builder(client, &args.path)?;
+    tagmanager_accounts_containers_versions_undelete_execute(builder)
+}
+
+/// PUT tagmanager/v2/accounts/{accountsId}/containers/{containersId}/versions/{versionsId}
+/// Updates a Container Version.
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `tagmanager_accounts_containers_versions_update_execute()` to send, or `tagmanager_accounts_containers_versions_update` for simplest API.
+
+pub fn tagmanager_accounts_containers_versions_update_builder(
+    client: &SimpleHttpClient,
+    path: &String,
+    fingerprint: &Option<Option<String>>,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!(
+        "https://tagmanager.googleapis.com/tagmanager/v2/accounts/{}/containers/{containersId}/versions/{versionsId}",
+        path,
+    );
+
+    // Build request
+    let mut query_parts = Vec::new();
+    if let Some(val) = fingerprint.as_ref() {
+        query_parts.push(format!("fingerprint={}", val));
+    }
+
+    let url_with_query = if query_parts.is_empty() {
+        endpoint_url
+    } else {
+        format!("{}?{}", endpoint_url, query_parts.join("&"))
+    };
+
+    let builder = client
+        .put(&url_with_query)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// PUT tagmanager/v2/accounts/{accountsId}/containers/{containersId}/versions/{versionsId}
+/// Updates a Container Version.
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `tagmanager_accounts_containers_versions_update_execute()` or `tagmanager_accounts_containers_versions_update`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `tagmanager_accounts_containers_versions_update_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn tagmanager_accounts_containers_versions_update_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<ContainerVersion>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: ContainerVersion = serde_json::from_str(&body)
+                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// PUT tagmanager/v2/accounts/{accountsId}/containers/{containersId}/versions/{versionsId}
+/// Updates a Container Version.
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `tagmanager_accounts_containers_versions_update_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `tagmanager_accounts_containers_versions_update_task()`.
+/// For the simplest API, use `tagmanager_accounts_containers_versions_update()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `tagmanager_accounts_containers_versions_update_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn tagmanager_accounts_containers_versions_update_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<ContainerVersion>, ApiError>, P = ApiPending>
+        + Send
+        + 'static,
+    ApiError,
+> {
+    let task = tagmanager_accounts_containers_versions_update_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`tagmanager_accounts_containers_versions_update`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct TagmanagerAccountsContainersVersionsUpdateArgs {
+    /// Path parameter: path
+    pub path: String,
+    /// Query parameter: fingerprint
+    pub fingerprint: Option<Option<String>>,
+}
+
+/// PUT tagmanager/v2/accounts/{accountsId}/containers/{containersId}/versions/{versionsId}
+/// Updates a Container Version.
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `tagmanager_accounts_containers_versions_update_builder()` + `tagmanager_accounts_containers_versions_update_execute()`.
+/// For task-level control, use `tagmanager_accounts_containers_versions_update_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn tagmanager_accounts_containers_versions_update(
+    client: &SimpleHttpClient,
+    args: &TagmanagerAccountsContainersVersionsUpdateArgs,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<ContainerVersion>, ApiError>, P = ApiPending>
+        + Send
+        + 'static,
+    ApiError,
+> {
+    let builder = tagmanager_accounts_containers_versions_update_builder(
+        client,
+        &args.path,
+        &args.fingerprint,
+    )?;
+    tagmanager_accounts_containers_versions_update_execute(builder)
+}
+
+/// POST tagmanager/v2/accounts/{accountsId}/containers/{containersId}/workspaces/{workspacesId}/bulk_update
+/// Applies multiple entity changes to a workspace in one call. When creating new entities, their entity IDs must be unique and in correct format. That is, they must start with "new_" and followed by number, e.g. "new_1", "new_2". Example body snippet to create `myNewTag` under `myNewFolder` is:  "changes": [ { "folder": { "`folderId`": "new_1", "name": "`myNewFolder`", ... }, "`changeStatus`": "added" }, { "tag": { "`tagId`": "new_2", "name": "`myNewTag`", "`parentFolderId`": "new_1", ... }, "`changeStatus`": "added" } ]
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `tagmanager_accounts_containers_workspaces_bulk_update_execute()` to send, or `tagmanager_accounts_containers_workspaces_bulk_update` for simplest API.
+
+pub fn tagmanager_accounts_containers_workspaces_bulk_update_builder(
+    client: &SimpleHttpClient,
+    path: &String,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!(
+        "https://tagmanager.googleapis.com/tagmanager/v2/accounts/{}/containers/{containersId}/workspaces/{workspacesId}/bulk_update",
+        path,
+    );
+
+    // Build request
+    let builder = client
+        .post(&endpoint_url)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// POST tagmanager/v2/accounts/{accountsId}/containers/{containersId}/workspaces/{workspacesId}/bulk_update
+/// Applies multiple entity changes to a workspace in one call. When creating new entities, their entity IDs must be unique and in correct format. That is, they must start with "new_" and followed by number, e.g. "new_1", "new_2". Example body snippet to create `myNewTag` under `myNewFolder` is:  "changes": [ { "folder": { "`folderId`": "new_1", "name": "`myNewFolder`", ... }, "`changeStatus`": "added" }, { "tag": { "`tagId`": "new_2", "name": "`myNewTag`", "`parentFolderId`": "new_1", ... }, "`changeStatus`": "added" } ]
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `tagmanager_accounts_containers_workspaces_bulk_update_execute()` or `tagmanager_accounts_containers_workspaces_bulk_update`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `tagmanager_accounts_containers_workspaces_bulk_update_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn tagmanager_accounts_containers_workspaces_bulk_update_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<BulkUpdateWorkspaceResponse>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: BulkUpdateWorkspaceResponse = serde_json::from_str(&body)
+                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// POST tagmanager/v2/accounts/{accountsId}/containers/{containersId}/workspaces/{workspacesId}/bulk_update
+/// Applies multiple entity changes to a workspace in one call. When creating new entities, their entity IDs must be unique and in correct format. That is, they must start with "new_" and followed by number, e.g. "new_1", "new_2". Example body snippet to create `myNewTag` under `myNewFolder` is:  "changes": [ { "folder": { "`folderId`": "new_1", "name": "`myNewFolder`", ... }, "`changeStatus`": "added" }, { "tag": { "`tagId`": "new_2", "name": "`myNewTag`", "`parentFolderId`": "new_1", ... }, "`changeStatus`": "added" } ]
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `tagmanager_accounts_containers_workspaces_bulk_update_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `tagmanager_accounts_containers_workspaces_bulk_update_task()`.
+/// For the simplest API, use `tagmanager_accounts_containers_workspaces_bulk_update()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `tagmanager_accounts_containers_workspaces_bulk_update_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn tagmanager_accounts_containers_workspaces_bulk_update_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<
+            D = Result<ApiResponse<BulkUpdateWorkspaceResponse>, ApiError>,
+            P = ApiPending,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    let task = tagmanager_accounts_containers_workspaces_bulk_update_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`tagmanager_accounts_containers_workspaces_bulk_update`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct TagmanagerAccountsContainersWorkspacesBulkUpdateArgs {
+    /// Path parameter: path
+    pub path: String,
+}
+
+/// POST tagmanager/v2/accounts/{accountsId}/containers/{containersId}/workspaces/{workspacesId}/bulk_update
+/// Applies multiple entity changes to a workspace in one call. When creating new entities, their entity IDs must be unique and in correct format. That is, they must start with "new_" and followed by number, e.g. "new_1", "new_2". Example body snippet to create `myNewTag` under `myNewFolder` is:  "changes": [ { "folder": { "`folderId`": "new_1", "name": "`myNewFolder`", ... }, "`changeStatus`": "added" }, { "tag": { "`tagId`": "new_2", "name": "`myNewTag`", "`parentFolderId`": "new_1", ... }, "`changeStatus`": "added" } ]
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `tagmanager_accounts_containers_workspaces_bulk_update_builder()` + `tagmanager_accounts_containers_workspaces_bulk_update_execute()`.
+/// For task-level control, use `tagmanager_accounts_containers_workspaces_bulk_update_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn tagmanager_accounts_containers_workspaces_bulk_update(
+    client: &SimpleHttpClient,
+    args: &TagmanagerAccountsContainersWorkspacesBulkUpdateArgs,
+) -> Result<
+    impl StreamIterator<
+            D = Result<ApiResponse<BulkUpdateWorkspaceResponse>, ApiError>,
+            P = ApiPending,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    let builder =
+        tagmanager_accounts_containers_workspaces_bulk_update_builder(client, &args.path)?;
+    tagmanager_accounts_containers_workspaces_bulk_update_execute(builder)
+}
+
+/// POST tagmanager/v2/accounts/{accountsId}/containers/{containersId}/workspaces
+/// Creates a Workspace.
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `tagmanager_accounts_containers_workspaces_create_execute()` to send, or `tagmanager_accounts_containers_workspaces_create` for simplest API.
+
+pub fn tagmanager_accounts_containers_workspaces_create_builder(
+    client: &SimpleHttpClient,
+    parent: &String,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!(
+        "https://tagmanager.googleapis.com/tagmanager/v2/accounts/{}/containers/{containersId}/workspaces",
+        parent,
+    );
+
+    // Build request
+    let builder = client
+        .post(&endpoint_url)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// POST tagmanager/v2/accounts/{accountsId}/containers/{containersId}/workspaces
+/// Creates a Workspace.
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `tagmanager_accounts_containers_workspaces_create_execute()` or `tagmanager_accounts_containers_workspaces_create`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `tagmanager_accounts_containers_workspaces_create_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn tagmanager_accounts_containers_workspaces_create_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<Workspace>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: Workspace = serde_json::from_str(&body)
+                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// POST tagmanager/v2/accounts/{accountsId}/containers/{containersId}/workspaces
+/// Creates a Workspace.
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `tagmanager_accounts_containers_workspaces_create_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `tagmanager_accounts_containers_workspaces_create_task()`.
+/// For the simplest API, use `tagmanager_accounts_containers_workspaces_create()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `tagmanager_accounts_containers_workspaces_create_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn tagmanager_accounts_containers_workspaces_create_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<Workspace>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let task = tagmanager_accounts_containers_workspaces_create_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`tagmanager_accounts_containers_workspaces_create`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct TagmanagerAccountsContainersWorkspacesCreateArgs {
+    /// Path parameter: parent
+    pub parent: String,
+}
+
+/// POST tagmanager/v2/accounts/{accountsId}/containers/{containersId}/workspaces
+/// Creates a Workspace.
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `tagmanager_accounts_containers_workspaces_create_builder()` + `tagmanager_accounts_containers_workspaces_create_execute()`.
+/// For task-level control, use `tagmanager_accounts_containers_workspaces_create_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn tagmanager_accounts_containers_workspaces_create(
+    client: &SimpleHttpClient,
+    args: &TagmanagerAccountsContainersWorkspacesCreateArgs,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<Workspace>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let builder = tagmanager_accounts_containers_workspaces_create_builder(client, &args.parent)?;
+    tagmanager_accounts_containers_workspaces_create_execute(builder)
+}
+
+/// POST tagmanager/v2/accounts/{accountsId}/containers/{containersId}/workspaces/{workspacesId}:create_version
+/// Creates a Container Version from the entities present in the workspace, deletes the workspace, and sets the base container version to the newly created version.
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `tagmanager_accounts_containers_workspaces_create_version_execute()` to send, or `tagmanager_accounts_containers_workspaces_create_version` for simplest API.
+
+pub fn tagmanager_accounts_containers_workspaces_create_version_builder(
+    client: &SimpleHttpClient,
+    path: &String,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!(
+        "https://tagmanager.googleapis.com/tagmanager/v2/accounts/{}/containers/{containersId}/workspaces/{workspacesId}:create_version",
+        path,
+    );
+
+    // Build request
+    let builder = client
+        .post(&endpoint_url)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// POST tagmanager/v2/accounts/{accountsId}/containers/{containersId}/workspaces/{workspacesId}:create_version
+/// Creates a Container Version from the entities present in the workspace, deletes the workspace, and sets the base container version to the newly created version.
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `tagmanager_accounts_containers_workspaces_create_version_execute()` or `tagmanager_accounts_containers_workspaces_create_version`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `tagmanager_accounts_containers_workspaces_create_version_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn tagmanager_accounts_containers_workspaces_create_version_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<CreateContainerVersionResponse>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: CreateContainerVersionResponse = serde_json::from_str(&body)
+                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// POST tagmanager/v2/accounts/{accountsId}/containers/{containersId}/workspaces/{workspacesId}:create_version
+/// Creates a Container Version from the entities present in the workspace, deletes the workspace, and sets the base container version to the newly created version.
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `tagmanager_accounts_containers_workspaces_create_version_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `tagmanager_accounts_containers_workspaces_create_version_task()`.
+/// For the simplest API, use `tagmanager_accounts_containers_workspaces_create_version()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `tagmanager_accounts_containers_workspaces_create_version_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn tagmanager_accounts_containers_workspaces_create_version_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<
+            D = Result<ApiResponse<CreateContainerVersionResponse>, ApiError>,
+            P = ApiPending,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    let task = tagmanager_accounts_containers_workspaces_create_version_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`tagmanager_accounts_containers_workspaces_create_version`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct TagmanagerAccountsContainersWorkspacesCreateVersionArgs {
+    /// Path parameter: path
+    pub path: String,
+}
+
+/// POST tagmanager/v2/accounts/{accountsId}/containers/{containersId}/workspaces/{workspacesId}:create_version
+/// Creates a Container Version from the entities present in the workspace, deletes the workspace, and sets the base container version to the newly created version.
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `tagmanager_accounts_containers_workspaces_create_version_builder()` + `tagmanager_accounts_containers_workspaces_create_version_execute()`.
+/// For task-level control, use `tagmanager_accounts_containers_workspaces_create_version_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn tagmanager_accounts_containers_workspaces_create_version(
+    client: &SimpleHttpClient,
+    args: &TagmanagerAccountsContainersWorkspacesCreateVersionArgs,
+) -> Result<
+    impl StreamIterator<
+            D = Result<ApiResponse<CreateContainerVersionResponse>, ApiError>,
+            P = ApiPending,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    let builder =
+        tagmanager_accounts_containers_workspaces_create_version_builder(client, &args.path)?;
+    tagmanager_accounts_containers_workspaces_create_version_execute(builder)
+}
+
+/// DELETE tagmanager/v2/accounts/{accountsId}/containers/{containersId}/workspaces/{workspacesId}
+/// Deletes a Workspace.
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `tagmanager_accounts_containers_workspaces_delete_execute()` to send, or `tagmanager_accounts_containers_workspaces_delete` for simplest API.
+
+pub fn tagmanager_accounts_containers_workspaces_delete_builder(
+    client: &SimpleHttpClient,
+    path: &String,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!(
+        "https://tagmanager.googleapis.com/tagmanager/v2/accounts/{}/containers/{containersId}/workspaces/{workspacesId}",
+        path,
+    );
+
+    // Build request
+    let builder = client
+        .delete(&endpoint_url)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// DELETE tagmanager/v2/accounts/{accountsId}/containers/{containersId}/workspaces/{workspacesId}
+/// Deletes a Workspace.
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `tagmanager_accounts_containers_workspaces_delete_execute()` or `tagmanager_accounts_containers_workspaces_delete`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `tagmanager_accounts_containers_workspaces_delete_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn tagmanager_accounts_containers_workspaces_delete_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<()>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: (),
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// DELETE tagmanager/v2/accounts/{accountsId}/containers/{containersId}/workspaces/{workspacesId}
+/// Deletes a Workspace.
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `tagmanager_accounts_containers_workspaces_delete_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `tagmanager_accounts_containers_workspaces_delete_task()`.
+/// For the simplest API, use `tagmanager_accounts_containers_workspaces_delete()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `tagmanager_accounts_containers_workspaces_delete_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn tagmanager_accounts_containers_workspaces_delete_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<()>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let task = tagmanager_accounts_containers_workspaces_delete_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`tagmanager_accounts_containers_workspaces_delete`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct TagmanagerAccountsContainersWorkspacesDeleteArgs {
+    /// Path parameter: path
+    pub path: String,
+}
+
+/// DELETE tagmanager/v2/accounts/{accountsId}/containers/{containersId}/workspaces/{workspacesId}
+/// Deletes a Workspace.
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `tagmanager_accounts_containers_workspaces_delete_builder()` + `tagmanager_accounts_containers_workspaces_delete_execute()`.
+/// For task-level control, use `tagmanager_accounts_containers_workspaces_delete_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn tagmanager_accounts_containers_workspaces_delete(
+    client: &SimpleHttpClient,
+    args: &TagmanagerAccountsContainersWorkspacesDeleteArgs,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<()>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let builder = tagmanager_accounts_containers_workspaces_delete_builder(client, &args.path)?;
+    tagmanager_accounts_containers_workspaces_delete_execute(builder)
+}
+
+/// GET tagmanager/v2/accounts/{accountsId}/containers/{containersId}/workspaces/{workspacesId}
+/// Gets a Workspace.
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `tagmanager_accounts_containers_workspaces_get_execute()` to send, or `tagmanager_accounts_containers_workspaces_get` for simplest API.
+
+pub fn tagmanager_accounts_containers_workspaces_get_builder(
+    client: &SimpleHttpClient,
+    path: &String,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!(
+        "https://tagmanager.googleapis.com/tagmanager/v2/accounts/{}/containers/{containersId}/workspaces/{workspacesId}",
+        path,
+    );
+
+    // Build request
+    let builder = client
+        .get(&endpoint_url)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// GET tagmanager/v2/accounts/{accountsId}/containers/{containersId}/workspaces/{workspacesId}
+/// Gets a Workspace.
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `tagmanager_accounts_containers_workspaces_get_execute()` or `tagmanager_accounts_containers_workspaces_get`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `tagmanager_accounts_containers_workspaces_get_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn tagmanager_accounts_containers_workspaces_get_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<Workspace>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: Workspace = serde_json::from_str(&body)
+                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// GET tagmanager/v2/accounts/{accountsId}/containers/{containersId}/workspaces/{workspacesId}
+/// Gets a Workspace.
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `tagmanager_accounts_containers_workspaces_get_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `tagmanager_accounts_containers_workspaces_get_task()`.
+/// For the simplest API, use `tagmanager_accounts_containers_workspaces_get()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `tagmanager_accounts_containers_workspaces_get_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn tagmanager_accounts_containers_workspaces_get_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<Workspace>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let task = tagmanager_accounts_containers_workspaces_get_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`tagmanager_accounts_containers_workspaces_get`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct TagmanagerAccountsContainersWorkspacesGetArgs {
+    /// Path parameter: path
+    pub path: String,
+}
+
+/// GET tagmanager/v2/accounts/{accountsId}/containers/{containersId}/workspaces/{workspacesId}
+/// Gets a Workspace.
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `tagmanager_accounts_containers_workspaces_get_builder()` + `tagmanager_accounts_containers_workspaces_get_execute()`.
+/// For task-level control, use `tagmanager_accounts_containers_workspaces_get_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn tagmanager_accounts_containers_workspaces_get(
+    client: &SimpleHttpClient,
+    args: &TagmanagerAccountsContainersWorkspacesGetArgs,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<Workspace>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let builder = tagmanager_accounts_containers_workspaces_get_builder(client, &args.path)?;
+    tagmanager_accounts_containers_workspaces_get_execute(builder)
+}
+
+/// GET tagmanager/v2/accounts/{accountsId}/containers/{containersId}/workspaces/{workspacesId}/status
+/// Finds conflicting and modified entities in the workspace.
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `tagmanager_accounts_containers_workspaces_get_status_execute()` to send, or `tagmanager_accounts_containers_workspaces_get_status` for simplest API.
+
+pub fn tagmanager_accounts_containers_workspaces_get_status_builder(
+    client: &SimpleHttpClient,
+    path: &String,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!(
+        "https://tagmanager.googleapis.com/tagmanager/v2/accounts/{}/containers/{containersId}/workspaces/{workspacesId}/status",
+        path,
+    );
+
+    // Build request
+    let builder = client
+        .get(&endpoint_url)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// GET tagmanager/v2/accounts/{accountsId}/containers/{containersId}/workspaces/{workspacesId}/status
+/// Finds conflicting and modified entities in the workspace.
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `tagmanager_accounts_containers_workspaces_get_status_execute()` or `tagmanager_accounts_containers_workspaces_get_status`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `tagmanager_accounts_containers_workspaces_get_status_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn tagmanager_accounts_containers_workspaces_get_status_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<GetWorkspaceStatusResponse>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: GetWorkspaceStatusResponse = serde_json::from_str(&body)
+                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// GET tagmanager/v2/accounts/{accountsId}/containers/{containersId}/workspaces/{workspacesId}/status
+/// Finds conflicting and modified entities in the workspace.
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `tagmanager_accounts_containers_workspaces_get_status_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `tagmanager_accounts_containers_workspaces_get_status_task()`.
+/// For the simplest API, use `tagmanager_accounts_containers_workspaces_get_status()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `tagmanager_accounts_containers_workspaces_get_status_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn tagmanager_accounts_containers_workspaces_get_status_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<
+            D = Result<ApiResponse<GetWorkspaceStatusResponse>, ApiError>,
+            P = ApiPending,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    let task = tagmanager_accounts_containers_workspaces_get_status_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`tagmanager_accounts_containers_workspaces_get_status`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct TagmanagerAccountsContainersWorkspacesGetStatusArgs {
+    /// Path parameter: path
+    pub path: String,
+}
+
+/// GET tagmanager/v2/accounts/{accountsId}/containers/{containersId}/workspaces/{workspacesId}/status
+/// Finds conflicting and modified entities in the workspace.
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `tagmanager_accounts_containers_workspaces_get_status_builder()` + `tagmanager_accounts_containers_workspaces_get_status_execute()`.
+/// For task-level control, use `tagmanager_accounts_containers_workspaces_get_status_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn tagmanager_accounts_containers_workspaces_get_status(
+    client: &SimpleHttpClient,
+    args: &TagmanagerAccountsContainersWorkspacesGetStatusArgs,
+) -> Result<
+    impl StreamIterator<
+            D = Result<ApiResponse<GetWorkspaceStatusResponse>, ApiError>,
+            P = ApiPending,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    let builder = tagmanager_accounts_containers_workspaces_get_status_builder(client, &args.path)?;
+    tagmanager_accounts_containers_workspaces_get_status_execute(builder)
+}
+
+/// GET tagmanager/v2/accounts/{accountsId}/containers/{containersId}/workspaces
+/// Lists all Workspaces that belong to a GTM Container.
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `tagmanager_accounts_containers_workspaces_list_execute()` to send, or `tagmanager_accounts_containers_workspaces_list` for simplest API.
+
+pub fn tagmanager_accounts_containers_workspaces_list_builder(
+    client: &SimpleHttpClient,
+    parent: &String,
+    pageToken: &Option<Option<String>>,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!(
+        "https://tagmanager.googleapis.com/tagmanager/v2/accounts/{}/containers/{containersId}/workspaces",
+        parent,
+    );
+
+    // Build request
+    let mut query_parts = Vec::new();
+    if let Some(val) = pageToken.as_ref() {
+        query_parts.push(format!("pageToken={}", val));
+    }
+
+    let url_with_query = if query_parts.is_empty() {
+        endpoint_url
+    } else {
+        format!("{}?{}", endpoint_url, query_parts.join("&"))
+    };
+
+    let builder = client
+        .get(&url_with_query)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// GET tagmanager/v2/accounts/{accountsId}/containers/{containersId}/workspaces
+/// Lists all Workspaces that belong to a GTM Container.
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `tagmanager_accounts_containers_workspaces_list_execute()` or `tagmanager_accounts_containers_workspaces_list`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `tagmanager_accounts_containers_workspaces_list_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn tagmanager_accounts_containers_workspaces_list_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<ListWorkspacesResponse>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: ListWorkspacesResponse = serde_json::from_str(&body)
+                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// GET tagmanager/v2/accounts/{accountsId}/containers/{containersId}/workspaces
+/// Lists all Workspaces that belong to a GTM Container.
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `tagmanager_accounts_containers_workspaces_list_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `tagmanager_accounts_containers_workspaces_list_task()`.
+/// For the simplest API, use `tagmanager_accounts_containers_workspaces_list()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `tagmanager_accounts_containers_workspaces_list_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn tagmanager_accounts_containers_workspaces_list_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<ListWorkspacesResponse>, ApiError>, P = ApiPending>
+        + Send
+        + 'static,
+    ApiError,
+> {
+    let task = tagmanager_accounts_containers_workspaces_list_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`tagmanager_accounts_containers_workspaces_list`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct TagmanagerAccountsContainersWorkspacesListArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Query parameter: pageToken
+    pub pageToken: Option<Option<String>>,
+}
+
+/// GET tagmanager/v2/accounts/{accountsId}/containers/{containersId}/workspaces
+/// Lists all Workspaces that belong to a GTM Container.
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `tagmanager_accounts_containers_workspaces_list_builder()` + `tagmanager_accounts_containers_workspaces_list_execute()`.
+/// For task-level control, use `tagmanager_accounts_containers_workspaces_list_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn tagmanager_accounts_containers_workspaces_list(
+    client: &SimpleHttpClient,
+    args: &TagmanagerAccountsContainersWorkspacesListArgs,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<ListWorkspacesResponse>, ApiError>, P = ApiPending>
+        + Send
+        + 'static,
+    ApiError,
+> {
+    let builder = tagmanager_accounts_containers_workspaces_list_builder(
+        client,
+        &args.parent,
+        &args.pageToken,
+    )?;
+    tagmanager_accounts_containers_workspaces_list_execute(builder)
+}
+
+/// POST tagmanager/v2/accounts/{accountsId}/containers/{containersId}/workspaces/{workspacesId}:quick_preview
+/// Quick previews a workspace by creating a fake container version from all entities in the provided workspace.
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `tagmanager_accounts_containers_workspaces_quick_preview_execute()` to send, or `tagmanager_accounts_containers_workspaces_quick_preview` for simplest API.
+
+pub fn tagmanager_accounts_containers_workspaces_quick_preview_builder(
+    client: &SimpleHttpClient,
+    path: &String,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!(
+        "https://tagmanager.googleapis.com/tagmanager/v2/accounts/{}/containers/{containersId}/workspaces/{workspacesId}:quick_preview",
+        path,
+    );
+
+    // Build request
+    let builder = client
+        .post(&endpoint_url)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// POST tagmanager/v2/accounts/{accountsId}/containers/{containersId}/workspaces/{workspacesId}:quick_preview
+/// Quick previews a workspace by creating a fake container version from all entities in the provided workspace.
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `tagmanager_accounts_containers_workspaces_quick_preview_execute()` or `tagmanager_accounts_containers_workspaces_quick_preview`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `tagmanager_accounts_containers_workspaces_quick_preview_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn tagmanager_accounts_containers_workspaces_quick_preview_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<QuickPreviewResponse>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: QuickPreviewResponse = serde_json::from_str(&body)
+                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// POST tagmanager/v2/accounts/{accountsId}/containers/{containersId}/workspaces/{workspacesId}:quick_preview
+/// Quick previews a workspace by creating a fake container version from all entities in the provided workspace.
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `tagmanager_accounts_containers_workspaces_quick_preview_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `tagmanager_accounts_containers_workspaces_quick_preview_task()`.
+/// For the simplest API, use `tagmanager_accounts_containers_workspaces_quick_preview()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `tagmanager_accounts_containers_workspaces_quick_preview_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn tagmanager_accounts_containers_workspaces_quick_preview_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<QuickPreviewResponse>, ApiError>, P = ApiPending>
+        + Send
+        + 'static,
+    ApiError,
+> {
+    let task = tagmanager_accounts_containers_workspaces_quick_preview_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`tagmanager_accounts_containers_workspaces_quick_preview`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct TagmanagerAccountsContainersWorkspacesQuickPreviewArgs {
+    /// Path parameter: path
+    pub path: String,
+}
+
+/// POST tagmanager/v2/accounts/{accountsId}/containers/{containersId}/workspaces/{workspacesId}:quick_preview
+/// Quick previews a workspace by creating a fake container version from all entities in the provided workspace.
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `tagmanager_accounts_containers_workspaces_quick_preview_builder()` + `tagmanager_accounts_containers_workspaces_quick_preview_execute()`.
+/// For task-level control, use `tagmanager_accounts_containers_workspaces_quick_preview_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn tagmanager_accounts_containers_workspaces_quick_preview(
+    client: &SimpleHttpClient,
+    args: &TagmanagerAccountsContainersWorkspacesQuickPreviewArgs,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<QuickPreviewResponse>, ApiError>, P = ApiPending>
+        + Send
+        + 'static,
+    ApiError,
+> {
+    let builder =
+        tagmanager_accounts_containers_workspaces_quick_preview_builder(client, &args.path)?;
+    tagmanager_accounts_containers_workspaces_quick_preview_execute(builder)
+}
+
+/// POST tagmanager/v2/accounts/{accountsId}/containers/{containersId}/workspaces/{workspacesId}:resolve_conflict
+/// Resolves a merge conflict for a workspace entity by updating it to the resolved entity passed in the request.
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `tagmanager_accounts_containers_workspaces_resolve_conflict_execute()` to send, or `tagmanager_accounts_containers_workspaces_resolve_conflict` for simplest API.
+
+pub fn tagmanager_accounts_containers_workspaces_resolve_conflict_builder(
+    client: &SimpleHttpClient,
+    path: &String,
+    fingerprint: &Option<Option<String>>,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!(
+        "https://tagmanager.googleapis.com/tagmanager/v2/accounts/{}/containers/{containersId}/workspaces/{workspacesId}:resolve_conflict",
+        path,
+    );
+
+    // Build request
+    let mut query_parts = Vec::new();
+    if let Some(val) = fingerprint.as_ref() {
+        query_parts.push(format!("fingerprint={}", val));
+    }
+
+    let url_with_query = if query_parts.is_empty() {
+        endpoint_url
+    } else {
+        format!("{}?{}", endpoint_url, query_parts.join("&"))
+    };
+
+    let builder = client
+        .post(&url_with_query)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// POST tagmanager/v2/accounts/{accountsId}/containers/{containersId}/workspaces/{workspacesId}:resolve_conflict
+/// Resolves a merge conflict for a workspace entity by updating it to the resolved entity passed in the request.
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `tagmanager_accounts_containers_workspaces_resolve_conflict_execute()` or `tagmanager_accounts_containers_workspaces_resolve_conflict`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `tagmanager_accounts_containers_workspaces_resolve_conflict_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn tagmanager_accounts_containers_workspaces_resolve_conflict_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<()>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: (),
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// POST tagmanager/v2/accounts/{accountsId}/containers/{containersId}/workspaces/{workspacesId}:resolve_conflict
+/// Resolves a merge conflict for a workspace entity by updating it to the resolved entity passed in the request.
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `tagmanager_accounts_containers_workspaces_resolve_conflict_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `tagmanager_accounts_containers_workspaces_resolve_conflict_task()`.
+/// For the simplest API, use `tagmanager_accounts_containers_workspaces_resolve_conflict()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `tagmanager_accounts_containers_workspaces_resolve_conflict_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn tagmanager_accounts_containers_workspaces_resolve_conflict_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<()>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let task = tagmanager_accounts_containers_workspaces_resolve_conflict_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`tagmanager_accounts_containers_workspaces_resolve_conflict`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct TagmanagerAccountsContainersWorkspacesResolveConflictArgs {
+    /// Path parameter: path
+    pub path: String,
+    /// Query parameter: fingerprint
+    pub fingerprint: Option<Option<String>>,
+}
+
+/// POST tagmanager/v2/accounts/{accountsId}/containers/{containersId}/workspaces/{workspacesId}:resolve_conflict
+/// Resolves a merge conflict for a workspace entity by updating it to the resolved entity passed in the request.
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `tagmanager_accounts_containers_workspaces_resolve_conflict_builder()` + `tagmanager_accounts_containers_workspaces_resolve_conflict_execute()`.
+/// For task-level control, use `tagmanager_accounts_containers_workspaces_resolve_conflict_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn tagmanager_accounts_containers_workspaces_resolve_conflict(
+    client: &SimpleHttpClient,
+    args: &TagmanagerAccountsContainersWorkspacesResolveConflictArgs,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<()>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let builder = tagmanager_accounts_containers_workspaces_resolve_conflict_builder(
+        client,
+        &args.path,
+        &args.fingerprint,
+    )?;
+    tagmanager_accounts_containers_workspaces_resolve_conflict_execute(builder)
+}
+
+/// POST tagmanager/v2/accounts/{accountsId}/containers/{containersId}/workspaces/{workspacesId}:sync
+/// Syncs a workspace to the latest container version by updating all unmodified workspace entities and displaying conflicts for modified entities.
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `tagmanager_accounts_containers_workspaces_sync_execute()` to send, or `tagmanager_accounts_containers_workspaces_sync` for simplest API.
+
+pub fn tagmanager_accounts_containers_workspaces_sync_builder(
+    client: &SimpleHttpClient,
+    path: &String,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!(
+        "https://tagmanager.googleapis.com/tagmanager/v2/accounts/{}/containers/{containersId}/workspaces/{workspacesId}:sync",
+        path,
+    );
+
+    // Build request
+    let builder = client
+        .post(&endpoint_url)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// POST tagmanager/v2/accounts/{accountsId}/containers/{containersId}/workspaces/{workspacesId}:sync
+/// Syncs a workspace to the latest container version by updating all unmodified workspace entities and displaying conflicts for modified entities.
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `tagmanager_accounts_containers_workspaces_sync_execute()` or `tagmanager_accounts_containers_workspaces_sync`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `tagmanager_accounts_containers_workspaces_sync_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn tagmanager_accounts_containers_workspaces_sync_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<SyncWorkspaceResponse>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: SyncWorkspaceResponse = serde_json::from_str(&body)
+                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// POST tagmanager/v2/accounts/{accountsId}/containers/{containersId}/workspaces/{workspacesId}:sync
+/// Syncs a workspace to the latest container version by updating all unmodified workspace entities and displaying conflicts for modified entities.
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `tagmanager_accounts_containers_workspaces_sync_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `tagmanager_accounts_containers_workspaces_sync_task()`.
+/// For the simplest API, use `tagmanager_accounts_containers_workspaces_sync()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `tagmanager_accounts_containers_workspaces_sync_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn tagmanager_accounts_containers_workspaces_sync_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<SyncWorkspaceResponse>, ApiError>, P = ApiPending>
+        + Send
+        + 'static,
+    ApiError,
+> {
+    let task = tagmanager_accounts_containers_workspaces_sync_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`tagmanager_accounts_containers_workspaces_sync`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct TagmanagerAccountsContainersWorkspacesSyncArgs {
+    /// Path parameter: path
+    pub path: String,
+}
+
+/// POST tagmanager/v2/accounts/{accountsId}/containers/{containersId}/workspaces/{workspacesId}:sync
+/// Syncs a workspace to the latest container version by updating all unmodified workspace entities and displaying conflicts for modified entities.
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `tagmanager_accounts_containers_workspaces_sync_builder()` + `tagmanager_accounts_containers_workspaces_sync_execute()`.
+/// For task-level control, use `tagmanager_accounts_containers_workspaces_sync_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn tagmanager_accounts_containers_workspaces_sync(
+    client: &SimpleHttpClient,
+    args: &TagmanagerAccountsContainersWorkspacesSyncArgs,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<SyncWorkspaceResponse>, ApiError>, P = ApiPending>
+        + Send
+        + 'static,
+    ApiError,
+> {
+    let builder = tagmanager_accounts_containers_workspaces_sync_builder(client, &args.path)?;
+    tagmanager_accounts_containers_workspaces_sync_execute(builder)
+}
+
+/// PUT tagmanager/v2/accounts/{accountsId}/containers/{containersId}/workspaces/{workspacesId}
+/// Updates a Workspace.
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `tagmanager_accounts_containers_workspaces_update_execute()` to send, or `tagmanager_accounts_containers_workspaces_update` for simplest API.
+
+pub fn tagmanager_accounts_containers_workspaces_update_builder(
+    client: &SimpleHttpClient,
+    path: &String,
+    fingerprint: &Option<Option<String>>,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!(
+        "https://tagmanager.googleapis.com/tagmanager/v2/accounts/{}/containers/{containersId}/workspaces/{workspacesId}",
+        path,
+    );
+
+    // Build request
+    let mut query_parts = Vec::new();
+    if let Some(val) = fingerprint.as_ref() {
+        query_parts.push(format!("fingerprint={}", val));
+    }
+
+    let url_with_query = if query_parts.is_empty() {
+        endpoint_url
+    } else {
+        format!("{}?{}", endpoint_url, query_parts.join("&"))
+    };
+
+    let builder = client
+        .put(&url_with_query)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// PUT tagmanager/v2/accounts/{accountsId}/containers/{containersId}/workspaces/{workspacesId}
+/// Updates a Workspace.
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `tagmanager_accounts_containers_workspaces_update_execute()` or `tagmanager_accounts_containers_workspaces_update`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `tagmanager_accounts_containers_workspaces_update_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn tagmanager_accounts_containers_workspaces_update_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<Workspace>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: Workspace = serde_json::from_str(&body)
+                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// PUT tagmanager/v2/accounts/{accountsId}/containers/{containersId}/workspaces/{workspacesId}
+/// Updates a Workspace.
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `tagmanager_accounts_containers_workspaces_update_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `tagmanager_accounts_containers_workspaces_update_task()`.
+/// For the simplest API, use `tagmanager_accounts_containers_workspaces_update()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `tagmanager_accounts_containers_workspaces_update_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn tagmanager_accounts_containers_workspaces_update_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<Workspace>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let task = tagmanager_accounts_containers_workspaces_update_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`tagmanager_accounts_containers_workspaces_update`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct TagmanagerAccountsContainersWorkspacesUpdateArgs {
+    /// Path parameter: path
+    pub path: String,
+    /// Query parameter: fingerprint
+    pub fingerprint: Option<Option<String>>,
+}
+
+/// PUT tagmanager/v2/accounts/{accountsId}/containers/{containersId}/workspaces/{workspacesId}
+/// Updates a Workspace.
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `tagmanager_accounts_containers_workspaces_update_builder()` + `tagmanager_accounts_containers_workspaces_update_execute()`.
+/// For task-level control, use `tagmanager_accounts_containers_workspaces_update_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn tagmanager_accounts_containers_workspaces_update(
+    client: &SimpleHttpClient,
+    args: &TagmanagerAccountsContainersWorkspacesUpdateArgs,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<Workspace>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let builder = tagmanager_accounts_containers_workspaces_update_builder(
+        client,
+        &args.path,
+        &args.fingerprint,
+    )?;
+    tagmanager_accounts_containers_workspaces_update_execute(builder)
+}
+
+/// POST tagmanager/v2/accounts/{accountsId}/containers/{containersId}/workspaces/{workspacesId}/built_in_variables
+/// Creates one or more GTM Built-In Variables.
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `tagmanager_accounts_containers_workspaces_built_in_variables_create_execute()` to send, or `tagmanager_accounts_containers_workspaces_built_in_variables_create` for simplest API.
+
+pub fn tagmanager_accounts_containers_workspaces_built_in_variables_create_builder(
+    client: &SimpleHttpClient,
+    parent: &String,
+    type_rs: &Option<Option<String>>,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!(
+        "https://tagmanager.googleapis.com/tagmanager/v2/accounts/{}/containers/{containersId}/workspaces/{workspacesId}/built_in_variables",
+        parent,
+    );
+
+    // Build request
+    let mut query_parts = Vec::new();
+    if let Some(val) = type_rs.as_ref() {
+        query_parts.push(format!("type={}", val));
+    }
+
+    let url_with_query = if query_parts.is_empty() {
+        endpoint_url
+    } else {
+        format!("{}?{}", endpoint_url, query_parts.join("&"))
+    };
+
+    let builder = client
+        .post(&url_with_query)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// POST tagmanager/v2/accounts/{accountsId}/containers/{containersId}/workspaces/{workspacesId}/built_in_variables
+/// Creates one or more GTM Built-In Variables.
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `tagmanager_accounts_containers_workspaces_built_in_variables_create_execute()` or `tagmanager_accounts_containers_workspaces_built_in_variables_create`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `tagmanager_accounts_containers_workspaces_built_in_variables_create_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn tagmanager_accounts_containers_workspaces_built_in_variables_create_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<CreateBuiltInVariableResponse>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: CreateBuiltInVariableResponse = serde_json::from_str(&body)
+                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// POST tagmanager/v2/accounts/{accountsId}/containers/{containersId}/workspaces/{workspacesId}/built_in_variables
+/// Creates one or more GTM Built-In Variables.
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `tagmanager_accounts_containers_workspaces_built_in_variables_create_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `tagmanager_accounts_containers_workspaces_built_in_variables_create_task()`.
+/// For the simplest API, use `tagmanager_accounts_containers_workspaces_built_in_variables_create()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `tagmanager_accounts_containers_workspaces_built_in_variables_create_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn tagmanager_accounts_containers_workspaces_built_in_variables_create_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<
+            D = Result<ApiResponse<CreateBuiltInVariableResponse>, ApiError>,
+            P = ApiPending,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    let task = tagmanager_accounts_containers_workspaces_built_in_variables_create_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`tagmanager_accounts_containers_workspaces_built_in_variables_create`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct TagmanagerAccountsContainersWorkspacesBuiltInVariablesCreateArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Query parameter: type
+    pub type_rs: Option<Option<String>>,
+}
+
+/// POST tagmanager/v2/accounts/{accountsId}/containers/{containersId}/workspaces/{workspacesId}/built_in_variables
+/// Creates one or more GTM Built-In Variables.
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `tagmanager_accounts_containers_workspaces_built_in_variables_create_builder()` + `tagmanager_accounts_containers_workspaces_built_in_variables_create_execute()`.
+/// For task-level control, use `tagmanager_accounts_containers_workspaces_built_in_variables_create_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn tagmanager_accounts_containers_workspaces_built_in_variables_create(
+    client: &SimpleHttpClient,
+    args: &TagmanagerAccountsContainersWorkspacesBuiltInVariablesCreateArgs,
+) -> Result<
+    impl StreamIterator<
+            D = Result<ApiResponse<CreateBuiltInVariableResponse>, ApiError>,
+            P = ApiPending,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    let builder = tagmanager_accounts_containers_workspaces_built_in_variables_create_builder(
+        client,
+        &args.parent,
+        &args.type_rs,
+    )?;
+    tagmanager_accounts_containers_workspaces_built_in_variables_create_execute(builder)
+}
+
+/// DELETE tagmanager/v2/accounts/{accountsId}/containers/{containersId}/workspaces/{workspacesId}/built_in_variables
+/// Deletes one or more GTM Built-In Variables.
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `tagmanager_accounts_containers_workspaces_built_in_variables_delete_execute()` to send, or `tagmanager_accounts_containers_workspaces_built_in_variables_delete` for simplest API.
+
+pub fn tagmanager_accounts_containers_workspaces_built_in_variables_delete_builder(
+    client: &SimpleHttpClient,
+    path: &String,
+    type_rs: &Option<Option<String>>,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!(
+        "https://tagmanager.googleapis.com/tagmanager/v2/accounts/{}/containers/{containersId}/workspaces/{workspacesId}/built_in_variables",
+        path,
+    );
+
+    // Build request
+    let mut query_parts = Vec::new();
+    if let Some(val) = type_rs.as_ref() {
+        query_parts.push(format!("type={}", val));
+    }
+
+    let url_with_query = if query_parts.is_empty() {
+        endpoint_url
+    } else {
+        format!("{}?{}", endpoint_url, query_parts.join("&"))
+    };
+
+    let builder = client
+        .delete(&url_with_query)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// DELETE tagmanager/v2/accounts/{accountsId}/containers/{containersId}/workspaces/{workspacesId}/built_in_variables
+/// Deletes one or more GTM Built-In Variables.
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `tagmanager_accounts_containers_workspaces_built_in_variables_delete_execute()` or `tagmanager_accounts_containers_workspaces_built_in_variables_delete`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `tagmanager_accounts_containers_workspaces_built_in_variables_delete_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn tagmanager_accounts_containers_workspaces_built_in_variables_delete_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<()>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: (),
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// DELETE tagmanager/v2/accounts/{accountsId}/containers/{containersId}/workspaces/{workspacesId}/built_in_variables
+/// Deletes one or more GTM Built-In Variables.
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `tagmanager_accounts_containers_workspaces_built_in_variables_delete_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `tagmanager_accounts_containers_workspaces_built_in_variables_delete_task()`.
+/// For the simplest API, use `tagmanager_accounts_containers_workspaces_built_in_variables_delete()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `tagmanager_accounts_containers_workspaces_built_in_variables_delete_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn tagmanager_accounts_containers_workspaces_built_in_variables_delete_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<()>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let task = tagmanager_accounts_containers_workspaces_built_in_variables_delete_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`tagmanager_accounts_containers_workspaces_built_in_variables_delete`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct TagmanagerAccountsContainersWorkspacesBuiltInVariablesDeleteArgs {
+    /// Path parameter: path
+    pub path: String,
+    /// Query parameter: type
+    pub type_rs: Option<Option<String>>,
+}
+
+/// DELETE tagmanager/v2/accounts/{accountsId}/containers/{containersId}/workspaces/{workspacesId}/built_in_variables
+/// Deletes one or more GTM Built-In Variables.
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `tagmanager_accounts_containers_workspaces_built_in_variables_delete_builder()` + `tagmanager_accounts_containers_workspaces_built_in_variables_delete_execute()`.
+/// For task-level control, use `tagmanager_accounts_containers_workspaces_built_in_variables_delete_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn tagmanager_accounts_containers_workspaces_built_in_variables_delete(
+    client: &SimpleHttpClient,
+    args: &TagmanagerAccountsContainersWorkspacesBuiltInVariablesDeleteArgs,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<()>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let builder = tagmanager_accounts_containers_workspaces_built_in_variables_delete_builder(
+        client,
+        &args.path,
+        &args.type_rs,
+    )?;
+    tagmanager_accounts_containers_workspaces_built_in_variables_delete_execute(builder)
+}
+
+/// GET tagmanager/v2/accounts/{accountsId}/containers/{containersId}/workspaces/{workspacesId}/built_in_variables
+/// Lists all the enabled Built-In Variables of a GTM Container.
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `tagmanager_accounts_containers_workspaces_built_in_variables_list_execute()` to send, or `tagmanager_accounts_containers_workspaces_built_in_variables_list` for simplest API.
+
+pub fn tagmanager_accounts_containers_workspaces_built_in_variables_list_builder(
+    client: &SimpleHttpClient,
+    parent: &String,
+    pageToken: &Option<Option<String>>,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!(
+        "https://tagmanager.googleapis.com/tagmanager/v2/accounts/{}/containers/{containersId}/workspaces/{workspacesId}/built_in_variables",
+        parent,
+    );
+
+    // Build request
+    let mut query_parts = Vec::new();
+    if let Some(val) = pageToken.as_ref() {
+        query_parts.push(format!("pageToken={}", val));
+    }
+
+    let url_with_query = if query_parts.is_empty() {
+        endpoint_url
+    } else {
+        format!("{}?{}", endpoint_url, query_parts.join("&"))
+    };
+
+    let builder = client
+        .get(&url_with_query)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// GET tagmanager/v2/accounts/{accountsId}/containers/{containersId}/workspaces/{workspacesId}/built_in_variables
+/// Lists all the enabled Built-In Variables of a GTM Container.
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `tagmanager_accounts_containers_workspaces_built_in_variables_list_execute()` or `tagmanager_accounts_containers_workspaces_built_in_variables_list`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `tagmanager_accounts_containers_workspaces_built_in_variables_list_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn tagmanager_accounts_containers_workspaces_built_in_variables_list_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<ListEnabledBuiltInVariablesResponse>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: ListEnabledBuiltInVariablesResponse = serde_json::from_str(&body)
+                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// GET tagmanager/v2/accounts/{accountsId}/containers/{containersId}/workspaces/{workspacesId}/built_in_variables
+/// Lists all the enabled Built-In Variables of a GTM Container.
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `tagmanager_accounts_containers_workspaces_built_in_variables_list_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `tagmanager_accounts_containers_workspaces_built_in_variables_list_task()`.
+/// For the simplest API, use `tagmanager_accounts_containers_workspaces_built_in_variables_list()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `tagmanager_accounts_containers_workspaces_built_in_variables_list_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn tagmanager_accounts_containers_workspaces_built_in_variables_list_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<
+            D = Result<ApiResponse<ListEnabledBuiltInVariablesResponse>, ApiError>,
+            P = ApiPending,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    let task = tagmanager_accounts_containers_workspaces_built_in_variables_list_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`tagmanager_accounts_containers_workspaces_built_in_variables_list`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct TagmanagerAccountsContainersWorkspacesBuiltInVariablesListArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Query parameter: pageToken
+    pub pageToken: Option<Option<String>>,
+}
+
+/// GET tagmanager/v2/accounts/{accountsId}/containers/{containersId}/workspaces/{workspacesId}/built_in_variables
+/// Lists all the enabled Built-In Variables of a GTM Container.
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `tagmanager_accounts_containers_workspaces_built_in_variables_list_builder()` + `tagmanager_accounts_containers_workspaces_built_in_variables_list_execute()`.
+/// For task-level control, use `tagmanager_accounts_containers_workspaces_built_in_variables_list_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn tagmanager_accounts_containers_workspaces_built_in_variables_list(
+    client: &SimpleHttpClient,
+    args: &TagmanagerAccountsContainersWorkspacesBuiltInVariablesListArgs,
+) -> Result<
+    impl StreamIterator<
+            D = Result<ApiResponse<ListEnabledBuiltInVariablesResponse>, ApiError>,
+            P = ApiPending,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    let builder = tagmanager_accounts_containers_workspaces_built_in_variables_list_builder(
+        client,
+        &args.parent,
+        &args.pageToken,
+    )?;
+    tagmanager_accounts_containers_workspaces_built_in_variables_list_execute(builder)
+}
+
+/// POST tagmanager/v2/accounts/{accountsId}/containers/{containersId}/workspaces/{workspacesId}/built_in_variables:revert
+/// Reverts changes to a GTM Built-In Variables in a GTM Workspace.
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `tagmanager_accounts_containers_workspaces_built_in_variables_revert_execute()` to send, or `tagmanager_accounts_containers_workspaces_built_in_variables_revert` for simplest API.
+
+pub fn tagmanager_accounts_containers_workspaces_built_in_variables_revert_builder(
+    client: &SimpleHttpClient,
+    path: &String,
+    type_rs: &Option<Option<String>>,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!(
+        "https://tagmanager.googleapis.com/tagmanager/v2/accounts/{}/containers/{containersId}/workspaces/{workspacesId}/built_in_variables:revert",
+        path,
+    );
+
+    // Build request
+    let mut query_parts = Vec::new();
+    if let Some(val) = type_rs.as_ref() {
+        query_parts.push(format!("type={}", val));
+    }
+
+    let url_with_query = if query_parts.is_empty() {
+        endpoint_url
+    } else {
+        format!("{}?{}", endpoint_url, query_parts.join("&"))
+    };
+
+    let builder = client
+        .post(&url_with_query)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// POST tagmanager/v2/accounts/{accountsId}/containers/{containersId}/workspaces/{workspacesId}/built_in_variables:revert
+/// Reverts changes to a GTM Built-In Variables in a GTM Workspace.
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `tagmanager_accounts_containers_workspaces_built_in_variables_revert_execute()` or `tagmanager_accounts_containers_workspaces_built_in_variables_revert`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `tagmanager_accounts_containers_workspaces_built_in_variables_revert_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn tagmanager_accounts_containers_workspaces_built_in_variables_revert_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<RevertBuiltInVariableResponse>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: RevertBuiltInVariableResponse = serde_json::from_str(&body)
+                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// POST tagmanager/v2/accounts/{accountsId}/containers/{containersId}/workspaces/{workspacesId}/built_in_variables:revert
+/// Reverts changes to a GTM Built-In Variables in a GTM Workspace.
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `tagmanager_accounts_containers_workspaces_built_in_variables_revert_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `tagmanager_accounts_containers_workspaces_built_in_variables_revert_task()`.
+/// For the simplest API, use `tagmanager_accounts_containers_workspaces_built_in_variables_revert()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `tagmanager_accounts_containers_workspaces_built_in_variables_revert_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn tagmanager_accounts_containers_workspaces_built_in_variables_revert_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<
+            D = Result<ApiResponse<RevertBuiltInVariableResponse>, ApiError>,
+            P = ApiPending,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    let task = tagmanager_accounts_containers_workspaces_built_in_variables_revert_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`tagmanager_accounts_containers_workspaces_built_in_variables_revert`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct TagmanagerAccountsContainersWorkspacesBuiltInVariablesRevertArgs {
+    /// Path parameter: path
+    pub path: String,
+    /// Query parameter: type
+    pub type_rs: Option<Option<String>>,
+}
+
+/// POST tagmanager/v2/accounts/{accountsId}/containers/{containersId}/workspaces/{workspacesId}/built_in_variables:revert
+/// Reverts changes to a GTM Built-In Variables in a GTM Workspace.
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `tagmanager_accounts_containers_workspaces_built_in_variables_revert_builder()` + `tagmanager_accounts_containers_workspaces_built_in_variables_revert_execute()`.
+/// For task-level control, use `tagmanager_accounts_containers_workspaces_built_in_variables_revert_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn tagmanager_accounts_containers_workspaces_built_in_variables_revert(
+    client: &SimpleHttpClient,
+    args: &TagmanagerAccountsContainersWorkspacesBuiltInVariablesRevertArgs,
+) -> Result<
+    impl StreamIterator<
+            D = Result<ApiResponse<RevertBuiltInVariableResponse>, ApiError>,
+            P = ApiPending,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    let builder = tagmanager_accounts_containers_workspaces_built_in_variables_revert_builder(
+        client,
+        &args.path,
+        &args.type_rs,
+    )?;
+    tagmanager_accounts_containers_workspaces_built_in_variables_revert_execute(builder)
+}
+
+/// POST tagmanager/v2/accounts/{accountsId}/containers/{containersId}/workspaces/{workspacesId}/clients
+/// Creates a GTM Client.
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `tagmanager_accounts_containers_workspaces_clients_create_execute()` to send, or `tagmanager_accounts_containers_workspaces_clients_create` for simplest API.
+
+pub fn tagmanager_accounts_containers_workspaces_clients_create_builder(
+    client: &SimpleHttpClient,
+    parent: &String,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!(
+        "https://tagmanager.googleapis.com/tagmanager/v2/accounts/{}/containers/{containersId}/workspaces/{workspacesId}/clients",
+        parent,
+    );
+
+    // Build request
+    let builder = client
+        .post(&endpoint_url)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// POST tagmanager/v2/accounts/{accountsId}/containers/{containersId}/workspaces/{workspacesId}/clients
+/// Creates a GTM Client.
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `tagmanager_accounts_containers_workspaces_clients_create_execute()` or `tagmanager_accounts_containers_workspaces_clients_create`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `tagmanager_accounts_containers_workspaces_clients_create_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn tagmanager_accounts_containers_workspaces_clients_create_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<Client>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: Client = serde_json::from_str(&body)
+                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// POST tagmanager/v2/accounts/{accountsId}/containers/{containersId}/workspaces/{workspacesId}/clients
+/// Creates a GTM Client.
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `tagmanager_accounts_containers_workspaces_clients_create_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `tagmanager_accounts_containers_workspaces_clients_create_task()`.
+/// For the simplest API, use `tagmanager_accounts_containers_workspaces_clients_create()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `tagmanager_accounts_containers_workspaces_clients_create_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn tagmanager_accounts_containers_workspaces_clients_create_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<Client>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let task = tagmanager_accounts_containers_workspaces_clients_create_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`tagmanager_accounts_containers_workspaces_clients_create`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct TagmanagerAccountsContainersWorkspacesClientsCreateArgs {
+    /// Path parameter: parent
+    pub parent: String,
+}
+
+/// POST tagmanager/v2/accounts/{accountsId}/containers/{containersId}/workspaces/{workspacesId}/clients
+/// Creates a GTM Client.
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `tagmanager_accounts_containers_workspaces_clients_create_builder()` + `tagmanager_accounts_containers_workspaces_clients_create_execute()`.
+/// For task-level control, use `tagmanager_accounts_containers_workspaces_clients_create_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn tagmanager_accounts_containers_workspaces_clients_create(
+    client: &SimpleHttpClient,
+    args: &TagmanagerAccountsContainersWorkspacesClientsCreateArgs,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<Client>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let builder =
+        tagmanager_accounts_containers_workspaces_clients_create_builder(client, &args.parent)?;
+    tagmanager_accounts_containers_workspaces_clients_create_execute(builder)
+}
+
+/// DELETE tagmanager/v2/accounts/{accountsId}/containers/{containersId}/workspaces/{workspacesId}/clients/{clientsId}
+/// Deletes a GTM Client.
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `tagmanager_accounts_containers_workspaces_clients_delete_execute()` to send, or `tagmanager_accounts_containers_workspaces_clients_delete` for simplest API.
+
+pub fn tagmanager_accounts_containers_workspaces_clients_delete_builder(
+    client: &SimpleHttpClient,
+    path: &String,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!(
+        "https://tagmanager.googleapis.com/tagmanager/v2/accounts/{}/containers/{containersId}/workspaces/{workspacesId}/clients/{clientsId}",
+        path,
+    );
+
+    // Build request
+    let builder = client
+        .delete(&endpoint_url)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// DELETE tagmanager/v2/accounts/{accountsId}/containers/{containersId}/workspaces/{workspacesId}/clients/{clientsId}
+/// Deletes a GTM Client.
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `tagmanager_accounts_containers_workspaces_clients_delete_execute()` or `tagmanager_accounts_containers_workspaces_clients_delete`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `tagmanager_accounts_containers_workspaces_clients_delete_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn tagmanager_accounts_containers_workspaces_clients_delete_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<()>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: (),
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// DELETE tagmanager/v2/accounts/{accountsId}/containers/{containersId}/workspaces/{workspacesId}/clients/{clientsId}
+/// Deletes a GTM Client.
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `tagmanager_accounts_containers_workspaces_clients_delete_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `tagmanager_accounts_containers_workspaces_clients_delete_task()`.
+/// For the simplest API, use `tagmanager_accounts_containers_workspaces_clients_delete()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `tagmanager_accounts_containers_workspaces_clients_delete_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn tagmanager_accounts_containers_workspaces_clients_delete_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<()>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let task = tagmanager_accounts_containers_workspaces_clients_delete_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`tagmanager_accounts_containers_workspaces_clients_delete`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct TagmanagerAccountsContainersWorkspacesClientsDeleteArgs {
+    /// Path parameter: path
+    pub path: String,
+}
+
+/// DELETE tagmanager/v2/accounts/{accountsId}/containers/{containersId}/workspaces/{workspacesId}/clients/{clientsId}
+/// Deletes a GTM Client.
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `tagmanager_accounts_containers_workspaces_clients_delete_builder()` + `tagmanager_accounts_containers_workspaces_clients_delete_execute()`.
+/// For task-level control, use `tagmanager_accounts_containers_workspaces_clients_delete_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn tagmanager_accounts_containers_workspaces_clients_delete(
+    client: &SimpleHttpClient,
+    args: &TagmanagerAccountsContainersWorkspacesClientsDeleteArgs,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<()>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let builder =
+        tagmanager_accounts_containers_workspaces_clients_delete_builder(client, &args.path)?;
+    tagmanager_accounts_containers_workspaces_clients_delete_execute(builder)
+}
+
+/// GET tagmanager/v2/accounts/{accountsId}/containers/{containersId}/workspaces/{workspacesId}/clients/{clientsId}
+/// Gets a GTM Client.
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `tagmanager_accounts_containers_workspaces_clients_get_execute()` to send, or `tagmanager_accounts_containers_workspaces_clients_get` for simplest API.
+
+pub fn tagmanager_accounts_containers_workspaces_clients_get_builder(
+    client: &SimpleHttpClient,
+    path: &String,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!(
+        "https://tagmanager.googleapis.com/tagmanager/v2/accounts/{}/containers/{containersId}/workspaces/{workspacesId}/clients/{clientsId}",
+        path,
+    );
+
+    // Build request
+    let builder = client
+        .get(&endpoint_url)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// GET tagmanager/v2/accounts/{accountsId}/containers/{containersId}/workspaces/{workspacesId}/clients/{clientsId}
+/// Gets a GTM Client.
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `tagmanager_accounts_containers_workspaces_clients_get_execute()` or `tagmanager_accounts_containers_workspaces_clients_get`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `tagmanager_accounts_containers_workspaces_clients_get_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn tagmanager_accounts_containers_workspaces_clients_get_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<Client>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: Client = serde_json::from_str(&body)
+                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// GET tagmanager/v2/accounts/{accountsId}/containers/{containersId}/workspaces/{workspacesId}/clients/{clientsId}
+/// Gets a GTM Client.
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `tagmanager_accounts_containers_workspaces_clients_get_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `tagmanager_accounts_containers_workspaces_clients_get_task()`.
+/// For the simplest API, use `tagmanager_accounts_containers_workspaces_clients_get()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `tagmanager_accounts_containers_workspaces_clients_get_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn tagmanager_accounts_containers_workspaces_clients_get_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<Client>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let task = tagmanager_accounts_containers_workspaces_clients_get_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`tagmanager_accounts_containers_workspaces_clients_get`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct TagmanagerAccountsContainersWorkspacesClientsGetArgs {
+    /// Path parameter: path
+    pub path: String,
+}
+
+/// GET tagmanager/v2/accounts/{accountsId}/containers/{containersId}/workspaces/{workspacesId}/clients/{clientsId}
+/// Gets a GTM Client.
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `tagmanager_accounts_containers_workspaces_clients_get_builder()` + `tagmanager_accounts_containers_workspaces_clients_get_execute()`.
+/// For task-level control, use `tagmanager_accounts_containers_workspaces_clients_get_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn tagmanager_accounts_containers_workspaces_clients_get(
+    client: &SimpleHttpClient,
+    args: &TagmanagerAccountsContainersWorkspacesClientsGetArgs,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<Client>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let builder =
+        tagmanager_accounts_containers_workspaces_clients_get_builder(client, &args.path)?;
+    tagmanager_accounts_containers_workspaces_clients_get_execute(builder)
+}
+
+/// GET tagmanager/v2/accounts/{accountsId}/containers/{containersId}/workspaces/{workspacesId}/clients
+/// Lists all GTM Clients of a GTM container workspace.
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `tagmanager_accounts_containers_workspaces_clients_list_execute()` to send, or `tagmanager_accounts_containers_workspaces_clients_list` for simplest API.
+
+pub fn tagmanager_accounts_containers_workspaces_clients_list_builder(
+    client: &SimpleHttpClient,
+    parent: &String,
+    pageToken: &Option<Option<String>>,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!(
+        "https://tagmanager.googleapis.com/tagmanager/v2/accounts/{}/containers/{containersId}/workspaces/{workspacesId}/clients",
+        parent,
+    );
+
+    // Build request
+    let mut query_parts = Vec::new();
+    if let Some(val) = pageToken.as_ref() {
+        query_parts.push(format!("pageToken={}", val));
+    }
+
+    let url_with_query = if query_parts.is_empty() {
+        endpoint_url
+    } else {
+        format!("{}?{}", endpoint_url, query_parts.join("&"))
+    };
+
+    let builder = client
+        .get(&url_with_query)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// GET tagmanager/v2/accounts/{accountsId}/containers/{containersId}/workspaces/{workspacesId}/clients
+/// Lists all GTM Clients of a GTM container workspace.
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `tagmanager_accounts_containers_workspaces_clients_list_execute()` or `tagmanager_accounts_containers_workspaces_clients_list`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `tagmanager_accounts_containers_workspaces_clients_list_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn tagmanager_accounts_containers_workspaces_clients_list_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<ListClientsResponse>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: ListClientsResponse = serde_json::from_str(&body)
+                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// GET tagmanager/v2/accounts/{accountsId}/containers/{containersId}/workspaces/{workspacesId}/clients
+/// Lists all GTM Clients of a GTM container workspace.
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `tagmanager_accounts_containers_workspaces_clients_list_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `tagmanager_accounts_containers_workspaces_clients_list_task()`.
+/// For the simplest API, use `tagmanager_accounts_containers_workspaces_clients_list()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `tagmanager_accounts_containers_workspaces_clients_list_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn tagmanager_accounts_containers_workspaces_clients_list_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<ListClientsResponse>, ApiError>, P = ApiPending>
+        + Send
+        + 'static,
+    ApiError,
+> {
+    let task = tagmanager_accounts_containers_workspaces_clients_list_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`tagmanager_accounts_containers_workspaces_clients_list`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct TagmanagerAccountsContainersWorkspacesClientsListArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Query parameter: pageToken
+    pub pageToken: Option<Option<String>>,
+}
+
+/// GET tagmanager/v2/accounts/{accountsId}/containers/{containersId}/workspaces/{workspacesId}/clients
+/// Lists all GTM Clients of a GTM container workspace.
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `tagmanager_accounts_containers_workspaces_clients_list_builder()` + `tagmanager_accounts_containers_workspaces_clients_list_execute()`.
+/// For task-level control, use `tagmanager_accounts_containers_workspaces_clients_list_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn tagmanager_accounts_containers_workspaces_clients_list(
+    client: &SimpleHttpClient,
+    args: &TagmanagerAccountsContainersWorkspacesClientsListArgs,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<ListClientsResponse>, ApiError>, P = ApiPending>
+        + Send
+        + 'static,
+    ApiError,
+> {
+    let builder = tagmanager_accounts_containers_workspaces_clients_list_builder(
+        client,
+        &args.parent,
+        &args.pageToken,
+    )?;
+    tagmanager_accounts_containers_workspaces_clients_list_execute(builder)
+}
+
+/// POST tagmanager/v2/accounts/{accountsId}/containers/{containersId}/workspaces/{workspacesId}/clients/{clientsId}:revert
+/// Reverts changes to a GTM Client in a GTM Workspace.
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `tagmanager_accounts_containers_workspaces_clients_revert_execute()` to send, or `tagmanager_accounts_containers_workspaces_clients_revert` for simplest API.
+
+pub fn tagmanager_accounts_containers_workspaces_clients_revert_builder(
+    client: &SimpleHttpClient,
+    path: &String,
+    fingerprint: &Option<Option<String>>,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!(
+        "https://tagmanager.googleapis.com/tagmanager/v2/accounts/{}/containers/{containersId}/workspaces/{workspacesId}/clients/{clientsId}:revert",
+        path,
+    );
+
+    // Build request
+    let mut query_parts = Vec::new();
+    if let Some(val) = fingerprint.as_ref() {
+        query_parts.push(format!("fingerprint={}", val));
+    }
+
+    let url_with_query = if query_parts.is_empty() {
+        endpoint_url
+    } else {
+        format!("{}?{}", endpoint_url, query_parts.join("&"))
+    };
+
+    let builder = client
+        .post(&url_with_query)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// POST tagmanager/v2/accounts/{accountsId}/containers/{containersId}/workspaces/{workspacesId}/clients/{clientsId}:revert
+/// Reverts changes to a GTM Client in a GTM Workspace.
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `tagmanager_accounts_containers_workspaces_clients_revert_execute()` or `tagmanager_accounts_containers_workspaces_clients_revert`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `tagmanager_accounts_containers_workspaces_clients_revert_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn tagmanager_accounts_containers_workspaces_clients_revert_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<RevertClientResponse>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: RevertClientResponse = serde_json::from_str(&body)
+                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// POST tagmanager/v2/accounts/{accountsId}/containers/{containersId}/workspaces/{workspacesId}/clients/{clientsId}:revert
+/// Reverts changes to a GTM Client in a GTM Workspace.
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `tagmanager_accounts_containers_workspaces_clients_revert_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `tagmanager_accounts_containers_workspaces_clients_revert_task()`.
+/// For the simplest API, use `tagmanager_accounts_containers_workspaces_clients_revert()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `tagmanager_accounts_containers_workspaces_clients_revert_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn tagmanager_accounts_containers_workspaces_clients_revert_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<RevertClientResponse>, ApiError>, P = ApiPending>
+        + Send
+        + 'static,
+    ApiError,
+> {
+    let task = tagmanager_accounts_containers_workspaces_clients_revert_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`tagmanager_accounts_containers_workspaces_clients_revert`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct TagmanagerAccountsContainersWorkspacesClientsRevertArgs {
+    /// Path parameter: path
+    pub path: String,
+    /// Query parameter: fingerprint
+    pub fingerprint: Option<Option<String>>,
+}
+
+/// POST tagmanager/v2/accounts/{accountsId}/containers/{containersId}/workspaces/{workspacesId}/clients/{clientsId}:revert
+/// Reverts changes to a GTM Client in a GTM Workspace.
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `tagmanager_accounts_containers_workspaces_clients_revert_builder()` + `tagmanager_accounts_containers_workspaces_clients_revert_execute()`.
+/// For task-level control, use `tagmanager_accounts_containers_workspaces_clients_revert_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn tagmanager_accounts_containers_workspaces_clients_revert(
+    client: &SimpleHttpClient,
+    args: &TagmanagerAccountsContainersWorkspacesClientsRevertArgs,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<RevertClientResponse>, ApiError>, P = ApiPending>
+        + Send
+        + 'static,
+    ApiError,
+> {
+    let builder = tagmanager_accounts_containers_workspaces_clients_revert_builder(
+        client,
+        &args.path,
+        &args.fingerprint,
+    )?;
+    tagmanager_accounts_containers_workspaces_clients_revert_execute(builder)
+}
+
+/// PUT tagmanager/v2/accounts/{accountsId}/containers/{containersId}/workspaces/{workspacesId}/clients/{clientsId}
+/// Updates a GTM Client.
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `tagmanager_accounts_containers_workspaces_clients_update_execute()` to send, or `tagmanager_accounts_containers_workspaces_clients_update` for simplest API.
+
+pub fn tagmanager_accounts_containers_workspaces_clients_update_builder(
+    client: &SimpleHttpClient,
+    path: &String,
+    fingerprint: &Option<Option<String>>,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!(
+        "https://tagmanager.googleapis.com/tagmanager/v2/accounts/{}/containers/{containersId}/workspaces/{workspacesId}/clients/{clientsId}",
+        path,
+    );
+
+    // Build request
+    let mut query_parts = Vec::new();
+    if let Some(val) = fingerprint.as_ref() {
+        query_parts.push(format!("fingerprint={}", val));
+    }
+
+    let url_with_query = if query_parts.is_empty() {
+        endpoint_url
+    } else {
+        format!("{}?{}", endpoint_url, query_parts.join("&"))
+    };
+
+    let builder = client
+        .put(&url_with_query)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// PUT tagmanager/v2/accounts/{accountsId}/containers/{containersId}/workspaces/{workspacesId}/clients/{clientsId}
+/// Updates a GTM Client.
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `tagmanager_accounts_containers_workspaces_clients_update_execute()` or `tagmanager_accounts_containers_workspaces_clients_update`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `tagmanager_accounts_containers_workspaces_clients_update_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn tagmanager_accounts_containers_workspaces_clients_update_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<Client>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: Client = serde_json::from_str(&body)
+                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// PUT tagmanager/v2/accounts/{accountsId}/containers/{containersId}/workspaces/{workspacesId}/clients/{clientsId}
+/// Updates a GTM Client.
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `tagmanager_accounts_containers_workspaces_clients_update_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `tagmanager_accounts_containers_workspaces_clients_update_task()`.
+/// For the simplest API, use `tagmanager_accounts_containers_workspaces_clients_update()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `tagmanager_accounts_containers_workspaces_clients_update_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn tagmanager_accounts_containers_workspaces_clients_update_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<Client>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let task = tagmanager_accounts_containers_workspaces_clients_update_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`tagmanager_accounts_containers_workspaces_clients_update`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct TagmanagerAccountsContainersWorkspacesClientsUpdateArgs {
+    /// Path parameter: path
+    pub path: String,
+    /// Query parameter: fingerprint
+    pub fingerprint: Option<Option<String>>,
+}
+
+/// PUT tagmanager/v2/accounts/{accountsId}/containers/{containersId}/workspaces/{workspacesId}/clients/{clientsId}
+/// Updates a GTM Client.
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `tagmanager_accounts_containers_workspaces_clients_update_builder()` + `tagmanager_accounts_containers_workspaces_clients_update_execute()`.
+/// For task-level control, use `tagmanager_accounts_containers_workspaces_clients_update_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn tagmanager_accounts_containers_workspaces_clients_update(
+    client: &SimpleHttpClient,
+    args: &TagmanagerAccountsContainersWorkspacesClientsUpdateArgs,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<Client>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let builder = tagmanager_accounts_containers_workspaces_clients_update_builder(
+        client,
+        &args.path,
+        &args.fingerprint,
+    )?;
+    tagmanager_accounts_containers_workspaces_clients_update_execute(builder)
+}
+
+/// POST tagmanager/v2/accounts/{accountsId}/containers/{containersId}/workspaces/{workspacesId}/folders
+/// Creates a GTM Folder.
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `tagmanager_accounts_containers_workspaces_folders_create_execute()` to send, or `tagmanager_accounts_containers_workspaces_folders_create` for simplest API.
+
+pub fn tagmanager_accounts_containers_workspaces_folders_create_builder(
+    client: &SimpleHttpClient,
+    parent: &String,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!(
+        "https://tagmanager.googleapis.com/tagmanager/v2/accounts/{}/containers/{containersId}/workspaces/{workspacesId}/folders",
+        parent,
+    );
+
+    // Build request
+    let builder = client
+        .post(&endpoint_url)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// POST tagmanager/v2/accounts/{accountsId}/containers/{containersId}/workspaces/{workspacesId}/folders
+/// Creates a GTM Folder.
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `tagmanager_accounts_containers_workspaces_folders_create_execute()` or `tagmanager_accounts_containers_workspaces_folders_create`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `tagmanager_accounts_containers_workspaces_folders_create_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn tagmanager_accounts_containers_workspaces_folders_create_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<Folder>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: Folder = serde_json::from_str(&body)
+                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// POST tagmanager/v2/accounts/{accountsId}/containers/{containersId}/workspaces/{workspacesId}/folders
+/// Creates a GTM Folder.
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `tagmanager_accounts_containers_workspaces_folders_create_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `tagmanager_accounts_containers_workspaces_folders_create_task()`.
+/// For the simplest API, use `tagmanager_accounts_containers_workspaces_folders_create()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `tagmanager_accounts_containers_workspaces_folders_create_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn tagmanager_accounts_containers_workspaces_folders_create_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<Folder>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let task = tagmanager_accounts_containers_workspaces_folders_create_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`tagmanager_accounts_containers_workspaces_folders_create`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct TagmanagerAccountsContainersWorkspacesFoldersCreateArgs {
+    /// Path parameter: parent
+    pub parent: String,
+}
+
+/// POST tagmanager/v2/accounts/{accountsId}/containers/{containersId}/workspaces/{workspacesId}/folders
+/// Creates a GTM Folder.
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `tagmanager_accounts_containers_workspaces_folders_create_builder()` + `tagmanager_accounts_containers_workspaces_folders_create_execute()`.
+/// For task-level control, use `tagmanager_accounts_containers_workspaces_folders_create_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn tagmanager_accounts_containers_workspaces_folders_create(
+    client: &SimpleHttpClient,
+    args: &TagmanagerAccountsContainersWorkspacesFoldersCreateArgs,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<Folder>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let builder =
+        tagmanager_accounts_containers_workspaces_folders_create_builder(client, &args.parent)?;
+    tagmanager_accounts_containers_workspaces_folders_create_execute(builder)
+}
+
+/// DELETE tagmanager/v2/accounts/{accountsId}/containers/{containersId}/workspaces/{workspacesId}/folders/{foldersId}
+/// Deletes a GTM Folder.
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `tagmanager_accounts_containers_workspaces_folders_delete_execute()` to send, or `tagmanager_accounts_containers_workspaces_folders_delete` for simplest API.
+
+pub fn tagmanager_accounts_containers_workspaces_folders_delete_builder(
+    client: &SimpleHttpClient,
+    path: &String,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!(
+        "https://tagmanager.googleapis.com/tagmanager/v2/accounts/{}/containers/{containersId}/workspaces/{workspacesId}/folders/{foldersId}",
+        path,
+    );
+
+    // Build request
+    let builder = client
+        .delete(&endpoint_url)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// DELETE tagmanager/v2/accounts/{accountsId}/containers/{containersId}/workspaces/{workspacesId}/folders/{foldersId}
+/// Deletes a GTM Folder.
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `tagmanager_accounts_containers_workspaces_folders_delete_execute()` or `tagmanager_accounts_containers_workspaces_folders_delete`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `tagmanager_accounts_containers_workspaces_folders_delete_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn tagmanager_accounts_containers_workspaces_folders_delete_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<()>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: (),
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// DELETE tagmanager/v2/accounts/{accountsId}/containers/{containersId}/workspaces/{workspacesId}/folders/{foldersId}
+/// Deletes a GTM Folder.
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `tagmanager_accounts_containers_workspaces_folders_delete_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `tagmanager_accounts_containers_workspaces_folders_delete_task()`.
+/// For the simplest API, use `tagmanager_accounts_containers_workspaces_folders_delete()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `tagmanager_accounts_containers_workspaces_folders_delete_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn tagmanager_accounts_containers_workspaces_folders_delete_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<()>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let task = tagmanager_accounts_containers_workspaces_folders_delete_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`tagmanager_accounts_containers_workspaces_folders_delete`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct TagmanagerAccountsContainersWorkspacesFoldersDeleteArgs {
+    /// Path parameter: path
+    pub path: String,
+}
+
+/// DELETE tagmanager/v2/accounts/{accountsId}/containers/{containersId}/workspaces/{workspacesId}/folders/{foldersId}
+/// Deletes a GTM Folder.
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `tagmanager_accounts_containers_workspaces_folders_delete_builder()` + `tagmanager_accounts_containers_workspaces_folders_delete_execute()`.
+/// For task-level control, use `tagmanager_accounts_containers_workspaces_folders_delete_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn tagmanager_accounts_containers_workspaces_folders_delete(
+    client: &SimpleHttpClient,
+    args: &TagmanagerAccountsContainersWorkspacesFoldersDeleteArgs,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<()>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let builder =
+        tagmanager_accounts_containers_workspaces_folders_delete_builder(client, &args.path)?;
+    tagmanager_accounts_containers_workspaces_folders_delete_execute(builder)
+}
+
+/// POST tagmanager/v2/accounts/{accountsId}/containers/{containersId}/workspaces/{workspacesId}/folders/{foldersId}:entities
+/// List all entities in a GTM Folder.
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `tagmanager_accounts_containers_workspaces_folders_entities_execute()` to send, or `tagmanager_accounts_containers_workspaces_folders_entities` for simplest API.
+
+pub fn tagmanager_accounts_containers_workspaces_folders_entities_builder(
+    client: &SimpleHttpClient,
+    path: &String,
+    pageToken: &Option<Option<String>>,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!(
+        "https://tagmanager.googleapis.com/tagmanager/v2/accounts/{}/containers/{containersId}/workspaces/{workspacesId}/folders/{foldersId}:entities",
+        path,
+    );
+
+    // Build request
+    let mut query_parts = Vec::new();
+    if let Some(val) = pageToken.as_ref() {
+        query_parts.push(format!("pageToken={}", val));
+    }
+
+    let url_with_query = if query_parts.is_empty() {
+        endpoint_url
+    } else {
+        format!("{}?{}", endpoint_url, query_parts.join("&"))
+    };
+
+    let builder = client
+        .post(&url_with_query)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// POST tagmanager/v2/accounts/{accountsId}/containers/{containersId}/workspaces/{workspacesId}/folders/{foldersId}:entities
+/// List all entities in a GTM Folder.
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `tagmanager_accounts_containers_workspaces_folders_entities_execute()` or `tagmanager_accounts_containers_workspaces_folders_entities`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `tagmanager_accounts_containers_workspaces_folders_entities_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn tagmanager_accounts_containers_workspaces_folders_entities_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<FolderEntities>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: FolderEntities = serde_json::from_str(&body)
+                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// POST tagmanager/v2/accounts/{accountsId}/containers/{containersId}/workspaces/{workspacesId}/folders/{foldersId}:entities
+/// List all entities in a GTM Folder.
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `tagmanager_accounts_containers_workspaces_folders_entities_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `tagmanager_accounts_containers_workspaces_folders_entities_task()`.
+/// For the simplest API, use `tagmanager_accounts_containers_workspaces_folders_entities()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `tagmanager_accounts_containers_workspaces_folders_entities_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn tagmanager_accounts_containers_workspaces_folders_entities_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<FolderEntities>, ApiError>, P = ApiPending>
+        + Send
+        + 'static,
+    ApiError,
+> {
+    let task = tagmanager_accounts_containers_workspaces_folders_entities_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`tagmanager_accounts_containers_workspaces_folders_entities`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct TagmanagerAccountsContainersWorkspacesFoldersEntitiesArgs {
+    /// Path parameter: path
+    pub path: String,
+    /// Query parameter: pageToken
+    pub pageToken: Option<Option<String>>,
+}
+
+/// POST tagmanager/v2/accounts/{accountsId}/containers/{containersId}/workspaces/{workspacesId}/folders/{foldersId}:entities
+/// List all entities in a GTM Folder.
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `tagmanager_accounts_containers_workspaces_folders_entities_builder()` + `tagmanager_accounts_containers_workspaces_folders_entities_execute()`.
+/// For task-level control, use `tagmanager_accounts_containers_workspaces_folders_entities_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn tagmanager_accounts_containers_workspaces_folders_entities(
+    client: &SimpleHttpClient,
+    args: &TagmanagerAccountsContainersWorkspacesFoldersEntitiesArgs,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<FolderEntities>, ApiError>, P = ApiPending>
+        + Send
+        + 'static,
+    ApiError,
+> {
+    let builder = tagmanager_accounts_containers_workspaces_folders_entities_builder(
+        client,
+        &args.path,
+        &args.pageToken,
+    )?;
+    tagmanager_accounts_containers_workspaces_folders_entities_execute(builder)
+}
+
+/// GET tagmanager/v2/accounts/{accountsId}/containers/{containersId}/workspaces/{workspacesId}/folders/{foldersId}
+/// Gets a GTM Folder.
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `tagmanager_accounts_containers_workspaces_folders_get_execute()` to send, or `tagmanager_accounts_containers_workspaces_folders_get` for simplest API.
+
+pub fn tagmanager_accounts_containers_workspaces_folders_get_builder(
+    client: &SimpleHttpClient,
+    path: &String,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!(
+        "https://tagmanager.googleapis.com/tagmanager/v2/accounts/{}/containers/{containersId}/workspaces/{workspacesId}/folders/{foldersId}",
+        path,
+    );
+
+    // Build request
+    let builder = client
+        .get(&endpoint_url)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// GET tagmanager/v2/accounts/{accountsId}/containers/{containersId}/workspaces/{workspacesId}/folders/{foldersId}
+/// Gets a GTM Folder.
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `tagmanager_accounts_containers_workspaces_folders_get_execute()` or `tagmanager_accounts_containers_workspaces_folders_get`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `tagmanager_accounts_containers_workspaces_folders_get_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn tagmanager_accounts_containers_workspaces_folders_get_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<Folder>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: Folder = serde_json::from_str(&body)
+                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// GET tagmanager/v2/accounts/{accountsId}/containers/{containersId}/workspaces/{workspacesId}/folders/{foldersId}
+/// Gets a GTM Folder.
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `tagmanager_accounts_containers_workspaces_folders_get_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `tagmanager_accounts_containers_workspaces_folders_get_task()`.
+/// For the simplest API, use `tagmanager_accounts_containers_workspaces_folders_get()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `tagmanager_accounts_containers_workspaces_folders_get_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn tagmanager_accounts_containers_workspaces_folders_get_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<Folder>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let task = tagmanager_accounts_containers_workspaces_folders_get_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`tagmanager_accounts_containers_workspaces_folders_get`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct TagmanagerAccountsContainersWorkspacesFoldersGetArgs {
+    /// Path parameter: path
+    pub path: String,
+}
+
+/// GET tagmanager/v2/accounts/{accountsId}/containers/{containersId}/workspaces/{workspacesId}/folders/{foldersId}
+/// Gets a GTM Folder.
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `tagmanager_accounts_containers_workspaces_folders_get_builder()` + `tagmanager_accounts_containers_workspaces_folders_get_execute()`.
+/// For task-level control, use `tagmanager_accounts_containers_workspaces_folders_get_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn tagmanager_accounts_containers_workspaces_folders_get(
+    client: &SimpleHttpClient,
+    args: &TagmanagerAccountsContainersWorkspacesFoldersGetArgs,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<Folder>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let builder =
+        tagmanager_accounts_containers_workspaces_folders_get_builder(client, &args.path)?;
+    tagmanager_accounts_containers_workspaces_folders_get_execute(builder)
+}
+
+/// GET tagmanager/v2/accounts/{accountsId}/containers/{containersId}/workspaces/{workspacesId}/folders
+/// Lists all GTM Folders of a Container.
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `tagmanager_accounts_containers_workspaces_folders_list_execute()` to send, or `tagmanager_accounts_containers_workspaces_folders_list` for simplest API.
+
+pub fn tagmanager_accounts_containers_workspaces_folders_list_builder(
+    client: &SimpleHttpClient,
+    parent: &String,
+    pageToken: &Option<Option<String>>,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!(
+        "https://tagmanager.googleapis.com/tagmanager/v2/accounts/{}/containers/{containersId}/workspaces/{workspacesId}/folders",
+        parent,
+    );
+
+    // Build request
+    let mut query_parts = Vec::new();
+    if let Some(val) = pageToken.as_ref() {
+        query_parts.push(format!("pageToken={}", val));
+    }
+
+    let url_with_query = if query_parts.is_empty() {
+        endpoint_url
+    } else {
+        format!("{}?{}", endpoint_url, query_parts.join("&"))
+    };
+
+    let builder = client
+        .get(&url_with_query)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// GET tagmanager/v2/accounts/{accountsId}/containers/{containersId}/workspaces/{workspacesId}/folders
+/// Lists all GTM Folders of a Container.
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `tagmanager_accounts_containers_workspaces_folders_list_execute()` or `tagmanager_accounts_containers_workspaces_folders_list`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `tagmanager_accounts_containers_workspaces_folders_list_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn tagmanager_accounts_containers_workspaces_folders_list_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<ListFoldersResponse>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: ListFoldersResponse = serde_json::from_str(&body)
+                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// GET tagmanager/v2/accounts/{accountsId}/containers/{containersId}/workspaces/{workspacesId}/folders
+/// Lists all GTM Folders of a Container.
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `tagmanager_accounts_containers_workspaces_folders_list_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `tagmanager_accounts_containers_workspaces_folders_list_task()`.
+/// For the simplest API, use `tagmanager_accounts_containers_workspaces_folders_list()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `tagmanager_accounts_containers_workspaces_folders_list_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn tagmanager_accounts_containers_workspaces_folders_list_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<ListFoldersResponse>, ApiError>, P = ApiPending>
+        + Send
+        + 'static,
+    ApiError,
+> {
+    let task = tagmanager_accounts_containers_workspaces_folders_list_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`tagmanager_accounts_containers_workspaces_folders_list`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct TagmanagerAccountsContainersWorkspacesFoldersListArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Query parameter: pageToken
+    pub pageToken: Option<Option<String>>,
+}
+
+/// GET tagmanager/v2/accounts/{accountsId}/containers/{containersId}/workspaces/{workspacesId}/folders
+/// Lists all GTM Folders of a Container.
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `tagmanager_accounts_containers_workspaces_folders_list_builder()` + `tagmanager_accounts_containers_workspaces_folders_list_execute()`.
+/// For task-level control, use `tagmanager_accounts_containers_workspaces_folders_list_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn tagmanager_accounts_containers_workspaces_folders_list(
+    client: &SimpleHttpClient,
+    args: &TagmanagerAccountsContainersWorkspacesFoldersListArgs,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<ListFoldersResponse>, ApiError>, P = ApiPending>
+        + Send
+        + 'static,
+    ApiError,
+> {
+    let builder = tagmanager_accounts_containers_workspaces_folders_list_builder(
+        client,
+        &args.parent,
+        &args.pageToken,
+    )?;
+    tagmanager_accounts_containers_workspaces_folders_list_execute(builder)
+}
+
+/// POST tagmanager/v2/accounts/{accountsId}/containers/{containersId}/workspaces/{workspacesId}/folders/{foldersId}:move_entities_to_folder
+/// Moves entities to a GTM Folder. If {folder_id} in the request path equals 0, this will instead move entities out of the folder they currently belong to.
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `tagmanager_accounts_containers_workspaces_folders_move_entities_to_folder_execute()` to send, or `tagmanager_accounts_containers_workspaces_folders_move_entities_to_folder` for simplest API.
+
+pub fn tagmanager_accounts_containers_workspaces_folders_move_entities_to_folder_builder(
+    client: &SimpleHttpClient,
+    path: &String,
+    tagId: &Option<Option<String>>,
+    triggerId: &Option<Option<String>>,
+    variableId: &Option<Option<String>>,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!(
+        "https://tagmanager.googleapis.com/tagmanager/v2/accounts/{}/containers/{containersId}/workspaces/{workspacesId}/folders/{foldersId}:move_entities_to_folder",
+        path,
+    );
+
+    // Build request
+    let mut query_parts = Vec::new();
+    if let Some(val) = tagId.as_ref() {
+        query_parts.push(format!("tagId={}", val));
+    }
+    if let Some(val) = triggerId.as_ref() {
+        query_parts.push(format!("triggerId={}", val));
+    }
+    if let Some(val) = variableId.as_ref() {
+        query_parts.push(format!("variableId={}", val));
+    }
+
+    let url_with_query = if query_parts.is_empty() {
+        endpoint_url
+    } else {
+        format!("{}?{}", endpoint_url, query_parts.join("&"))
+    };
+
+    let builder = client
+        .post(&url_with_query)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// POST tagmanager/v2/accounts/{accountsId}/containers/{containersId}/workspaces/{workspacesId}/folders/{foldersId}:move_entities_to_folder
+/// Moves entities to a GTM Folder. If {folder_id} in the request path equals 0, this will instead move entities out of the folder they currently belong to.
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `tagmanager_accounts_containers_workspaces_folders_move_entities_to_folder_execute()` or `tagmanager_accounts_containers_workspaces_folders_move_entities_to_folder`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `tagmanager_accounts_containers_workspaces_folders_move_entities_to_folder_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn tagmanager_accounts_containers_workspaces_folders_move_entities_to_folder_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<()>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: (),
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// POST tagmanager/v2/accounts/{accountsId}/containers/{containersId}/workspaces/{workspacesId}/folders/{foldersId}:move_entities_to_folder
+/// Moves entities to a GTM Folder. If {folder_id} in the request path equals 0, this will instead move entities out of the folder they currently belong to.
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `tagmanager_accounts_containers_workspaces_folders_move_entities_to_folder_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `tagmanager_accounts_containers_workspaces_folders_move_entities_to_folder_task()`.
+/// For the simplest API, use `tagmanager_accounts_containers_workspaces_folders_move_entities_to_folder()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `tagmanager_accounts_containers_workspaces_folders_move_entities_to_folder_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn tagmanager_accounts_containers_workspaces_folders_move_entities_to_folder_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<()>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let task =
+        tagmanager_accounts_containers_workspaces_folders_move_entities_to_folder_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`tagmanager_accounts_containers_workspaces_folders_move_entities_to_folder`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct TagmanagerAccountsContainersWorkspacesFoldersMoveEntitiesToFolderArgs {
+    /// Path parameter: path
+    pub path: String,
+    /// Query parameter: tagId
+    pub tagId: Option<Option<String>>,
+    /// Query parameter: triggerId
+    pub triggerId: Option<Option<String>>,
+    /// Query parameter: variableId
+    pub variableId: Option<Option<String>>,
+}
+
+/// POST tagmanager/v2/accounts/{accountsId}/containers/{containersId}/workspaces/{workspacesId}/folders/{foldersId}:move_entities_to_folder
+/// Moves entities to a GTM Folder. If {folder_id} in the request path equals 0, this will instead move entities out of the folder they currently belong to.
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `tagmanager_accounts_containers_workspaces_folders_move_entities_to_folder_builder()` + `tagmanager_accounts_containers_workspaces_folders_move_entities_to_folder_execute()`.
+/// For task-level control, use `tagmanager_accounts_containers_workspaces_folders_move_entities_to_folder_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn tagmanager_accounts_containers_workspaces_folders_move_entities_to_folder(
+    client: &SimpleHttpClient,
+    args: &TagmanagerAccountsContainersWorkspacesFoldersMoveEntitiesToFolderArgs,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<()>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let builder =
+        tagmanager_accounts_containers_workspaces_folders_move_entities_to_folder_builder(
+            client,
+            &args.path,
+            &args.tagId,
+            &args.triggerId,
+            &args.variableId,
+        )?;
+    tagmanager_accounts_containers_workspaces_folders_move_entities_to_folder_execute(builder)
+}
+
+/// POST tagmanager/v2/accounts/{accountsId}/containers/{containersId}/workspaces/{workspacesId}/folders/{foldersId}:revert
+/// Reverts changes to a GTM Folder in a GTM Workspace.
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `tagmanager_accounts_containers_workspaces_folders_revert_execute()` to send, or `tagmanager_accounts_containers_workspaces_folders_revert` for simplest API.
+
+pub fn tagmanager_accounts_containers_workspaces_folders_revert_builder(
+    client: &SimpleHttpClient,
+    path: &String,
+    fingerprint: &Option<Option<String>>,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!(
+        "https://tagmanager.googleapis.com/tagmanager/v2/accounts/{}/containers/{containersId}/workspaces/{workspacesId}/folders/{foldersId}:revert",
+        path,
+    );
+
+    // Build request
+    let mut query_parts = Vec::new();
+    if let Some(val) = fingerprint.as_ref() {
+        query_parts.push(format!("fingerprint={}", val));
+    }
+
+    let url_with_query = if query_parts.is_empty() {
+        endpoint_url
+    } else {
+        format!("{}?{}", endpoint_url, query_parts.join("&"))
+    };
+
+    let builder = client
+        .post(&url_with_query)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// POST tagmanager/v2/accounts/{accountsId}/containers/{containersId}/workspaces/{workspacesId}/folders/{foldersId}:revert
+/// Reverts changes to a GTM Folder in a GTM Workspace.
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `tagmanager_accounts_containers_workspaces_folders_revert_execute()` or `tagmanager_accounts_containers_workspaces_folders_revert`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `tagmanager_accounts_containers_workspaces_folders_revert_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn tagmanager_accounts_containers_workspaces_folders_revert_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<RevertFolderResponse>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: RevertFolderResponse = serde_json::from_str(&body)
+                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// POST tagmanager/v2/accounts/{accountsId}/containers/{containersId}/workspaces/{workspacesId}/folders/{foldersId}:revert
+/// Reverts changes to a GTM Folder in a GTM Workspace.
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `tagmanager_accounts_containers_workspaces_folders_revert_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `tagmanager_accounts_containers_workspaces_folders_revert_task()`.
+/// For the simplest API, use `tagmanager_accounts_containers_workspaces_folders_revert()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `tagmanager_accounts_containers_workspaces_folders_revert_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn tagmanager_accounts_containers_workspaces_folders_revert_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<RevertFolderResponse>, ApiError>, P = ApiPending>
+        + Send
+        + 'static,
+    ApiError,
+> {
+    let task = tagmanager_accounts_containers_workspaces_folders_revert_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`tagmanager_accounts_containers_workspaces_folders_revert`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct TagmanagerAccountsContainersWorkspacesFoldersRevertArgs {
+    /// Path parameter: path
+    pub path: String,
+    /// Query parameter: fingerprint
+    pub fingerprint: Option<Option<String>>,
+}
+
+/// POST tagmanager/v2/accounts/{accountsId}/containers/{containersId}/workspaces/{workspacesId}/folders/{foldersId}:revert
+/// Reverts changes to a GTM Folder in a GTM Workspace.
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `tagmanager_accounts_containers_workspaces_folders_revert_builder()` + `tagmanager_accounts_containers_workspaces_folders_revert_execute()`.
+/// For task-level control, use `tagmanager_accounts_containers_workspaces_folders_revert_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn tagmanager_accounts_containers_workspaces_folders_revert(
+    client: &SimpleHttpClient,
+    args: &TagmanagerAccountsContainersWorkspacesFoldersRevertArgs,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<RevertFolderResponse>, ApiError>, P = ApiPending>
+        + Send
+        + 'static,
+    ApiError,
+> {
+    let builder = tagmanager_accounts_containers_workspaces_folders_revert_builder(
+        client,
+        &args.path,
+        &args.fingerprint,
+    )?;
+    tagmanager_accounts_containers_workspaces_folders_revert_execute(builder)
+}
+
+/// PUT tagmanager/v2/accounts/{accountsId}/containers/{containersId}/workspaces/{workspacesId}/folders/{foldersId}
+/// Updates a GTM Folder.
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `tagmanager_accounts_containers_workspaces_folders_update_execute()` to send, or `tagmanager_accounts_containers_workspaces_folders_update` for simplest API.
+
+pub fn tagmanager_accounts_containers_workspaces_folders_update_builder(
+    client: &SimpleHttpClient,
+    path: &String,
+    fingerprint: &Option<Option<String>>,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!(
+        "https://tagmanager.googleapis.com/tagmanager/v2/accounts/{}/containers/{containersId}/workspaces/{workspacesId}/folders/{foldersId}",
+        path,
+    );
+
+    // Build request
+    let mut query_parts = Vec::new();
+    if let Some(val) = fingerprint.as_ref() {
+        query_parts.push(format!("fingerprint={}", val));
+    }
+
+    let url_with_query = if query_parts.is_empty() {
+        endpoint_url
+    } else {
+        format!("{}?{}", endpoint_url, query_parts.join("&"))
+    };
+
+    let builder = client
+        .put(&url_with_query)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// PUT tagmanager/v2/accounts/{accountsId}/containers/{containersId}/workspaces/{workspacesId}/folders/{foldersId}
+/// Updates a GTM Folder.
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `tagmanager_accounts_containers_workspaces_folders_update_execute()` or `tagmanager_accounts_containers_workspaces_folders_update`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `tagmanager_accounts_containers_workspaces_folders_update_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn tagmanager_accounts_containers_workspaces_folders_update_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<Folder>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: Folder = serde_json::from_str(&body)
+                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// PUT tagmanager/v2/accounts/{accountsId}/containers/{containersId}/workspaces/{workspacesId}/folders/{foldersId}
+/// Updates a GTM Folder.
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `tagmanager_accounts_containers_workspaces_folders_update_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `tagmanager_accounts_containers_workspaces_folders_update_task()`.
+/// For the simplest API, use `tagmanager_accounts_containers_workspaces_folders_update()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `tagmanager_accounts_containers_workspaces_folders_update_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn tagmanager_accounts_containers_workspaces_folders_update_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<Folder>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let task = tagmanager_accounts_containers_workspaces_folders_update_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`tagmanager_accounts_containers_workspaces_folders_update`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct TagmanagerAccountsContainersWorkspacesFoldersUpdateArgs {
+    /// Path parameter: path
+    pub path: String,
+    /// Query parameter: fingerprint
+    pub fingerprint: Option<Option<String>>,
+}
+
+/// PUT tagmanager/v2/accounts/{accountsId}/containers/{containersId}/workspaces/{workspacesId}/folders/{foldersId}
+/// Updates a GTM Folder.
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `tagmanager_accounts_containers_workspaces_folders_update_builder()` + `tagmanager_accounts_containers_workspaces_folders_update_execute()`.
+/// For task-level control, use `tagmanager_accounts_containers_workspaces_folders_update_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn tagmanager_accounts_containers_workspaces_folders_update(
+    client: &SimpleHttpClient,
+    args: &TagmanagerAccountsContainersWorkspacesFoldersUpdateArgs,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<Folder>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let builder = tagmanager_accounts_containers_workspaces_folders_update_builder(
+        client,
+        &args.path,
+        &args.fingerprint,
+    )?;
+    tagmanager_accounts_containers_workspaces_folders_update_execute(builder)
+}
+
+/// POST tagmanager/v2/accounts/{accountsId}/containers/{containersId}/workspaces/{workspacesId}/gtag_config
+/// Creates a Google tag config.
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `tagmanager_accounts_containers_workspaces_gtag_config_create_execute()` to send, or `tagmanager_accounts_containers_workspaces_gtag_config_create` for simplest API.
+
+pub fn tagmanager_accounts_containers_workspaces_gtag_config_create_builder(
+    client: &SimpleHttpClient,
+    parent: &String,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!(
+        "https://tagmanager.googleapis.com/tagmanager/v2/accounts/{}/containers/{containersId}/workspaces/{workspacesId}/gtag_config",
+        parent,
+    );
+
+    // Build request
+    let builder = client
+        .post(&endpoint_url)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// POST tagmanager/v2/accounts/{accountsId}/containers/{containersId}/workspaces/{workspacesId}/gtag_config
+/// Creates a Google tag config.
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `tagmanager_accounts_containers_workspaces_gtag_config_create_execute()` or `tagmanager_accounts_containers_workspaces_gtag_config_create`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `tagmanager_accounts_containers_workspaces_gtag_config_create_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn tagmanager_accounts_containers_workspaces_gtag_config_create_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<GtagConfig>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: GtagConfig = serde_json::from_str(&body)
+                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// POST tagmanager/v2/accounts/{accountsId}/containers/{containersId}/workspaces/{workspacesId}/gtag_config
+/// Creates a Google tag config.
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `tagmanager_accounts_containers_workspaces_gtag_config_create_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `tagmanager_accounts_containers_workspaces_gtag_config_create_task()`.
+/// For the simplest API, use `tagmanager_accounts_containers_workspaces_gtag_config_create()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `tagmanager_accounts_containers_workspaces_gtag_config_create_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn tagmanager_accounts_containers_workspaces_gtag_config_create_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<GtagConfig>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let task = tagmanager_accounts_containers_workspaces_gtag_config_create_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`tagmanager_accounts_containers_workspaces_gtag_config_create`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct TagmanagerAccountsContainersWorkspacesGtagConfigCreateArgs {
+    /// Path parameter: parent
+    pub parent: String,
+}
+
+/// POST tagmanager/v2/accounts/{accountsId}/containers/{containersId}/workspaces/{workspacesId}/gtag_config
+/// Creates a Google tag config.
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `tagmanager_accounts_containers_workspaces_gtag_config_create_builder()` + `tagmanager_accounts_containers_workspaces_gtag_config_create_execute()`.
+/// For task-level control, use `tagmanager_accounts_containers_workspaces_gtag_config_create_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn tagmanager_accounts_containers_workspaces_gtag_config_create(
+    client: &SimpleHttpClient,
+    args: &TagmanagerAccountsContainersWorkspacesGtagConfigCreateArgs,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<GtagConfig>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let builder =
+        tagmanager_accounts_containers_workspaces_gtag_config_create_builder(client, &args.parent)?;
+    tagmanager_accounts_containers_workspaces_gtag_config_create_execute(builder)
+}
+
+/// DELETE tagmanager/v2/accounts/{accountsId}/containers/{containersId}/workspaces/{workspacesId}/gtag_config/{gtag_configId}
+/// Deletes a Google tag config.
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `tagmanager_accounts_containers_workspaces_gtag_config_delete_execute()` to send, or `tagmanager_accounts_containers_workspaces_gtag_config_delete` for simplest API.
+
+pub fn tagmanager_accounts_containers_workspaces_gtag_config_delete_builder(
+    client: &SimpleHttpClient,
+    path: &String,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!(
+        "https://tagmanager.googleapis.com/tagmanager/v2/accounts/{}/containers/{containersId}/workspaces/{workspacesId}/gtag_config/{gtag_configId}",
+        path,
+    );
+
+    // Build request
+    let builder = client
+        .delete(&endpoint_url)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// DELETE tagmanager/v2/accounts/{accountsId}/containers/{containersId}/workspaces/{workspacesId}/gtag_config/{gtag_configId}
+/// Deletes a Google tag config.
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `tagmanager_accounts_containers_workspaces_gtag_config_delete_execute()` or `tagmanager_accounts_containers_workspaces_gtag_config_delete`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `tagmanager_accounts_containers_workspaces_gtag_config_delete_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn tagmanager_accounts_containers_workspaces_gtag_config_delete_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<()>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: (),
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// DELETE tagmanager/v2/accounts/{accountsId}/containers/{containersId}/workspaces/{workspacesId}/gtag_config/{gtag_configId}
+/// Deletes a Google tag config.
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `tagmanager_accounts_containers_workspaces_gtag_config_delete_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `tagmanager_accounts_containers_workspaces_gtag_config_delete_task()`.
+/// For the simplest API, use `tagmanager_accounts_containers_workspaces_gtag_config_delete()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `tagmanager_accounts_containers_workspaces_gtag_config_delete_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn tagmanager_accounts_containers_workspaces_gtag_config_delete_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<()>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let task = tagmanager_accounts_containers_workspaces_gtag_config_delete_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`tagmanager_accounts_containers_workspaces_gtag_config_delete`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct TagmanagerAccountsContainersWorkspacesGtagConfigDeleteArgs {
+    /// Path parameter: path
+    pub path: String,
+}
+
+/// DELETE tagmanager/v2/accounts/{accountsId}/containers/{containersId}/workspaces/{workspacesId}/gtag_config/{gtag_configId}
+/// Deletes a Google tag config.
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `tagmanager_accounts_containers_workspaces_gtag_config_delete_builder()` + `tagmanager_accounts_containers_workspaces_gtag_config_delete_execute()`.
+/// For task-level control, use `tagmanager_accounts_containers_workspaces_gtag_config_delete_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn tagmanager_accounts_containers_workspaces_gtag_config_delete(
+    client: &SimpleHttpClient,
+    args: &TagmanagerAccountsContainersWorkspacesGtagConfigDeleteArgs,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<()>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let builder =
+        tagmanager_accounts_containers_workspaces_gtag_config_delete_builder(client, &args.path)?;
+    tagmanager_accounts_containers_workspaces_gtag_config_delete_execute(builder)
+}
+
+/// GET tagmanager/v2/accounts/{accountsId}/containers/{containersId}/workspaces/{workspacesId}/gtag_config/{gtag_configId}
+/// Gets a Google tag config.
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `tagmanager_accounts_containers_workspaces_gtag_config_get_execute()` to send, or `tagmanager_accounts_containers_workspaces_gtag_config_get` for simplest API.
+
+pub fn tagmanager_accounts_containers_workspaces_gtag_config_get_builder(
+    client: &SimpleHttpClient,
+    path: &String,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!(
+        "https://tagmanager.googleapis.com/tagmanager/v2/accounts/{}/containers/{containersId}/workspaces/{workspacesId}/gtag_config/{gtag_configId}",
+        path,
+    );
+
+    // Build request
+    let builder = client
+        .get(&endpoint_url)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// GET tagmanager/v2/accounts/{accountsId}/containers/{containersId}/workspaces/{workspacesId}/gtag_config/{gtag_configId}
+/// Gets a Google tag config.
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `tagmanager_accounts_containers_workspaces_gtag_config_get_execute()` or `tagmanager_accounts_containers_workspaces_gtag_config_get`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `tagmanager_accounts_containers_workspaces_gtag_config_get_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn tagmanager_accounts_containers_workspaces_gtag_config_get_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<GtagConfig>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: GtagConfig = serde_json::from_str(&body)
+                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// GET tagmanager/v2/accounts/{accountsId}/containers/{containersId}/workspaces/{workspacesId}/gtag_config/{gtag_configId}
+/// Gets a Google tag config.
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `tagmanager_accounts_containers_workspaces_gtag_config_get_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `tagmanager_accounts_containers_workspaces_gtag_config_get_task()`.
+/// For the simplest API, use `tagmanager_accounts_containers_workspaces_gtag_config_get()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `tagmanager_accounts_containers_workspaces_gtag_config_get_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn tagmanager_accounts_containers_workspaces_gtag_config_get_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<GtagConfig>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let task = tagmanager_accounts_containers_workspaces_gtag_config_get_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`tagmanager_accounts_containers_workspaces_gtag_config_get`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct TagmanagerAccountsContainersWorkspacesGtagConfigGetArgs {
+    /// Path parameter: path
+    pub path: String,
+}
+
+/// GET tagmanager/v2/accounts/{accountsId}/containers/{containersId}/workspaces/{workspacesId}/gtag_config/{gtag_configId}
+/// Gets a Google tag config.
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `tagmanager_accounts_containers_workspaces_gtag_config_get_builder()` + `tagmanager_accounts_containers_workspaces_gtag_config_get_execute()`.
+/// For task-level control, use `tagmanager_accounts_containers_workspaces_gtag_config_get_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn tagmanager_accounts_containers_workspaces_gtag_config_get(
+    client: &SimpleHttpClient,
+    args: &TagmanagerAccountsContainersWorkspacesGtagConfigGetArgs,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<GtagConfig>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let builder =
+        tagmanager_accounts_containers_workspaces_gtag_config_get_builder(client, &args.path)?;
+    tagmanager_accounts_containers_workspaces_gtag_config_get_execute(builder)
+}
+
+/// GET tagmanager/v2/accounts/{accountsId}/containers/{containersId}/workspaces/{workspacesId}/gtag_config
+/// Lists all Google tag configs in a Container.
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `tagmanager_accounts_containers_workspaces_gtag_config_list_execute()` to send, or `tagmanager_accounts_containers_workspaces_gtag_config_list` for simplest API.
+
+pub fn tagmanager_accounts_containers_workspaces_gtag_config_list_builder(
+    client: &SimpleHttpClient,
+    parent: &String,
+    pageToken: &Option<Option<String>>,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!(
+        "https://tagmanager.googleapis.com/tagmanager/v2/accounts/{}/containers/{containersId}/workspaces/{workspacesId}/gtag_config",
+        parent,
+    );
+
+    // Build request
+    let mut query_parts = Vec::new();
+    if let Some(val) = pageToken.as_ref() {
+        query_parts.push(format!("pageToken={}", val));
+    }
+
+    let url_with_query = if query_parts.is_empty() {
+        endpoint_url
+    } else {
+        format!("{}?{}", endpoint_url, query_parts.join("&"))
+    };
+
+    let builder = client
+        .get(&url_with_query)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// GET tagmanager/v2/accounts/{accountsId}/containers/{containersId}/workspaces/{workspacesId}/gtag_config
+/// Lists all Google tag configs in a Container.
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `tagmanager_accounts_containers_workspaces_gtag_config_list_execute()` or `tagmanager_accounts_containers_workspaces_gtag_config_list`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `tagmanager_accounts_containers_workspaces_gtag_config_list_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn tagmanager_accounts_containers_workspaces_gtag_config_list_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<ListGtagConfigResponse>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: ListGtagConfigResponse = serde_json::from_str(&body)
+                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// GET tagmanager/v2/accounts/{accountsId}/containers/{containersId}/workspaces/{workspacesId}/gtag_config
+/// Lists all Google tag configs in a Container.
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `tagmanager_accounts_containers_workspaces_gtag_config_list_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `tagmanager_accounts_containers_workspaces_gtag_config_list_task()`.
+/// For the simplest API, use `tagmanager_accounts_containers_workspaces_gtag_config_list()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `tagmanager_accounts_containers_workspaces_gtag_config_list_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn tagmanager_accounts_containers_workspaces_gtag_config_list_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<ListGtagConfigResponse>, ApiError>, P = ApiPending>
+        + Send
+        + 'static,
+    ApiError,
+> {
+    let task = tagmanager_accounts_containers_workspaces_gtag_config_list_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`tagmanager_accounts_containers_workspaces_gtag_config_list`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct TagmanagerAccountsContainersWorkspacesGtagConfigListArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Query parameter: pageToken
+    pub pageToken: Option<Option<String>>,
+}
+
+/// GET tagmanager/v2/accounts/{accountsId}/containers/{containersId}/workspaces/{workspacesId}/gtag_config
+/// Lists all Google tag configs in a Container.
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `tagmanager_accounts_containers_workspaces_gtag_config_list_builder()` + `tagmanager_accounts_containers_workspaces_gtag_config_list_execute()`.
+/// For task-level control, use `tagmanager_accounts_containers_workspaces_gtag_config_list_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn tagmanager_accounts_containers_workspaces_gtag_config_list(
+    client: &SimpleHttpClient,
+    args: &TagmanagerAccountsContainersWorkspacesGtagConfigListArgs,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<ListGtagConfigResponse>, ApiError>, P = ApiPending>
+        + Send
+        + 'static,
+    ApiError,
+> {
+    let builder = tagmanager_accounts_containers_workspaces_gtag_config_list_builder(
+        client,
+        &args.parent,
+        &args.pageToken,
+    )?;
+    tagmanager_accounts_containers_workspaces_gtag_config_list_execute(builder)
+}
+
+/// PUT tagmanager/v2/accounts/{accountsId}/containers/{containersId}/workspaces/{workspacesId}/gtag_config/{gtag_configId}
+/// Updates a Google tag config.
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `tagmanager_accounts_containers_workspaces_gtag_config_update_execute()` to send, or `tagmanager_accounts_containers_workspaces_gtag_config_update` for simplest API.
+
+pub fn tagmanager_accounts_containers_workspaces_gtag_config_update_builder(
+    client: &SimpleHttpClient,
+    path: &String,
+    fingerprint: &Option<Option<String>>,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!(
+        "https://tagmanager.googleapis.com/tagmanager/v2/accounts/{}/containers/{containersId}/workspaces/{workspacesId}/gtag_config/{gtag_configId}",
+        path,
+    );
+
+    // Build request
+    let mut query_parts = Vec::new();
+    if let Some(val) = fingerprint.as_ref() {
+        query_parts.push(format!("fingerprint={}", val));
+    }
+
+    let url_with_query = if query_parts.is_empty() {
+        endpoint_url
+    } else {
+        format!("{}?{}", endpoint_url, query_parts.join("&"))
+    };
+
+    let builder = client
+        .put(&url_with_query)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// PUT tagmanager/v2/accounts/{accountsId}/containers/{containersId}/workspaces/{workspacesId}/gtag_config/{gtag_configId}
+/// Updates a Google tag config.
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `tagmanager_accounts_containers_workspaces_gtag_config_update_execute()` or `tagmanager_accounts_containers_workspaces_gtag_config_update`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `tagmanager_accounts_containers_workspaces_gtag_config_update_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn tagmanager_accounts_containers_workspaces_gtag_config_update_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<GtagConfig>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: GtagConfig = serde_json::from_str(&body)
+                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// PUT tagmanager/v2/accounts/{accountsId}/containers/{containersId}/workspaces/{workspacesId}/gtag_config/{gtag_configId}
+/// Updates a Google tag config.
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `tagmanager_accounts_containers_workspaces_gtag_config_update_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `tagmanager_accounts_containers_workspaces_gtag_config_update_task()`.
+/// For the simplest API, use `tagmanager_accounts_containers_workspaces_gtag_config_update()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `tagmanager_accounts_containers_workspaces_gtag_config_update_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn tagmanager_accounts_containers_workspaces_gtag_config_update_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<GtagConfig>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let task = tagmanager_accounts_containers_workspaces_gtag_config_update_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`tagmanager_accounts_containers_workspaces_gtag_config_update`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct TagmanagerAccountsContainersWorkspacesGtagConfigUpdateArgs {
+    /// Path parameter: path
+    pub path: String,
+    /// Query parameter: fingerprint
+    pub fingerprint: Option<Option<String>>,
+}
+
+/// PUT tagmanager/v2/accounts/{accountsId}/containers/{containersId}/workspaces/{workspacesId}/gtag_config/{gtag_configId}
+/// Updates a Google tag config.
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `tagmanager_accounts_containers_workspaces_gtag_config_update_builder()` + `tagmanager_accounts_containers_workspaces_gtag_config_update_execute()`.
+/// For task-level control, use `tagmanager_accounts_containers_workspaces_gtag_config_update_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn tagmanager_accounts_containers_workspaces_gtag_config_update(
+    client: &SimpleHttpClient,
+    args: &TagmanagerAccountsContainersWorkspacesGtagConfigUpdateArgs,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<GtagConfig>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let builder = tagmanager_accounts_containers_workspaces_gtag_config_update_builder(
+        client,
+        &args.path,
+        &args.fingerprint,
+    )?;
+    tagmanager_accounts_containers_workspaces_gtag_config_update_execute(builder)
+}
+
+/// POST tagmanager/v2/accounts/{accountsId}/containers/{containersId}/workspaces/{workspacesId}/tags
+/// Creates a GTM Tag.
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `tagmanager_accounts_containers_workspaces_tags_create_execute()` to send, or `tagmanager_accounts_containers_workspaces_tags_create` for simplest API.
+
+pub fn tagmanager_accounts_containers_workspaces_tags_create_builder(
+    client: &SimpleHttpClient,
+    parent: &String,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!(
+        "https://tagmanager.googleapis.com/tagmanager/v2/accounts/{}/containers/{containersId}/workspaces/{workspacesId}/tags",
+        parent,
+    );
+
+    // Build request
+    let builder = client
+        .post(&endpoint_url)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// POST tagmanager/v2/accounts/{accountsId}/containers/{containersId}/workspaces/{workspacesId}/tags
+/// Creates a GTM Tag.
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `tagmanager_accounts_containers_workspaces_tags_create_execute()` or `tagmanager_accounts_containers_workspaces_tags_create`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `tagmanager_accounts_containers_workspaces_tags_create_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn tagmanager_accounts_containers_workspaces_tags_create_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<Tag>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: Tag = serde_json::from_str(&body)
+                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// POST tagmanager/v2/accounts/{accountsId}/containers/{containersId}/workspaces/{workspacesId}/tags
+/// Creates a GTM Tag.
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `tagmanager_accounts_containers_workspaces_tags_create_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `tagmanager_accounts_containers_workspaces_tags_create_task()`.
+/// For the simplest API, use `tagmanager_accounts_containers_workspaces_tags_create()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `tagmanager_accounts_containers_workspaces_tags_create_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn tagmanager_accounts_containers_workspaces_tags_create_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<Tag>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let task = tagmanager_accounts_containers_workspaces_tags_create_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`tagmanager_accounts_containers_workspaces_tags_create`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct TagmanagerAccountsContainersWorkspacesTagsCreateArgs {
+    /// Path parameter: parent
+    pub parent: String,
+}
+
+/// POST tagmanager/v2/accounts/{accountsId}/containers/{containersId}/workspaces/{workspacesId}/tags
+/// Creates a GTM Tag.
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `tagmanager_accounts_containers_workspaces_tags_create_builder()` + `tagmanager_accounts_containers_workspaces_tags_create_execute()`.
+/// For task-level control, use `tagmanager_accounts_containers_workspaces_tags_create_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn tagmanager_accounts_containers_workspaces_tags_create(
+    client: &SimpleHttpClient,
+    args: &TagmanagerAccountsContainersWorkspacesTagsCreateArgs,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<Tag>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let builder =
+        tagmanager_accounts_containers_workspaces_tags_create_builder(client, &args.parent)?;
+    tagmanager_accounts_containers_workspaces_tags_create_execute(builder)
+}
+
+/// DELETE tagmanager/v2/accounts/{accountsId}/containers/{containersId}/workspaces/{workspacesId}/tags/{tagsId}
+/// Deletes a GTM Tag.
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `tagmanager_accounts_containers_workspaces_tags_delete_execute()` to send, or `tagmanager_accounts_containers_workspaces_tags_delete` for simplest API.
+
+pub fn tagmanager_accounts_containers_workspaces_tags_delete_builder(
+    client: &SimpleHttpClient,
+    path: &String,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!(
+        "https://tagmanager.googleapis.com/tagmanager/v2/accounts/{}/containers/{containersId}/workspaces/{workspacesId}/tags/{tagsId}",
+        path,
+    );
+
+    // Build request
+    let builder = client
+        .delete(&endpoint_url)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// DELETE tagmanager/v2/accounts/{accountsId}/containers/{containersId}/workspaces/{workspacesId}/tags/{tagsId}
+/// Deletes a GTM Tag.
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `tagmanager_accounts_containers_workspaces_tags_delete_execute()` or `tagmanager_accounts_containers_workspaces_tags_delete`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `tagmanager_accounts_containers_workspaces_tags_delete_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn tagmanager_accounts_containers_workspaces_tags_delete_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<()>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: (),
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// DELETE tagmanager/v2/accounts/{accountsId}/containers/{containersId}/workspaces/{workspacesId}/tags/{tagsId}
+/// Deletes a GTM Tag.
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `tagmanager_accounts_containers_workspaces_tags_delete_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `tagmanager_accounts_containers_workspaces_tags_delete_task()`.
+/// For the simplest API, use `tagmanager_accounts_containers_workspaces_tags_delete()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `tagmanager_accounts_containers_workspaces_tags_delete_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn tagmanager_accounts_containers_workspaces_tags_delete_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<()>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let task = tagmanager_accounts_containers_workspaces_tags_delete_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`tagmanager_accounts_containers_workspaces_tags_delete`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct TagmanagerAccountsContainersWorkspacesTagsDeleteArgs {
+    /// Path parameter: path
+    pub path: String,
+}
+
+/// DELETE tagmanager/v2/accounts/{accountsId}/containers/{containersId}/workspaces/{workspacesId}/tags/{tagsId}
+/// Deletes a GTM Tag.
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `tagmanager_accounts_containers_workspaces_tags_delete_builder()` + `tagmanager_accounts_containers_workspaces_tags_delete_execute()`.
+/// For task-level control, use `tagmanager_accounts_containers_workspaces_tags_delete_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn tagmanager_accounts_containers_workspaces_tags_delete(
+    client: &SimpleHttpClient,
+    args: &TagmanagerAccountsContainersWorkspacesTagsDeleteArgs,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<()>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let builder =
+        tagmanager_accounts_containers_workspaces_tags_delete_builder(client, &args.path)?;
+    tagmanager_accounts_containers_workspaces_tags_delete_execute(builder)
+}
+
+/// GET tagmanager/v2/accounts/{accountsId}/containers/{containersId}/workspaces/{workspacesId}/tags/{tagsId}
+/// Gets a GTM Tag.
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `tagmanager_accounts_containers_workspaces_tags_get_execute()` to send, or `tagmanager_accounts_containers_workspaces_tags_get` for simplest API.
+
+pub fn tagmanager_accounts_containers_workspaces_tags_get_builder(
+    client: &SimpleHttpClient,
+    path: &String,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!(
+        "https://tagmanager.googleapis.com/tagmanager/v2/accounts/{}/containers/{containersId}/workspaces/{workspacesId}/tags/{tagsId}",
+        path,
+    );
+
+    // Build request
+    let builder = client
+        .get(&endpoint_url)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// GET tagmanager/v2/accounts/{accountsId}/containers/{containersId}/workspaces/{workspacesId}/tags/{tagsId}
+/// Gets a GTM Tag.
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `tagmanager_accounts_containers_workspaces_tags_get_execute()` or `tagmanager_accounts_containers_workspaces_tags_get`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `tagmanager_accounts_containers_workspaces_tags_get_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn tagmanager_accounts_containers_workspaces_tags_get_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<Tag>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: Tag = serde_json::from_str(&body)
+                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// GET tagmanager/v2/accounts/{accountsId}/containers/{containersId}/workspaces/{workspacesId}/tags/{tagsId}
+/// Gets a GTM Tag.
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `tagmanager_accounts_containers_workspaces_tags_get_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `tagmanager_accounts_containers_workspaces_tags_get_task()`.
+/// For the simplest API, use `tagmanager_accounts_containers_workspaces_tags_get()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `tagmanager_accounts_containers_workspaces_tags_get_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn tagmanager_accounts_containers_workspaces_tags_get_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<Tag>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let task = tagmanager_accounts_containers_workspaces_tags_get_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`tagmanager_accounts_containers_workspaces_tags_get`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct TagmanagerAccountsContainersWorkspacesTagsGetArgs {
+    /// Path parameter: path
+    pub path: String,
+}
+
+/// GET tagmanager/v2/accounts/{accountsId}/containers/{containersId}/workspaces/{workspacesId}/tags/{tagsId}
+/// Gets a GTM Tag.
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `tagmanager_accounts_containers_workspaces_tags_get_builder()` + `tagmanager_accounts_containers_workspaces_tags_get_execute()`.
+/// For task-level control, use `tagmanager_accounts_containers_workspaces_tags_get_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn tagmanager_accounts_containers_workspaces_tags_get(
+    client: &SimpleHttpClient,
+    args: &TagmanagerAccountsContainersWorkspacesTagsGetArgs,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<Tag>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let builder = tagmanager_accounts_containers_workspaces_tags_get_builder(client, &args.path)?;
+    tagmanager_accounts_containers_workspaces_tags_get_execute(builder)
+}
+
+/// GET tagmanager/v2/accounts/{accountsId}/containers/{containersId}/workspaces/{workspacesId}/tags
+/// Lists all GTM Tags of a Container.
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `tagmanager_accounts_containers_workspaces_tags_list_execute()` to send, or `tagmanager_accounts_containers_workspaces_tags_list` for simplest API.
+
+pub fn tagmanager_accounts_containers_workspaces_tags_list_builder(
+    client: &SimpleHttpClient,
+    parent: &String,
+    pageToken: &Option<Option<String>>,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!(
+        "https://tagmanager.googleapis.com/tagmanager/v2/accounts/{}/containers/{containersId}/workspaces/{workspacesId}/tags",
+        parent,
+    );
+
+    // Build request
+    let mut query_parts = Vec::new();
+    if let Some(val) = pageToken.as_ref() {
+        query_parts.push(format!("pageToken={}", val));
+    }
+
+    let url_with_query = if query_parts.is_empty() {
+        endpoint_url
+    } else {
+        format!("{}?{}", endpoint_url, query_parts.join("&"))
+    };
+
+    let builder = client
+        .get(&url_with_query)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// GET tagmanager/v2/accounts/{accountsId}/containers/{containersId}/workspaces/{workspacesId}/tags
+/// Lists all GTM Tags of a Container.
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `tagmanager_accounts_containers_workspaces_tags_list_execute()` or `tagmanager_accounts_containers_workspaces_tags_list`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `tagmanager_accounts_containers_workspaces_tags_list_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn tagmanager_accounts_containers_workspaces_tags_list_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<ListTagsResponse>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: ListTagsResponse = serde_json::from_str(&body)
+                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// GET tagmanager/v2/accounts/{accountsId}/containers/{containersId}/workspaces/{workspacesId}/tags
+/// Lists all GTM Tags of a Container.
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `tagmanager_accounts_containers_workspaces_tags_list_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `tagmanager_accounts_containers_workspaces_tags_list_task()`.
+/// For the simplest API, use `tagmanager_accounts_containers_workspaces_tags_list()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `tagmanager_accounts_containers_workspaces_tags_list_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn tagmanager_accounts_containers_workspaces_tags_list_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<ListTagsResponse>, ApiError>, P = ApiPending>
+        + Send
+        + 'static,
+    ApiError,
+> {
+    let task = tagmanager_accounts_containers_workspaces_tags_list_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`tagmanager_accounts_containers_workspaces_tags_list`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct TagmanagerAccountsContainersWorkspacesTagsListArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Query parameter: pageToken
+    pub pageToken: Option<Option<String>>,
+}
+
+/// GET tagmanager/v2/accounts/{accountsId}/containers/{containersId}/workspaces/{workspacesId}/tags
+/// Lists all GTM Tags of a Container.
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `tagmanager_accounts_containers_workspaces_tags_list_builder()` + `tagmanager_accounts_containers_workspaces_tags_list_execute()`.
+/// For task-level control, use `tagmanager_accounts_containers_workspaces_tags_list_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn tagmanager_accounts_containers_workspaces_tags_list(
+    client: &SimpleHttpClient,
+    args: &TagmanagerAccountsContainersWorkspacesTagsListArgs,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<ListTagsResponse>, ApiError>, P = ApiPending>
+        + Send
+        + 'static,
+    ApiError,
+> {
+    let builder = tagmanager_accounts_containers_workspaces_tags_list_builder(
+        client,
+        &args.parent,
+        &args.pageToken,
+    )?;
+    tagmanager_accounts_containers_workspaces_tags_list_execute(builder)
+}
+
+/// POST tagmanager/v2/accounts/{accountsId}/containers/{containersId}/workspaces/{workspacesId}/tags/{tagsId}:revert
+/// Reverts changes to a GTM Tag in a GTM Workspace.
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `tagmanager_accounts_containers_workspaces_tags_revert_execute()` to send, or `tagmanager_accounts_containers_workspaces_tags_revert` for simplest API.
+
+pub fn tagmanager_accounts_containers_workspaces_tags_revert_builder(
+    client: &SimpleHttpClient,
+    path: &String,
+    fingerprint: &Option<Option<String>>,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!(
+        "https://tagmanager.googleapis.com/tagmanager/v2/accounts/{}/containers/{containersId}/workspaces/{workspacesId}/tags/{tagsId}:revert",
+        path,
+    );
+
+    // Build request
+    let mut query_parts = Vec::new();
+    if let Some(val) = fingerprint.as_ref() {
+        query_parts.push(format!("fingerprint={}", val));
+    }
+
+    let url_with_query = if query_parts.is_empty() {
+        endpoint_url
+    } else {
+        format!("{}?{}", endpoint_url, query_parts.join("&"))
+    };
+
+    let builder = client
+        .post(&url_with_query)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// POST tagmanager/v2/accounts/{accountsId}/containers/{containersId}/workspaces/{workspacesId}/tags/{tagsId}:revert
+/// Reverts changes to a GTM Tag in a GTM Workspace.
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `tagmanager_accounts_containers_workspaces_tags_revert_execute()` or `tagmanager_accounts_containers_workspaces_tags_revert`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `tagmanager_accounts_containers_workspaces_tags_revert_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn tagmanager_accounts_containers_workspaces_tags_revert_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<RevertTagResponse>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: RevertTagResponse = serde_json::from_str(&body)
+                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// POST tagmanager/v2/accounts/{accountsId}/containers/{containersId}/workspaces/{workspacesId}/tags/{tagsId}:revert
+/// Reverts changes to a GTM Tag in a GTM Workspace.
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `tagmanager_accounts_containers_workspaces_tags_revert_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `tagmanager_accounts_containers_workspaces_tags_revert_task()`.
+/// For the simplest API, use `tagmanager_accounts_containers_workspaces_tags_revert()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `tagmanager_accounts_containers_workspaces_tags_revert_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn tagmanager_accounts_containers_workspaces_tags_revert_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<RevertTagResponse>, ApiError>, P = ApiPending>
+        + Send
+        + 'static,
+    ApiError,
+> {
+    let task = tagmanager_accounts_containers_workspaces_tags_revert_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`tagmanager_accounts_containers_workspaces_tags_revert`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct TagmanagerAccountsContainersWorkspacesTagsRevertArgs {
+    /// Path parameter: path
+    pub path: String,
+    /// Query parameter: fingerprint
+    pub fingerprint: Option<Option<String>>,
+}
+
+/// POST tagmanager/v2/accounts/{accountsId}/containers/{containersId}/workspaces/{workspacesId}/tags/{tagsId}:revert
+/// Reverts changes to a GTM Tag in a GTM Workspace.
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `tagmanager_accounts_containers_workspaces_tags_revert_builder()` + `tagmanager_accounts_containers_workspaces_tags_revert_execute()`.
+/// For task-level control, use `tagmanager_accounts_containers_workspaces_tags_revert_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn tagmanager_accounts_containers_workspaces_tags_revert(
+    client: &SimpleHttpClient,
+    args: &TagmanagerAccountsContainersWorkspacesTagsRevertArgs,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<RevertTagResponse>, ApiError>, P = ApiPending>
+        + Send
+        + 'static,
+    ApiError,
+> {
+    let builder = tagmanager_accounts_containers_workspaces_tags_revert_builder(
+        client,
+        &args.path,
+        &args.fingerprint,
+    )?;
+    tagmanager_accounts_containers_workspaces_tags_revert_execute(builder)
+}
+
+/// PUT tagmanager/v2/accounts/{accountsId}/containers/{containersId}/workspaces/{workspacesId}/tags/{tagsId}
+/// Updates a GTM Tag.
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `tagmanager_accounts_containers_workspaces_tags_update_execute()` to send, or `tagmanager_accounts_containers_workspaces_tags_update` for simplest API.
+
+pub fn tagmanager_accounts_containers_workspaces_tags_update_builder(
+    client: &SimpleHttpClient,
+    path: &String,
+    fingerprint: &Option<Option<String>>,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!(
+        "https://tagmanager.googleapis.com/tagmanager/v2/accounts/{}/containers/{containersId}/workspaces/{workspacesId}/tags/{tagsId}",
+        path,
+    );
+
+    // Build request
+    let mut query_parts = Vec::new();
+    if let Some(val) = fingerprint.as_ref() {
+        query_parts.push(format!("fingerprint={}", val));
+    }
+
+    let url_with_query = if query_parts.is_empty() {
+        endpoint_url
+    } else {
+        format!("{}?{}", endpoint_url, query_parts.join("&"))
+    };
+
+    let builder = client
+        .put(&url_with_query)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// PUT tagmanager/v2/accounts/{accountsId}/containers/{containersId}/workspaces/{workspacesId}/tags/{tagsId}
+/// Updates a GTM Tag.
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `tagmanager_accounts_containers_workspaces_tags_update_execute()` or `tagmanager_accounts_containers_workspaces_tags_update`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `tagmanager_accounts_containers_workspaces_tags_update_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn tagmanager_accounts_containers_workspaces_tags_update_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<Tag>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: Tag = serde_json::from_str(&body)
+                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// PUT tagmanager/v2/accounts/{accountsId}/containers/{containersId}/workspaces/{workspacesId}/tags/{tagsId}
+/// Updates a GTM Tag.
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `tagmanager_accounts_containers_workspaces_tags_update_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `tagmanager_accounts_containers_workspaces_tags_update_task()`.
+/// For the simplest API, use `tagmanager_accounts_containers_workspaces_tags_update()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `tagmanager_accounts_containers_workspaces_tags_update_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn tagmanager_accounts_containers_workspaces_tags_update_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<Tag>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let task = tagmanager_accounts_containers_workspaces_tags_update_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`tagmanager_accounts_containers_workspaces_tags_update`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct TagmanagerAccountsContainersWorkspacesTagsUpdateArgs {
+    /// Path parameter: path
+    pub path: String,
+    /// Query parameter: fingerprint
+    pub fingerprint: Option<Option<String>>,
+}
+
+/// PUT tagmanager/v2/accounts/{accountsId}/containers/{containersId}/workspaces/{workspacesId}/tags/{tagsId}
+/// Updates a GTM Tag.
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `tagmanager_accounts_containers_workspaces_tags_update_builder()` + `tagmanager_accounts_containers_workspaces_tags_update_execute()`.
+/// For task-level control, use `tagmanager_accounts_containers_workspaces_tags_update_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn tagmanager_accounts_containers_workspaces_tags_update(
+    client: &SimpleHttpClient,
+    args: &TagmanagerAccountsContainersWorkspacesTagsUpdateArgs,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<Tag>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let builder = tagmanager_accounts_containers_workspaces_tags_update_builder(
+        client,
+        &args.path,
+        &args.fingerprint,
+    )?;
+    tagmanager_accounts_containers_workspaces_tags_update_execute(builder)
+}
+
+/// POST tagmanager/v2/accounts/{accountsId}/containers/{containersId}/workspaces/{workspacesId}/templates
+/// Creates a GTM Custom Template.
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `tagmanager_accounts_containers_workspaces_templates_create_execute()` to send, or `tagmanager_accounts_containers_workspaces_templates_create` for simplest API.
+
+pub fn tagmanager_accounts_containers_workspaces_templates_create_builder(
+    client: &SimpleHttpClient,
+    parent: &String,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!(
+        "https://tagmanager.googleapis.com/tagmanager/v2/accounts/{}/containers/{containersId}/workspaces/{workspacesId}/templates",
+        parent,
+    );
+
+    // Build request
+    let builder = client
+        .post(&endpoint_url)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// POST tagmanager/v2/accounts/{accountsId}/containers/{containersId}/workspaces/{workspacesId}/templates
+/// Creates a GTM Custom Template.
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `tagmanager_accounts_containers_workspaces_templates_create_execute()` or `tagmanager_accounts_containers_workspaces_templates_create`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `tagmanager_accounts_containers_workspaces_templates_create_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn tagmanager_accounts_containers_workspaces_templates_create_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<CustomTemplate>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: CustomTemplate = serde_json::from_str(&body)
+                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// POST tagmanager/v2/accounts/{accountsId}/containers/{containersId}/workspaces/{workspacesId}/templates
+/// Creates a GTM Custom Template.
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `tagmanager_accounts_containers_workspaces_templates_create_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `tagmanager_accounts_containers_workspaces_templates_create_task()`.
+/// For the simplest API, use `tagmanager_accounts_containers_workspaces_templates_create()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `tagmanager_accounts_containers_workspaces_templates_create_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn tagmanager_accounts_containers_workspaces_templates_create_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<CustomTemplate>, ApiError>, P = ApiPending>
+        + Send
+        + 'static,
+    ApiError,
+> {
+    let task = tagmanager_accounts_containers_workspaces_templates_create_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`tagmanager_accounts_containers_workspaces_templates_create`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct TagmanagerAccountsContainersWorkspacesTemplatesCreateArgs {
+    /// Path parameter: parent
+    pub parent: String,
+}
+
+/// POST tagmanager/v2/accounts/{accountsId}/containers/{containersId}/workspaces/{workspacesId}/templates
+/// Creates a GTM Custom Template.
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `tagmanager_accounts_containers_workspaces_templates_create_builder()` + `tagmanager_accounts_containers_workspaces_templates_create_execute()`.
+/// For task-level control, use `tagmanager_accounts_containers_workspaces_templates_create_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn tagmanager_accounts_containers_workspaces_templates_create(
+    client: &SimpleHttpClient,
+    args: &TagmanagerAccountsContainersWorkspacesTemplatesCreateArgs,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<CustomTemplate>, ApiError>, P = ApiPending>
+        + Send
+        + 'static,
+    ApiError,
+> {
+    let builder =
+        tagmanager_accounts_containers_workspaces_templates_create_builder(client, &args.parent)?;
+    tagmanager_accounts_containers_workspaces_templates_create_execute(builder)
+}
+
+/// DELETE tagmanager/v2/accounts/{accountsId}/containers/{containersId}/workspaces/{workspacesId}/templates/{templatesId}
+/// Deletes a GTM Template.
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `tagmanager_accounts_containers_workspaces_templates_delete_execute()` to send, or `tagmanager_accounts_containers_workspaces_templates_delete` for simplest API.
+
+pub fn tagmanager_accounts_containers_workspaces_templates_delete_builder(
+    client: &SimpleHttpClient,
+    path: &String,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!(
+        "https://tagmanager.googleapis.com/tagmanager/v2/accounts/{}/containers/{containersId}/workspaces/{workspacesId}/templates/{templatesId}",
+        path,
+    );
+
+    // Build request
+    let builder = client
+        .delete(&endpoint_url)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// DELETE tagmanager/v2/accounts/{accountsId}/containers/{containersId}/workspaces/{workspacesId}/templates/{templatesId}
+/// Deletes a GTM Template.
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `tagmanager_accounts_containers_workspaces_templates_delete_execute()` or `tagmanager_accounts_containers_workspaces_templates_delete`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `tagmanager_accounts_containers_workspaces_templates_delete_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn tagmanager_accounts_containers_workspaces_templates_delete_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<()>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: (),
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// DELETE tagmanager/v2/accounts/{accountsId}/containers/{containersId}/workspaces/{workspacesId}/templates/{templatesId}
+/// Deletes a GTM Template.
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `tagmanager_accounts_containers_workspaces_templates_delete_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `tagmanager_accounts_containers_workspaces_templates_delete_task()`.
+/// For the simplest API, use `tagmanager_accounts_containers_workspaces_templates_delete()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `tagmanager_accounts_containers_workspaces_templates_delete_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn tagmanager_accounts_containers_workspaces_templates_delete_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<()>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let task = tagmanager_accounts_containers_workspaces_templates_delete_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`tagmanager_accounts_containers_workspaces_templates_delete`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct TagmanagerAccountsContainersWorkspacesTemplatesDeleteArgs {
+    /// Path parameter: path
+    pub path: String,
+}
+
+/// DELETE tagmanager/v2/accounts/{accountsId}/containers/{containersId}/workspaces/{workspacesId}/templates/{templatesId}
+/// Deletes a GTM Template.
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `tagmanager_accounts_containers_workspaces_templates_delete_builder()` + `tagmanager_accounts_containers_workspaces_templates_delete_execute()`.
+/// For task-level control, use `tagmanager_accounts_containers_workspaces_templates_delete_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn tagmanager_accounts_containers_workspaces_templates_delete(
+    client: &SimpleHttpClient,
+    args: &TagmanagerAccountsContainersWorkspacesTemplatesDeleteArgs,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<()>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let builder =
+        tagmanager_accounts_containers_workspaces_templates_delete_builder(client, &args.path)?;
+    tagmanager_accounts_containers_workspaces_templates_delete_execute(builder)
+}
+
+/// GET tagmanager/v2/accounts/{accountsId}/containers/{containersId}/workspaces/{workspacesId}/templates/{templatesId}
+/// Gets a GTM Template.
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `tagmanager_accounts_containers_workspaces_templates_get_execute()` to send, or `tagmanager_accounts_containers_workspaces_templates_get` for simplest API.
+
+pub fn tagmanager_accounts_containers_workspaces_templates_get_builder(
+    client: &SimpleHttpClient,
+    path: &String,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!(
+        "https://tagmanager.googleapis.com/tagmanager/v2/accounts/{}/containers/{containersId}/workspaces/{workspacesId}/templates/{templatesId}",
+        path,
+    );
+
+    // Build request
+    let builder = client
+        .get(&endpoint_url)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// GET tagmanager/v2/accounts/{accountsId}/containers/{containersId}/workspaces/{workspacesId}/templates/{templatesId}
+/// Gets a GTM Template.
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `tagmanager_accounts_containers_workspaces_templates_get_execute()` or `tagmanager_accounts_containers_workspaces_templates_get`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `tagmanager_accounts_containers_workspaces_templates_get_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn tagmanager_accounts_containers_workspaces_templates_get_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<CustomTemplate>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: CustomTemplate = serde_json::from_str(&body)
+                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// GET tagmanager/v2/accounts/{accountsId}/containers/{containersId}/workspaces/{workspacesId}/templates/{templatesId}
+/// Gets a GTM Template.
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `tagmanager_accounts_containers_workspaces_templates_get_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `tagmanager_accounts_containers_workspaces_templates_get_task()`.
+/// For the simplest API, use `tagmanager_accounts_containers_workspaces_templates_get()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `tagmanager_accounts_containers_workspaces_templates_get_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn tagmanager_accounts_containers_workspaces_templates_get_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<CustomTemplate>, ApiError>, P = ApiPending>
+        + Send
+        + 'static,
+    ApiError,
+> {
+    let task = tagmanager_accounts_containers_workspaces_templates_get_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`tagmanager_accounts_containers_workspaces_templates_get`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct TagmanagerAccountsContainersWorkspacesTemplatesGetArgs {
+    /// Path parameter: path
+    pub path: String,
+}
+
+/// GET tagmanager/v2/accounts/{accountsId}/containers/{containersId}/workspaces/{workspacesId}/templates/{templatesId}
+/// Gets a GTM Template.
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `tagmanager_accounts_containers_workspaces_templates_get_builder()` + `tagmanager_accounts_containers_workspaces_templates_get_execute()`.
+/// For task-level control, use `tagmanager_accounts_containers_workspaces_templates_get_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn tagmanager_accounts_containers_workspaces_templates_get(
+    client: &SimpleHttpClient,
+    args: &TagmanagerAccountsContainersWorkspacesTemplatesGetArgs,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<CustomTemplate>, ApiError>, P = ApiPending>
+        + Send
+        + 'static,
+    ApiError,
+> {
+    let builder =
+        tagmanager_accounts_containers_workspaces_templates_get_builder(client, &args.path)?;
+    tagmanager_accounts_containers_workspaces_templates_get_execute(builder)
+}
+
+/// POST tagmanager/v2/accounts/{accountsId}/containers/{containersId}/workspaces/{workspacesId}/templates:import_from_gallery
+/// Imports a GTM Custom Template from Gallery.
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `tagmanager_accounts_containers_workspaces_templates_import_from_gallery_execute()` to send, or `tagmanager_accounts_containers_workspaces_templates_import_from_gallery` for simplest API.
+
+pub fn tagmanager_accounts_containers_workspaces_templates_import_from_gallery_builder(
+    client: &SimpleHttpClient,
+    parent: &String,
+    acknowledgePermissions: &Option<Option<String>>,
+    galleryOwner: &Option<Option<String>>,
+    galleryRepository: &Option<Option<String>>,
+    gallerySha: &Option<Option<String>>,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!(
+        "https://tagmanager.googleapis.com/tagmanager/v2/accounts/{}/containers/{containersId}/workspaces/{workspacesId}/templates:import_from_gallery",
+        parent,
+    );
+
+    // Build request
+    let mut query_parts = Vec::new();
+    if let Some(val) = acknowledgePermissions.as_ref() {
+        query_parts.push(format!("acknowledgePermissions={}", val));
+    }
+    if let Some(val) = galleryOwner.as_ref() {
+        query_parts.push(format!("galleryOwner={}", val));
+    }
+    if let Some(val) = galleryRepository.as_ref() {
+        query_parts.push(format!("galleryRepository={}", val));
+    }
+    if let Some(val) = gallerySha.as_ref() {
+        query_parts.push(format!("gallerySha={}", val));
+    }
+
+    let url_with_query = if query_parts.is_empty() {
+        endpoint_url
+    } else {
+        format!("{}?{}", endpoint_url, query_parts.join("&"))
+    };
+
+    let builder = client
+        .post(&url_with_query)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// POST tagmanager/v2/accounts/{accountsId}/containers/{containersId}/workspaces/{workspacesId}/templates:import_from_gallery
+/// Imports a GTM Custom Template from Gallery.
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `tagmanager_accounts_containers_workspaces_templates_import_from_gallery_execute()` or `tagmanager_accounts_containers_workspaces_templates_import_from_gallery`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `tagmanager_accounts_containers_workspaces_templates_import_from_gallery_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn tagmanager_accounts_containers_workspaces_templates_import_from_gallery_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<CustomTemplate>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: CustomTemplate = serde_json::from_str(&body)
+                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// POST tagmanager/v2/accounts/{accountsId}/containers/{containersId}/workspaces/{workspacesId}/templates:import_from_gallery
+/// Imports a GTM Custom Template from Gallery.
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `tagmanager_accounts_containers_workspaces_templates_import_from_gallery_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `tagmanager_accounts_containers_workspaces_templates_import_from_gallery_task()`.
+/// For the simplest API, use `tagmanager_accounts_containers_workspaces_templates_import_from_gallery()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `tagmanager_accounts_containers_workspaces_templates_import_from_gallery_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn tagmanager_accounts_containers_workspaces_templates_import_from_gallery_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<CustomTemplate>, ApiError>, P = ApiPending>
+        + Send
+        + 'static,
+    ApiError,
+> {
+    let task =
+        tagmanager_accounts_containers_workspaces_templates_import_from_gallery_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`tagmanager_accounts_containers_workspaces_templates_import_from_gallery`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct TagmanagerAccountsContainersWorkspacesTemplatesImportFromGalleryArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Query parameter: acknowledgePermissions
+    pub acknowledgePermissions: Option<Option<String>>,
+    /// Query parameter: galleryOwner
+    pub galleryOwner: Option<Option<String>>,
+    /// Query parameter: galleryRepository
+    pub galleryRepository: Option<Option<String>>,
+    /// Query parameter: gallerySha
+    pub gallerySha: Option<Option<String>>,
+}
+
+/// POST tagmanager/v2/accounts/{accountsId}/containers/{containersId}/workspaces/{workspacesId}/templates:import_from_gallery
+/// Imports a GTM Custom Template from Gallery.
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `tagmanager_accounts_containers_workspaces_templates_import_from_gallery_builder()` + `tagmanager_accounts_containers_workspaces_templates_import_from_gallery_execute()`.
+/// For task-level control, use `tagmanager_accounts_containers_workspaces_templates_import_from_gallery_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn tagmanager_accounts_containers_workspaces_templates_import_from_gallery(
+    client: &SimpleHttpClient,
+    args: &TagmanagerAccountsContainersWorkspacesTemplatesImportFromGalleryArgs,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<CustomTemplate>, ApiError>, P = ApiPending>
+        + Send
+        + 'static,
+    ApiError,
+> {
+    let builder = tagmanager_accounts_containers_workspaces_templates_import_from_gallery_builder(
+        client,
+        &args.parent,
+        &args.acknowledgePermissions,
+        &args.galleryOwner,
+        &args.galleryRepository,
+        &args.gallerySha,
+    )?;
+    tagmanager_accounts_containers_workspaces_templates_import_from_gallery_execute(builder)
+}
+
+/// GET tagmanager/v2/accounts/{accountsId}/containers/{containersId}/workspaces/{workspacesId}/templates
+/// Lists all GTM Templates of a GTM container workspace.
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `tagmanager_accounts_containers_workspaces_templates_list_execute()` to send, or `tagmanager_accounts_containers_workspaces_templates_list` for simplest API.
+
+pub fn tagmanager_accounts_containers_workspaces_templates_list_builder(
+    client: &SimpleHttpClient,
+    parent: &String,
+    pageToken: &Option<Option<String>>,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!(
+        "https://tagmanager.googleapis.com/tagmanager/v2/accounts/{}/containers/{containersId}/workspaces/{workspacesId}/templates",
+        parent,
+    );
+
+    // Build request
+    let mut query_parts = Vec::new();
+    if let Some(val) = pageToken.as_ref() {
+        query_parts.push(format!("pageToken={}", val));
+    }
+
+    let url_with_query = if query_parts.is_empty() {
+        endpoint_url
+    } else {
+        format!("{}?{}", endpoint_url, query_parts.join("&"))
+    };
+
+    let builder = client
+        .get(&url_with_query)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// GET tagmanager/v2/accounts/{accountsId}/containers/{containersId}/workspaces/{workspacesId}/templates
+/// Lists all GTM Templates of a GTM container workspace.
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `tagmanager_accounts_containers_workspaces_templates_list_execute()` or `tagmanager_accounts_containers_workspaces_templates_list`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `tagmanager_accounts_containers_workspaces_templates_list_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn tagmanager_accounts_containers_workspaces_templates_list_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<ListTemplatesResponse>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: ListTemplatesResponse = serde_json::from_str(&body)
+                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// GET tagmanager/v2/accounts/{accountsId}/containers/{containersId}/workspaces/{workspacesId}/templates
+/// Lists all GTM Templates of a GTM container workspace.
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `tagmanager_accounts_containers_workspaces_templates_list_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `tagmanager_accounts_containers_workspaces_templates_list_task()`.
+/// For the simplest API, use `tagmanager_accounts_containers_workspaces_templates_list()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `tagmanager_accounts_containers_workspaces_templates_list_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn tagmanager_accounts_containers_workspaces_templates_list_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<ListTemplatesResponse>, ApiError>, P = ApiPending>
+        + Send
+        + 'static,
+    ApiError,
+> {
+    let task = tagmanager_accounts_containers_workspaces_templates_list_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`tagmanager_accounts_containers_workspaces_templates_list`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct TagmanagerAccountsContainersWorkspacesTemplatesListArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Query parameter: pageToken
+    pub pageToken: Option<Option<String>>,
+}
+
+/// GET tagmanager/v2/accounts/{accountsId}/containers/{containersId}/workspaces/{workspacesId}/templates
+/// Lists all GTM Templates of a GTM container workspace.
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `tagmanager_accounts_containers_workspaces_templates_list_builder()` + `tagmanager_accounts_containers_workspaces_templates_list_execute()`.
+/// For task-level control, use `tagmanager_accounts_containers_workspaces_templates_list_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn tagmanager_accounts_containers_workspaces_templates_list(
+    client: &SimpleHttpClient,
+    args: &TagmanagerAccountsContainersWorkspacesTemplatesListArgs,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<ListTemplatesResponse>, ApiError>, P = ApiPending>
+        + Send
+        + 'static,
+    ApiError,
+> {
+    let builder = tagmanager_accounts_containers_workspaces_templates_list_builder(
+        client,
+        &args.parent,
+        &args.pageToken,
+    )?;
+    tagmanager_accounts_containers_workspaces_templates_list_execute(builder)
+}
+
+/// POST tagmanager/v2/accounts/{accountsId}/containers/{containersId}/workspaces/{workspacesId}/templates/{templatesId}:revert
+/// Reverts changes to a GTM Template in a GTM Workspace.
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `tagmanager_accounts_containers_workspaces_templates_revert_execute()` to send, or `tagmanager_accounts_containers_workspaces_templates_revert` for simplest API.
+
+pub fn tagmanager_accounts_containers_workspaces_templates_revert_builder(
+    client: &SimpleHttpClient,
+    path: &String,
+    fingerprint: &Option<Option<String>>,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!(
+        "https://tagmanager.googleapis.com/tagmanager/v2/accounts/{}/containers/{containersId}/workspaces/{workspacesId}/templates/{templatesId}:revert",
+        path,
+    );
+
+    // Build request
+    let mut query_parts = Vec::new();
+    if let Some(val) = fingerprint.as_ref() {
+        query_parts.push(format!("fingerprint={}", val));
+    }
+
+    let url_with_query = if query_parts.is_empty() {
+        endpoint_url
+    } else {
+        format!("{}?{}", endpoint_url, query_parts.join("&"))
+    };
+
+    let builder = client
+        .post(&url_with_query)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// POST tagmanager/v2/accounts/{accountsId}/containers/{containersId}/workspaces/{workspacesId}/templates/{templatesId}:revert
+/// Reverts changes to a GTM Template in a GTM Workspace.
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `tagmanager_accounts_containers_workspaces_templates_revert_execute()` or `tagmanager_accounts_containers_workspaces_templates_revert`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `tagmanager_accounts_containers_workspaces_templates_revert_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn tagmanager_accounts_containers_workspaces_templates_revert_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<RevertTemplateResponse>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: RevertTemplateResponse = serde_json::from_str(&body)
+                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// POST tagmanager/v2/accounts/{accountsId}/containers/{containersId}/workspaces/{workspacesId}/templates/{templatesId}:revert
+/// Reverts changes to a GTM Template in a GTM Workspace.
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `tagmanager_accounts_containers_workspaces_templates_revert_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `tagmanager_accounts_containers_workspaces_templates_revert_task()`.
+/// For the simplest API, use `tagmanager_accounts_containers_workspaces_templates_revert()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `tagmanager_accounts_containers_workspaces_templates_revert_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn tagmanager_accounts_containers_workspaces_templates_revert_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<RevertTemplateResponse>, ApiError>, P = ApiPending>
+        + Send
+        + 'static,
+    ApiError,
+> {
+    let task = tagmanager_accounts_containers_workspaces_templates_revert_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`tagmanager_accounts_containers_workspaces_templates_revert`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct TagmanagerAccountsContainersWorkspacesTemplatesRevertArgs {
+    /// Path parameter: path
+    pub path: String,
+    /// Query parameter: fingerprint
+    pub fingerprint: Option<Option<String>>,
+}
+
+/// POST tagmanager/v2/accounts/{accountsId}/containers/{containersId}/workspaces/{workspacesId}/templates/{templatesId}:revert
+/// Reverts changes to a GTM Template in a GTM Workspace.
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `tagmanager_accounts_containers_workspaces_templates_revert_builder()` + `tagmanager_accounts_containers_workspaces_templates_revert_execute()`.
+/// For task-level control, use `tagmanager_accounts_containers_workspaces_templates_revert_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn tagmanager_accounts_containers_workspaces_templates_revert(
+    client: &SimpleHttpClient,
+    args: &TagmanagerAccountsContainersWorkspacesTemplatesRevertArgs,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<RevertTemplateResponse>, ApiError>, P = ApiPending>
+        + Send
+        + 'static,
+    ApiError,
+> {
+    let builder = tagmanager_accounts_containers_workspaces_templates_revert_builder(
+        client,
+        &args.path,
+        &args.fingerprint,
+    )?;
+    tagmanager_accounts_containers_workspaces_templates_revert_execute(builder)
+}
+
+/// PUT tagmanager/v2/accounts/{accountsId}/containers/{containersId}/workspaces/{workspacesId}/templates/{templatesId}
+/// Updates a GTM Template.
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `tagmanager_accounts_containers_workspaces_templates_update_execute()` to send, or `tagmanager_accounts_containers_workspaces_templates_update` for simplest API.
+
+pub fn tagmanager_accounts_containers_workspaces_templates_update_builder(
+    client: &SimpleHttpClient,
+    path: &String,
+    fingerprint: &Option<Option<String>>,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!(
+        "https://tagmanager.googleapis.com/tagmanager/v2/accounts/{}/containers/{containersId}/workspaces/{workspacesId}/templates/{templatesId}",
+        path,
+    );
+
+    // Build request
+    let mut query_parts = Vec::new();
+    if let Some(val) = fingerprint.as_ref() {
+        query_parts.push(format!("fingerprint={}", val));
+    }
+
+    let url_with_query = if query_parts.is_empty() {
+        endpoint_url
+    } else {
+        format!("{}?{}", endpoint_url, query_parts.join("&"))
+    };
+
+    let builder = client
+        .put(&url_with_query)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// PUT tagmanager/v2/accounts/{accountsId}/containers/{containersId}/workspaces/{workspacesId}/templates/{templatesId}
+/// Updates a GTM Template.
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `tagmanager_accounts_containers_workspaces_templates_update_execute()` or `tagmanager_accounts_containers_workspaces_templates_update`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `tagmanager_accounts_containers_workspaces_templates_update_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn tagmanager_accounts_containers_workspaces_templates_update_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<CustomTemplate>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: CustomTemplate = serde_json::from_str(&body)
+                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// PUT tagmanager/v2/accounts/{accountsId}/containers/{containersId}/workspaces/{workspacesId}/templates/{templatesId}
+/// Updates a GTM Template.
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `tagmanager_accounts_containers_workspaces_templates_update_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `tagmanager_accounts_containers_workspaces_templates_update_task()`.
+/// For the simplest API, use `tagmanager_accounts_containers_workspaces_templates_update()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `tagmanager_accounts_containers_workspaces_templates_update_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn tagmanager_accounts_containers_workspaces_templates_update_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<CustomTemplate>, ApiError>, P = ApiPending>
+        + Send
+        + 'static,
+    ApiError,
+> {
+    let task = tagmanager_accounts_containers_workspaces_templates_update_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`tagmanager_accounts_containers_workspaces_templates_update`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct TagmanagerAccountsContainersWorkspacesTemplatesUpdateArgs {
+    /// Path parameter: path
+    pub path: String,
+    /// Query parameter: fingerprint
+    pub fingerprint: Option<Option<String>>,
+}
+
+/// PUT tagmanager/v2/accounts/{accountsId}/containers/{containersId}/workspaces/{workspacesId}/templates/{templatesId}
+/// Updates a GTM Template.
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `tagmanager_accounts_containers_workspaces_templates_update_builder()` + `tagmanager_accounts_containers_workspaces_templates_update_execute()`.
+/// For task-level control, use `tagmanager_accounts_containers_workspaces_templates_update_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn tagmanager_accounts_containers_workspaces_templates_update(
+    client: &SimpleHttpClient,
+    args: &TagmanagerAccountsContainersWorkspacesTemplatesUpdateArgs,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<CustomTemplate>, ApiError>, P = ApiPending>
+        + Send
+        + 'static,
+    ApiError,
+> {
+    let builder = tagmanager_accounts_containers_workspaces_templates_update_builder(
+        client,
+        &args.path,
+        &args.fingerprint,
+    )?;
+    tagmanager_accounts_containers_workspaces_templates_update_execute(builder)
+}
+
+/// POST tagmanager/v2/accounts/{accountsId}/containers/{containersId}/workspaces/{workspacesId}/transformations
+/// Creates a GTM Transformation.
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `tagmanager_accounts_containers_workspaces_transformations_create_execute()` to send, or `tagmanager_accounts_containers_workspaces_transformations_create` for simplest API.
+
+pub fn tagmanager_accounts_containers_workspaces_transformations_create_builder(
+    client: &SimpleHttpClient,
+    parent: &String,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!(
+        "https://tagmanager.googleapis.com/tagmanager/v2/accounts/{}/containers/{containersId}/workspaces/{workspacesId}/transformations",
+        parent,
+    );
+
+    // Build request
+    let builder = client
+        .post(&endpoint_url)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// POST tagmanager/v2/accounts/{accountsId}/containers/{containersId}/workspaces/{workspacesId}/transformations
+/// Creates a GTM Transformation.
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `tagmanager_accounts_containers_workspaces_transformations_create_execute()` or `tagmanager_accounts_containers_workspaces_transformations_create`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `tagmanager_accounts_containers_workspaces_transformations_create_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn tagmanager_accounts_containers_workspaces_transformations_create_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<Transformation>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: Transformation = serde_json::from_str(&body)
+                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// POST tagmanager/v2/accounts/{accountsId}/containers/{containersId}/workspaces/{workspacesId}/transformations
+/// Creates a GTM Transformation.
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `tagmanager_accounts_containers_workspaces_transformations_create_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `tagmanager_accounts_containers_workspaces_transformations_create_task()`.
+/// For the simplest API, use `tagmanager_accounts_containers_workspaces_transformations_create()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `tagmanager_accounts_containers_workspaces_transformations_create_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn tagmanager_accounts_containers_workspaces_transformations_create_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<Transformation>, ApiError>, P = ApiPending>
+        + Send
+        + 'static,
+    ApiError,
+> {
+    let task = tagmanager_accounts_containers_workspaces_transformations_create_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`tagmanager_accounts_containers_workspaces_transformations_create`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct TagmanagerAccountsContainersWorkspacesTransformationsCreateArgs {
+    /// Path parameter: parent
+    pub parent: String,
+}
+
+/// POST tagmanager/v2/accounts/{accountsId}/containers/{containersId}/workspaces/{workspacesId}/transformations
+/// Creates a GTM Transformation.
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `tagmanager_accounts_containers_workspaces_transformations_create_builder()` + `tagmanager_accounts_containers_workspaces_transformations_create_execute()`.
+/// For task-level control, use `tagmanager_accounts_containers_workspaces_transformations_create_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn tagmanager_accounts_containers_workspaces_transformations_create(
+    client: &SimpleHttpClient,
+    args: &TagmanagerAccountsContainersWorkspacesTransformationsCreateArgs,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<Transformation>, ApiError>, P = ApiPending>
+        + Send
+        + 'static,
+    ApiError,
+> {
+    let builder = tagmanager_accounts_containers_workspaces_transformations_create_builder(
+        client,
+        &args.parent,
+    )?;
+    tagmanager_accounts_containers_workspaces_transformations_create_execute(builder)
+}
+
+/// DELETE tagmanager/v2/accounts/{accountsId}/containers/{containersId}/workspaces/{workspacesId}/transformations/{transformationsId}
+/// Deletes a GTM Transformation.
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `tagmanager_accounts_containers_workspaces_transformations_delete_execute()` to send, or `tagmanager_accounts_containers_workspaces_transformations_delete` for simplest API.
+
+pub fn tagmanager_accounts_containers_workspaces_transformations_delete_builder(
+    client: &SimpleHttpClient,
+    path: &String,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!(
+        "https://tagmanager.googleapis.com/tagmanager/v2/accounts/{}/containers/{containersId}/workspaces/{workspacesId}/transformations/{transformationsId}",
+        path,
+    );
+
+    // Build request
+    let builder = client
+        .delete(&endpoint_url)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// DELETE tagmanager/v2/accounts/{accountsId}/containers/{containersId}/workspaces/{workspacesId}/transformations/{transformationsId}
+/// Deletes a GTM Transformation.
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `tagmanager_accounts_containers_workspaces_transformations_delete_execute()` or `tagmanager_accounts_containers_workspaces_transformations_delete`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `tagmanager_accounts_containers_workspaces_transformations_delete_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn tagmanager_accounts_containers_workspaces_transformations_delete_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<()>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: (),
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// DELETE tagmanager/v2/accounts/{accountsId}/containers/{containersId}/workspaces/{workspacesId}/transformations/{transformationsId}
+/// Deletes a GTM Transformation.
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `tagmanager_accounts_containers_workspaces_transformations_delete_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `tagmanager_accounts_containers_workspaces_transformations_delete_task()`.
+/// For the simplest API, use `tagmanager_accounts_containers_workspaces_transformations_delete()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `tagmanager_accounts_containers_workspaces_transformations_delete_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn tagmanager_accounts_containers_workspaces_transformations_delete_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<()>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let task = tagmanager_accounts_containers_workspaces_transformations_delete_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`tagmanager_accounts_containers_workspaces_transformations_delete`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct TagmanagerAccountsContainersWorkspacesTransformationsDeleteArgs {
+    /// Path parameter: path
+    pub path: String,
+}
+
+/// DELETE tagmanager/v2/accounts/{accountsId}/containers/{containersId}/workspaces/{workspacesId}/transformations/{transformationsId}
+/// Deletes a GTM Transformation.
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `tagmanager_accounts_containers_workspaces_transformations_delete_builder()` + `tagmanager_accounts_containers_workspaces_transformations_delete_execute()`.
+/// For task-level control, use `tagmanager_accounts_containers_workspaces_transformations_delete_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn tagmanager_accounts_containers_workspaces_transformations_delete(
+    client: &SimpleHttpClient,
+    args: &TagmanagerAccountsContainersWorkspacesTransformationsDeleteArgs,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<()>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let builder = tagmanager_accounts_containers_workspaces_transformations_delete_builder(
+        client, &args.path,
+    )?;
+    tagmanager_accounts_containers_workspaces_transformations_delete_execute(builder)
+}
+
+/// GET tagmanager/v2/accounts/{accountsId}/containers/{containersId}/workspaces/{workspacesId}/transformations/{transformationsId}
+/// Gets a GTM Transformation.
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `tagmanager_accounts_containers_workspaces_transformations_get_execute()` to send, or `tagmanager_accounts_containers_workspaces_transformations_get` for simplest API.
+
+pub fn tagmanager_accounts_containers_workspaces_transformations_get_builder(
+    client: &SimpleHttpClient,
+    path: &String,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!(
+        "https://tagmanager.googleapis.com/tagmanager/v2/accounts/{}/containers/{containersId}/workspaces/{workspacesId}/transformations/{transformationsId}",
+        path,
+    );
+
+    // Build request
+    let builder = client
+        .get(&endpoint_url)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// GET tagmanager/v2/accounts/{accountsId}/containers/{containersId}/workspaces/{workspacesId}/transformations/{transformationsId}
+/// Gets a GTM Transformation.
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `tagmanager_accounts_containers_workspaces_transformations_get_execute()` or `tagmanager_accounts_containers_workspaces_transformations_get`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `tagmanager_accounts_containers_workspaces_transformations_get_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn tagmanager_accounts_containers_workspaces_transformations_get_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<Transformation>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: Transformation = serde_json::from_str(&body)
+                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// GET tagmanager/v2/accounts/{accountsId}/containers/{containersId}/workspaces/{workspacesId}/transformations/{transformationsId}
+/// Gets a GTM Transformation.
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `tagmanager_accounts_containers_workspaces_transformations_get_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `tagmanager_accounts_containers_workspaces_transformations_get_task()`.
+/// For the simplest API, use `tagmanager_accounts_containers_workspaces_transformations_get()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `tagmanager_accounts_containers_workspaces_transformations_get_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn tagmanager_accounts_containers_workspaces_transformations_get_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<Transformation>, ApiError>, P = ApiPending>
+        + Send
+        + 'static,
+    ApiError,
+> {
+    let task = tagmanager_accounts_containers_workspaces_transformations_get_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`tagmanager_accounts_containers_workspaces_transformations_get`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct TagmanagerAccountsContainersWorkspacesTransformationsGetArgs {
+    /// Path parameter: path
+    pub path: String,
+}
+
+/// GET tagmanager/v2/accounts/{accountsId}/containers/{containersId}/workspaces/{workspacesId}/transformations/{transformationsId}
+/// Gets a GTM Transformation.
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `tagmanager_accounts_containers_workspaces_transformations_get_builder()` + `tagmanager_accounts_containers_workspaces_transformations_get_execute()`.
+/// For task-level control, use `tagmanager_accounts_containers_workspaces_transformations_get_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn tagmanager_accounts_containers_workspaces_transformations_get(
+    client: &SimpleHttpClient,
+    args: &TagmanagerAccountsContainersWorkspacesTransformationsGetArgs,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<Transformation>, ApiError>, P = ApiPending>
+        + Send
+        + 'static,
+    ApiError,
+> {
+    let builder =
+        tagmanager_accounts_containers_workspaces_transformations_get_builder(client, &args.path)?;
+    tagmanager_accounts_containers_workspaces_transformations_get_execute(builder)
+}
+
+/// GET tagmanager/v2/accounts/{accountsId}/containers/{containersId}/workspaces/{workspacesId}/transformations
+/// Lists all GTM Transformations of a GTM container workspace.
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `tagmanager_accounts_containers_workspaces_transformations_list_execute()` to send, or `tagmanager_accounts_containers_workspaces_transformations_list` for simplest API.
+
+pub fn tagmanager_accounts_containers_workspaces_transformations_list_builder(
+    client: &SimpleHttpClient,
+    parent: &String,
+    pageToken: &Option<Option<String>>,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!(
+        "https://tagmanager.googleapis.com/tagmanager/v2/accounts/{}/containers/{containersId}/workspaces/{workspacesId}/transformations",
+        parent,
+    );
+
+    // Build request
+    let mut query_parts = Vec::new();
+    if let Some(val) = pageToken.as_ref() {
+        query_parts.push(format!("pageToken={}", val));
+    }
+
+    let url_with_query = if query_parts.is_empty() {
+        endpoint_url
+    } else {
+        format!("{}?{}", endpoint_url, query_parts.join("&"))
+    };
+
+    let builder = client
+        .get(&url_with_query)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// GET tagmanager/v2/accounts/{accountsId}/containers/{containersId}/workspaces/{workspacesId}/transformations
+/// Lists all GTM Transformations of a GTM container workspace.
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `tagmanager_accounts_containers_workspaces_transformations_list_execute()` or `tagmanager_accounts_containers_workspaces_transformations_list`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `tagmanager_accounts_containers_workspaces_transformations_list_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn tagmanager_accounts_containers_workspaces_transformations_list_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<ListTransformationsResponse>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: ListTransformationsResponse = serde_json::from_str(&body)
+                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// GET tagmanager/v2/accounts/{accountsId}/containers/{containersId}/workspaces/{workspacesId}/transformations
+/// Lists all GTM Transformations of a GTM container workspace.
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `tagmanager_accounts_containers_workspaces_transformations_list_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `tagmanager_accounts_containers_workspaces_transformations_list_task()`.
+/// For the simplest API, use `tagmanager_accounts_containers_workspaces_transformations_list()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `tagmanager_accounts_containers_workspaces_transformations_list_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn tagmanager_accounts_containers_workspaces_transformations_list_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<
+            D = Result<ApiResponse<ListTransformationsResponse>, ApiError>,
+            P = ApiPending,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    let task = tagmanager_accounts_containers_workspaces_transformations_list_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`tagmanager_accounts_containers_workspaces_transformations_list`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct TagmanagerAccountsContainersWorkspacesTransformationsListArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Query parameter: pageToken
+    pub pageToken: Option<Option<String>>,
+}
+
+/// GET tagmanager/v2/accounts/{accountsId}/containers/{containersId}/workspaces/{workspacesId}/transformations
+/// Lists all GTM Transformations of a GTM container workspace.
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `tagmanager_accounts_containers_workspaces_transformations_list_builder()` + `tagmanager_accounts_containers_workspaces_transformations_list_execute()`.
+/// For task-level control, use `tagmanager_accounts_containers_workspaces_transformations_list_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn tagmanager_accounts_containers_workspaces_transformations_list(
+    client: &SimpleHttpClient,
+    args: &TagmanagerAccountsContainersWorkspacesTransformationsListArgs,
+) -> Result<
+    impl StreamIterator<
+            D = Result<ApiResponse<ListTransformationsResponse>, ApiError>,
+            P = ApiPending,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    let builder = tagmanager_accounts_containers_workspaces_transformations_list_builder(
+        client,
+        &args.parent,
+        &args.pageToken,
+    )?;
+    tagmanager_accounts_containers_workspaces_transformations_list_execute(builder)
+}
+
+/// POST tagmanager/v2/accounts/{accountsId}/containers/{containersId}/workspaces/{workspacesId}/transformations/{transformationsId}:revert
+/// Reverts changes to a GTM Transformation in a GTM Workspace.
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `tagmanager_accounts_containers_workspaces_transformations_revert_execute()` to send, or `tagmanager_accounts_containers_workspaces_transformations_revert` for simplest API.
+
+pub fn tagmanager_accounts_containers_workspaces_transformations_revert_builder(
+    client: &SimpleHttpClient,
+    path: &String,
+    fingerprint: &Option<Option<String>>,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!(
+        "https://tagmanager.googleapis.com/tagmanager/v2/accounts/{}/containers/{containersId}/workspaces/{workspacesId}/transformations/{transformationsId}:revert",
+        path,
+    );
+
+    // Build request
+    let mut query_parts = Vec::new();
+    if let Some(val) = fingerprint.as_ref() {
+        query_parts.push(format!("fingerprint={}", val));
+    }
+
+    let url_with_query = if query_parts.is_empty() {
+        endpoint_url
+    } else {
+        format!("{}?{}", endpoint_url, query_parts.join("&"))
+    };
+
+    let builder = client
+        .post(&url_with_query)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// POST tagmanager/v2/accounts/{accountsId}/containers/{containersId}/workspaces/{workspacesId}/transformations/{transformationsId}:revert
+/// Reverts changes to a GTM Transformation in a GTM Workspace.
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `tagmanager_accounts_containers_workspaces_transformations_revert_execute()` or `tagmanager_accounts_containers_workspaces_transformations_revert`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `tagmanager_accounts_containers_workspaces_transformations_revert_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn tagmanager_accounts_containers_workspaces_transformations_revert_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<RevertTransformationResponse>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: RevertTransformationResponse = serde_json::from_str(&body)
+                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// POST tagmanager/v2/accounts/{accountsId}/containers/{containersId}/workspaces/{workspacesId}/transformations/{transformationsId}:revert
+/// Reverts changes to a GTM Transformation in a GTM Workspace.
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `tagmanager_accounts_containers_workspaces_transformations_revert_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `tagmanager_accounts_containers_workspaces_transformations_revert_task()`.
+/// For the simplest API, use `tagmanager_accounts_containers_workspaces_transformations_revert()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `tagmanager_accounts_containers_workspaces_transformations_revert_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn tagmanager_accounts_containers_workspaces_transformations_revert_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<
+            D = Result<ApiResponse<RevertTransformationResponse>, ApiError>,
+            P = ApiPending,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    let task = tagmanager_accounts_containers_workspaces_transformations_revert_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`tagmanager_accounts_containers_workspaces_transformations_revert`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct TagmanagerAccountsContainersWorkspacesTransformationsRevertArgs {
+    /// Path parameter: path
+    pub path: String,
+    /// Query parameter: fingerprint
+    pub fingerprint: Option<Option<String>>,
+}
+
+/// POST tagmanager/v2/accounts/{accountsId}/containers/{containersId}/workspaces/{workspacesId}/transformations/{transformationsId}:revert
+/// Reverts changes to a GTM Transformation in a GTM Workspace.
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `tagmanager_accounts_containers_workspaces_transformations_revert_builder()` + `tagmanager_accounts_containers_workspaces_transformations_revert_execute()`.
+/// For task-level control, use `tagmanager_accounts_containers_workspaces_transformations_revert_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn tagmanager_accounts_containers_workspaces_transformations_revert(
+    client: &SimpleHttpClient,
+    args: &TagmanagerAccountsContainersWorkspacesTransformationsRevertArgs,
+) -> Result<
+    impl StreamIterator<
+            D = Result<ApiResponse<RevertTransformationResponse>, ApiError>,
+            P = ApiPending,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    let builder = tagmanager_accounts_containers_workspaces_transformations_revert_builder(
+        client,
+        &args.path,
+        &args.fingerprint,
+    )?;
+    tagmanager_accounts_containers_workspaces_transformations_revert_execute(builder)
+}
+
+/// PUT tagmanager/v2/accounts/{accountsId}/containers/{containersId}/workspaces/{workspacesId}/transformations/{transformationsId}
+/// Updates a GTM Transformation.
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `tagmanager_accounts_containers_workspaces_transformations_update_execute()` to send, or `tagmanager_accounts_containers_workspaces_transformations_update` for simplest API.
+
+pub fn tagmanager_accounts_containers_workspaces_transformations_update_builder(
+    client: &SimpleHttpClient,
+    path: &String,
+    fingerprint: &Option<Option<String>>,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!(
+        "https://tagmanager.googleapis.com/tagmanager/v2/accounts/{}/containers/{containersId}/workspaces/{workspacesId}/transformations/{transformationsId}",
+        path,
+    );
+
+    // Build request
+    let mut query_parts = Vec::new();
+    if let Some(val) = fingerprint.as_ref() {
+        query_parts.push(format!("fingerprint={}", val));
+    }
+
+    let url_with_query = if query_parts.is_empty() {
+        endpoint_url
+    } else {
+        format!("{}?{}", endpoint_url, query_parts.join("&"))
+    };
+
+    let builder = client
+        .put(&url_with_query)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// PUT tagmanager/v2/accounts/{accountsId}/containers/{containersId}/workspaces/{workspacesId}/transformations/{transformationsId}
+/// Updates a GTM Transformation.
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `tagmanager_accounts_containers_workspaces_transformations_update_execute()` or `tagmanager_accounts_containers_workspaces_transformations_update`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `tagmanager_accounts_containers_workspaces_transformations_update_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn tagmanager_accounts_containers_workspaces_transformations_update_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<Transformation>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: Transformation = serde_json::from_str(&body)
+                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// PUT tagmanager/v2/accounts/{accountsId}/containers/{containersId}/workspaces/{workspacesId}/transformations/{transformationsId}
+/// Updates a GTM Transformation.
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `tagmanager_accounts_containers_workspaces_transformations_update_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `tagmanager_accounts_containers_workspaces_transformations_update_task()`.
+/// For the simplest API, use `tagmanager_accounts_containers_workspaces_transformations_update()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `tagmanager_accounts_containers_workspaces_transformations_update_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn tagmanager_accounts_containers_workspaces_transformations_update_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<Transformation>, ApiError>, P = ApiPending>
+        + Send
+        + 'static,
+    ApiError,
+> {
+    let task = tagmanager_accounts_containers_workspaces_transformations_update_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`tagmanager_accounts_containers_workspaces_transformations_update`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct TagmanagerAccountsContainersWorkspacesTransformationsUpdateArgs {
+    /// Path parameter: path
+    pub path: String,
+    /// Query parameter: fingerprint
+    pub fingerprint: Option<Option<String>>,
+}
+
+/// PUT tagmanager/v2/accounts/{accountsId}/containers/{containersId}/workspaces/{workspacesId}/transformations/{transformationsId}
+/// Updates a GTM Transformation.
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `tagmanager_accounts_containers_workspaces_transformations_update_builder()` + `tagmanager_accounts_containers_workspaces_transformations_update_execute()`.
+/// For task-level control, use `tagmanager_accounts_containers_workspaces_transformations_update_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn tagmanager_accounts_containers_workspaces_transformations_update(
+    client: &SimpleHttpClient,
+    args: &TagmanagerAccountsContainersWorkspacesTransformationsUpdateArgs,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<Transformation>, ApiError>, P = ApiPending>
+        + Send
+        + 'static,
+    ApiError,
+> {
+    let builder = tagmanager_accounts_containers_workspaces_transformations_update_builder(
+        client,
+        &args.path,
+        &args.fingerprint,
+    )?;
+    tagmanager_accounts_containers_workspaces_transformations_update_execute(builder)
+}
+
+/// POST tagmanager/v2/accounts/{accountsId}/containers/{containersId}/workspaces/{workspacesId}/triggers
+/// Creates a GTM Trigger.
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `tagmanager_accounts_containers_workspaces_triggers_create_execute()` to send, or `tagmanager_accounts_containers_workspaces_triggers_create` for simplest API.
+
+pub fn tagmanager_accounts_containers_workspaces_triggers_create_builder(
+    client: &SimpleHttpClient,
+    parent: &String,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!(
+        "https://tagmanager.googleapis.com/tagmanager/v2/accounts/{}/containers/{containersId}/workspaces/{workspacesId}/triggers",
+        parent,
+    );
+
+    // Build request
+    let builder = client
+        .post(&endpoint_url)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// POST tagmanager/v2/accounts/{accountsId}/containers/{containersId}/workspaces/{workspacesId}/triggers
+/// Creates a GTM Trigger.
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `tagmanager_accounts_containers_workspaces_triggers_create_execute()` or `tagmanager_accounts_containers_workspaces_triggers_create`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `tagmanager_accounts_containers_workspaces_triggers_create_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn tagmanager_accounts_containers_workspaces_triggers_create_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<Trigger>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: Trigger = serde_json::from_str(&body)
+                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// POST tagmanager/v2/accounts/{accountsId}/containers/{containersId}/workspaces/{workspacesId}/triggers
+/// Creates a GTM Trigger.
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `tagmanager_accounts_containers_workspaces_triggers_create_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `tagmanager_accounts_containers_workspaces_triggers_create_task()`.
+/// For the simplest API, use `tagmanager_accounts_containers_workspaces_triggers_create()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `tagmanager_accounts_containers_workspaces_triggers_create_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn tagmanager_accounts_containers_workspaces_triggers_create_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<Trigger>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let task = tagmanager_accounts_containers_workspaces_triggers_create_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`tagmanager_accounts_containers_workspaces_triggers_create`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct TagmanagerAccountsContainersWorkspacesTriggersCreateArgs {
+    /// Path parameter: parent
+    pub parent: String,
+}
+
+/// POST tagmanager/v2/accounts/{accountsId}/containers/{containersId}/workspaces/{workspacesId}/triggers
+/// Creates a GTM Trigger.
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `tagmanager_accounts_containers_workspaces_triggers_create_builder()` + `tagmanager_accounts_containers_workspaces_triggers_create_execute()`.
+/// For task-level control, use `tagmanager_accounts_containers_workspaces_triggers_create_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn tagmanager_accounts_containers_workspaces_triggers_create(
+    client: &SimpleHttpClient,
+    args: &TagmanagerAccountsContainersWorkspacesTriggersCreateArgs,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<Trigger>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let builder =
+        tagmanager_accounts_containers_workspaces_triggers_create_builder(client, &args.parent)?;
+    tagmanager_accounts_containers_workspaces_triggers_create_execute(builder)
+}
+
+/// DELETE tagmanager/v2/accounts/{accountsId}/containers/{containersId}/workspaces/{workspacesId}/triggers/{triggersId}
+/// Deletes a GTM Trigger.
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `tagmanager_accounts_containers_workspaces_triggers_delete_execute()` to send, or `tagmanager_accounts_containers_workspaces_triggers_delete` for simplest API.
+
+pub fn tagmanager_accounts_containers_workspaces_triggers_delete_builder(
+    client: &SimpleHttpClient,
+    path: &String,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!(
+        "https://tagmanager.googleapis.com/tagmanager/v2/accounts/{}/containers/{containersId}/workspaces/{workspacesId}/triggers/{triggersId}",
+        path,
+    );
+
+    // Build request
+    let builder = client
+        .delete(&endpoint_url)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// DELETE tagmanager/v2/accounts/{accountsId}/containers/{containersId}/workspaces/{workspacesId}/triggers/{triggersId}
+/// Deletes a GTM Trigger.
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `tagmanager_accounts_containers_workspaces_triggers_delete_execute()` or `tagmanager_accounts_containers_workspaces_triggers_delete`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `tagmanager_accounts_containers_workspaces_triggers_delete_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn tagmanager_accounts_containers_workspaces_triggers_delete_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<()>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: (),
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// DELETE tagmanager/v2/accounts/{accountsId}/containers/{containersId}/workspaces/{workspacesId}/triggers/{triggersId}
+/// Deletes a GTM Trigger.
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `tagmanager_accounts_containers_workspaces_triggers_delete_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `tagmanager_accounts_containers_workspaces_triggers_delete_task()`.
+/// For the simplest API, use `tagmanager_accounts_containers_workspaces_triggers_delete()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `tagmanager_accounts_containers_workspaces_triggers_delete_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn tagmanager_accounts_containers_workspaces_triggers_delete_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<()>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let task = tagmanager_accounts_containers_workspaces_triggers_delete_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`tagmanager_accounts_containers_workspaces_triggers_delete`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct TagmanagerAccountsContainersWorkspacesTriggersDeleteArgs {
+    /// Path parameter: path
+    pub path: String,
+}
+
+/// DELETE tagmanager/v2/accounts/{accountsId}/containers/{containersId}/workspaces/{workspacesId}/triggers/{triggersId}
+/// Deletes a GTM Trigger.
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `tagmanager_accounts_containers_workspaces_triggers_delete_builder()` + `tagmanager_accounts_containers_workspaces_triggers_delete_execute()`.
+/// For task-level control, use `tagmanager_accounts_containers_workspaces_triggers_delete_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn tagmanager_accounts_containers_workspaces_triggers_delete(
+    client: &SimpleHttpClient,
+    args: &TagmanagerAccountsContainersWorkspacesTriggersDeleteArgs,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<()>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let builder =
+        tagmanager_accounts_containers_workspaces_triggers_delete_builder(client, &args.path)?;
+    tagmanager_accounts_containers_workspaces_triggers_delete_execute(builder)
+}
+
+/// GET tagmanager/v2/accounts/{accountsId}/containers/{containersId}/workspaces/{workspacesId}/triggers/{triggersId}
+/// Gets a GTM Trigger.
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `tagmanager_accounts_containers_workspaces_triggers_get_execute()` to send, or `tagmanager_accounts_containers_workspaces_triggers_get` for simplest API.
+
+pub fn tagmanager_accounts_containers_workspaces_triggers_get_builder(
+    client: &SimpleHttpClient,
+    path: &String,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!(
+        "https://tagmanager.googleapis.com/tagmanager/v2/accounts/{}/containers/{containersId}/workspaces/{workspacesId}/triggers/{triggersId}",
+        path,
+    );
+
+    // Build request
+    let builder = client
+        .get(&endpoint_url)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// GET tagmanager/v2/accounts/{accountsId}/containers/{containersId}/workspaces/{workspacesId}/triggers/{triggersId}
+/// Gets a GTM Trigger.
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `tagmanager_accounts_containers_workspaces_triggers_get_execute()` or `tagmanager_accounts_containers_workspaces_triggers_get`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `tagmanager_accounts_containers_workspaces_triggers_get_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn tagmanager_accounts_containers_workspaces_triggers_get_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<Trigger>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: Trigger = serde_json::from_str(&body)
+                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// GET tagmanager/v2/accounts/{accountsId}/containers/{containersId}/workspaces/{workspacesId}/triggers/{triggersId}
+/// Gets a GTM Trigger.
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `tagmanager_accounts_containers_workspaces_triggers_get_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `tagmanager_accounts_containers_workspaces_triggers_get_task()`.
+/// For the simplest API, use `tagmanager_accounts_containers_workspaces_triggers_get()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `tagmanager_accounts_containers_workspaces_triggers_get_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn tagmanager_accounts_containers_workspaces_triggers_get_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<Trigger>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let task = tagmanager_accounts_containers_workspaces_triggers_get_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`tagmanager_accounts_containers_workspaces_triggers_get`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct TagmanagerAccountsContainersWorkspacesTriggersGetArgs {
+    /// Path parameter: path
+    pub path: String,
+}
+
+/// GET tagmanager/v2/accounts/{accountsId}/containers/{containersId}/workspaces/{workspacesId}/triggers/{triggersId}
+/// Gets a GTM Trigger.
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `tagmanager_accounts_containers_workspaces_triggers_get_builder()` + `tagmanager_accounts_containers_workspaces_triggers_get_execute()`.
+/// For task-level control, use `tagmanager_accounts_containers_workspaces_triggers_get_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn tagmanager_accounts_containers_workspaces_triggers_get(
+    client: &SimpleHttpClient,
+    args: &TagmanagerAccountsContainersWorkspacesTriggersGetArgs,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<Trigger>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let builder =
+        tagmanager_accounts_containers_workspaces_triggers_get_builder(client, &args.path)?;
+    tagmanager_accounts_containers_workspaces_triggers_get_execute(builder)
+}
+
+/// GET tagmanager/v2/accounts/{accountsId}/containers/{containersId}/workspaces/{workspacesId}/triggers
+/// Lists all GTM Triggers of a Container.
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `tagmanager_accounts_containers_workspaces_triggers_list_execute()` to send, or `tagmanager_accounts_containers_workspaces_triggers_list` for simplest API.
+
+pub fn tagmanager_accounts_containers_workspaces_triggers_list_builder(
+    client: &SimpleHttpClient,
+    parent: &String,
+    pageToken: &Option<Option<String>>,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!(
+        "https://tagmanager.googleapis.com/tagmanager/v2/accounts/{}/containers/{containersId}/workspaces/{workspacesId}/triggers",
+        parent,
+    );
+
+    // Build request
+    let mut query_parts = Vec::new();
+    if let Some(val) = pageToken.as_ref() {
+        query_parts.push(format!("pageToken={}", val));
+    }
+
+    let url_with_query = if query_parts.is_empty() {
+        endpoint_url
+    } else {
+        format!("{}?{}", endpoint_url, query_parts.join("&"))
+    };
+
+    let builder = client
+        .get(&url_with_query)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// GET tagmanager/v2/accounts/{accountsId}/containers/{containersId}/workspaces/{workspacesId}/triggers
+/// Lists all GTM Triggers of a Container.
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `tagmanager_accounts_containers_workspaces_triggers_list_execute()` or `tagmanager_accounts_containers_workspaces_triggers_list`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `tagmanager_accounts_containers_workspaces_triggers_list_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn tagmanager_accounts_containers_workspaces_triggers_list_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<ListTriggersResponse>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: ListTriggersResponse = serde_json::from_str(&body)
+                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// GET tagmanager/v2/accounts/{accountsId}/containers/{containersId}/workspaces/{workspacesId}/triggers
+/// Lists all GTM Triggers of a Container.
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `tagmanager_accounts_containers_workspaces_triggers_list_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `tagmanager_accounts_containers_workspaces_triggers_list_task()`.
+/// For the simplest API, use `tagmanager_accounts_containers_workspaces_triggers_list()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `tagmanager_accounts_containers_workspaces_triggers_list_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn tagmanager_accounts_containers_workspaces_triggers_list_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<ListTriggersResponse>, ApiError>, P = ApiPending>
+        + Send
+        + 'static,
+    ApiError,
+> {
+    let task = tagmanager_accounts_containers_workspaces_triggers_list_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`tagmanager_accounts_containers_workspaces_triggers_list`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct TagmanagerAccountsContainersWorkspacesTriggersListArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Query parameter: pageToken
+    pub pageToken: Option<Option<String>>,
+}
+
+/// GET tagmanager/v2/accounts/{accountsId}/containers/{containersId}/workspaces/{workspacesId}/triggers
+/// Lists all GTM Triggers of a Container.
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `tagmanager_accounts_containers_workspaces_triggers_list_builder()` + `tagmanager_accounts_containers_workspaces_triggers_list_execute()`.
+/// For task-level control, use `tagmanager_accounts_containers_workspaces_triggers_list_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn tagmanager_accounts_containers_workspaces_triggers_list(
+    client: &SimpleHttpClient,
+    args: &TagmanagerAccountsContainersWorkspacesTriggersListArgs,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<ListTriggersResponse>, ApiError>, P = ApiPending>
+        + Send
+        + 'static,
+    ApiError,
+> {
+    let builder = tagmanager_accounts_containers_workspaces_triggers_list_builder(
+        client,
+        &args.parent,
+        &args.pageToken,
+    )?;
+    tagmanager_accounts_containers_workspaces_triggers_list_execute(builder)
+}
+
+/// POST tagmanager/v2/accounts/{accountsId}/containers/{containersId}/workspaces/{workspacesId}/triggers/{triggersId}:revert
+/// Reverts changes to a GTM Trigger in a GTM Workspace.
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `tagmanager_accounts_containers_workspaces_triggers_revert_execute()` to send, or `tagmanager_accounts_containers_workspaces_triggers_revert` for simplest API.
+
+pub fn tagmanager_accounts_containers_workspaces_triggers_revert_builder(
+    client: &SimpleHttpClient,
+    path: &String,
+    fingerprint: &Option<Option<String>>,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!(
+        "https://tagmanager.googleapis.com/tagmanager/v2/accounts/{}/containers/{containersId}/workspaces/{workspacesId}/triggers/{triggersId}:revert",
+        path,
+    );
+
+    // Build request
+    let mut query_parts = Vec::new();
+    if let Some(val) = fingerprint.as_ref() {
+        query_parts.push(format!("fingerprint={}", val));
+    }
+
+    let url_with_query = if query_parts.is_empty() {
+        endpoint_url
+    } else {
+        format!("{}?{}", endpoint_url, query_parts.join("&"))
+    };
+
+    let builder = client
+        .post(&url_with_query)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// POST tagmanager/v2/accounts/{accountsId}/containers/{containersId}/workspaces/{workspacesId}/triggers/{triggersId}:revert
+/// Reverts changes to a GTM Trigger in a GTM Workspace.
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `tagmanager_accounts_containers_workspaces_triggers_revert_execute()` or `tagmanager_accounts_containers_workspaces_triggers_revert`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `tagmanager_accounts_containers_workspaces_triggers_revert_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn tagmanager_accounts_containers_workspaces_triggers_revert_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<RevertTriggerResponse>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: RevertTriggerResponse = serde_json::from_str(&body)
+                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// POST tagmanager/v2/accounts/{accountsId}/containers/{containersId}/workspaces/{workspacesId}/triggers/{triggersId}:revert
+/// Reverts changes to a GTM Trigger in a GTM Workspace.
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `tagmanager_accounts_containers_workspaces_triggers_revert_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `tagmanager_accounts_containers_workspaces_triggers_revert_task()`.
+/// For the simplest API, use `tagmanager_accounts_containers_workspaces_triggers_revert()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `tagmanager_accounts_containers_workspaces_triggers_revert_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn tagmanager_accounts_containers_workspaces_triggers_revert_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<RevertTriggerResponse>, ApiError>, P = ApiPending>
+        + Send
+        + 'static,
+    ApiError,
+> {
+    let task = tagmanager_accounts_containers_workspaces_triggers_revert_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`tagmanager_accounts_containers_workspaces_triggers_revert`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct TagmanagerAccountsContainersWorkspacesTriggersRevertArgs {
+    /// Path parameter: path
+    pub path: String,
+    /// Query parameter: fingerprint
+    pub fingerprint: Option<Option<String>>,
+}
+
+/// POST tagmanager/v2/accounts/{accountsId}/containers/{containersId}/workspaces/{workspacesId}/triggers/{triggersId}:revert
+/// Reverts changes to a GTM Trigger in a GTM Workspace.
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `tagmanager_accounts_containers_workspaces_triggers_revert_builder()` + `tagmanager_accounts_containers_workspaces_triggers_revert_execute()`.
+/// For task-level control, use `tagmanager_accounts_containers_workspaces_triggers_revert_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn tagmanager_accounts_containers_workspaces_triggers_revert(
+    client: &SimpleHttpClient,
+    args: &TagmanagerAccountsContainersWorkspacesTriggersRevertArgs,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<RevertTriggerResponse>, ApiError>, P = ApiPending>
+        + Send
+        + 'static,
+    ApiError,
+> {
+    let builder = tagmanager_accounts_containers_workspaces_triggers_revert_builder(
+        client,
+        &args.path,
+        &args.fingerprint,
+    )?;
+    tagmanager_accounts_containers_workspaces_triggers_revert_execute(builder)
+}
+
+/// PUT tagmanager/v2/accounts/{accountsId}/containers/{containersId}/workspaces/{workspacesId}/triggers/{triggersId}
+/// Updates a GTM Trigger.
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `tagmanager_accounts_containers_workspaces_triggers_update_execute()` to send, or `tagmanager_accounts_containers_workspaces_triggers_update` for simplest API.
+
+pub fn tagmanager_accounts_containers_workspaces_triggers_update_builder(
+    client: &SimpleHttpClient,
+    path: &String,
+    fingerprint: &Option<Option<String>>,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!(
+        "https://tagmanager.googleapis.com/tagmanager/v2/accounts/{}/containers/{containersId}/workspaces/{workspacesId}/triggers/{triggersId}",
+        path,
+    );
+
+    // Build request
+    let mut query_parts = Vec::new();
+    if let Some(val) = fingerprint.as_ref() {
+        query_parts.push(format!("fingerprint={}", val));
+    }
+
+    let url_with_query = if query_parts.is_empty() {
+        endpoint_url
+    } else {
+        format!("{}?{}", endpoint_url, query_parts.join("&"))
+    };
+
+    let builder = client
+        .put(&url_with_query)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// PUT tagmanager/v2/accounts/{accountsId}/containers/{containersId}/workspaces/{workspacesId}/triggers/{triggersId}
+/// Updates a GTM Trigger.
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `tagmanager_accounts_containers_workspaces_triggers_update_execute()` or `tagmanager_accounts_containers_workspaces_triggers_update`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `tagmanager_accounts_containers_workspaces_triggers_update_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn tagmanager_accounts_containers_workspaces_triggers_update_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<Trigger>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: Trigger = serde_json::from_str(&body)
+                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// PUT tagmanager/v2/accounts/{accountsId}/containers/{containersId}/workspaces/{workspacesId}/triggers/{triggersId}
+/// Updates a GTM Trigger.
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `tagmanager_accounts_containers_workspaces_triggers_update_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `tagmanager_accounts_containers_workspaces_triggers_update_task()`.
+/// For the simplest API, use `tagmanager_accounts_containers_workspaces_triggers_update()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `tagmanager_accounts_containers_workspaces_triggers_update_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn tagmanager_accounts_containers_workspaces_triggers_update_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<Trigger>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let task = tagmanager_accounts_containers_workspaces_triggers_update_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`tagmanager_accounts_containers_workspaces_triggers_update`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct TagmanagerAccountsContainersWorkspacesTriggersUpdateArgs {
+    /// Path parameter: path
+    pub path: String,
+    /// Query parameter: fingerprint
+    pub fingerprint: Option<Option<String>>,
+}
+
+/// PUT tagmanager/v2/accounts/{accountsId}/containers/{containersId}/workspaces/{workspacesId}/triggers/{triggersId}
+/// Updates a GTM Trigger.
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `tagmanager_accounts_containers_workspaces_triggers_update_builder()` + `tagmanager_accounts_containers_workspaces_triggers_update_execute()`.
+/// For task-level control, use `tagmanager_accounts_containers_workspaces_triggers_update_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn tagmanager_accounts_containers_workspaces_triggers_update(
+    client: &SimpleHttpClient,
+    args: &TagmanagerAccountsContainersWorkspacesTriggersUpdateArgs,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<Trigger>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let builder = tagmanager_accounts_containers_workspaces_triggers_update_builder(
+        client,
+        &args.path,
+        &args.fingerprint,
+    )?;
+    tagmanager_accounts_containers_workspaces_triggers_update_execute(builder)
+}
+
+/// POST tagmanager/v2/accounts/{accountsId}/containers/{containersId}/workspaces/{workspacesId}/variables
+/// Creates a GTM Variable.
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `tagmanager_accounts_containers_workspaces_variables_create_execute()` to send, or `tagmanager_accounts_containers_workspaces_variables_create` for simplest API.
+
+pub fn tagmanager_accounts_containers_workspaces_variables_create_builder(
+    client: &SimpleHttpClient,
+    parent: &String,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!(
+        "https://tagmanager.googleapis.com/tagmanager/v2/accounts/{}/containers/{containersId}/workspaces/{workspacesId}/variables",
+        parent,
+    );
+
+    // Build request
+    let builder = client
+        .post(&endpoint_url)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// POST tagmanager/v2/accounts/{accountsId}/containers/{containersId}/workspaces/{workspacesId}/variables
+/// Creates a GTM Variable.
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `tagmanager_accounts_containers_workspaces_variables_create_execute()` or `tagmanager_accounts_containers_workspaces_variables_create`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `tagmanager_accounts_containers_workspaces_variables_create_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn tagmanager_accounts_containers_workspaces_variables_create_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<Variable>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: Variable = serde_json::from_str(&body)
+                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// POST tagmanager/v2/accounts/{accountsId}/containers/{containersId}/workspaces/{workspacesId}/variables
+/// Creates a GTM Variable.
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `tagmanager_accounts_containers_workspaces_variables_create_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `tagmanager_accounts_containers_workspaces_variables_create_task()`.
+/// For the simplest API, use `tagmanager_accounts_containers_workspaces_variables_create()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `tagmanager_accounts_containers_workspaces_variables_create_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn tagmanager_accounts_containers_workspaces_variables_create_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<Variable>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let task = tagmanager_accounts_containers_workspaces_variables_create_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`tagmanager_accounts_containers_workspaces_variables_create`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct TagmanagerAccountsContainersWorkspacesVariablesCreateArgs {
+    /// Path parameter: parent
+    pub parent: String,
+}
+
+/// POST tagmanager/v2/accounts/{accountsId}/containers/{containersId}/workspaces/{workspacesId}/variables
+/// Creates a GTM Variable.
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `tagmanager_accounts_containers_workspaces_variables_create_builder()` + `tagmanager_accounts_containers_workspaces_variables_create_execute()`.
+/// For task-level control, use `tagmanager_accounts_containers_workspaces_variables_create_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn tagmanager_accounts_containers_workspaces_variables_create(
+    client: &SimpleHttpClient,
+    args: &TagmanagerAccountsContainersWorkspacesVariablesCreateArgs,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<Variable>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let builder =
+        tagmanager_accounts_containers_workspaces_variables_create_builder(client, &args.parent)?;
+    tagmanager_accounts_containers_workspaces_variables_create_execute(builder)
+}
+
+/// DELETE tagmanager/v2/accounts/{accountsId}/containers/{containersId}/workspaces/{workspacesId}/variables/{variablesId}
+/// Deletes a GTM Variable.
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `tagmanager_accounts_containers_workspaces_variables_delete_execute()` to send, or `tagmanager_accounts_containers_workspaces_variables_delete` for simplest API.
+
+pub fn tagmanager_accounts_containers_workspaces_variables_delete_builder(
+    client: &SimpleHttpClient,
+    path: &String,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!(
+        "https://tagmanager.googleapis.com/tagmanager/v2/accounts/{}/containers/{containersId}/workspaces/{workspacesId}/variables/{variablesId}",
+        path,
+    );
+
+    // Build request
+    let builder = client
+        .delete(&endpoint_url)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// DELETE tagmanager/v2/accounts/{accountsId}/containers/{containersId}/workspaces/{workspacesId}/variables/{variablesId}
+/// Deletes a GTM Variable.
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `tagmanager_accounts_containers_workspaces_variables_delete_execute()` or `tagmanager_accounts_containers_workspaces_variables_delete`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `tagmanager_accounts_containers_workspaces_variables_delete_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn tagmanager_accounts_containers_workspaces_variables_delete_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<()>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: (),
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// DELETE tagmanager/v2/accounts/{accountsId}/containers/{containersId}/workspaces/{workspacesId}/variables/{variablesId}
+/// Deletes a GTM Variable.
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `tagmanager_accounts_containers_workspaces_variables_delete_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `tagmanager_accounts_containers_workspaces_variables_delete_task()`.
+/// For the simplest API, use `tagmanager_accounts_containers_workspaces_variables_delete()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `tagmanager_accounts_containers_workspaces_variables_delete_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn tagmanager_accounts_containers_workspaces_variables_delete_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<()>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let task = tagmanager_accounts_containers_workspaces_variables_delete_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`tagmanager_accounts_containers_workspaces_variables_delete`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct TagmanagerAccountsContainersWorkspacesVariablesDeleteArgs {
+    /// Path parameter: path
+    pub path: String,
+}
+
+/// DELETE tagmanager/v2/accounts/{accountsId}/containers/{containersId}/workspaces/{workspacesId}/variables/{variablesId}
+/// Deletes a GTM Variable.
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `tagmanager_accounts_containers_workspaces_variables_delete_builder()` + `tagmanager_accounts_containers_workspaces_variables_delete_execute()`.
+/// For task-level control, use `tagmanager_accounts_containers_workspaces_variables_delete_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn tagmanager_accounts_containers_workspaces_variables_delete(
+    client: &SimpleHttpClient,
+    args: &TagmanagerAccountsContainersWorkspacesVariablesDeleteArgs,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<()>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let builder =
+        tagmanager_accounts_containers_workspaces_variables_delete_builder(client, &args.path)?;
+    tagmanager_accounts_containers_workspaces_variables_delete_execute(builder)
+}
+
+/// GET tagmanager/v2/accounts/{accountsId}/containers/{containersId}/workspaces/{workspacesId}/variables/{variablesId}
+/// Gets a GTM Variable.
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `tagmanager_accounts_containers_workspaces_variables_get_execute()` to send, or `tagmanager_accounts_containers_workspaces_variables_get` for simplest API.
+
+pub fn tagmanager_accounts_containers_workspaces_variables_get_builder(
+    client: &SimpleHttpClient,
+    path: &String,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!(
+        "https://tagmanager.googleapis.com/tagmanager/v2/accounts/{}/containers/{containersId}/workspaces/{workspacesId}/variables/{variablesId}",
+        path,
+    );
+
+    // Build request
+    let builder = client
+        .get(&endpoint_url)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// GET tagmanager/v2/accounts/{accountsId}/containers/{containersId}/workspaces/{workspacesId}/variables/{variablesId}
+/// Gets a GTM Variable.
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `tagmanager_accounts_containers_workspaces_variables_get_execute()` or `tagmanager_accounts_containers_workspaces_variables_get`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `tagmanager_accounts_containers_workspaces_variables_get_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn tagmanager_accounts_containers_workspaces_variables_get_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<Variable>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: Variable = serde_json::from_str(&body)
+                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// GET tagmanager/v2/accounts/{accountsId}/containers/{containersId}/workspaces/{workspacesId}/variables/{variablesId}
+/// Gets a GTM Variable.
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `tagmanager_accounts_containers_workspaces_variables_get_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `tagmanager_accounts_containers_workspaces_variables_get_task()`.
+/// For the simplest API, use `tagmanager_accounts_containers_workspaces_variables_get()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `tagmanager_accounts_containers_workspaces_variables_get_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn tagmanager_accounts_containers_workspaces_variables_get_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<Variable>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let task = tagmanager_accounts_containers_workspaces_variables_get_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`tagmanager_accounts_containers_workspaces_variables_get`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct TagmanagerAccountsContainersWorkspacesVariablesGetArgs {
+    /// Path parameter: path
+    pub path: String,
+}
+
+/// GET tagmanager/v2/accounts/{accountsId}/containers/{containersId}/workspaces/{workspacesId}/variables/{variablesId}
+/// Gets a GTM Variable.
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `tagmanager_accounts_containers_workspaces_variables_get_builder()` + `tagmanager_accounts_containers_workspaces_variables_get_execute()`.
+/// For task-level control, use `tagmanager_accounts_containers_workspaces_variables_get_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn tagmanager_accounts_containers_workspaces_variables_get(
+    client: &SimpleHttpClient,
+    args: &TagmanagerAccountsContainersWorkspacesVariablesGetArgs,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<Variable>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let builder =
+        tagmanager_accounts_containers_workspaces_variables_get_builder(client, &args.path)?;
+    tagmanager_accounts_containers_workspaces_variables_get_execute(builder)
+}
+
+/// GET tagmanager/v2/accounts/{accountsId}/containers/{containersId}/workspaces/{workspacesId}/variables
+/// Lists all GTM Variables of a Container.
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `tagmanager_accounts_containers_workspaces_variables_list_execute()` to send, or `tagmanager_accounts_containers_workspaces_variables_list` for simplest API.
+
+pub fn tagmanager_accounts_containers_workspaces_variables_list_builder(
+    client: &SimpleHttpClient,
+    parent: &String,
+    pageToken: &Option<Option<String>>,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!(
+        "https://tagmanager.googleapis.com/tagmanager/v2/accounts/{}/containers/{containersId}/workspaces/{workspacesId}/variables",
+        parent,
+    );
+
+    // Build request
+    let mut query_parts = Vec::new();
+    if let Some(val) = pageToken.as_ref() {
+        query_parts.push(format!("pageToken={}", val));
+    }
+
+    let url_with_query = if query_parts.is_empty() {
+        endpoint_url
+    } else {
+        format!("{}?{}", endpoint_url, query_parts.join("&"))
+    };
+
+    let builder = client
+        .get(&url_with_query)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// GET tagmanager/v2/accounts/{accountsId}/containers/{containersId}/workspaces/{workspacesId}/variables
+/// Lists all GTM Variables of a Container.
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `tagmanager_accounts_containers_workspaces_variables_list_execute()` or `tagmanager_accounts_containers_workspaces_variables_list`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `tagmanager_accounts_containers_workspaces_variables_list_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn tagmanager_accounts_containers_workspaces_variables_list_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<ListVariablesResponse>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: ListVariablesResponse = serde_json::from_str(&body)
+                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// GET tagmanager/v2/accounts/{accountsId}/containers/{containersId}/workspaces/{workspacesId}/variables
+/// Lists all GTM Variables of a Container.
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `tagmanager_accounts_containers_workspaces_variables_list_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `tagmanager_accounts_containers_workspaces_variables_list_task()`.
+/// For the simplest API, use `tagmanager_accounts_containers_workspaces_variables_list()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `tagmanager_accounts_containers_workspaces_variables_list_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn tagmanager_accounts_containers_workspaces_variables_list_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<ListVariablesResponse>, ApiError>, P = ApiPending>
+        + Send
+        + 'static,
+    ApiError,
+> {
+    let task = tagmanager_accounts_containers_workspaces_variables_list_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`tagmanager_accounts_containers_workspaces_variables_list`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct TagmanagerAccountsContainersWorkspacesVariablesListArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Query parameter: pageToken
+    pub pageToken: Option<Option<String>>,
+}
+
+/// GET tagmanager/v2/accounts/{accountsId}/containers/{containersId}/workspaces/{workspacesId}/variables
+/// Lists all GTM Variables of a Container.
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `tagmanager_accounts_containers_workspaces_variables_list_builder()` + `tagmanager_accounts_containers_workspaces_variables_list_execute()`.
+/// For task-level control, use `tagmanager_accounts_containers_workspaces_variables_list_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn tagmanager_accounts_containers_workspaces_variables_list(
+    client: &SimpleHttpClient,
+    args: &TagmanagerAccountsContainersWorkspacesVariablesListArgs,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<ListVariablesResponse>, ApiError>, P = ApiPending>
+        + Send
+        + 'static,
+    ApiError,
+> {
+    let builder = tagmanager_accounts_containers_workspaces_variables_list_builder(
+        client,
+        &args.parent,
+        &args.pageToken,
+    )?;
+    tagmanager_accounts_containers_workspaces_variables_list_execute(builder)
+}
+
+/// POST tagmanager/v2/accounts/{accountsId}/containers/{containersId}/workspaces/{workspacesId}/variables/{variablesId}:revert
+/// Reverts changes to a GTM Variable in a GTM Workspace.
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `tagmanager_accounts_containers_workspaces_variables_revert_execute()` to send, or `tagmanager_accounts_containers_workspaces_variables_revert` for simplest API.
+
+pub fn tagmanager_accounts_containers_workspaces_variables_revert_builder(
+    client: &SimpleHttpClient,
+    path: &String,
+    fingerprint: &Option<Option<String>>,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!(
+        "https://tagmanager.googleapis.com/tagmanager/v2/accounts/{}/containers/{containersId}/workspaces/{workspacesId}/variables/{variablesId}:revert",
+        path,
+    );
+
+    // Build request
+    let mut query_parts = Vec::new();
+    if let Some(val) = fingerprint.as_ref() {
+        query_parts.push(format!("fingerprint={}", val));
+    }
+
+    let url_with_query = if query_parts.is_empty() {
+        endpoint_url
+    } else {
+        format!("{}?{}", endpoint_url, query_parts.join("&"))
+    };
+
+    let builder = client
+        .post(&url_with_query)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// POST tagmanager/v2/accounts/{accountsId}/containers/{containersId}/workspaces/{workspacesId}/variables/{variablesId}:revert
+/// Reverts changes to a GTM Variable in a GTM Workspace.
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `tagmanager_accounts_containers_workspaces_variables_revert_execute()` or `tagmanager_accounts_containers_workspaces_variables_revert`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `tagmanager_accounts_containers_workspaces_variables_revert_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn tagmanager_accounts_containers_workspaces_variables_revert_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<RevertVariableResponse>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: RevertVariableResponse = serde_json::from_str(&body)
+                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// POST tagmanager/v2/accounts/{accountsId}/containers/{containersId}/workspaces/{workspacesId}/variables/{variablesId}:revert
+/// Reverts changes to a GTM Variable in a GTM Workspace.
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `tagmanager_accounts_containers_workspaces_variables_revert_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `tagmanager_accounts_containers_workspaces_variables_revert_task()`.
+/// For the simplest API, use `tagmanager_accounts_containers_workspaces_variables_revert()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `tagmanager_accounts_containers_workspaces_variables_revert_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn tagmanager_accounts_containers_workspaces_variables_revert_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<RevertVariableResponse>, ApiError>, P = ApiPending>
+        + Send
+        + 'static,
+    ApiError,
+> {
+    let task = tagmanager_accounts_containers_workspaces_variables_revert_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`tagmanager_accounts_containers_workspaces_variables_revert`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct TagmanagerAccountsContainersWorkspacesVariablesRevertArgs {
+    /// Path parameter: path
+    pub path: String,
+    /// Query parameter: fingerprint
+    pub fingerprint: Option<Option<String>>,
+}
+
+/// POST tagmanager/v2/accounts/{accountsId}/containers/{containersId}/workspaces/{workspacesId}/variables/{variablesId}:revert
+/// Reverts changes to a GTM Variable in a GTM Workspace.
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `tagmanager_accounts_containers_workspaces_variables_revert_builder()` + `tagmanager_accounts_containers_workspaces_variables_revert_execute()`.
+/// For task-level control, use `tagmanager_accounts_containers_workspaces_variables_revert_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn tagmanager_accounts_containers_workspaces_variables_revert(
+    client: &SimpleHttpClient,
+    args: &TagmanagerAccountsContainersWorkspacesVariablesRevertArgs,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<RevertVariableResponse>, ApiError>, P = ApiPending>
+        + Send
+        + 'static,
+    ApiError,
+> {
+    let builder = tagmanager_accounts_containers_workspaces_variables_revert_builder(
+        client,
+        &args.path,
+        &args.fingerprint,
+    )?;
+    tagmanager_accounts_containers_workspaces_variables_revert_execute(builder)
+}
+
+/// PUT tagmanager/v2/accounts/{accountsId}/containers/{containersId}/workspaces/{workspacesId}/variables/{variablesId}
+/// Updates a GTM Variable.
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `tagmanager_accounts_containers_workspaces_variables_update_execute()` to send, or `tagmanager_accounts_containers_workspaces_variables_update` for simplest API.
+
+pub fn tagmanager_accounts_containers_workspaces_variables_update_builder(
+    client: &SimpleHttpClient,
+    path: &String,
+    fingerprint: &Option<Option<String>>,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!(
+        "https://tagmanager.googleapis.com/tagmanager/v2/accounts/{}/containers/{containersId}/workspaces/{workspacesId}/variables/{variablesId}",
+        path,
+    );
+
+    // Build request
+    let mut query_parts = Vec::new();
+    if let Some(val) = fingerprint.as_ref() {
+        query_parts.push(format!("fingerprint={}", val));
+    }
+
+    let url_with_query = if query_parts.is_empty() {
+        endpoint_url
+    } else {
+        format!("{}?{}", endpoint_url, query_parts.join("&"))
+    };
+
+    let builder = client
+        .put(&url_with_query)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// PUT tagmanager/v2/accounts/{accountsId}/containers/{containersId}/workspaces/{workspacesId}/variables/{variablesId}
+/// Updates a GTM Variable.
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `tagmanager_accounts_containers_workspaces_variables_update_execute()` or `tagmanager_accounts_containers_workspaces_variables_update`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `tagmanager_accounts_containers_workspaces_variables_update_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn tagmanager_accounts_containers_workspaces_variables_update_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<Variable>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: Variable = serde_json::from_str(&body)
+                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// PUT tagmanager/v2/accounts/{accountsId}/containers/{containersId}/workspaces/{workspacesId}/variables/{variablesId}
+/// Updates a GTM Variable.
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `tagmanager_accounts_containers_workspaces_variables_update_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `tagmanager_accounts_containers_workspaces_variables_update_task()`.
+/// For the simplest API, use `tagmanager_accounts_containers_workspaces_variables_update()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `tagmanager_accounts_containers_workspaces_variables_update_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn tagmanager_accounts_containers_workspaces_variables_update_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<Variable>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let task = tagmanager_accounts_containers_workspaces_variables_update_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`tagmanager_accounts_containers_workspaces_variables_update`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct TagmanagerAccountsContainersWorkspacesVariablesUpdateArgs {
+    /// Path parameter: path
+    pub path: String,
+    /// Query parameter: fingerprint
+    pub fingerprint: Option<Option<String>>,
+}
+
+/// PUT tagmanager/v2/accounts/{accountsId}/containers/{containersId}/workspaces/{workspacesId}/variables/{variablesId}
+/// Updates a GTM Variable.
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `tagmanager_accounts_containers_workspaces_variables_update_builder()` + `tagmanager_accounts_containers_workspaces_variables_update_execute()`.
+/// For task-level control, use `tagmanager_accounts_containers_workspaces_variables_update_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn tagmanager_accounts_containers_workspaces_variables_update(
+    client: &SimpleHttpClient,
+    args: &TagmanagerAccountsContainersWorkspacesVariablesUpdateArgs,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<Variable>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let builder = tagmanager_accounts_containers_workspaces_variables_update_builder(
+        client,
+        &args.path,
+        &args.fingerprint,
+    )?;
+    tagmanager_accounts_containers_workspaces_variables_update_execute(builder)
+}
+
+/// POST tagmanager/v2/accounts/{accountsId}/containers/{containersId}/workspaces/{workspacesId}/zones
+/// Creates a GTM Zone.
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `tagmanager_accounts_containers_workspaces_zones_create_execute()` to send, or `tagmanager_accounts_containers_workspaces_zones_create` for simplest API.
+
+pub fn tagmanager_accounts_containers_workspaces_zones_create_builder(
+    client: &SimpleHttpClient,
+    parent: &String,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!(
+        "https://tagmanager.googleapis.com/tagmanager/v2/accounts/{}/containers/{containersId}/workspaces/{workspacesId}/zones",
+        parent,
+    );
+
+    // Build request
+    let builder = client
+        .post(&endpoint_url)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// POST tagmanager/v2/accounts/{accountsId}/containers/{containersId}/workspaces/{workspacesId}/zones
+/// Creates a GTM Zone.
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `tagmanager_accounts_containers_workspaces_zones_create_execute()` or `tagmanager_accounts_containers_workspaces_zones_create`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `tagmanager_accounts_containers_workspaces_zones_create_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn tagmanager_accounts_containers_workspaces_zones_create_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<Zone>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: Zone = serde_json::from_str(&body)
+                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// POST tagmanager/v2/accounts/{accountsId}/containers/{containersId}/workspaces/{workspacesId}/zones
+/// Creates a GTM Zone.
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `tagmanager_accounts_containers_workspaces_zones_create_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `tagmanager_accounts_containers_workspaces_zones_create_task()`.
+/// For the simplest API, use `tagmanager_accounts_containers_workspaces_zones_create()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `tagmanager_accounts_containers_workspaces_zones_create_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn tagmanager_accounts_containers_workspaces_zones_create_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<Zone>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let task = tagmanager_accounts_containers_workspaces_zones_create_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`tagmanager_accounts_containers_workspaces_zones_create`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct TagmanagerAccountsContainersWorkspacesZonesCreateArgs {
+    /// Path parameter: parent
+    pub parent: String,
+}
+
+/// POST tagmanager/v2/accounts/{accountsId}/containers/{containersId}/workspaces/{workspacesId}/zones
+/// Creates a GTM Zone.
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `tagmanager_accounts_containers_workspaces_zones_create_builder()` + `tagmanager_accounts_containers_workspaces_zones_create_execute()`.
+/// For task-level control, use `tagmanager_accounts_containers_workspaces_zones_create_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn tagmanager_accounts_containers_workspaces_zones_create(
+    client: &SimpleHttpClient,
+    args: &TagmanagerAccountsContainersWorkspacesZonesCreateArgs,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<Zone>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let builder =
+        tagmanager_accounts_containers_workspaces_zones_create_builder(client, &args.parent)?;
+    tagmanager_accounts_containers_workspaces_zones_create_execute(builder)
+}
+
+/// DELETE tagmanager/v2/accounts/{accountsId}/containers/{containersId}/workspaces/{workspacesId}/zones/{zonesId}
+/// Deletes a GTM Zone.
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `tagmanager_accounts_containers_workspaces_zones_delete_execute()` to send, or `tagmanager_accounts_containers_workspaces_zones_delete` for simplest API.
+
+pub fn tagmanager_accounts_containers_workspaces_zones_delete_builder(
+    client: &SimpleHttpClient,
+    path: &String,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!(
+        "https://tagmanager.googleapis.com/tagmanager/v2/accounts/{}/containers/{containersId}/workspaces/{workspacesId}/zones/{zonesId}",
+        path,
+    );
+
+    // Build request
+    let builder = client
+        .delete(&endpoint_url)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// DELETE tagmanager/v2/accounts/{accountsId}/containers/{containersId}/workspaces/{workspacesId}/zones/{zonesId}
+/// Deletes a GTM Zone.
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `tagmanager_accounts_containers_workspaces_zones_delete_execute()` or `tagmanager_accounts_containers_workspaces_zones_delete`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `tagmanager_accounts_containers_workspaces_zones_delete_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn tagmanager_accounts_containers_workspaces_zones_delete_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<()>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: (),
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// DELETE tagmanager/v2/accounts/{accountsId}/containers/{containersId}/workspaces/{workspacesId}/zones/{zonesId}
+/// Deletes a GTM Zone.
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `tagmanager_accounts_containers_workspaces_zones_delete_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `tagmanager_accounts_containers_workspaces_zones_delete_task()`.
+/// For the simplest API, use `tagmanager_accounts_containers_workspaces_zones_delete()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `tagmanager_accounts_containers_workspaces_zones_delete_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn tagmanager_accounts_containers_workspaces_zones_delete_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<()>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let task = tagmanager_accounts_containers_workspaces_zones_delete_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`tagmanager_accounts_containers_workspaces_zones_delete`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct TagmanagerAccountsContainersWorkspacesZonesDeleteArgs {
+    /// Path parameter: path
+    pub path: String,
+}
+
+/// DELETE tagmanager/v2/accounts/{accountsId}/containers/{containersId}/workspaces/{workspacesId}/zones/{zonesId}
+/// Deletes a GTM Zone.
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `tagmanager_accounts_containers_workspaces_zones_delete_builder()` + `tagmanager_accounts_containers_workspaces_zones_delete_execute()`.
+/// For task-level control, use `tagmanager_accounts_containers_workspaces_zones_delete_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn tagmanager_accounts_containers_workspaces_zones_delete(
+    client: &SimpleHttpClient,
+    args: &TagmanagerAccountsContainersWorkspacesZonesDeleteArgs,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<()>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let builder =
+        tagmanager_accounts_containers_workspaces_zones_delete_builder(client, &args.path)?;
+    tagmanager_accounts_containers_workspaces_zones_delete_execute(builder)
+}
+
+/// GET tagmanager/v2/accounts/{accountsId}/containers/{containersId}/workspaces/{workspacesId}/zones/{zonesId}
+/// Gets a GTM Zone.
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `tagmanager_accounts_containers_workspaces_zones_get_execute()` to send, or `tagmanager_accounts_containers_workspaces_zones_get` for simplest API.
+
+pub fn tagmanager_accounts_containers_workspaces_zones_get_builder(
+    client: &SimpleHttpClient,
+    path: &String,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!(
+        "https://tagmanager.googleapis.com/tagmanager/v2/accounts/{}/containers/{containersId}/workspaces/{workspacesId}/zones/{zonesId}",
+        path,
+    );
+
+    // Build request
+    let builder = client
+        .get(&endpoint_url)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// GET tagmanager/v2/accounts/{accountsId}/containers/{containersId}/workspaces/{workspacesId}/zones/{zonesId}
+/// Gets a GTM Zone.
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `tagmanager_accounts_containers_workspaces_zones_get_execute()` or `tagmanager_accounts_containers_workspaces_zones_get`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `tagmanager_accounts_containers_workspaces_zones_get_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn tagmanager_accounts_containers_workspaces_zones_get_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<Zone>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: Zone = serde_json::from_str(&body)
+                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// GET tagmanager/v2/accounts/{accountsId}/containers/{containersId}/workspaces/{workspacesId}/zones/{zonesId}
+/// Gets a GTM Zone.
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `tagmanager_accounts_containers_workspaces_zones_get_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `tagmanager_accounts_containers_workspaces_zones_get_task()`.
+/// For the simplest API, use `tagmanager_accounts_containers_workspaces_zones_get()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `tagmanager_accounts_containers_workspaces_zones_get_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn tagmanager_accounts_containers_workspaces_zones_get_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<Zone>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let task = tagmanager_accounts_containers_workspaces_zones_get_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`tagmanager_accounts_containers_workspaces_zones_get`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct TagmanagerAccountsContainersWorkspacesZonesGetArgs {
+    /// Path parameter: path
+    pub path: String,
+}
+
+/// GET tagmanager/v2/accounts/{accountsId}/containers/{containersId}/workspaces/{workspacesId}/zones/{zonesId}
+/// Gets a GTM Zone.
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `tagmanager_accounts_containers_workspaces_zones_get_builder()` + `tagmanager_accounts_containers_workspaces_zones_get_execute()`.
+/// For task-level control, use `tagmanager_accounts_containers_workspaces_zones_get_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn tagmanager_accounts_containers_workspaces_zones_get(
+    client: &SimpleHttpClient,
+    args: &TagmanagerAccountsContainersWorkspacesZonesGetArgs,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<Zone>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let builder = tagmanager_accounts_containers_workspaces_zones_get_builder(client, &args.path)?;
+    tagmanager_accounts_containers_workspaces_zones_get_execute(builder)
+}
+
+/// GET tagmanager/v2/accounts/{accountsId}/containers/{containersId}/workspaces/{workspacesId}/zones
+/// Lists all GTM Zones of a GTM container workspace.
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `tagmanager_accounts_containers_workspaces_zones_list_execute()` to send, or `tagmanager_accounts_containers_workspaces_zones_list` for simplest API.
+
+pub fn tagmanager_accounts_containers_workspaces_zones_list_builder(
+    client: &SimpleHttpClient,
+    parent: &String,
+    pageToken: &Option<Option<String>>,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!(
+        "https://tagmanager.googleapis.com/tagmanager/v2/accounts/{}/containers/{containersId}/workspaces/{workspacesId}/zones",
+        parent,
+    );
+
+    // Build request
+    let mut query_parts = Vec::new();
+    if let Some(val) = pageToken.as_ref() {
+        query_parts.push(format!("pageToken={}", val));
+    }
+
+    let url_with_query = if query_parts.is_empty() {
+        endpoint_url
+    } else {
+        format!("{}?{}", endpoint_url, query_parts.join("&"))
+    };
+
+    let builder = client
+        .get(&url_with_query)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// GET tagmanager/v2/accounts/{accountsId}/containers/{containersId}/workspaces/{workspacesId}/zones
+/// Lists all GTM Zones of a GTM container workspace.
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `tagmanager_accounts_containers_workspaces_zones_list_execute()` or `tagmanager_accounts_containers_workspaces_zones_list`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `tagmanager_accounts_containers_workspaces_zones_list_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn tagmanager_accounts_containers_workspaces_zones_list_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<ListZonesResponse>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: ListZonesResponse = serde_json::from_str(&body)
+                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// GET tagmanager/v2/accounts/{accountsId}/containers/{containersId}/workspaces/{workspacesId}/zones
+/// Lists all GTM Zones of a GTM container workspace.
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `tagmanager_accounts_containers_workspaces_zones_list_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `tagmanager_accounts_containers_workspaces_zones_list_task()`.
+/// For the simplest API, use `tagmanager_accounts_containers_workspaces_zones_list()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `tagmanager_accounts_containers_workspaces_zones_list_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn tagmanager_accounts_containers_workspaces_zones_list_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<ListZonesResponse>, ApiError>, P = ApiPending>
+        + Send
+        + 'static,
+    ApiError,
+> {
+    let task = tagmanager_accounts_containers_workspaces_zones_list_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`tagmanager_accounts_containers_workspaces_zones_list`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct TagmanagerAccountsContainersWorkspacesZonesListArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Query parameter: pageToken
+    pub pageToken: Option<Option<String>>,
+}
+
+/// GET tagmanager/v2/accounts/{accountsId}/containers/{containersId}/workspaces/{workspacesId}/zones
+/// Lists all GTM Zones of a GTM container workspace.
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `tagmanager_accounts_containers_workspaces_zones_list_builder()` + `tagmanager_accounts_containers_workspaces_zones_list_execute()`.
+/// For task-level control, use `tagmanager_accounts_containers_workspaces_zones_list_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn tagmanager_accounts_containers_workspaces_zones_list(
+    client: &SimpleHttpClient,
+    args: &TagmanagerAccountsContainersWorkspacesZonesListArgs,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<ListZonesResponse>, ApiError>, P = ApiPending>
+        + Send
+        + 'static,
+    ApiError,
+> {
+    let builder = tagmanager_accounts_containers_workspaces_zones_list_builder(
+        client,
+        &args.parent,
+        &args.pageToken,
+    )?;
+    tagmanager_accounts_containers_workspaces_zones_list_execute(builder)
+}
+
+/// POST tagmanager/v2/accounts/{accountsId}/containers/{containersId}/workspaces/{workspacesId}/zones/{zonesId}:revert
+/// Reverts changes to a GTM Zone in a GTM Workspace.
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `tagmanager_accounts_containers_workspaces_zones_revert_execute()` to send, or `tagmanager_accounts_containers_workspaces_zones_revert` for simplest API.
+
+pub fn tagmanager_accounts_containers_workspaces_zones_revert_builder(
+    client: &SimpleHttpClient,
+    path: &String,
+    fingerprint: &Option<Option<String>>,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!(
+        "https://tagmanager.googleapis.com/tagmanager/v2/accounts/{}/containers/{containersId}/workspaces/{workspacesId}/zones/{zonesId}:revert",
+        path,
+    );
+
+    // Build request
+    let mut query_parts = Vec::new();
+    if let Some(val) = fingerprint.as_ref() {
+        query_parts.push(format!("fingerprint={}", val));
+    }
+
+    let url_with_query = if query_parts.is_empty() {
+        endpoint_url
+    } else {
+        format!("{}?{}", endpoint_url, query_parts.join("&"))
+    };
+
+    let builder = client
+        .post(&url_with_query)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// POST tagmanager/v2/accounts/{accountsId}/containers/{containersId}/workspaces/{workspacesId}/zones/{zonesId}:revert
+/// Reverts changes to a GTM Zone in a GTM Workspace.
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `tagmanager_accounts_containers_workspaces_zones_revert_execute()` or `tagmanager_accounts_containers_workspaces_zones_revert`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `tagmanager_accounts_containers_workspaces_zones_revert_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn tagmanager_accounts_containers_workspaces_zones_revert_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<RevertZoneResponse>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: RevertZoneResponse = serde_json::from_str(&body)
+                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// POST tagmanager/v2/accounts/{accountsId}/containers/{containersId}/workspaces/{workspacesId}/zones/{zonesId}:revert
+/// Reverts changes to a GTM Zone in a GTM Workspace.
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `tagmanager_accounts_containers_workspaces_zones_revert_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `tagmanager_accounts_containers_workspaces_zones_revert_task()`.
+/// For the simplest API, use `tagmanager_accounts_containers_workspaces_zones_revert()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `tagmanager_accounts_containers_workspaces_zones_revert_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn tagmanager_accounts_containers_workspaces_zones_revert_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<RevertZoneResponse>, ApiError>, P = ApiPending>
+        + Send
+        + 'static,
+    ApiError,
+> {
+    let task = tagmanager_accounts_containers_workspaces_zones_revert_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`tagmanager_accounts_containers_workspaces_zones_revert`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct TagmanagerAccountsContainersWorkspacesZonesRevertArgs {
+    /// Path parameter: path
+    pub path: String,
+    /// Query parameter: fingerprint
+    pub fingerprint: Option<Option<String>>,
+}
+
+/// POST tagmanager/v2/accounts/{accountsId}/containers/{containersId}/workspaces/{workspacesId}/zones/{zonesId}:revert
+/// Reverts changes to a GTM Zone in a GTM Workspace.
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `tagmanager_accounts_containers_workspaces_zones_revert_builder()` + `tagmanager_accounts_containers_workspaces_zones_revert_execute()`.
+/// For task-level control, use `tagmanager_accounts_containers_workspaces_zones_revert_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn tagmanager_accounts_containers_workspaces_zones_revert(
+    client: &SimpleHttpClient,
+    args: &TagmanagerAccountsContainersWorkspacesZonesRevertArgs,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<RevertZoneResponse>, ApiError>, P = ApiPending>
+        + Send
+        + 'static,
+    ApiError,
+> {
+    let builder = tagmanager_accounts_containers_workspaces_zones_revert_builder(
+        client,
+        &args.path,
+        &args.fingerprint,
+    )?;
+    tagmanager_accounts_containers_workspaces_zones_revert_execute(builder)
+}
+
+/// PUT tagmanager/v2/accounts/{accountsId}/containers/{containersId}/workspaces/{workspacesId}/zones/{zonesId}
+/// Updates a GTM Zone.
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `tagmanager_accounts_containers_workspaces_zones_update_execute()` to send, or `tagmanager_accounts_containers_workspaces_zones_update` for simplest API.
+
+pub fn tagmanager_accounts_containers_workspaces_zones_update_builder(
+    client: &SimpleHttpClient,
+    path: &String,
+    fingerprint: &Option<Option<String>>,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!(
+        "https://tagmanager.googleapis.com/tagmanager/v2/accounts/{}/containers/{containersId}/workspaces/{workspacesId}/zones/{zonesId}",
+        path,
+    );
+
+    // Build request
+    let mut query_parts = Vec::new();
+    if let Some(val) = fingerprint.as_ref() {
+        query_parts.push(format!("fingerprint={}", val));
+    }
+
+    let url_with_query = if query_parts.is_empty() {
+        endpoint_url
+    } else {
+        format!("{}?{}", endpoint_url, query_parts.join("&"))
+    };
+
+    let builder = client
+        .put(&url_with_query)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// PUT tagmanager/v2/accounts/{accountsId}/containers/{containersId}/workspaces/{workspacesId}/zones/{zonesId}
+/// Updates a GTM Zone.
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `tagmanager_accounts_containers_workspaces_zones_update_execute()` or `tagmanager_accounts_containers_workspaces_zones_update`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `tagmanager_accounts_containers_workspaces_zones_update_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn tagmanager_accounts_containers_workspaces_zones_update_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<Zone>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: Zone = serde_json::from_str(&body)
+                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// PUT tagmanager/v2/accounts/{accountsId}/containers/{containersId}/workspaces/{workspacesId}/zones/{zonesId}
+/// Updates a GTM Zone.
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `tagmanager_accounts_containers_workspaces_zones_update_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `tagmanager_accounts_containers_workspaces_zones_update_task()`.
+/// For the simplest API, use `tagmanager_accounts_containers_workspaces_zones_update()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `tagmanager_accounts_containers_workspaces_zones_update_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn tagmanager_accounts_containers_workspaces_zones_update_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<Zone>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let task = tagmanager_accounts_containers_workspaces_zones_update_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`tagmanager_accounts_containers_workspaces_zones_update`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct TagmanagerAccountsContainersWorkspacesZonesUpdateArgs {
+    /// Path parameter: path
+    pub path: String,
+    /// Query parameter: fingerprint
+    pub fingerprint: Option<Option<String>>,
+}
+
+/// PUT tagmanager/v2/accounts/{accountsId}/containers/{containersId}/workspaces/{workspacesId}/zones/{zonesId}
+/// Updates a GTM Zone.
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `tagmanager_accounts_containers_workspaces_zones_update_builder()` + `tagmanager_accounts_containers_workspaces_zones_update_execute()`.
+/// For task-level control, use `tagmanager_accounts_containers_workspaces_zones_update_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn tagmanager_accounts_containers_workspaces_zones_update(
+    client: &SimpleHttpClient,
+    args: &TagmanagerAccountsContainersWorkspacesZonesUpdateArgs,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<Zone>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let builder = tagmanager_accounts_containers_workspaces_zones_update_builder(
+        client,
+        &args.path,
+        &args.fingerprint,
+    )?;
+    tagmanager_accounts_containers_workspaces_zones_update_execute(builder)
+}
+
+/// POST tagmanager/v2/accounts/{accountsId}/user_permissions
 /// Creates a user's Account & Container access.
 ///
 /// Returns `ClientRequestBuilder` for customization.
@@ -692,23 +17089,22 @@ pub fn tagmanager_accounts_containers_lookup(
 pub fn tagmanager_accounts_user_permissions_create_builder(
     client: &SimpleHttpClient,
     parent: &String,
-    body: &UserPermission,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
-    let endpoint_url =
-        format!("https://tagmanager.googleapis.com/tagmanager/v2/accounts/{}/user_permissions",);
+    let endpoint_url = format!(
+        "https://tagmanager.googleapis.com/tagmanager/v2/accounts/{}/user_permissions",
+        parent,
+    );
 
     // Build request
     let builder = client
-        .get(&endpoint_url)
+        .post(&endpoint_url)
         .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
 
-    builder
-        .body_json(body)
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+    Ok(builder)
 }
 
-/// GET tagmanager/v2/accounts/{accountsId}/user_permissions
+/// POST tagmanager/v2/accounts/{accountsId}/user_permissions
 /// Creates a user's Account & Container access.
 ///
 /// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
@@ -782,7 +17178,7 @@ pub fn tagmanager_accounts_user_permissions_create_task(
         .map_pending(|_| ApiPending::Sending))
 }
 
-/// GET tagmanager/v2/accounts/{accountsId}/user_permissions
+/// POST tagmanager/v2/accounts/{accountsId}/user_permissions
 /// Creates a user's Account & Container access.
 ///
 /// Takes a `ClientRequestBuilder`, builds and executes the request,
@@ -819,11 +17215,9 @@ pub fn tagmanager_accounts_user_permissions_create_execute(
 pub struct TagmanagerAccountsUserPermissionsCreateArgs {
     /// Path parameter: parent
     pub parent: String,
-    /// Request body.
-    pub body: UserPermission,
 }
 
-/// GET tagmanager/v2/accounts/{accountsId}/user_permissions
+/// POST tagmanager/v2/accounts/{accountsId}/user_permissions
 /// Creates a user's Account & Container access.
 ///
 /// Simplest API - builds and executes the request in one call.
@@ -843,7 +17237,3026 @@ pub fn tagmanager_accounts_user_permissions_create(
         + 'static,
     ApiError,
 > {
-    let builder =
-        tagmanager_accounts_user_permissions_create_builder(client, &args.parent, &args.body)?;
+    let builder = tagmanager_accounts_user_permissions_create_builder(client, &args.parent)?;
     tagmanager_accounts_user_permissions_create_execute(builder)
+}
+
+/// DELETE tagmanager/v2/accounts/{accountsId}/user_permissions/{user_permissionsId}
+/// Removes a user from the account, revoking access to it and all of its containers.
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `tagmanager_accounts_user_permissions_delete_execute()` to send, or `tagmanager_accounts_user_permissions_delete` for simplest API.
+
+pub fn tagmanager_accounts_user_permissions_delete_builder(
+    client: &SimpleHttpClient,
+    path: &String,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!(
+        "https://tagmanager.googleapis.com/tagmanager/v2/accounts/{}/user_permissions/{user_permissionsId}",
+        path,
+    );
+
+    // Build request
+    let builder = client
+        .delete(&endpoint_url)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// DELETE tagmanager/v2/accounts/{accountsId}/user_permissions/{user_permissionsId}
+/// Removes a user from the account, revoking access to it and all of its containers.
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `tagmanager_accounts_user_permissions_delete_execute()` or `tagmanager_accounts_user_permissions_delete`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `tagmanager_accounts_user_permissions_delete_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn tagmanager_accounts_user_permissions_delete_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<()>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: (),
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// DELETE tagmanager/v2/accounts/{accountsId}/user_permissions/{user_permissionsId}
+/// Removes a user from the account, revoking access to it and all of its containers.
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `tagmanager_accounts_user_permissions_delete_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `tagmanager_accounts_user_permissions_delete_task()`.
+/// For the simplest API, use `tagmanager_accounts_user_permissions_delete()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `tagmanager_accounts_user_permissions_delete_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn tagmanager_accounts_user_permissions_delete_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<()>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let task = tagmanager_accounts_user_permissions_delete_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`tagmanager_accounts_user_permissions_delete`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct TagmanagerAccountsUserPermissionsDeleteArgs {
+    /// Path parameter: path
+    pub path: String,
+}
+
+/// DELETE tagmanager/v2/accounts/{accountsId}/user_permissions/{user_permissionsId}
+/// Removes a user from the account, revoking access to it and all of its containers.
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `tagmanager_accounts_user_permissions_delete_builder()` + `tagmanager_accounts_user_permissions_delete_execute()`.
+/// For task-level control, use `tagmanager_accounts_user_permissions_delete_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn tagmanager_accounts_user_permissions_delete(
+    client: &SimpleHttpClient,
+    args: &TagmanagerAccountsUserPermissionsDeleteArgs,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<()>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let builder = tagmanager_accounts_user_permissions_delete_builder(client, &args.path)?;
+    tagmanager_accounts_user_permissions_delete_execute(builder)
+}
+
+/// GET tagmanager/v2/accounts/{accountsId}/user_permissions/{user_permissionsId}
+/// Gets a user's Account & Container access.
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `tagmanager_accounts_user_permissions_get_execute()` to send, or `tagmanager_accounts_user_permissions_get` for simplest API.
+
+pub fn tagmanager_accounts_user_permissions_get_builder(
+    client: &SimpleHttpClient,
+    path: &String,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!(
+        "https://tagmanager.googleapis.com/tagmanager/v2/accounts/{}/user_permissions/{user_permissionsId}",
+        path,
+    );
+
+    // Build request
+    let builder = client
+        .get(&endpoint_url)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// GET tagmanager/v2/accounts/{accountsId}/user_permissions/{user_permissionsId}
+/// Gets a user's Account & Container access.
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `tagmanager_accounts_user_permissions_get_execute()` or `tagmanager_accounts_user_permissions_get`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `tagmanager_accounts_user_permissions_get_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn tagmanager_accounts_user_permissions_get_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<UserPermission>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: UserPermission = serde_json::from_str(&body)
+                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// GET tagmanager/v2/accounts/{accountsId}/user_permissions/{user_permissionsId}
+/// Gets a user's Account & Container access.
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `tagmanager_accounts_user_permissions_get_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `tagmanager_accounts_user_permissions_get_task()`.
+/// For the simplest API, use `tagmanager_accounts_user_permissions_get()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `tagmanager_accounts_user_permissions_get_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn tagmanager_accounts_user_permissions_get_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<UserPermission>, ApiError>, P = ApiPending>
+        + Send
+        + 'static,
+    ApiError,
+> {
+    let task = tagmanager_accounts_user_permissions_get_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`tagmanager_accounts_user_permissions_get`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct TagmanagerAccountsUserPermissionsGetArgs {
+    /// Path parameter: path
+    pub path: String,
+}
+
+/// GET tagmanager/v2/accounts/{accountsId}/user_permissions/{user_permissionsId}
+/// Gets a user's Account & Container access.
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `tagmanager_accounts_user_permissions_get_builder()` + `tagmanager_accounts_user_permissions_get_execute()`.
+/// For task-level control, use `tagmanager_accounts_user_permissions_get_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn tagmanager_accounts_user_permissions_get(
+    client: &SimpleHttpClient,
+    args: &TagmanagerAccountsUserPermissionsGetArgs,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<UserPermission>, ApiError>, P = ApiPending>
+        + Send
+        + 'static,
+    ApiError,
+> {
+    let builder = tagmanager_accounts_user_permissions_get_builder(client, &args.path)?;
+    tagmanager_accounts_user_permissions_get_execute(builder)
+}
+
+/// GET tagmanager/v2/accounts/{accountsId}/user_permissions
+/// List all users that have access to the account along with Account and Container user access granted to each of them.
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `tagmanager_accounts_user_permissions_list_execute()` to send, or `tagmanager_accounts_user_permissions_list` for simplest API.
+
+pub fn tagmanager_accounts_user_permissions_list_builder(
+    client: &SimpleHttpClient,
+    parent: &String,
+    pageToken: &Option<Option<String>>,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!(
+        "https://tagmanager.googleapis.com/tagmanager/v2/accounts/{}/user_permissions",
+        parent,
+    );
+
+    // Build request
+    let mut query_parts = Vec::new();
+    if let Some(val) = pageToken.as_ref() {
+        query_parts.push(format!("pageToken={}", val));
+    }
+
+    let url_with_query = if query_parts.is_empty() {
+        endpoint_url
+    } else {
+        format!("{}?{}", endpoint_url, query_parts.join("&"))
+    };
+
+    let builder = client
+        .get(&url_with_query)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// GET tagmanager/v2/accounts/{accountsId}/user_permissions
+/// List all users that have access to the account along with Account and Container user access granted to each of them.
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `tagmanager_accounts_user_permissions_list_execute()` or `tagmanager_accounts_user_permissions_list`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `tagmanager_accounts_user_permissions_list_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn tagmanager_accounts_user_permissions_list_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<ListUserPermissionsResponse>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: ListUserPermissionsResponse = serde_json::from_str(&body)
+                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// GET tagmanager/v2/accounts/{accountsId}/user_permissions
+/// List all users that have access to the account along with Account and Container user access granted to each of them.
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `tagmanager_accounts_user_permissions_list_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `tagmanager_accounts_user_permissions_list_task()`.
+/// For the simplest API, use `tagmanager_accounts_user_permissions_list()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `tagmanager_accounts_user_permissions_list_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn tagmanager_accounts_user_permissions_list_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<
+            D = Result<ApiResponse<ListUserPermissionsResponse>, ApiError>,
+            P = ApiPending,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    let task = tagmanager_accounts_user_permissions_list_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`tagmanager_accounts_user_permissions_list`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct TagmanagerAccountsUserPermissionsListArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Query parameter: pageToken
+    pub pageToken: Option<Option<String>>,
+}
+
+/// GET tagmanager/v2/accounts/{accountsId}/user_permissions
+/// List all users that have access to the account along with Account and Container user access granted to each of them.
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `tagmanager_accounts_user_permissions_list_builder()` + `tagmanager_accounts_user_permissions_list_execute()`.
+/// For task-level control, use `tagmanager_accounts_user_permissions_list_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn tagmanager_accounts_user_permissions_list(
+    client: &SimpleHttpClient,
+    args: &TagmanagerAccountsUserPermissionsListArgs,
+) -> Result<
+    impl StreamIterator<
+            D = Result<ApiResponse<ListUserPermissionsResponse>, ApiError>,
+            P = ApiPending,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    let builder =
+        tagmanager_accounts_user_permissions_list_builder(client, &args.parent, &args.pageToken)?;
+    tagmanager_accounts_user_permissions_list_execute(builder)
+}
+
+/// PUT tagmanager/v2/accounts/{accountsId}/user_permissions/{user_permissionsId}
+/// Updates a user's Account & Container access.
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `tagmanager_accounts_user_permissions_update_execute()` to send, or `tagmanager_accounts_user_permissions_update` for simplest API.
+
+pub fn tagmanager_accounts_user_permissions_update_builder(
+    client: &SimpleHttpClient,
+    path: &String,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!(
+        "https://tagmanager.googleapis.com/tagmanager/v2/accounts/{}/user_permissions/{user_permissionsId}",
+        path,
+    );
+
+    // Build request
+    let builder = client
+        .put(&endpoint_url)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// PUT tagmanager/v2/accounts/{accountsId}/user_permissions/{user_permissionsId}
+/// Updates a user's Account & Container access.
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `tagmanager_accounts_user_permissions_update_execute()` or `tagmanager_accounts_user_permissions_update`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `tagmanager_accounts_user_permissions_update_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn tagmanager_accounts_user_permissions_update_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<UserPermission>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: UserPermission = serde_json::from_str(&body)
+                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// PUT tagmanager/v2/accounts/{accountsId}/user_permissions/{user_permissionsId}
+/// Updates a user's Account & Container access.
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `tagmanager_accounts_user_permissions_update_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `tagmanager_accounts_user_permissions_update_task()`.
+/// For the simplest API, use `tagmanager_accounts_user_permissions_update()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `tagmanager_accounts_user_permissions_update_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn tagmanager_accounts_user_permissions_update_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<UserPermission>, ApiError>, P = ApiPending>
+        + Send
+        + 'static,
+    ApiError,
+> {
+    let task = tagmanager_accounts_user_permissions_update_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`tagmanager_accounts_user_permissions_update`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct TagmanagerAccountsUserPermissionsUpdateArgs {
+    /// Path parameter: path
+    pub path: String,
+}
+
+/// PUT tagmanager/v2/accounts/{accountsId}/user_permissions/{user_permissionsId}
+/// Updates a user's Account & Container access.
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `tagmanager_accounts_user_permissions_update_builder()` + `tagmanager_accounts_user_permissions_update_execute()`.
+/// For task-level control, use `tagmanager_accounts_user_permissions_update_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn tagmanager_accounts_user_permissions_update(
+    client: &SimpleHttpClient,
+    args: &TagmanagerAccountsUserPermissionsUpdateArgs,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<UserPermission>, ApiError>, P = ApiPending>
+        + Send
+        + 'static,
+    ApiError,
+> {
+    let builder = tagmanager_accounts_user_permissions_update_builder(client, &args.path)?;
+    tagmanager_accounts_user_permissions_update_execute(builder)
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for Account
+// =============================================================================
+
+/// ResourceIdentifier implementation for Account with TagmanagerAccountsGetArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<TagmanagerAccountsGetArgs> for Account {
+    fn generate_resource_id(&self, input: &TagmanagerAccountsGetArgs) -> String {
+        format!("gcp::tagmanager::Account/{}", input.path)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::tagmanager::Account"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for ListAccountsResponse
+// =============================================================================
+
+/// ResourceIdentifier implementation for ListAccountsResponse with TagmanagerAccountsListArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<TagmanagerAccountsListArgs> for ListAccountsResponse {
+    fn generate_resource_id(&self, input: &TagmanagerAccountsListArgs) -> String {
+        "gcp::tagmanager::ListAccountsResponse".to_string()
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::tagmanager::ListAccountsResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for Account
+// =============================================================================
+
+/// ResourceIdentifier implementation for Account with TagmanagerAccountsUpdateArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<TagmanagerAccountsUpdateArgs> for Account {
+    fn generate_resource_id(&self, input: &TagmanagerAccountsUpdateArgs) -> String {
+        format!("gcp::tagmanager::Account/{}", input.path)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::tagmanager::Account"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for Container
+// =============================================================================
+
+/// ResourceIdentifier implementation for Container with TagmanagerAccountsContainersCombineArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<TagmanagerAccountsContainersCombineArgs> for Container {
+    fn generate_resource_id(&self, input: &TagmanagerAccountsContainersCombineArgs) -> String {
+        format!("gcp::tagmanager::Container/{}", input.path)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::tagmanager::Container"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for Container
+// =============================================================================
+
+/// ResourceIdentifier implementation for Container with TagmanagerAccountsContainersCreateArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<TagmanagerAccountsContainersCreateArgs> for Container {
+    fn generate_resource_id(&self, input: &TagmanagerAccountsContainersCreateArgs) -> String {
+        format!("gcp::tagmanager::Container/{}", input.parent)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::tagmanager::Container"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for Container
+// =============================================================================
+
+/// ResourceIdentifier implementation for Container with TagmanagerAccountsContainersGetArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<TagmanagerAccountsContainersGetArgs> for Container {
+    fn generate_resource_id(&self, input: &TagmanagerAccountsContainersGetArgs) -> String {
+        format!("gcp::tagmanager::Container/{}", input.path)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::tagmanager::Container"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for ListContainersResponse
+// =============================================================================
+
+/// ResourceIdentifier implementation for ListContainersResponse with TagmanagerAccountsContainersListArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<TagmanagerAccountsContainersListArgs> for ListContainersResponse {
+    fn generate_resource_id(&self, input: &TagmanagerAccountsContainersListArgs) -> String {
+        format!("gcp::tagmanager::ListContainersResponse/{}", input.parent)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::tagmanager::ListContainersResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for Container
+// =============================================================================
+
+/// ResourceIdentifier implementation for Container with TagmanagerAccountsContainersLookupArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<TagmanagerAccountsContainersLookupArgs> for Container {
+    fn generate_resource_id(&self, input: &TagmanagerAccountsContainersLookupArgs) -> String {
+        "gcp::tagmanager::Container".to_string()
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::tagmanager::Container"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for Container
+// =============================================================================
+
+/// ResourceIdentifier implementation for Container with TagmanagerAccountsContainersMoveTagIdArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<TagmanagerAccountsContainersMoveTagIdArgs> for Container {
+    fn generate_resource_id(&self, input: &TagmanagerAccountsContainersMoveTagIdArgs) -> String {
+        format!("gcp::tagmanager::Container/{}", input.path)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::tagmanager::Container"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for GetContainerSnippetResponse
+// =============================================================================
+
+/// ResourceIdentifier implementation for GetContainerSnippetResponse with TagmanagerAccountsContainersSnippetArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<TagmanagerAccountsContainersSnippetArgs> for GetContainerSnippetResponse {
+    fn generate_resource_id(&self, input: &TagmanagerAccountsContainersSnippetArgs) -> String {
+        format!(
+            "gcp::tagmanager::GetContainerSnippetResponse/{}",
+            input.path
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::tagmanager::GetContainerSnippetResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for Container
+// =============================================================================
+
+/// ResourceIdentifier implementation for Container with TagmanagerAccountsContainersUpdateArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<TagmanagerAccountsContainersUpdateArgs> for Container {
+    fn generate_resource_id(&self, input: &TagmanagerAccountsContainersUpdateArgs) -> String {
+        format!("gcp::tagmanager::Container/{}", input.path)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::tagmanager::Container"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for Destination
+// =============================================================================
+
+/// ResourceIdentifier implementation for Destination with TagmanagerAccountsContainersDestinationsGetArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<TagmanagerAccountsContainersDestinationsGetArgs> for Destination {
+    fn generate_resource_id(
+        &self,
+        input: &TagmanagerAccountsContainersDestinationsGetArgs,
+    ) -> String {
+        format!("gcp::tagmanager::Destination/{}", input.path)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::tagmanager::Destination"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for Destination
+// =============================================================================
+
+/// ResourceIdentifier implementation for Destination with TagmanagerAccountsContainersDestinationsLinkArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<TagmanagerAccountsContainersDestinationsLinkArgs> for Destination {
+    fn generate_resource_id(
+        &self,
+        input: &TagmanagerAccountsContainersDestinationsLinkArgs,
+    ) -> String {
+        format!("gcp::tagmanager::Destination/{}", input.parent)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::tagmanager::Destination"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for ListDestinationsResponse
+// =============================================================================
+
+/// ResourceIdentifier implementation for ListDestinationsResponse with TagmanagerAccountsContainersDestinationsListArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<TagmanagerAccountsContainersDestinationsListArgs>
+    for ListDestinationsResponse
+{
+    fn generate_resource_id(
+        &self,
+        input: &TagmanagerAccountsContainersDestinationsListArgs,
+    ) -> String {
+        format!("gcp::tagmanager::ListDestinationsResponse/{}", input.parent)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::tagmanager::ListDestinationsResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for Environment
+// =============================================================================
+
+/// ResourceIdentifier implementation for Environment with TagmanagerAccountsContainersEnvironmentsCreateArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<TagmanagerAccountsContainersEnvironmentsCreateArgs> for Environment {
+    fn generate_resource_id(
+        &self,
+        input: &TagmanagerAccountsContainersEnvironmentsCreateArgs,
+    ) -> String {
+        format!("gcp::tagmanager::Environment/{}", input.parent)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::tagmanager::Environment"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for Environment
+// =============================================================================
+
+/// ResourceIdentifier implementation for Environment with TagmanagerAccountsContainersEnvironmentsGetArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<TagmanagerAccountsContainersEnvironmentsGetArgs> for Environment {
+    fn generate_resource_id(
+        &self,
+        input: &TagmanagerAccountsContainersEnvironmentsGetArgs,
+    ) -> String {
+        format!("gcp::tagmanager::Environment/{}", input.path)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::tagmanager::Environment"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for ListEnvironmentsResponse
+// =============================================================================
+
+/// ResourceIdentifier implementation for ListEnvironmentsResponse with TagmanagerAccountsContainersEnvironmentsListArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<TagmanagerAccountsContainersEnvironmentsListArgs>
+    for ListEnvironmentsResponse
+{
+    fn generate_resource_id(
+        &self,
+        input: &TagmanagerAccountsContainersEnvironmentsListArgs,
+    ) -> String {
+        format!("gcp::tagmanager::ListEnvironmentsResponse/{}", input.parent)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::tagmanager::ListEnvironmentsResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for Environment
+// =============================================================================
+
+/// ResourceIdentifier implementation for Environment with TagmanagerAccountsContainersEnvironmentsReauthorizeArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<TagmanagerAccountsContainersEnvironmentsReauthorizeArgs> for Environment {
+    fn generate_resource_id(
+        &self,
+        input: &TagmanagerAccountsContainersEnvironmentsReauthorizeArgs,
+    ) -> String {
+        format!("gcp::tagmanager::Environment/{}", input.path)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::tagmanager::Environment"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for Environment
+// =============================================================================
+
+/// ResourceIdentifier implementation for Environment with TagmanagerAccountsContainersEnvironmentsUpdateArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<TagmanagerAccountsContainersEnvironmentsUpdateArgs> for Environment {
+    fn generate_resource_id(
+        &self,
+        input: &TagmanagerAccountsContainersEnvironmentsUpdateArgs,
+    ) -> String {
+        format!("gcp::tagmanager::Environment/{}", input.path)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::tagmanager::Environment"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for ContainerVersionHeader
+// =============================================================================
+
+/// ResourceIdentifier implementation for ContainerVersionHeader with TagmanagerAccountsContainersVersionHeadersLatestArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<TagmanagerAccountsContainersVersionHeadersLatestArgs>
+    for ContainerVersionHeader
+{
+    fn generate_resource_id(
+        &self,
+        input: &TagmanagerAccountsContainersVersionHeadersLatestArgs,
+    ) -> String {
+        format!("gcp::tagmanager::ContainerVersionHeader/{}", input.parent)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::tagmanager::ContainerVersionHeader"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for ListContainerVersionsResponse
+// =============================================================================
+
+/// ResourceIdentifier implementation for ListContainerVersionsResponse with TagmanagerAccountsContainersVersionHeadersListArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<TagmanagerAccountsContainersVersionHeadersListArgs>
+    for ListContainerVersionsResponse
+{
+    fn generate_resource_id(
+        &self,
+        input: &TagmanagerAccountsContainersVersionHeadersListArgs,
+    ) -> String {
+        format!(
+            "gcp::tagmanager::ListContainerVersionsResponse/{}",
+            input.parent
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::tagmanager::ListContainerVersionsResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for ContainerVersion
+// =============================================================================
+
+/// ResourceIdentifier implementation for ContainerVersion with TagmanagerAccountsContainersVersionsGetArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<TagmanagerAccountsContainersVersionsGetArgs> for ContainerVersion {
+    fn generate_resource_id(&self, input: &TagmanagerAccountsContainersVersionsGetArgs) -> String {
+        format!("gcp::tagmanager::ContainerVersion/{}", input.path)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::tagmanager::ContainerVersion"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for ContainerVersion
+// =============================================================================
+
+/// ResourceIdentifier implementation for ContainerVersion with TagmanagerAccountsContainersVersionsLiveArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<TagmanagerAccountsContainersVersionsLiveArgs> for ContainerVersion {
+    fn generate_resource_id(&self, input: &TagmanagerAccountsContainersVersionsLiveArgs) -> String {
+        format!("gcp::tagmanager::ContainerVersion/{}", input.parent)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::tagmanager::ContainerVersion"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for PublishContainerVersionResponse
+// =============================================================================
+
+/// ResourceIdentifier implementation for PublishContainerVersionResponse with TagmanagerAccountsContainersVersionsPublishArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<TagmanagerAccountsContainersVersionsPublishArgs>
+    for PublishContainerVersionResponse
+{
+    fn generate_resource_id(
+        &self,
+        input: &TagmanagerAccountsContainersVersionsPublishArgs,
+    ) -> String {
+        format!(
+            "gcp::tagmanager::PublishContainerVersionResponse/{}",
+            input.path
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::tagmanager::PublishContainerVersionResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for ContainerVersion
+// =============================================================================
+
+/// ResourceIdentifier implementation for ContainerVersion with TagmanagerAccountsContainersVersionsSetLatestArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<TagmanagerAccountsContainersVersionsSetLatestArgs> for ContainerVersion {
+    fn generate_resource_id(
+        &self,
+        input: &TagmanagerAccountsContainersVersionsSetLatestArgs,
+    ) -> String {
+        format!("gcp::tagmanager::ContainerVersion/{}", input.path)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::tagmanager::ContainerVersion"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for ContainerVersion
+// =============================================================================
+
+/// ResourceIdentifier implementation for ContainerVersion with TagmanagerAccountsContainersVersionsUndeleteArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<TagmanagerAccountsContainersVersionsUndeleteArgs> for ContainerVersion {
+    fn generate_resource_id(
+        &self,
+        input: &TagmanagerAccountsContainersVersionsUndeleteArgs,
+    ) -> String {
+        format!("gcp::tagmanager::ContainerVersion/{}", input.path)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::tagmanager::ContainerVersion"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for ContainerVersion
+// =============================================================================
+
+/// ResourceIdentifier implementation for ContainerVersion with TagmanagerAccountsContainersVersionsUpdateArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<TagmanagerAccountsContainersVersionsUpdateArgs> for ContainerVersion {
+    fn generate_resource_id(
+        &self,
+        input: &TagmanagerAccountsContainersVersionsUpdateArgs,
+    ) -> String {
+        format!("gcp::tagmanager::ContainerVersion/{}", input.path)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::tagmanager::ContainerVersion"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for BulkUpdateWorkspaceResponse
+// =============================================================================
+
+/// ResourceIdentifier implementation for BulkUpdateWorkspaceResponse with TagmanagerAccountsContainersWorkspacesBulkUpdateArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<TagmanagerAccountsContainersWorkspacesBulkUpdateArgs>
+    for BulkUpdateWorkspaceResponse
+{
+    fn generate_resource_id(
+        &self,
+        input: &TagmanagerAccountsContainersWorkspacesBulkUpdateArgs,
+    ) -> String {
+        format!(
+            "gcp::tagmanager::BulkUpdateWorkspaceResponse/{}",
+            input.path
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::tagmanager::BulkUpdateWorkspaceResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for Workspace
+// =============================================================================
+
+/// ResourceIdentifier implementation for Workspace with TagmanagerAccountsContainersWorkspacesCreateArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<TagmanagerAccountsContainersWorkspacesCreateArgs> for Workspace {
+    fn generate_resource_id(
+        &self,
+        input: &TagmanagerAccountsContainersWorkspacesCreateArgs,
+    ) -> String {
+        format!("gcp::tagmanager::Workspace/{}", input.parent)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::tagmanager::Workspace"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for CreateContainerVersionResponse
+// =============================================================================
+
+/// ResourceIdentifier implementation for CreateContainerVersionResponse with TagmanagerAccountsContainersWorkspacesCreateVersionArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<TagmanagerAccountsContainersWorkspacesCreateVersionArgs>
+    for CreateContainerVersionResponse
+{
+    fn generate_resource_id(
+        &self,
+        input: &TagmanagerAccountsContainersWorkspacesCreateVersionArgs,
+    ) -> String {
+        format!(
+            "gcp::tagmanager::CreateContainerVersionResponse/{}",
+            input.path
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::tagmanager::CreateContainerVersionResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for Workspace
+// =============================================================================
+
+/// ResourceIdentifier implementation for Workspace with TagmanagerAccountsContainersWorkspacesGetArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<TagmanagerAccountsContainersWorkspacesGetArgs> for Workspace {
+    fn generate_resource_id(
+        &self,
+        input: &TagmanagerAccountsContainersWorkspacesGetArgs,
+    ) -> String {
+        format!("gcp::tagmanager::Workspace/{}", input.path)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::tagmanager::Workspace"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for GetWorkspaceStatusResponse
+// =============================================================================
+
+/// ResourceIdentifier implementation for GetWorkspaceStatusResponse with TagmanagerAccountsContainersWorkspacesGetStatusArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<TagmanagerAccountsContainersWorkspacesGetStatusArgs>
+    for GetWorkspaceStatusResponse
+{
+    fn generate_resource_id(
+        &self,
+        input: &TagmanagerAccountsContainersWorkspacesGetStatusArgs,
+    ) -> String {
+        format!("gcp::tagmanager::GetWorkspaceStatusResponse/{}", input.path)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::tagmanager::GetWorkspaceStatusResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for ListWorkspacesResponse
+// =============================================================================
+
+/// ResourceIdentifier implementation for ListWorkspacesResponse with TagmanagerAccountsContainersWorkspacesListArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<TagmanagerAccountsContainersWorkspacesListArgs> for ListWorkspacesResponse {
+    fn generate_resource_id(
+        &self,
+        input: &TagmanagerAccountsContainersWorkspacesListArgs,
+    ) -> String {
+        format!("gcp::tagmanager::ListWorkspacesResponse/{}", input.parent)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::tagmanager::ListWorkspacesResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for QuickPreviewResponse
+// =============================================================================
+
+/// ResourceIdentifier implementation for QuickPreviewResponse with TagmanagerAccountsContainersWorkspacesQuickPreviewArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<TagmanagerAccountsContainersWorkspacesQuickPreviewArgs>
+    for QuickPreviewResponse
+{
+    fn generate_resource_id(
+        &self,
+        input: &TagmanagerAccountsContainersWorkspacesQuickPreviewArgs,
+    ) -> String {
+        format!("gcp::tagmanager::QuickPreviewResponse/{}", input.path)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::tagmanager::QuickPreviewResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for SyncWorkspaceResponse
+// =============================================================================
+
+/// ResourceIdentifier implementation for SyncWorkspaceResponse with TagmanagerAccountsContainersWorkspacesSyncArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<TagmanagerAccountsContainersWorkspacesSyncArgs> for SyncWorkspaceResponse {
+    fn generate_resource_id(
+        &self,
+        input: &TagmanagerAccountsContainersWorkspacesSyncArgs,
+    ) -> String {
+        format!("gcp::tagmanager::SyncWorkspaceResponse/{}", input.path)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::tagmanager::SyncWorkspaceResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for Workspace
+// =============================================================================
+
+/// ResourceIdentifier implementation for Workspace with TagmanagerAccountsContainersWorkspacesUpdateArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<TagmanagerAccountsContainersWorkspacesUpdateArgs> for Workspace {
+    fn generate_resource_id(
+        &self,
+        input: &TagmanagerAccountsContainersWorkspacesUpdateArgs,
+    ) -> String {
+        format!("gcp::tagmanager::Workspace/{}", input.path)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::tagmanager::Workspace"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for CreateBuiltInVariableResponse
+// =============================================================================
+
+/// ResourceIdentifier implementation for CreateBuiltInVariableResponse with TagmanagerAccountsContainersWorkspacesBuiltInVariablesCreateArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<TagmanagerAccountsContainersWorkspacesBuiltInVariablesCreateArgs>
+    for CreateBuiltInVariableResponse
+{
+    fn generate_resource_id(
+        &self,
+        input: &TagmanagerAccountsContainersWorkspacesBuiltInVariablesCreateArgs,
+    ) -> String {
+        format!(
+            "gcp::tagmanager::CreateBuiltInVariableResponse/{}",
+            input.parent
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::tagmanager::CreateBuiltInVariableResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for ListEnabledBuiltInVariablesResponse
+// =============================================================================
+
+/// ResourceIdentifier implementation for ListEnabledBuiltInVariablesResponse with TagmanagerAccountsContainersWorkspacesBuiltInVariablesListArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<TagmanagerAccountsContainersWorkspacesBuiltInVariablesListArgs>
+    for ListEnabledBuiltInVariablesResponse
+{
+    fn generate_resource_id(
+        &self,
+        input: &TagmanagerAccountsContainersWorkspacesBuiltInVariablesListArgs,
+    ) -> String {
+        format!(
+            "gcp::tagmanager::ListEnabledBuiltInVariablesResponse/{}",
+            input.parent
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::tagmanager::ListEnabledBuiltInVariablesResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for RevertBuiltInVariableResponse
+// =============================================================================
+
+/// ResourceIdentifier implementation for RevertBuiltInVariableResponse with TagmanagerAccountsContainersWorkspacesBuiltInVariablesRevertArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<TagmanagerAccountsContainersWorkspacesBuiltInVariablesRevertArgs>
+    for RevertBuiltInVariableResponse
+{
+    fn generate_resource_id(
+        &self,
+        input: &TagmanagerAccountsContainersWorkspacesBuiltInVariablesRevertArgs,
+    ) -> String {
+        format!(
+            "gcp::tagmanager::RevertBuiltInVariableResponse/{}",
+            input.path
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::tagmanager::RevertBuiltInVariableResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for Client
+// =============================================================================
+
+/// ResourceIdentifier implementation for Client with TagmanagerAccountsContainersWorkspacesClientsCreateArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<TagmanagerAccountsContainersWorkspacesClientsCreateArgs> for Client {
+    fn generate_resource_id(
+        &self,
+        input: &TagmanagerAccountsContainersWorkspacesClientsCreateArgs,
+    ) -> String {
+        format!("gcp::tagmanager::Client/{}", input.parent)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::tagmanager::Client"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for Client
+// =============================================================================
+
+/// ResourceIdentifier implementation for Client with TagmanagerAccountsContainersWorkspacesClientsGetArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<TagmanagerAccountsContainersWorkspacesClientsGetArgs> for Client {
+    fn generate_resource_id(
+        &self,
+        input: &TagmanagerAccountsContainersWorkspacesClientsGetArgs,
+    ) -> String {
+        format!("gcp::tagmanager::Client/{}", input.path)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::tagmanager::Client"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for ListClientsResponse
+// =============================================================================
+
+/// ResourceIdentifier implementation for ListClientsResponse with TagmanagerAccountsContainersWorkspacesClientsListArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<TagmanagerAccountsContainersWorkspacesClientsListArgs>
+    for ListClientsResponse
+{
+    fn generate_resource_id(
+        &self,
+        input: &TagmanagerAccountsContainersWorkspacesClientsListArgs,
+    ) -> String {
+        format!("gcp::tagmanager::ListClientsResponse/{}", input.parent)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::tagmanager::ListClientsResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for RevertClientResponse
+// =============================================================================
+
+/// ResourceIdentifier implementation for RevertClientResponse with TagmanagerAccountsContainersWorkspacesClientsRevertArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<TagmanagerAccountsContainersWorkspacesClientsRevertArgs>
+    for RevertClientResponse
+{
+    fn generate_resource_id(
+        &self,
+        input: &TagmanagerAccountsContainersWorkspacesClientsRevertArgs,
+    ) -> String {
+        format!("gcp::tagmanager::RevertClientResponse/{}", input.path)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::tagmanager::RevertClientResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for Client
+// =============================================================================
+
+/// ResourceIdentifier implementation for Client with TagmanagerAccountsContainersWorkspacesClientsUpdateArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<TagmanagerAccountsContainersWorkspacesClientsUpdateArgs> for Client {
+    fn generate_resource_id(
+        &self,
+        input: &TagmanagerAccountsContainersWorkspacesClientsUpdateArgs,
+    ) -> String {
+        format!("gcp::tagmanager::Client/{}", input.path)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::tagmanager::Client"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for Folder
+// =============================================================================
+
+/// ResourceIdentifier implementation for Folder with TagmanagerAccountsContainersWorkspacesFoldersCreateArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<TagmanagerAccountsContainersWorkspacesFoldersCreateArgs> for Folder {
+    fn generate_resource_id(
+        &self,
+        input: &TagmanagerAccountsContainersWorkspacesFoldersCreateArgs,
+    ) -> String {
+        format!("gcp::tagmanager::Folder/{}", input.parent)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::tagmanager::Folder"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for FolderEntities
+// =============================================================================
+
+/// ResourceIdentifier implementation for FolderEntities with TagmanagerAccountsContainersWorkspacesFoldersEntitiesArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<TagmanagerAccountsContainersWorkspacesFoldersEntitiesArgs>
+    for FolderEntities
+{
+    fn generate_resource_id(
+        &self,
+        input: &TagmanagerAccountsContainersWorkspacesFoldersEntitiesArgs,
+    ) -> String {
+        format!("gcp::tagmanager::FolderEntities/{}", input.path)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::tagmanager::FolderEntities"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for Folder
+// =============================================================================
+
+/// ResourceIdentifier implementation for Folder with TagmanagerAccountsContainersWorkspacesFoldersGetArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<TagmanagerAccountsContainersWorkspacesFoldersGetArgs> for Folder {
+    fn generate_resource_id(
+        &self,
+        input: &TagmanagerAccountsContainersWorkspacesFoldersGetArgs,
+    ) -> String {
+        format!("gcp::tagmanager::Folder/{}", input.path)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::tagmanager::Folder"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for ListFoldersResponse
+// =============================================================================
+
+/// ResourceIdentifier implementation for ListFoldersResponse with TagmanagerAccountsContainersWorkspacesFoldersListArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<TagmanagerAccountsContainersWorkspacesFoldersListArgs>
+    for ListFoldersResponse
+{
+    fn generate_resource_id(
+        &self,
+        input: &TagmanagerAccountsContainersWorkspacesFoldersListArgs,
+    ) -> String {
+        format!("gcp::tagmanager::ListFoldersResponse/{}", input.parent)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::tagmanager::ListFoldersResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for RevertFolderResponse
+// =============================================================================
+
+/// ResourceIdentifier implementation for RevertFolderResponse with TagmanagerAccountsContainersWorkspacesFoldersRevertArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<TagmanagerAccountsContainersWorkspacesFoldersRevertArgs>
+    for RevertFolderResponse
+{
+    fn generate_resource_id(
+        &self,
+        input: &TagmanagerAccountsContainersWorkspacesFoldersRevertArgs,
+    ) -> String {
+        format!("gcp::tagmanager::RevertFolderResponse/{}", input.path)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::tagmanager::RevertFolderResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for Folder
+// =============================================================================
+
+/// ResourceIdentifier implementation for Folder with TagmanagerAccountsContainersWorkspacesFoldersUpdateArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<TagmanagerAccountsContainersWorkspacesFoldersUpdateArgs> for Folder {
+    fn generate_resource_id(
+        &self,
+        input: &TagmanagerAccountsContainersWorkspacesFoldersUpdateArgs,
+    ) -> String {
+        format!("gcp::tagmanager::Folder/{}", input.path)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::tagmanager::Folder"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for GtagConfig
+// =============================================================================
+
+/// ResourceIdentifier implementation for GtagConfig with TagmanagerAccountsContainersWorkspacesGtagConfigCreateArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<TagmanagerAccountsContainersWorkspacesGtagConfigCreateArgs> for GtagConfig {
+    fn generate_resource_id(
+        &self,
+        input: &TagmanagerAccountsContainersWorkspacesGtagConfigCreateArgs,
+    ) -> String {
+        format!("gcp::tagmanager::GtagConfig/{}", input.parent)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::tagmanager::GtagConfig"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for GtagConfig
+// =============================================================================
+
+/// ResourceIdentifier implementation for GtagConfig with TagmanagerAccountsContainersWorkspacesGtagConfigGetArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<TagmanagerAccountsContainersWorkspacesGtagConfigGetArgs> for GtagConfig {
+    fn generate_resource_id(
+        &self,
+        input: &TagmanagerAccountsContainersWorkspacesGtagConfigGetArgs,
+    ) -> String {
+        format!("gcp::tagmanager::GtagConfig/{}", input.path)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::tagmanager::GtagConfig"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for ListGtagConfigResponse
+// =============================================================================
+
+/// ResourceIdentifier implementation for ListGtagConfigResponse with TagmanagerAccountsContainersWorkspacesGtagConfigListArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<TagmanagerAccountsContainersWorkspacesGtagConfigListArgs>
+    for ListGtagConfigResponse
+{
+    fn generate_resource_id(
+        &self,
+        input: &TagmanagerAccountsContainersWorkspacesGtagConfigListArgs,
+    ) -> String {
+        format!("gcp::tagmanager::ListGtagConfigResponse/{}", input.parent)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::tagmanager::ListGtagConfigResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for GtagConfig
+// =============================================================================
+
+/// ResourceIdentifier implementation for GtagConfig with TagmanagerAccountsContainersWorkspacesGtagConfigUpdateArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<TagmanagerAccountsContainersWorkspacesGtagConfigUpdateArgs> for GtagConfig {
+    fn generate_resource_id(
+        &self,
+        input: &TagmanagerAccountsContainersWorkspacesGtagConfigUpdateArgs,
+    ) -> String {
+        format!("gcp::tagmanager::GtagConfig/{}", input.path)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::tagmanager::GtagConfig"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for Tag
+// =============================================================================
+
+/// ResourceIdentifier implementation for Tag with TagmanagerAccountsContainersWorkspacesTagsCreateArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<TagmanagerAccountsContainersWorkspacesTagsCreateArgs> for Tag {
+    fn generate_resource_id(
+        &self,
+        input: &TagmanagerAccountsContainersWorkspacesTagsCreateArgs,
+    ) -> String {
+        format!("gcp::tagmanager::Tag/{}", input.parent)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::tagmanager::Tag"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for Tag
+// =============================================================================
+
+/// ResourceIdentifier implementation for Tag with TagmanagerAccountsContainersWorkspacesTagsGetArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<TagmanagerAccountsContainersWorkspacesTagsGetArgs> for Tag {
+    fn generate_resource_id(
+        &self,
+        input: &TagmanagerAccountsContainersWorkspacesTagsGetArgs,
+    ) -> String {
+        format!("gcp::tagmanager::Tag/{}", input.path)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::tagmanager::Tag"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for ListTagsResponse
+// =============================================================================
+
+/// ResourceIdentifier implementation for ListTagsResponse with TagmanagerAccountsContainersWorkspacesTagsListArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<TagmanagerAccountsContainersWorkspacesTagsListArgs> for ListTagsResponse {
+    fn generate_resource_id(
+        &self,
+        input: &TagmanagerAccountsContainersWorkspacesTagsListArgs,
+    ) -> String {
+        format!("gcp::tagmanager::ListTagsResponse/{}", input.parent)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::tagmanager::ListTagsResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for RevertTagResponse
+// =============================================================================
+
+/// ResourceIdentifier implementation for RevertTagResponse with TagmanagerAccountsContainersWorkspacesTagsRevertArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<TagmanagerAccountsContainersWorkspacesTagsRevertArgs>
+    for RevertTagResponse
+{
+    fn generate_resource_id(
+        &self,
+        input: &TagmanagerAccountsContainersWorkspacesTagsRevertArgs,
+    ) -> String {
+        format!("gcp::tagmanager::RevertTagResponse/{}", input.path)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::tagmanager::RevertTagResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for Tag
+// =============================================================================
+
+/// ResourceIdentifier implementation for Tag with TagmanagerAccountsContainersWorkspacesTagsUpdateArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<TagmanagerAccountsContainersWorkspacesTagsUpdateArgs> for Tag {
+    fn generate_resource_id(
+        &self,
+        input: &TagmanagerAccountsContainersWorkspacesTagsUpdateArgs,
+    ) -> String {
+        format!("gcp::tagmanager::Tag/{}", input.path)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::tagmanager::Tag"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for CustomTemplate
+// =============================================================================
+
+/// ResourceIdentifier implementation for CustomTemplate with TagmanagerAccountsContainersWorkspacesTemplatesCreateArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<TagmanagerAccountsContainersWorkspacesTemplatesCreateArgs>
+    for CustomTemplate
+{
+    fn generate_resource_id(
+        &self,
+        input: &TagmanagerAccountsContainersWorkspacesTemplatesCreateArgs,
+    ) -> String {
+        format!("gcp::tagmanager::CustomTemplate/{}", input.parent)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::tagmanager::CustomTemplate"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for CustomTemplate
+// =============================================================================
+
+/// ResourceIdentifier implementation for CustomTemplate with TagmanagerAccountsContainersWorkspacesTemplatesGetArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<TagmanagerAccountsContainersWorkspacesTemplatesGetArgs> for CustomTemplate {
+    fn generate_resource_id(
+        &self,
+        input: &TagmanagerAccountsContainersWorkspacesTemplatesGetArgs,
+    ) -> String {
+        format!("gcp::tagmanager::CustomTemplate/{}", input.path)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::tagmanager::CustomTemplate"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for CustomTemplate
+// =============================================================================
+
+/// ResourceIdentifier implementation for CustomTemplate with TagmanagerAccountsContainersWorkspacesTemplatesImportFromGalleryArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<TagmanagerAccountsContainersWorkspacesTemplatesImportFromGalleryArgs>
+    for CustomTemplate
+{
+    fn generate_resource_id(
+        &self,
+        input: &TagmanagerAccountsContainersWorkspacesTemplatesImportFromGalleryArgs,
+    ) -> String {
+        format!("gcp::tagmanager::CustomTemplate/{}", input.parent)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::tagmanager::CustomTemplate"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for ListTemplatesResponse
+// =============================================================================
+
+/// ResourceIdentifier implementation for ListTemplatesResponse with TagmanagerAccountsContainersWorkspacesTemplatesListArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<TagmanagerAccountsContainersWorkspacesTemplatesListArgs>
+    for ListTemplatesResponse
+{
+    fn generate_resource_id(
+        &self,
+        input: &TagmanagerAccountsContainersWorkspacesTemplatesListArgs,
+    ) -> String {
+        format!("gcp::tagmanager::ListTemplatesResponse/{}", input.parent)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::tagmanager::ListTemplatesResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for RevertTemplateResponse
+// =============================================================================
+
+/// ResourceIdentifier implementation for RevertTemplateResponse with TagmanagerAccountsContainersWorkspacesTemplatesRevertArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<TagmanagerAccountsContainersWorkspacesTemplatesRevertArgs>
+    for RevertTemplateResponse
+{
+    fn generate_resource_id(
+        &self,
+        input: &TagmanagerAccountsContainersWorkspacesTemplatesRevertArgs,
+    ) -> String {
+        format!("gcp::tagmanager::RevertTemplateResponse/{}", input.path)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::tagmanager::RevertTemplateResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for CustomTemplate
+// =============================================================================
+
+/// ResourceIdentifier implementation for CustomTemplate with TagmanagerAccountsContainersWorkspacesTemplatesUpdateArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<TagmanagerAccountsContainersWorkspacesTemplatesUpdateArgs>
+    for CustomTemplate
+{
+    fn generate_resource_id(
+        &self,
+        input: &TagmanagerAccountsContainersWorkspacesTemplatesUpdateArgs,
+    ) -> String {
+        format!("gcp::tagmanager::CustomTemplate/{}", input.path)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::tagmanager::CustomTemplate"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for Transformation
+// =============================================================================
+
+/// ResourceIdentifier implementation for Transformation with TagmanagerAccountsContainersWorkspacesTransformationsCreateArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<TagmanagerAccountsContainersWorkspacesTransformationsCreateArgs>
+    for Transformation
+{
+    fn generate_resource_id(
+        &self,
+        input: &TagmanagerAccountsContainersWorkspacesTransformationsCreateArgs,
+    ) -> String {
+        format!("gcp::tagmanager::Transformation/{}", input.parent)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::tagmanager::Transformation"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for Transformation
+// =============================================================================
+
+/// ResourceIdentifier implementation for Transformation with TagmanagerAccountsContainersWorkspacesTransformationsGetArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<TagmanagerAccountsContainersWorkspacesTransformationsGetArgs>
+    for Transformation
+{
+    fn generate_resource_id(
+        &self,
+        input: &TagmanagerAccountsContainersWorkspacesTransformationsGetArgs,
+    ) -> String {
+        format!("gcp::tagmanager::Transformation/{}", input.path)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::tagmanager::Transformation"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for ListTransformationsResponse
+// =============================================================================
+
+/// ResourceIdentifier implementation for ListTransformationsResponse with TagmanagerAccountsContainersWorkspacesTransformationsListArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<TagmanagerAccountsContainersWorkspacesTransformationsListArgs>
+    for ListTransformationsResponse
+{
+    fn generate_resource_id(
+        &self,
+        input: &TagmanagerAccountsContainersWorkspacesTransformationsListArgs,
+    ) -> String {
+        format!(
+            "gcp::tagmanager::ListTransformationsResponse/{}",
+            input.parent
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::tagmanager::ListTransformationsResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for RevertTransformationResponse
+// =============================================================================
+
+/// ResourceIdentifier implementation for RevertTransformationResponse with TagmanagerAccountsContainersWorkspacesTransformationsRevertArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<TagmanagerAccountsContainersWorkspacesTransformationsRevertArgs>
+    for RevertTransformationResponse
+{
+    fn generate_resource_id(
+        &self,
+        input: &TagmanagerAccountsContainersWorkspacesTransformationsRevertArgs,
+    ) -> String {
+        format!(
+            "gcp::tagmanager::RevertTransformationResponse/{}",
+            input.path
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::tagmanager::RevertTransformationResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for Transformation
+// =============================================================================
+
+/// ResourceIdentifier implementation for Transformation with TagmanagerAccountsContainersWorkspacesTransformationsUpdateArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<TagmanagerAccountsContainersWorkspacesTransformationsUpdateArgs>
+    for Transformation
+{
+    fn generate_resource_id(
+        &self,
+        input: &TagmanagerAccountsContainersWorkspacesTransformationsUpdateArgs,
+    ) -> String {
+        format!("gcp::tagmanager::Transformation/{}", input.path)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::tagmanager::Transformation"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for Trigger
+// =============================================================================
+
+/// ResourceIdentifier implementation for Trigger with TagmanagerAccountsContainersWorkspacesTriggersCreateArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<TagmanagerAccountsContainersWorkspacesTriggersCreateArgs> for Trigger {
+    fn generate_resource_id(
+        &self,
+        input: &TagmanagerAccountsContainersWorkspacesTriggersCreateArgs,
+    ) -> String {
+        format!("gcp::tagmanager::Trigger/{}", input.parent)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::tagmanager::Trigger"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for Trigger
+// =============================================================================
+
+/// ResourceIdentifier implementation for Trigger with TagmanagerAccountsContainersWorkspacesTriggersGetArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<TagmanagerAccountsContainersWorkspacesTriggersGetArgs> for Trigger {
+    fn generate_resource_id(
+        &self,
+        input: &TagmanagerAccountsContainersWorkspacesTriggersGetArgs,
+    ) -> String {
+        format!("gcp::tagmanager::Trigger/{}", input.path)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::tagmanager::Trigger"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for ListTriggersResponse
+// =============================================================================
+
+/// ResourceIdentifier implementation for ListTriggersResponse with TagmanagerAccountsContainersWorkspacesTriggersListArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<TagmanagerAccountsContainersWorkspacesTriggersListArgs>
+    for ListTriggersResponse
+{
+    fn generate_resource_id(
+        &self,
+        input: &TagmanagerAccountsContainersWorkspacesTriggersListArgs,
+    ) -> String {
+        format!("gcp::tagmanager::ListTriggersResponse/{}", input.parent)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::tagmanager::ListTriggersResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for RevertTriggerResponse
+// =============================================================================
+
+/// ResourceIdentifier implementation for RevertTriggerResponse with TagmanagerAccountsContainersWorkspacesTriggersRevertArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<TagmanagerAccountsContainersWorkspacesTriggersRevertArgs>
+    for RevertTriggerResponse
+{
+    fn generate_resource_id(
+        &self,
+        input: &TagmanagerAccountsContainersWorkspacesTriggersRevertArgs,
+    ) -> String {
+        format!("gcp::tagmanager::RevertTriggerResponse/{}", input.path)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::tagmanager::RevertTriggerResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for Trigger
+// =============================================================================
+
+/// ResourceIdentifier implementation for Trigger with TagmanagerAccountsContainersWorkspacesTriggersUpdateArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<TagmanagerAccountsContainersWorkspacesTriggersUpdateArgs> for Trigger {
+    fn generate_resource_id(
+        &self,
+        input: &TagmanagerAccountsContainersWorkspacesTriggersUpdateArgs,
+    ) -> String {
+        format!("gcp::tagmanager::Trigger/{}", input.path)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::tagmanager::Trigger"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for Variable
+// =============================================================================
+
+/// ResourceIdentifier implementation for Variable with TagmanagerAccountsContainersWorkspacesVariablesCreateArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<TagmanagerAccountsContainersWorkspacesVariablesCreateArgs> for Variable {
+    fn generate_resource_id(
+        &self,
+        input: &TagmanagerAccountsContainersWorkspacesVariablesCreateArgs,
+    ) -> String {
+        format!("gcp::tagmanager::Variable/{}", input.parent)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::tagmanager::Variable"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for Variable
+// =============================================================================
+
+/// ResourceIdentifier implementation for Variable with TagmanagerAccountsContainersWorkspacesVariablesGetArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<TagmanagerAccountsContainersWorkspacesVariablesGetArgs> for Variable {
+    fn generate_resource_id(
+        &self,
+        input: &TagmanagerAccountsContainersWorkspacesVariablesGetArgs,
+    ) -> String {
+        format!("gcp::tagmanager::Variable/{}", input.path)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::tagmanager::Variable"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for ListVariablesResponse
+// =============================================================================
+
+/// ResourceIdentifier implementation for ListVariablesResponse with TagmanagerAccountsContainersWorkspacesVariablesListArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<TagmanagerAccountsContainersWorkspacesVariablesListArgs>
+    for ListVariablesResponse
+{
+    fn generate_resource_id(
+        &self,
+        input: &TagmanagerAccountsContainersWorkspacesVariablesListArgs,
+    ) -> String {
+        format!("gcp::tagmanager::ListVariablesResponse/{}", input.parent)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::tagmanager::ListVariablesResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for RevertVariableResponse
+// =============================================================================
+
+/// ResourceIdentifier implementation for RevertVariableResponse with TagmanagerAccountsContainersWorkspacesVariablesRevertArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<TagmanagerAccountsContainersWorkspacesVariablesRevertArgs>
+    for RevertVariableResponse
+{
+    fn generate_resource_id(
+        &self,
+        input: &TagmanagerAccountsContainersWorkspacesVariablesRevertArgs,
+    ) -> String {
+        format!("gcp::tagmanager::RevertVariableResponse/{}", input.path)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::tagmanager::RevertVariableResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for Variable
+// =============================================================================
+
+/// ResourceIdentifier implementation for Variable with TagmanagerAccountsContainersWorkspacesVariablesUpdateArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<TagmanagerAccountsContainersWorkspacesVariablesUpdateArgs> for Variable {
+    fn generate_resource_id(
+        &self,
+        input: &TagmanagerAccountsContainersWorkspacesVariablesUpdateArgs,
+    ) -> String {
+        format!("gcp::tagmanager::Variable/{}", input.path)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::tagmanager::Variable"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for Zone
+// =============================================================================
+
+/// ResourceIdentifier implementation for Zone with TagmanagerAccountsContainersWorkspacesZonesCreateArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<TagmanagerAccountsContainersWorkspacesZonesCreateArgs> for Zone {
+    fn generate_resource_id(
+        &self,
+        input: &TagmanagerAccountsContainersWorkspacesZonesCreateArgs,
+    ) -> String {
+        format!("gcp::tagmanager::Zone/{}", input.parent)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::tagmanager::Zone"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for Zone
+// =============================================================================
+
+/// ResourceIdentifier implementation for Zone with TagmanagerAccountsContainersWorkspacesZonesGetArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<TagmanagerAccountsContainersWorkspacesZonesGetArgs> for Zone {
+    fn generate_resource_id(
+        &self,
+        input: &TagmanagerAccountsContainersWorkspacesZonesGetArgs,
+    ) -> String {
+        format!("gcp::tagmanager::Zone/{}", input.path)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::tagmanager::Zone"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for ListZonesResponse
+// =============================================================================
+
+/// ResourceIdentifier implementation for ListZonesResponse with TagmanagerAccountsContainersWorkspacesZonesListArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<TagmanagerAccountsContainersWorkspacesZonesListArgs> for ListZonesResponse {
+    fn generate_resource_id(
+        &self,
+        input: &TagmanagerAccountsContainersWorkspacesZonesListArgs,
+    ) -> String {
+        format!("gcp::tagmanager::ListZonesResponse/{}", input.parent)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::tagmanager::ListZonesResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for RevertZoneResponse
+// =============================================================================
+
+/// ResourceIdentifier implementation for RevertZoneResponse with TagmanagerAccountsContainersWorkspacesZonesRevertArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<TagmanagerAccountsContainersWorkspacesZonesRevertArgs>
+    for RevertZoneResponse
+{
+    fn generate_resource_id(
+        &self,
+        input: &TagmanagerAccountsContainersWorkspacesZonesRevertArgs,
+    ) -> String {
+        format!("gcp::tagmanager::RevertZoneResponse/{}", input.path)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::tagmanager::RevertZoneResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for Zone
+// =============================================================================
+
+/// ResourceIdentifier implementation for Zone with TagmanagerAccountsContainersWorkspacesZonesUpdateArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<TagmanagerAccountsContainersWorkspacesZonesUpdateArgs> for Zone {
+    fn generate_resource_id(
+        &self,
+        input: &TagmanagerAccountsContainersWorkspacesZonesUpdateArgs,
+    ) -> String {
+        format!("gcp::tagmanager::Zone/{}", input.path)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::tagmanager::Zone"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for UserPermission
+// =============================================================================
+
+/// ResourceIdentifier implementation for UserPermission with TagmanagerAccountsUserPermissionsCreateArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<TagmanagerAccountsUserPermissionsCreateArgs> for UserPermission {
+    fn generate_resource_id(&self, input: &TagmanagerAccountsUserPermissionsCreateArgs) -> String {
+        format!("gcp::tagmanager::UserPermission/{}", input.parent)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::tagmanager::UserPermission"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for UserPermission
+// =============================================================================
+
+/// ResourceIdentifier implementation for UserPermission with TagmanagerAccountsUserPermissionsGetArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<TagmanagerAccountsUserPermissionsGetArgs> for UserPermission {
+    fn generate_resource_id(&self, input: &TagmanagerAccountsUserPermissionsGetArgs) -> String {
+        format!("gcp::tagmanager::UserPermission/{}", input.path)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::tagmanager::UserPermission"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for ListUserPermissionsResponse
+// =============================================================================
+
+/// ResourceIdentifier implementation for ListUserPermissionsResponse with TagmanagerAccountsUserPermissionsListArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<TagmanagerAccountsUserPermissionsListArgs> for ListUserPermissionsResponse {
+    fn generate_resource_id(&self, input: &TagmanagerAccountsUserPermissionsListArgs) -> String {
+        format!(
+            "gcp::tagmanager::ListUserPermissionsResponse/{}",
+            input.parent
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::tagmanager::ListUserPermissionsResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for UserPermission
+// =============================================================================
+
+/// ResourceIdentifier implementation for UserPermission with TagmanagerAccountsUserPermissionsUpdateArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<TagmanagerAccountsUserPermissionsUpdateArgs> for UserPermission {
+    fn generate_resource_id(&self, input: &TagmanagerAccountsUserPermissionsUpdateArgs) -> String {
+        format!("gcp::tagmanager::UserPermission/{}", input.path)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::tagmanager::UserPermission"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
 }

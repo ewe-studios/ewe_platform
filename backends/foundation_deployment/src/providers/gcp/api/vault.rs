@@ -17,23 +17,34 @@ use crate::providers::gcp::clients::vault::{
     vault_matters_count_builder, vault_matters_count_task,
     vault_matters_create_builder, vault_matters_create_task,
     vault_matters_delete_builder, vault_matters_delete_task,
+    vault_matters_get_builder, vault_matters_get_task,
+    vault_matters_list_builder, vault_matters_list_task,
     vault_matters_remove_permissions_builder, vault_matters_remove_permissions_task,
     vault_matters_reopen_builder, vault_matters_reopen_task,
     vault_matters_undelete_builder, vault_matters_undelete_task,
     vault_matters_update_builder, vault_matters_update_task,
     vault_matters_exports_create_builder, vault_matters_exports_create_task,
     vault_matters_exports_delete_builder, vault_matters_exports_delete_task,
+    vault_matters_exports_get_builder, vault_matters_exports_get_task,
+    vault_matters_exports_list_builder, vault_matters_exports_list_task,
     vault_matters_holds_add_held_accounts_builder, vault_matters_holds_add_held_accounts_task,
     vault_matters_holds_create_builder, vault_matters_holds_create_task,
     vault_matters_holds_delete_builder, vault_matters_holds_delete_task,
+    vault_matters_holds_get_builder, vault_matters_holds_get_task,
+    vault_matters_holds_list_builder, vault_matters_holds_list_task,
     vault_matters_holds_remove_held_accounts_builder, vault_matters_holds_remove_held_accounts_task,
     vault_matters_holds_update_builder, vault_matters_holds_update_task,
     vault_matters_holds_accounts_create_builder, vault_matters_holds_accounts_create_task,
     vault_matters_holds_accounts_delete_builder, vault_matters_holds_accounts_delete_task,
+    vault_matters_holds_accounts_list_builder, vault_matters_holds_accounts_list_task,
     vault_matters_saved_queries_create_builder, vault_matters_saved_queries_create_task,
     vault_matters_saved_queries_delete_builder, vault_matters_saved_queries_delete_task,
+    vault_matters_saved_queries_get_builder, vault_matters_saved_queries_get_task,
+    vault_matters_saved_queries_list_builder, vault_matters_saved_queries_list_task,
     vault_operations_cancel_builder, vault_operations_cancel_task,
     vault_operations_delete_builder, vault_operations_delete_task,
+    vault_operations_get_builder, vault_operations_get_task,
+    vault_operations_list_builder, vault_operations_list_task,
 };
 use crate::providers::gcp::clients::types::{ApiError, ApiPending};
 use crate::providers::gcp::clients::vault::AddHeldAccountsResponse;
@@ -42,6 +53,12 @@ use crate::providers::gcp::clients::vault::Empty;
 use crate::providers::gcp::clients::vault::Export;
 use crate::providers::gcp::clients::vault::HeldAccount;
 use crate::providers::gcp::clients::vault::Hold;
+use crate::providers::gcp::clients::vault::ListExportsResponse;
+use crate::providers::gcp::clients::vault::ListHeldAccountsResponse;
+use crate::providers::gcp::clients::vault::ListHoldsResponse;
+use crate::providers::gcp::clients::vault::ListMattersResponse;
+use crate::providers::gcp::clients::vault::ListOperationsResponse;
+use crate::providers::gcp::clients::vault::ListSavedQueriesResponse;
 use crate::providers::gcp::clients::vault::Matter;
 use crate::providers::gcp::clients::vault::MatterPermission;
 use crate::providers::gcp::clients::vault::Operation;
@@ -55,21 +72,32 @@ use crate::providers::gcp::clients::vault::VaultMattersCreateArgs;
 use crate::providers::gcp::clients::vault::VaultMattersDeleteArgs;
 use crate::providers::gcp::clients::vault::VaultMattersExportsCreateArgs;
 use crate::providers::gcp::clients::vault::VaultMattersExportsDeleteArgs;
+use crate::providers::gcp::clients::vault::VaultMattersExportsGetArgs;
+use crate::providers::gcp::clients::vault::VaultMattersExportsListArgs;
+use crate::providers::gcp::clients::vault::VaultMattersGetArgs;
 use crate::providers::gcp::clients::vault::VaultMattersHoldsAccountsCreateArgs;
 use crate::providers::gcp::clients::vault::VaultMattersHoldsAccountsDeleteArgs;
+use crate::providers::gcp::clients::vault::VaultMattersHoldsAccountsListArgs;
 use crate::providers::gcp::clients::vault::VaultMattersHoldsAddHeldAccountsArgs;
 use crate::providers::gcp::clients::vault::VaultMattersHoldsCreateArgs;
 use crate::providers::gcp::clients::vault::VaultMattersHoldsDeleteArgs;
+use crate::providers::gcp::clients::vault::VaultMattersHoldsGetArgs;
+use crate::providers::gcp::clients::vault::VaultMattersHoldsListArgs;
 use crate::providers::gcp::clients::vault::VaultMattersHoldsRemoveHeldAccountsArgs;
 use crate::providers::gcp::clients::vault::VaultMattersHoldsUpdateArgs;
+use crate::providers::gcp::clients::vault::VaultMattersListArgs;
 use crate::providers::gcp::clients::vault::VaultMattersRemovePermissionsArgs;
 use crate::providers::gcp::clients::vault::VaultMattersReopenArgs;
 use crate::providers::gcp::clients::vault::VaultMattersSavedQueriesCreateArgs;
 use crate::providers::gcp::clients::vault::VaultMattersSavedQueriesDeleteArgs;
+use crate::providers::gcp::clients::vault::VaultMattersSavedQueriesGetArgs;
+use crate::providers::gcp::clients::vault::VaultMattersSavedQueriesListArgs;
 use crate::providers::gcp::clients::vault::VaultMattersUndeleteArgs;
 use crate::providers::gcp::clients::vault::VaultMattersUpdateArgs;
 use crate::providers::gcp::clients::vault::VaultOperationsCancelArgs;
 use crate::providers::gcp::clients::vault::VaultOperationsDeleteArgs;
+use crate::providers::gcp::clients::vault::VaultOperationsGetArgs;
+use crate::providers::gcp::clients::vault::VaultOperationsListArgs;
 use crate::provider_client::{ProviderClient, ProviderError};
 use foundation_core::valtron::{execute, StreamIterator};
 use foundation_core::wire::simple_http::client::SimpleHttpClient;
@@ -323,6 +351,86 @@ where
         let store_task = StoreStateIdentifierTask::new(task, state_store, args, stage);
 
         execute(store_task, None).map_err(|e: String| ProviderError::ExecuteFailed(e.to_string()))
+    }
+
+    /// Vault matters get.
+    ///
+    /// Read-only operation - no state tracking.
+    ///
+    /// # Arguments
+    ///
+    /// * `args` - Request arguments
+    ///
+    /// # Returns
+    ///
+    /// StreamIterator yielding the Matter result.
+    ///
+    /// # Errors
+    ///
+    /// Returns ProviderError if the API request fails.
+    pub fn vault_matters_get(
+        &self,
+        args: &VaultMattersGetArgs,
+    ) -> Result<
+        impl StreamIterator<
+            D = Result<Matter, ProviderError<ApiError>>,
+            P = crate::providers::gcp::clients::types::ApiPending,
+        > + Send
+        + 'static,
+        ProviderError<ApiError>,
+    > {
+        let builder = vault_matters_get_builder(
+            &self.http_client,
+            &args.matterId,
+            &args.view,
+        )
+        .map_err(ProviderError::Api)?;
+
+        let task = vault_matters_get_task(builder)
+            .map_err(ProviderError::Api)?;
+
+        execute(task, None).map_err(|e: String| ProviderError::ExecuteFailed(e.to_string()))
+    }
+
+    /// Vault matters list.
+    ///
+    /// Read-only operation - no state tracking.
+    ///
+    /// # Arguments
+    ///
+    /// * `args` - Request arguments
+    ///
+    /// # Returns
+    ///
+    /// StreamIterator yielding the ListMattersResponse result.
+    ///
+    /// # Errors
+    ///
+    /// Returns ProviderError if the API request fails.
+    pub fn vault_matters_list(
+        &self,
+        args: &VaultMattersListArgs,
+    ) -> Result<
+        impl StreamIterator<
+            D = Result<ListMattersResponse, ProviderError<ApiError>>,
+            P = crate::providers::gcp::clients::types::ApiPending,
+        > + Send
+        + 'static,
+        ProviderError<ApiError>,
+    > {
+        let builder = vault_matters_list_builder(
+            &self.http_client,
+            &args.pageSize,
+            &args.pageToken,
+            &args.state,
+            &args.view,
+        )
+        .map_err(ProviderError::Api)?;
+
+        let task = vault_matters_list_task(builder)
+            .map_err(ProviderError::Api)?;
+
+        execute(task, None).map_err(|e: String| ProviderError::ExecuteFailed(e.to_string()))
     }
 
     /// Vault matters remove permissions.
@@ -584,6 +692,85 @@ where
         execute(store_task, None).map_err(|e: String| ProviderError::ExecuteFailed(e.to_string()))
     }
 
+    /// Vault matters exports get.
+    ///
+    /// Read-only operation - no state tracking.
+    ///
+    /// # Arguments
+    ///
+    /// * `args` - Request arguments
+    ///
+    /// # Returns
+    ///
+    /// StreamIterator yielding the Export result.
+    ///
+    /// # Errors
+    ///
+    /// Returns ProviderError if the API request fails.
+    pub fn vault_matters_exports_get(
+        &self,
+        args: &VaultMattersExportsGetArgs,
+    ) -> Result<
+        impl StreamIterator<
+            D = Result<Export, ProviderError<ApiError>>,
+            P = crate::providers::gcp::clients::types::ApiPending,
+        > + Send
+        + 'static,
+        ProviderError<ApiError>,
+    > {
+        let builder = vault_matters_exports_get_builder(
+            &self.http_client,
+            &args.matterId,
+            &args.exportId,
+        )
+        .map_err(ProviderError::Api)?;
+
+        let task = vault_matters_exports_get_task(builder)
+            .map_err(ProviderError::Api)?;
+
+        execute(task, None).map_err(|e: String| ProviderError::ExecuteFailed(e.to_string()))
+    }
+
+    /// Vault matters exports list.
+    ///
+    /// Read-only operation - no state tracking.
+    ///
+    /// # Arguments
+    ///
+    /// * `args` - Request arguments
+    ///
+    /// # Returns
+    ///
+    /// StreamIterator yielding the ListExportsResponse result.
+    ///
+    /// # Errors
+    ///
+    /// Returns ProviderError if the API request fails.
+    pub fn vault_matters_exports_list(
+        &self,
+        args: &VaultMattersExportsListArgs,
+    ) -> Result<
+        impl StreamIterator<
+            D = Result<ListExportsResponse, ProviderError<ApiError>>,
+            P = crate::providers::gcp::clients::types::ApiPending,
+        > + Send
+        + 'static,
+        ProviderError<ApiError>,
+    > {
+        let builder = vault_matters_exports_list_builder(
+            &self.http_client,
+            &args.matterId,
+            &args.pageSize,
+            &args.pageToken,
+        )
+        .map_err(ProviderError::Api)?;
+
+        let task = vault_matters_exports_list_task(builder)
+            .map_err(ProviderError::Api)?;
+
+        execute(task, None).map_err(|e: String| ProviderError::ExecuteFailed(e.to_string()))
+    }
+
     /// Vault matters holds add held accounts.
     ///
     /// Automatically stores the result in the state store on success.
@@ -713,6 +900,87 @@ where
         let store_task = StoreStateIdentifierTask::new(task, state_store, args, stage);
 
         execute(store_task, None).map_err(|e: String| ProviderError::ExecuteFailed(e.to_string()))
+    }
+
+    /// Vault matters holds get.
+    ///
+    /// Read-only operation - no state tracking.
+    ///
+    /// # Arguments
+    ///
+    /// * `args` - Request arguments
+    ///
+    /// # Returns
+    ///
+    /// StreamIterator yielding the Hold result.
+    ///
+    /// # Errors
+    ///
+    /// Returns ProviderError if the API request fails.
+    pub fn vault_matters_holds_get(
+        &self,
+        args: &VaultMattersHoldsGetArgs,
+    ) -> Result<
+        impl StreamIterator<
+            D = Result<Hold, ProviderError<ApiError>>,
+            P = crate::providers::gcp::clients::types::ApiPending,
+        > + Send
+        + 'static,
+        ProviderError<ApiError>,
+    > {
+        let builder = vault_matters_holds_get_builder(
+            &self.http_client,
+            &args.matterId,
+            &args.holdId,
+            &args.view,
+        )
+        .map_err(ProviderError::Api)?;
+
+        let task = vault_matters_holds_get_task(builder)
+            .map_err(ProviderError::Api)?;
+
+        execute(task, None).map_err(|e: String| ProviderError::ExecuteFailed(e.to_string()))
+    }
+
+    /// Vault matters holds list.
+    ///
+    /// Read-only operation - no state tracking.
+    ///
+    /// # Arguments
+    ///
+    /// * `args` - Request arguments
+    ///
+    /// # Returns
+    ///
+    /// StreamIterator yielding the ListHoldsResponse result.
+    ///
+    /// # Errors
+    ///
+    /// Returns ProviderError if the API request fails.
+    pub fn vault_matters_holds_list(
+        &self,
+        args: &VaultMattersHoldsListArgs,
+    ) -> Result<
+        impl StreamIterator<
+            D = Result<ListHoldsResponse, ProviderError<ApiError>>,
+            P = crate::providers::gcp::clients::types::ApiPending,
+        > + Send
+        + 'static,
+        ProviderError<ApiError>,
+    > {
+        let builder = vault_matters_holds_list_builder(
+            &self.http_client,
+            &args.matterId,
+            &args.pageSize,
+            &args.pageToken,
+            &args.view,
+        )
+        .map_err(ProviderError::Api)?;
+
+        let task = vault_matters_holds_list_task(builder)
+            .map_err(ProviderError::Api)?;
+
+        execute(task, None).map_err(|e: String| ProviderError::ExecuteFailed(e.to_string()))
     }
 
     /// Vault matters holds remove held accounts.
@@ -892,6 +1160,45 @@ where
         execute(store_task, None).map_err(|e: String| ProviderError::ExecuteFailed(e.to_string()))
     }
 
+    /// Vault matters holds accounts list.
+    ///
+    /// Read-only operation - no state tracking.
+    ///
+    /// # Arguments
+    ///
+    /// * `args` - Request arguments
+    ///
+    /// # Returns
+    ///
+    /// StreamIterator yielding the ListHeldAccountsResponse result.
+    ///
+    /// # Errors
+    ///
+    /// Returns ProviderError if the API request fails.
+    pub fn vault_matters_holds_accounts_list(
+        &self,
+        args: &VaultMattersHoldsAccountsListArgs,
+    ) -> Result<
+        impl StreamIterator<
+            D = Result<ListHeldAccountsResponse, ProviderError<ApiError>>,
+            P = crate::providers::gcp::clients::types::ApiPending,
+        > + Send
+        + 'static,
+        ProviderError<ApiError>,
+    > {
+        let builder = vault_matters_holds_accounts_list_builder(
+            &self.http_client,
+            &args.matterId,
+            &args.holdId,
+        )
+        .map_err(ProviderError::Api)?;
+
+        let task = vault_matters_holds_accounts_list_task(builder)
+            .map_err(ProviderError::Api)?;
+
+        execute(task, None).map_err(|e: String| ProviderError::ExecuteFailed(e.to_string()))
+    }
+
     /// Vault matters saved queries create.
     ///
     /// Automatically stores the result in the state store on success.
@@ -979,6 +1286,85 @@ where
         execute(store_task, None).map_err(|e: String| ProviderError::ExecuteFailed(e.to_string()))
     }
 
+    /// Vault matters saved queries get.
+    ///
+    /// Read-only operation - no state tracking.
+    ///
+    /// # Arguments
+    ///
+    /// * `args` - Request arguments
+    ///
+    /// # Returns
+    ///
+    /// StreamIterator yielding the SavedQuery result.
+    ///
+    /// # Errors
+    ///
+    /// Returns ProviderError if the API request fails.
+    pub fn vault_matters_saved_queries_get(
+        &self,
+        args: &VaultMattersSavedQueriesGetArgs,
+    ) -> Result<
+        impl StreamIterator<
+            D = Result<SavedQuery, ProviderError<ApiError>>,
+            P = crate::providers::gcp::clients::types::ApiPending,
+        > + Send
+        + 'static,
+        ProviderError<ApiError>,
+    > {
+        let builder = vault_matters_saved_queries_get_builder(
+            &self.http_client,
+            &args.matterId,
+            &args.savedQueryId,
+        )
+        .map_err(ProviderError::Api)?;
+
+        let task = vault_matters_saved_queries_get_task(builder)
+            .map_err(ProviderError::Api)?;
+
+        execute(task, None).map_err(|e: String| ProviderError::ExecuteFailed(e.to_string()))
+    }
+
+    /// Vault matters saved queries list.
+    ///
+    /// Read-only operation - no state tracking.
+    ///
+    /// # Arguments
+    ///
+    /// * `args` - Request arguments
+    ///
+    /// # Returns
+    ///
+    /// StreamIterator yielding the ListSavedQueriesResponse result.
+    ///
+    /// # Errors
+    ///
+    /// Returns ProviderError if the API request fails.
+    pub fn vault_matters_saved_queries_list(
+        &self,
+        args: &VaultMattersSavedQueriesListArgs,
+    ) -> Result<
+        impl StreamIterator<
+            D = Result<ListSavedQueriesResponse, ProviderError<ApiError>>,
+            P = crate::providers::gcp::clients::types::ApiPending,
+        > + Send
+        + 'static,
+        ProviderError<ApiError>,
+    > {
+        let builder = vault_matters_saved_queries_list_builder(
+            &self.http_client,
+            &args.matterId,
+            &args.pageSize,
+            &args.pageToken,
+        )
+        .map_err(ProviderError::Api)?;
+
+        let task = vault_matters_saved_queries_list_task(builder)
+            .map_err(ProviderError::Api)?;
+
+        execute(task, None).map_err(|e: String| ProviderError::ExecuteFailed(e.to_string()))
+    }
+
     /// Vault operations cancel.
     ///
     /// Automatically stores the result in the state store on success.
@@ -1063,6 +1449,85 @@ where
         let store_task = StoreStateIdentifierTask::new(task, state_store, args, stage);
 
         execute(store_task, None).map_err(|e: String| ProviderError::ExecuteFailed(e.to_string()))
+    }
+
+    /// Vault operations get.
+    ///
+    /// Read-only operation - no state tracking.
+    ///
+    /// # Arguments
+    ///
+    /// * `args` - Request arguments
+    ///
+    /// # Returns
+    ///
+    /// StreamIterator yielding the Operation result.
+    ///
+    /// # Errors
+    ///
+    /// Returns ProviderError if the API request fails.
+    pub fn vault_operations_get(
+        &self,
+        args: &VaultOperationsGetArgs,
+    ) -> Result<
+        impl StreamIterator<
+            D = Result<Operation, ProviderError<ApiError>>,
+            P = crate::providers::gcp::clients::types::ApiPending,
+        > + Send
+        + 'static,
+        ProviderError<ApiError>,
+    > {
+        let builder = vault_operations_get_builder(
+            &self.http_client,
+            &args.name,
+        )
+        .map_err(ProviderError::Api)?;
+
+        let task = vault_operations_get_task(builder)
+            .map_err(ProviderError::Api)?;
+
+        execute(task, None).map_err(|e: String| ProviderError::ExecuteFailed(e.to_string()))
+    }
+
+    /// Vault operations list.
+    ///
+    /// Read-only operation - no state tracking.
+    ///
+    /// # Arguments
+    ///
+    /// * `args` - Request arguments
+    ///
+    /// # Returns
+    ///
+    /// StreamIterator yielding the ListOperationsResponse result.
+    ///
+    /// # Errors
+    ///
+    /// Returns ProviderError if the API request fails.
+    pub fn vault_operations_list(
+        &self,
+        args: &VaultOperationsListArgs,
+    ) -> Result<
+        impl StreamIterator<
+            D = Result<ListOperationsResponse, ProviderError<ApiError>>,
+            P = crate::providers::gcp::clients::types::ApiPending,
+        > + Send
+        + 'static,
+        ProviderError<ApiError>,
+    > {
+        let builder = vault_operations_list_builder(
+            &self.http_client,
+            &args.filter,
+            &args.pageSize,
+            &args.pageToken,
+            &args.returnPartialSuccess,
+        )
+        .map_err(ProviderError::Api)?;
+
+        let task = vault_operations_list_task(builder)
+            .map_err(ProviderError::Api)?;
+
+        execute(task, None).map_err(|e: String| ProviderError::ExecuteFailed(e.to_string()))
     }
 
 }

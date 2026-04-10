@@ -13,14 +13,20 @@
 
 use crate::providers::gcp::clients::places::{
     places_places_autocomplete_builder, places_places_autocomplete_task,
+    places_places_get_builder, places_places_get_task,
     places_places_search_nearby_builder, places_places_search_nearby_task,
     places_places_search_text_builder, places_places_search_text_task,
+    places_places_photos_get_media_builder, places_places_photos_get_media_task,
 };
 use crate::providers::gcp::clients::types::{ApiError, ApiPending};
 use crate::providers::gcp::clients::places::GoogleMapsPlacesV1AutocompletePlacesResponse;
+use crate::providers::gcp::clients::places::GoogleMapsPlacesV1PhotoMedia;
+use crate::providers::gcp::clients::places::GoogleMapsPlacesV1Place;
 use crate::providers::gcp::clients::places::GoogleMapsPlacesV1SearchNearbyResponse;
 use crate::providers::gcp::clients::places::GoogleMapsPlacesV1SearchTextResponse;
 use crate::providers::gcp::clients::places::PlacesPlacesAutocompleteArgs;
+use crate::providers::gcp::clients::places::PlacesPlacesGetArgs;
+use crate::providers::gcp::clients::places::PlacesPlacesPhotosGetMediaArgs;
 use crate::providers::gcp::clients::places::PlacesPlacesSearchNearbyArgs;
 use crate::providers::gcp::clients::places::PlacesPlacesSearchTextArgs;
 use crate::provider_client::{ProviderClient, ProviderError};
@@ -106,9 +112,50 @@ where
         execute(store_task, None).map_err(|e: String| ProviderError::ExecuteFailed(e.to_string()))
     }
 
+    /// Places places get.
+    ///
+    /// Read-only operation - no state tracking.
+    ///
+    /// # Arguments
+    ///
+    /// * `args` - Request arguments
+    ///
+    /// # Returns
+    ///
+    /// StreamIterator yielding the GoogleMapsPlacesV1Place result.
+    ///
+    /// # Errors
+    ///
+    /// Returns ProviderError if the API request fails.
+    pub fn places_places_get(
+        &self,
+        args: &PlacesPlacesGetArgs,
+    ) -> Result<
+        impl StreamIterator<
+            D = Result<GoogleMapsPlacesV1Place, ProviderError<ApiError>>,
+            P = crate::providers::gcp::clients::types::ApiPending,
+        > + Send
+        + 'static,
+        ProviderError<ApiError>,
+    > {
+        let builder = places_places_get_builder(
+            &self.http_client,
+            &args.name,
+            &args.languageCode,
+            &args.regionCode,
+            &args.sessionToken,
+        )
+        .map_err(ProviderError::Api)?;
+
+        let task = places_places_get_task(builder)
+            .map_err(ProviderError::Api)?;
+
+        execute(task, None).map_err(|e: String| ProviderError::ExecuteFailed(e.to_string()))
+    }
+
     /// Places places search nearby.
     ///
-    /// Automatically stores the result in the state store on success.
+    /// Read-only operation - no state tracking.
     ///
     /// # Arguments
     ///
@@ -120,7 +167,7 @@ where
     ///
     /// # Errors
     ///
-    /// Returns ProviderError if the API request or state storage fails.
+    /// Returns ProviderError if the API request fails.
     pub fn places_places_search_nearby(
         &self,
         args: &PlacesPlacesSearchNearbyArgs,
@@ -140,17 +187,12 @@ where
         let task = places_places_search_nearby_task(builder)
             .map_err(ProviderError::Api)?;
 
-        let state_store = self.client.state_store.clone();
-        let stage = Some(self.client.stage.clone());
-
-        let store_task = StoreStateIdentifierTask::new(task, state_store, args, stage);
-
-        execute(store_task, None).map_err(|e: String| ProviderError::ExecuteFailed(e.to_string()))
+        execute(task, None).map_err(|e: String| ProviderError::ExecuteFailed(e.to_string()))
     }
 
     /// Places places search text.
     ///
-    /// Automatically stores the result in the state store on success.
+    /// Read-only operation - no state tracking.
     ///
     /// # Arguments
     ///
@@ -162,7 +204,7 @@ where
     ///
     /// # Errors
     ///
-    /// Returns ProviderError if the API request or state storage fails.
+    /// Returns ProviderError if the API request fails.
     pub fn places_places_search_text(
         &self,
         args: &PlacesPlacesSearchTextArgs,
@@ -182,12 +224,48 @@ where
         let task = places_places_search_text_task(builder)
             .map_err(ProviderError::Api)?;
 
-        let state_store = self.client.state_store.clone();
-        let stage = Some(self.client.stage.clone());
+        execute(task, None).map_err(|e: String| ProviderError::ExecuteFailed(e.to_string()))
+    }
 
-        let store_task = StoreStateIdentifierTask::new(task, state_store, args, stage);
+    /// Places places photos get media.
+    ///
+    /// Read-only operation - no state tracking.
+    ///
+    /// # Arguments
+    ///
+    /// * `args` - Request arguments
+    ///
+    /// # Returns
+    ///
+    /// StreamIterator yielding the GoogleMapsPlacesV1PhotoMedia result.
+    ///
+    /// # Errors
+    ///
+    /// Returns ProviderError if the API request fails.
+    pub fn places_places_photos_get_media(
+        &self,
+        args: &PlacesPlacesPhotosGetMediaArgs,
+    ) -> Result<
+        impl StreamIterator<
+            D = Result<GoogleMapsPlacesV1PhotoMedia, ProviderError<ApiError>>,
+            P = crate::providers::gcp::clients::types::ApiPending,
+        > + Send
+        + 'static,
+        ProviderError<ApiError>,
+    > {
+        let builder = places_places_photos_get_media_builder(
+            &self.http_client,
+            &args.name,
+            &args.maxHeightPx,
+            &args.maxWidthPx,
+            &args.skipHttpRedirect,
+        )
+        .map_err(ProviderError::Api)?;
 
-        execute(store_task, None).map_err(|e: String| ProviderError::ExecuteFailed(e.to_string()))
+        let task = places_places_photos_get_media_task(builder)
+            .map_err(ProviderError::Api)?;
+
+        execute(task, None).map_err(|e: String| ProviderError::ExecuteFailed(e.to_string()))
     }
 
 }

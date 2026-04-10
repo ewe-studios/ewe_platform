@@ -33,9 +33,10 @@ pub mod type_resolver;
 pub mod extractor;
 pub mod normalizer;
 pub mod api_catalog;
+pub mod classifier;
 
 // Re-exports for convenient access
-pub use endpoint::{EndpointInfo, ResponseType};
+pub use endpoint::{EndpointInfo, ResponseType, OperationType, OperationEffect};
 pub use normalizer::{
     normalize_spec, process_spec, NormalizedEndpoint, NormalizedSpec,
     ProcessError, PropertyDefinition, SpecMetadata, SpecProcessor, TypeDefinition, TypeKind,
@@ -48,3 +49,4 @@ pub use api_catalog::{
     discover_providers, has_sub_apis,
     to_pascal_case, to_snake_case, to_sentence_case,
 };
+pub use classifier::OperationTypeClassifier;

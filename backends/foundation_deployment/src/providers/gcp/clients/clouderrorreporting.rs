@@ -7,7 +7,6 @@
 
 #![cfg(feature = "gcp")]
 
-
 use crate::providers::gcp::clients::types::*;
 use crate::providers::gcp::resources::*;
 use foundation_core::valtron::{
@@ -17,10 +16,11 @@ use foundation_core::valtron::{
 use foundation_core::wire::simple_http::client::{
     body_reader, ClientRequestBuilder, RequestIntro, SimpleHttpClient, SystemDnsResolver,
 };
+use foundation_db::state::resource_identifier::ResourceIdentifier;
 use foundation_macros::JsonHash;
 use serde::Serialize;
 
-/// GET v1beta1/projects/{projectsId}/events
+/// DELETE v1beta1/projects/{projectsId}/events
 /// Deletes all error events of a given project.
 ///
 /// Returns `ClientRequestBuilder` for customization.
@@ -31,18 +31,20 @@ pub fn clouderrorreporting_projects_delete_events_builder(
     projectName: &String,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
-    let endpoint_url =
-        format!("https://clouderrorreporting.googleapis.com/v1beta1/projects/{}/events",);
+    let endpoint_url = format!(
+        "https://clouderrorreporting.googleapis.com/v1beta1/projects/{}/events",
+        projectName,
+    );
 
     // Build request
     let builder = client
-        .get(&endpoint_url)
+        .delete(&endpoint_url)
         .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
 
     Ok(builder)
 }
 
-/// GET v1beta1/projects/{projectsId}/events
+/// DELETE v1beta1/projects/{projectsId}/events
 /// Deletes all error events of a given project.
 ///
 /// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
@@ -116,7 +118,7 @@ pub fn clouderrorreporting_projects_delete_events_task(
         .map_pending(|_| ApiPending::Sending))
 }
 
-/// GET v1beta1/projects/{projectsId}/events
+/// DELETE v1beta1/projects/{projectsId}/events
 /// Deletes all error events of a given project.
 ///
 /// Takes a `ClientRequestBuilder`, builds and executes the request,
@@ -155,7 +157,7 @@ pub struct ClouderrorreportingProjectsDeleteEventsArgs {
     pub projectName: String,
 }
 
-/// GET v1beta1/projects/{projectsId}/events
+/// DELETE v1beta1/projects/{projectsId}/events
 /// Deletes all error events of a given project.
 ///
 /// Simplest API - builds and executes the request in one call.
@@ -179,7 +181,228 @@ pub fn clouderrorreporting_projects_delete_events(
     clouderrorreporting_projects_delete_events_execute(builder)
 }
 
-/// GET v1beta1/projects/{projectsId}/events:report
+/// GET v1beta1/projects/{projectsId}/events
+/// Lists the specified events.
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `clouderrorreporting_projects_events_list_execute()` to send, or `clouderrorreporting_projects_events_list` for simplest API.
+
+pub fn clouderrorreporting_projects_events_list_builder(
+    client: &SimpleHttpClient,
+    projectName: &String,
+    groupId: &Option<Option<String>>,
+    pageSize: &Option<Option<String>>,
+    pageToken: &Option<Option<String>>,
+    serviceFilter_resourceType: &Option<Option<String>>,
+    serviceFilter_service: &Option<Option<String>>,
+    serviceFilter_version: &Option<Option<String>>,
+    timeRange_period: &Option<Option<String>>,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!(
+        "https://clouderrorreporting.googleapis.com/v1beta1/projects/{}/events",
+        projectName,
+    );
+
+    // Build request
+    let mut query_parts = Vec::new();
+    if let Some(val) = groupId.as_ref() {
+        query_parts.push(format!("groupId={}", val));
+    }
+    if let Some(val) = pageSize.as_ref() {
+        query_parts.push(format!("pageSize={}", val));
+    }
+    if let Some(val) = pageToken.as_ref() {
+        query_parts.push(format!("pageToken={}", val));
+    }
+    if let Some(val) = serviceFilter_resourceType.as_ref() {
+        query_parts.push(format!("serviceFilter.resourceType={}", val));
+    }
+    if let Some(val) = serviceFilter_service.as_ref() {
+        query_parts.push(format!("serviceFilter.service={}", val));
+    }
+    if let Some(val) = serviceFilter_version.as_ref() {
+        query_parts.push(format!("serviceFilter.version={}", val));
+    }
+    if let Some(val) = timeRange_period.as_ref() {
+        query_parts.push(format!("timeRange.period={}", val));
+    }
+
+    let url_with_query = if query_parts.is_empty() {
+        endpoint_url
+    } else {
+        format!("{}?{}", endpoint_url, query_parts.join("&"))
+    };
+
+    let builder = client
+        .get(&url_with_query)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// GET v1beta1/projects/{projectsId}/events
+/// Lists the specified events.
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `clouderrorreporting_projects_events_list_execute()` or `clouderrorreporting_projects_events_list`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `clouderrorreporting_projects_events_list_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn clouderrorreporting_projects_events_list_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<ListEventsResponse>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: ListEventsResponse = serde_json::from_str(&body)
+                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// GET v1beta1/projects/{projectsId}/events
+/// Lists the specified events.
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `clouderrorreporting_projects_events_list_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `clouderrorreporting_projects_events_list_task()`.
+/// For the simplest API, use `clouderrorreporting_projects_events_list()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `clouderrorreporting_projects_events_list_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn clouderrorreporting_projects_events_list_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<ListEventsResponse>, ApiError>, P = ApiPending>
+        + Send
+        + 'static,
+    ApiError,
+> {
+    let task = clouderrorreporting_projects_events_list_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`clouderrorreporting_projects_events_list`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct ClouderrorreportingProjectsEventsListArgs {
+    /// Path parameter: projectName
+    pub projectName: String,
+    /// Query parameter: groupId
+    pub groupId: Option<Option<String>>,
+    /// Query parameter: pageSize
+    pub pageSize: Option<Option<String>>,
+    /// Query parameter: pageToken
+    pub pageToken: Option<Option<String>>,
+    /// Query parameter: serviceFilter_resourceType
+    pub serviceFilter_resourceType: Option<Option<String>>,
+    /// Query parameter: serviceFilter_service
+    pub serviceFilter_service: Option<Option<String>>,
+    /// Query parameter: serviceFilter_version
+    pub serviceFilter_version: Option<Option<String>>,
+    /// Query parameter: timeRange_period
+    pub timeRange_period: Option<Option<String>>,
+}
+
+/// GET v1beta1/projects/{projectsId}/events
+/// Lists the specified events.
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `clouderrorreporting_projects_events_list_builder()` + `clouderrorreporting_projects_events_list_execute()`.
+/// For task-level control, use `clouderrorreporting_projects_events_list_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn clouderrorreporting_projects_events_list(
+    client: &SimpleHttpClient,
+    args: &ClouderrorreportingProjectsEventsListArgs,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<ListEventsResponse>, ApiError>, P = ApiPending>
+        + Send
+        + 'static,
+    ApiError,
+> {
+    let builder = clouderrorreporting_projects_events_list_builder(
+        client,
+        &args.projectName,
+        &args.groupId,
+        &args.pageSize,
+        &args.pageToken,
+        &args.serviceFilter_resourceType,
+        &args.serviceFilter_service,
+        &args.serviceFilter_version,
+        &args.timeRange_period,
+    )?;
+    clouderrorreporting_projects_events_list_execute(builder)
+}
+
+/// POST v1beta1/projects/{projectsId}/events:report
 /// Report an individual error event and record the event to a log. This endpoint accepts **either** an OAuth token, **or** an [API key](<https://support.google.`com/cloud/answer/6158862`>) for authentication. To use an API key, append it to the URL as the value of a key parameter. For example: POST <https://clouderrorreporting.googleapis.`com/v1beta1/{`projectName`}/events`:report?key=123ABC456> **Note:** [Error Reporting] (<https://cloud.google.`com/error-reporting`>) is a service built on Cloud Logging and can analyze log entries when all of the following are `true`: * Customer-managed encryption keys (CMEK) are disabled on the log bucket. * The log bucket satisfies one of the following: * The log bucket is stored in the same project where the logs originated. * The logs were routed to a project, and then that project stored those logs in a log bucket that it owns.
 ///
 /// Returns `ClientRequestBuilder` for customization.
@@ -188,23 +411,22 @@ pub fn clouderrorreporting_projects_delete_events(
 pub fn clouderrorreporting_projects_events_report_builder(
     client: &SimpleHttpClient,
     projectName: &String,
-    body: &ReportedErrorEvent,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
-    let endpoint_url =
-        format!("https://clouderrorreporting.googleapis.com/v1beta1/projects/{}/events:report",);
+    let endpoint_url = format!(
+        "https://clouderrorreporting.googleapis.com/v1beta1/projects/{}/events:report",
+        projectName,
+    );
 
     // Build request
     let builder = client
-        .get(&endpoint_url)
+        .post(&endpoint_url)
         .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
 
-    builder
-        .body_json(body)
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+    Ok(builder)
 }
 
-/// GET v1beta1/projects/{projectsId}/events:report
+/// POST v1beta1/projects/{projectsId}/events:report
 /// Report an individual error event and record the event to a log. This endpoint accepts **either** an OAuth token, **or** an [API key](<https://support.google.`com/cloud/answer/6158862`>) for authentication. To use an API key, append it to the URL as the value of a key parameter. For example: POST <https://clouderrorreporting.googleapis.`com/v1beta1/{`projectName`}/events`:report?key=123ABC456> **Note:** [Error Reporting] (<https://cloud.google.`com/error-reporting`>) is a service built on Cloud Logging and can analyze log entries when all of the following are `true`: * Customer-managed encryption keys (CMEK) are disabled on the log bucket. * The log bucket satisfies one of the following: * The log bucket is stored in the same project where the logs originated. * The logs were routed to a project, and then that project stored those logs in a log bucket that it owns.
 ///
 /// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
@@ -278,7 +500,7 @@ pub fn clouderrorreporting_projects_events_report_task(
         .map_pending(|_| ApiPending::Sending))
 }
 
-/// GET v1beta1/projects/{projectsId}/events:report
+/// POST v1beta1/projects/{projectsId}/events:report
 /// Report an individual error event and record the event to a log. This endpoint accepts **either** an OAuth token, **or** an [API key](<https://support.google.`com/cloud/answer/6158862`>) for authentication. To use an API key, append it to the URL as the value of a key parameter. For example: POST <https://clouderrorreporting.googleapis.`com/v1beta1/{`projectName`}/events`:report?key=123ABC456> **Note:** [Error Reporting] (<https://cloud.google.`com/error-reporting`>) is a service built on Cloud Logging and can analyze log entries when all of the following are `true`: * Customer-managed encryption keys (CMEK) are disabled on the log bucket. * The log bucket satisfies one of the following: * The log bucket is stored in the same project where the logs originated. * The logs were routed to a project, and then that project stored those logs in a log bucket that it owns.
 ///
 /// Takes a `ClientRequestBuilder`, builds and executes the request,
@@ -315,11 +537,9 @@ pub fn clouderrorreporting_projects_events_report_execute(
 pub struct ClouderrorreportingProjectsEventsReportArgs {
     /// Path parameter: projectName
     pub projectName: String,
-    /// Request body.
-    pub body: ReportedErrorEvent,
 }
 
-/// GET v1beta1/projects/{projectsId}/events:report
+/// POST v1beta1/projects/{projectsId}/events:report
 /// Report an individual error event and record the event to a log. This endpoint accepts **either** an OAuth token, **or** an [API key](<https://support.google.`com/cloud/answer/6158862`>) for authentication. To use an API key, append it to the URL as the value of a key parameter. For example: POST <https://clouderrorreporting.googleapis.`com/v1beta1/{`projectName`}/events`:report?key=123ABC456> **Note:** [Error Reporting] (<https://cloud.google.`com/error-reporting`>) is a service built on Cloud Logging and can analyze log entries when all of the following are `true`: * Customer-managed encryption keys (CMEK) are disabled on the log bucket. * The log bucket satisfies one of the following: * The log bucket is stored in the same project where the logs originated. * The logs were routed to a project, and then that project stored those logs in a log bucket that it owns.
 ///
 /// Simplest API - builds and executes the request in one call.
@@ -339,8 +559,7 @@ pub fn clouderrorreporting_projects_events_report(
         + 'static,
     ApiError,
 > {
-    let builder =
-        clouderrorreporting_projects_events_report_builder(client, &args.projectName, &args.body)?;
+    let builder = clouderrorreporting_projects_events_report_builder(client, &args.projectName)?;
     clouderrorreporting_projects_events_report_execute(builder)
 }
 
@@ -353,21 +572,23 @@ pub fn clouderrorreporting_projects_events_report(
 pub fn clouderrorreporting_projects_group_stats_list_builder(
     client: &SimpleHttpClient,
     projectName: &String,
-    alignment: &Option<String>,
-    alignmentTime: &Option<String>,
-    groupId: &Option<String>,
-    order: &Option<String>,
-    pageSize: &Option<i32>,
-    pageToken: &Option<String>,
-    serviceFilter_resourceType: &Option<String>,
-    serviceFilter_service: &Option<String>,
-    serviceFilter_version: &Option<String>,
-    timeRange_period: &Option<String>,
-    timedCountDuration: &Option<String>,
+    alignment: &Option<Option<String>>,
+    alignmentTime: &Option<Option<String>>,
+    groupId: &Option<Option<String>>,
+    order: &Option<Option<String>>,
+    pageSize: &Option<Option<String>>,
+    pageToken: &Option<Option<String>>,
+    serviceFilter_resourceType: &Option<Option<String>>,
+    serviceFilter_service: &Option<Option<String>>,
+    serviceFilter_version: &Option<Option<String>>,
+    timeRange_period: &Option<Option<String>>,
+    timedCountDuration: &Option<Option<String>>,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
-    let endpoint_url =
-        format!("https://clouderrorreporting.googleapis.com/v1beta1/projects/{}/groupStats",);
+    let endpoint_url = format!(
+        "https://clouderrorreporting.googleapis.com/v1beta1/projects/{}/groupStats",
+        projectName,
+    );
 
     // Build request
     let mut query_parts = Vec::new();
@@ -530,27 +751,27 @@ pub struct ClouderrorreportingProjectsGroupStatsListArgs {
     /// Path parameter: projectName
     pub projectName: String,
     /// Query parameter: alignment
-    pub alignment: Option<String>,
+    pub alignment: Option<Option<String>>,
     /// Query parameter: alignmentTime
-    pub alignmentTime: Option<String>,
+    pub alignmentTime: Option<Option<String>>,
     /// Query parameter: groupId
-    pub groupId: Option<String>,
+    pub groupId: Option<Option<String>>,
     /// Query parameter: order
-    pub order: Option<String>,
+    pub order: Option<Option<String>>,
     /// Query parameter: pageSize
-    pub pageSize: Option<i32>,
+    pub pageSize: Option<Option<String>>,
     /// Query parameter: pageToken
-    pub pageToken: Option<String>,
+    pub pageToken: Option<Option<String>>,
     /// Query parameter: serviceFilter_resourceType
-    pub serviceFilter_resourceType: Option<String>,
+    pub serviceFilter_resourceType: Option<Option<String>>,
     /// Query parameter: serviceFilter_service
-    pub serviceFilter_service: Option<String>,
+    pub serviceFilter_service: Option<Option<String>>,
     /// Query parameter: serviceFilter_version
-    pub serviceFilter_version: Option<String>,
+    pub serviceFilter_version: Option<Option<String>>,
     /// Query parameter: timeRange_period
-    pub timeRange_period: Option<String>,
+    pub timeRange_period: Option<Option<String>>,
     /// Query parameter: timedCountDuration
-    pub timedCountDuration: Option<String>,
+    pub timedCountDuration: Option<Option<String>>,
 }
 
 /// GET v1beta1/projects/{projectsId}/groupStats
@@ -589,4 +810,1561 @@ pub fn clouderrorreporting_projects_group_stats_list(
         &args.timedCountDuration,
     )?;
     clouderrorreporting_projects_group_stats_list_execute(builder)
+}
+
+/// GET v1beta1/projects/{projectsId}/groups/{groupsId}
+/// Get the specified group.
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `clouderrorreporting_projects_groups_get_execute()` to send, or `clouderrorreporting_projects_groups_get` for simplest API.
+
+pub fn clouderrorreporting_projects_groups_get_builder(
+    client: &SimpleHttpClient,
+    groupName: &String,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!(
+        "https://clouderrorreporting.googleapis.com/v1beta1/projects/{}/groups/{groupsId}",
+        groupName,
+    );
+
+    // Build request
+    let builder = client
+        .get(&endpoint_url)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// GET v1beta1/projects/{projectsId}/groups/{groupsId}
+/// Get the specified group.
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `clouderrorreporting_projects_groups_get_execute()` or `clouderrorreporting_projects_groups_get`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `clouderrorreporting_projects_groups_get_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn clouderrorreporting_projects_groups_get_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<ErrorGroup>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: ErrorGroup = serde_json::from_str(&body)
+                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// GET v1beta1/projects/{projectsId}/groups/{groupsId}
+/// Get the specified group.
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `clouderrorreporting_projects_groups_get_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `clouderrorreporting_projects_groups_get_task()`.
+/// For the simplest API, use `clouderrorreporting_projects_groups_get()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `clouderrorreporting_projects_groups_get_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn clouderrorreporting_projects_groups_get_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<ErrorGroup>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let task = clouderrorreporting_projects_groups_get_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`clouderrorreporting_projects_groups_get`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct ClouderrorreportingProjectsGroupsGetArgs {
+    /// Path parameter: groupName
+    pub groupName: String,
+}
+
+/// GET v1beta1/projects/{projectsId}/groups/{groupsId}
+/// Get the specified group.
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `clouderrorreporting_projects_groups_get_builder()` + `clouderrorreporting_projects_groups_get_execute()`.
+/// For task-level control, use `clouderrorreporting_projects_groups_get_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn clouderrorreporting_projects_groups_get(
+    client: &SimpleHttpClient,
+    args: &ClouderrorreportingProjectsGroupsGetArgs,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<ErrorGroup>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let builder = clouderrorreporting_projects_groups_get_builder(client, &args.groupName)?;
+    clouderrorreporting_projects_groups_get_execute(builder)
+}
+
+/// PUT v1beta1/projects/{projectsId}/groups/{groupsId}
+/// Replace the data for the specified group. Fails if the group does not exist.
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `clouderrorreporting_projects_groups_update_execute()` to send, or `clouderrorreporting_projects_groups_update` for simplest API.
+
+pub fn clouderrorreporting_projects_groups_update_builder(
+    client: &SimpleHttpClient,
+    name: &String,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!(
+        "https://clouderrorreporting.googleapis.com/v1beta1/projects/{}/groups/{groupsId}",
+        name,
+    );
+
+    // Build request
+    let builder = client
+        .put(&endpoint_url)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// PUT v1beta1/projects/{projectsId}/groups/{groupsId}
+/// Replace the data for the specified group. Fails if the group does not exist.
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `clouderrorreporting_projects_groups_update_execute()` or `clouderrorreporting_projects_groups_update`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `clouderrorreporting_projects_groups_update_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn clouderrorreporting_projects_groups_update_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<ErrorGroup>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: ErrorGroup = serde_json::from_str(&body)
+                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// PUT v1beta1/projects/{projectsId}/groups/{groupsId}
+/// Replace the data for the specified group. Fails if the group does not exist.
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `clouderrorreporting_projects_groups_update_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `clouderrorreporting_projects_groups_update_task()`.
+/// For the simplest API, use `clouderrorreporting_projects_groups_update()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `clouderrorreporting_projects_groups_update_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn clouderrorreporting_projects_groups_update_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<ErrorGroup>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let task = clouderrorreporting_projects_groups_update_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`clouderrorreporting_projects_groups_update`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct ClouderrorreportingProjectsGroupsUpdateArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
+/// PUT v1beta1/projects/{projectsId}/groups/{groupsId}
+/// Replace the data for the specified group. Fails if the group does not exist.
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `clouderrorreporting_projects_groups_update_builder()` + `clouderrorreporting_projects_groups_update_execute()`.
+/// For task-level control, use `clouderrorreporting_projects_groups_update_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn clouderrorreporting_projects_groups_update(
+    client: &SimpleHttpClient,
+    args: &ClouderrorreportingProjectsGroupsUpdateArgs,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<ErrorGroup>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let builder = clouderrorreporting_projects_groups_update_builder(client, &args.name)?;
+    clouderrorreporting_projects_groups_update_execute(builder)
+}
+
+/// DELETE v1beta1/projects/{projectsId}/locations/{locationsId}/events
+/// Deletes all error events of a given project.
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `clouderrorreporting_projects_locations_delete_events_execute()` to send, or `clouderrorreporting_projects_locations_delete_events` for simplest API.
+
+pub fn clouderrorreporting_projects_locations_delete_events_builder(
+    client: &SimpleHttpClient,
+    projectName: &String,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!(
+        "https://clouderrorreporting.googleapis.com/v1beta1/projects/{}/locations/{locationsId}/events",
+        projectName,
+    );
+
+    // Build request
+    let builder = client
+        .delete(&endpoint_url)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// DELETE v1beta1/projects/{projectsId}/locations/{locationsId}/events
+/// Deletes all error events of a given project.
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `clouderrorreporting_projects_locations_delete_events_execute()` or `clouderrorreporting_projects_locations_delete_events`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `clouderrorreporting_projects_locations_delete_events_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn clouderrorreporting_projects_locations_delete_events_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<DeleteEventsResponse>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: DeleteEventsResponse = serde_json::from_str(&body)
+                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// DELETE v1beta1/projects/{projectsId}/locations/{locationsId}/events
+/// Deletes all error events of a given project.
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `clouderrorreporting_projects_locations_delete_events_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `clouderrorreporting_projects_locations_delete_events_task()`.
+/// For the simplest API, use `clouderrorreporting_projects_locations_delete_events()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `clouderrorreporting_projects_locations_delete_events_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn clouderrorreporting_projects_locations_delete_events_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<DeleteEventsResponse>, ApiError>, P = ApiPending>
+        + Send
+        + 'static,
+    ApiError,
+> {
+    let task = clouderrorreporting_projects_locations_delete_events_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`clouderrorreporting_projects_locations_delete_events`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct ClouderrorreportingProjectsLocationsDeleteEventsArgs {
+    /// Path parameter: projectName
+    pub projectName: String,
+}
+
+/// DELETE v1beta1/projects/{projectsId}/locations/{locationsId}/events
+/// Deletes all error events of a given project.
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `clouderrorreporting_projects_locations_delete_events_builder()` + `clouderrorreporting_projects_locations_delete_events_execute()`.
+/// For task-level control, use `clouderrorreporting_projects_locations_delete_events_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn clouderrorreporting_projects_locations_delete_events(
+    client: &SimpleHttpClient,
+    args: &ClouderrorreportingProjectsLocationsDeleteEventsArgs,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<DeleteEventsResponse>, ApiError>, P = ApiPending>
+        + Send
+        + 'static,
+    ApiError,
+> {
+    let builder =
+        clouderrorreporting_projects_locations_delete_events_builder(client, &args.projectName)?;
+    clouderrorreporting_projects_locations_delete_events_execute(builder)
+}
+
+/// GET v1beta1/projects/{projectsId}/locations/{locationsId}/events
+/// Lists the specified events.
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `clouderrorreporting_projects_locations_events_list_execute()` to send, or `clouderrorreporting_projects_locations_events_list` for simplest API.
+
+pub fn clouderrorreporting_projects_locations_events_list_builder(
+    client: &SimpleHttpClient,
+    projectName: &String,
+    groupId: &Option<Option<String>>,
+    pageSize: &Option<Option<String>>,
+    pageToken: &Option<Option<String>>,
+    serviceFilter_resourceType: &Option<Option<String>>,
+    serviceFilter_service: &Option<Option<String>>,
+    serviceFilter_version: &Option<Option<String>>,
+    timeRange_period: &Option<Option<String>>,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!(
+        "https://clouderrorreporting.googleapis.com/v1beta1/projects/{}/locations/{locationsId}/events",
+        projectName,
+    );
+
+    // Build request
+    let mut query_parts = Vec::new();
+    if let Some(val) = groupId.as_ref() {
+        query_parts.push(format!("groupId={}", val));
+    }
+    if let Some(val) = pageSize.as_ref() {
+        query_parts.push(format!("pageSize={}", val));
+    }
+    if let Some(val) = pageToken.as_ref() {
+        query_parts.push(format!("pageToken={}", val));
+    }
+    if let Some(val) = serviceFilter_resourceType.as_ref() {
+        query_parts.push(format!("serviceFilter.resourceType={}", val));
+    }
+    if let Some(val) = serviceFilter_service.as_ref() {
+        query_parts.push(format!("serviceFilter.service={}", val));
+    }
+    if let Some(val) = serviceFilter_version.as_ref() {
+        query_parts.push(format!("serviceFilter.version={}", val));
+    }
+    if let Some(val) = timeRange_period.as_ref() {
+        query_parts.push(format!("timeRange.period={}", val));
+    }
+
+    let url_with_query = if query_parts.is_empty() {
+        endpoint_url
+    } else {
+        format!("{}?{}", endpoint_url, query_parts.join("&"))
+    };
+
+    let builder = client
+        .get(&url_with_query)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// GET v1beta1/projects/{projectsId}/locations/{locationsId}/events
+/// Lists the specified events.
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `clouderrorreporting_projects_locations_events_list_execute()` or `clouderrorreporting_projects_locations_events_list`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `clouderrorreporting_projects_locations_events_list_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn clouderrorreporting_projects_locations_events_list_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<ListEventsResponse>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: ListEventsResponse = serde_json::from_str(&body)
+                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// GET v1beta1/projects/{projectsId}/locations/{locationsId}/events
+/// Lists the specified events.
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `clouderrorreporting_projects_locations_events_list_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `clouderrorreporting_projects_locations_events_list_task()`.
+/// For the simplest API, use `clouderrorreporting_projects_locations_events_list()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `clouderrorreporting_projects_locations_events_list_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn clouderrorreporting_projects_locations_events_list_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<ListEventsResponse>, ApiError>, P = ApiPending>
+        + Send
+        + 'static,
+    ApiError,
+> {
+    let task = clouderrorreporting_projects_locations_events_list_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`clouderrorreporting_projects_locations_events_list`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct ClouderrorreportingProjectsLocationsEventsListArgs {
+    /// Path parameter: projectName
+    pub projectName: String,
+    /// Query parameter: groupId
+    pub groupId: Option<Option<String>>,
+    /// Query parameter: pageSize
+    pub pageSize: Option<Option<String>>,
+    /// Query parameter: pageToken
+    pub pageToken: Option<Option<String>>,
+    /// Query parameter: serviceFilter_resourceType
+    pub serviceFilter_resourceType: Option<Option<String>>,
+    /// Query parameter: serviceFilter_service
+    pub serviceFilter_service: Option<Option<String>>,
+    /// Query parameter: serviceFilter_version
+    pub serviceFilter_version: Option<Option<String>>,
+    /// Query parameter: timeRange_period
+    pub timeRange_period: Option<Option<String>>,
+}
+
+/// GET v1beta1/projects/{projectsId}/locations/{locationsId}/events
+/// Lists the specified events.
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `clouderrorreporting_projects_locations_events_list_builder()` + `clouderrorreporting_projects_locations_events_list_execute()`.
+/// For task-level control, use `clouderrorreporting_projects_locations_events_list_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn clouderrorreporting_projects_locations_events_list(
+    client: &SimpleHttpClient,
+    args: &ClouderrorreportingProjectsLocationsEventsListArgs,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<ListEventsResponse>, ApiError>, P = ApiPending>
+        + Send
+        + 'static,
+    ApiError,
+> {
+    let builder = clouderrorreporting_projects_locations_events_list_builder(
+        client,
+        &args.projectName,
+        &args.groupId,
+        &args.pageSize,
+        &args.pageToken,
+        &args.serviceFilter_resourceType,
+        &args.serviceFilter_service,
+        &args.serviceFilter_version,
+        &args.timeRange_period,
+    )?;
+    clouderrorreporting_projects_locations_events_list_execute(builder)
+}
+
+/// GET v1beta1/projects/{projectsId}/locations/{locationsId}/groupStats
+/// Lists the specified groups.
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `clouderrorreporting_projects_locations_group_stats_list_execute()` to send, or `clouderrorreporting_projects_locations_group_stats_list` for simplest API.
+
+pub fn clouderrorreporting_projects_locations_group_stats_list_builder(
+    client: &SimpleHttpClient,
+    projectName: &String,
+    alignment: &Option<Option<String>>,
+    alignmentTime: &Option<Option<String>>,
+    groupId: &Option<Option<String>>,
+    order: &Option<Option<String>>,
+    pageSize: &Option<Option<String>>,
+    pageToken: &Option<Option<String>>,
+    serviceFilter_resourceType: &Option<Option<String>>,
+    serviceFilter_service: &Option<Option<String>>,
+    serviceFilter_version: &Option<Option<String>>,
+    timeRange_period: &Option<Option<String>>,
+    timedCountDuration: &Option<Option<String>>,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!(
+        "https://clouderrorreporting.googleapis.com/v1beta1/projects/{}/locations/{locationsId}/groupStats",
+        projectName,
+    );
+
+    // Build request
+    let mut query_parts = Vec::new();
+    if let Some(val) = alignment.as_ref() {
+        query_parts.push(format!("alignment={}", val));
+    }
+    if let Some(val) = alignmentTime.as_ref() {
+        query_parts.push(format!("alignmentTime={}", val));
+    }
+    if let Some(val) = groupId.as_ref() {
+        query_parts.push(format!("groupId={}", val));
+    }
+    if let Some(val) = order.as_ref() {
+        query_parts.push(format!("order={}", val));
+    }
+    if let Some(val) = pageSize.as_ref() {
+        query_parts.push(format!("pageSize={}", val));
+    }
+    if let Some(val) = pageToken.as_ref() {
+        query_parts.push(format!("pageToken={}", val));
+    }
+    if let Some(val) = serviceFilter_resourceType.as_ref() {
+        query_parts.push(format!("serviceFilter.resourceType={}", val));
+    }
+    if let Some(val) = serviceFilter_service.as_ref() {
+        query_parts.push(format!("serviceFilter.service={}", val));
+    }
+    if let Some(val) = serviceFilter_version.as_ref() {
+        query_parts.push(format!("serviceFilter.version={}", val));
+    }
+    if let Some(val) = timeRange_period.as_ref() {
+        query_parts.push(format!("timeRange.period={}", val));
+    }
+    if let Some(val) = timedCountDuration.as_ref() {
+        query_parts.push(format!("timedCountDuration={}", val));
+    }
+
+    let url_with_query = if query_parts.is_empty() {
+        endpoint_url
+    } else {
+        format!("{}?{}", endpoint_url, query_parts.join("&"))
+    };
+
+    let builder = client
+        .get(&url_with_query)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// GET v1beta1/projects/{projectsId}/locations/{locationsId}/groupStats
+/// Lists the specified groups.
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `clouderrorreporting_projects_locations_group_stats_list_execute()` or `clouderrorreporting_projects_locations_group_stats_list`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `clouderrorreporting_projects_locations_group_stats_list_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn clouderrorreporting_projects_locations_group_stats_list_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<ListGroupStatsResponse>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: ListGroupStatsResponse = serde_json::from_str(&body)
+                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// GET v1beta1/projects/{projectsId}/locations/{locationsId}/groupStats
+/// Lists the specified groups.
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `clouderrorreporting_projects_locations_group_stats_list_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `clouderrorreporting_projects_locations_group_stats_list_task()`.
+/// For the simplest API, use `clouderrorreporting_projects_locations_group_stats_list()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `clouderrorreporting_projects_locations_group_stats_list_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn clouderrorreporting_projects_locations_group_stats_list_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<ListGroupStatsResponse>, ApiError>, P = ApiPending>
+        + Send
+        + 'static,
+    ApiError,
+> {
+    let task = clouderrorreporting_projects_locations_group_stats_list_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`clouderrorreporting_projects_locations_group_stats_list`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct ClouderrorreportingProjectsLocationsGroupStatsListArgs {
+    /// Path parameter: projectName
+    pub projectName: String,
+    /// Query parameter: alignment
+    pub alignment: Option<Option<String>>,
+    /// Query parameter: alignmentTime
+    pub alignmentTime: Option<Option<String>>,
+    /// Query parameter: groupId
+    pub groupId: Option<Option<String>>,
+    /// Query parameter: order
+    pub order: Option<Option<String>>,
+    /// Query parameter: pageSize
+    pub pageSize: Option<Option<String>>,
+    /// Query parameter: pageToken
+    pub pageToken: Option<Option<String>>,
+    /// Query parameter: serviceFilter_resourceType
+    pub serviceFilter_resourceType: Option<Option<String>>,
+    /// Query parameter: serviceFilter_service
+    pub serviceFilter_service: Option<Option<String>>,
+    /// Query parameter: serviceFilter_version
+    pub serviceFilter_version: Option<Option<String>>,
+    /// Query parameter: timeRange_period
+    pub timeRange_period: Option<Option<String>>,
+    /// Query parameter: timedCountDuration
+    pub timedCountDuration: Option<Option<String>>,
+}
+
+/// GET v1beta1/projects/{projectsId}/locations/{locationsId}/groupStats
+/// Lists the specified groups.
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `clouderrorreporting_projects_locations_group_stats_list_builder()` + `clouderrorreporting_projects_locations_group_stats_list_execute()`.
+/// For task-level control, use `clouderrorreporting_projects_locations_group_stats_list_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn clouderrorreporting_projects_locations_group_stats_list(
+    client: &SimpleHttpClient,
+    args: &ClouderrorreportingProjectsLocationsGroupStatsListArgs,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<ListGroupStatsResponse>, ApiError>, P = ApiPending>
+        + Send
+        + 'static,
+    ApiError,
+> {
+    let builder = clouderrorreporting_projects_locations_group_stats_list_builder(
+        client,
+        &args.projectName,
+        &args.alignment,
+        &args.alignmentTime,
+        &args.groupId,
+        &args.order,
+        &args.pageSize,
+        &args.pageToken,
+        &args.serviceFilter_resourceType,
+        &args.serviceFilter_service,
+        &args.serviceFilter_version,
+        &args.timeRange_period,
+        &args.timedCountDuration,
+    )?;
+    clouderrorreporting_projects_locations_group_stats_list_execute(builder)
+}
+
+/// GET v1beta1/projects/{projectsId}/locations/{locationsId}/groups/{groupsId}
+/// Get the specified group.
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `clouderrorreporting_projects_locations_groups_get_execute()` to send, or `clouderrorreporting_projects_locations_groups_get` for simplest API.
+
+pub fn clouderrorreporting_projects_locations_groups_get_builder(
+    client: &SimpleHttpClient,
+    groupName: &String,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!(
+        "https://clouderrorreporting.googleapis.com/v1beta1/projects/{}/locations/{locationsId}/groups/{groupsId}",
+        groupName,
+    );
+
+    // Build request
+    let builder = client
+        .get(&endpoint_url)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// GET v1beta1/projects/{projectsId}/locations/{locationsId}/groups/{groupsId}
+/// Get the specified group.
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `clouderrorreporting_projects_locations_groups_get_execute()` or `clouderrorreporting_projects_locations_groups_get`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `clouderrorreporting_projects_locations_groups_get_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn clouderrorreporting_projects_locations_groups_get_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<ErrorGroup>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: ErrorGroup = serde_json::from_str(&body)
+                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// GET v1beta1/projects/{projectsId}/locations/{locationsId}/groups/{groupsId}
+/// Get the specified group.
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `clouderrorreporting_projects_locations_groups_get_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `clouderrorreporting_projects_locations_groups_get_task()`.
+/// For the simplest API, use `clouderrorreporting_projects_locations_groups_get()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `clouderrorreporting_projects_locations_groups_get_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn clouderrorreporting_projects_locations_groups_get_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<ErrorGroup>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let task = clouderrorreporting_projects_locations_groups_get_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`clouderrorreporting_projects_locations_groups_get`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct ClouderrorreportingProjectsLocationsGroupsGetArgs {
+    /// Path parameter: groupName
+    pub groupName: String,
+}
+
+/// GET v1beta1/projects/{projectsId}/locations/{locationsId}/groups/{groupsId}
+/// Get the specified group.
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `clouderrorreporting_projects_locations_groups_get_builder()` + `clouderrorreporting_projects_locations_groups_get_execute()`.
+/// For task-level control, use `clouderrorreporting_projects_locations_groups_get_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn clouderrorreporting_projects_locations_groups_get(
+    client: &SimpleHttpClient,
+    args: &ClouderrorreportingProjectsLocationsGroupsGetArgs,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<ErrorGroup>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let builder =
+        clouderrorreporting_projects_locations_groups_get_builder(client, &args.groupName)?;
+    clouderrorreporting_projects_locations_groups_get_execute(builder)
+}
+
+/// PUT v1beta1/projects/{projectsId}/locations/{locationsId}/groups/{groupsId}
+/// Replace the data for the specified group. Fails if the group does not exist.
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `clouderrorreporting_projects_locations_groups_update_execute()` to send, or `clouderrorreporting_projects_locations_groups_update` for simplest API.
+
+pub fn clouderrorreporting_projects_locations_groups_update_builder(
+    client: &SimpleHttpClient,
+    name: &String,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!(
+        "https://clouderrorreporting.googleapis.com/v1beta1/projects/{}/locations/{locationsId}/groups/{groupsId}",
+        name,
+    );
+
+    // Build request
+    let builder = client
+        .put(&endpoint_url)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// PUT v1beta1/projects/{projectsId}/locations/{locationsId}/groups/{groupsId}
+/// Replace the data for the specified group. Fails if the group does not exist.
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `clouderrorreporting_projects_locations_groups_update_execute()` or `clouderrorreporting_projects_locations_groups_update`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `clouderrorreporting_projects_locations_groups_update_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn clouderrorreporting_projects_locations_groups_update_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<ErrorGroup>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: ErrorGroup = serde_json::from_str(&body)
+                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// PUT v1beta1/projects/{projectsId}/locations/{locationsId}/groups/{groupsId}
+/// Replace the data for the specified group. Fails if the group does not exist.
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `clouderrorreporting_projects_locations_groups_update_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `clouderrorreporting_projects_locations_groups_update_task()`.
+/// For the simplest API, use `clouderrorreporting_projects_locations_groups_update()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `clouderrorreporting_projects_locations_groups_update_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn clouderrorreporting_projects_locations_groups_update_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<ErrorGroup>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let task = clouderrorreporting_projects_locations_groups_update_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`clouderrorreporting_projects_locations_groups_update`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct ClouderrorreportingProjectsLocationsGroupsUpdateArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
+/// PUT v1beta1/projects/{projectsId}/locations/{locationsId}/groups/{groupsId}
+/// Replace the data for the specified group. Fails if the group does not exist.
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `clouderrorreporting_projects_locations_groups_update_builder()` + `clouderrorreporting_projects_locations_groups_update_execute()`.
+/// For task-level control, use `clouderrorreporting_projects_locations_groups_update_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn clouderrorreporting_projects_locations_groups_update(
+    client: &SimpleHttpClient,
+    args: &ClouderrorreportingProjectsLocationsGroupsUpdateArgs,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<ErrorGroup>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let builder = clouderrorreporting_projects_locations_groups_update_builder(client, &args.name)?;
+    clouderrorreporting_projects_locations_groups_update_execute(builder)
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for DeleteEventsResponse
+// =============================================================================
+
+/// ResourceIdentifier implementation for DeleteEventsResponse with ClouderrorreportingProjectsDeleteEventsArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<ClouderrorreportingProjectsDeleteEventsArgs> for DeleteEventsResponse {
+    fn generate_resource_id(&self, input: &ClouderrorreportingProjectsDeleteEventsArgs) -> String {
+        format!(
+            "gcp::clouderrorreporting::DeleteEventsResponse/{}",
+            input.projectName
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::clouderrorreporting::DeleteEventsResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for ListEventsResponse
+// =============================================================================
+
+/// ResourceIdentifier implementation for ListEventsResponse with ClouderrorreportingProjectsEventsListArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<ClouderrorreportingProjectsEventsListArgs> for ListEventsResponse {
+    fn generate_resource_id(&self, input: &ClouderrorreportingProjectsEventsListArgs) -> String {
+        format!(
+            "gcp::clouderrorreporting::ListEventsResponse/{}",
+            input.projectName
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::clouderrorreporting::ListEventsResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for ReportErrorEventResponse
+// =============================================================================
+
+/// ResourceIdentifier implementation for ReportErrorEventResponse with ClouderrorreportingProjectsEventsReportArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<ClouderrorreportingProjectsEventsReportArgs> for ReportErrorEventResponse {
+    fn generate_resource_id(&self, input: &ClouderrorreportingProjectsEventsReportArgs) -> String {
+        format!(
+            "gcp::clouderrorreporting::ReportErrorEventResponse/{}",
+            input.projectName
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::clouderrorreporting::ReportErrorEventResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for ListGroupStatsResponse
+// =============================================================================
+
+/// ResourceIdentifier implementation for ListGroupStatsResponse with ClouderrorreportingProjectsGroupStatsListArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<ClouderrorreportingProjectsGroupStatsListArgs> for ListGroupStatsResponse {
+    fn generate_resource_id(
+        &self,
+        input: &ClouderrorreportingProjectsGroupStatsListArgs,
+    ) -> String {
+        format!(
+            "gcp::clouderrorreporting::ListGroupStatsResponse/{}",
+            input.projectName
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::clouderrorreporting::ListGroupStatsResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for ErrorGroup
+// =============================================================================
+
+/// ResourceIdentifier implementation for ErrorGroup with ClouderrorreportingProjectsGroupsGetArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<ClouderrorreportingProjectsGroupsGetArgs> for ErrorGroup {
+    fn generate_resource_id(&self, input: &ClouderrorreportingProjectsGroupsGetArgs) -> String {
+        format!("gcp::clouderrorreporting::ErrorGroup/{}", input.groupName)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::clouderrorreporting::ErrorGroup"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for ErrorGroup
+// =============================================================================
+
+/// ResourceIdentifier implementation for ErrorGroup with ClouderrorreportingProjectsGroupsUpdateArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<ClouderrorreportingProjectsGroupsUpdateArgs> for ErrorGroup {
+    fn generate_resource_id(&self, input: &ClouderrorreportingProjectsGroupsUpdateArgs) -> String {
+        format!("gcp::clouderrorreporting::ErrorGroup/{}", input.name)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::clouderrorreporting::ErrorGroup"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for DeleteEventsResponse
+// =============================================================================
+
+/// ResourceIdentifier implementation for DeleteEventsResponse with ClouderrorreportingProjectsLocationsDeleteEventsArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<ClouderrorreportingProjectsLocationsDeleteEventsArgs>
+    for DeleteEventsResponse
+{
+    fn generate_resource_id(
+        &self,
+        input: &ClouderrorreportingProjectsLocationsDeleteEventsArgs,
+    ) -> String {
+        format!(
+            "gcp::clouderrorreporting::DeleteEventsResponse/{}",
+            input.projectName
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::clouderrorreporting::DeleteEventsResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for ListEventsResponse
+// =============================================================================
+
+/// ResourceIdentifier implementation for ListEventsResponse with ClouderrorreportingProjectsLocationsEventsListArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<ClouderrorreportingProjectsLocationsEventsListArgs> for ListEventsResponse {
+    fn generate_resource_id(
+        &self,
+        input: &ClouderrorreportingProjectsLocationsEventsListArgs,
+    ) -> String {
+        format!(
+            "gcp::clouderrorreporting::ListEventsResponse/{}",
+            input.projectName
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::clouderrorreporting::ListEventsResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for ListGroupStatsResponse
+// =============================================================================
+
+/// ResourceIdentifier implementation for ListGroupStatsResponse with ClouderrorreportingProjectsLocationsGroupStatsListArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<ClouderrorreportingProjectsLocationsGroupStatsListArgs>
+    for ListGroupStatsResponse
+{
+    fn generate_resource_id(
+        &self,
+        input: &ClouderrorreportingProjectsLocationsGroupStatsListArgs,
+    ) -> String {
+        format!(
+            "gcp::clouderrorreporting::ListGroupStatsResponse/{}",
+            input.projectName
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::clouderrorreporting::ListGroupStatsResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for ErrorGroup
+// =============================================================================
+
+/// ResourceIdentifier implementation for ErrorGroup with ClouderrorreportingProjectsLocationsGroupsGetArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<ClouderrorreportingProjectsLocationsGroupsGetArgs> for ErrorGroup {
+    fn generate_resource_id(
+        &self,
+        input: &ClouderrorreportingProjectsLocationsGroupsGetArgs,
+    ) -> String {
+        format!("gcp::clouderrorreporting::ErrorGroup/{}", input.groupName)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::clouderrorreporting::ErrorGroup"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for ErrorGroup
+// =============================================================================
+
+/// ResourceIdentifier implementation for ErrorGroup with ClouderrorreportingProjectsLocationsGroupsUpdateArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<ClouderrorreportingProjectsLocationsGroupsUpdateArgs> for ErrorGroup {
+    fn generate_resource_id(
+        &self,
+        input: &ClouderrorreportingProjectsLocationsGroupsUpdateArgs,
+    ) -> String {
+        format!("gcp::clouderrorreporting::ErrorGroup/{}", input.name)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::clouderrorreporting::ErrorGroup"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
 }

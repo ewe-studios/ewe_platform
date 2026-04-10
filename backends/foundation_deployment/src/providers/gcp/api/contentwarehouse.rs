@@ -14,10 +14,13 @@
 use crate::providers::gcp::clients::contentwarehouse::{
     contentwarehouse_projects_fetch_acl_builder, contentwarehouse_projects_fetch_acl_task,
     contentwarehouse_projects_set_acl_builder, contentwarehouse_projects_set_acl_task,
+    contentwarehouse_projects_locations_get_status_builder, contentwarehouse_projects_locations_get_status_task,
     contentwarehouse_projects_locations_initialize_builder, contentwarehouse_projects_locations_initialize_task,
     contentwarehouse_projects_locations_run_pipeline_builder, contentwarehouse_projects_locations_run_pipeline_task,
     contentwarehouse_projects_locations_document_schemas_create_builder, contentwarehouse_projects_locations_document_schemas_create_task,
     contentwarehouse_projects_locations_document_schemas_delete_builder, contentwarehouse_projects_locations_document_schemas_delete_task,
+    contentwarehouse_projects_locations_document_schemas_get_builder, contentwarehouse_projects_locations_document_schemas_get_task,
+    contentwarehouse_projects_locations_document_schemas_list_builder, contentwarehouse_projects_locations_document_schemas_list_task,
     contentwarehouse_projects_locations_document_schemas_patch_builder, contentwarehouse_projects_locations_document_schemas_patch_task,
     contentwarehouse_projects_locations_documents_create_builder, contentwarehouse_projects_locations_documents_create_task,
     contentwarehouse_projects_locations_documents_delete_builder, contentwarehouse_projects_locations_documents_delete_task,
@@ -34,11 +37,16 @@ use crate::providers::gcp::clients::contentwarehouse::{
     contentwarehouse_projects_locations_documents_reference_id_delete_builder, contentwarehouse_projects_locations_documents_reference_id_delete_task,
     contentwarehouse_projects_locations_documents_reference_id_get_builder, contentwarehouse_projects_locations_documents_reference_id_get_task,
     contentwarehouse_projects_locations_documents_reference_id_patch_builder, contentwarehouse_projects_locations_documents_reference_id_patch_task,
+    contentwarehouse_projects_locations_operations_get_builder, contentwarehouse_projects_locations_operations_get_task,
     contentwarehouse_projects_locations_rule_sets_create_builder, contentwarehouse_projects_locations_rule_sets_create_task,
     contentwarehouse_projects_locations_rule_sets_delete_builder, contentwarehouse_projects_locations_rule_sets_delete_task,
+    contentwarehouse_projects_locations_rule_sets_get_builder, contentwarehouse_projects_locations_rule_sets_get_task,
+    contentwarehouse_projects_locations_rule_sets_list_builder, contentwarehouse_projects_locations_rule_sets_list_task,
     contentwarehouse_projects_locations_rule_sets_patch_builder, contentwarehouse_projects_locations_rule_sets_patch_task,
     contentwarehouse_projects_locations_synonym_sets_create_builder, contentwarehouse_projects_locations_synonym_sets_create_task,
     contentwarehouse_projects_locations_synonym_sets_delete_builder, contentwarehouse_projects_locations_synonym_sets_delete_task,
+    contentwarehouse_projects_locations_synonym_sets_get_builder, contentwarehouse_projects_locations_synonym_sets_get_task,
+    contentwarehouse_projects_locations_synonym_sets_list_builder, contentwarehouse_projects_locations_synonym_sets_list_task,
     contentwarehouse_projects_locations_synonym_sets_patch_builder, contentwarehouse_projects_locations_synonym_sets_patch_task,
 };
 use crate::providers::gcp::clients::types::{ApiError, ApiPending};
@@ -47,8 +55,12 @@ use crate::providers::gcp::clients::contentwarehouse::GoogleCloudContentwarehous
 use crate::providers::gcp::clients::contentwarehouse::GoogleCloudContentwarehouseV1DocumentLink;
 use crate::providers::gcp::clients::contentwarehouse::GoogleCloudContentwarehouseV1DocumentSchema;
 use crate::providers::gcp::clients::contentwarehouse::GoogleCloudContentwarehouseV1FetchAclResponse;
+use crate::providers::gcp::clients::contentwarehouse::GoogleCloudContentwarehouseV1ListDocumentSchemasResponse;
 use crate::providers::gcp::clients::contentwarehouse::GoogleCloudContentwarehouseV1ListLinkedSourcesResponse;
 use crate::providers::gcp::clients::contentwarehouse::GoogleCloudContentwarehouseV1ListLinkedTargetsResponse;
+use crate::providers::gcp::clients::contentwarehouse::GoogleCloudContentwarehouseV1ListRuleSetsResponse;
+use crate::providers::gcp::clients::contentwarehouse::GoogleCloudContentwarehouseV1ListSynonymSetsResponse;
+use crate::providers::gcp::clients::contentwarehouse::GoogleCloudContentwarehouseV1ProjectStatus;
 use crate::providers::gcp::clients::contentwarehouse::GoogleCloudContentwarehouseV1RuleSet;
 use crate::providers::gcp::clients::contentwarehouse::GoogleCloudContentwarehouseV1SearchDocumentsResponse;
 use crate::providers::gcp::clients::contentwarehouse::GoogleCloudContentwarehouseV1SetAclResponse;
@@ -59,6 +71,8 @@ use crate::providers::gcp::clients::contentwarehouse::GoogleProtobufEmpty;
 use crate::providers::gcp::clients::contentwarehouse::ContentwarehouseProjectsFetchAclArgs;
 use crate::providers::gcp::clients::contentwarehouse::ContentwarehouseProjectsLocationsDocumentSchemasCreateArgs;
 use crate::providers::gcp::clients::contentwarehouse::ContentwarehouseProjectsLocationsDocumentSchemasDeleteArgs;
+use crate::providers::gcp::clients::contentwarehouse::ContentwarehouseProjectsLocationsDocumentSchemasGetArgs;
+use crate::providers::gcp::clients::contentwarehouse::ContentwarehouseProjectsLocationsDocumentSchemasListArgs;
 use crate::providers::gcp::clients::contentwarehouse::ContentwarehouseProjectsLocationsDocumentSchemasPatchArgs;
 use crate::providers::gcp::clients::contentwarehouse::ContentwarehouseProjectsLocationsDocumentsCreateArgs;
 use crate::providers::gcp::clients::contentwarehouse::ContentwarehouseProjectsLocationsDocumentsDeleteArgs;
@@ -75,13 +89,19 @@ use crate::providers::gcp::clients::contentwarehouse::ContentwarehouseProjectsLo
 use crate::providers::gcp::clients::contentwarehouse::ContentwarehouseProjectsLocationsDocumentsReferenceIdPatchArgs;
 use crate::providers::gcp::clients::contentwarehouse::ContentwarehouseProjectsLocationsDocumentsSearchArgs;
 use crate::providers::gcp::clients::contentwarehouse::ContentwarehouseProjectsLocationsDocumentsSetAclArgs;
+use crate::providers::gcp::clients::contentwarehouse::ContentwarehouseProjectsLocationsGetStatusArgs;
 use crate::providers::gcp::clients::contentwarehouse::ContentwarehouseProjectsLocationsInitializeArgs;
+use crate::providers::gcp::clients::contentwarehouse::ContentwarehouseProjectsLocationsOperationsGetArgs;
 use crate::providers::gcp::clients::contentwarehouse::ContentwarehouseProjectsLocationsRuleSetsCreateArgs;
 use crate::providers::gcp::clients::contentwarehouse::ContentwarehouseProjectsLocationsRuleSetsDeleteArgs;
+use crate::providers::gcp::clients::contentwarehouse::ContentwarehouseProjectsLocationsRuleSetsGetArgs;
+use crate::providers::gcp::clients::contentwarehouse::ContentwarehouseProjectsLocationsRuleSetsListArgs;
 use crate::providers::gcp::clients::contentwarehouse::ContentwarehouseProjectsLocationsRuleSetsPatchArgs;
 use crate::providers::gcp::clients::contentwarehouse::ContentwarehouseProjectsLocationsRunPipelineArgs;
 use crate::providers::gcp::clients::contentwarehouse::ContentwarehouseProjectsLocationsSynonymSetsCreateArgs;
 use crate::providers::gcp::clients::contentwarehouse::ContentwarehouseProjectsLocationsSynonymSetsDeleteArgs;
+use crate::providers::gcp::clients::contentwarehouse::ContentwarehouseProjectsLocationsSynonymSetsGetArgs;
+use crate::providers::gcp::clients::contentwarehouse::ContentwarehouseProjectsLocationsSynonymSetsListArgs;
 use crate::providers::gcp::clients::contentwarehouse::ContentwarehouseProjectsLocationsSynonymSetsPatchArgs;
 use crate::providers::gcp::clients::contentwarehouse::ContentwarehouseProjectsSetAclArgs;
 use crate::provider_client::{ProviderClient, ProviderError};
@@ -127,7 +147,7 @@ where
 
     /// Contentwarehouse projects fetch acl.
     ///
-    /// Automatically stores the result in the state store on success.
+    /// Read-only operation - no state tracking.
     ///
     /// # Arguments
     ///
@@ -139,7 +159,7 @@ where
     ///
     /// # Errors
     ///
-    /// Returns ProviderError if the API request or state storage fails.
+    /// Returns ProviderError if the API request fails.
     pub fn contentwarehouse_projects_fetch_acl(
         &self,
         args: &ContentwarehouseProjectsFetchAclArgs,
@@ -160,12 +180,7 @@ where
         let task = contentwarehouse_projects_fetch_acl_task(builder)
             .map_err(ProviderError::Api)?;
 
-        let state_store = self.client.state_store.clone();
-        let stage = Some(self.client.stage.clone());
-
-        let store_task = StoreStateIdentifierTask::new(task, state_store, args, stage);
-
-        execute(store_task, None).map_err(|e: String| ProviderError::ExecuteFailed(e.to_string()))
+        execute(task, None).map_err(|e: String| ProviderError::ExecuteFailed(e.to_string()))
     }
 
     /// Contentwarehouse projects set acl.
@@ -209,6 +224,44 @@ where
         let store_task = StoreStateIdentifierTask::new(task, state_store, args, stage);
 
         execute(store_task, None).map_err(|e: String| ProviderError::ExecuteFailed(e.to_string()))
+    }
+
+    /// Contentwarehouse projects locations get status.
+    ///
+    /// Read-only operation - no state tracking.
+    ///
+    /// # Arguments
+    ///
+    /// * `args` - Request arguments
+    ///
+    /// # Returns
+    ///
+    /// StreamIterator yielding the GoogleCloudContentwarehouseV1ProjectStatus result.
+    ///
+    /// # Errors
+    ///
+    /// Returns ProviderError if the API request fails.
+    pub fn contentwarehouse_projects_locations_get_status(
+        &self,
+        args: &ContentwarehouseProjectsLocationsGetStatusArgs,
+    ) -> Result<
+        impl StreamIterator<
+            D = Result<GoogleCloudContentwarehouseV1ProjectStatus, ProviderError<ApiError>>,
+            P = crate::providers::gcp::clients::types::ApiPending,
+        > + Send
+        + 'static,
+        ProviderError<ApiError>,
+    > {
+        let builder = contentwarehouse_projects_locations_get_status_builder(
+            &self.http_client,
+            &args.location,
+        )
+        .map_err(ProviderError::Api)?;
+
+        let task = contentwarehouse_projects_locations_get_status_task(builder)
+            .map_err(ProviderError::Api)?;
+
+        execute(task, None).map_err(|e: String| ProviderError::ExecuteFailed(e.to_string()))
     }
 
     /// Contentwarehouse projects locations initialize.
@@ -383,6 +436,84 @@ where
         execute(store_task, None).map_err(|e: String| ProviderError::ExecuteFailed(e.to_string()))
     }
 
+    /// Contentwarehouse projects locations document schemas get.
+    ///
+    /// Read-only operation - no state tracking.
+    ///
+    /// # Arguments
+    ///
+    /// * `args` - Request arguments
+    ///
+    /// # Returns
+    ///
+    /// StreamIterator yielding the GoogleCloudContentwarehouseV1DocumentSchema result.
+    ///
+    /// # Errors
+    ///
+    /// Returns ProviderError if the API request fails.
+    pub fn contentwarehouse_projects_locations_document_schemas_get(
+        &self,
+        args: &ContentwarehouseProjectsLocationsDocumentSchemasGetArgs,
+    ) -> Result<
+        impl StreamIterator<
+            D = Result<GoogleCloudContentwarehouseV1DocumentSchema, ProviderError<ApiError>>,
+            P = crate::providers::gcp::clients::types::ApiPending,
+        > + Send
+        + 'static,
+        ProviderError<ApiError>,
+    > {
+        let builder = contentwarehouse_projects_locations_document_schemas_get_builder(
+            &self.http_client,
+            &args.name,
+        )
+        .map_err(ProviderError::Api)?;
+
+        let task = contentwarehouse_projects_locations_document_schemas_get_task(builder)
+            .map_err(ProviderError::Api)?;
+
+        execute(task, None).map_err(|e: String| ProviderError::ExecuteFailed(e.to_string()))
+    }
+
+    /// Contentwarehouse projects locations document schemas list.
+    ///
+    /// Read-only operation - no state tracking.
+    ///
+    /// # Arguments
+    ///
+    /// * `args` - Request arguments
+    ///
+    /// # Returns
+    ///
+    /// StreamIterator yielding the GoogleCloudContentwarehouseV1ListDocumentSchemasResponse result.
+    ///
+    /// # Errors
+    ///
+    /// Returns ProviderError if the API request fails.
+    pub fn contentwarehouse_projects_locations_document_schemas_list(
+        &self,
+        args: &ContentwarehouseProjectsLocationsDocumentSchemasListArgs,
+    ) -> Result<
+        impl StreamIterator<
+            D = Result<GoogleCloudContentwarehouseV1ListDocumentSchemasResponse, ProviderError<ApiError>>,
+            P = crate::providers::gcp::clients::types::ApiPending,
+        > + Send
+        + 'static,
+        ProviderError<ApiError>,
+    > {
+        let builder = contentwarehouse_projects_locations_document_schemas_list_builder(
+            &self.http_client,
+            &args.parent,
+            &args.pageSize,
+            &args.pageToken,
+        )
+        .map_err(ProviderError::Api)?;
+
+        let task = contentwarehouse_projects_locations_document_schemas_list_task(builder)
+            .map_err(ProviderError::Api)?;
+
+        execute(task, None).map_err(|e: String| ProviderError::ExecuteFailed(e.to_string()))
+    }
+
     /// Contentwarehouse projects locations document schemas patch.
     ///
     /// Automatically stores the result in the state store on success.
@@ -514,7 +645,7 @@ where
 
     /// Contentwarehouse projects locations documents fetch acl.
     ///
-    /// Automatically stores the result in the state store on success.
+    /// Read-only operation - no state tracking.
     ///
     /// # Arguments
     ///
@@ -526,7 +657,7 @@ where
     ///
     /// # Errors
     ///
-    /// Returns ProviderError if the API request or state storage fails.
+    /// Returns ProviderError if the API request fails.
     pub fn contentwarehouse_projects_locations_documents_fetch_acl(
         &self,
         args: &ContentwarehouseProjectsLocationsDocumentsFetchAclArgs,
@@ -547,17 +678,12 @@ where
         let task = contentwarehouse_projects_locations_documents_fetch_acl_task(builder)
             .map_err(ProviderError::Api)?;
 
-        let state_store = self.client.state_store.clone();
-        let stage = Some(self.client.stage.clone());
-
-        let store_task = StoreStateIdentifierTask::new(task, state_store, args, stage);
-
-        execute(store_task, None).map_err(|e: String| ProviderError::ExecuteFailed(e.to_string()))
+        execute(task, None).map_err(|e: String| ProviderError::ExecuteFailed(e.to_string()))
     }
 
     /// Contentwarehouse projects locations documents get.
     ///
-    /// Automatically stores the result in the state store on success.
+    /// Read-only operation - no state tracking.
     ///
     /// # Arguments
     ///
@@ -569,7 +695,7 @@ where
     ///
     /// # Errors
     ///
-    /// Returns ProviderError if the API request or state storage fails.
+    /// Returns ProviderError if the API request fails.
     pub fn contentwarehouse_projects_locations_documents_get(
         &self,
         args: &ContentwarehouseProjectsLocationsDocumentsGetArgs,
@@ -590,12 +716,7 @@ where
         let task = contentwarehouse_projects_locations_documents_get_task(builder)
             .map_err(ProviderError::Api)?;
 
-        let state_store = self.client.state_store.clone();
-        let stage = Some(self.client.stage.clone());
-
-        let store_task = StoreStateIdentifierTask::new(task, state_store, args, stage);
-
-        execute(store_task, None).map_err(|e: String| ProviderError::ExecuteFailed(e.to_string()))
+        execute(task, None).map_err(|e: String| ProviderError::ExecuteFailed(e.to_string()))
     }
 
     /// Contentwarehouse projects locations documents linked sources.
@@ -643,7 +764,7 @@ where
 
     /// Contentwarehouse projects locations documents linked targets.
     ///
-    /// Automatically stores the result in the state store on success.
+    /// Read-only operation - no state tracking.
     ///
     /// # Arguments
     ///
@@ -655,7 +776,7 @@ where
     ///
     /// # Errors
     ///
-    /// Returns ProviderError if the API request or state storage fails.
+    /// Returns ProviderError if the API request fails.
     pub fn contentwarehouse_projects_locations_documents_linked_targets(
         &self,
         args: &ContentwarehouseProjectsLocationsDocumentsLinkedTargetsArgs,
@@ -676,12 +797,7 @@ where
         let task = contentwarehouse_projects_locations_documents_linked_targets_task(builder)
             .map_err(ProviderError::Api)?;
 
-        let state_store = self.client.state_store.clone();
-        let stage = Some(self.client.stage.clone());
-
-        let store_task = StoreStateIdentifierTask::new(task, state_store, args, stage);
-
-        execute(store_task, None).map_err(|e: String| ProviderError::ExecuteFailed(e.to_string()))
+        execute(task, None).map_err(|e: String| ProviderError::ExecuteFailed(e.to_string()))
     }
 
     /// Contentwarehouse projects locations documents lock.
@@ -772,7 +888,7 @@ where
 
     /// Contentwarehouse projects locations documents search.
     ///
-    /// Automatically stores the result in the state store on success.
+    /// Read-only operation - no state tracking.
     ///
     /// # Arguments
     ///
@@ -784,7 +900,7 @@ where
     ///
     /// # Errors
     ///
-    /// Returns ProviderError if the API request or state storage fails.
+    /// Returns ProviderError if the API request fails.
     pub fn contentwarehouse_projects_locations_documents_search(
         &self,
         args: &ContentwarehouseProjectsLocationsDocumentsSearchArgs,
@@ -805,12 +921,7 @@ where
         let task = contentwarehouse_projects_locations_documents_search_task(builder)
             .map_err(ProviderError::Api)?;
 
-        let state_store = self.client.state_store.clone();
-        let stage = Some(self.client.stage.clone());
-
-        let store_task = StoreStateIdentifierTask::new(task, state_store, args, stage);
-
-        execute(store_task, None).map_err(|e: String| ProviderError::ExecuteFailed(e.to_string()))
+        execute(task, None).map_err(|e: String| ProviderError::ExecuteFailed(e.to_string()))
     }
 
     /// Contentwarehouse projects locations documents set acl.
@@ -987,7 +1098,7 @@ where
 
     /// Contentwarehouse projects locations documents reference id get.
     ///
-    /// Automatically stores the result in the state store on success.
+    /// Read-only operation - no state tracking.
     ///
     /// # Arguments
     ///
@@ -999,7 +1110,7 @@ where
     ///
     /// # Errors
     ///
-    /// Returns ProviderError if the API request or state storage fails.
+    /// Returns ProviderError if the API request fails.
     pub fn contentwarehouse_projects_locations_documents_reference_id_get(
         &self,
         args: &ContentwarehouseProjectsLocationsDocumentsReferenceIdGetArgs,
@@ -1020,12 +1131,7 @@ where
         let task = contentwarehouse_projects_locations_documents_reference_id_get_task(builder)
             .map_err(ProviderError::Api)?;
 
-        let state_store = self.client.state_store.clone();
-        let stage = Some(self.client.stage.clone());
-
-        let store_task = StoreStateIdentifierTask::new(task, state_store, args, stage);
-
-        execute(store_task, None).map_err(|e: String| ProviderError::ExecuteFailed(e.to_string()))
+        execute(task, None).map_err(|e: String| ProviderError::ExecuteFailed(e.to_string()))
     }
 
     /// Contentwarehouse projects locations documents reference id patch.
@@ -1069,6 +1175,44 @@ where
         let store_task = StoreStateIdentifierTask::new(task, state_store, args, stage);
 
         execute(store_task, None).map_err(|e: String| ProviderError::ExecuteFailed(e.to_string()))
+    }
+
+    /// Contentwarehouse projects locations operations get.
+    ///
+    /// Read-only operation - no state tracking.
+    ///
+    /// # Arguments
+    ///
+    /// * `args` - Request arguments
+    ///
+    /// # Returns
+    ///
+    /// StreamIterator yielding the GoogleLongrunningOperation result.
+    ///
+    /// # Errors
+    ///
+    /// Returns ProviderError if the API request fails.
+    pub fn contentwarehouse_projects_locations_operations_get(
+        &self,
+        args: &ContentwarehouseProjectsLocationsOperationsGetArgs,
+    ) -> Result<
+        impl StreamIterator<
+            D = Result<GoogleLongrunningOperation, ProviderError<ApiError>>,
+            P = crate::providers::gcp::clients::types::ApiPending,
+        > + Send
+        + 'static,
+        ProviderError<ApiError>,
+    > {
+        let builder = contentwarehouse_projects_locations_operations_get_builder(
+            &self.http_client,
+            &args.name,
+        )
+        .map_err(ProviderError::Api)?;
+
+        let task = contentwarehouse_projects_locations_operations_get_task(builder)
+            .map_err(ProviderError::Api)?;
+
+        execute(task, None).map_err(|e: String| ProviderError::ExecuteFailed(e.to_string()))
     }
 
     /// Contentwarehouse projects locations rule sets create.
@@ -1155,6 +1299,84 @@ where
         let store_task = StoreStateIdentifierTask::new(task, state_store, args, stage);
 
         execute(store_task, None).map_err(|e: String| ProviderError::ExecuteFailed(e.to_string()))
+    }
+
+    /// Contentwarehouse projects locations rule sets get.
+    ///
+    /// Read-only operation - no state tracking.
+    ///
+    /// # Arguments
+    ///
+    /// * `args` - Request arguments
+    ///
+    /// # Returns
+    ///
+    /// StreamIterator yielding the GoogleCloudContentwarehouseV1RuleSet result.
+    ///
+    /// # Errors
+    ///
+    /// Returns ProviderError if the API request fails.
+    pub fn contentwarehouse_projects_locations_rule_sets_get(
+        &self,
+        args: &ContentwarehouseProjectsLocationsRuleSetsGetArgs,
+    ) -> Result<
+        impl StreamIterator<
+            D = Result<GoogleCloudContentwarehouseV1RuleSet, ProviderError<ApiError>>,
+            P = crate::providers::gcp::clients::types::ApiPending,
+        > + Send
+        + 'static,
+        ProviderError<ApiError>,
+    > {
+        let builder = contentwarehouse_projects_locations_rule_sets_get_builder(
+            &self.http_client,
+            &args.name,
+        )
+        .map_err(ProviderError::Api)?;
+
+        let task = contentwarehouse_projects_locations_rule_sets_get_task(builder)
+            .map_err(ProviderError::Api)?;
+
+        execute(task, None).map_err(|e: String| ProviderError::ExecuteFailed(e.to_string()))
+    }
+
+    /// Contentwarehouse projects locations rule sets list.
+    ///
+    /// Read-only operation - no state tracking.
+    ///
+    /// # Arguments
+    ///
+    /// * `args` - Request arguments
+    ///
+    /// # Returns
+    ///
+    /// StreamIterator yielding the GoogleCloudContentwarehouseV1ListRuleSetsResponse result.
+    ///
+    /// # Errors
+    ///
+    /// Returns ProviderError if the API request fails.
+    pub fn contentwarehouse_projects_locations_rule_sets_list(
+        &self,
+        args: &ContentwarehouseProjectsLocationsRuleSetsListArgs,
+    ) -> Result<
+        impl StreamIterator<
+            D = Result<GoogleCloudContentwarehouseV1ListRuleSetsResponse, ProviderError<ApiError>>,
+            P = crate::providers::gcp::clients::types::ApiPending,
+        > + Send
+        + 'static,
+        ProviderError<ApiError>,
+    > {
+        let builder = contentwarehouse_projects_locations_rule_sets_list_builder(
+            &self.http_client,
+            &args.parent,
+            &args.pageSize,
+            &args.pageToken,
+        )
+        .map_err(ProviderError::Api)?;
+
+        let task = contentwarehouse_projects_locations_rule_sets_list_task(builder)
+            .map_err(ProviderError::Api)?;
+
+        execute(task, None).map_err(|e: String| ProviderError::ExecuteFailed(e.to_string()))
     }
 
     /// Contentwarehouse projects locations rule sets patch.
@@ -1284,6 +1506,84 @@ where
         let store_task = StoreStateIdentifierTask::new(task, state_store, args, stage);
 
         execute(store_task, None).map_err(|e: String| ProviderError::ExecuteFailed(e.to_string()))
+    }
+
+    /// Contentwarehouse projects locations synonym sets get.
+    ///
+    /// Read-only operation - no state tracking.
+    ///
+    /// # Arguments
+    ///
+    /// * `args` - Request arguments
+    ///
+    /// # Returns
+    ///
+    /// StreamIterator yielding the GoogleCloudContentwarehouseV1SynonymSet result.
+    ///
+    /// # Errors
+    ///
+    /// Returns ProviderError if the API request fails.
+    pub fn contentwarehouse_projects_locations_synonym_sets_get(
+        &self,
+        args: &ContentwarehouseProjectsLocationsSynonymSetsGetArgs,
+    ) -> Result<
+        impl StreamIterator<
+            D = Result<GoogleCloudContentwarehouseV1SynonymSet, ProviderError<ApiError>>,
+            P = crate::providers::gcp::clients::types::ApiPending,
+        > + Send
+        + 'static,
+        ProviderError<ApiError>,
+    > {
+        let builder = contentwarehouse_projects_locations_synonym_sets_get_builder(
+            &self.http_client,
+            &args.name,
+        )
+        .map_err(ProviderError::Api)?;
+
+        let task = contentwarehouse_projects_locations_synonym_sets_get_task(builder)
+            .map_err(ProviderError::Api)?;
+
+        execute(task, None).map_err(|e: String| ProviderError::ExecuteFailed(e.to_string()))
+    }
+
+    /// Contentwarehouse projects locations synonym sets list.
+    ///
+    /// Read-only operation - no state tracking.
+    ///
+    /// # Arguments
+    ///
+    /// * `args` - Request arguments
+    ///
+    /// # Returns
+    ///
+    /// StreamIterator yielding the GoogleCloudContentwarehouseV1ListSynonymSetsResponse result.
+    ///
+    /// # Errors
+    ///
+    /// Returns ProviderError if the API request fails.
+    pub fn contentwarehouse_projects_locations_synonym_sets_list(
+        &self,
+        args: &ContentwarehouseProjectsLocationsSynonymSetsListArgs,
+    ) -> Result<
+        impl StreamIterator<
+            D = Result<GoogleCloudContentwarehouseV1ListSynonymSetsResponse, ProviderError<ApiError>>,
+            P = crate::providers::gcp::clients::types::ApiPending,
+        > + Send
+        + 'static,
+        ProviderError<ApiError>,
+    > {
+        let builder = contentwarehouse_projects_locations_synonym_sets_list_builder(
+            &self.http_client,
+            &args.parent,
+            &args.pageSize,
+            &args.pageToken,
+        )
+        .map_err(ProviderError::Api)?;
+
+        let task = contentwarehouse_projects_locations_synonym_sets_list_task(builder)
+            .map_err(ProviderError::Api)?;
+
+        execute(task, None).map_err(|e: String| ProviderError::ExecuteFailed(e.to_string()))
     }
 
     /// Contentwarehouse projects locations synonym sets patch.

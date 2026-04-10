@@ -14,22 +14,33 @@
 use crate::providers::gcp::clients::forms::{
     forms_forms_batch_update_builder, forms_forms_batch_update_task,
     forms_forms_create_builder, forms_forms_create_task,
+    forms_forms_get_builder, forms_forms_get_task,
     forms_forms_set_publish_settings_builder, forms_forms_set_publish_settings_task,
+    forms_forms_responses_get_builder, forms_forms_responses_get_task,
+    forms_forms_responses_list_builder, forms_forms_responses_list_task,
     forms_forms_watches_create_builder, forms_forms_watches_create_task,
     forms_forms_watches_delete_builder, forms_forms_watches_delete_task,
+    forms_forms_watches_list_builder, forms_forms_watches_list_task,
     forms_forms_watches_renew_builder, forms_forms_watches_renew_task,
 };
 use crate::providers::gcp::clients::types::{ApiError, ApiPending};
 use crate::providers::gcp::clients::forms::BatchUpdateFormResponse;
 use crate::providers::gcp::clients::forms::Empty;
 use crate::providers::gcp::clients::forms::Form;
+use crate::providers::gcp::clients::forms::FormResponse;
+use crate::providers::gcp::clients::forms::ListFormResponsesResponse;
+use crate::providers::gcp::clients::forms::ListWatchesResponse;
 use crate::providers::gcp::clients::forms::SetPublishSettingsResponse;
 use crate::providers::gcp::clients::forms::Watch;
 use crate::providers::gcp::clients::forms::FormsFormsBatchUpdateArgs;
 use crate::providers::gcp::clients::forms::FormsFormsCreateArgs;
+use crate::providers::gcp::clients::forms::FormsFormsGetArgs;
+use crate::providers::gcp::clients::forms::FormsFormsResponsesGetArgs;
+use crate::providers::gcp::clients::forms::FormsFormsResponsesListArgs;
 use crate::providers::gcp::clients::forms::FormsFormsSetPublishSettingsArgs;
 use crate::providers::gcp::clients::forms::FormsFormsWatchesCreateArgs;
 use crate::providers::gcp::clients::forms::FormsFormsWatchesDeleteArgs;
+use crate::providers::gcp::clients::forms::FormsFormsWatchesListArgs;
 use crate::providers::gcp::clients::forms::FormsFormsWatchesRenewArgs;
 use crate::provider_client::{ProviderClient, ProviderError};
 use foundation_core::valtron::{execute, StreamIterator};
@@ -158,6 +169,44 @@ where
         execute(store_task, None).map_err(|e: String| ProviderError::ExecuteFailed(e.to_string()))
     }
 
+    /// Forms forms get.
+    ///
+    /// Read-only operation - no state tracking.
+    ///
+    /// # Arguments
+    ///
+    /// * `args` - Request arguments
+    ///
+    /// # Returns
+    ///
+    /// StreamIterator yielding the Form result.
+    ///
+    /// # Errors
+    ///
+    /// Returns ProviderError if the API request fails.
+    pub fn forms_forms_get(
+        &self,
+        args: &FormsFormsGetArgs,
+    ) -> Result<
+        impl StreamIterator<
+            D = Result<Form, ProviderError<ApiError>>,
+            P = crate::providers::gcp::clients::types::ApiPending,
+        > + Send
+        + 'static,
+        ProviderError<ApiError>,
+    > {
+        let builder = forms_forms_get_builder(
+            &self.http_client,
+            &args.formId,
+        )
+        .map_err(ProviderError::Api)?;
+
+        let task = forms_forms_get_task(builder)
+            .map_err(ProviderError::Api)?;
+
+        execute(task, None).map_err(|e: String| ProviderError::ExecuteFailed(e.to_string()))
+    }
+
     /// Forms forms set publish settings.
     ///
     /// Automatically stores the result in the state store on success.
@@ -199,6 +248,86 @@ where
         let store_task = StoreStateIdentifierTask::new(task, state_store, args, stage);
 
         execute(store_task, None).map_err(|e: String| ProviderError::ExecuteFailed(e.to_string()))
+    }
+
+    /// Forms forms responses get.
+    ///
+    /// Read-only operation - no state tracking.
+    ///
+    /// # Arguments
+    ///
+    /// * `args` - Request arguments
+    ///
+    /// # Returns
+    ///
+    /// StreamIterator yielding the FormResponse result.
+    ///
+    /// # Errors
+    ///
+    /// Returns ProviderError if the API request fails.
+    pub fn forms_forms_responses_get(
+        &self,
+        args: &FormsFormsResponsesGetArgs,
+    ) -> Result<
+        impl StreamIterator<
+            D = Result<FormResponse, ProviderError<ApiError>>,
+            P = crate::providers::gcp::clients::types::ApiPending,
+        > + Send
+        + 'static,
+        ProviderError<ApiError>,
+    > {
+        let builder = forms_forms_responses_get_builder(
+            &self.http_client,
+            &args.formId,
+            &args.responseId,
+        )
+        .map_err(ProviderError::Api)?;
+
+        let task = forms_forms_responses_get_task(builder)
+            .map_err(ProviderError::Api)?;
+
+        execute(task, None).map_err(|e: String| ProviderError::ExecuteFailed(e.to_string()))
+    }
+
+    /// Forms forms responses list.
+    ///
+    /// Read-only operation - no state tracking.
+    ///
+    /// # Arguments
+    ///
+    /// * `args` - Request arguments
+    ///
+    /// # Returns
+    ///
+    /// StreamIterator yielding the ListFormResponsesResponse result.
+    ///
+    /// # Errors
+    ///
+    /// Returns ProviderError if the API request fails.
+    pub fn forms_forms_responses_list(
+        &self,
+        args: &FormsFormsResponsesListArgs,
+    ) -> Result<
+        impl StreamIterator<
+            D = Result<ListFormResponsesResponse, ProviderError<ApiError>>,
+            P = crate::providers::gcp::clients::types::ApiPending,
+        > + Send
+        + 'static,
+        ProviderError<ApiError>,
+    > {
+        let builder = forms_forms_responses_list_builder(
+            &self.http_client,
+            &args.formId,
+            &args.filter,
+            &args.pageSize,
+            &args.pageToken,
+        )
+        .map_err(ProviderError::Api)?;
+
+        let task = forms_forms_responses_list_task(builder)
+            .map_err(ProviderError::Api)?;
+
+        execute(task, None).map_err(|e: String| ProviderError::ExecuteFailed(e.to_string()))
     }
 
     /// Forms forms watches create.
@@ -286,6 +415,44 @@ where
         let store_task = StoreStateIdentifierTask::new(task, state_store, args, stage);
 
         execute(store_task, None).map_err(|e: String| ProviderError::ExecuteFailed(e.to_string()))
+    }
+
+    /// Forms forms watches list.
+    ///
+    /// Read-only operation - no state tracking.
+    ///
+    /// # Arguments
+    ///
+    /// * `args` - Request arguments
+    ///
+    /// # Returns
+    ///
+    /// StreamIterator yielding the ListWatchesResponse result.
+    ///
+    /// # Errors
+    ///
+    /// Returns ProviderError if the API request fails.
+    pub fn forms_forms_watches_list(
+        &self,
+        args: &FormsFormsWatchesListArgs,
+    ) -> Result<
+        impl StreamIterator<
+            D = Result<ListWatchesResponse, ProviderError<ApiError>>,
+            P = crate::providers::gcp::clients::types::ApiPending,
+        > + Send
+        + 'static,
+        ProviderError<ApiError>,
+    > {
+        let builder = forms_forms_watches_list_builder(
+            &self.http_client,
+            &args.formId,
+        )
+        .map_err(ProviderError::Api)?;
+
+        let task = forms_forms_watches_list_task(builder)
+            .map_err(ProviderError::Api)?;
+
+        execute(task, None).map_err(|e: String| ProviderError::ExecuteFailed(e.to_string()))
     }
 
     /// Forms forms watches renew.

@@ -12,11 +12,13 @@
 #![cfg(feature = "gcp")]
 
 use crate::providers::gcp::clients::groupssettings::{
+    groups_settings_groups_get_builder, groups_settings_groups_get_task,
     groups_settings_groups_patch_builder, groups_settings_groups_patch_task,
     groups_settings_groups_update_builder, groups_settings_groups_update_task,
 };
 use crate::providers::gcp::clients::types::{ApiError, ApiPending};
 use crate::providers::gcp::clients::groupssettings::Groups;
+use crate::providers::gcp::clients::groupssettings::GroupsSettingsGroupsGetArgs;
 use crate::providers::gcp::clients::groupssettings::GroupsSettingsGroupsPatchArgs;
 use crate::providers::gcp::clients::groupssettings::GroupsSettingsGroupsUpdateArgs;
 use crate::provider_client::{ProviderClient, ProviderError};
@@ -58,6 +60,44 @@ where
             client,
             http_client: Arc::new(http_client),
         }
+    }
+
+    /// Groups settings groups get.
+    ///
+    /// Read-only operation - no state tracking.
+    ///
+    /// # Arguments
+    ///
+    /// * `args` - Request arguments
+    ///
+    /// # Returns
+    ///
+    /// StreamIterator yielding the Groups result.
+    ///
+    /// # Errors
+    ///
+    /// Returns ProviderError if the API request fails.
+    pub fn groups_settings_groups_get(
+        &self,
+        args: &GroupsSettingsGroupsGetArgs,
+    ) -> Result<
+        impl StreamIterator<
+            D = Result<Groups, ProviderError<ApiError>>,
+            P = crate::providers::gcp::clients::types::ApiPending,
+        > + Send
+        + 'static,
+        ProviderError<ApiError>,
+    > {
+        let builder = groups_settings_groups_get_builder(
+            &self.http_client,
+            &args.groupUniqueId,
+        )
+        .map_err(ProviderError::Api)?;
+
+        let task = groups_settings_groups_get_task(builder)
+            .map_err(ProviderError::Api)?;
+
+        execute(task, None).map_err(|e: String| ProviderError::ExecuteFailed(e.to_string()))
     }
 
     /// Groups settings groups patch.

@@ -12,41 +12,62 @@
 #![cfg(feature = "gcp")]
 
 use crate::providers::gcp::clients::servicedirectory::{
+    servicedirectory_projects_locations_get_builder, servicedirectory_projects_locations_get_task,
+    servicedirectory_projects_locations_list_builder, servicedirectory_projects_locations_list_task,
     servicedirectory_projects_locations_namespaces_create_builder, servicedirectory_projects_locations_namespaces_create_task,
     servicedirectory_projects_locations_namespaces_delete_builder, servicedirectory_projects_locations_namespaces_delete_task,
+    servicedirectory_projects_locations_namespaces_get_builder, servicedirectory_projects_locations_namespaces_get_task,
     servicedirectory_projects_locations_namespaces_get_iam_policy_builder, servicedirectory_projects_locations_namespaces_get_iam_policy_task,
+    servicedirectory_projects_locations_namespaces_list_builder, servicedirectory_projects_locations_namespaces_list_task,
     servicedirectory_projects_locations_namespaces_patch_builder, servicedirectory_projects_locations_namespaces_patch_task,
     servicedirectory_projects_locations_namespaces_set_iam_policy_builder, servicedirectory_projects_locations_namespaces_set_iam_policy_task,
     servicedirectory_projects_locations_namespaces_test_iam_permissions_builder, servicedirectory_projects_locations_namespaces_test_iam_permissions_task,
     servicedirectory_projects_locations_namespaces_services_create_builder, servicedirectory_projects_locations_namespaces_services_create_task,
     servicedirectory_projects_locations_namespaces_services_delete_builder, servicedirectory_projects_locations_namespaces_services_delete_task,
+    servicedirectory_projects_locations_namespaces_services_get_builder, servicedirectory_projects_locations_namespaces_services_get_task,
     servicedirectory_projects_locations_namespaces_services_get_iam_policy_builder, servicedirectory_projects_locations_namespaces_services_get_iam_policy_task,
+    servicedirectory_projects_locations_namespaces_services_list_builder, servicedirectory_projects_locations_namespaces_services_list_task,
     servicedirectory_projects_locations_namespaces_services_patch_builder, servicedirectory_projects_locations_namespaces_services_patch_task,
     servicedirectory_projects_locations_namespaces_services_resolve_builder, servicedirectory_projects_locations_namespaces_services_resolve_task,
     servicedirectory_projects_locations_namespaces_services_set_iam_policy_builder, servicedirectory_projects_locations_namespaces_services_set_iam_policy_task,
     servicedirectory_projects_locations_namespaces_services_test_iam_permissions_builder, servicedirectory_projects_locations_namespaces_services_test_iam_permissions_task,
     servicedirectory_projects_locations_namespaces_services_endpoints_create_builder, servicedirectory_projects_locations_namespaces_services_endpoints_create_task,
     servicedirectory_projects_locations_namespaces_services_endpoints_delete_builder, servicedirectory_projects_locations_namespaces_services_endpoints_delete_task,
+    servicedirectory_projects_locations_namespaces_services_endpoints_get_builder, servicedirectory_projects_locations_namespaces_services_endpoints_get_task,
+    servicedirectory_projects_locations_namespaces_services_endpoints_list_builder, servicedirectory_projects_locations_namespaces_services_endpoints_list_task,
     servicedirectory_projects_locations_namespaces_services_endpoints_patch_builder, servicedirectory_projects_locations_namespaces_services_endpoints_patch_task,
 };
 use crate::providers::gcp::clients::types::{ApiError, ApiPending};
 use crate::providers::gcp::clients::servicedirectory::Empty;
 use crate::providers::gcp::clients::servicedirectory::Endpoint;
+use crate::providers::gcp::clients::servicedirectory::ListEndpointsResponse;
+use crate::providers::gcp::clients::servicedirectory::ListLocationsResponse;
+use crate::providers::gcp::clients::servicedirectory::ListNamespacesResponse;
+use crate::providers::gcp::clients::servicedirectory::ListServicesResponse;
+use crate::providers::gcp::clients::servicedirectory::Location;
 use crate::providers::gcp::clients::servicedirectory::Namespace;
 use crate::providers::gcp::clients::servicedirectory::Policy;
 use crate::providers::gcp::clients::servicedirectory::ResolveServiceResponse;
 use crate::providers::gcp::clients::servicedirectory::Service;
 use crate::providers::gcp::clients::servicedirectory::TestIamPermissionsResponse;
+use crate::providers::gcp::clients::servicedirectory::ServicedirectoryProjectsLocationsGetArgs;
+use crate::providers::gcp::clients::servicedirectory::ServicedirectoryProjectsLocationsListArgs;
 use crate::providers::gcp::clients::servicedirectory::ServicedirectoryProjectsLocationsNamespacesCreateArgs;
 use crate::providers::gcp::clients::servicedirectory::ServicedirectoryProjectsLocationsNamespacesDeleteArgs;
+use crate::providers::gcp::clients::servicedirectory::ServicedirectoryProjectsLocationsNamespacesGetArgs;
 use crate::providers::gcp::clients::servicedirectory::ServicedirectoryProjectsLocationsNamespacesGetIamPolicyArgs;
+use crate::providers::gcp::clients::servicedirectory::ServicedirectoryProjectsLocationsNamespacesListArgs;
 use crate::providers::gcp::clients::servicedirectory::ServicedirectoryProjectsLocationsNamespacesPatchArgs;
 use crate::providers::gcp::clients::servicedirectory::ServicedirectoryProjectsLocationsNamespacesServicesCreateArgs;
 use crate::providers::gcp::clients::servicedirectory::ServicedirectoryProjectsLocationsNamespacesServicesDeleteArgs;
 use crate::providers::gcp::clients::servicedirectory::ServicedirectoryProjectsLocationsNamespacesServicesEndpointsCreateArgs;
 use crate::providers::gcp::clients::servicedirectory::ServicedirectoryProjectsLocationsNamespacesServicesEndpointsDeleteArgs;
+use crate::providers::gcp::clients::servicedirectory::ServicedirectoryProjectsLocationsNamespacesServicesEndpointsGetArgs;
+use crate::providers::gcp::clients::servicedirectory::ServicedirectoryProjectsLocationsNamespacesServicesEndpointsListArgs;
 use crate::providers::gcp::clients::servicedirectory::ServicedirectoryProjectsLocationsNamespacesServicesEndpointsPatchArgs;
+use crate::providers::gcp::clients::servicedirectory::ServicedirectoryProjectsLocationsNamespacesServicesGetArgs;
 use crate::providers::gcp::clients::servicedirectory::ServicedirectoryProjectsLocationsNamespacesServicesGetIamPolicyArgs;
+use crate::providers::gcp::clients::servicedirectory::ServicedirectoryProjectsLocationsNamespacesServicesListArgs;
 use crate::providers::gcp::clients::servicedirectory::ServicedirectoryProjectsLocationsNamespacesServicesPatchArgs;
 use crate::providers::gcp::clients::servicedirectory::ServicedirectoryProjectsLocationsNamespacesServicesResolveArgs;
 use crate::providers::gcp::clients::servicedirectory::ServicedirectoryProjectsLocationsNamespacesServicesSetIamPolicyArgs;
@@ -92,6 +113,86 @@ where
             client,
             http_client: Arc::new(http_client),
         }
+    }
+
+    /// Servicedirectory projects locations get.
+    ///
+    /// Read-only operation - no state tracking.
+    ///
+    /// # Arguments
+    ///
+    /// * `args` - Request arguments
+    ///
+    /// # Returns
+    ///
+    /// StreamIterator yielding the Location result.
+    ///
+    /// # Errors
+    ///
+    /// Returns ProviderError if the API request fails.
+    pub fn servicedirectory_projects_locations_get(
+        &self,
+        args: &ServicedirectoryProjectsLocationsGetArgs,
+    ) -> Result<
+        impl StreamIterator<
+            D = Result<Location, ProviderError<ApiError>>,
+            P = crate::providers::gcp::clients::types::ApiPending,
+        > + Send
+        + 'static,
+        ProviderError<ApiError>,
+    > {
+        let builder = servicedirectory_projects_locations_get_builder(
+            &self.http_client,
+            &args.name,
+        )
+        .map_err(ProviderError::Api)?;
+
+        let task = servicedirectory_projects_locations_get_task(builder)
+            .map_err(ProviderError::Api)?;
+
+        execute(task, None).map_err(|e: String| ProviderError::ExecuteFailed(e.to_string()))
+    }
+
+    /// Servicedirectory projects locations list.
+    ///
+    /// Read-only operation - no state tracking.
+    ///
+    /// # Arguments
+    ///
+    /// * `args` - Request arguments
+    ///
+    /// # Returns
+    ///
+    /// StreamIterator yielding the ListLocationsResponse result.
+    ///
+    /// # Errors
+    ///
+    /// Returns ProviderError if the API request fails.
+    pub fn servicedirectory_projects_locations_list(
+        &self,
+        args: &ServicedirectoryProjectsLocationsListArgs,
+    ) -> Result<
+        impl StreamIterator<
+            D = Result<ListLocationsResponse, ProviderError<ApiError>>,
+            P = crate::providers::gcp::clients::types::ApiPending,
+        > + Send
+        + 'static,
+        ProviderError<ApiError>,
+    > {
+        let builder = servicedirectory_projects_locations_list_builder(
+            &self.http_client,
+            &args.name,
+            &args.extraLocationTypes,
+            &args.filter,
+            &args.pageSize,
+            &args.pageToken,
+        )
+        .map_err(ProviderError::Api)?;
+
+        let task = servicedirectory_projects_locations_list_task(builder)
+            .map_err(ProviderError::Api)?;
+
+        execute(task, None).map_err(|e: String| ProviderError::ExecuteFailed(e.to_string()))
     }
 
     /// Servicedirectory projects locations namespaces create.
@@ -181,9 +282,47 @@ where
         execute(store_task, None).map_err(|e: String| ProviderError::ExecuteFailed(e.to_string()))
     }
 
+    /// Servicedirectory projects locations namespaces get.
+    ///
+    /// Read-only operation - no state tracking.
+    ///
+    /// # Arguments
+    ///
+    /// * `args` - Request arguments
+    ///
+    /// # Returns
+    ///
+    /// StreamIterator yielding the Namespace result.
+    ///
+    /// # Errors
+    ///
+    /// Returns ProviderError if the API request fails.
+    pub fn servicedirectory_projects_locations_namespaces_get(
+        &self,
+        args: &ServicedirectoryProjectsLocationsNamespacesGetArgs,
+    ) -> Result<
+        impl StreamIterator<
+            D = Result<Namespace, ProviderError<ApiError>>,
+            P = crate::providers::gcp::clients::types::ApiPending,
+        > + Send
+        + 'static,
+        ProviderError<ApiError>,
+    > {
+        let builder = servicedirectory_projects_locations_namespaces_get_builder(
+            &self.http_client,
+            &args.name,
+        )
+        .map_err(ProviderError::Api)?;
+
+        let task = servicedirectory_projects_locations_namespaces_get_task(builder)
+            .map_err(ProviderError::Api)?;
+
+        execute(task, None).map_err(|e: String| ProviderError::ExecuteFailed(e.to_string()))
+    }
+
     /// Servicedirectory projects locations namespaces get iam policy.
     ///
-    /// Automatically stores the result in the state store on success.
+    /// Read-only operation - no state tracking.
     ///
     /// # Arguments
     ///
@@ -195,7 +334,7 @@ where
     ///
     /// # Errors
     ///
-    /// Returns ProviderError if the API request or state storage fails.
+    /// Returns ProviderError if the API request fails.
     pub fn servicedirectory_projects_locations_namespaces_get_iam_policy(
         &self,
         args: &ServicedirectoryProjectsLocationsNamespacesGetIamPolicyArgs,
@@ -216,12 +355,49 @@ where
         let task = servicedirectory_projects_locations_namespaces_get_iam_policy_task(builder)
             .map_err(ProviderError::Api)?;
 
-        let state_store = self.client.state_store.clone();
-        let stage = Some(self.client.stage.clone());
+        execute(task, None).map_err(|e: String| ProviderError::ExecuteFailed(e.to_string()))
+    }
 
-        let store_task = StoreStateIdentifierTask::new(task, state_store, args, stage);
+    /// Servicedirectory projects locations namespaces list.
+    ///
+    /// Read-only operation - no state tracking.
+    ///
+    /// # Arguments
+    ///
+    /// * `args` - Request arguments
+    ///
+    /// # Returns
+    ///
+    /// StreamIterator yielding the ListNamespacesResponse result.
+    ///
+    /// # Errors
+    ///
+    /// Returns ProviderError if the API request fails.
+    pub fn servicedirectory_projects_locations_namespaces_list(
+        &self,
+        args: &ServicedirectoryProjectsLocationsNamespacesListArgs,
+    ) -> Result<
+        impl StreamIterator<
+            D = Result<ListNamespacesResponse, ProviderError<ApiError>>,
+            P = crate::providers::gcp::clients::types::ApiPending,
+        > + Send
+        + 'static,
+        ProviderError<ApiError>,
+    > {
+        let builder = servicedirectory_projects_locations_namespaces_list_builder(
+            &self.http_client,
+            &args.parent,
+            &args.filter,
+            &args.orderBy,
+            &args.pageSize,
+            &args.pageToken,
+        )
+        .map_err(ProviderError::Api)?;
 
-        execute(store_task, None).map_err(|e: String| ProviderError::ExecuteFailed(e.to_string()))
+        let task = servicedirectory_projects_locations_namespaces_list_task(builder)
+            .map_err(ProviderError::Api)?;
+
+        execute(task, None).map_err(|e: String| ProviderError::ExecuteFailed(e.to_string()))
     }
 
     /// Servicedirectory projects locations namespaces patch.
@@ -313,7 +489,7 @@ where
 
     /// Servicedirectory projects locations namespaces test iam permissions.
     ///
-    /// Automatically stores the result in the state store on success.
+    /// Read-only operation - no state tracking.
     ///
     /// # Arguments
     ///
@@ -325,7 +501,7 @@ where
     ///
     /// # Errors
     ///
-    /// Returns ProviderError if the API request or state storage fails.
+    /// Returns ProviderError if the API request fails.
     pub fn servicedirectory_projects_locations_namespaces_test_iam_permissions(
         &self,
         args: &ServicedirectoryProjectsLocationsNamespacesTestIamPermissionsArgs,
@@ -346,12 +522,7 @@ where
         let task = servicedirectory_projects_locations_namespaces_test_iam_permissions_task(builder)
             .map_err(ProviderError::Api)?;
 
-        let state_store = self.client.state_store.clone();
-        let stage = Some(self.client.stage.clone());
-
-        let store_task = StoreStateIdentifierTask::new(task, state_store, args, stage);
-
-        execute(store_task, None).map_err(|e: String| ProviderError::ExecuteFailed(e.to_string()))
+        execute(task, None).map_err(|e: String| ProviderError::ExecuteFailed(e.to_string()))
     }
 
     /// Servicedirectory projects locations namespaces services create.
@@ -441,9 +612,47 @@ where
         execute(store_task, None).map_err(|e: String| ProviderError::ExecuteFailed(e.to_string()))
     }
 
+    /// Servicedirectory projects locations namespaces services get.
+    ///
+    /// Read-only operation - no state tracking.
+    ///
+    /// # Arguments
+    ///
+    /// * `args` - Request arguments
+    ///
+    /// # Returns
+    ///
+    /// StreamIterator yielding the Service result.
+    ///
+    /// # Errors
+    ///
+    /// Returns ProviderError if the API request fails.
+    pub fn servicedirectory_projects_locations_namespaces_services_get(
+        &self,
+        args: &ServicedirectoryProjectsLocationsNamespacesServicesGetArgs,
+    ) -> Result<
+        impl StreamIterator<
+            D = Result<Service, ProviderError<ApiError>>,
+            P = crate::providers::gcp::clients::types::ApiPending,
+        > + Send
+        + 'static,
+        ProviderError<ApiError>,
+    > {
+        let builder = servicedirectory_projects_locations_namespaces_services_get_builder(
+            &self.http_client,
+            &args.name,
+        )
+        .map_err(ProviderError::Api)?;
+
+        let task = servicedirectory_projects_locations_namespaces_services_get_task(builder)
+            .map_err(ProviderError::Api)?;
+
+        execute(task, None).map_err(|e: String| ProviderError::ExecuteFailed(e.to_string()))
+    }
+
     /// Servicedirectory projects locations namespaces services get iam policy.
     ///
-    /// Automatically stores the result in the state store on success.
+    /// Read-only operation - no state tracking.
     ///
     /// # Arguments
     ///
@@ -455,7 +664,7 @@ where
     ///
     /// # Errors
     ///
-    /// Returns ProviderError if the API request or state storage fails.
+    /// Returns ProviderError if the API request fails.
     pub fn servicedirectory_projects_locations_namespaces_services_get_iam_policy(
         &self,
         args: &ServicedirectoryProjectsLocationsNamespacesServicesGetIamPolicyArgs,
@@ -476,12 +685,49 @@ where
         let task = servicedirectory_projects_locations_namespaces_services_get_iam_policy_task(builder)
             .map_err(ProviderError::Api)?;
 
-        let state_store = self.client.state_store.clone();
-        let stage = Some(self.client.stage.clone());
+        execute(task, None).map_err(|e: String| ProviderError::ExecuteFailed(e.to_string()))
+    }
 
-        let store_task = StoreStateIdentifierTask::new(task, state_store, args, stage);
+    /// Servicedirectory projects locations namespaces services list.
+    ///
+    /// Read-only operation - no state tracking.
+    ///
+    /// # Arguments
+    ///
+    /// * `args` - Request arguments
+    ///
+    /// # Returns
+    ///
+    /// StreamIterator yielding the ListServicesResponse result.
+    ///
+    /// # Errors
+    ///
+    /// Returns ProviderError if the API request fails.
+    pub fn servicedirectory_projects_locations_namespaces_services_list(
+        &self,
+        args: &ServicedirectoryProjectsLocationsNamespacesServicesListArgs,
+    ) -> Result<
+        impl StreamIterator<
+            D = Result<ListServicesResponse, ProviderError<ApiError>>,
+            P = crate::providers::gcp::clients::types::ApiPending,
+        > + Send
+        + 'static,
+        ProviderError<ApiError>,
+    > {
+        let builder = servicedirectory_projects_locations_namespaces_services_list_builder(
+            &self.http_client,
+            &args.parent,
+            &args.filter,
+            &args.orderBy,
+            &args.pageSize,
+            &args.pageToken,
+        )
+        .map_err(ProviderError::Api)?;
 
-        execute(store_task, None).map_err(|e: String| ProviderError::ExecuteFailed(e.to_string()))
+        let task = servicedirectory_projects_locations_namespaces_services_list_task(builder)
+            .map_err(ProviderError::Api)?;
+
+        execute(task, None).map_err(|e: String| ProviderError::ExecuteFailed(e.to_string()))
     }
 
     /// Servicedirectory projects locations namespaces services patch.
@@ -616,7 +862,7 @@ where
 
     /// Servicedirectory projects locations namespaces services test iam permissions.
     ///
-    /// Automatically stores the result in the state store on success.
+    /// Read-only operation - no state tracking.
     ///
     /// # Arguments
     ///
@@ -628,7 +874,7 @@ where
     ///
     /// # Errors
     ///
-    /// Returns ProviderError if the API request or state storage fails.
+    /// Returns ProviderError if the API request fails.
     pub fn servicedirectory_projects_locations_namespaces_services_test_iam_permissions(
         &self,
         args: &ServicedirectoryProjectsLocationsNamespacesServicesTestIamPermissionsArgs,
@@ -649,12 +895,7 @@ where
         let task = servicedirectory_projects_locations_namespaces_services_test_iam_permissions_task(builder)
             .map_err(ProviderError::Api)?;
 
-        let state_store = self.client.state_store.clone();
-        let stage = Some(self.client.stage.clone());
-
-        let store_task = StoreStateIdentifierTask::new(task, state_store, args, stage);
-
-        execute(store_task, None).map_err(|e: String| ProviderError::ExecuteFailed(e.to_string()))
+        execute(task, None).map_err(|e: String| ProviderError::ExecuteFailed(e.to_string()))
     }
 
     /// Servicedirectory projects locations namespaces services endpoints create.
@@ -742,6 +983,86 @@ where
         let store_task = StoreStateIdentifierTask::new(task, state_store, args, stage);
 
         execute(store_task, None).map_err(|e: String| ProviderError::ExecuteFailed(e.to_string()))
+    }
+
+    /// Servicedirectory projects locations namespaces services endpoints get.
+    ///
+    /// Read-only operation - no state tracking.
+    ///
+    /// # Arguments
+    ///
+    /// * `args` - Request arguments
+    ///
+    /// # Returns
+    ///
+    /// StreamIterator yielding the Endpoint result.
+    ///
+    /// # Errors
+    ///
+    /// Returns ProviderError if the API request fails.
+    pub fn servicedirectory_projects_locations_namespaces_services_endpoints_get(
+        &self,
+        args: &ServicedirectoryProjectsLocationsNamespacesServicesEndpointsGetArgs,
+    ) -> Result<
+        impl StreamIterator<
+            D = Result<Endpoint, ProviderError<ApiError>>,
+            P = crate::providers::gcp::clients::types::ApiPending,
+        > + Send
+        + 'static,
+        ProviderError<ApiError>,
+    > {
+        let builder = servicedirectory_projects_locations_namespaces_services_endpoints_get_builder(
+            &self.http_client,
+            &args.name,
+        )
+        .map_err(ProviderError::Api)?;
+
+        let task = servicedirectory_projects_locations_namespaces_services_endpoints_get_task(builder)
+            .map_err(ProviderError::Api)?;
+
+        execute(task, None).map_err(|e: String| ProviderError::ExecuteFailed(e.to_string()))
+    }
+
+    /// Servicedirectory projects locations namespaces services endpoints list.
+    ///
+    /// Read-only operation - no state tracking.
+    ///
+    /// # Arguments
+    ///
+    /// * `args` - Request arguments
+    ///
+    /// # Returns
+    ///
+    /// StreamIterator yielding the ListEndpointsResponse result.
+    ///
+    /// # Errors
+    ///
+    /// Returns ProviderError if the API request fails.
+    pub fn servicedirectory_projects_locations_namespaces_services_endpoints_list(
+        &self,
+        args: &ServicedirectoryProjectsLocationsNamespacesServicesEndpointsListArgs,
+    ) -> Result<
+        impl StreamIterator<
+            D = Result<ListEndpointsResponse, ProviderError<ApiError>>,
+            P = crate::providers::gcp::clients::types::ApiPending,
+        > + Send
+        + 'static,
+        ProviderError<ApiError>,
+    > {
+        let builder = servicedirectory_projects_locations_namespaces_services_endpoints_list_builder(
+            &self.http_client,
+            &args.parent,
+            &args.filter,
+            &args.orderBy,
+            &args.pageSize,
+            &args.pageToken,
+        )
+        .map_err(ProviderError::Api)?;
+
+        let task = servicedirectory_projects_locations_namespaces_services_endpoints_list_task(builder)
+            .map_err(ProviderError::Api)?;
+
+        execute(task, None).map_err(|e: String| ProviderError::ExecuteFailed(e.to_string()))
     }
 
     /// Servicedirectory projects locations namespaces services endpoints patch.

@@ -16,8 +16,11 @@ use crate::providers::gcp::clients::vision::{
     vision_files_async_batch_annotate_builder, vision_files_async_batch_annotate_task,
     vision_images_annotate_builder, vision_images_annotate_task,
     vision_images_async_batch_annotate_builder, vision_images_async_batch_annotate_task,
+    vision_locations_operations_get_builder, vision_locations_operations_get_task,
     vision_operations_cancel_builder, vision_operations_cancel_task,
     vision_operations_delete_builder, vision_operations_delete_task,
+    vision_operations_get_builder, vision_operations_get_task,
+    vision_operations_list_builder, vision_operations_list_task,
     vision_projects_files_annotate_builder, vision_projects_files_annotate_task,
     vision_projects_files_async_batch_annotate_builder, vision_projects_files_async_batch_annotate_task,
     vision_projects_images_annotate_builder, vision_projects_images_annotate_task,
@@ -26,23 +29,37 @@ use crate::providers::gcp::clients::vision::{
     vision_projects_locations_files_async_batch_annotate_builder, vision_projects_locations_files_async_batch_annotate_task,
     vision_projects_locations_images_annotate_builder, vision_projects_locations_images_annotate_task,
     vision_projects_locations_images_async_batch_annotate_builder, vision_projects_locations_images_async_batch_annotate_task,
+    vision_projects_locations_operations_get_builder, vision_projects_locations_operations_get_task,
     vision_projects_locations_product_sets_add_product_builder, vision_projects_locations_product_sets_add_product_task,
     vision_projects_locations_product_sets_create_builder, vision_projects_locations_product_sets_create_task,
     vision_projects_locations_product_sets_delete_builder, vision_projects_locations_product_sets_delete_task,
+    vision_projects_locations_product_sets_get_builder, vision_projects_locations_product_sets_get_task,
     vision_projects_locations_product_sets_import_builder, vision_projects_locations_product_sets_import_task,
+    vision_projects_locations_product_sets_list_builder, vision_projects_locations_product_sets_list_task,
     vision_projects_locations_product_sets_patch_builder, vision_projects_locations_product_sets_patch_task,
     vision_projects_locations_product_sets_remove_product_builder, vision_projects_locations_product_sets_remove_product_task,
+    vision_projects_locations_product_sets_products_list_builder, vision_projects_locations_product_sets_products_list_task,
     vision_projects_locations_products_create_builder, vision_projects_locations_products_create_task,
     vision_projects_locations_products_delete_builder, vision_projects_locations_products_delete_task,
+    vision_projects_locations_products_get_builder, vision_projects_locations_products_get_task,
+    vision_projects_locations_products_list_builder, vision_projects_locations_products_list_task,
     vision_projects_locations_products_patch_builder, vision_projects_locations_products_patch_task,
     vision_projects_locations_products_purge_builder, vision_projects_locations_products_purge_task,
     vision_projects_locations_products_reference_images_create_builder, vision_projects_locations_products_reference_images_create_task,
     vision_projects_locations_products_reference_images_delete_builder, vision_projects_locations_products_reference_images_delete_task,
+    vision_projects_locations_products_reference_images_get_builder, vision_projects_locations_products_reference_images_get_task,
+    vision_projects_locations_products_reference_images_list_builder, vision_projects_locations_products_reference_images_list_task,
+    vision_projects_operations_get_builder, vision_projects_operations_get_task,
 };
 use crate::providers::gcp::clients::types::{ApiError, ApiPending};
 use crate::providers::gcp::clients::vision::BatchAnnotateFilesResponse;
 use crate::providers::gcp::clients::vision::BatchAnnotateImagesResponse;
 use crate::providers::gcp::clients::vision::Empty;
+use crate::providers::gcp::clients::vision::ListOperationsResponse;
+use crate::providers::gcp::clients::vision::ListProductSetsResponse;
+use crate::providers::gcp::clients::vision::ListProductsInProductSetResponse;
+use crate::providers::gcp::clients::vision::ListProductsResponse;
+use crate::providers::gcp::clients::vision::ListReferenceImagesResponse;
 use crate::providers::gcp::clients::vision::Operation;
 use crate::providers::gcp::clients::vision::Product;
 use crate::providers::gcp::clients::vision::ProductSet;
@@ -51,8 +68,11 @@ use crate::providers::gcp::clients::vision::VisionFilesAnnotateArgs;
 use crate::providers::gcp::clients::vision::VisionFilesAsyncBatchAnnotateArgs;
 use crate::providers::gcp::clients::vision::VisionImagesAnnotateArgs;
 use crate::providers::gcp::clients::vision::VisionImagesAsyncBatchAnnotateArgs;
+use crate::providers::gcp::clients::vision::VisionLocationsOperationsGetArgs;
 use crate::providers::gcp::clients::vision::VisionOperationsCancelArgs;
 use crate::providers::gcp::clients::vision::VisionOperationsDeleteArgs;
+use crate::providers::gcp::clients::vision::VisionOperationsGetArgs;
+use crate::providers::gcp::clients::vision::VisionOperationsListArgs;
 use crate::providers::gcp::clients::vision::VisionProjectsFilesAnnotateArgs;
 use crate::providers::gcp::clients::vision::VisionProjectsFilesAsyncBatchAnnotateArgs;
 use crate::providers::gcp::clients::vision::VisionProjectsImagesAnnotateArgs;
@@ -61,18 +81,27 @@ use crate::providers::gcp::clients::vision::VisionProjectsLocationsFilesAnnotate
 use crate::providers::gcp::clients::vision::VisionProjectsLocationsFilesAsyncBatchAnnotateArgs;
 use crate::providers::gcp::clients::vision::VisionProjectsLocationsImagesAnnotateArgs;
 use crate::providers::gcp::clients::vision::VisionProjectsLocationsImagesAsyncBatchAnnotateArgs;
+use crate::providers::gcp::clients::vision::VisionProjectsLocationsOperationsGetArgs;
 use crate::providers::gcp::clients::vision::VisionProjectsLocationsProductSetsAddProductArgs;
 use crate::providers::gcp::clients::vision::VisionProjectsLocationsProductSetsCreateArgs;
 use crate::providers::gcp::clients::vision::VisionProjectsLocationsProductSetsDeleteArgs;
+use crate::providers::gcp::clients::vision::VisionProjectsLocationsProductSetsGetArgs;
 use crate::providers::gcp::clients::vision::VisionProjectsLocationsProductSetsImportArgs;
+use crate::providers::gcp::clients::vision::VisionProjectsLocationsProductSetsListArgs;
 use crate::providers::gcp::clients::vision::VisionProjectsLocationsProductSetsPatchArgs;
+use crate::providers::gcp::clients::vision::VisionProjectsLocationsProductSetsProductsListArgs;
 use crate::providers::gcp::clients::vision::VisionProjectsLocationsProductSetsRemoveProductArgs;
 use crate::providers::gcp::clients::vision::VisionProjectsLocationsProductsCreateArgs;
 use crate::providers::gcp::clients::vision::VisionProjectsLocationsProductsDeleteArgs;
+use crate::providers::gcp::clients::vision::VisionProjectsLocationsProductsGetArgs;
+use crate::providers::gcp::clients::vision::VisionProjectsLocationsProductsListArgs;
 use crate::providers::gcp::clients::vision::VisionProjectsLocationsProductsPatchArgs;
 use crate::providers::gcp::clients::vision::VisionProjectsLocationsProductsPurgeArgs;
 use crate::providers::gcp::clients::vision::VisionProjectsLocationsProductsReferenceImagesCreateArgs;
 use crate::providers::gcp::clients::vision::VisionProjectsLocationsProductsReferenceImagesDeleteArgs;
+use crate::providers::gcp::clients::vision::VisionProjectsLocationsProductsReferenceImagesGetArgs;
+use crate::providers::gcp::clients::vision::VisionProjectsLocationsProductsReferenceImagesListArgs;
+use crate::providers::gcp::clients::vision::VisionProjectsOperationsGetArgs;
 use crate::provider_client::{ProviderClient, ProviderError};
 use foundation_core::valtron::{execute, StreamIterator};
 use foundation_core::wire::simple_http::client::SimpleHttpClient;
@@ -282,6 +311,44 @@ where
         execute(store_task, None).map_err(|e: String| ProviderError::ExecuteFailed(e.to_string()))
     }
 
+    /// Vision locations operations get.
+    ///
+    /// Read-only operation - no state tracking.
+    ///
+    /// # Arguments
+    ///
+    /// * `args` - Request arguments
+    ///
+    /// # Returns
+    ///
+    /// StreamIterator yielding the Operation result.
+    ///
+    /// # Errors
+    ///
+    /// Returns ProviderError if the API request fails.
+    pub fn vision_locations_operations_get(
+        &self,
+        args: &VisionLocationsOperationsGetArgs,
+    ) -> Result<
+        impl StreamIterator<
+            D = Result<Operation, ProviderError<ApiError>>,
+            P = crate::providers::gcp::clients::types::ApiPending,
+        > + Send
+        + 'static,
+        ProviderError<ApiError>,
+    > {
+        let builder = vision_locations_operations_get_builder(
+            &self.http_client,
+            &args.name,
+        )
+        .map_err(ProviderError::Api)?;
+
+        let task = vision_locations_operations_get_task(builder)
+            .map_err(ProviderError::Api)?;
+
+        execute(task, None).map_err(|e: String| ProviderError::ExecuteFailed(e.to_string()))
+    }
+
     /// Vision operations cancel.
     ///
     /// Automatically stores the result in the state store on success.
@@ -366,6 +433,85 @@ where
         let store_task = StoreStateIdentifierTask::new(task, state_store, args, stage);
 
         execute(store_task, None).map_err(|e: String| ProviderError::ExecuteFailed(e.to_string()))
+    }
+
+    /// Vision operations get.
+    ///
+    /// Read-only operation - no state tracking.
+    ///
+    /// # Arguments
+    ///
+    /// * `args` - Request arguments
+    ///
+    /// # Returns
+    ///
+    /// StreamIterator yielding the Operation result.
+    ///
+    /// # Errors
+    ///
+    /// Returns ProviderError if the API request fails.
+    pub fn vision_operations_get(
+        &self,
+        args: &VisionOperationsGetArgs,
+    ) -> Result<
+        impl StreamIterator<
+            D = Result<Operation, ProviderError<ApiError>>,
+            P = crate::providers::gcp::clients::types::ApiPending,
+        > + Send
+        + 'static,
+        ProviderError<ApiError>,
+    > {
+        let builder = vision_operations_get_builder(
+            &self.http_client,
+            &args.name,
+        )
+        .map_err(ProviderError::Api)?;
+
+        let task = vision_operations_get_task(builder)
+            .map_err(ProviderError::Api)?;
+
+        execute(task, None).map_err(|e: String| ProviderError::ExecuteFailed(e.to_string()))
+    }
+
+    /// Vision operations list.
+    ///
+    /// Read-only operation - no state tracking.
+    ///
+    /// # Arguments
+    ///
+    /// * `args` - Request arguments
+    ///
+    /// # Returns
+    ///
+    /// StreamIterator yielding the ListOperationsResponse result.
+    ///
+    /// # Errors
+    ///
+    /// Returns ProviderError if the API request fails.
+    pub fn vision_operations_list(
+        &self,
+        args: &VisionOperationsListArgs,
+    ) -> Result<
+        impl StreamIterator<
+            D = Result<ListOperationsResponse, ProviderError<ApiError>>,
+            P = crate::providers::gcp::clients::types::ApiPending,
+        > + Send
+        + 'static,
+        ProviderError<ApiError>,
+    > {
+        let builder = vision_operations_list_builder(
+            &self.http_client,
+            &args.filter,
+            &args.pageSize,
+            &args.pageToken,
+            &args.returnPartialSuccess,
+        )
+        .map_err(ProviderError::Api)?;
+
+        let task = vision_operations_list_task(builder)
+            .map_err(ProviderError::Api)?;
+
+        execute(task, None).map_err(|e: String| ProviderError::ExecuteFailed(e.to_string()))
     }
 
     /// Vision projects files annotate.
@@ -712,6 +858,44 @@ where
         execute(store_task, None).map_err(|e: String| ProviderError::ExecuteFailed(e.to_string()))
     }
 
+    /// Vision projects locations operations get.
+    ///
+    /// Read-only operation - no state tracking.
+    ///
+    /// # Arguments
+    ///
+    /// * `args` - Request arguments
+    ///
+    /// # Returns
+    ///
+    /// StreamIterator yielding the Operation result.
+    ///
+    /// # Errors
+    ///
+    /// Returns ProviderError if the API request fails.
+    pub fn vision_projects_locations_operations_get(
+        &self,
+        args: &VisionProjectsLocationsOperationsGetArgs,
+    ) -> Result<
+        impl StreamIterator<
+            D = Result<Operation, ProviderError<ApiError>>,
+            P = crate::providers::gcp::clients::types::ApiPending,
+        > + Send
+        + 'static,
+        ProviderError<ApiError>,
+    > {
+        let builder = vision_projects_locations_operations_get_builder(
+            &self.http_client,
+            &args.name,
+        )
+        .map_err(ProviderError::Api)?;
+
+        let task = vision_projects_locations_operations_get_task(builder)
+            .map_err(ProviderError::Api)?;
+
+        execute(task, None).map_err(|e: String| ProviderError::ExecuteFailed(e.to_string()))
+    }
+
     /// Vision projects locations product sets add product.
     ///
     /// Automatically stores the result in the state store on success.
@@ -842,6 +1026,44 @@ where
         execute(store_task, None).map_err(|e: String| ProviderError::ExecuteFailed(e.to_string()))
     }
 
+    /// Vision projects locations product sets get.
+    ///
+    /// Read-only operation - no state tracking.
+    ///
+    /// # Arguments
+    ///
+    /// * `args` - Request arguments
+    ///
+    /// # Returns
+    ///
+    /// StreamIterator yielding the ProductSet result.
+    ///
+    /// # Errors
+    ///
+    /// Returns ProviderError if the API request fails.
+    pub fn vision_projects_locations_product_sets_get(
+        &self,
+        args: &VisionProjectsLocationsProductSetsGetArgs,
+    ) -> Result<
+        impl StreamIterator<
+            D = Result<ProductSet, ProviderError<ApiError>>,
+            P = crate::providers::gcp::clients::types::ApiPending,
+        > + Send
+        + 'static,
+        ProviderError<ApiError>,
+    > {
+        let builder = vision_projects_locations_product_sets_get_builder(
+            &self.http_client,
+            &args.name,
+        )
+        .map_err(ProviderError::Api)?;
+
+        let task = vision_projects_locations_product_sets_get_task(builder)
+            .map_err(ProviderError::Api)?;
+
+        execute(task, None).map_err(|e: String| ProviderError::ExecuteFailed(e.to_string()))
+    }
+
     /// Vision projects locations product sets import.
     ///
     /// Automatically stores the result in the state store on success.
@@ -883,6 +1105,46 @@ where
         let store_task = StoreStateIdentifierTask::new(task, state_store, args, stage);
 
         execute(store_task, None).map_err(|e: String| ProviderError::ExecuteFailed(e.to_string()))
+    }
+
+    /// Vision projects locations product sets list.
+    ///
+    /// Read-only operation - no state tracking.
+    ///
+    /// # Arguments
+    ///
+    /// * `args` - Request arguments
+    ///
+    /// # Returns
+    ///
+    /// StreamIterator yielding the ListProductSetsResponse result.
+    ///
+    /// # Errors
+    ///
+    /// Returns ProviderError if the API request fails.
+    pub fn vision_projects_locations_product_sets_list(
+        &self,
+        args: &VisionProjectsLocationsProductSetsListArgs,
+    ) -> Result<
+        impl StreamIterator<
+            D = Result<ListProductSetsResponse, ProviderError<ApiError>>,
+            P = crate::providers::gcp::clients::types::ApiPending,
+        > + Send
+        + 'static,
+        ProviderError<ApiError>,
+    > {
+        let builder = vision_projects_locations_product_sets_list_builder(
+            &self.http_client,
+            &args.parent,
+            &args.pageSize,
+            &args.pageToken,
+        )
+        .map_err(ProviderError::Api)?;
+
+        let task = vision_projects_locations_product_sets_list_task(builder)
+            .map_err(ProviderError::Api)?;
+
+        execute(task, None).map_err(|e: String| ProviderError::ExecuteFailed(e.to_string()))
     }
 
     /// Vision projects locations product sets patch.
@@ -972,6 +1234,46 @@ where
         execute(store_task, None).map_err(|e: String| ProviderError::ExecuteFailed(e.to_string()))
     }
 
+    /// Vision projects locations product sets products list.
+    ///
+    /// Read-only operation - no state tracking.
+    ///
+    /// # Arguments
+    ///
+    /// * `args` - Request arguments
+    ///
+    /// # Returns
+    ///
+    /// StreamIterator yielding the ListProductsInProductSetResponse result.
+    ///
+    /// # Errors
+    ///
+    /// Returns ProviderError if the API request fails.
+    pub fn vision_projects_locations_product_sets_products_list(
+        &self,
+        args: &VisionProjectsLocationsProductSetsProductsListArgs,
+    ) -> Result<
+        impl StreamIterator<
+            D = Result<ListProductsInProductSetResponse, ProviderError<ApiError>>,
+            P = crate::providers::gcp::clients::types::ApiPending,
+        > + Send
+        + 'static,
+        ProviderError<ApiError>,
+    > {
+        let builder = vision_projects_locations_product_sets_products_list_builder(
+            &self.http_client,
+            &args.name,
+            &args.pageSize,
+            &args.pageToken,
+        )
+        .map_err(ProviderError::Api)?;
+
+        let task = vision_projects_locations_product_sets_products_list_task(builder)
+            .map_err(ProviderError::Api)?;
+
+        execute(task, None).map_err(|e: String| ProviderError::ExecuteFailed(e.to_string()))
+    }
+
     /// Vision projects locations products create.
     ///
     /// Automatically stores the result in the state store on success.
@@ -1057,6 +1359,84 @@ where
         let store_task = StoreStateIdentifierTask::new(task, state_store, args, stage);
 
         execute(store_task, None).map_err(|e: String| ProviderError::ExecuteFailed(e.to_string()))
+    }
+
+    /// Vision projects locations products get.
+    ///
+    /// Read-only operation - no state tracking.
+    ///
+    /// # Arguments
+    ///
+    /// * `args` - Request arguments
+    ///
+    /// # Returns
+    ///
+    /// StreamIterator yielding the Product result.
+    ///
+    /// # Errors
+    ///
+    /// Returns ProviderError if the API request fails.
+    pub fn vision_projects_locations_products_get(
+        &self,
+        args: &VisionProjectsLocationsProductsGetArgs,
+    ) -> Result<
+        impl StreamIterator<
+            D = Result<Product, ProviderError<ApiError>>,
+            P = crate::providers::gcp::clients::types::ApiPending,
+        > + Send
+        + 'static,
+        ProviderError<ApiError>,
+    > {
+        let builder = vision_projects_locations_products_get_builder(
+            &self.http_client,
+            &args.name,
+        )
+        .map_err(ProviderError::Api)?;
+
+        let task = vision_projects_locations_products_get_task(builder)
+            .map_err(ProviderError::Api)?;
+
+        execute(task, None).map_err(|e: String| ProviderError::ExecuteFailed(e.to_string()))
+    }
+
+    /// Vision projects locations products list.
+    ///
+    /// Read-only operation - no state tracking.
+    ///
+    /// # Arguments
+    ///
+    /// * `args` - Request arguments
+    ///
+    /// # Returns
+    ///
+    /// StreamIterator yielding the ListProductsResponse result.
+    ///
+    /// # Errors
+    ///
+    /// Returns ProviderError if the API request fails.
+    pub fn vision_projects_locations_products_list(
+        &self,
+        args: &VisionProjectsLocationsProductsListArgs,
+    ) -> Result<
+        impl StreamIterator<
+            D = Result<ListProductsResponse, ProviderError<ApiError>>,
+            P = crate::providers::gcp::clients::types::ApiPending,
+        > + Send
+        + 'static,
+        ProviderError<ApiError>,
+    > {
+        let builder = vision_projects_locations_products_list_builder(
+            &self.http_client,
+            &args.parent,
+            &args.pageSize,
+            &args.pageToken,
+        )
+        .map_err(ProviderError::Api)?;
+
+        let task = vision_projects_locations_products_list_task(builder)
+            .map_err(ProviderError::Api)?;
+
+        execute(task, None).map_err(|e: String| ProviderError::ExecuteFailed(e.to_string()))
     }
 
     /// Vision projects locations products patch.
@@ -1231,6 +1611,122 @@ where
         let store_task = StoreStateIdentifierTask::new(task, state_store, args, stage);
 
         execute(store_task, None).map_err(|e: String| ProviderError::ExecuteFailed(e.to_string()))
+    }
+
+    /// Vision projects locations products reference images get.
+    ///
+    /// Read-only operation - no state tracking.
+    ///
+    /// # Arguments
+    ///
+    /// * `args` - Request arguments
+    ///
+    /// # Returns
+    ///
+    /// StreamIterator yielding the ReferenceImage result.
+    ///
+    /// # Errors
+    ///
+    /// Returns ProviderError if the API request fails.
+    pub fn vision_projects_locations_products_reference_images_get(
+        &self,
+        args: &VisionProjectsLocationsProductsReferenceImagesGetArgs,
+    ) -> Result<
+        impl StreamIterator<
+            D = Result<ReferenceImage, ProviderError<ApiError>>,
+            P = crate::providers::gcp::clients::types::ApiPending,
+        > + Send
+        + 'static,
+        ProviderError<ApiError>,
+    > {
+        let builder = vision_projects_locations_products_reference_images_get_builder(
+            &self.http_client,
+            &args.name,
+        )
+        .map_err(ProviderError::Api)?;
+
+        let task = vision_projects_locations_products_reference_images_get_task(builder)
+            .map_err(ProviderError::Api)?;
+
+        execute(task, None).map_err(|e: String| ProviderError::ExecuteFailed(e.to_string()))
+    }
+
+    /// Vision projects locations products reference images list.
+    ///
+    /// Read-only operation - no state tracking.
+    ///
+    /// # Arguments
+    ///
+    /// * `args` - Request arguments
+    ///
+    /// # Returns
+    ///
+    /// StreamIterator yielding the ListReferenceImagesResponse result.
+    ///
+    /// # Errors
+    ///
+    /// Returns ProviderError if the API request fails.
+    pub fn vision_projects_locations_products_reference_images_list(
+        &self,
+        args: &VisionProjectsLocationsProductsReferenceImagesListArgs,
+    ) -> Result<
+        impl StreamIterator<
+            D = Result<ListReferenceImagesResponse, ProviderError<ApiError>>,
+            P = crate::providers::gcp::clients::types::ApiPending,
+        > + Send
+        + 'static,
+        ProviderError<ApiError>,
+    > {
+        let builder = vision_projects_locations_products_reference_images_list_builder(
+            &self.http_client,
+            &args.parent,
+            &args.pageSize,
+            &args.pageToken,
+        )
+        .map_err(ProviderError::Api)?;
+
+        let task = vision_projects_locations_products_reference_images_list_task(builder)
+            .map_err(ProviderError::Api)?;
+
+        execute(task, None).map_err(|e: String| ProviderError::ExecuteFailed(e.to_string()))
+    }
+
+    /// Vision projects operations get.
+    ///
+    /// Read-only operation - no state tracking.
+    ///
+    /// # Arguments
+    ///
+    /// * `args` - Request arguments
+    ///
+    /// # Returns
+    ///
+    /// StreamIterator yielding the Operation result.
+    ///
+    /// # Errors
+    ///
+    /// Returns ProviderError if the API request fails.
+    pub fn vision_projects_operations_get(
+        &self,
+        args: &VisionProjectsOperationsGetArgs,
+    ) -> Result<
+        impl StreamIterator<
+            D = Result<Operation, ProviderError<ApiError>>,
+            P = crate::providers::gcp::clients::types::ApiPending,
+        > + Send
+        + 'static,
+        ProviderError<ApiError>,
+    > {
+        let builder = vision_projects_operations_get_builder(
+            &self.http_client,
+            &args.name,
+        )
+        .map_err(ProviderError::Api)?;
+
+        let task = vision_projects_operations_get_task(builder)
+            .map_err(ProviderError::Api)?;
+
+        execute(task, None).map_err(|e: String| ProviderError::ExecuteFailed(e.to_string()))
     }
 
 }

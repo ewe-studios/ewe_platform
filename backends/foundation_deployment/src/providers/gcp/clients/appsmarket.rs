@@ -7,7 +7,6 @@
 
 #![cfg(feature = "gcp")]
 
-
 use crate::providers::gcp::clients::types::*;
 use crate::providers::gcp::resources::*;
 use foundation_core::valtron::{
@@ -17,6 +16,7 @@ use foundation_core::valtron::{
 use foundation_core::wire::simple_http::client::{
     body_reader, ClientRequestBuilder, RequestIntro, SimpleHttpClient, SystemDnsResolver,
 };
+use foundation_db::state::resource_identifier::ResourceIdentifier;
 use foundation_macros::JsonHash;
 use serde::Serialize;
 
@@ -343,4 +343,56 @@ pub fn appsmarket_user_license_get(
 > {
     let builder = appsmarket_user_license_get_builder(client, &args.applicationId, &args.userId)?;
     appsmarket_user_license_get_execute(builder)
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for CustomerLicense
+// =============================================================================
+
+/// ResourceIdentifier implementation for CustomerLicense with AppsmarketCustomerLicenseGetArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<AppsmarketCustomerLicenseGetArgs> for CustomerLicense {
+    fn generate_resource_id(&self, input: &AppsmarketCustomerLicenseGetArgs) -> String {
+        format!(
+            "gcp::appsmarket::CustomerLicense/{}/{}",
+            input.applicationId, input.customerId
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::appsmarket::CustomerLicense"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for UserLicense
+// =============================================================================
+
+/// ResourceIdentifier implementation for UserLicense with AppsmarketUserLicenseGetArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<AppsmarketUserLicenseGetArgs> for UserLicense {
+    fn generate_resource_id(&self, input: &AppsmarketUserLicenseGetArgs) -> String {
+        format!(
+            "gcp::appsmarket::UserLicense/{}/{}",
+            input.applicationId, input.userId
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::appsmarket::UserLicense"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
 }

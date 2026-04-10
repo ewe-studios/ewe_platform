@@ -14,16 +14,20 @@
 use crate::providers::gcp::clients::sheets::{
     sheets_spreadsheets_batch_update_builder, sheets_spreadsheets_batch_update_task,
     sheets_spreadsheets_create_builder, sheets_spreadsheets_create_task,
+    sheets_spreadsheets_get_builder, sheets_spreadsheets_get_task,
     sheets_spreadsheets_get_by_data_filter_builder, sheets_spreadsheets_get_by_data_filter_task,
+    sheets_spreadsheets_developer_metadata_get_builder, sheets_spreadsheets_developer_metadata_get_task,
     sheets_spreadsheets_developer_metadata_search_builder, sheets_spreadsheets_developer_metadata_search_task,
     sheets_spreadsheets_sheets_copy_to_builder, sheets_spreadsheets_sheets_copy_to_task,
     sheets_spreadsheets_values_append_builder, sheets_spreadsheets_values_append_task,
     sheets_spreadsheets_values_batch_clear_builder, sheets_spreadsheets_values_batch_clear_task,
     sheets_spreadsheets_values_batch_clear_by_data_filter_builder, sheets_spreadsheets_values_batch_clear_by_data_filter_task,
+    sheets_spreadsheets_values_batch_get_builder, sheets_spreadsheets_values_batch_get_task,
     sheets_spreadsheets_values_batch_get_by_data_filter_builder, sheets_spreadsheets_values_batch_get_by_data_filter_task,
     sheets_spreadsheets_values_batch_update_builder, sheets_spreadsheets_values_batch_update_task,
     sheets_spreadsheets_values_batch_update_by_data_filter_builder, sheets_spreadsheets_values_batch_update_by_data_filter_task,
     sheets_spreadsheets_values_clear_builder, sheets_spreadsheets_values_clear_task,
+    sheets_spreadsheets_values_get_builder, sheets_spreadsheets_values_get_task,
     sheets_spreadsheets_values_update_builder, sheets_spreadsheets_values_update_task,
 };
 use crate::providers::gcp::clients::types::{ApiError, ApiPending};
@@ -31,26 +35,33 @@ use crate::providers::gcp::clients::sheets::AppendValuesResponse;
 use crate::providers::gcp::clients::sheets::BatchClearValuesByDataFilterResponse;
 use crate::providers::gcp::clients::sheets::BatchClearValuesResponse;
 use crate::providers::gcp::clients::sheets::BatchGetValuesByDataFilterResponse;
+use crate::providers::gcp::clients::sheets::BatchGetValuesResponse;
 use crate::providers::gcp::clients::sheets::BatchUpdateSpreadsheetResponse;
 use crate::providers::gcp::clients::sheets::BatchUpdateValuesByDataFilterResponse;
 use crate::providers::gcp::clients::sheets::BatchUpdateValuesResponse;
 use crate::providers::gcp::clients::sheets::ClearValuesResponse;
+use crate::providers::gcp::clients::sheets::DeveloperMetadata;
 use crate::providers::gcp::clients::sheets::SearchDeveloperMetadataResponse;
 use crate::providers::gcp::clients::sheets::SheetProperties;
 use crate::providers::gcp::clients::sheets::Spreadsheet;
 use crate::providers::gcp::clients::sheets::UpdateValuesResponse;
+use crate::providers::gcp::clients::sheets::ValueRange;
 use crate::providers::gcp::clients::sheets::SheetsSpreadsheetsBatchUpdateArgs;
 use crate::providers::gcp::clients::sheets::SheetsSpreadsheetsCreateArgs;
+use crate::providers::gcp::clients::sheets::SheetsSpreadsheetsDeveloperMetadataGetArgs;
 use crate::providers::gcp::clients::sheets::SheetsSpreadsheetsDeveloperMetadataSearchArgs;
+use crate::providers::gcp::clients::sheets::SheetsSpreadsheetsGetArgs;
 use crate::providers::gcp::clients::sheets::SheetsSpreadsheetsGetByDataFilterArgs;
 use crate::providers::gcp::clients::sheets::SheetsSpreadsheetsSheetsCopyToArgs;
 use crate::providers::gcp::clients::sheets::SheetsSpreadsheetsValuesAppendArgs;
 use crate::providers::gcp::clients::sheets::SheetsSpreadsheetsValuesBatchClearArgs;
 use crate::providers::gcp::clients::sheets::SheetsSpreadsheetsValuesBatchClearByDataFilterArgs;
+use crate::providers::gcp::clients::sheets::SheetsSpreadsheetsValuesBatchGetArgs;
 use crate::providers::gcp::clients::sheets::SheetsSpreadsheetsValuesBatchGetByDataFilterArgs;
 use crate::providers::gcp::clients::sheets::SheetsSpreadsheetsValuesBatchUpdateArgs;
 use crate::providers::gcp::clients::sheets::SheetsSpreadsheetsValuesBatchUpdateByDataFilterArgs;
 use crate::providers::gcp::clients::sheets::SheetsSpreadsheetsValuesClearArgs;
+use crate::providers::gcp::clients::sheets::SheetsSpreadsheetsValuesGetArgs;
 use crate::providers::gcp::clients::sheets::SheetsSpreadsheetsValuesUpdateArgs;
 use crate::provider_client::{ProviderClient, ProviderError};
 use foundation_core::valtron::{execute, StreamIterator};
@@ -178,9 +189,9 @@ where
         execute(store_task, None).map_err(|e: String| ProviderError::ExecuteFailed(e.to_string()))
     }
 
-    /// Sheets spreadsheets get by data filter.
+    /// Sheets spreadsheets get.
     ///
-    /// Automatically stores the result in the state store on success.
+    /// Read-only operation - no state tracking.
     ///
     /// # Arguments
     ///
@@ -192,7 +203,48 @@ where
     ///
     /// # Errors
     ///
-    /// Returns ProviderError if the API request or state storage fails.
+    /// Returns ProviderError if the API request fails.
+    pub fn sheets_spreadsheets_get(
+        &self,
+        args: &SheetsSpreadsheetsGetArgs,
+    ) -> Result<
+        impl StreamIterator<
+            D = Result<Spreadsheet, ProviderError<ApiError>>,
+            P = crate::providers::gcp::clients::types::ApiPending,
+        > + Send
+        + 'static,
+        ProviderError<ApiError>,
+    > {
+        let builder = sheets_spreadsheets_get_builder(
+            &self.http_client,
+            &args.spreadsheetId,
+            &args.excludeTablesInBandedRanges,
+            &args.includeGridData,
+            &args.ranges,
+        )
+        .map_err(ProviderError::Api)?;
+
+        let task = sheets_spreadsheets_get_task(builder)
+            .map_err(ProviderError::Api)?;
+
+        execute(task, None).map_err(|e: String| ProviderError::ExecuteFailed(e.to_string()))
+    }
+
+    /// Sheets spreadsheets get by data filter.
+    ///
+    /// Read-only operation - no state tracking.
+    ///
+    /// # Arguments
+    ///
+    /// * `args` - Request arguments
+    ///
+    /// # Returns
+    ///
+    /// StreamIterator yielding the Spreadsheet result.
+    ///
+    /// # Errors
+    ///
+    /// Returns ProviderError if the API request fails.
     pub fn sheets_spreadsheets_get_by_data_filter(
         &self,
         args: &SheetsSpreadsheetsGetByDataFilterArgs,
@@ -213,17 +265,51 @@ where
         let task = sheets_spreadsheets_get_by_data_filter_task(builder)
             .map_err(ProviderError::Api)?;
 
-        let state_store = self.client.state_store.clone();
-        let stage = Some(self.client.stage.clone());
+        execute(task, None).map_err(|e: String| ProviderError::ExecuteFailed(e.to_string()))
+    }
 
-        let store_task = StoreStateIdentifierTask::new(task, state_store, args, stage);
+    /// Sheets spreadsheets developer metadata get.
+    ///
+    /// Read-only operation - no state tracking.
+    ///
+    /// # Arguments
+    ///
+    /// * `args` - Request arguments
+    ///
+    /// # Returns
+    ///
+    /// StreamIterator yielding the DeveloperMetadata result.
+    ///
+    /// # Errors
+    ///
+    /// Returns ProviderError if the API request fails.
+    pub fn sheets_spreadsheets_developer_metadata_get(
+        &self,
+        args: &SheetsSpreadsheetsDeveloperMetadataGetArgs,
+    ) -> Result<
+        impl StreamIterator<
+            D = Result<DeveloperMetadata, ProviderError<ApiError>>,
+            P = crate::providers::gcp::clients::types::ApiPending,
+        > + Send
+        + 'static,
+        ProviderError<ApiError>,
+    > {
+        let builder = sheets_spreadsheets_developer_metadata_get_builder(
+            &self.http_client,
+            &args.spreadsheetId,
+            &args.metadataId,
+        )
+        .map_err(ProviderError::Api)?;
 
-        execute(store_task, None).map_err(|e: String| ProviderError::ExecuteFailed(e.to_string()))
+        let task = sheets_spreadsheets_developer_metadata_get_task(builder)
+            .map_err(ProviderError::Api)?;
+
+        execute(task, None).map_err(|e: String| ProviderError::ExecuteFailed(e.to_string()))
     }
 
     /// Sheets spreadsheets developer metadata search.
     ///
-    /// Automatically stores the result in the state store on success.
+    /// Read-only operation - no state tracking.
     ///
     /// # Arguments
     ///
@@ -235,7 +321,7 @@ where
     ///
     /// # Errors
     ///
-    /// Returns ProviderError if the API request or state storage fails.
+    /// Returns ProviderError if the API request fails.
     pub fn sheets_spreadsheets_developer_metadata_search(
         &self,
         args: &SheetsSpreadsheetsDeveloperMetadataSearchArgs,
@@ -256,12 +342,7 @@ where
         let task = sheets_spreadsheets_developer_metadata_search_task(builder)
             .map_err(ProviderError::Api)?;
 
-        let state_store = self.client.state_store.clone();
-        let stage = Some(self.client.stage.clone());
-
-        let store_task = StoreStateIdentifierTask::new(task, state_store, args, stage);
-
-        execute(store_task, None).map_err(|e: String| ProviderError::ExecuteFailed(e.to_string()))
+        execute(task, None).map_err(|e: String| ProviderError::ExecuteFailed(e.to_string()))
     }
 
     /// Sheets spreadsheets sheets copy to.
@@ -443,9 +524,51 @@ where
         execute(store_task, None).map_err(|e: String| ProviderError::ExecuteFailed(e.to_string()))
     }
 
+    /// Sheets spreadsheets values batch get.
+    ///
+    /// Read-only operation - no state tracking.
+    ///
+    /// # Arguments
+    ///
+    /// * `args` - Request arguments
+    ///
+    /// # Returns
+    ///
+    /// StreamIterator yielding the BatchGetValuesResponse result.
+    ///
+    /// # Errors
+    ///
+    /// Returns ProviderError if the API request fails.
+    pub fn sheets_spreadsheets_values_batch_get(
+        &self,
+        args: &SheetsSpreadsheetsValuesBatchGetArgs,
+    ) -> Result<
+        impl StreamIterator<
+            D = Result<BatchGetValuesResponse, ProviderError<ApiError>>,
+            P = crate::providers::gcp::clients::types::ApiPending,
+        > + Send
+        + 'static,
+        ProviderError<ApiError>,
+    > {
+        let builder = sheets_spreadsheets_values_batch_get_builder(
+            &self.http_client,
+            &args.spreadsheetId,
+            &args.dateTimeRenderOption,
+            &args.majorDimension,
+            &args.ranges,
+            &args.valueRenderOption,
+        )
+        .map_err(ProviderError::Api)?;
+
+        let task = sheets_spreadsheets_values_batch_get_task(builder)
+            .map_err(ProviderError::Api)?;
+
+        execute(task, None).map_err(|e: String| ProviderError::ExecuteFailed(e.to_string()))
+    }
+
     /// Sheets spreadsheets values batch get by data filter.
     ///
-    /// Automatically stores the result in the state store on success.
+    /// Read-only operation - no state tracking.
     ///
     /// # Arguments
     ///
@@ -457,7 +580,7 @@ where
     ///
     /// # Errors
     ///
-    /// Returns ProviderError if the API request or state storage fails.
+    /// Returns ProviderError if the API request fails.
     pub fn sheets_spreadsheets_values_batch_get_by_data_filter(
         &self,
         args: &SheetsSpreadsheetsValuesBatchGetByDataFilterArgs,
@@ -478,12 +601,7 @@ where
         let task = sheets_spreadsheets_values_batch_get_by_data_filter_task(builder)
             .map_err(ProviderError::Api)?;
 
-        let state_store = self.client.state_store.clone();
-        let stage = Some(self.client.stage.clone());
-
-        let store_task = StoreStateIdentifierTask::new(task, state_store, args, stage);
-
-        execute(store_task, None).map_err(|e: String| ProviderError::ExecuteFailed(e.to_string()))
+        execute(task, None).map_err(|e: String| ProviderError::ExecuteFailed(e.to_string()))
     }
 
     /// Sheets spreadsheets values batch update.
@@ -614,6 +732,48 @@ where
         let store_task = StoreStateIdentifierTask::new(task, state_store, args, stage);
 
         execute(store_task, None).map_err(|e: String| ProviderError::ExecuteFailed(e.to_string()))
+    }
+
+    /// Sheets spreadsheets values get.
+    ///
+    /// Read-only operation - no state tracking.
+    ///
+    /// # Arguments
+    ///
+    /// * `args` - Request arguments
+    ///
+    /// # Returns
+    ///
+    /// StreamIterator yielding the ValueRange result.
+    ///
+    /// # Errors
+    ///
+    /// Returns ProviderError if the API request fails.
+    pub fn sheets_spreadsheets_values_get(
+        &self,
+        args: &SheetsSpreadsheetsValuesGetArgs,
+    ) -> Result<
+        impl StreamIterator<
+            D = Result<ValueRange, ProviderError<ApiError>>,
+            P = crate::providers::gcp::clients::types::ApiPending,
+        > + Send
+        + 'static,
+        ProviderError<ApiError>,
+    > {
+        let builder = sheets_spreadsheets_values_get_builder(
+            &self.http_client,
+            &args.spreadsheetId,
+            &args.range,
+            &args.dateTimeRenderOption,
+            &args.majorDimension,
+            &args.valueRenderOption,
+        )
+        .map_err(ProviderError::Api)?;
+
+        let task = sheets_spreadsheets_values_get_task(builder)
+            .map_err(ProviderError::Api)?;
+
+        execute(task, None).map_err(|e: String| ProviderError::ExecuteFailed(e.to_string()))
     }
 
     /// Sheets spreadsheets values update.

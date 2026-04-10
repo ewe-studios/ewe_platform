@@ -7,7 +7,6 @@
 
 #![cfg(feature = "gcp")]
 
-
 use crate::providers::gcp::clients::types::*;
 use crate::providers::gcp::resources::*;
 use foundation_core::valtron::{
@@ -17,8 +16,166 @@ use foundation_core::valtron::{
 use foundation_core::wire::simple_http::client::{
     body_reader, ClientRequestBuilder, RequestIntro, SimpleHttpClient, SystemDnsResolver,
 };
+use foundation_db::state::resource_identifier::ResourceIdentifier;
 use foundation_macros::JsonHash;
 use serde::Serialize;
+
+/// GET v1/projects/{projectsId}/locations/{locationsId}
+/// Gets information about a location.
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `ces_projects_locations_get_execute()` to send, or `ces_projects_locations_get` for simplest API.
+
+pub fn ces_projects_locations_get_builder(
+    client: &SimpleHttpClient,
+    name: &String,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!(
+        "https://ces.googleapis.com/v1/projects/{}/locations/{locationsId}",
+        name,
+    );
+
+    // Build request
+    let builder = client
+        .get(&endpoint_url)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// GET v1/projects/{projectsId}/locations/{locationsId}
+/// Gets information about a location.
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `ces_projects_locations_get_execute()` or `ces_projects_locations_get`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `ces_projects_locations_get_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn ces_projects_locations_get_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<Location>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: Location = serde_json::from_str(&body)
+                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// GET v1/projects/{projectsId}/locations/{locationsId}
+/// Gets information about a location.
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `ces_projects_locations_get_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `ces_projects_locations_get_task()`.
+/// For the simplest API, use `ces_projects_locations_get()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `ces_projects_locations_get_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn ces_projects_locations_get_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<Location>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let task = ces_projects_locations_get_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`ces_projects_locations_get`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct CesProjectsLocationsGetArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
+/// GET v1/projects/{projectsId}/locations/{locationsId}
+/// Gets information about a location.
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `ces_projects_locations_get_builder()` + `ces_projects_locations_get_execute()`.
+/// For task-level control, use `ces_projects_locations_get_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn ces_projects_locations_get(
+    client: &SimpleHttpClient,
+    args: &CesProjectsLocationsGetArgs,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<Location>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let builder = ces_projects_locations_get_builder(client, &args.name)?;
+    ces_projects_locations_get_execute(builder)
+}
 
 /// GET v1/projects/{projectsId}/locations
 /// Lists information about the supported locations for this service. This method lists locations based on the resource scope provided in the [ListLocationsRequest.name] field: * **Global locations**: If name is empty, the method lists the public locations available to all projects. * **Project-specific locations**: If name follows the format `projects/{project}`, the method lists locations visible to that specific project. This includes public, private, or other project-specific locations enabled for the project. For `gRPC` and client library implementations, the resource name is passed as the name field. For direct service calls, the resource name is incorporated into the request path based on the specific service implementation and version.
@@ -29,13 +186,13 @@ use serde::Serialize;
 pub fn ces_projects_locations_list_builder(
     client: &SimpleHttpClient,
     name: &String,
-    extraLocationTypes: &Option<String>,
-    filter: &Option<String>,
-    pageSize: &Option<i32>,
-    pageToken: &Option<String>,
+    extraLocationTypes: &Option<Option<String>>,
+    filter: &Option<Option<String>>,
+    pageSize: &Option<Option<String>>,
+    pageToken: &Option<Option<String>>,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
-    let endpoint_url = format!("https://ces.googleapis.com/v1/projects/{}/locations",);
+    let endpoint_url = format!("https://ces.googleapis.com/v1/projects/{}/locations", name,);
 
     // Build request
     let mut query_parts = Vec::new();
@@ -177,13 +334,13 @@ pub struct CesProjectsLocationsListArgs {
     /// Path parameter: name
     pub name: String,
     /// Query parameter: extraLocationTypes
-    pub extraLocationTypes: Option<String>,
+    pub extraLocationTypes: Option<Option<String>>,
     /// Query parameter: filter
-    pub filter: Option<String>,
+    pub filter: Option<Option<String>>,
     /// Query parameter: pageSize
-    pub pageSize: Option<i32>,
+    pub pageSize: Option<Option<String>>,
     /// Query parameter: pageToken
-    pub pageToken: Option<String>,
+    pub pageToken: Option<Option<String>>,
 }
 
 /// GET v1/projects/{projectsId}/locations
@@ -215,4 +372,11463 @@ pub fn ces_projects_locations_list(
         &args.pageToken,
     )?;
     ces_projects_locations_list_execute(builder)
+}
+
+/// POST v1/projects/{projectsId}/locations/{locationsId}/apps
+/// Creates a new app in the given project and location.
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `ces_projects_locations_apps_create_execute()` to send, or `ces_projects_locations_apps_create` for simplest API.
+
+pub fn ces_projects_locations_apps_create_builder(
+    client: &SimpleHttpClient,
+    parent: &String,
+    appId: &Option<Option<String>>,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!(
+        "https://ces.googleapis.com/v1/projects/{}/locations/{locationsId}/apps",
+        parent,
+    );
+
+    // Build request
+    let mut query_parts = Vec::new();
+    if let Some(val) = appId.as_ref() {
+        query_parts.push(format!("appId={}", val));
+    }
+
+    let url_with_query = if query_parts.is_empty() {
+        endpoint_url
+    } else {
+        format!("{}?{}", endpoint_url, query_parts.join("&"))
+    };
+
+    let builder = client
+        .post(&url_with_query)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// POST v1/projects/{projectsId}/locations/{locationsId}/apps
+/// Creates a new app in the given project and location.
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `ces_projects_locations_apps_create_execute()` or `ces_projects_locations_apps_create`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `ces_projects_locations_apps_create_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn ces_projects_locations_apps_create_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<Operation>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: Operation = serde_json::from_str(&body)
+                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// POST v1/projects/{projectsId}/locations/{locationsId}/apps
+/// Creates a new app in the given project and location.
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `ces_projects_locations_apps_create_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `ces_projects_locations_apps_create_task()`.
+/// For the simplest API, use `ces_projects_locations_apps_create()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `ces_projects_locations_apps_create_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn ces_projects_locations_apps_create_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<Operation>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let task = ces_projects_locations_apps_create_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`ces_projects_locations_apps_create`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct CesProjectsLocationsAppsCreateArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Query parameter: appId
+    pub appId: Option<Option<String>>,
+}
+
+/// POST v1/projects/{projectsId}/locations/{locationsId}/apps
+/// Creates a new app in the given project and location.
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `ces_projects_locations_apps_create_builder()` + `ces_projects_locations_apps_create_execute()`.
+/// For task-level control, use `ces_projects_locations_apps_create_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn ces_projects_locations_apps_create(
+    client: &SimpleHttpClient,
+    args: &CesProjectsLocationsAppsCreateArgs,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<Operation>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let builder = ces_projects_locations_apps_create_builder(client, &args.parent, &args.appId)?;
+    ces_projects_locations_apps_create_execute(builder)
+}
+
+/// DELETE v1/projects/{projectsId}/locations/{locationsId}/apps/{appsId}
+/// Deletes the specified app.
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `ces_projects_locations_apps_delete_execute()` to send, or `ces_projects_locations_apps_delete` for simplest API.
+
+pub fn ces_projects_locations_apps_delete_builder(
+    client: &SimpleHttpClient,
+    name: &String,
+    etag: &Option<Option<String>>,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!(
+        "https://ces.googleapis.com/v1/projects/{}/locations/{locationsId}/apps/{appsId}",
+        name,
+    );
+
+    // Build request
+    let mut query_parts = Vec::new();
+    if let Some(val) = etag.as_ref() {
+        query_parts.push(format!("etag={}", val));
+    }
+
+    let url_with_query = if query_parts.is_empty() {
+        endpoint_url
+    } else {
+        format!("{}?{}", endpoint_url, query_parts.join("&"))
+    };
+
+    let builder = client
+        .delete(&url_with_query)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// DELETE v1/projects/{projectsId}/locations/{locationsId}/apps/{appsId}
+/// Deletes the specified app.
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `ces_projects_locations_apps_delete_execute()` or `ces_projects_locations_apps_delete`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `ces_projects_locations_apps_delete_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn ces_projects_locations_apps_delete_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<Operation>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: Operation = serde_json::from_str(&body)
+                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// DELETE v1/projects/{projectsId}/locations/{locationsId}/apps/{appsId}
+/// Deletes the specified app.
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `ces_projects_locations_apps_delete_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `ces_projects_locations_apps_delete_task()`.
+/// For the simplest API, use `ces_projects_locations_apps_delete()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `ces_projects_locations_apps_delete_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn ces_projects_locations_apps_delete_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<Operation>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let task = ces_projects_locations_apps_delete_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`ces_projects_locations_apps_delete`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct CesProjectsLocationsAppsDeleteArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Query parameter: etag
+    pub etag: Option<Option<String>>,
+}
+
+/// DELETE v1/projects/{projectsId}/locations/{locationsId}/apps/{appsId}
+/// Deletes the specified app.
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `ces_projects_locations_apps_delete_builder()` + `ces_projects_locations_apps_delete_execute()`.
+/// For task-level control, use `ces_projects_locations_apps_delete_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn ces_projects_locations_apps_delete(
+    client: &SimpleHttpClient,
+    args: &CesProjectsLocationsAppsDeleteArgs,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<Operation>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let builder = ces_projects_locations_apps_delete_builder(client, &args.name, &args.etag)?;
+    ces_projects_locations_apps_delete_execute(builder)
+}
+
+/// POST v1/projects/{projectsId}/locations/{locationsId}/apps/{appsId}:executeTool
+/// Executes the given tool with the given arguments.
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `ces_projects_locations_apps_execute_tool_execute()` to send, or `ces_projects_locations_apps_execute_tool` for simplest API.
+
+pub fn ces_projects_locations_apps_execute_tool_builder(
+    client: &SimpleHttpClient,
+    parent: &String,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!(
+        "https://ces.googleapis.com/v1/projects/{}/locations/{locationsId}/apps/{appsId}:executeTool",
+        parent,
+    );
+
+    // Build request
+    let builder = client
+        .post(&endpoint_url)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// POST v1/projects/{projectsId}/locations/{locationsId}/apps/{appsId}:executeTool
+/// Executes the given tool with the given arguments.
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `ces_projects_locations_apps_execute_tool_execute()` or `ces_projects_locations_apps_execute_tool`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `ces_projects_locations_apps_execute_tool_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn ces_projects_locations_apps_execute_tool_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<ExecuteToolResponse>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: ExecuteToolResponse = serde_json::from_str(&body)
+                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// POST v1/projects/{projectsId}/locations/{locationsId}/apps/{appsId}:executeTool
+/// Executes the given tool with the given arguments.
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `ces_projects_locations_apps_execute_tool_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `ces_projects_locations_apps_execute_tool_task()`.
+/// For the simplest API, use `ces_projects_locations_apps_execute_tool()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `ces_projects_locations_apps_execute_tool_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn ces_projects_locations_apps_execute_tool_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<ExecuteToolResponse>, ApiError>, P = ApiPending>
+        + Send
+        + 'static,
+    ApiError,
+> {
+    let task = ces_projects_locations_apps_execute_tool_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`ces_projects_locations_apps_execute_tool`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct CesProjectsLocationsAppsExecuteToolArgs {
+    /// Path parameter: parent
+    pub parent: String,
+}
+
+/// POST v1/projects/{projectsId}/locations/{locationsId}/apps/{appsId}:executeTool
+/// Executes the given tool with the given arguments.
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `ces_projects_locations_apps_execute_tool_builder()` + `ces_projects_locations_apps_execute_tool_execute()`.
+/// For task-level control, use `ces_projects_locations_apps_execute_tool_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn ces_projects_locations_apps_execute_tool(
+    client: &SimpleHttpClient,
+    args: &CesProjectsLocationsAppsExecuteToolArgs,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<ExecuteToolResponse>, ApiError>, P = ApiPending>
+        + Send
+        + 'static,
+    ApiError,
+> {
+    let builder = ces_projects_locations_apps_execute_tool_builder(client, &args.parent)?;
+    ces_projects_locations_apps_execute_tool_execute(builder)
+}
+
+/// POST v1/projects/{projectsId}/locations/{locationsId}/apps/{appsId}:exportApp
+/// Exports the specified app.
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `ces_projects_locations_apps_export_app_execute()` to send, or `ces_projects_locations_apps_export_app` for simplest API.
+
+pub fn ces_projects_locations_apps_export_app_builder(
+    client: &SimpleHttpClient,
+    name: &String,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!(
+        "https://ces.googleapis.com/v1/projects/{}/locations/{locationsId}/apps/{appsId}:exportApp",
+        name,
+    );
+
+    // Build request
+    let builder = client
+        .post(&endpoint_url)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// POST v1/projects/{projectsId}/locations/{locationsId}/apps/{appsId}:exportApp
+/// Exports the specified app.
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `ces_projects_locations_apps_export_app_execute()` or `ces_projects_locations_apps_export_app`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `ces_projects_locations_apps_export_app_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn ces_projects_locations_apps_export_app_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<Operation>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: Operation = serde_json::from_str(&body)
+                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// POST v1/projects/{projectsId}/locations/{locationsId}/apps/{appsId}:exportApp
+/// Exports the specified app.
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `ces_projects_locations_apps_export_app_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `ces_projects_locations_apps_export_app_task()`.
+/// For the simplest API, use `ces_projects_locations_apps_export_app()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `ces_projects_locations_apps_export_app_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn ces_projects_locations_apps_export_app_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<Operation>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let task = ces_projects_locations_apps_export_app_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`ces_projects_locations_apps_export_app`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct CesProjectsLocationsAppsExportAppArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
+/// POST v1/projects/{projectsId}/locations/{locationsId}/apps/{appsId}:exportApp
+/// Exports the specified app.
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `ces_projects_locations_apps_export_app_builder()` + `ces_projects_locations_apps_export_app_execute()`.
+/// For task-level control, use `ces_projects_locations_apps_export_app_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn ces_projects_locations_apps_export_app(
+    client: &SimpleHttpClient,
+    args: &CesProjectsLocationsAppsExportAppArgs,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<Operation>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let builder = ces_projects_locations_apps_export_app_builder(client, &args.name)?;
+    ces_projects_locations_apps_export_app_execute(builder)
+}
+
+/// GET v1/projects/{projectsId}/locations/{locationsId}/apps/{appsId}
+/// Gets details of the specified app.
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `ces_projects_locations_apps_get_execute()` to send, or `ces_projects_locations_apps_get` for simplest API.
+
+pub fn ces_projects_locations_apps_get_builder(
+    client: &SimpleHttpClient,
+    name: &String,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!(
+        "https://ces.googleapis.com/v1/projects/{}/locations/{locationsId}/apps/{appsId}",
+        name,
+    );
+
+    // Build request
+    let builder = client
+        .get(&endpoint_url)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// GET v1/projects/{projectsId}/locations/{locationsId}/apps/{appsId}
+/// Gets details of the specified app.
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `ces_projects_locations_apps_get_execute()` or `ces_projects_locations_apps_get`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `ces_projects_locations_apps_get_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn ces_projects_locations_apps_get_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<App>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: App = serde_json::from_str(&body)
+                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// GET v1/projects/{projectsId}/locations/{locationsId}/apps/{appsId}
+/// Gets details of the specified app.
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `ces_projects_locations_apps_get_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `ces_projects_locations_apps_get_task()`.
+/// For the simplest API, use `ces_projects_locations_apps_get()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `ces_projects_locations_apps_get_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn ces_projects_locations_apps_get_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<App>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let task = ces_projects_locations_apps_get_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`ces_projects_locations_apps_get`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct CesProjectsLocationsAppsGetArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
+/// GET v1/projects/{projectsId}/locations/{locationsId}/apps/{appsId}
+/// Gets details of the specified app.
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `ces_projects_locations_apps_get_builder()` + `ces_projects_locations_apps_get_execute()`.
+/// For task-level control, use `ces_projects_locations_apps_get_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn ces_projects_locations_apps_get(
+    client: &SimpleHttpClient,
+    args: &CesProjectsLocationsAppsGetArgs,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<App>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let builder = ces_projects_locations_apps_get_builder(client, &args.name)?;
+    ces_projects_locations_apps_get_execute(builder)
+}
+
+/// POST v1/projects/{projectsId}/locations/{locationsId}/apps:importApp
+/// Imports the specified app.
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `ces_projects_locations_apps_import_app_execute()` to send, or `ces_projects_locations_apps_import_app` for simplest API.
+
+pub fn ces_projects_locations_apps_import_app_builder(
+    client: &SimpleHttpClient,
+    parent: &String,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!(
+        "https://ces.googleapis.com/v1/projects/{}/locations/{locationsId}/apps:importApp",
+        parent,
+    );
+
+    // Build request
+    let builder = client
+        .post(&endpoint_url)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// POST v1/projects/{projectsId}/locations/{locationsId}/apps:importApp
+/// Imports the specified app.
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `ces_projects_locations_apps_import_app_execute()` or `ces_projects_locations_apps_import_app`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `ces_projects_locations_apps_import_app_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn ces_projects_locations_apps_import_app_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<Operation>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: Operation = serde_json::from_str(&body)
+                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// POST v1/projects/{projectsId}/locations/{locationsId}/apps:importApp
+/// Imports the specified app.
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `ces_projects_locations_apps_import_app_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `ces_projects_locations_apps_import_app_task()`.
+/// For the simplest API, use `ces_projects_locations_apps_import_app()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `ces_projects_locations_apps_import_app_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn ces_projects_locations_apps_import_app_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<Operation>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let task = ces_projects_locations_apps_import_app_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`ces_projects_locations_apps_import_app`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct CesProjectsLocationsAppsImportAppArgs {
+    /// Path parameter: parent
+    pub parent: String,
+}
+
+/// POST v1/projects/{projectsId}/locations/{locationsId}/apps:importApp
+/// Imports the specified app.
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `ces_projects_locations_apps_import_app_builder()` + `ces_projects_locations_apps_import_app_execute()`.
+/// For task-level control, use `ces_projects_locations_apps_import_app_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn ces_projects_locations_apps_import_app(
+    client: &SimpleHttpClient,
+    args: &CesProjectsLocationsAppsImportAppArgs,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<Operation>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let builder = ces_projects_locations_apps_import_app_builder(client, &args.parent)?;
+    ces_projects_locations_apps_import_app_execute(builder)
+}
+
+/// GET v1/projects/{projectsId}/locations/{locationsId}/apps
+/// Lists apps in the given project and location.
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `ces_projects_locations_apps_list_execute()` to send, or `ces_projects_locations_apps_list` for simplest API.
+
+pub fn ces_projects_locations_apps_list_builder(
+    client: &SimpleHttpClient,
+    parent: &String,
+    filter: &Option<Option<String>>,
+    orderBy: &Option<Option<String>>,
+    pageSize: &Option<Option<String>>,
+    pageToken: &Option<Option<String>>,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!(
+        "https://ces.googleapis.com/v1/projects/{}/locations/{locationsId}/apps",
+        parent,
+    );
+
+    // Build request
+    let mut query_parts = Vec::new();
+    if let Some(val) = filter.as_ref() {
+        query_parts.push(format!("filter={}", val));
+    }
+    if let Some(val) = orderBy.as_ref() {
+        query_parts.push(format!("orderBy={}", val));
+    }
+    if let Some(val) = pageSize.as_ref() {
+        query_parts.push(format!("pageSize={}", val));
+    }
+    if let Some(val) = pageToken.as_ref() {
+        query_parts.push(format!("pageToken={}", val));
+    }
+
+    let url_with_query = if query_parts.is_empty() {
+        endpoint_url
+    } else {
+        format!("{}?{}", endpoint_url, query_parts.join("&"))
+    };
+
+    let builder = client
+        .get(&url_with_query)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// GET v1/projects/{projectsId}/locations/{locationsId}/apps
+/// Lists apps in the given project and location.
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `ces_projects_locations_apps_list_execute()` or `ces_projects_locations_apps_list`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `ces_projects_locations_apps_list_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn ces_projects_locations_apps_list_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<ListAppsResponse>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: ListAppsResponse = serde_json::from_str(&body)
+                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// GET v1/projects/{projectsId}/locations/{locationsId}/apps
+/// Lists apps in the given project and location.
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `ces_projects_locations_apps_list_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `ces_projects_locations_apps_list_task()`.
+/// For the simplest API, use `ces_projects_locations_apps_list()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `ces_projects_locations_apps_list_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn ces_projects_locations_apps_list_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<ListAppsResponse>, ApiError>, P = ApiPending>
+        + Send
+        + 'static,
+    ApiError,
+> {
+    let task = ces_projects_locations_apps_list_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`ces_projects_locations_apps_list`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct CesProjectsLocationsAppsListArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Query parameter: filter
+    pub filter: Option<Option<String>>,
+    /// Query parameter: orderBy
+    pub orderBy: Option<Option<String>>,
+    /// Query parameter: pageSize
+    pub pageSize: Option<Option<String>>,
+    /// Query parameter: pageToken
+    pub pageToken: Option<Option<String>>,
+}
+
+/// GET v1/projects/{projectsId}/locations/{locationsId}/apps
+/// Lists apps in the given project and location.
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `ces_projects_locations_apps_list_builder()` + `ces_projects_locations_apps_list_execute()`.
+/// For task-level control, use `ces_projects_locations_apps_list_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn ces_projects_locations_apps_list(
+    client: &SimpleHttpClient,
+    args: &CesProjectsLocationsAppsListArgs,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<ListAppsResponse>, ApiError>, P = ApiPending>
+        + Send
+        + 'static,
+    ApiError,
+> {
+    let builder = ces_projects_locations_apps_list_builder(
+        client,
+        &args.parent,
+        &args.filter,
+        &args.orderBy,
+        &args.pageSize,
+        &args.pageToken,
+    )?;
+    ces_projects_locations_apps_list_execute(builder)
+}
+
+/// PATCH v1/projects/{projectsId}/locations/{locationsId}/apps/{appsId}
+/// Updates the specified app.
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `ces_projects_locations_apps_patch_execute()` to send, or `ces_projects_locations_apps_patch` for simplest API.
+
+pub fn ces_projects_locations_apps_patch_builder(
+    client: &SimpleHttpClient,
+    name: &String,
+    updateMask: &Option<Option<String>>,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!(
+        "https://ces.googleapis.com/v1/projects/{}/locations/{locationsId}/apps/{appsId}",
+        name,
+    );
+
+    // Build request
+    let mut query_parts = Vec::new();
+    if let Some(val) = updateMask.as_ref() {
+        query_parts.push(format!("updateMask={}", val));
+    }
+
+    let url_with_query = if query_parts.is_empty() {
+        endpoint_url
+    } else {
+        format!("{}?{}", endpoint_url, query_parts.join("&"))
+    };
+
+    let builder = client
+        .patch(&url_with_query)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// PATCH v1/projects/{projectsId}/locations/{locationsId}/apps/{appsId}
+/// Updates the specified app.
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `ces_projects_locations_apps_patch_execute()` or `ces_projects_locations_apps_patch`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `ces_projects_locations_apps_patch_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn ces_projects_locations_apps_patch_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<App>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: App = serde_json::from_str(&body)
+                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// PATCH v1/projects/{projectsId}/locations/{locationsId}/apps/{appsId}
+/// Updates the specified app.
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `ces_projects_locations_apps_patch_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `ces_projects_locations_apps_patch_task()`.
+/// For the simplest API, use `ces_projects_locations_apps_patch()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `ces_projects_locations_apps_patch_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn ces_projects_locations_apps_patch_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<App>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let task = ces_projects_locations_apps_patch_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`ces_projects_locations_apps_patch`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct CesProjectsLocationsAppsPatchArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Query parameter: updateMask
+    pub updateMask: Option<Option<String>>,
+}
+
+/// PATCH v1/projects/{projectsId}/locations/{locationsId}/apps/{appsId}
+/// Updates the specified app.
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `ces_projects_locations_apps_patch_builder()` + `ces_projects_locations_apps_patch_execute()`.
+/// For task-level control, use `ces_projects_locations_apps_patch_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn ces_projects_locations_apps_patch(
+    client: &SimpleHttpClient,
+    args: &CesProjectsLocationsAppsPatchArgs,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<App>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let builder = ces_projects_locations_apps_patch_builder(client, &args.name, &args.updateMask)?;
+    ces_projects_locations_apps_patch_execute(builder)
+}
+
+/// POST v1/projects/{projectsId}/locations/{locationsId}/apps/{appsId}:retrieveToolSchema
+/// Retrieve the schema of the given tool. The schema is computed on the fly for the given instance of the tool.
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `ces_projects_locations_apps_retrieve_tool_schema_execute()` to send, or `ces_projects_locations_apps_retrieve_tool_schema` for simplest API.
+
+pub fn ces_projects_locations_apps_retrieve_tool_schema_builder(
+    client: &SimpleHttpClient,
+    parent: &String,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!(
+        "https://ces.googleapis.com/v1/projects/{}/locations/{locationsId}/apps/{appsId}:retrieveToolSchema",
+        parent,
+    );
+
+    // Build request
+    let builder = client
+        .post(&endpoint_url)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// POST v1/projects/{projectsId}/locations/{locationsId}/apps/{appsId}:retrieveToolSchema
+/// Retrieve the schema of the given tool. The schema is computed on the fly for the given instance of the tool.
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `ces_projects_locations_apps_retrieve_tool_schema_execute()` or `ces_projects_locations_apps_retrieve_tool_schema`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `ces_projects_locations_apps_retrieve_tool_schema_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn ces_projects_locations_apps_retrieve_tool_schema_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<RetrieveToolSchemaResponse>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: RetrieveToolSchemaResponse = serde_json::from_str(&body)
+                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// POST v1/projects/{projectsId}/locations/{locationsId}/apps/{appsId}:retrieveToolSchema
+/// Retrieve the schema of the given tool. The schema is computed on the fly for the given instance of the tool.
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `ces_projects_locations_apps_retrieve_tool_schema_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `ces_projects_locations_apps_retrieve_tool_schema_task()`.
+/// For the simplest API, use `ces_projects_locations_apps_retrieve_tool_schema()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `ces_projects_locations_apps_retrieve_tool_schema_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn ces_projects_locations_apps_retrieve_tool_schema_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<
+            D = Result<ApiResponse<RetrieveToolSchemaResponse>, ApiError>,
+            P = ApiPending,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    let task = ces_projects_locations_apps_retrieve_tool_schema_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`ces_projects_locations_apps_retrieve_tool_schema`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct CesProjectsLocationsAppsRetrieveToolSchemaArgs {
+    /// Path parameter: parent
+    pub parent: String,
+}
+
+/// POST v1/projects/{projectsId}/locations/{locationsId}/apps/{appsId}:retrieveToolSchema
+/// Retrieve the schema of the given tool. The schema is computed on the fly for the given instance of the tool.
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `ces_projects_locations_apps_retrieve_tool_schema_builder()` + `ces_projects_locations_apps_retrieve_tool_schema_execute()`.
+/// For task-level control, use `ces_projects_locations_apps_retrieve_tool_schema_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn ces_projects_locations_apps_retrieve_tool_schema(
+    client: &SimpleHttpClient,
+    args: &CesProjectsLocationsAppsRetrieveToolSchemaArgs,
+) -> Result<
+    impl StreamIterator<
+            D = Result<ApiResponse<RetrieveToolSchemaResponse>, ApiError>,
+            P = ApiPending,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    let builder = ces_projects_locations_apps_retrieve_tool_schema_builder(client, &args.parent)?;
+    ces_projects_locations_apps_retrieve_tool_schema_execute(builder)
+}
+
+/// POST v1/projects/{projectsId}/locations/{locationsId}/apps/{appsId}/agents
+/// Creates a new agent in the given app.
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `ces_projects_locations_apps_agents_create_execute()` to send, or `ces_projects_locations_apps_agents_create` for simplest API.
+
+pub fn ces_projects_locations_apps_agents_create_builder(
+    client: &SimpleHttpClient,
+    parent: &String,
+    agentId: &Option<Option<String>>,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!(
+        "https://ces.googleapis.com/v1/projects/{}/locations/{locationsId}/apps/{appsId}/agents",
+        parent,
+    );
+
+    // Build request
+    let mut query_parts = Vec::new();
+    if let Some(val) = agentId.as_ref() {
+        query_parts.push(format!("agentId={}", val));
+    }
+
+    let url_with_query = if query_parts.is_empty() {
+        endpoint_url
+    } else {
+        format!("{}?{}", endpoint_url, query_parts.join("&"))
+    };
+
+    let builder = client
+        .post(&url_with_query)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// POST v1/projects/{projectsId}/locations/{locationsId}/apps/{appsId}/agents
+/// Creates a new agent in the given app.
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `ces_projects_locations_apps_agents_create_execute()` or `ces_projects_locations_apps_agents_create`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `ces_projects_locations_apps_agents_create_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn ces_projects_locations_apps_agents_create_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<Agent>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: Agent = serde_json::from_str(&body)
+                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// POST v1/projects/{projectsId}/locations/{locationsId}/apps/{appsId}/agents
+/// Creates a new agent in the given app.
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `ces_projects_locations_apps_agents_create_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `ces_projects_locations_apps_agents_create_task()`.
+/// For the simplest API, use `ces_projects_locations_apps_agents_create()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `ces_projects_locations_apps_agents_create_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn ces_projects_locations_apps_agents_create_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<Agent>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let task = ces_projects_locations_apps_agents_create_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`ces_projects_locations_apps_agents_create`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct CesProjectsLocationsAppsAgentsCreateArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Query parameter: agentId
+    pub agentId: Option<Option<String>>,
+}
+
+/// POST v1/projects/{projectsId}/locations/{locationsId}/apps/{appsId}/agents
+/// Creates a new agent in the given app.
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `ces_projects_locations_apps_agents_create_builder()` + `ces_projects_locations_apps_agents_create_execute()`.
+/// For task-level control, use `ces_projects_locations_apps_agents_create_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn ces_projects_locations_apps_agents_create(
+    client: &SimpleHttpClient,
+    args: &CesProjectsLocationsAppsAgentsCreateArgs,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<Agent>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let builder =
+        ces_projects_locations_apps_agents_create_builder(client, &args.parent, &args.agentId)?;
+    ces_projects_locations_apps_agents_create_execute(builder)
+}
+
+/// DELETE v1/projects/{projectsId}/locations/{locationsId}/apps/{appsId}/agents/{agentsId}
+/// Deletes the specified agent.
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `ces_projects_locations_apps_agents_delete_execute()` to send, or `ces_projects_locations_apps_agents_delete` for simplest API.
+
+pub fn ces_projects_locations_apps_agents_delete_builder(
+    client: &SimpleHttpClient,
+    name: &String,
+    etag: &Option<Option<String>>,
+    force: &Option<Option<String>>,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!(
+        "https://ces.googleapis.com/v1/projects/{}/locations/{locationsId}/apps/{appsId}/agents/{agentsId}",
+        name,
+    );
+
+    // Build request
+    let mut query_parts = Vec::new();
+    if let Some(val) = etag.as_ref() {
+        query_parts.push(format!("etag={}", val));
+    }
+    if let Some(val) = force.as_ref() {
+        query_parts.push(format!("force={}", val));
+    }
+
+    let url_with_query = if query_parts.is_empty() {
+        endpoint_url
+    } else {
+        format!("{}?{}", endpoint_url, query_parts.join("&"))
+    };
+
+    let builder = client
+        .delete(&url_with_query)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// DELETE v1/projects/{projectsId}/locations/{locationsId}/apps/{appsId}/agents/{agentsId}
+/// Deletes the specified agent.
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `ces_projects_locations_apps_agents_delete_execute()` or `ces_projects_locations_apps_agents_delete`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `ces_projects_locations_apps_agents_delete_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn ces_projects_locations_apps_agents_delete_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<Empty>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: Empty = serde_json::from_str(&body)
+                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// DELETE v1/projects/{projectsId}/locations/{locationsId}/apps/{appsId}/agents/{agentsId}
+/// Deletes the specified agent.
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `ces_projects_locations_apps_agents_delete_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `ces_projects_locations_apps_agents_delete_task()`.
+/// For the simplest API, use `ces_projects_locations_apps_agents_delete()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `ces_projects_locations_apps_agents_delete_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn ces_projects_locations_apps_agents_delete_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<Empty>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let task = ces_projects_locations_apps_agents_delete_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`ces_projects_locations_apps_agents_delete`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct CesProjectsLocationsAppsAgentsDeleteArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Query parameter: etag
+    pub etag: Option<Option<String>>,
+    /// Query parameter: force
+    pub force: Option<Option<String>>,
+}
+
+/// DELETE v1/projects/{projectsId}/locations/{locationsId}/apps/{appsId}/agents/{agentsId}
+/// Deletes the specified agent.
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `ces_projects_locations_apps_agents_delete_builder()` + `ces_projects_locations_apps_agents_delete_execute()`.
+/// For task-level control, use `ces_projects_locations_apps_agents_delete_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn ces_projects_locations_apps_agents_delete(
+    client: &SimpleHttpClient,
+    args: &CesProjectsLocationsAppsAgentsDeleteArgs,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<Empty>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let builder = ces_projects_locations_apps_agents_delete_builder(
+        client,
+        &args.name,
+        &args.etag,
+        &args.force,
+    )?;
+    ces_projects_locations_apps_agents_delete_execute(builder)
+}
+
+/// GET v1/projects/{projectsId}/locations/{locationsId}/apps/{appsId}/agents/{agentsId}
+/// Gets details of the specified agent.
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `ces_projects_locations_apps_agents_get_execute()` to send, or `ces_projects_locations_apps_agents_get` for simplest API.
+
+pub fn ces_projects_locations_apps_agents_get_builder(
+    client: &SimpleHttpClient,
+    name: &String,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!(
+        "https://ces.googleapis.com/v1/projects/{}/locations/{locationsId}/apps/{appsId}/agents/{agentsId}",
+        name,
+    );
+
+    // Build request
+    let builder = client
+        .get(&endpoint_url)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// GET v1/projects/{projectsId}/locations/{locationsId}/apps/{appsId}/agents/{agentsId}
+/// Gets details of the specified agent.
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `ces_projects_locations_apps_agents_get_execute()` or `ces_projects_locations_apps_agents_get`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `ces_projects_locations_apps_agents_get_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn ces_projects_locations_apps_agents_get_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<Agent>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: Agent = serde_json::from_str(&body)
+                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// GET v1/projects/{projectsId}/locations/{locationsId}/apps/{appsId}/agents/{agentsId}
+/// Gets details of the specified agent.
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `ces_projects_locations_apps_agents_get_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `ces_projects_locations_apps_agents_get_task()`.
+/// For the simplest API, use `ces_projects_locations_apps_agents_get()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `ces_projects_locations_apps_agents_get_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn ces_projects_locations_apps_agents_get_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<Agent>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let task = ces_projects_locations_apps_agents_get_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`ces_projects_locations_apps_agents_get`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct CesProjectsLocationsAppsAgentsGetArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
+/// GET v1/projects/{projectsId}/locations/{locationsId}/apps/{appsId}/agents/{agentsId}
+/// Gets details of the specified agent.
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `ces_projects_locations_apps_agents_get_builder()` + `ces_projects_locations_apps_agents_get_execute()`.
+/// For task-level control, use `ces_projects_locations_apps_agents_get_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn ces_projects_locations_apps_agents_get(
+    client: &SimpleHttpClient,
+    args: &CesProjectsLocationsAppsAgentsGetArgs,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<Agent>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let builder = ces_projects_locations_apps_agents_get_builder(client, &args.name)?;
+    ces_projects_locations_apps_agents_get_execute(builder)
+}
+
+/// GET v1/projects/{projectsId}/locations/{locationsId}/apps/{appsId}/agents
+/// Lists agents in the given app.
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `ces_projects_locations_apps_agents_list_execute()` to send, or `ces_projects_locations_apps_agents_list` for simplest API.
+
+pub fn ces_projects_locations_apps_agents_list_builder(
+    client: &SimpleHttpClient,
+    parent: &String,
+    filter: &Option<Option<String>>,
+    orderBy: &Option<Option<String>>,
+    pageSize: &Option<Option<String>>,
+    pageToken: &Option<Option<String>>,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!(
+        "https://ces.googleapis.com/v1/projects/{}/locations/{locationsId}/apps/{appsId}/agents",
+        parent,
+    );
+
+    // Build request
+    let mut query_parts = Vec::new();
+    if let Some(val) = filter.as_ref() {
+        query_parts.push(format!("filter={}", val));
+    }
+    if let Some(val) = orderBy.as_ref() {
+        query_parts.push(format!("orderBy={}", val));
+    }
+    if let Some(val) = pageSize.as_ref() {
+        query_parts.push(format!("pageSize={}", val));
+    }
+    if let Some(val) = pageToken.as_ref() {
+        query_parts.push(format!("pageToken={}", val));
+    }
+
+    let url_with_query = if query_parts.is_empty() {
+        endpoint_url
+    } else {
+        format!("{}?{}", endpoint_url, query_parts.join("&"))
+    };
+
+    let builder = client
+        .get(&url_with_query)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// GET v1/projects/{projectsId}/locations/{locationsId}/apps/{appsId}/agents
+/// Lists agents in the given app.
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `ces_projects_locations_apps_agents_list_execute()` or `ces_projects_locations_apps_agents_list`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `ces_projects_locations_apps_agents_list_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn ces_projects_locations_apps_agents_list_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<ListAgentsResponse>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: ListAgentsResponse = serde_json::from_str(&body)
+                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// GET v1/projects/{projectsId}/locations/{locationsId}/apps/{appsId}/agents
+/// Lists agents in the given app.
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `ces_projects_locations_apps_agents_list_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `ces_projects_locations_apps_agents_list_task()`.
+/// For the simplest API, use `ces_projects_locations_apps_agents_list()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `ces_projects_locations_apps_agents_list_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn ces_projects_locations_apps_agents_list_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<ListAgentsResponse>, ApiError>, P = ApiPending>
+        + Send
+        + 'static,
+    ApiError,
+> {
+    let task = ces_projects_locations_apps_agents_list_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`ces_projects_locations_apps_agents_list`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct CesProjectsLocationsAppsAgentsListArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Query parameter: filter
+    pub filter: Option<Option<String>>,
+    /// Query parameter: orderBy
+    pub orderBy: Option<Option<String>>,
+    /// Query parameter: pageSize
+    pub pageSize: Option<Option<String>>,
+    /// Query parameter: pageToken
+    pub pageToken: Option<Option<String>>,
+}
+
+/// GET v1/projects/{projectsId}/locations/{locationsId}/apps/{appsId}/agents
+/// Lists agents in the given app.
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `ces_projects_locations_apps_agents_list_builder()` + `ces_projects_locations_apps_agents_list_execute()`.
+/// For task-level control, use `ces_projects_locations_apps_agents_list_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn ces_projects_locations_apps_agents_list(
+    client: &SimpleHttpClient,
+    args: &CesProjectsLocationsAppsAgentsListArgs,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<ListAgentsResponse>, ApiError>, P = ApiPending>
+        + Send
+        + 'static,
+    ApiError,
+> {
+    let builder = ces_projects_locations_apps_agents_list_builder(
+        client,
+        &args.parent,
+        &args.filter,
+        &args.orderBy,
+        &args.pageSize,
+        &args.pageToken,
+    )?;
+    ces_projects_locations_apps_agents_list_execute(builder)
+}
+
+/// PATCH v1/projects/{projectsId}/locations/{locationsId}/apps/{appsId}/agents/{agentsId}
+/// Updates the specified agent.
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `ces_projects_locations_apps_agents_patch_execute()` to send, or `ces_projects_locations_apps_agents_patch` for simplest API.
+
+pub fn ces_projects_locations_apps_agents_patch_builder(
+    client: &SimpleHttpClient,
+    name: &String,
+    updateMask: &Option<Option<String>>,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!(
+        "https://ces.googleapis.com/v1/projects/{}/locations/{locationsId}/apps/{appsId}/agents/{agentsId}",
+        name,
+    );
+
+    // Build request
+    let mut query_parts = Vec::new();
+    if let Some(val) = updateMask.as_ref() {
+        query_parts.push(format!("updateMask={}", val));
+    }
+
+    let url_with_query = if query_parts.is_empty() {
+        endpoint_url
+    } else {
+        format!("{}?{}", endpoint_url, query_parts.join("&"))
+    };
+
+    let builder = client
+        .patch(&url_with_query)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// PATCH v1/projects/{projectsId}/locations/{locationsId}/apps/{appsId}/agents/{agentsId}
+/// Updates the specified agent.
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `ces_projects_locations_apps_agents_patch_execute()` or `ces_projects_locations_apps_agents_patch`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `ces_projects_locations_apps_agents_patch_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn ces_projects_locations_apps_agents_patch_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<Agent>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: Agent = serde_json::from_str(&body)
+                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// PATCH v1/projects/{projectsId}/locations/{locationsId}/apps/{appsId}/agents/{agentsId}
+/// Updates the specified agent.
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `ces_projects_locations_apps_agents_patch_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `ces_projects_locations_apps_agents_patch_task()`.
+/// For the simplest API, use `ces_projects_locations_apps_agents_patch()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `ces_projects_locations_apps_agents_patch_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn ces_projects_locations_apps_agents_patch_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<Agent>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let task = ces_projects_locations_apps_agents_patch_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`ces_projects_locations_apps_agents_patch`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct CesProjectsLocationsAppsAgentsPatchArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Query parameter: updateMask
+    pub updateMask: Option<Option<String>>,
+}
+
+/// PATCH v1/projects/{projectsId}/locations/{locationsId}/apps/{appsId}/agents/{agentsId}
+/// Updates the specified agent.
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `ces_projects_locations_apps_agents_patch_builder()` + `ces_projects_locations_apps_agents_patch_execute()`.
+/// For task-level control, use `ces_projects_locations_apps_agents_patch_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn ces_projects_locations_apps_agents_patch(
+    client: &SimpleHttpClient,
+    args: &CesProjectsLocationsAppsAgentsPatchArgs,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<Agent>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let builder =
+        ces_projects_locations_apps_agents_patch_builder(client, &args.name, &args.updateMask)?;
+    ces_projects_locations_apps_agents_patch_execute(builder)
+}
+
+/// GET v1/projects/{projectsId}/locations/{locationsId}/apps/{appsId}/changelogs/{changelogsId}
+/// Gets the specified changelog.
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `ces_projects_locations_apps_changelogs_get_execute()` to send, or `ces_projects_locations_apps_changelogs_get` for simplest API.
+
+pub fn ces_projects_locations_apps_changelogs_get_builder(
+    client: &SimpleHttpClient,
+    name: &String,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!(
+        "https://ces.googleapis.com/v1/projects/{}/locations/{locationsId}/apps/{appsId}/changelogs/{changelogsId}",
+        name,
+    );
+
+    // Build request
+    let builder = client
+        .get(&endpoint_url)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// GET v1/projects/{projectsId}/locations/{locationsId}/apps/{appsId}/changelogs/{changelogsId}
+/// Gets the specified changelog.
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `ces_projects_locations_apps_changelogs_get_execute()` or `ces_projects_locations_apps_changelogs_get`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `ces_projects_locations_apps_changelogs_get_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn ces_projects_locations_apps_changelogs_get_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<Changelog>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: Changelog = serde_json::from_str(&body)
+                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// GET v1/projects/{projectsId}/locations/{locationsId}/apps/{appsId}/changelogs/{changelogsId}
+/// Gets the specified changelog.
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `ces_projects_locations_apps_changelogs_get_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `ces_projects_locations_apps_changelogs_get_task()`.
+/// For the simplest API, use `ces_projects_locations_apps_changelogs_get()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `ces_projects_locations_apps_changelogs_get_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn ces_projects_locations_apps_changelogs_get_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<Changelog>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let task = ces_projects_locations_apps_changelogs_get_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`ces_projects_locations_apps_changelogs_get`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct CesProjectsLocationsAppsChangelogsGetArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
+/// GET v1/projects/{projectsId}/locations/{locationsId}/apps/{appsId}/changelogs/{changelogsId}
+/// Gets the specified changelog.
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `ces_projects_locations_apps_changelogs_get_builder()` + `ces_projects_locations_apps_changelogs_get_execute()`.
+/// For task-level control, use `ces_projects_locations_apps_changelogs_get_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn ces_projects_locations_apps_changelogs_get(
+    client: &SimpleHttpClient,
+    args: &CesProjectsLocationsAppsChangelogsGetArgs,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<Changelog>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let builder = ces_projects_locations_apps_changelogs_get_builder(client, &args.name)?;
+    ces_projects_locations_apps_changelogs_get_execute(builder)
+}
+
+/// GET v1/projects/{projectsId}/locations/{locationsId}/apps/{appsId}/changelogs
+/// Lists the changelogs of the specified app.
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `ces_projects_locations_apps_changelogs_list_execute()` to send, or `ces_projects_locations_apps_changelogs_list` for simplest API.
+
+pub fn ces_projects_locations_apps_changelogs_list_builder(
+    client: &SimpleHttpClient,
+    parent: &String,
+    filter: &Option<Option<String>>,
+    orderBy: &Option<Option<String>>,
+    pageSize: &Option<Option<String>>,
+    pageToken: &Option<Option<String>>,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!(
+        "https://ces.googleapis.com/v1/projects/{}/locations/{locationsId}/apps/{appsId}/changelogs",
+        parent,
+    );
+
+    // Build request
+    let mut query_parts = Vec::new();
+    if let Some(val) = filter.as_ref() {
+        query_parts.push(format!("filter={}", val));
+    }
+    if let Some(val) = orderBy.as_ref() {
+        query_parts.push(format!("orderBy={}", val));
+    }
+    if let Some(val) = pageSize.as_ref() {
+        query_parts.push(format!("pageSize={}", val));
+    }
+    if let Some(val) = pageToken.as_ref() {
+        query_parts.push(format!("pageToken={}", val));
+    }
+
+    let url_with_query = if query_parts.is_empty() {
+        endpoint_url
+    } else {
+        format!("{}?{}", endpoint_url, query_parts.join("&"))
+    };
+
+    let builder = client
+        .get(&url_with_query)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// GET v1/projects/{projectsId}/locations/{locationsId}/apps/{appsId}/changelogs
+/// Lists the changelogs of the specified app.
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `ces_projects_locations_apps_changelogs_list_execute()` or `ces_projects_locations_apps_changelogs_list`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `ces_projects_locations_apps_changelogs_list_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn ces_projects_locations_apps_changelogs_list_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<ListChangelogsResponse>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: ListChangelogsResponse = serde_json::from_str(&body)
+                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// GET v1/projects/{projectsId}/locations/{locationsId}/apps/{appsId}/changelogs
+/// Lists the changelogs of the specified app.
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `ces_projects_locations_apps_changelogs_list_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `ces_projects_locations_apps_changelogs_list_task()`.
+/// For the simplest API, use `ces_projects_locations_apps_changelogs_list()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `ces_projects_locations_apps_changelogs_list_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn ces_projects_locations_apps_changelogs_list_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<ListChangelogsResponse>, ApiError>, P = ApiPending>
+        + Send
+        + 'static,
+    ApiError,
+> {
+    let task = ces_projects_locations_apps_changelogs_list_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`ces_projects_locations_apps_changelogs_list`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct CesProjectsLocationsAppsChangelogsListArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Query parameter: filter
+    pub filter: Option<Option<String>>,
+    /// Query parameter: orderBy
+    pub orderBy: Option<Option<String>>,
+    /// Query parameter: pageSize
+    pub pageSize: Option<Option<String>>,
+    /// Query parameter: pageToken
+    pub pageToken: Option<Option<String>>,
+}
+
+/// GET v1/projects/{projectsId}/locations/{locationsId}/apps/{appsId}/changelogs
+/// Lists the changelogs of the specified app.
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `ces_projects_locations_apps_changelogs_list_builder()` + `ces_projects_locations_apps_changelogs_list_execute()`.
+/// For task-level control, use `ces_projects_locations_apps_changelogs_list_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn ces_projects_locations_apps_changelogs_list(
+    client: &SimpleHttpClient,
+    args: &CesProjectsLocationsAppsChangelogsListArgs,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<ListChangelogsResponse>, ApiError>, P = ApiPending>
+        + Send
+        + 'static,
+    ApiError,
+> {
+    let builder = ces_projects_locations_apps_changelogs_list_builder(
+        client,
+        &args.parent,
+        &args.filter,
+        &args.orderBy,
+        &args.pageSize,
+        &args.pageToken,
+    )?;
+    ces_projects_locations_apps_changelogs_list_execute(builder)
+}
+
+/// POST v1/projects/{projectsId}/locations/{locationsId}/apps/{appsId}/conversations:batchDelete
+/// Batch deletes the specified conversations.
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `ces_projects_locations_apps_conversations_batch_delete_execute()` to send, or `ces_projects_locations_apps_conversations_batch_delete` for simplest API.
+
+pub fn ces_projects_locations_apps_conversations_batch_delete_builder(
+    client: &SimpleHttpClient,
+    parent: &String,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!(
+        "https://ces.googleapis.com/v1/projects/{}/locations/{locationsId}/apps/{appsId}/conversations:batchDelete",
+        parent,
+    );
+
+    // Build request
+    let builder = client
+        .post(&endpoint_url)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// POST v1/projects/{projectsId}/locations/{locationsId}/apps/{appsId}/conversations:batchDelete
+/// Batch deletes the specified conversations.
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `ces_projects_locations_apps_conversations_batch_delete_execute()` or `ces_projects_locations_apps_conversations_batch_delete`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `ces_projects_locations_apps_conversations_batch_delete_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn ces_projects_locations_apps_conversations_batch_delete_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<Operation>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: Operation = serde_json::from_str(&body)
+                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// POST v1/projects/{projectsId}/locations/{locationsId}/apps/{appsId}/conversations:batchDelete
+/// Batch deletes the specified conversations.
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `ces_projects_locations_apps_conversations_batch_delete_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `ces_projects_locations_apps_conversations_batch_delete_task()`.
+/// For the simplest API, use `ces_projects_locations_apps_conversations_batch_delete()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `ces_projects_locations_apps_conversations_batch_delete_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn ces_projects_locations_apps_conversations_batch_delete_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<Operation>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let task = ces_projects_locations_apps_conversations_batch_delete_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`ces_projects_locations_apps_conversations_batch_delete`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct CesProjectsLocationsAppsConversationsBatchDeleteArgs {
+    /// Path parameter: parent
+    pub parent: String,
+}
+
+/// POST v1/projects/{projectsId}/locations/{locationsId}/apps/{appsId}/conversations:batchDelete
+/// Batch deletes the specified conversations.
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `ces_projects_locations_apps_conversations_batch_delete_builder()` + `ces_projects_locations_apps_conversations_batch_delete_execute()`.
+/// For task-level control, use `ces_projects_locations_apps_conversations_batch_delete_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn ces_projects_locations_apps_conversations_batch_delete(
+    client: &SimpleHttpClient,
+    args: &CesProjectsLocationsAppsConversationsBatchDeleteArgs,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<Operation>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let builder =
+        ces_projects_locations_apps_conversations_batch_delete_builder(client, &args.parent)?;
+    ces_projects_locations_apps_conversations_batch_delete_execute(builder)
+}
+
+/// DELETE v1/projects/{projectsId}/locations/{locationsId}/apps/{appsId}/conversations/{conversationsId}
+/// Deletes the specified conversation.
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `ces_projects_locations_apps_conversations_delete_execute()` to send, or `ces_projects_locations_apps_conversations_delete` for simplest API.
+
+pub fn ces_projects_locations_apps_conversations_delete_builder(
+    client: &SimpleHttpClient,
+    name: &String,
+    source: &Option<Option<String>>,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!(
+        "https://ces.googleapis.com/v1/projects/{}/locations/{locationsId}/apps/{appsId}/conversations/{conversationsId}",
+        name,
+    );
+
+    // Build request
+    let mut query_parts = Vec::new();
+    if let Some(val) = source.as_ref() {
+        query_parts.push(format!("source={}", val));
+    }
+
+    let url_with_query = if query_parts.is_empty() {
+        endpoint_url
+    } else {
+        format!("{}?{}", endpoint_url, query_parts.join("&"))
+    };
+
+    let builder = client
+        .delete(&url_with_query)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// DELETE v1/projects/{projectsId}/locations/{locationsId}/apps/{appsId}/conversations/{conversationsId}
+/// Deletes the specified conversation.
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `ces_projects_locations_apps_conversations_delete_execute()` or `ces_projects_locations_apps_conversations_delete`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `ces_projects_locations_apps_conversations_delete_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn ces_projects_locations_apps_conversations_delete_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<Empty>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: Empty = serde_json::from_str(&body)
+                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// DELETE v1/projects/{projectsId}/locations/{locationsId}/apps/{appsId}/conversations/{conversationsId}
+/// Deletes the specified conversation.
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `ces_projects_locations_apps_conversations_delete_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `ces_projects_locations_apps_conversations_delete_task()`.
+/// For the simplest API, use `ces_projects_locations_apps_conversations_delete()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `ces_projects_locations_apps_conversations_delete_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn ces_projects_locations_apps_conversations_delete_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<Empty>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let task = ces_projects_locations_apps_conversations_delete_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`ces_projects_locations_apps_conversations_delete`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct CesProjectsLocationsAppsConversationsDeleteArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Query parameter: source
+    pub source: Option<Option<String>>,
+}
+
+/// DELETE v1/projects/{projectsId}/locations/{locationsId}/apps/{appsId}/conversations/{conversationsId}
+/// Deletes the specified conversation.
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `ces_projects_locations_apps_conversations_delete_builder()` + `ces_projects_locations_apps_conversations_delete_execute()`.
+/// For task-level control, use `ces_projects_locations_apps_conversations_delete_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn ces_projects_locations_apps_conversations_delete(
+    client: &SimpleHttpClient,
+    args: &CesProjectsLocationsAppsConversationsDeleteArgs,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<Empty>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let builder =
+        ces_projects_locations_apps_conversations_delete_builder(client, &args.name, &args.source)?;
+    ces_projects_locations_apps_conversations_delete_execute(builder)
+}
+
+/// GET v1/projects/{projectsId}/locations/{locationsId}/apps/{appsId}/conversations/{conversationsId}
+/// Gets details of the specified conversation.
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `ces_projects_locations_apps_conversations_get_execute()` to send, or `ces_projects_locations_apps_conversations_get` for simplest API.
+
+pub fn ces_projects_locations_apps_conversations_get_builder(
+    client: &SimpleHttpClient,
+    name: &String,
+    source: &Option<Option<String>>,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!(
+        "https://ces.googleapis.com/v1/projects/{}/locations/{locationsId}/apps/{appsId}/conversations/{conversationsId}",
+        name,
+    );
+
+    // Build request
+    let mut query_parts = Vec::new();
+    if let Some(val) = source.as_ref() {
+        query_parts.push(format!("source={}", val));
+    }
+
+    let url_with_query = if query_parts.is_empty() {
+        endpoint_url
+    } else {
+        format!("{}?{}", endpoint_url, query_parts.join("&"))
+    };
+
+    let builder = client
+        .get(&url_with_query)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// GET v1/projects/{projectsId}/locations/{locationsId}/apps/{appsId}/conversations/{conversationsId}
+/// Gets details of the specified conversation.
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `ces_projects_locations_apps_conversations_get_execute()` or `ces_projects_locations_apps_conversations_get`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `ces_projects_locations_apps_conversations_get_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn ces_projects_locations_apps_conversations_get_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<Conversation>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: Conversation = serde_json::from_str(&body)
+                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// GET v1/projects/{projectsId}/locations/{locationsId}/apps/{appsId}/conversations/{conversationsId}
+/// Gets details of the specified conversation.
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `ces_projects_locations_apps_conversations_get_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `ces_projects_locations_apps_conversations_get_task()`.
+/// For the simplest API, use `ces_projects_locations_apps_conversations_get()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `ces_projects_locations_apps_conversations_get_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn ces_projects_locations_apps_conversations_get_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<Conversation>, ApiError>, P = ApiPending>
+        + Send
+        + 'static,
+    ApiError,
+> {
+    let task = ces_projects_locations_apps_conversations_get_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`ces_projects_locations_apps_conversations_get`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct CesProjectsLocationsAppsConversationsGetArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Query parameter: source
+    pub source: Option<Option<String>>,
+}
+
+/// GET v1/projects/{projectsId}/locations/{locationsId}/apps/{appsId}/conversations/{conversationsId}
+/// Gets details of the specified conversation.
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `ces_projects_locations_apps_conversations_get_builder()` + `ces_projects_locations_apps_conversations_get_execute()`.
+/// For task-level control, use `ces_projects_locations_apps_conversations_get_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn ces_projects_locations_apps_conversations_get(
+    client: &SimpleHttpClient,
+    args: &CesProjectsLocationsAppsConversationsGetArgs,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<Conversation>, ApiError>, P = ApiPending>
+        + Send
+        + 'static,
+    ApiError,
+> {
+    let builder =
+        ces_projects_locations_apps_conversations_get_builder(client, &args.name, &args.source)?;
+    ces_projects_locations_apps_conversations_get_execute(builder)
+}
+
+/// GET v1/projects/{projectsId}/locations/{locationsId}/apps/{appsId}/conversations
+/// Lists conversations in the given app.
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `ces_projects_locations_apps_conversations_list_execute()` to send, or `ces_projects_locations_apps_conversations_list` for simplest API.
+
+pub fn ces_projects_locations_apps_conversations_list_builder(
+    client: &SimpleHttpClient,
+    parent: &String,
+    filter: &Option<Option<String>>,
+    pageSize: &Option<Option<String>>,
+    pageToken: &Option<Option<String>>,
+    source: &Option<Option<String>>,
+    sources: &Option<Option<String>>,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!(
+        "https://ces.googleapis.com/v1/projects/{}/locations/{locationsId}/apps/{appsId}/conversations",
+        parent,
+    );
+
+    // Build request
+    let mut query_parts = Vec::new();
+    if let Some(val) = filter.as_ref() {
+        query_parts.push(format!("filter={}", val));
+    }
+    if let Some(val) = pageSize.as_ref() {
+        query_parts.push(format!("pageSize={}", val));
+    }
+    if let Some(val) = pageToken.as_ref() {
+        query_parts.push(format!("pageToken={}", val));
+    }
+    if let Some(val) = source.as_ref() {
+        query_parts.push(format!("source={}", val));
+    }
+    if let Some(val) = sources.as_ref() {
+        query_parts.push(format!("sources={}", val));
+    }
+
+    let url_with_query = if query_parts.is_empty() {
+        endpoint_url
+    } else {
+        format!("{}?{}", endpoint_url, query_parts.join("&"))
+    };
+
+    let builder = client
+        .get(&url_with_query)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// GET v1/projects/{projectsId}/locations/{locationsId}/apps/{appsId}/conversations
+/// Lists conversations in the given app.
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `ces_projects_locations_apps_conversations_list_execute()` or `ces_projects_locations_apps_conversations_list`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `ces_projects_locations_apps_conversations_list_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn ces_projects_locations_apps_conversations_list_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<ListConversationsResponse>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: ListConversationsResponse = serde_json::from_str(&body)
+                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// GET v1/projects/{projectsId}/locations/{locationsId}/apps/{appsId}/conversations
+/// Lists conversations in the given app.
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `ces_projects_locations_apps_conversations_list_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `ces_projects_locations_apps_conversations_list_task()`.
+/// For the simplest API, use `ces_projects_locations_apps_conversations_list()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `ces_projects_locations_apps_conversations_list_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn ces_projects_locations_apps_conversations_list_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<ListConversationsResponse>, ApiError>, P = ApiPending>
+        + Send
+        + 'static,
+    ApiError,
+> {
+    let task = ces_projects_locations_apps_conversations_list_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`ces_projects_locations_apps_conversations_list`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct CesProjectsLocationsAppsConversationsListArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Query parameter: filter
+    pub filter: Option<Option<String>>,
+    /// Query parameter: pageSize
+    pub pageSize: Option<Option<String>>,
+    /// Query parameter: pageToken
+    pub pageToken: Option<Option<String>>,
+    /// Query parameter: source
+    pub source: Option<Option<String>>,
+    /// Query parameter: sources
+    pub sources: Option<Option<String>>,
+}
+
+/// GET v1/projects/{projectsId}/locations/{locationsId}/apps/{appsId}/conversations
+/// Lists conversations in the given app.
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `ces_projects_locations_apps_conversations_list_builder()` + `ces_projects_locations_apps_conversations_list_execute()`.
+/// For task-level control, use `ces_projects_locations_apps_conversations_list_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn ces_projects_locations_apps_conversations_list(
+    client: &SimpleHttpClient,
+    args: &CesProjectsLocationsAppsConversationsListArgs,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<ListConversationsResponse>, ApiError>, P = ApiPending>
+        + Send
+        + 'static,
+    ApiError,
+> {
+    let builder = ces_projects_locations_apps_conversations_list_builder(
+        client,
+        &args.parent,
+        &args.filter,
+        &args.pageSize,
+        &args.pageToken,
+        &args.source,
+        &args.sources,
+    )?;
+    ces_projects_locations_apps_conversations_list_execute(builder)
+}
+
+/// POST v1/projects/{projectsId}/locations/{locationsId}/apps/{appsId}/deployments
+/// Creates a new deployment in the given app.
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `ces_projects_locations_apps_deployments_create_execute()` to send, or `ces_projects_locations_apps_deployments_create` for simplest API.
+
+pub fn ces_projects_locations_apps_deployments_create_builder(
+    client: &SimpleHttpClient,
+    parent: &String,
+    deploymentId: &Option<Option<String>>,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!(
+        "https://ces.googleapis.com/v1/projects/{}/locations/{locationsId}/apps/{appsId}/deployments",
+        parent,
+    );
+
+    // Build request
+    let mut query_parts = Vec::new();
+    if let Some(val) = deploymentId.as_ref() {
+        query_parts.push(format!("deploymentId={}", val));
+    }
+
+    let url_with_query = if query_parts.is_empty() {
+        endpoint_url
+    } else {
+        format!("{}?{}", endpoint_url, query_parts.join("&"))
+    };
+
+    let builder = client
+        .post(&url_with_query)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// POST v1/projects/{projectsId}/locations/{locationsId}/apps/{appsId}/deployments
+/// Creates a new deployment in the given app.
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `ces_projects_locations_apps_deployments_create_execute()` or `ces_projects_locations_apps_deployments_create`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `ces_projects_locations_apps_deployments_create_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn ces_projects_locations_apps_deployments_create_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<Deployment>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: Deployment = serde_json::from_str(&body)
+                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// POST v1/projects/{projectsId}/locations/{locationsId}/apps/{appsId}/deployments
+/// Creates a new deployment in the given app.
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `ces_projects_locations_apps_deployments_create_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `ces_projects_locations_apps_deployments_create_task()`.
+/// For the simplest API, use `ces_projects_locations_apps_deployments_create()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `ces_projects_locations_apps_deployments_create_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn ces_projects_locations_apps_deployments_create_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<Deployment>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let task = ces_projects_locations_apps_deployments_create_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`ces_projects_locations_apps_deployments_create`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct CesProjectsLocationsAppsDeploymentsCreateArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Query parameter: deploymentId
+    pub deploymentId: Option<Option<String>>,
+}
+
+/// POST v1/projects/{projectsId}/locations/{locationsId}/apps/{appsId}/deployments
+/// Creates a new deployment in the given app.
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `ces_projects_locations_apps_deployments_create_builder()` + `ces_projects_locations_apps_deployments_create_execute()`.
+/// For task-level control, use `ces_projects_locations_apps_deployments_create_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn ces_projects_locations_apps_deployments_create(
+    client: &SimpleHttpClient,
+    args: &CesProjectsLocationsAppsDeploymentsCreateArgs,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<Deployment>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let builder = ces_projects_locations_apps_deployments_create_builder(
+        client,
+        &args.parent,
+        &args.deploymentId,
+    )?;
+    ces_projects_locations_apps_deployments_create_execute(builder)
+}
+
+/// DELETE v1/projects/{projectsId}/locations/{locationsId}/apps/{appsId}/deployments/{deploymentsId}
+/// Deletes the specified deployment.
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `ces_projects_locations_apps_deployments_delete_execute()` to send, or `ces_projects_locations_apps_deployments_delete` for simplest API.
+
+pub fn ces_projects_locations_apps_deployments_delete_builder(
+    client: &SimpleHttpClient,
+    name: &String,
+    etag: &Option<Option<String>>,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!(
+        "https://ces.googleapis.com/v1/projects/{}/locations/{locationsId}/apps/{appsId}/deployments/{deploymentsId}",
+        name,
+    );
+
+    // Build request
+    let mut query_parts = Vec::new();
+    if let Some(val) = etag.as_ref() {
+        query_parts.push(format!("etag={}", val));
+    }
+
+    let url_with_query = if query_parts.is_empty() {
+        endpoint_url
+    } else {
+        format!("{}?{}", endpoint_url, query_parts.join("&"))
+    };
+
+    let builder = client
+        .delete(&url_with_query)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// DELETE v1/projects/{projectsId}/locations/{locationsId}/apps/{appsId}/deployments/{deploymentsId}
+/// Deletes the specified deployment.
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `ces_projects_locations_apps_deployments_delete_execute()` or `ces_projects_locations_apps_deployments_delete`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `ces_projects_locations_apps_deployments_delete_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn ces_projects_locations_apps_deployments_delete_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<Empty>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: Empty = serde_json::from_str(&body)
+                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// DELETE v1/projects/{projectsId}/locations/{locationsId}/apps/{appsId}/deployments/{deploymentsId}
+/// Deletes the specified deployment.
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `ces_projects_locations_apps_deployments_delete_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `ces_projects_locations_apps_deployments_delete_task()`.
+/// For the simplest API, use `ces_projects_locations_apps_deployments_delete()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `ces_projects_locations_apps_deployments_delete_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn ces_projects_locations_apps_deployments_delete_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<Empty>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let task = ces_projects_locations_apps_deployments_delete_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`ces_projects_locations_apps_deployments_delete`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct CesProjectsLocationsAppsDeploymentsDeleteArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Query parameter: etag
+    pub etag: Option<Option<String>>,
+}
+
+/// DELETE v1/projects/{projectsId}/locations/{locationsId}/apps/{appsId}/deployments/{deploymentsId}
+/// Deletes the specified deployment.
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `ces_projects_locations_apps_deployments_delete_builder()` + `ces_projects_locations_apps_deployments_delete_execute()`.
+/// For task-level control, use `ces_projects_locations_apps_deployments_delete_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn ces_projects_locations_apps_deployments_delete(
+    client: &SimpleHttpClient,
+    args: &CesProjectsLocationsAppsDeploymentsDeleteArgs,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<Empty>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let builder =
+        ces_projects_locations_apps_deployments_delete_builder(client, &args.name, &args.etag)?;
+    ces_projects_locations_apps_deployments_delete_execute(builder)
+}
+
+/// GET v1/projects/{projectsId}/locations/{locationsId}/apps/{appsId}/deployments/{deploymentsId}
+/// Gets details of the specified deployment.
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `ces_projects_locations_apps_deployments_get_execute()` to send, or `ces_projects_locations_apps_deployments_get` for simplest API.
+
+pub fn ces_projects_locations_apps_deployments_get_builder(
+    client: &SimpleHttpClient,
+    name: &String,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!(
+        "https://ces.googleapis.com/v1/projects/{}/locations/{locationsId}/apps/{appsId}/deployments/{deploymentsId}",
+        name,
+    );
+
+    // Build request
+    let builder = client
+        .get(&endpoint_url)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// GET v1/projects/{projectsId}/locations/{locationsId}/apps/{appsId}/deployments/{deploymentsId}
+/// Gets details of the specified deployment.
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `ces_projects_locations_apps_deployments_get_execute()` or `ces_projects_locations_apps_deployments_get`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `ces_projects_locations_apps_deployments_get_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn ces_projects_locations_apps_deployments_get_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<Deployment>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: Deployment = serde_json::from_str(&body)
+                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// GET v1/projects/{projectsId}/locations/{locationsId}/apps/{appsId}/deployments/{deploymentsId}
+/// Gets details of the specified deployment.
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `ces_projects_locations_apps_deployments_get_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `ces_projects_locations_apps_deployments_get_task()`.
+/// For the simplest API, use `ces_projects_locations_apps_deployments_get()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `ces_projects_locations_apps_deployments_get_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn ces_projects_locations_apps_deployments_get_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<Deployment>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let task = ces_projects_locations_apps_deployments_get_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`ces_projects_locations_apps_deployments_get`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct CesProjectsLocationsAppsDeploymentsGetArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
+/// GET v1/projects/{projectsId}/locations/{locationsId}/apps/{appsId}/deployments/{deploymentsId}
+/// Gets details of the specified deployment.
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `ces_projects_locations_apps_deployments_get_builder()` + `ces_projects_locations_apps_deployments_get_execute()`.
+/// For task-level control, use `ces_projects_locations_apps_deployments_get_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn ces_projects_locations_apps_deployments_get(
+    client: &SimpleHttpClient,
+    args: &CesProjectsLocationsAppsDeploymentsGetArgs,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<Deployment>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let builder = ces_projects_locations_apps_deployments_get_builder(client, &args.name)?;
+    ces_projects_locations_apps_deployments_get_execute(builder)
+}
+
+/// GET v1/projects/{projectsId}/locations/{locationsId}/apps/{appsId}/deployments
+/// Lists deployments in the given app.
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `ces_projects_locations_apps_deployments_list_execute()` to send, or `ces_projects_locations_apps_deployments_list` for simplest API.
+
+pub fn ces_projects_locations_apps_deployments_list_builder(
+    client: &SimpleHttpClient,
+    parent: &String,
+    orderBy: &Option<Option<String>>,
+    pageSize: &Option<Option<String>>,
+    pageToken: &Option<Option<String>>,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!(
+        "https://ces.googleapis.com/v1/projects/{}/locations/{locationsId}/apps/{appsId}/deployments",
+        parent,
+    );
+
+    // Build request
+    let mut query_parts = Vec::new();
+    if let Some(val) = orderBy.as_ref() {
+        query_parts.push(format!("orderBy={}", val));
+    }
+    if let Some(val) = pageSize.as_ref() {
+        query_parts.push(format!("pageSize={}", val));
+    }
+    if let Some(val) = pageToken.as_ref() {
+        query_parts.push(format!("pageToken={}", val));
+    }
+
+    let url_with_query = if query_parts.is_empty() {
+        endpoint_url
+    } else {
+        format!("{}?{}", endpoint_url, query_parts.join("&"))
+    };
+
+    let builder = client
+        .get(&url_with_query)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// GET v1/projects/{projectsId}/locations/{locationsId}/apps/{appsId}/deployments
+/// Lists deployments in the given app.
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `ces_projects_locations_apps_deployments_list_execute()` or `ces_projects_locations_apps_deployments_list`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `ces_projects_locations_apps_deployments_list_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn ces_projects_locations_apps_deployments_list_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<ListDeploymentsResponse>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: ListDeploymentsResponse = serde_json::from_str(&body)
+                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// GET v1/projects/{projectsId}/locations/{locationsId}/apps/{appsId}/deployments
+/// Lists deployments in the given app.
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `ces_projects_locations_apps_deployments_list_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `ces_projects_locations_apps_deployments_list_task()`.
+/// For the simplest API, use `ces_projects_locations_apps_deployments_list()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `ces_projects_locations_apps_deployments_list_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn ces_projects_locations_apps_deployments_list_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<ListDeploymentsResponse>, ApiError>, P = ApiPending>
+        + Send
+        + 'static,
+    ApiError,
+> {
+    let task = ces_projects_locations_apps_deployments_list_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`ces_projects_locations_apps_deployments_list`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct CesProjectsLocationsAppsDeploymentsListArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Query parameter: orderBy
+    pub orderBy: Option<Option<String>>,
+    /// Query parameter: pageSize
+    pub pageSize: Option<Option<String>>,
+    /// Query parameter: pageToken
+    pub pageToken: Option<Option<String>>,
+}
+
+/// GET v1/projects/{projectsId}/locations/{locationsId}/apps/{appsId}/deployments
+/// Lists deployments in the given app.
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `ces_projects_locations_apps_deployments_list_builder()` + `ces_projects_locations_apps_deployments_list_execute()`.
+/// For task-level control, use `ces_projects_locations_apps_deployments_list_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn ces_projects_locations_apps_deployments_list(
+    client: &SimpleHttpClient,
+    args: &CesProjectsLocationsAppsDeploymentsListArgs,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<ListDeploymentsResponse>, ApiError>, P = ApiPending>
+        + Send
+        + 'static,
+    ApiError,
+> {
+    let builder = ces_projects_locations_apps_deployments_list_builder(
+        client,
+        &args.parent,
+        &args.orderBy,
+        &args.pageSize,
+        &args.pageToken,
+    )?;
+    ces_projects_locations_apps_deployments_list_execute(builder)
+}
+
+/// PATCH v1/projects/{projectsId}/locations/{locationsId}/apps/{appsId}/deployments/{deploymentsId}
+/// Updates the specified deployment.
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `ces_projects_locations_apps_deployments_patch_execute()` to send, or `ces_projects_locations_apps_deployments_patch` for simplest API.
+
+pub fn ces_projects_locations_apps_deployments_patch_builder(
+    client: &SimpleHttpClient,
+    name: &String,
+    updateMask: &Option<Option<String>>,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!(
+        "https://ces.googleapis.com/v1/projects/{}/locations/{locationsId}/apps/{appsId}/deployments/{deploymentsId}",
+        name,
+    );
+
+    // Build request
+    let mut query_parts = Vec::new();
+    if let Some(val) = updateMask.as_ref() {
+        query_parts.push(format!("updateMask={}", val));
+    }
+
+    let url_with_query = if query_parts.is_empty() {
+        endpoint_url
+    } else {
+        format!("{}?{}", endpoint_url, query_parts.join("&"))
+    };
+
+    let builder = client
+        .patch(&url_with_query)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// PATCH v1/projects/{projectsId}/locations/{locationsId}/apps/{appsId}/deployments/{deploymentsId}
+/// Updates the specified deployment.
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `ces_projects_locations_apps_deployments_patch_execute()` or `ces_projects_locations_apps_deployments_patch`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `ces_projects_locations_apps_deployments_patch_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn ces_projects_locations_apps_deployments_patch_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<Deployment>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: Deployment = serde_json::from_str(&body)
+                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// PATCH v1/projects/{projectsId}/locations/{locationsId}/apps/{appsId}/deployments/{deploymentsId}
+/// Updates the specified deployment.
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `ces_projects_locations_apps_deployments_patch_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `ces_projects_locations_apps_deployments_patch_task()`.
+/// For the simplest API, use `ces_projects_locations_apps_deployments_patch()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `ces_projects_locations_apps_deployments_patch_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn ces_projects_locations_apps_deployments_patch_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<Deployment>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let task = ces_projects_locations_apps_deployments_patch_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`ces_projects_locations_apps_deployments_patch`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct CesProjectsLocationsAppsDeploymentsPatchArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Query parameter: updateMask
+    pub updateMask: Option<Option<String>>,
+}
+
+/// PATCH v1/projects/{projectsId}/locations/{locationsId}/apps/{appsId}/deployments/{deploymentsId}
+/// Updates the specified deployment.
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `ces_projects_locations_apps_deployments_patch_builder()` + `ces_projects_locations_apps_deployments_patch_execute()`.
+/// For task-level control, use `ces_projects_locations_apps_deployments_patch_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn ces_projects_locations_apps_deployments_patch(
+    client: &SimpleHttpClient,
+    args: &CesProjectsLocationsAppsDeploymentsPatchArgs,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<Deployment>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let builder = ces_projects_locations_apps_deployments_patch_builder(
+        client,
+        &args.name,
+        &args.updateMask,
+    )?;
+    ces_projects_locations_apps_deployments_patch_execute(builder)
+}
+
+/// POST v1/projects/{projectsId}/locations/{locationsId}/apps/{appsId}/examples
+/// Creates a new example in the given app.
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `ces_projects_locations_apps_examples_create_execute()` to send, or `ces_projects_locations_apps_examples_create` for simplest API.
+
+pub fn ces_projects_locations_apps_examples_create_builder(
+    client: &SimpleHttpClient,
+    parent: &String,
+    exampleId: &Option<Option<String>>,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!(
+        "https://ces.googleapis.com/v1/projects/{}/locations/{locationsId}/apps/{appsId}/examples",
+        parent,
+    );
+
+    // Build request
+    let mut query_parts = Vec::new();
+    if let Some(val) = exampleId.as_ref() {
+        query_parts.push(format!("exampleId={}", val));
+    }
+
+    let url_with_query = if query_parts.is_empty() {
+        endpoint_url
+    } else {
+        format!("{}?{}", endpoint_url, query_parts.join("&"))
+    };
+
+    let builder = client
+        .post(&url_with_query)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// POST v1/projects/{projectsId}/locations/{locationsId}/apps/{appsId}/examples
+/// Creates a new example in the given app.
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `ces_projects_locations_apps_examples_create_execute()` or `ces_projects_locations_apps_examples_create`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `ces_projects_locations_apps_examples_create_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn ces_projects_locations_apps_examples_create_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<Example>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: Example = serde_json::from_str(&body)
+                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// POST v1/projects/{projectsId}/locations/{locationsId}/apps/{appsId}/examples
+/// Creates a new example in the given app.
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `ces_projects_locations_apps_examples_create_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `ces_projects_locations_apps_examples_create_task()`.
+/// For the simplest API, use `ces_projects_locations_apps_examples_create()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `ces_projects_locations_apps_examples_create_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn ces_projects_locations_apps_examples_create_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<Example>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let task = ces_projects_locations_apps_examples_create_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`ces_projects_locations_apps_examples_create`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct CesProjectsLocationsAppsExamplesCreateArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Query parameter: exampleId
+    pub exampleId: Option<Option<String>>,
+}
+
+/// POST v1/projects/{projectsId}/locations/{locationsId}/apps/{appsId}/examples
+/// Creates a new example in the given app.
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `ces_projects_locations_apps_examples_create_builder()` + `ces_projects_locations_apps_examples_create_execute()`.
+/// For task-level control, use `ces_projects_locations_apps_examples_create_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn ces_projects_locations_apps_examples_create(
+    client: &SimpleHttpClient,
+    args: &CesProjectsLocationsAppsExamplesCreateArgs,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<Example>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let builder =
+        ces_projects_locations_apps_examples_create_builder(client, &args.parent, &args.exampleId)?;
+    ces_projects_locations_apps_examples_create_execute(builder)
+}
+
+/// DELETE v1/projects/{projectsId}/locations/{locationsId}/apps/{appsId}/examples/{examplesId}
+/// Deletes the specified example.
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `ces_projects_locations_apps_examples_delete_execute()` to send, or `ces_projects_locations_apps_examples_delete` for simplest API.
+
+pub fn ces_projects_locations_apps_examples_delete_builder(
+    client: &SimpleHttpClient,
+    name: &String,
+    etag: &Option<Option<String>>,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!(
+        "https://ces.googleapis.com/v1/projects/{}/locations/{locationsId}/apps/{appsId}/examples/{examplesId}",
+        name,
+    );
+
+    // Build request
+    let mut query_parts = Vec::new();
+    if let Some(val) = etag.as_ref() {
+        query_parts.push(format!("etag={}", val));
+    }
+
+    let url_with_query = if query_parts.is_empty() {
+        endpoint_url
+    } else {
+        format!("{}?{}", endpoint_url, query_parts.join("&"))
+    };
+
+    let builder = client
+        .delete(&url_with_query)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// DELETE v1/projects/{projectsId}/locations/{locationsId}/apps/{appsId}/examples/{examplesId}
+/// Deletes the specified example.
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `ces_projects_locations_apps_examples_delete_execute()` or `ces_projects_locations_apps_examples_delete`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `ces_projects_locations_apps_examples_delete_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn ces_projects_locations_apps_examples_delete_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<Empty>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: Empty = serde_json::from_str(&body)
+                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// DELETE v1/projects/{projectsId}/locations/{locationsId}/apps/{appsId}/examples/{examplesId}
+/// Deletes the specified example.
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `ces_projects_locations_apps_examples_delete_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `ces_projects_locations_apps_examples_delete_task()`.
+/// For the simplest API, use `ces_projects_locations_apps_examples_delete()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `ces_projects_locations_apps_examples_delete_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn ces_projects_locations_apps_examples_delete_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<Empty>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let task = ces_projects_locations_apps_examples_delete_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`ces_projects_locations_apps_examples_delete`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct CesProjectsLocationsAppsExamplesDeleteArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Query parameter: etag
+    pub etag: Option<Option<String>>,
+}
+
+/// DELETE v1/projects/{projectsId}/locations/{locationsId}/apps/{appsId}/examples/{examplesId}
+/// Deletes the specified example.
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `ces_projects_locations_apps_examples_delete_builder()` + `ces_projects_locations_apps_examples_delete_execute()`.
+/// For task-level control, use `ces_projects_locations_apps_examples_delete_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn ces_projects_locations_apps_examples_delete(
+    client: &SimpleHttpClient,
+    args: &CesProjectsLocationsAppsExamplesDeleteArgs,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<Empty>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let builder =
+        ces_projects_locations_apps_examples_delete_builder(client, &args.name, &args.etag)?;
+    ces_projects_locations_apps_examples_delete_execute(builder)
+}
+
+/// GET v1/projects/{projectsId}/locations/{locationsId}/apps/{appsId}/examples/{examplesId}
+/// Gets details of the specified example.
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `ces_projects_locations_apps_examples_get_execute()` to send, or `ces_projects_locations_apps_examples_get` for simplest API.
+
+pub fn ces_projects_locations_apps_examples_get_builder(
+    client: &SimpleHttpClient,
+    name: &String,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!(
+        "https://ces.googleapis.com/v1/projects/{}/locations/{locationsId}/apps/{appsId}/examples/{examplesId}",
+        name,
+    );
+
+    // Build request
+    let builder = client
+        .get(&endpoint_url)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// GET v1/projects/{projectsId}/locations/{locationsId}/apps/{appsId}/examples/{examplesId}
+/// Gets details of the specified example.
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `ces_projects_locations_apps_examples_get_execute()` or `ces_projects_locations_apps_examples_get`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `ces_projects_locations_apps_examples_get_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn ces_projects_locations_apps_examples_get_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<Example>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: Example = serde_json::from_str(&body)
+                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// GET v1/projects/{projectsId}/locations/{locationsId}/apps/{appsId}/examples/{examplesId}
+/// Gets details of the specified example.
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `ces_projects_locations_apps_examples_get_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `ces_projects_locations_apps_examples_get_task()`.
+/// For the simplest API, use `ces_projects_locations_apps_examples_get()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `ces_projects_locations_apps_examples_get_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn ces_projects_locations_apps_examples_get_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<Example>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let task = ces_projects_locations_apps_examples_get_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`ces_projects_locations_apps_examples_get`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct CesProjectsLocationsAppsExamplesGetArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
+/// GET v1/projects/{projectsId}/locations/{locationsId}/apps/{appsId}/examples/{examplesId}
+/// Gets details of the specified example.
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `ces_projects_locations_apps_examples_get_builder()` + `ces_projects_locations_apps_examples_get_execute()`.
+/// For task-level control, use `ces_projects_locations_apps_examples_get_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn ces_projects_locations_apps_examples_get(
+    client: &SimpleHttpClient,
+    args: &CesProjectsLocationsAppsExamplesGetArgs,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<Example>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let builder = ces_projects_locations_apps_examples_get_builder(client, &args.name)?;
+    ces_projects_locations_apps_examples_get_execute(builder)
+}
+
+/// GET v1/projects/{projectsId}/locations/{locationsId}/apps/{appsId}/examples
+/// Lists examples in the given app.
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `ces_projects_locations_apps_examples_list_execute()` to send, or `ces_projects_locations_apps_examples_list` for simplest API.
+
+pub fn ces_projects_locations_apps_examples_list_builder(
+    client: &SimpleHttpClient,
+    parent: &String,
+    filter: &Option<Option<String>>,
+    orderBy: &Option<Option<String>>,
+    pageSize: &Option<Option<String>>,
+    pageToken: &Option<Option<String>>,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!(
+        "https://ces.googleapis.com/v1/projects/{}/locations/{locationsId}/apps/{appsId}/examples",
+        parent,
+    );
+
+    // Build request
+    let mut query_parts = Vec::new();
+    if let Some(val) = filter.as_ref() {
+        query_parts.push(format!("filter={}", val));
+    }
+    if let Some(val) = orderBy.as_ref() {
+        query_parts.push(format!("orderBy={}", val));
+    }
+    if let Some(val) = pageSize.as_ref() {
+        query_parts.push(format!("pageSize={}", val));
+    }
+    if let Some(val) = pageToken.as_ref() {
+        query_parts.push(format!("pageToken={}", val));
+    }
+
+    let url_with_query = if query_parts.is_empty() {
+        endpoint_url
+    } else {
+        format!("{}?{}", endpoint_url, query_parts.join("&"))
+    };
+
+    let builder = client
+        .get(&url_with_query)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// GET v1/projects/{projectsId}/locations/{locationsId}/apps/{appsId}/examples
+/// Lists examples in the given app.
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `ces_projects_locations_apps_examples_list_execute()` or `ces_projects_locations_apps_examples_list`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `ces_projects_locations_apps_examples_list_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn ces_projects_locations_apps_examples_list_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<ListExamplesResponse>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: ListExamplesResponse = serde_json::from_str(&body)
+                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// GET v1/projects/{projectsId}/locations/{locationsId}/apps/{appsId}/examples
+/// Lists examples in the given app.
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `ces_projects_locations_apps_examples_list_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `ces_projects_locations_apps_examples_list_task()`.
+/// For the simplest API, use `ces_projects_locations_apps_examples_list()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `ces_projects_locations_apps_examples_list_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn ces_projects_locations_apps_examples_list_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<ListExamplesResponse>, ApiError>, P = ApiPending>
+        + Send
+        + 'static,
+    ApiError,
+> {
+    let task = ces_projects_locations_apps_examples_list_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`ces_projects_locations_apps_examples_list`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct CesProjectsLocationsAppsExamplesListArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Query parameter: filter
+    pub filter: Option<Option<String>>,
+    /// Query parameter: orderBy
+    pub orderBy: Option<Option<String>>,
+    /// Query parameter: pageSize
+    pub pageSize: Option<Option<String>>,
+    /// Query parameter: pageToken
+    pub pageToken: Option<Option<String>>,
+}
+
+/// GET v1/projects/{projectsId}/locations/{locationsId}/apps/{appsId}/examples
+/// Lists examples in the given app.
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `ces_projects_locations_apps_examples_list_builder()` + `ces_projects_locations_apps_examples_list_execute()`.
+/// For task-level control, use `ces_projects_locations_apps_examples_list_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn ces_projects_locations_apps_examples_list(
+    client: &SimpleHttpClient,
+    args: &CesProjectsLocationsAppsExamplesListArgs,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<ListExamplesResponse>, ApiError>, P = ApiPending>
+        + Send
+        + 'static,
+    ApiError,
+> {
+    let builder = ces_projects_locations_apps_examples_list_builder(
+        client,
+        &args.parent,
+        &args.filter,
+        &args.orderBy,
+        &args.pageSize,
+        &args.pageToken,
+    )?;
+    ces_projects_locations_apps_examples_list_execute(builder)
+}
+
+/// PATCH v1/projects/{projectsId}/locations/{locationsId}/apps/{appsId}/examples/{examplesId}
+/// Updates the specified example.
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `ces_projects_locations_apps_examples_patch_execute()` to send, or `ces_projects_locations_apps_examples_patch` for simplest API.
+
+pub fn ces_projects_locations_apps_examples_patch_builder(
+    client: &SimpleHttpClient,
+    name: &String,
+    updateMask: &Option<Option<String>>,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!(
+        "https://ces.googleapis.com/v1/projects/{}/locations/{locationsId}/apps/{appsId}/examples/{examplesId}",
+        name,
+    );
+
+    // Build request
+    let mut query_parts = Vec::new();
+    if let Some(val) = updateMask.as_ref() {
+        query_parts.push(format!("updateMask={}", val));
+    }
+
+    let url_with_query = if query_parts.is_empty() {
+        endpoint_url
+    } else {
+        format!("{}?{}", endpoint_url, query_parts.join("&"))
+    };
+
+    let builder = client
+        .patch(&url_with_query)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// PATCH v1/projects/{projectsId}/locations/{locationsId}/apps/{appsId}/examples/{examplesId}
+/// Updates the specified example.
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `ces_projects_locations_apps_examples_patch_execute()` or `ces_projects_locations_apps_examples_patch`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `ces_projects_locations_apps_examples_patch_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn ces_projects_locations_apps_examples_patch_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<Example>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: Example = serde_json::from_str(&body)
+                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// PATCH v1/projects/{projectsId}/locations/{locationsId}/apps/{appsId}/examples/{examplesId}
+/// Updates the specified example.
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `ces_projects_locations_apps_examples_patch_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `ces_projects_locations_apps_examples_patch_task()`.
+/// For the simplest API, use `ces_projects_locations_apps_examples_patch()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `ces_projects_locations_apps_examples_patch_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn ces_projects_locations_apps_examples_patch_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<Example>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let task = ces_projects_locations_apps_examples_patch_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`ces_projects_locations_apps_examples_patch`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct CesProjectsLocationsAppsExamplesPatchArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Query parameter: updateMask
+    pub updateMask: Option<Option<String>>,
+}
+
+/// PATCH v1/projects/{projectsId}/locations/{locationsId}/apps/{appsId}/examples/{examplesId}
+/// Updates the specified example.
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `ces_projects_locations_apps_examples_patch_builder()` + `ces_projects_locations_apps_examples_patch_execute()`.
+/// For task-level control, use `ces_projects_locations_apps_examples_patch_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn ces_projects_locations_apps_examples_patch(
+    client: &SimpleHttpClient,
+    args: &CesProjectsLocationsAppsExamplesPatchArgs,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<Example>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let builder =
+        ces_projects_locations_apps_examples_patch_builder(client, &args.name, &args.updateMask)?;
+    ces_projects_locations_apps_examples_patch_execute(builder)
+}
+
+/// POST v1/projects/{projectsId}/locations/{locationsId}/apps/{appsId}/guardrails
+/// Creates a new guardrail in the given app.
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `ces_projects_locations_apps_guardrails_create_execute()` to send, or `ces_projects_locations_apps_guardrails_create` for simplest API.
+
+pub fn ces_projects_locations_apps_guardrails_create_builder(
+    client: &SimpleHttpClient,
+    parent: &String,
+    guardrailId: &Option<Option<String>>,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!(
+        "https://ces.googleapis.com/v1/projects/{}/locations/{locationsId}/apps/{appsId}/guardrails",
+        parent,
+    );
+
+    // Build request
+    let mut query_parts = Vec::new();
+    if let Some(val) = guardrailId.as_ref() {
+        query_parts.push(format!("guardrailId={}", val));
+    }
+
+    let url_with_query = if query_parts.is_empty() {
+        endpoint_url
+    } else {
+        format!("{}?{}", endpoint_url, query_parts.join("&"))
+    };
+
+    let builder = client
+        .post(&url_with_query)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// POST v1/projects/{projectsId}/locations/{locationsId}/apps/{appsId}/guardrails
+/// Creates a new guardrail in the given app.
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `ces_projects_locations_apps_guardrails_create_execute()` or `ces_projects_locations_apps_guardrails_create`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `ces_projects_locations_apps_guardrails_create_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn ces_projects_locations_apps_guardrails_create_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<Guardrail>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: Guardrail = serde_json::from_str(&body)
+                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// POST v1/projects/{projectsId}/locations/{locationsId}/apps/{appsId}/guardrails
+/// Creates a new guardrail in the given app.
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `ces_projects_locations_apps_guardrails_create_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `ces_projects_locations_apps_guardrails_create_task()`.
+/// For the simplest API, use `ces_projects_locations_apps_guardrails_create()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `ces_projects_locations_apps_guardrails_create_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn ces_projects_locations_apps_guardrails_create_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<Guardrail>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let task = ces_projects_locations_apps_guardrails_create_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`ces_projects_locations_apps_guardrails_create`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct CesProjectsLocationsAppsGuardrailsCreateArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Query parameter: guardrailId
+    pub guardrailId: Option<Option<String>>,
+}
+
+/// POST v1/projects/{projectsId}/locations/{locationsId}/apps/{appsId}/guardrails
+/// Creates a new guardrail in the given app.
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `ces_projects_locations_apps_guardrails_create_builder()` + `ces_projects_locations_apps_guardrails_create_execute()`.
+/// For task-level control, use `ces_projects_locations_apps_guardrails_create_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn ces_projects_locations_apps_guardrails_create(
+    client: &SimpleHttpClient,
+    args: &CesProjectsLocationsAppsGuardrailsCreateArgs,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<Guardrail>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let builder = ces_projects_locations_apps_guardrails_create_builder(
+        client,
+        &args.parent,
+        &args.guardrailId,
+    )?;
+    ces_projects_locations_apps_guardrails_create_execute(builder)
+}
+
+/// DELETE v1/projects/{projectsId}/locations/{locationsId}/apps/{appsId}/guardrails/{guardrailsId}
+/// Deletes the specified guardrail.
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `ces_projects_locations_apps_guardrails_delete_execute()` to send, or `ces_projects_locations_apps_guardrails_delete` for simplest API.
+
+pub fn ces_projects_locations_apps_guardrails_delete_builder(
+    client: &SimpleHttpClient,
+    name: &String,
+    etag: &Option<Option<String>>,
+    force: &Option<Option<String>>,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!(
+        "https://ces.googleapis.com/v1/projects/{}/locations/{locationsId}/apps/{appsId}/guardrails/{guardrailsId}",
+        name,
+    );
+
+    // Build request
+    let mut query_parts = Vec::new();
+    if let Some(val) = etag.as_ref() {
+        query_parts.push(format!("etag={}", val));
+    }
+    if let Some(val) = force.as_ref() {
+        query_parts.push(format!("force={}", val));
+    }
+
+    let url_with_query = if query_parts.is_empty() {
+        endpoint_url
+    } else {
+        format!("{}?{}", endpoint_url, query_parts.join("&"))
+    };
+
+    let builder = client
+        .delete(&url_with_query)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// DELETE v1/projects/{projectsId}/locations/{locationsId}/apps/{appsId}/guardrails/{guardrailsId}
+/// Deletes the specified guardrail.
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `ces_projects_locations_apps_guardrails_delete_execute()` or `ces_projects_locations_apps_guardrails_delete`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `ces_projects_locations_apps_guardrails_delete_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn ces_projects_locations_apps_guardrails_delete_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<Empty>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: Empty = serde_json::from_str(&body)
+                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// DELETE v1/projects/{projectsId}/locations/{locationsId}/apps/{appsId}/guardrails/{guardrailsId}
+/// Deletes the specified guardrail.
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `ces_projects_locations_apps_guardrails_delete_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `ces_projects_locations_apps_guardrails_delete_task()`.
+/// For the simplest API, use `ces_projects_locations_apps_guardrails_delete()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `ces_projects_locations_apps_guardrails_delete_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn ces_projects_locations_apps_guardrails_delete_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<Empty>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let task = ces_projects_locations_apps_guardrails_delete_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`ces_projects_locations_apps_guardrails_delete`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct CesProjectsLocationsAppsGuardrailsDeleteArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Query parameter: etag
+    pub etag: Option<Option<String>>,
+    /// Query parameter: force
+    pub force: Option<Option<String>>,
+}
+
+/// DELETE v1/projects/{projectsId}/locations/{locationsId}/apps/{appsId}/guardrails/{guardrailsId}
+/// Deletes the specified guardrail.
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `ces_projects_locations_apps_guardrails_delete_builder()` + `ces_projects_locations_apps_guardrails_delete_execute()`.
+/// For task-level control, use `ces_projects_locations_apps_guardrails_delete_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn ces_projects_locations_apps_guardrails_delete(
+    client: &SimpleHttpClient,
+    args: &CesProjectsLocationsAppsGuardrailsDeleteArgs,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<Empty>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let builder = ces_projects_locations_apps_guardrails_delete_builder(
+        client,
+        &args.name,
+        &args.etag,
+        &args.force,
+    )?;
+    ces_projects_locations_apps_guardrails_delete_execute(builder)
+}
+
+/// GET v1/projects/{projectsId}/locations/{locationsId}/apps/{appsId}/guardrails/{guardrailsId}
+/// Gets details of the specified guardrail.
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `ces_projects_locations_apps_guardrails_get_execute()` to send, or `ces_projects_locations_apps_guardrails_get` for simplest API.
+
+pub fn ces_projects_locations_apps_guardrails_get_builder(
+    client: &SimpleHttpClient,
+    name: &String,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!(
+        "https://ces.googleapis.com/v1/projects/{}/locations/{locationsId}/apps/{appsId}/guardrails/{guardrailsId}",
+        name,
+    );
+
+    // Build request
+    let builder = client
+        .get(&endpoint_url)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// GET v1/projects/{projectsId}/locations/{locationsId}/apps/{appsId}/guardrails/{guardrailsId}
+/// Gets details of the specified guardrail.
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `ces_projects_locations_apps_guardrails_get_execute()` or `ces_projects_locations_apps_guardrails_get`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `ces_projects_locations_apps_guardrails_get_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn ces_projects_locations_apps_guardrails_get_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<Guardrail>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: Guardrail = serde_json::from_str(&body)
+                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// GET v1/projects/{projectsId}/locations/{locationsId}/apps/{appsId}/guardrails/{guardrailsId}
+/// Gets details of the specified guardrail.
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `ces_projects_locations_apps_guardrails_get_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `ces_projects_locations_apps_guardrails_get_task()`.
+/// For the simplest API, use `ces_projects_locations_apps_guardrails_get()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `ces_projects_locations_apps_guardrails_get_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn ces_projects_locations_apps_guardrails_get_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<Guardrail>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let task = ces_projects_locations_apps_guardrails_get_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`ces_projects_locations_apps_guardrails_get`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct CesProjectsLocationsAppsGuardrailsGetArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
+/// GET v1/projects/{projectsId}/locations/{locationsId}/apps/{appsId}/guardrails/{guardrailsId}
+/// Gets details of the specified guardrail.
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `ces_projects_locations_apps_guardrails_get_builder()` + `ces_projects_locations_apps_guardrails_get_execute()`.
+/// For task-level control, use `ces_projects_locations_apps_guardrails_get_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn ces_projects_locations_apps_guardrails_get(
+    client: &SimpleHttpClient,
+    args: &CesProjectsLocationsAppsGuardrailsGetArgs,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<Guardrail>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let builder = ces_projects_locations_apps_guardrails_get_builder(client, &args.name)?;
+    ces_projects_locations_apps_guardrails_get_execute(builder)
+}
+
+/// GET v1/projects/{projectsId}/locations/{locationsId}/apps/{appsId}/guardrails
+/// Lists guardrails in the given app.
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `ces_projects_locations_apps_guardrails_list_execute()` to send, or `ces_projects_locations_apps_guardrails_list` for simplest API.
+
+pub fn ces_projects_locations_apps_guardrails_list_builder(
+    client: &SimpleHttpClient,
+    parent: &String,
+    filter: &Option<Option<String>>,
+    orderBy: &Option<Option<String>>,
+    pageSize: &Option<Option<String>>,
+    pageToken: &Option<Option<String>>,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!(
+        "https://ces.googleapis.com/v1/projects/{}/locations/{locationsId}/apps/{appsId}/guardrails",
+        parent,
+    );
+
+    // Build request
+    let mut query_parts = Vec::new();
+    if let Some(val) = filter.as_ref() {
+        query_parts.push(format!("filter={}", val));
+    }
+    if let Some(val) = orderBy.as_ref() {
+        query_parts.push(format!("orderBy={}", val));
+    }
+    if let Some(val) = pageSize.as_ref() {
+        query_parts.push(format!("pageSize={}", val));
+    }
+    if let Some(val) = pageToken.as_ref() {
+        query_parts.push(format!("pageToken={}", val));
+    }
+
+    let url_with_query = if query_parts.is_empty() {
+        endpoint_url
+    } else {
+        format!("{}?{}", endpoint_url, query_parts.join("&"))
+    };
+
+    let builder = client
+        .get(&url_with_query)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// GET v1/projects/{projectsId}/locations/{locationsId}/apps/{appsId}/guardrails
+/// Lists guardrails in the given app.
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `ces_projects_locations_apps_guardrails_list_execute()` or `ces_projects_locations_apps_guardrails_list`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `ces_projects_locations_apps_guardrails_list_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn ces_projects_locations_apps_guardrails_list_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<ListGuardrailsResponse>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: ListGuardrailsResponse = serde_json::from_str(&body)
+                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// GET v1/projects/{projectsId}/locations/{locationsId}/apps/{appsId}/guardrails
+/// Lists guardrails in the given app.
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `ces_projects_locations_apps_guardrails_list_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `ces_projects_locations_apps_guardrails_list_task()`.
+/// For the simplest API, use `ces_projects_locations_apps_guardrails_list()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `ces_projects_locations_apps_guardrails_list_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn ces_projects_locations_apps_guardrails_list_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<ListGuardrailsResponse>, ApiError>, P = ApiPending>
+        + Send
+        + 'static,
+    ApiError,
+> {
+    let task = ces_projects_locations_apps_guardrails_list_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`ces_projects_locations_apps_guardrails_list`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct CesProjectsLocationsAppsGuardrailsListArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Query parameter: filter
+    pub filter: Option<Option<String>>,
+    /// Query parameter: orderBy
+    pub orderBy: Option<Option<String>>,
+    /// Query parameter: pageSize
+    pub pageSize: Option<Option<String>>,
+    /// Query parameter: pageToken
+    pub pageToken: Option<Option<String>>,
+}
+
+/// GET v1/projects/{projectsId}/locations/{locationsId}/apps/{appsId}/guardrails
+/// Lists guardrails in the given app.
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `ces_projects_locations_apps_guardrails_list_builder()` + `ces_projects_locations_apps_guardrails_list_execute()`.
+/// For task-level control, use `ces_projects_locations_apps_guardrails_list_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn ces_projects_locations_apps_guardrails_list(
+    client: &SimpleHttpClient,
+    args: &CesProjectsLocationsAppsGuardrailsListArgs,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<ListGuardrailsResponse>, ApiError>, P = ApiPending>
+        + Send
+        + 'static,
+    ApiError,
+> {
+    let builder = ces_projects_locations_apps_guardrails_list_builder(
+        client,
+        &args.parent,
+        &args.filter,
+        &args.orderBy,
+        &args.pageSize,
+        &args.pageToken,
+    )?;
+    ces_projects_locations_apps_guardrails_list_execute(builder)
+}
+
+/// PATCH v1/projects/{projectsId}/locations/{locationsId}/apps/{appsId}/guardrails/{guardrailsId}
+/// Updates the specified guardrail.
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `ces_projects_locations_apps_guardrails_patch_execute()` to send, or `ces_projects_locations_apps_guardrails_patch` for simplest API.
+
+pub fn ces_projects_locations_apps_guardrails_patch_builder(
+    client: &SimpleHttpClient,
+    name: &String,
+    updateMask: &Option<Option<String>>,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!(
+        "https://ces.googleapis.com/v1/projects/{}/locations/{locationsId}/apps/{appsId}/guardrails/{guardrailsId}",
+        name,
+    );
+
+    // Build request
+    let mut query_parts = Vec::new();
+    if let Some(val) = updateMask.as_ref() {
+        query_parts.push(format!("updateMask={}", val));
+    }
+
+    let url_with_query = if query_parts.is_empty() {
+        endpoint_url
+    } else {
+        format!("{}?{}", endpoint_url, query_parts.join("&"))
+    };
+
+    let builder = client
+        .patch(&url_with_query)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// PATCH v1/projects/{projectsId}/locations/{locationsId}/apps/{appsId}/guardrails/{guardrailsId}
+/// Updates the specified guardrail.
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `ces_projects_locations_apps_guardrails_patch_execute()` or `ces_projects_locations_apps_guardrails_patch`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `ces_projects_locations_apps_guardrails_patch_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn ces_projects_locations_apps_guardrails_patch_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<Guardrail>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: Guardrail = serde_json::from_str(&body)
+                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// PATCH v1/projects/{projectsId}/locations/{locationsId}/apps/{appsId}/guardrails/{guardrailsId}
+/// Updates the specified guardrail.
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `ces_projects_locations_apps_guardrails_patch_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `ces_projects_locations_apps_guardrails_patch_task()`.
+/// For the simplest API, use `ces_projects_locations_apps_guardrails_patch()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `ces_projects_locations_apps_guardrails_patch_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn ces_projects_locations_apps_guardrails_patch_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<Guardrail>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let task = ces_projects_locations_apps_guardrails_patch_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`ces_projects_locations_apps_guardrails_patch`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct CesProjectsLocationsAppsGuardrailsPatchArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Query parameter: updateMask
+    pub updateMask: Option<Option<String>>,
+}
+
+/// PATCH v1/projects/{projectsId}/locations/{locationsId}/apps/{appsId}/guardrails/{guardrailsId}
+/// Updates the specified guardrail.
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `ces_projects_locations_apps_guardrails_patch_builder()` + `ces_projects_locations_apps_guardrails_patch_execute()`.
+/// For task-level control, use `ces_projects_locations_apps_guardrails_patch_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn ces_projects_locations_apps_guardrails_patch(
+    client: &SimpleHttpClient,
+    args: &CesProjectsLocationsAppsGuardrailsPatchArgs,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<Guardrail>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let builder =
+        ces_projects_locations_apps_guardrails_patch_builder(client, &args.name, &args.updateMask)?;
+    ces_projects_locations_apps_guardrails_patch_execute(builder)
+}
+
+/// POST v1/projects/{projectsId}/locations/{locationsId}/apps/{appsId}/sessions/{sessionsId}:generateChatToken
+/// Generates a session scoped token for chat widget to authenticate with Session APIs.
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `ces_projects_locations_apps_sessions_generate_chat_token_execute()` to send, or `ces_projects_locations_apps_sessions_generate_chat_token` for simplest API.
+
+pub fn ces_projects_locations_apps_sessions_generate_chat_token_builder(
+    client: &SimpleHttpClient,
+    name: &String,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!(
+        "https://ces.googleapis.com/v1/projects/{}/locations/{locationsId}/apps/{appsId}/sessions/{sessionsId}:generateChatToken",
+        name,
+    );
+
+    // Build request
+    let builder = client
+        .post(&endpoint_url)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// POST v1/projects/{projectsId}/locations/{locationsId}/apps/{appsId}/sessions/{sessionsId}:generateChatToken
+/// Generates a session scoped token for chat widget to authenticate with Session APIs.
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `ces_projects_locations_apps_sessions_generate_chat_token_execute()` or `ces_projects_locations_apps_sessions_generate_chat_token`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `ces_projects_locations_apps_sessions_generate_chat_token_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn ces_projects_locations_apps_sessions_generate_chat_token_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<GenerateChatTokenResponse>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: GenerateChatTokenResponse = serde_json::from_str(&body)
+                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// POST v1/projects/{projectsId}/locations/{locationsId}/apps/{appsId}/sessions/{sessionsId}:generateChatToken
+/// Generates a session scoped token for chat widget to authenticate with Session APIs.
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `ces_projects_locations_apps_sessions_generate_chat_token_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `ces_projects_locations_apps_sessions_generate_chat_token_task()`.
+/// For the simplest API, use `ces_projects_locations_apps_sessions_generate_chat_token()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `ces_projects_locations_apps_sessions_generate_chat_token_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn ces_projects_locations_apps_sessions_generate_chat_token_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<GenerateChatTokenResponse>, ApiError>, P = ApiPending>
+        + Send
+        + 'static,
+    ApiError,
+> {
+    let task = ces_projects_locations_apps_sessions_generate_chat_token_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`ces_projects_locations_apps_sessions_generate_chat_token`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct CesProjectsLocationsAppsSessionsGenerateChatTokenArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
+/// POST v1/projects/{projectsId}/locations/{locationsId}/apps/{appsId}/sessions/{sessionsId}:generateChatToken
+/// Generates a session scoped token for chat widget to authenticate with Session APIs.
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `ces_projects_locations_apps_sessions_generate_chat_token_builder()` + `ces_projects_locations_apps_sessions_generate_chat_token_execute()`.
+/// For task-level control, use `ces_projects_locations_apps_sessions_generate_chat_token_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn ces_projects_locations_apps_sessions_generate_chat_token(
+    client: &SimpleHttpClient,
+    args: &CesProjectsLocationsAppsSessionsGenerateChatTokenArgs,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<GenerateChatTokenResponse>, ApiError>, P = ApiPending>
+        + Send
+        + 'static,
+    ApiError,
+> {
+    let builder =
+        ces_projects_locations_apps_sessions_generate_chat_token_builder(client, &args.name)?;
+    ces_projects_locations_apps_sessions_generate_chat_token_execute(builder)
+}
+
+/// POST v1/projects/{projectsId}/locations/{locationsId}/apps/{appsId}/sessions/{sessionsId}:runSession
+/// Initiates a single-turn interaction with the CES agent within a session.
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `ces_projects_locations_apps_sessions_run_session_execute()` to send, or `ces_projects_locations_apps_sessions_run_session` for simplest API.
+
+pub fn ces_projects_locations_apps_sessions_run_session_builder(
+    client: &SimpleHttpClient,
+    session: &String,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!(
+        "https://ces.googleapis.com/v1/projects/{}/locations/{locationsId}/apps/{appsId}/sessions/{sessionsId}:runSession",
+        session,
+    );
+
+    // Build request
+    let builder = client
+        .post(&endpoint_url)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// POST v1/projects/{projectsId}/locations/{locationsId}/apps/{appsId}/sessions/{sessionsId}:runSession
+/// Initiates a single-turn interaction with the CES agent within a session.
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `ces_projects_locations_apps_sessions_run_session_execute()` or `ces_projects_locations_apps_sessions_run_session`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `ces_projects_locations_apps_sessions_run_session_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn ces_projects_locations_apps_sessions_run_session_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<RunSessionResponse>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: RunSessionResponse = serde_json::from_str(&body)
+                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// POST v1/projects/{projectsId}/locations/{locationsId}/apps/{appsId}/sessions/{sessionsId}:runSession
+/// Initiates a single-turn interaction with the CES agent within a session.
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `ces_projects_locations_apps_sessions_run_session_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `ces_projects_locations_apps_sessions_run_session_task()`.
+/// For the simplest API, use `ces_projects_locations_apps_sessions_run_session()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `ces_projects_locations_apps_sessions_run_session_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn ces_projects_locations_apps_sessions_run_session_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<RunSessionResponse>, ApiError>, P = ApiPending>
+        + Send
+        + 'static,
+    ApiError,
+> {
+    let task = ces_projects_locations_apps_sessions_run_session_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`ces_projects_locations_apps_sessions_run_session`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct CesProjectsLocationsAppsSessionsRunSessionArgs {
+    /// Path parameter: session
+    pub session: String,
+}
+
+/// POST v1/projects/{projectsId}/locations/{locationsId}/apps/{appsId}/sessions/{sessionsId}:runSession
+/// Initiates a single-turn interaction with the CES agent within a session.
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `ces_projects_locations_apps_sessions_run_session_builder()` + `ces_projects_locations_apps_sessions_run_session_execute()`.
+/// For task-level control, use `ces_projects_locations_apps_sessions_run_session_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn ces_projects_locations_apps_sessions_run_session(
+    client: &SimpleHttpClient,
+    args: &CesProjectsLocationsAppsSessionsRunSessionArgs,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<RunSessionResponse>, ApiError>, P = ApiPending>
+        + Send
+        + 'static,
+    ApiError,
+> {
+    let builder = ces_projects_locations_apps_sessions_run_session_builder(client, &args.session)?;
+    ces_projects_locations_apps_sessions_run_session_execute(builder)
+}
+
+/// POST v1/projects/{projectsId}/locations/{locationsId}/apps/{appsId}/sessions/{sessionsId}:streamRunSession
+/// Initiates a single-turn interaction with the CES agent. Uses server-side streaming to deliver incremental results and partial responses as they are generated. By default, complete responses (e.g., messages from callbacks or full LLM responses) are sent to the client as soon as they are available. To enable streaming individual text chunks directly from the model, set enable_text_streaming to `true`.
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `ces_projects_locations_apps_sessions_stream_run_session_execute()` to send, or `ces_projects_locations_apps_sessions_stream_run_session` for simplest API.
+
+pub fn ces_projects_locations_apps_sessions_stream_run_session_builder(
+    client: &SimpleHttpClient,
+    session: &String,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!(
+        "https://ces.googleapis.com/v1/projects/{}/locations/{locationsId}/apps/{appsId}/sessions/{sessionsId}:streamRunSession",
+        session,
+    );
+
+    // Build request
+    let builder = client
+        .post(&endpoint_url)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// POST v1/projects/{projectsId}/locations/{locationsId}/apps/{appsId}/sessions/{sessionsId}:streamRunSession
+/// Initiates a single-turn interaction with the CES agent. Uses server-side streaming to deliver incremental results and partial responses as they are generated. By default, complete responses (e.g., messages from callbacks or full LLM responses) are sent to the client as soon as they are available. To enable streaming individual text chunks directly from the model, set enable_text_streaming to `true`.
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `ces_projects_locations_apps_sessions_stream_run_session_execute()` or `ces_projects_locations_apps_sessions_stream_run_session`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `ces_projects_locations_apps_sessions_stream_run_session_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn ces_projects_locations_apps_sessions_stream_run_session_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<RunSessionResponse>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: RunSessionResponse = serde_json::from_str(&body)
+                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// POST v1/projects/{projectsId}/locations/{locationsId}/apps/{appsId}/sessions/{sessionsId}:streamRunSession
+/// Initiates a single-turn interaction with the CES agent. Uses server-side streaming to deliver incremental results and partial responses as they are generated. By default, complete responses (e.g., messages from callbacks or full LLM responses) are sent to the client as soon as they are available. To enable streaming individual text chunks directly from the model, set enable_text_streaming to `true`.
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `ces_projects_locations_apps_sessions_stream_run_session_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `ces_projects_locations_apps_sessions_stream_run_session_task()`.
+/// For the simplest API, use `ces_projects_locations_apps_sessions_stream_run_session()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `ces_projects_locations_apps_sessions_stream_run_session_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn ces_projects_locations_apps_sessions_stream_run_session_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<RunSessionResponse>, ApiError>, P = ApiPending>
+        + Send
+        + 'static,
+    ApiError,
+> {
+    let task = ces_projects_locations_apps_sessions_stream_run_session_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`ces_projects_locations_apps_sessions_stream_run_session`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct CesProjectsLocationsAppsSessionsStreamRunSessionArgs {
+    /// Path parameter: session
+    pub session: String,
+}
+
+/// POST v1/projects/{projectsId}/locations/{locationsId}/apps/{appsId}/sessions/{sessionsId}:streamRunSession
+/// Initiates a single-turn interaction with the CES agent. Uses server-side streaming to deliver incremental results and partial responses as they are generated. By default, complete responses (e.g., messages from callbacks or full LLM responses) are sent to the client as soon as they are available. To enable streaming individual text chunks directly from the model, set enable_text_streaming to `true`.
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `ces_projects_locations_apps_sessions_stream_run_session_builder()` + `ces_projects_locations_apps_sessions_stream_run_session_execute()`.
+/// For task-level control, use `ces_projects_locations_apps_sessions_stream_run_session_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn ces_projects_locations_apps_sessions_stream_run_session(
+    client: &SimpleHttpClient,
+    args: &CesProjectsLocationsAppsSessionsStreamRunSessionArgs,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<RunSessionResponse>, ApiError>, P = ApiPending>
+        + Send
+        + 'static,
+    ApiError,
+> {
+    let builder =
+        ces_projects_locations_apps_sessions_stream_run_session_builder(client, &args.session)?;
+    ces_projects_locations_apps_sessions_stream_run_session_execute(builder)
+}
+
+/// POST v1/projects/{projectsId}/locations/{locationsId}/apps/{appsId}/tools
+/// Creates a new tool in the given app.
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `ces_projects_locations_apps_tools_create_execute()` to send, or `ces_projects_locations_apps_tools_create` for simplest API.
+
+pub fn ces_projects_locations_apps_tools_create_builder(
+    client: &SimpleHttpClient,
+    parent: &String,
+    toolId: &Option<Option<String>>,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!(
+        "https://ces.googleapis.com/v1/projects/{}/locations/{locationsId}/apps/{appsId}/tools",
+        parent,
+    );
+
+    // Build request
+    let mut query_parts = Vec::new();
+    if let Some(val) = toolId.as_ref() {
+        query_parts.push(format!("toolId={}", val));
+    }
+
+    let url_with_query = if query_parts.is_empty() {
+        endpoint_url
+    } else {
+        format!("{}?{}", endpoint_url, query_parts.join("&"))
+    };
+
+    let builder = client
+        .post(&url_with_query)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// POST v1/projects/{projectsId}/locations/{locationsId}/apps/{appsId}/tools
+/// Creates a new tool in the given app.
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `ces_projects_locations_apps_tools_create_execute()` or `ces_projects_locations_apps_tools_create`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `ces_projects_locations_apps_tools_create_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn ces_projects_locations_apps_tools_create_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<Tool>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: Tool = serde_json::from_str(&body)
+                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// POST v1/projects/{projectsId}/locations/{locationsId}/apps/{appsId}/tools
+/// Creates a new tool in the given app.
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `ces_projects_locations_apps_tools_create_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `ces_projects_locations_apps_tools_create_task()`.
+/// For the simplest API, use `ces_projects_locations_apps_tools_create()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `ces_projects_locations_apps_tools_create_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn ces_projects_locations_apps_tools_create_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<Tool>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let task = ces_projects_locations_apps_tools_create_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`ces_projects_locations_apps_tools_create`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct CesProjectsLocationsAppsToolsCreateArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Query parameter: toolId
+    pub toolId: Option<Option<String>>,
+}
+
+/// POST v1/projects/{projectsId}/locations/{locationsId}/apps/{appsId}/tools
+/// Creates a new tool in the given app.
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `ces_projects_locations_apps_tools_create_builder()` + `ces_projects_locations_apps_tools_create_execute()`.
+/// For task-level control, use `ces_projects_locations_apps_tools_create_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn ces_projects_locations_apps_tools_create(
+    client: &SimpleHttpClient,
+    args: &CesProjectsLocationsAppsToolsCreateArgs,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<Tool>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let builder =
+        ces_projects_locations_apps_tools_create_builder(client, &args.parent, &args.toolId)?;
+    ces_projects_locations_apps_tools_create_execute(builder)
+}
+
+/// DELETE v1/projects/{projectsId}/locations/{locationsId}/apps/{appsId}/tools/{toolsId}
+/// Deletes the specified tool.
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `ces_projects_locations_apps_tools_delete_execute()` to send, or `ces_projects_locations_apps_tools_delete` for simplest API.
+
+pub fn ces_projects_locations_apps_tools_delete_builder(
+    client: &SimpleHttpClient,
+    name: &String,
+    etag: &Option<Option<String>>,
+    force: &Option<Option<String>>,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!(
+        "https://ces.googleapis.com/v1/projects/{}/locations/{locationsId}/apps/{appsId}/tools/{toolsId}",
+        name,
+    );
+
+    // Build request
+    let mut query_parts = Vec::new();
+    if let Some(val) = etag.as_ref() {
+        query_parts.push(format!("etag={}", val));
+    }
+    if let Some(val) = force.as_ref() {
+        query_parts.push(format!("force={}", val));
+    }
+
+    let url_with_query = if query_parts.is_empty() {
+        endpoint_url
+    } else {
+        format!("{}?{}", endpoint_url, query_parts.join("&"))
+    };
+
+    let builder = client
+        .delete(&url_with_query)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// DELETE v1/projects/{projectsId}/locations/{locationsId}/apps/{appsId}/tools/{toolsId}
+/// Deletes the specified tool.
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `ces_projects_locations_apps_tools_delete_execute()` or `ces_projects_locations_apps_tools_delete`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `ces_projects_locations_apps_tools_delete_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn ces_projects_locations_apps_tools_delete_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<Empty>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: Empty = serde_json::from_str(&body)
+                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// DELETE v1/projects/{projectsId}/locations/{locationsId}/apps/{appsId}/tools/{toolsId}
+/// Deletes the specified tool.
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `ces_projects_locations_apps_tools_delete_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `ces_projects_locations_apps_tools_delete_task()`.
+/// For the simplest API, use `ces_projects_locations_apps_tools_delete()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `ces_projects_locations_apps_tools_delete_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn ces_projects_locations_apps_tools_delete_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<Empty>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let task = ces_projects_locations_apps_tools_delete_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`ces_projects_locations_apps_tools_delete`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct CesProjectsLocationsAppsToolsDeleteArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Query parameter: etag
+    pub etag: Option<Option<String>>,
+    /// Query parameter: force
+    pub force: Option<Option<String>>,
+}
+
+/// DELETE v1/projects/{projectsId}/locations/{locationsId}/apps/{appsId}/tools/{toolsId}
+/// Deletes the specified tool.
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `ces_projects_locations_apps_tools_delete_builder()` + `ces_projects_locations_apps_tools_delete_execute()`.
+/// For task-level control, use `ces_projects_locations_apps_tools_delete_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn ces_projects_locations_apps_tools_delete(
+    client: &SimpleHttpClient,
+    args: &CesProjectsLocationsAppsToolsDeleteArgs,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<Empty>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let builder = ces_projects_locations_apps_tools_delete_builder(
+        client,
+        &args.name,
+        &args.etag,
+        &args.force,
+    )?;
+    ces_projects_locations_apps_tools_delete_execute(builder)
+}
+
+/// GET v1/projects/{projectsId}/locations/{locationsId}/apps/{appsId}/tools/{toolsId}
+/// Gets details of the specified tool.
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `ces_projects_locations_apps_tools_get_execute()` to send, or `ces_projects_locations_apps_tools_get` for simplest API.
+
+pub fn ces_projects_locations_apps_tools_get_builder(
+    client: &SimpleHttpClient,
+    name: &String,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!(
+        "https://ces.googleapis.com/v1/projects/{}/locations/{locationsId}/apps/{appsId}/tools/{toolsId}",
+        name,
+    );
+
+    // Build request
+    let builder = client
+        .get(&endpoint_url)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// GET v1/projects/{projectsId}/locations/{locationsId}/apps/{appsId}/tools/{toolsId}
+/// Gets details of the specified tool.
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `ces_projects_locations_apps_tools_get_execute()` or `ces_projects_locations_apps_tools_get`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `ces_projects_locations_apps_tools_get_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn ces_projects_locations_apps_tools_get_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<Tool>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: Tool = serde_json::from_str(&body)
+                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// GET v1/projects/{projectsId}/locations/{locationsId}/apps/{appsId}/tools/{toolsId}
+/// Gets details of the specified tool.
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `ces_projects_locations_apps_tools_get_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `ces_projects_locations_apps_tools_get_task()`.
+/// For the simplest API, use `ces_projects_locations_apps_tools_get()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `ces_projects_locations_apps_tools_get_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn ces_projects_locations_apps_tools_get_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<Tool>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let task = ces_projects_locations_apps_tools_get_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`ces_projects_locations_apps_tools_get`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct CesProjectsLocationsAppsToolsGetArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
+/// GET v1/projects/{projectsId}/locations/{locationsId}/apps/{appsId}/tools/{toolsId}
+/// Gets details of the specified tool.
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `ces_projects_locations_apps_tools_get_builder()` + `ces_projects_locations_apps_tools_get_execute()`.
+/// For task-level control, use `ces_projects_locations_apps_tools_get_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn ces_projects_locations_apps_tools_get(
+    client: &SimpleHttpClient,
+    args: &CesProjectsLocationsAppsToolsGetArgs,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<Tool>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let builder = ces_projects_locations_apps_tools_get_builder(client, &args.name)?;
+    ces_projects_locations_apps_tools_get_execute(builder)
+}
+
+/// GET v1/projects/{projectsId}/locations/{locationsId}/apps/{appsId}/tools
+/// Lists tools in the given app.
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `ces_projects_locations_apps_tools_list_execute()` to send, or `ces_projects_locations_apps_tools_list` for simplest API.
+
+pub fn ces_projects_locations_apps_tools_list_builder(
+    client: &SimpleHttpClient,
+    parent: &String,
+    filter: &Option<Option<String>>,
+    orderBy: &Option<Option<String>>,
+    pageSize: &Option<Option<String>>,
+    pageToken: &Option<Option<String>>,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!(
+        "https://ces.googleapis.com/v1/projects/{}/locations/{locationsId}/apps/{appsId}/tools",
+        parent,
+    );
+
+    // Build request
+    let mut query_parts = Vec::new();
+    if let Some(val) = filter.as_ref() {
+        query_parts.push(format!("filter={}", val));
+    }
+    if let Some(val) = orderBy.as_ref() {
+        query_parts.push(format!("orderBy={}", val));
+    }
+    if let Some(val) = pageSize.as_ref() {
+        query_parts.push(format!("pageSize={}", val));
+    }
+    if let Some(val) = pageToken.as_ref() {
+        query_parts.push(format!("pageToken={}", val));
+    }
+
+    let url_with_query = if query_parts.is_empty() {
+        endpoint_url
+    } else {
+        format!("{}?{}", endpoint_url, query_parts.join("&"))
+    };
+
+    let builder = client
+        .get(&url_with_query)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// GET v1/projects/{projectsId}/locations/{locationsId}/apps/{appsId}/tools
+/// Lists tools in the given app.
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `ces_projects_locations_apps_tools_list_execute()` or `ces_projects_locations_apps_tools_list`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `ces_projects_locations_apps_tools_list_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn ces_projects_locations_apps_tools_list_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<ListToolsResponse>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: ListToolsResponse = serde_json::from_str(&body)
+                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// GET v1/projects/{projectsId}/locations/{locationsId}/apps/{appsId}/tools
+/// Lists tools in the given app.
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `ces_projects_locations_apps_tools_list_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `ces_projects_locations_apps_tools_list_task()`.
+/// For the simplest API, use `ces_projects_locations_apps_tools_list()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `ces_projects_locations_apps_tools_list_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn ces_projects_locations_apps_tools_list_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<ListToolsResponse>, ApiError>, P = ApiPending>
+        + Send
+        + 'static,
+    ApiError,
+> {
+    let task = ces_projects_locations_apps_tools_list_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`ces_projects_locations_apps_tools_list`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct CesProjectsLocationsAppsToolsListArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Query parameter: filter
+    pub filter: Option<Option<String>>,
+    /// Query parameter: orderBy
+    pub orderBy: Option<Option<String>>,
+    /// Query parameter: pageSize
+    pub pageSize: Option<Option<String>>,
+    /// Query parameter: pageToken
+    pub pageToken: Option<Option<String>>,
+}
+
+/// GET v1/projects/{projectsId}/locations/{locationsId}/apps/{appsId}/tools
+/// Lists tools in the given app.
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `ces_projects_locations_apps_tools_list_builder()` + `ces_projects_locations_apps_tools_list_execute()`.
+/// For task-level control, use `ces_projects_locations_apps_tools_list_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn ces_projects_locations_apps_tools_list(
+    client: &SimpleHttpClient,
+    args: &CesProjectsLocationsAppsToolsListArgs,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<ListToolsResponse>, ApiError>, P = ApiPending>
+        + Send
+        + 'static,
+    ApiError,
+> {
+    let builder = ces_projects_locations_apps_tools_list_builder(
+        client,
+        &args.parent,
+        &args.filter,
+        &args.orderBy,
+        &args.pageSize,
+        &args.pageToken,
+    )?;
+    ces_projects_locations_apps_tools_list_execute(builder)
+}
+
+/// PATCH v1/projects/{projectsId}/locations/{locationsId}/apps/{appsId}/tools/{toolsId}
+/// Updates the specified tool.
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `ces_projects_locations_apps_tools_patch_execute()` to send, or `ces_projects_locations_apps_tools_patch` for simplest API.
+
+pub fn ces_projects_locations_apps_tools_patch_builder(
+    client: &SimpleHttpClient,
+    name: &String,
+    updateMask: &Option<Option<String>>,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!(
+        "https://ces.googleapis.com/v1/projects/{}/locations/{locationsId}/apps/{appsId}/tools/{toolsId}",
+        name,
+    );
+
+    // Build request
+    let mut query_parts = Vec::new();
+    if let Some(val) = updateMask.as_ref() {
+        query_parts.push(format!("updateMask={}", val));
+    }
+
+    let url_with_query = if query_parts.is_empty() {
+        endpoint_url
+    } else {
+        format!("{}?{}", endpoint_url, query_parts.join("&"))
+    };
+
+    let builder = client
+        .patch(&url_with_query)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// PATCH v1/projects/{projectsId}/locations/{locationsId}/apps/{appsId}/tools/{toolsId}
+/// Updates the specified tool.
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `ces_projects_locations_apps_tools_patch_execute()` or `ces_projects_locations_apps_tools_patch`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `ces_projects_locations_apps_tools_patch_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn ces_projects_locations_apps_tools_patch_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<Tool>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: Tool = serde_json::from_str(&body)
+                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// PATCH v1/projects/{projectsId}/locations/{locationsId}/apps/{appsId}/tools/{toolsId}
+/// Updates the specified tool.
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `ces_projects_locations_apps_tools_patch_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `ces_projects_locations_apps_tools_patch_task()`.
+/// For the simplest API, use `ces_projects_locations_apps_tools_patch()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `ces_projects_locations_apps_tools_patch_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn ces_projects_locations_apps_tools_patch_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<Tool>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let task = ces_projects_locations_apps_tools_patch_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`ces_projects_locations_apps_tools_patch`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct CesProjectsLocationsAppsToolsPatchArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Query parameter: updateMask
+    pub updateMask: Option<Option<String>>,
+}
+
+/// PATCH v1/projects/{projectsId}/locations/{locationsId}/apps/{appsId}/tools/{toolsId}
+/// Updates the specified tool.
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `ces_projects_locations_apps_tools_patch_builder()` + `ces_projects_locations_apps_tools_patch_execute()`.
+/// For task-level control, use `ces_projects_locations_apps_tools_patch_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn ces_projects_locations_apps_tools_patch(
+    client: &SimpleHttpClient,
+    args: &CesProjectsLocationsAppsToolsPatchArgs,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<Tool>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let builder =
+        ces_projects_locations_apps_tools_patch_builder(client, &args.name, &args.updateMask)?;
+    ces_projects_locations_apps_tools_patch_execute(builder)
+}
+
+/// POST v1/projects/{projectsId}/locations/{locationsId}/apps/{appsId}/toolsets
+/// Creates a new toolset in the given app.
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `ces_projects_locations_apps_toolsets_create_execute()` to send, or `ces_projects_locations_apps_toolsets_create` for simplest API.
+
+pub fn ces_projects_locations_apps_toolsets_create_builder(
+    client: &SimpleHttpClient,
+    parent: &String,
+    toolsetId: &Option<Option<String>>,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!(
+        "https://ces.googleapis.com/v1/projects/{}/locations/{locationsId}/apps/{appsId}/toolsets",
+        parent,
+    );
+
+    // Build request
+    let mut query_parts = Vec::new();
+    if let Some(val) = toolsetId.as_ref() {
+        query_parts.push(format!("toolsetId={}", val));
+    }
+
+    let url_with_query = if query_parts.is_empty() {
+        endpoint_url
+    } else {
+        format!("{}?{}", endpoint_url, query_parts.join("&"))
+    };
+
+    let builder = client
+        .post(&url_with_query)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// POST v1/projects/{projectsId}/locations/{locationsId}/apps/{appsId}/toolsets
+/// Creates a new toolset in the given app.
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `ces_projects_locations_apps_toolsets_create_execute()` or `ces_projects_locations_apps_toolsets_create`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `ces_projects_locations_apps_toolsets_create_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn ces_projects_locations_apps_toolsets_create_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<Toolset>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: Toolset = serde_json::from_str(&body)
+                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// POST v1/projects/{projectsId}/locations/{locationsId}/apps/{appsId}/toolsets
+/// Creates a new toolset in the given app.
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `ces_projects_locations_apps_toolsets_create_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `ces_projects_locations_apps_toolsets_create_task()`.
+/// For the simplest API, use `ces_projects_locations_apps_toolsets_create()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `ces_projects_locations_apps_toolsets_create_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn ces_projects_locations_apps_toolsets_create_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<Toolset>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let task = ces_projects_locations_apps_toolsets_create_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`ces_projects_locations_apps_toolsets_create`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct CesProjectsLocationsAppsToolsetsCreateArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Query parameter: toolsetId
+    pub toolsetId: Option<Option<String>>,
+}
+
+/// POST v1/projects/{projectsId}/locations/{locationsId}/apps/{appsId}/toolsets
+/// Creates a new toolset in the given app.
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `ces_projects_locations_apps_toolsets_create_builder()` + `ces_projects_locations_apps_toolsets_create_execute()`.
+/// For task-level control, use `ces_projects_locations_apps_toolsets_create_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn ces_projects_locations_apps_toolsets_create(
+    client: &SimpleHttpClient,
+    args: &CesProjectsLocationsAppsToolsetsCreateArgs,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<Toolset>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let builder =
+        ces_projects_locations_apps_toolsets_create_builder(client, &args.parent, &args.toolsetId)?;
+    ces_projects_locations_apps_toolsets_create_execute(builder)
+}
+
+/// DELETE v1/projects/{projectsId}/locations/{locationsId}/apps/{appsId}/toolsets/{toolsetsId}
+/// Deletes the specified toolset.
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `ces_projects_locations_apps_toolsets_delete_execute()` to send, or `ces_projects_locations_apps_toolsets_delete` for simplest API.
+
+pub fn ces_projects_locations_apps_toolsets_delete_builder(
+    client: &SimpleHttpClient,
+    name: &String,
+    etag: &Option<Option<String>>,
+    force: &Option<Option<String>>,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!(
+        "https://ces.googleapis.com/v1/projects/{}/locations/{locationsId}/apps/{appsId}/toolsets/{toolsetsId}",
+        name,
+    );
+
+    // Build request
+    let mut query_parts = Vec::new();
+    if let Some(val) = etag.as_ref() {
+        query_parts.push(format!("etag={}", val));
+    }
+    if let Some(val) = force.as_ref() {
+        query_parts.push(format!("force={}", val));
+    }
+
+    let url_with_query = if query_parts.is_empty() {
+        endpoint_url
+    } else {
+        format!("{}?{}", endpoint_url, query_parts.join("&"))
+    };
+
+    let builder = client
+        .delete(&url_with_query)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// DELETE v1/projects/{projectsId}/locations/{locationsId}/apps/{appsId}/toolsets/{toolsetsId}
+/// Deletes the specified toolset.
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `ces_projects_locations_apps_toolsets_delete_execute()` or `ces_projects_locations_apps_toolsets_delete`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `ces_projects_locations_apps_toolsets_delete_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn ces_projects_locations_apps_toolsets_delete_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<Empty>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: Empty = serde_json::from_str(&body)
+                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// DELETE v1/projects/{projectsId}/locations/{locationsId}/apps/{appsId}/toolsets/{toolsetsId}
+/// Deletes the specified toolset.
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `ces_projects_locations_apps_toolsets_delete_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `ces_projects_locations_apps_toolsets_delete_task()`.
+/// For the simplest API, use `ces_projects_locations_apps_toolsets_delete()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `ces_projects_locations_apps_toolsets_delete_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn ces_projects_locations_apps_toolsets_delete_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<Empty>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let task = ces_projects_locations_apps_toolsets_delete_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`ces_projects_locations_apps_toolsets_delete`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct CesProjectsLocationsAppsToolsetsDeleteArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Query parameter: etag
+    pub etag: Option<Option<String>>,
+    /// Query parameter: force
+    pub force: Option<Option<String>>,
+}
+
+/// DELETE v1/projects/{projectsId}/locations/{locationsId}/apps/{appsId}/toolsets/{toolsetsId}
+/// Deletes the specified toolset.
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `ces_projects_locations_apps_toolsets_delete_builder()` + `ces_projects_locations_apps_toolsets_delete_execute()`.
+/// For task-level control, use `ces_projects_locations_apps_toolsets_delete_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn ces_projects_locations_apps_toolsets_delete(
+    client: &SimpleHttpClient,
+    args: &CesProjectsLocationsAppsToolsetsDeleteArgs,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<Empty>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let builder = ces_projects_locations_apps_toolsets_delete_builder(
+        client,
+        &args.name,
+        &args.etag,
+        &args.force,
+    )?;
+    ces_projects_locations_apps_toolsets_delete_execute(builder)
+}
+
+/// GET v1/projects/{projectsId}/locations/{locationsId}/apps/{appsId}/toolsets/{toolsetsId}
+/// Gets details of the specified toolset.
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `ces_projects_locations_apps_toolsets_get_execute()` to send, or `ces_projects_locations_apps_toolsets_get` for simplest API.
+
+pub fn ces_projects_locations_apps_toolsets_get_builder(
+    client: &SimpleHttpClient,
+    name: &String,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!(
+        "https://ces.googleapis.com/v1/projects/{}/locations/{locationsId}/apps/{appsId}/toolsets/{toolsetsId}",
+        name,
+    );
+
+    // Build request
+    let builder = client
+        .get(&endpoint_url)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// GET v1/projects/{projectsId}/locations/{locationsId}/apps/{appsId}/toolsets/{toolsetsId}
+/// Gets details of the specified toolset.
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `ces_projects_locations_apps_toolsets_get_execute()` or `ces_projects_locations_apps_toolsets_get`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `ces_projects_locations_apps_toolsets_get_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn ces_projects_locations_apps_toolsets_get_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<Toolset>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: Toolset = serde_json::from_str(&body)
+                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// GET v1/projects/{projectsId}/locations/{locationsId}/apps/{appsId}/toolsets/{toolsetsId}
+/// Gets details of the specified toolset.
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `ces_projects_locations_apps_toolsets_get_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `ces_projects_locations_apps_toolsets_get_task()`.
+/// For the simplest API, use `ces_projects_locations_apps_toolsets_get()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `ces_projects_locations_apps_toolsets_get_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn ces_projects_locations_apps_toolsets_get_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<Toolset>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let task = ces_projects_locations_apps_toolsets_get_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`ces_projects_locations_apps_toolsets_get`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct CesProjectsLocationsAppsToolsetsGetArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
+/// GET v1/projects/{projectsId}/locations/{locationsId}/apps/{appsId}/toolsets/{toolsetsId}
+/// Gets details of the specified toolset.
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `ces_projects_locations_apps_toolsets_get_builder()` + `ces_projects_locations_apps_toolsets_get_execute()`.
+/// For task-level control, use `ces_projects_locations_apps_toolsets_get_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn ces_projects_locations_apps_toolsets_get(
+    client: &SimpleHttpClient,
+    args: &CesProjectsLocationsAppsToolsetsGetArgs,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<Toolset>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let builder = ces_projects_locations_apps_toolsets_get_builder(client, &args.name)?;
+    ces_projects_locations_apps_toolsets_get_execute(builder)
+}
+
+/// GET v1/projects/{projectsId}/locations/{locationsId}/apps/{appsId}/toolsets
+/// Lists toolsets in the given app.
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `ces_projects_locations_apps_toolsets_list_execute()` to send, or `ces_projects_locations_apps_toolsets_list` for simplest API.
+
+pub fn ces_projects_locations_apps_toolsets_list_builder(
+    client: &SimpleHttpClient,
+    parent: &String,
+    filter: &Option<Option<String>>,
+    orderBy: &Option<Option<String>>,
+    pageSize: &Option<Option<String>>,
+    pageToken: &Option<Option<String>>,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!(
+        "https://ces.googleapis.com/v1/projects/{}/locations/{locationsId}/apps/{appsId}/toolsets",
+        parent,
+    );
+
+    // Build request
+    let mut query_parts = Vec::new();
+    if let Some(val) = filter.as_ref() {
+        query_parts.push(format!("filter={}", val));
+    }
+    if let Some(val) = orderBy.as_ref() {
+        query_parts.push(format!("orderBy={}", val));
+    }
+    if let Some(val) = pageSize.as_ref() {
+        query_parts.push(format!("pageSize={}", val));
+    }
+    if let Some(val) = pageToken.as_ref() {
+        query_parts.push(format!("pageToken={}", val));
+    }
+
+    let url_with_query = if query_parts.is_empty() {
+        endpoint_url
+    } else {
+        format!("{}?{}", endpoint_url, query_parts.join("&"))
+    };
+
+    let builder = client
+        .get(&url_with_query)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// GET v1/projects/{projectsId}/locations/{locationsId}/apps/{appsId}/toolsets
+/// Lists toolsets in the given app.
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `ces_projects_locations_apps_toolsets_list_execute()` or `ces_projects_locations_apps_toolsets_list`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `ces_projects_locations_apps_toolsets_list_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn ces_projects_locations_apps_toolsets_list_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<ListToolsetsResponse>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: ListToolsetsResponse = serde_json::from_str(&body)
+                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// GET v1/projects/{projectsId}/locations/{locationsId}/apps/{appsId}/toolsets
+/// Lists toolsets in the given app.
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `ces_projects_locations_apps_toolsets_list_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `ces_projects_locations_apps_toolsets_list_task()`.
+/// For the simplest API, use `ces_projects_locations_apps_toolsets_list()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `ces_projects_locations_apps_toolsets_list_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn ces_projects_locations_apps_toolsets_list_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<ListToolsetsResponse>, ApiError>, P = ApiPending>
+        + Send
+        + 'static,
+    ApiError,
+> {
+    let task = ces_projects_locations_apps_toolsets_list_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`ces_projects_locations_apps_toolsets_list`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct CesProjectsLocationsAppsToolsetsListArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Query parameter: filter
+    pub filter: Option<Option<String>>,
+    /// Query parameter: orderBy
+    pub orderBy: Option<Option<String>>,
+    /// Query parameter: pageSize
+    pub pageSize: Option<Option<String>>,
+    /// Query parameter: pageToken
+    pub pageToken: Option<Option<String>>,
+}
+
+/// GET v1/projects/{projectsId}/locations/{locationsId}/apps/{appsId}/toolsets
+/// Lists toolsets in the given app.
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `ces_projects_locations_apps_toolsets_list_builder()` + `ces_projects_locations_apps_toolsets_list_execute()`.
+/// For task-level control, use `ces_projects_locations_apps_toolsets_list_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn ces_projects_locations_apps_toolsets_list(
+    client: &SimpleHttpClient,
+    args: &CesProjectsLocationsAppsToolsetsListArgs,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<ListToolsetsResponse>, ApiError>, P = ApiPending>
+        + Send
+        + 'static,
+    ApiError,
+> {
+    let builder = ces_projects_locations_apps_toolsets_list_builder(
+        client,
+        &args.parent,
+        &args.filter,
+        &args.orderBy,
+        &args.pageSize,
+        &args.pageToken,
+    )?;
+    ces_projects_locations_apps_toolsets_list_execute(builder)
+}
+
+/// PATCH v1/projects/{projectsId}/locations/{locationsId}/apps/{appsId}/toolsets/{toolsetsId}
+/// Updates the specified toolset.
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `ces_projects_locations_apps_toolsets_patch_execute()` to send, or `ces_projects_locations_apps_toolsets_patch` for simplest API.
+
+pub fn ces_projects_locations_apps_toolsets_patch_builder(
+    client: &SimpleHttpClient,
+    name: &String,
+    updateMask: &Option<Option<String>>,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!(
+        "https://ces.googleapis.com/v1/projects/{}/locations/{locationsId}/apps/{appsId}/toolsets/{toolsetsId}",
+        name,
+    );
+
+    // Build request
+    let mut query_parts = Vec::new();
+    if let Some(val) = updateMask.as_ref() {
+        query_parts.push(format!("updateMask={}", val));
+    }
+
+    let url_with_query = if query_parts.is_empty() {
+        endpoint_url
+    } else {
+        format!("{}?{}", endpoint_url, query_parts.join("&"))
+    };
+
+    let builder = client
+        .patch(&url_with_query)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// PATCH v1/projects/{projectsId}/locations/{locationsId}/apps/{appsId}/toolsets/{toolsetsId}
+/// Updates the specified toolset.
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `ces_projects_locations_apps_toolsets_patch_execute()` or `ces_projects_locations_apps_toolsets_patch`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `ces_projects_locations_apps_toolsets_patch_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn ces_projects_locations_apps_toolsets_patch_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<Toolset>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: Toolset = serde_json::from_str(&body)
+                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// PATCH v1/projects/{projectsId}/locations/{locationsId}/apps/{appsId}/toolsets/{toolsetsId}
+/// Updates the specified toolset.
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `ces_projects_locations_apps_toolsets_patch_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `ces_projects_locations_apps_toolsets_patch_task()`.
+/// For the simplest API, use `ces_projects_locations_apps_toolsets_patch()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `ces_projects_locations_apps_toolsets_patch_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn ces_projects_locations_apps_toolsets_patch_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<Toolset>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let task = ces_projects_locations_apps_toolsets_patch_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`ces_projects_locations_apps_toolsets_patch`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct CesProjectsLocationsAppsToolsetsPatchArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Query parameter: updateMask
+    pub updateMask: Option<Option<String>>,
+}
+
+/// PATCH v1/projects/{projectsId}/locations/{locationsId}/apps/{appsId}/toolsets/{toolsetsId}
+/// Updates the specified toolset.
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `ces_projects_locations_apps_toolsets_patch_builder()` + `ces_projects_locations_apps_toolsets_patch_execute()`.
+/// For task-level control, use `ces_projects_locations_apps_toolsets_patch_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn ces_projects_locations_apps_toolsets_patch(
+    client: &SimpleHttpClient,
+    args: &CesProjectsLocationsAppsToolsetsPatchArgs,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<Toolset>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let builder =
+        ces_projects_locations_apps_toolsets_patch_builder(client, &args.name, &args.updateMask)?;
+    ces_projects_locations_apps_toolsets_patch_execute(builder)
+}
+
+/// POST v1/projects/{projectsId}/locations/{locationsId}/apps/{appsId}/toolsets/{toolsetsId}:retrieveTools
+/// Retrieve the list of tools included in the specified toolset.
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `ces_projects_locations_apps_toolsets_retrieve_tools_execute()` to send, or `ces_projects_locations_apps_toolsets_retrieve_tools` for simplest API.
+
+pub fn ces_projects_locations_apps_toolsets_retrieve_tools_builder(
+    client: &SimpleHttpClient,
+    toolset: &String,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!(
+        "https://ces.googleapis.com/v1/projects/{}/locations/{locationsId}/apps/{appsId}/toolsets/{toolsetsId}:retrieveTools",
+        toolset,
+    );
+
+    // Build request
+    let builder = client
+        .post(&endpoint_url)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// POST v1/projects/{projectsId}/locations/{locationsId}/apps/{appsId}/toolsets/{toolsetsId}:retrieveTools
+/// Retrieve the list of tools included in the specified toolset.
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `ces_projects_locations_apps_toolsets_retrieve_tools_execute()` or `ces_projects_locations_apps_toolsets_retrieve_tools`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `ces_projects_locations_apps_toolsets_retrieve_tools_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn ces_projects_locations_apps_toolsets_retrieve_tools_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<RetrieveToolsResponse>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: RetrieveToolsResponse = serde_json::from_str(&body)
+                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// POST v1/projects/{projectsId}/locations/{locationsId}/apps/{appsId}/toolsets/{toolsetsId}:retrieveTools
+/// Retrieve the list of tools included in the specified toolset.
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `ces_projects_locations_apps_toolsets_retrieve_tools_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `ces_projects_locations_apps_toolsets_retrieve_tools_task()`.
+/// For the simplest API, use `ces_projects_locations_apps_toolsets_retrieve_tools()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `ces_projects_locations_apps_toolsets_retrieve_tools_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn ces_projects_locations_apps_toolsets_retrieve_tools_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<RetrieveToolsResponse>, ApiError>, P = ApiPending>
+        + Send
+        + 'static,
+    ApiError,
+> {
+    let task = ces_projects_locations_apps_toolsets_retrieve_tools_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`ces_projects_locations_apps_toolsets_retrieve_tools`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct CesProjectsLocationsAppsToolsetsRetrieveToolsArgs {
+    /// Path parameter: toolset
+    pub toolset: String,
+}
+
+/// POST v1/projects/{projectsId}/locations/{locationsId}/apps/{appsId}/toolsets/{toolsetsId}:retrieveTools
+/// Retrieve the list of tools included in the specified toolset.
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `ces_projects_locations_apps_toolsets_retrieve_tools_builder()` + `ces_projects_locations_apps_toolsets_retrieve_tools_execute()`.
+/// For task-level control, use `ces_projects_locations_apps_toolsets_retrieve_tools_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn ces_projects_locations_apps_toolsets_retrieve_tools(
+    client: &SimpleHttpClient,
+    args: &CesProjectsLocationsAppsToolsetsRetrieveToolsArgs,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<RetrieveToolsResponse>, ApiError>, P = ApiPending>
+        + Send
+        + 'static,
+    ApiError,
+> {
+    let builder =
+        ces_projects_locations_apps_toolsets_retrieve_tools_builder(client, &args.toolset)?;
+    ces_projects_locations_apps_toolsets_retrieve_tools_execute(builder)
+}
+
+/// POST v1/projects/{projectsId}/locations/{locationsId}/apps/{appsId}/versions
+/// Creates a new app version in the given app.
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `ces_projects_locations_apps_versions_create_execute()` to send, or `ces_projects_locations_apps_versions_create` for simplest API.
+
+pub fn ces_projects_locations_apps_versions_create_builder(
+    client: &SimpleHttpClient,
+    parent: &String,
+    appVersionId: &Option<Option<String>>,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!(
+        "https://ces.googleapis.com/v1/projects/{}/locations/{locationsId}/apps/{appsId}/versions",
+        parent,
+    );
+
+    // Build request
+    let mut query_parts = Vec::new();
+    if let Some(val) = appVersionId.as_ref() {
+        query_parts.push(format!("appVersionId={}", val));
+    }
+
+    let url_with_query = if query_parts.is_empty() {
+        endpoint_url
+    } else {
+        format!("{}?{}", endpoint_url, query_parts.join("&"))
+    };
+
+    let builder = client
+        .post(&url_with_query)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// POST v1/projects/{projectsId}/locations/{locationsId}/apps/{appsId}/versions
+/// Creates a new app version in the given app.
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `ces_projects_locations_apps_versions_create_execute()` or `ces_projects_locations_apps_versions_create`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `ces_projects_locations_apps_versions_create_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn ces_projects_locations_apps_versions_create_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<AppVersion>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: AppVersion = serde_json::from_str(&body)
+                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// POST v1/projects/{projectsId}/locations/{locationsId}/apps/{appsId}/versions
+/// Creates a new app version in the given app.
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `ces_projects_locations_apps_versions_create_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `ces_projects_locations_apps_versions_create_task()`.
+/// For the simplest API, use `ces_projects_locations_apps_versions_create()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `ces_projects_locations_apps_versions_create_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn ces_projects_locations_apps_versions_create_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<AppVersion>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let task = ces_projects_locations_apps_versions_create_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`ces_projects_locations_apps_versions_create`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct CesProjectsLocationsAppsVersionsCreateArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Query parameter: appVersionId
+    pub appVersionId: Option<Option<String>>,
+}
+
+/// POST v1/projects/{projectsId}/locations/{locationsId}/apps/{appsId}/versions
+/// Creates a new app version in the given app.
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `ces_projects_locations_apps_versions_create_builder()` + `ces_projects_locations_apps_versions_create_execute()`.
+/// For task-level control, use `ces_projects_locations_apps_versions_create_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn ces_projects_locations_apps_versions_create(
+    client: &SimpleHttpClient,
+    args: &CesProjectsLocationsAppsVersionsCreateArgs,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<AppVersion>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let builder = ces_projects_locations_apps_versions_create_builder(
+        client,
+        &args.parent,
+        &args.appVersionId,
+    )?;
+    ces_projects_locations_apps_versions_create_execute(builder)
+}
+
+/// DELETE v1/projects/{projectsId}/locations/{locationsId}/apps/{appsId}/versions/{versionsId}
+/// Deletes the specified app version.
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `ces_projects_locations_apps_versions_delete_execute()` to send, or `ces_projects_locations_apps_versions_delete` for simplest API.
+
+pub fn ces_projects_locations_apps_versions_delete_builder(
+    client: &SimpleHttpClient,
+    name: &String,
+    etag: &Option<Option<String>>,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!(
+        "https://ces.googleapis.com/v1/projects/{}/locations/{locationsId}/apps/{appsId}/versions/{versionsId}",
+        name,
+    );
+
+    // Build request
+    let mut query_parts = Vec::new();
+    if let Some(val) = etag.as_ref() {
+        query_parts.push(format!("etag={}", val));
+    }
+
+    let url_with_query = if query_parts.is_empty() {
+        endpoint_url
+    } else {
+        format!("{}?{}", endpoint_url, query_parts.join("&"))
+    };
+
+    let builder = client
+        .delete(&url_with_query)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// DELETE v1/projects/{projectsId}/locations/{locationsId}/apps/{appsId}/versions/{versionsId}
+/// Deletes the specified app version.
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `ces_projects_locations_apps_versions_delete_execute()` or `ces_projects_locations_apps_versions_delete`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `ces_projects_locations_apps_versions_delete_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn ces_projects_locations_apps_versions_delete_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<Empty>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: Empty = serde_json::from_str(&body)
+                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// DELETE v1/projects/{projectsId}/locations/{locationsId}/apps/{appsId}/versions/{versionsId}
+/// Deletes the specified app version.
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `ces_projects_locations_apps_versions_delete_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `ces_projects_locations_apps_versions_delete_task()`.
+/// For the simplest API, use `ces_projects_locations_apps_versions_delete()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `ces_projects_locations_apps_versions_delete_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn ces_projects_locations_apps_versions_delete_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<Empty>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let task = ces_projects_locations_apps_versions_delete_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`ces_projects_locations_apps_versions_delete`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct CesProjectsLocationsAppsVersionsDeleteArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Query parameter: etag
+    pub etag: Option<Option<String>>,
+}
+
+/// DELETE v1/projects/{projectsId}/locations/{locationsId}/apps/{appsId}/versions/{versionsId}
+/// Deletes the specified app version.
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `ces_projects_locations_apps_versions_delete_builder()` + `ces_projects_locations_apps_versions_delete_execute()`.
+/// For task-level control, use `ces_projects_locations_apps_versions_delete_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn ces_projects_locations_apps_versions_delete(
+    client: &SimpleHttpClient,
+    args: &CesProjectsLocationsAppsVersionsDeleteArgs,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<Empty>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let builder =
+        ces_projects_locations_apps_versions_delete_builder(client, &args.name, &args.etag)?;
+    ces_projects_locations_apps_versions_delete_execute(builder)
+}
+
+/// GET v1/projects/{projectsId}/locations/{locationsId}/apps/{appsId}/versions/{versionsId}
+/// Gets details of the specified app version.
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `ces_projects_locations_apps_versions_get_execute()` to send, or `ces_projects_locations_apps_versions_get` for simplest API.
+
+pub fn ces_projects_locations_apps_versions_get_builder(
+    client: &SimpleHttpClient,
+    name: &String,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!(
+        "https://ces.googleapis.com/v1/projects/{}/locations/{locationsId}/apps/{appsId}/versions/{versionsId}",
+        name,
+    );
+
+    // Build request
+    let builder = client
+        .get(&endpoint_url)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// GET v1/projects/{projectsId}/locations/{locationsId}/apps/{appsId}/versions/{versionsId}
+/// Gets details of the specified app version.
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `ces_projects_locations_apps_versions_get_execute()` or `ces_projects_locations_apps_versions_get`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `ces_projects_locations_apps_versions_get_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn ces_projects_locations_apps_versions_get_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<AppVersion>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: AppVersion = serde_json::from_str(&body)
+                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// GET v1/projects/{projectsId}/locations/{locationsId}/apps/{appsId}/versions/{versionsId}
+/// Gets details of the specified app version.
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `ces_projects_locations_apps_versions_get_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `ces_projects_locations_apps_versions_get_task()`.
+/// For the simplest API, use `ces_projects_locations_apps_versions_get()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `ces_projects_locations_apps_versions_get_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn ces_projects_locations_apps_versions_get_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<AppVersion>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let task = ces_projects_locations_apps_versions_get_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`ces_projects_locations_apps_versions_get`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct CesProjectsLocationsAppsVersionsGetArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
+/// GET v1/projects/{projectsId}/locations/{locationsId}/apps/{appsId}/versions/{versionsId}
+/// Gets details of the specified app version.
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `ces_projects_locations_apps_versions_get_builder()` + `ces_projects_locations_apps_versions_get_execute()`.
+/// For task-level control, use `ces_projects_locations_apps_versions_get_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn ces_projects_locations_apps_versions_get(
+    client: &SimpleHttpClient,
+    args: &CesProjectsLocationsAppsVersionsGetArgs,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<AppVersion>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let builder = ces_projects_locations_apps_versions_get_builder(client, &args.name)?;
+    ces_projects_locations_apps_versions_get_execute(builder)
+}
+
+/// GET v1/projects/{projectsId}/locations/{locationsId}/apps/{appsId}/versions
+/// Lists all app versions in the given app.
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `ces_projects_locations_apps_versions_list_execute()` to send, or `ces_projects_locations_apps_versions_list` for simplest API.
+
+pub fn ces_projects_locations_apps_versions_list_builder(
+    client: &SimpleHttpClient,
+    parent: &String,
+    filter: &Option<Option<String>>,
+    orderBy: &Option<Option<String>>,
+    pageSize: &Option<Option<String>>,
+    pageToken: &Option<Option<String>>,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!(
+        "https://ces.googleapis.com/v1/projects/{}/locations/{locationsId}/apps/{appsId}/versions",
+        parent,
+    );
+
+    // Build request
+    let mut query_parts = Vec::new();
+    if let Some(val) = filter.as_ref() {
+        query_parts.push(format!("filter={}", val));
+    }
+    if let Some(val) = orderBy.as_ref() {
+        query_parts.push(format!("orderBy={}", val));
+    }
+    if let Some(val) = pageSize.as_ref() {
+        query_parts.push(format!("pageSize={}", val));
+    }
+    if let Some(val) = pageToken.as_ref() {
+        query_parts.push(format!("pageToken={}", val));
+    }
+
+    let url_with_query = if query_parts.is_empty() {
+        endpoint_url
+    } else {
+        format!("{}?{}", endpoint_url, query_parts.join("&"))
+    };
+
+    let builder = client
+        .get(&url_with_query)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// GET v1/projects/{projectsId}/locations/{locationsId}/apps/{appsId}/versions
+/// Lists all app versions in the given app.
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `ces_projects_locations_apps_versions_list_execute()` or `ces_projects_locations_apps_versions_list`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `ces_projects_locations_apps_versions_list_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn ces_projects_locations_apps_versions_list_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<ListAppVersionsResponse>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: ListAppVersionsResponse = serde_json::from_str(&body)
+                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// GET v1/projects/{projectsId}/locations/{locationsId}/apps/{appsId}/versions
+/// Lists all app versions in the given app.
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `ces_projects_locations_apps_versions_list_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `ces_projects_locations_apps_versions_list_task()`.
+/// For the simplest API, use `ces_projects_locations_apps_versions_list()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `ces_projects_locations_apps_versions_list_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn ces_projects_locations_apps_versions_list_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<ListAppVersionsResponse>, ApiError>, P = ApiPending>
+        + Send
+        + 'static,
+    ApiError,
+> {
+    let task = ces_projects_locations_apps_versions_list_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`ces_projects_locations_apps_versions_list`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct CesProjectsLocationsAppsVersionsListArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Query parameter: filter
+    pub filter: Option<Option<String>>,
+    /// Query parameter: orderBy
+    pub orderBy: Option<Option<String>>,
+    /// Query parameter: pageSize
+    pub pageSize: Option<Option<String>>,
+    /// Query parameter: pageToken
+    pub pageToken: Option<Option<String>>,
+}
+
+/// GET v1/projects/{projectsId}/locations/{locationsId}/apps/{appsId}/versions
+/// Lists all app versions in the given app.
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `ces_projects_locations_apps_versions_list_builder()` + `ces_projects_locations_apps_versions_list_execute()`.
+/// For task-level control, use `ces_projects_locations_apps_versions_list_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn ces_projects_locations_apps_versions_list(
+    client: &SimpleHttpClient,
+    args: &CesProjectsLocationsAppsVersionsListArgs,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<ListAppVersionsResponse>, ApiError>, P = ApiPending>
+        + Send
+        + 'static,
+    ApiError,
+> {
+    let builder = ces_projects_locations_apps_versions_list_builder(
+        client,
+        &args.parent,
+        &args.filter,
+        &args.orderBy,
+        &args.pageSize,
+        &args.pageToken,
+    )?;
+    ces_projects_locations_apps_versions_list_execute(builder)
+}
+
+/// POST v1/projects/{projectsId}/locations/{locationsId}/apps/{appsId}/versions/{versionsId}:restore
+/// Restores the specified app version. This will create a new app version from the current draft app and overwrite the current draft with the specified app version.
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `ces_projects_locations_apps_versions_restore_execute()` to send, or `ces_projects_locations_apps_versions_restore` for simplest API.
+
+pub fn ces_projects_locations_apps_versions_restore_builder(
+    client: &SimpleHttpClient,
+    name: &String,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!(
+        "https://ces.googleapis.com/v1/projects/{}/locations/{locationsId}/apps/{appsId}/versions/{versionsId}:restore",
+        name,
+    );
+
+    // Build request
+    let builder = client
+        .post(&endpoint_url)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// POST v1/projects/{projectsId}/locations/{locationsId}/apps/{appsId}/versions/{versionsId}:restore
+/// Restores the specified app version. This will create a new app version from the current draft app and overwrite the current draft with the specified app version.
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `ces_projects_locations_apps_versions_restore_execute()` or `ces_projects_locations_apps_versions_restore`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `ces_projects_locations_apps_versions_restore_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn ces_projects_locations_apps_versions_restore_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<Operation>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: Operation = serde_json::from_str(&body)
+                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// POST v1/projects/{projectsId}/locations/{locationsId}/apps/{appsId}/versions/{versionsId}:restore
+/// Restores the specified app version. This will create a new app version from the current draft app and overwrite the current draft with the specified app version.
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `ces_projects_locations_apps_versions_restore_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `ces_projects_locations_apps_versions_restore_task()`.
+/// For the simplest API, use `ces_projects_locations_apps_versions_restore()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `ces_projects_locations_apps_versions_restore_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn ces_projects_locations_apps_versions_restore_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<Operation>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let task = ces_projects_locations_apps_versions_restore_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`ces_projects_locations_apps_versions_restore`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct CesProjectsLocationsAppsVersionsRestoreArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
+/// POST v1/projects/{projectsId}/locations/{locationsId}/apps/{appsId}/versions/{versionsId}:restore
+/// Restores the specified app version. This will create a new app version from the current draft app and overwrite the current draft with the specified app version.
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `ces_projects_locations_apps_versions_restore_builder()` + `ces_projects_locations_apps_versions_restore_execute()`.
+/// For task-level control, use `ces_projects_locations_apps_versions_restore_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn ces_projects_locations_apps_versions_restore(
+    client: &SimpleHttpClient,
+    args: &CesProjectsLocationsAppsVersionsRestoreArgs,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<Operation>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let builder = ces_projects_locations_apps_versions_restore_builder(client, &args.name)?;
+    ces_projects_locations_apps_versions_restore_execute(builder)
+}
+
+/// POST v1/projects/{projectsId}/locations/{locationsId}/operations/{operationsId}:cancel
+/// Starts asynchronous cancellation on a long-running operation. The server makes a best effort to cancel the operation, but success is not guaranteed. If the server doesn't support this method, it returns google.rpc.Code.UNIMPLEMENTED. Clients can use Operations.GetOperation or other methods to check whether the cancellation succeeded or whether the operation completed despite cancellation. On successful cancellation, the operation is not deleted; instead, it becomes an operation with an Operation.error value with a google.rpc.Status.code of 1, corresponding to Code.CANCELLED.
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `ces_projects_locations_operations_cancel_execute()` to send, or `ces_projects_locations_operations_cancel` for simplest API.
+
+pub fn ces_projects_locations_operations_cancel_builder(
+    client: &SimpleHttpClient,
+    name: &String,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!(
+        "https://ces.googleapis.com/v1/projects/{}/locations/{locationsId}/operations/{operationsId}:cancel",
+        name,
+    );
+
+    // Build request
+    let builder = client
+        .post(&endpoint_url)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// POST v1/projects/{projectsId}/locations/{locationsId}/operations/{operationsId}:cancel
+/// Starts asynchronous cancellation on a long-running operation. The server makes a best effort to cancel the operation, but success is not guaranteed. If the server doesn't support this method, it returns google.rpc.Code.UNIMPLEMENTED. Clients can use Operations.GetOperation or other methods to check whether the cancellation succeeded or whether the operation completed despite cancellation. On successful cancellation, the operation is not deleted; instead, it becomes an operation with an Operation.error value with a google.rpc.Status.code of 1, corresponding to Code.CANCELLED.
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `ces_projects_locations_operations_cancel_execute()` or `ces_projects_locations_operations_cancel`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `ces_projects_locations_operations_cancel_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn ces_projects_locations_operations_cancel_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<Empty>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: Empty = serde_json::from_str(&body)
+                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// POST v1/projects/{projectsId}/locations/{locationsId}/operations/{operationsId}:cancel
+/// Starts asynchronous cancellation on a long-running operation. The server makes a best effort to cancel the operation, but success is not guaranteed. If the server doesn't support this method, it returns google.rpc.Code.UNIMPLEMENTED. Clients can use Operations.GetOperation or other methods to check whether the cancellation succeeded or whether the operation completed despite cancellation. On successful cancellation, the operation is not deleted; instead, it becomes an operation with an Operation.error value with a google.rpc.Status.code of 1, corresponding to Code.CANCELLED.
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `ces_projects_locations_operations_cancel_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `ces_projects_locations_operations_cancel_task()`.
+/// For the simplest API, use `ces_projects_locations_operations_cancel()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `ces_projects_locations_operations_cancel_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn ces_projects_locations_operations_cancel_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<Empty>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let task = ces_projects_locations_operations_cancel_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`ces_projects_locations_operations_cancel`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct CesProjectsLocationsOperationsCancelArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
+/// POST v1/projects/{projectsId}/locations/{locationsId}/operations/{operationsId}:cancel
+/// Starts asynchronous cancellation on a long-running operation. The server makes a best effort to cancel the operation, but success is not guaranteed. If the server doesn't support this method, it returns google.rpc.Code.UNIMPLEMENTED. Clients can use Operations.GetOperation or other methods to check whether the cancellation succeeded or whether the operation completed despite cancellation. On successful cancellation, the operation is not deleted; instead, it becomes an operation with an Operation.error value with a google.rpc.Status.code of 1, corresponding to Code.CANCELLED.
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `ces_projects_locations_operations_cancel_builder()` + `ces_projects_locations_operations_cancel_execute()`.
+/// For task-level control, use `ces_projects_locations_operations_cancel_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn ces_projects_locations_operations_cancel(
+    client: &SimpleHttpClient,
+    args: &CesProjectsLocationsOperationsCancelArgs,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<Empty>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let builder = ces_projects_locations_operations_cancel_builder(client, &args.name)?;
+    ces_projects_locations_operations_cancel_execute(builder)
+}
+
+/// DELETE v1/projects/{projectsId}/locations/{locationsId}/operations/{operationsId}
+/// Deletes a long-running operation. This method indicates that the client is no longer interested in the operation result. It does not cancel the operation. If the server doesn't support this method, it returns google.rpc.Code.UNIMPLEMENTED.
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `ces_projects_locations_operations_delete_execute()` to send, or `ces_projects_locations_operations_delete` for simplest API.
+
+pub fn ces_projects_locations_operations_delete_builder(
+    client: &SimpleHttpClient,
+    name: &String,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!(
+        "https://ces.googleapis.com/v1/projects/{}/locations/{locationsId}/operations/{operationsId}",
+        name,
+    );
+
+    // Build request
+    let builder = client
+        .delete(&endpoint_url)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// DELETE v1/projects/{projectsId}/locations/{locationsId}/operations/{operationsId}
+/// Deletes a long-running operation. This method indicates that the client is no longer interested in the operation result. It does not cancel the operation. If the server doesn't support this method, it returns google.rpc.Code.UNIMPLEMENTED.
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `ces_projects_locations_operations_delete_execute()` or `ces_projects_locations_operations_delete`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `ces_projects_locations_operations_delete_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn ces_projects_locations_operations_delete_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<Empty>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: Empty = serde_json::from_str(&body)
+                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// DELETE v1/projects/{projectsId}/locations/{locationsId}/operations/{operationsId}
+/// Deletes a long-running operation. This method indicates that the client is no longer interested in the operation result. It does not cancel the operation. If the server doesn't support this method, it returns google.rpc.Code.UNIMPLEMENTED.
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `ces_projects_locations_operations_delete_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `ces_projects_locations_operations_delete_task()`.
+/// For the simplest API, use `ces_projects_locations_operations_delete()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `ces_projects_locations_operations_delete_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn ces_projects_locations_operations_delete_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<Empty>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let task = ces_projects_locations_operations_delete_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`ces_projects_locations_operations_delete`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct CesProjectsLocationsOperationsDeleteArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
+/// DELETE v1/projects/{projectsId}/locations/{locationsId}/operations/{operationsId}
+/// Deletes a long-running operation. This method indicates that the client is no longer interested in the operation result. It does not cancel the operation. If the server doesn't support this method, it returns google.rpc.Code.UNIMPLEMENTED.
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `ces_projects_locations_operations_delete_builder()` + `ces_projects_locations_operations_delete_execute()`.
+/// For task-level control, use `ces_projects_locations_operations_delete_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn ces_projects_locations_operations_delete(
+    client: &SimpleHttpClient,
+    args: &CesProjectsLocationsOperationsDeleteArgs,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<Empty>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let builder = ces_projects_locations_operations_delete_builder(client, &args.name)?;
+    ces_projects_locations_operations_delete_execute(builder)
+}
+
+/// GET v1/projects/{projectsId}/locations/{locationsId}/operations/{operationsId}
+/// Gets the latest state of a long-running operation. Clients can use this method to poll the operation result at intervals as recommended by the API service.
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `ces_projects_locations_operations_get_execute()` to send, or `ces_projects_locations_operations_get` for simplest API.
+
+pub fn ces_projects_locations_operations_get_builder(
+    client: &SimpleHttpClient,
+    name: &String,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!(
+        "https://ces.googleapis.com/v1/projects/{}/locations/{locationsId}/operations/{operationsId}",
+        name,
+    );
+
+    // Build request
+    let builder = client
+        .get(&endpoint_url)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// GET v1/projects/{projectsId}/locations/{locationsId}/operations/{operationsId}
+/// Gets the latest state of a long-running operation. Clients can use this method to poll the operation result at intervals as recommended by the API service.
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `ces_projects_locations_operations_get_execute()` or `ces_projects_locations_operations_get`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `ces_projects_locations_operations_get_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn ces_projects_locations_operations_get_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<Operation>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: Operation = serde_json::from_str(&body)
+                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// GET v1/projects/{projectsId}/locations/{locationsId}/operations/{operationsId}
+/// Gets the latest state of a long-running operation. Clients can use this method to poll the operation result at intervals as recommended by the API service.
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `ces_projects_locations_operations_get_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `ces_projects_locations_operations_get_task()`.
+/// For the simplest API, use `ces_projects_locations_operations_get()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `ces_projects_locations_operations_get_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn ces_projects_locations_operations_get_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<Operation>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let task = ces_projects_locations_operations_get_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`ces_projects_locations_operations_get`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct CesProjectsLocationsOperationsGetArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
+/// GET v1/projects/{projectsId}/locations/{locationsId}/operations/{operationsId}
+/// Gets the latest state of a long-running operation. Clients can use this method to poll the operation result at intervals as recommended by the API service.
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `ces_projects_locations_operations_get_builder()` + `ces_projects_locations_operations_get_execute()`.
+/// For task-level control, use `ces_projects_locations_operations_get_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn ces_projects_locations_operations_get(
+    client: &SimpleHttpClient,
+    args: &CesProjectsLocationsOperationsGetArgs,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<Operation>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let builder = ces_projects_locations_operations_get_builder(client, &args.name)?;
+    ces_projects_locations_operations_get_execute(builder)
+}
+
+/// GET v1/projects/{projectsId}/locations/{locationsId}/operations
+/// Lists operations that match the specified filter in the request. If the server doesn't support this method, it returns UNIMPLEMENTED.
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `ces_projects_locations_operations_list_execute()` to send, or `ces_projects_locations_operations_list` for simplest API.
+
+pub fn ces_projects_locations_operations_list_builder(
+    client: &SimpleHttpClient,
+    name: &String,
+    filter: &Option<Option<String>>,
+    pageSize: &Option<Option<String>>,
+    pageToken: &Option<Option<String>>,
+    returnPartialSuccess: &Option<Option<String>>,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!(
+        "https://ces.googleapis.com/v1/projects/{}/locations/{locationsId}/operations",
+        name,
+    );
+
+    // Build request
+    let mut query_parts = Vec::new();
+    if let Some(val) = filter.as_ref() {
+        query_parts.push(format!("filter={}", val));
+    }
+    if let Some(val) = pageSize.as_ref() {
+        query_parts.push(format!("pageSize={}", val));
+    }
+    if let Some(val) = pageToken.as_ref() {
+        query_parts.push(format!("pageToken={}", val));
+    }
+    if let Some(val) = returnPartialSuccess.as_ref() {
+        query_parts.push(format!("returnPartialSuccess={}", val));
+    }
+
+    let url_with_query = if query_parts.is_empty() {
+        endpoint_url
+    } else {
+        format!("{}?{}", endpoint_url, query_parts.join("&"))
+    };
+
+    let builder = client
+        .get(&url_with_query)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// GET v1/projects/{projectsId}/locations/{locationsId}/operations
+/// Lists operations that match the specified filter in the request. If the server doesn't support this method, it returns UNIMPLEMENTED.
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `ces_projects_locations_operations_list_execute()` or `ces_projects_locations_operations_list`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `ces_projects_locations_operations_list_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn ces_projects_locations_operations_list_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<ListOperationsResponse>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: ListOperationsResponse = serde_json::from_str(&body)
+                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// GET v1/projects/{projectsId}/locations/{locationsId}/operations
+/// Lists operations that match the specified filter in the request. If the server doesn't support this method, it returns UNIMPLEMENTED.
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `ces_projects_locations_operations_list_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `ces_projects_locations_operations_list_task()`.
+/// For the simplest API, use `ces_projects_locations_operations_list()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `ces_projects_locations_operations_list_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn ces_projects_locations_operations_list_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<ListOperationsResponse>, ApiError>, P = ApiPending>
+        + Send
+        + 'static,
+    ApiError,
+> {
+    let task = ces_projects_locations_operations_list_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`ces_projects_locations_operations_list`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct CesProjectsLocationsOperationsListArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Query parameter: filter
+    pub filter: Option<Option<String>>,
+    /// Query parameter: pageSize
+    pub pageSize: Option<Option<String>>,
+    /// Query parameter: pageToken
+    pub pageToken: Option<Option<String>>,
+    /// Query parameter: returnPartialSuccess
+    pub returnPartialSuccess: Option<Option<String>>,
+}
+
+/// GET v1/projects/{projectsId}/locations/{locationsId}/operations
+/// Lists operations that match the specified filter in the request. If the server doesn't support this method, it returns UNIMPLEMENTED.
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `ces_projects_locations_operations_list_builder()` + `ces_projects_locations_operations_list_execute()`.
+/// For task-level control, use `ces_projects_locations_operations_list_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn ces_projects_locations_operations_list(
+    client: &SimpleHttpClient,
+    args: &CesProjectsLocationsOperationsListArgs,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<ListOperationsResponse>, ApiError>, P = ApiPending>
+        + Send
+        + 'static,
+    ApiError,
+> {
+    let builder = ces_projects_locations_operations_list_builder(
+        client,
+        &args.name,
+        &args.filter,
+        &args.pageSize,
+        &args.pageToken,
+        &args.returnPartialSuccess,
+    )?;
+    ces_projects_locations_operations_list_execute(builder)
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for Location
+// =============================================================================
+
+/// ResourceIdentifier implementation for Location with CesProjectsLocationsGetArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<CesProjectsLocationsGetArgs> for Location {
+    fn generate_resource_id(&self, input: &CesProjectsLocationsGetArgs) -> String {
+        format!("gcp::ces::Location/{}", input.name)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::ces::Location"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for ListLocationsResponse
+// =============================================================================
+
+/// ResourceIdentifier implementation for ListLocationsResponse with CesProjectsLocationsListArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<CesProjectsLocationsListArgs> for ListLocationsResponse {
+    fn generate_resource_id(&self, input: &CesProjectsLocationsListArgs) -> String {
+        format!("gcp::ces::ListLocationsResponse/{}", input.name)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::ces::ListLocationsResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for Operation
+// =============================================================================
+
+/// ResourceIdentifier implementation for Operation with CesProjectsLocationsAppsCreateArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<CesProjectsLocationsAppsCreateArgs> for Operation {
+    fn generate_resource_id(&self, input: &CesProjectsLocationsAppsCreateArgs) -> String {
+        format!("gcp::ces::Operation/{}", input.parent)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::ces::Operation"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for Operation
+// =============================================================================
+
+/// ResourceIdentifier implementation for Operation with CesProjectsLocationsAppsDeleteArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<CesProjectsLocationsAppsDeleteArgs> for Operation {
+    fn generate_resource_id(&self, input: &CesProjectsLocationsAppsDeleteArgs) -> String {
+        format!("gcp::ces::Operation/{}", input.name)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::ces::Operation"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for ExecuteToolResponse
+// =============================================================================
+
+/// ResourceIdentifier implementation for ExecuteToolResponse with CesProjectsLocationsAppsExecuteToolArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<CesProjectsLocationsAppsExecuteToolArgs> for ExecuteToolResponse {
+    fn generate_resource_id(&self, input: &CesProjectsLocationsAppsExecuteToolArgs) -> String {
+        format!("gcp::ces::ExecuteToolResponse/{}", input.parent)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::ces::ExecuteToolResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for Operation
+// =============================================================================
+
+/// ResourceIdentifier implementation for Operation with CesProjectsLocationsAppsExportAppArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<CesProjectsLocationsAppsExportAppArgs> for Operation {
+    fn generate_resource_id(&self, input: &CesProjectsLocationsAppsExportAppArgs) -> String {
+        format!("gcp::ces::Operation/{}", input.name)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::ces::Operation"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for App
+// =============================================================================
+
+/// ResourceIdentifier implementation for App with CesProjectsLocationsAppsGetArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<CesProjectsLocationsAppsGetArgs> for App {
+    fn generate_resource_id(&self, input: &CesProjectsLocationsAppsGetArgs) -> String {
+        format!("gcp::ces::App/{}", input.name)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::ces::App"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for Operation
+// =============================================================================
+
+/// ResourceIdentifier implementation for Operation with CesProjectsLocationsAppsImportAppArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<CesProjectsLocationsAppsImportAppArgs> for Operation {
+    fn generate_resource_id(&self, input: &CesProjectsLocationsAppsImportAppArgs) -> String {
+        format!("gcp::ces::Operation/{}", input.parent)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::ces::Operation"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for ListAppsResponse
+// =============================================================================
+
+/// ResourceIdentifier implementation for ListAppsResponse with CesProjectsLocationsAppsListArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<CesProjectsLocationsAppsListArgs> for ListAppsResponse {
+    fn generate_resource_id(&self, input: &CesProjectsLocationsAppsListArgs) -> String {
+        format!("gcp::ces::ListAppsResponse/{}", input.parent)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::ces::ListAppsResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for App
+// =============================================================================
+
+/// ResourceIdentifier implementation for App with CesProjectsLocationsAppsPatchArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<CesProjectsLocationsAppsPatchArgs> for App {
+    fn generate_resource_id(&self, input: &CesProjectsLocationsAppsPatchArgs) -> String {
+        format!("gcp::ces::App/{}", input.name)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::ces::App"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for RetrieveToolSchemaResponse
+// =============================================================================
+
+/// ResourceIdentifier implementation for RetrieveToolSchemaResponse with CesProjectsLocationsAppsRetrieveToolSchemaArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<CesProjectsLocationsAppsRetrieveToolSchemaArgs>
+    for RetrieveToolSchemaResponse
+{
+    fn generate_resource_id(
+        &self,
+        input: &CesProjectsLocationsAppsRetrieveToolSchemaArgs,
+    ) -> String {
+        format!("gcp::ces::RetrieveToolSchemaResponse/{}", input.parent)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::ces::RetrieveToolSchemaResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for Agent
+// =============================================================================
+
+/// ResourceIdentifier implementation for Agent with CesProjectsLocationsAppsAgentsCreateArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<CesProjectsLocationsAppsAgentsCreateArgs> for Agent {
+    fn generate_resource_id(&self, input: &CesProjectsLocationsAppsAgentsCreateArgs) -> String {
+        format!("gcp::ces::Agent/{}", input.parent)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::ces::Agent"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for Empty
+// =============================================================================
+
+/// ResourceIdentifier implementation for Empty with CesProjectsLocationsAppsAgentsDeleteArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<CesProjectsLocationsAppsAgentsDeleteArgs> for Empty {
+    fn generate_resource_id(&self, input: &CesProjectsLocationsAppsAgentsDeleteArgs) -> String {
+        format!("gcp::ces::Empty/{}", input.name)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::ces::Empty"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for Agent
+// =============================================================================
+
+/// ResourceIdentifier implementation for Agent with CesProjectsLocationsAppsAgentsGetArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<CesProjectsLocationsAppsAgentsGetArgs> for Agent {
+    fn generate_resource_id(&self, input: &CesProjectsLocationsAppsAgentsGetArgs) -> String {
+        format!("gcp::ces::Agent/{}", input.name)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::ces::Agent"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for ListAgentsResponse
+// =============================================================================
+
+/// ResourceIdentifier implementation for ListAgentsResponse with CesProjectsLocationsAppsAgentsListArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<CesProjectsLocationsAppsAgentsListArgs> for ListAgentsResponse {
+    fn generate_resource_id(&self, input: &CesProjectsLocationsAppsAgentsListArgs) -> String {
+        format!("gcp::ces::ListAgentsResponse/{}", input.parent)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::ces::ListAgentsResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for Agent
+// =============================================================================
+
+/// ResourceIdentifier implementation for Agent with CesProjectsLocationsAppsAgentsPatchArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<CesProjectsLocationsAppsAgentsPatchArgs> for Agent {
+    fn generate_resource_id(&self, input: &CesProjectsLocationsAppsAgentsPatchArgs) -> String {
+        format!("gcp::ces::Agent/{}", input.name)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::ces::Agent"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for Changelog
+// =============================================================================
+
+/// ResourceIdentifier implementation for Changelog with CesProjectsLocationsAppsChangelogsGetArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<CesProjectsLocationsAppsChangelogsGetArgs> for Changelog {
+    fn generate_resource_id(&self, input: &CesProjectsLocationsAppsChangelogsGetArgs) -> String {
+        format!("gcp::ces::Changelog/{}", input.name)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::ces::Changelog"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for ListChangelogsResponse
+// =============================================================================
+
+/// ResourceIdentifier implementation for ListChangelogsResponse with CesProjectsLocationsAppsChangelogsListArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<CesProjectsLocationsAppsChangelogsListArgs> for ListChangelogsResponse {
+    fn generate_resource_id(&self, input: &CesProjectsLocationsAppsChangelogsListArgs) -> String {
+        format!("gcp::ces::ListChangelogsResponse/{}", input.parent)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::ces::ListChangelogsResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for Operation
+// =============================================================================
+
+/// ResourceIdentifier implementation for Operation with CesProjectsLocationsAppsConversationsBatchDeleteArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<CesProjectsLocationsAppsConversationsBatchDeleteArgs> for Operation {
+    fn generate_resource_id(
+        &self,
+        input: &CesProjectsLocationsAppsConversationsBatchDeleteArgs,
+    ) -> String {
+        format!("gcp::ces::Operation/{}", input.parent)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::ces::Operation"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for Empty
+// =============================================================================
+
+/// ResourceIdentifier implementation for Empty with CesProjectsLocationsAppsConversationsDeleteArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<CesProjectsLocationsAppsConversationsDeleteArgs> for Empty {
+    fn generate_resource_id(
+        &self,
+        input: &CesProjectsLocationsAppsConversationsDeleteArgs,
+    ) -> String {
+        format!("gcp::ces::Empty/{}", input.name)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::ces::Empty"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for Conversation
+// =============================================================================
+
+/// ResourceIdentifier implementation for Conversation with CesProjectsLocationsAppsConversationsGetArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<CesProjectsLocationsAppsConversationsGetArgs> for Conversation {
+    fn generate_resource_id(&self, input: &CesProjectsLocationsAppsConversationsGetArgs) -> String {
+        format!("gcp::ces::Conversation/{}", input.name)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::ces::Conversation"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for ListConversationsResponse
+// =============================================================================
+
+/// ResourceIdentifier implementation for ListConversationsResponse with CesProjectsLocationsAppsConversationsListArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<CesProjectsLocationsAppsConversationsListArgs>
+    for ListConversationsResponse
+{
+    fn generate_resource_id(
+        &self,
+        input: &CesProjectsLocationsAppsConversationsListArgs,
+    ) -> String {
+        format!("gcp::ces::ListConversationsResponse/{}", input.parent)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::ces::ListConversationsResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for Deployment
+// =============================================================================
+
+/// ResourceIdentifier implementation for Deployment with CesProjectsLocationsAppsDeploymentsCreateArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<CesProjectsLocationsAppsDeploymentsCreateArgs> for Deployment {
+    fn generate_resource_id(
+        &self,
+        input: &CesProjectsLocationsAppsDeploymentsCreateArgs,
+    ) -> String {
+        format!("gcp::ces::Deployment/{}", input.parent)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::ces::Deployment"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for Empty
+// =============================================================================
+
+/// ResourceIdentifier implementation for Empty with CesProjectsLocationsAppsDeploymentsDeleteArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<CesProjectsLocationsAppsDeploymentsDeleteArgs> for Empty {
+    fn generate_resource_id(
+        &self,
+        input: &CesProjectsLocationsAppsDeploymentsDeleteArgs,
+    ) -> String {
+        format!("gcp::ces::Empty/{}", input.name)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::ces::Empty"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for Deployment
+// =============================================================================
+
+/// ResourceIdentifier implementation for Deployment with CesProjectsLocationsAppsDeploymentsGetArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<CesProjectsLocationsAppsDeploymentsGetArgs> for Deployment {
+    fn generate_resource_id(&self, input: &CesProjectsLocationsAppsDeploymentsGetArgs) -> String {
+        format!("gcp::ces::Deployment/{}", input.name)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::ces::Deployment"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for ListDeploymentsResponse
+// =============================================================================
+
+/// ResourceIdentifier implementation for ListDeploymentsResponse with CesProjectsLocationsAppsDeploymentsListArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<CesProjectsLocationsAppsDeploymentsListArgs> for ListDeploymentsResponse {
+    fn generate_resource_id(&self, input: &CesProjectsLocationsAppsDeploymentsListArgs) -> String {
+        format!("gcp::ces::ListDeploymentsResponse/{}", input.parent)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::ces::ListDeploymentsResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for Deployment
+// =============================================================================
+
+/// ResourceIdentifier implementation for Deployment with CesProjectsLocationsAppsDeploymentsPatchArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<CesProjectsLocationsAppsDeploymentsPatchArgs> for Deployment {
+    fn generate_resource_id(&self, input: &CesProjectsLocationsAppsDeploymentsPatchArgs) -> String {
+        format!("gcp::ces::Deployment/{}", input.name)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::ces::Deployment"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for Example
+// =============================================================================
+
+/// ResourceIdentifier implementation for Example with CesProjectsLocationsAppsExamplesCreateArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<CesProjectsLocationsAppsExamplesCreateArgs> for Example {
+    fn generate_resource_id(&self, input: &CesProjectsLocationsAppsExamplesCreateArgs) -> String {
+        format!("gcp::ces::Example/{}", input.parent)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::ces::Example"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for Empty
+// =============================================================================
+
+/// ResourceIdentifier implementation for Empty with CesProjectsLocationsAppsExamplesDeleteArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<CesProjectsLocationsAppsExamplesDeleteArgs> for Empty {
+    fn generate_resource_id(&self, input: &CesProjectsLocationsAppsExamplesDeleteArgs) -> String {
+        format!("gcp::ces::Empty/{}", input.name)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::ces::Empty"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for Example
+// =============================================================================
+
+/// ResourceIdentifier implementation for Example with CesProjectsLocationsAppsExamplesGetArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<CesProjectsLocationsAppsExamplesGetArgs> for Example {
+    fn generate_resource_id(&self, input: &CesProjectsLocationsAppsExamplesGetArgs) -> String {
+        format!("gcp::ces::Example/{}", input.name)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::ces::Example"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for ListExamplesResponse
+// =============================================================================
+
+/// ResourceIdentifier implementation for ListExamplesResponse with CesProjectsLocationsAppsExamplesListArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<CesProjectsLocationsAppsExamplesListArgs> for ListExamplesResponse {
+    fn generate_resource_id(&self, input: &CesProjectsLocationsAppsExamplesListArgs) -> String {
+        format!("gcp::ces::ListExamplesResponse/{}", input.parent)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::ces::ListExamplesResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for Example
+// =============================================================================
+
+/// ResourceIdentifier implementation for Example with CesProjectsLocationsAppsExamplesPatchArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<CesProjectsLocationsAppsExamplesPatchArgs> for Example {
+    fn generate_resource_id(&self, input: &CesProjectsLocationsAppsExamplesPatchArgs) -> String {
+        format!("gcp::ces::Example/{}", input.name)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::ces::Example"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for Guardrail
+// =============================================================================
+
+/// ResourceIdentifier implementation for Guardrail with CesProjectsLocationsAppsGuardrailsCreateArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<CesProjectsLocationsAppsGuardrailsCreateArgs> for Guardrail {
+    fn generate_resource_id(&self, input: &CesProjectsLocationsAppsGuardrailsCreateArgs) -> String {
+        format!("gcp::ces::Guardrail/{}", input.parent)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::ces::Guardrail"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for Empty
+// =============================================================================
+
+/// ResourceIdentifier implementation for Empty with CesProjectsLocationsAppsGuardrailsDeleteArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<CesProjectsLocationsAppsGuardrailsDeleteArgs> for Empty {
+    fn generate_resource_id(&self, input: &CesProjectsLocationsAppsGuardrailsDeleteArgs) -> String {
+        format!("gcp::ces::Empty/{}", input.name)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::ces::Empty"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for Guardrail
+// =============================================================================
+
+/// ResourceIdentifier implementation for Guardrail with CesProjectsLocationsAppsGuardrailsGetArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<CesProjectsLocationsAppsGuardrailsGetArgs> for Guardrail {
+    fn generate_resource_id(&self, input: &CesProjectsLocationsAppsGuardrailsGetArgs) -> String {
+        format!("gcp::ces::Guardrail/{}", input.name)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::ces::Guardrail"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for ListGuardrailsResponse
+// =============================================================================
+
+/// ResourceIdentifier implementation for ListGuardrailsResponse with CesProjectsLocationsAppsGuardrailsListArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<CesProjectsLocationsAppsGuardrailsListArgs> for ListGuardrailsResponse {
+    fn generate_resource_id(&self, input: &CesProjectsLocationsAppsGuardrailsListArgs) -> String {
+        format!("gcp::ces::ListGuardrailsResponse/{}", input.parent)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::ces::ListGuardrailsResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for Guardrail
+// =============================================================================
+
+/// ResourceIdentifier implementation for Guardrail with CesProjectsLocationsAppsGuardrailsPatchArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<CesProjectsLocationsAppsGuardrailsPatchArgs> for Guardrail {
+    fn generate_resource_id(&self, input: &CesProjectsLocationsAppsGuardrailsPatchArgs) -> String {
+        format!("gcp::ces::Guardrail/{}", input.name)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::ces::Guardrail"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for GenerateChatTokenResponse
+// =============================================================================
+
+/// ResourceIdentifier implementation for GenerateChatTokenResponse with CesProjectsLocationsAppsSessionsGenerateChatTokenArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<CesProjectsLocationsAppsSessionsGenerateChatTokenArgs>
+    for GenerateChatTokenResponse
+{
+    fn generate_resource_id(
+        &self,
+        input: &CesProjectsLocationsAppsSessionsGenerateChatTokenArgs,
+    ) -> String {
+        format!("gcp::ces::GenerateChatTokenResponse/{}", input.name)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::ces::GenerateChatTokenResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for RunSessionResponse
+// =============================================================================
+
+/// ResourceIdentifier implementation for RunSessionResponse with CesProjectsLocationsAppsSessionsRunSessionArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<CesProjectsLocationsAppsSessionsRunSessionArgs> for RunSessionResponse {
+    fn generate_resource_id(
+        &self,
+        input: &CesProjectsLocationsAppsSessionsRunSessionArgs,
+    ) -> String {
+        format!("gcp::ces::RunSessionResponse/{}", input.session)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::ces::RunSessionResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for RunSessionResponse
+// =============================================================================
+
+/// ResourceIdentifier implementation for RunSessionResponse with CesProjectsLocationsAppsSessionsStreamRunSessionArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<CesProjectsLocationsAppsSessionsStreamRunSessionArgs>
+    for RunSessionResponse
+{
+    fn generate_resource_id(
+        &self,
+        input: &CesProjectsLocationsAppsSessionsStreamRunSessionArgs,
+    ) -> String {
+        format!("gcp::ces::RunSessionResponse/{}", input.session)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::ces::RunSessionResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for Tool
+// =============================================================================
+
+/// ResourceIdentifier implementation for Tool with CesProjectsLocationsAppsToolsCreateArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<CesProjectsLocationsAppsToolsCreateArgs> for Tool {
+    fn generate_resource_id(&self, input: &CesProjectsLocationsAppsToolsCreateArgs) -> String {
+        format!("gcp::ces::Tool/{}", input.parent)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::ces::Tool"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for Empty
+// =============================================================================
+
+/// ResourceIdentifier implementation for Empty with CesProjectsLocationsAppsToolsDeleteArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<CesProjectsLocationsAppsToolsDeleteArgs> for Empty {
+    fn generate_resource_id(&self, input: &CesProjectsLocationsAppsToolsDeleteArgs) -> String {
+        format!("gcp::ces::Empty/{}", input.name)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::ces::Empty"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for Tool
+// =============================================================================
+
+/// ResourceIdentifier implementation for Tool with CesProjectsLocationsAppsToolsGetArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<CesProjectsLocationsAppsToolsGetArgs> for Tool {
+    fn generate_resource_id(&self, input: &CesProjectsLocationsAppsToolsGetArgs) -> String {
+        format!("gcp::ces::Tool/{}", input.name)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::ces::Tool"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for ListToolsResponse
+// =============================================================================
+
+/// ResourceIdentifier implementation for ListToolsResponse with CesProjectsLocationsAppsToolsListArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<CesProjectsLocationsAppsToolsListArgs> for ListToolsResponse {
+    fn generate_resource_id(&self, input: &CesProjectsLocationsAppsToolsListArgs) -> String {
+        format!("gcp::ces::ListToolsResponse/{}", input.parent)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::ces::ListToolsResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for Tool
+// =============================================================================
+
+/// ResourceIdentifier implementation for Tool with CesProjectsLocationsAppsToolsPatchArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<CesProjectsLocationsAppsToolsPatchArgs> for Tool {
+    fn generate_resource_id(&self, input: &CesProjectsLocationsAppsToolsPatchArgs) -> String {
+        format!("gcp::ces::Tool/{}", input.name)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::ces::Tool"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for Toolset
+// =============================================================================
+
+/// ResourceIdentifier implementation for Toolset with CesProjectsLocationsAppsToolsetsCreateArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<CesProjectsLocationsAppsToolsetsCreateArgs> for Toolset {
+    fn generate_resource_id(&self, input: &CesProjectsLocationsAppsToolsetsCreateArgs) -> String {
+        format!("gcp::ces::Toolset/{}", input.parent)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::ces::Toolset"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for Empty
+// =============================================================================
+
+/// ResourceIdentifier implementation for Empty with CesProjectsLocationsAppsToolsetsDeleteArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<CesProjectsLocationsAppsToolsetsDeleteArgs> for Empty {
+    fn generate_resource_id(&self, input: &CesProjectsLocationsAppsToolsetsDeleteArgs) -> String {
+        format!("gcp::ces::Empty/{}", input.name)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::ces::Empty"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for Toolset
+// =============================================================================
+
+/// ResourceIdentifier implementation for Toolset with CesProjectsLocationsAppsToolsetsGetArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<CesProjectsLocationsAppsToolsetsGetArgs> for Toolset {
+    fn generate_resource_id(&self, input: &CesProjectsLocationsAppsToolsetsGetArgs) -> String {
+        format!("gcp::ces::Toolset/{}", input.name)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::ces::Toolset"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for ListToolsetsResponse
+// =============================================================================
+
+/// ResourceIdentifier implementation for ListToolsetsResponse with CesProjectsLocationsAppsToolsetsListArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<CesProjectsLocationsAppsToolsetsListArgs> for ListToolsetsResponse {
+    fn generate_resource_id(&self, input: &CesProjectsLocationsAppsToolsetsListArgs) -> String {
+        format!("gcp::ces::ListToolsetsResponse/{}", input.parent)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::ces::ListToolsetsResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for Toolset
+// =============================================================================
+
+/// ResourceIdentifier implementation for Toolset with CesProjectsLocationsAppsToolsetsPatchArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<CesProjectsLocationsAppsToolsetsPatchArgs> for Toolset {
+    fn generate_resource_id(&self, input: &CesProjectsLocationsAppsToolsetsPatchArgs) -> String {
+        format!("gcp::ces::Toolset/{}", input.name)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::ces::Toolset"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for RetrieveToolsResponse
+// =============================================================================
+
+/// ResourceIdentifier implementation for RetrieveToolsResponse with CesProjectsLocationsAppsToolsetsRetrieveToolsArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<CesProjectsLocationsAppsToolsetsRetrieveToolsArgs>
+    for RetrieveToolsResponse
+{
+    fn generate_resource_id(
+        &self,
+        input: &CesProjectsLocationsAppsToolsetsRetrieveToolsArgs,
+    ) -> String {
+        format!("gcp::ces::RetrieveToolsResponse/{}", input.toolset)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::ces::RetrieveToolsResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for AppVersion
+// =============================================================================
+
+/// ResourceIdentifier implementation for AppVersion with CesProjectsLocationsAppsVersionsCreateArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<CesProjectsLocationsAppsVersionsCreateArgs> for AppVersion {
+    fn generate_resource_id(&self, input: &CesProjectsLocationsAppsVersionsCreateArgs) -> String {
+        format!("gcp::ces::AppVersion/{}", input.parent)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::ces::AppVersion"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for Empty
+// =============================================================================
+
+/// ResourceIdentifier implementation for Empty with CesProjectsLocationsAppsVersionsDeleteArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<CesProjectsLocationsAppsVersionsDeleteArgs> for Empty {
+    fn generate_resource_id(&self, input: &CesProjectsLocationsAppsVersionsDeleteArgs) -> String {
+        format!("gcp::ces::Empty/{}", input.name)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::ces::Empty"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for AppVersion
+// =============================================================================
+
+/// ResourceIdentifier implementation for AppVersion with CesProjectsLocationsAppsVersionsGetArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<CesProjectsLocationsAppsVersionsGetArgs> for AppVersion {
+    fn generate_resource_id(&self, input: &CesProjectsLocationsAppsVersionsGetArgs) -> String {
+        format!("gcp::ces::AppVersion/{}", input.name)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::ces::AppVersion"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for ListAppVersionsResponse
+// =============================================================================
+
+/// ResourceIdentifier implementation for ListAppVersionsResponse with CesProjectsLocationsAppsVersionsListArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<CesProjectsLocationsAppsVersionsListArgs> for ListAppVersionsResponse {
+    fn generate_resource_id(&self, input: &CesProjectsLocationsAppsVersionsListArgs) -> String {
+        format!("gcp::ces::ListAppVersionsResponse/{}", input.parent)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::ces::ListAppVersionsResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for Operation
+// =============================================================================
+
+/// ResourceIdentifier implementation for Operation with CesProjectsLocationsAppsVersionsRestoreArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<CesProjectsLocationsAppsVersionsRestoreArgs> for Operation {
+    fn generate_resource_id(&self, input: &CesProjectsLocationsAppsVersionsRestoreArgs) -> String {
+        format!("gcp::ces::Operation/{}", input.name)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::ces::Operation"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for Empty
+// =============================================================================
+
+/// ResourceIdentifier implementation for Empty with CesProjectsLocationsOperationsCancelArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<CesProjectsLocationsOperationsCancelArgs> for Empty {
+    fn generate_resource_id(&self, input: &CesProjectsLocationsOperationsCancelArgs) -> String {
+        format!("gcp::ces::Empty/{}", input.name)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::ces::Empty"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for Empty
+// =============================================================================
+
+/// ResourceIdentifier implementation for Empty with CesProjectsLocationsOperationsDeleteArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<CesProjectsLocationsOperationsDeleteArgs> for Empty {
+    fn generate_resource_id(&self, input: &CesProjectsLocationsOperationsDeleteArgs) -> String {
+        format!("gcp::ces::Empty/{}", input.name)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::ces::Empty"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for Operation
+// =============================================================================
+
+/// ResourceIdentifier implementation for Operation with CesProjectsLocationsOperationsGetArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<CesProjectsLocationsOperationsGetArgs> for Operation {
+    fn generate_resource_id(&self, input: &CesProjectsLocationsOperationsGetArgs) -> String {
+        format!("gcp::ces::Operation/{}", input.name)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::ces::Operation"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for ListOperationsResponse
+// =============================================================================
+
+/// ResourceIdentifier implementation for ListOperationsResponse with CesProjectsLocationsOperationsListArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<CesProjectsLocationsOperationsListArgs> for ListOperationsResponse {
+    fn generate_resource_id(&self, input: &CesProjectsLocationsOperationsListArgs) -> String {
+        format!("gcp::ces::ListOperationsResponse/{}", input.name)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::ces::ListOperationsResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
 }

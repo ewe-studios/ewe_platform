@@ -12,11 +12,17 @@
 #![cfg(feature = "gcp")]
 
 use crate::providers::gcp::clients::file::{
+    file_projects_locations_get_builder, file_projects_locations_get_task,
+    file_projects_locations_list_builder, file_projects_locations_list_task,
     file_projects_locations_backups_create_builder, file_projects_locations_backups_create_task,
     file_projects_locations_backups_delete_builder, file_projects_locations_backups_delete_task,
+    file_projects_locations_backups_get_builder, file_projects_locations_backups_get_task,
+    file_projects_locations_backups_list_builder, file_projects_locations_backups_list_task,
     file_projects_locations_backups_patch_builder, file_projects_locations_backups_patch_task,
     file_projects_locations_instances_create_builder, file_projects_locations_instances_create_task,
     file_projects_locations_instances_delete_builder, file_projects_locations_instances_delete_task,
+    file_projects_locations_instances_get_builder, file_projects_locations_instances_get_task,
+    file_projects_locations_instances_list_builder, file_projects_locations_instances_list_task,
     file_projects_locations_instances_patch_builder, file_projects_locations_instances_patch_task,
     file_projects_locations_instances_pause_replica_builder, file_projects_locations_instances_pause_replica_task,
     file_projects_locations_instances_promote_replica_builder, file_projects_locations_instances_promote_replica_task,
@@ -25,18 +31,36 @@ use crate::providers::gcp::clients::file::{
     file_projects_locations_instances_revert_builder, file_projects_locations_instances_revert_task,
     file_projects_locations_instances_snapshots_create_builder, file_projects_locations_instances_snapshots_create_task,
     file_projects_locations_instances_snapshots_delete_builder, file_projects_locations_instances_snapshots_delete_task,
+    file_projects_locations_instances_snapshots_get_builder, file_projects_locations_instances_snapshots_get_task,
+    file_projects_locations_instances_snapshots_list_builder, file_projects_locations_instances_snapshots_list_task,
     file_projects_locations_instances_snapshots_patch_builder, file_projects_locations_instances_snapshots_patch_task,
     file_projects_locations_operations_cancel_builder, file_projects_locations_operations_cancel_task,
     file_projects_locations_operations_delete_builder, file_projects_locations_operations_delete_task,
+    file_projects_locations_operations_get_builder, file_projects_locations_operations_get_task,
+    file_projects_locations_operations_list_builder, file_projects_locations_operations_list_task,
 };
 use crate::providers::gcp::clients::types::{ApiError, ApiPending};
+use crate::providers::gcp::clients::file::Backup;
 use crate::providers::gcp::clients::file::Empty;
+use crate::providers::gcp::clients::file::Instance;
+use crate::providers::gcp::clients::file::ListBackupsResponse;
+use crate::providers::gcp::clients::file::ListInstancesResponse;
+use crate::providers::gcp::clients::file::ListLocationsResponse;
+use crate::providers::gcp::clients::file::ListOperationsResponse;
+use crate::providers::gcp::clients::file::ListSnapshotsResponse;
+use crate::providers::gcp::clients::file::Location;
 use crate::providers::gcp::clients::file::Operation;
+use crate::providers::gcp::clients::file::Snapshot;
 use crate::providers::gcp::clients::file::FileProjectsLocationsBackupsCreateArgs;
 use crate::providers::gcp::clients::file::FileProjectsLocationsBackupsDeleteArgs;
+use crate::providers::gcp::clients::file::FileProjectsLocationsBackupsGetArgs;
+use crate::providers::gcp::clients::file::FileProjectsLocationsBackupsListArgs;
 use crate::providers::gcp::clients::file::FileProjectsLocationsBackupsPatchArgs;
+use crate::providers::gcp::clients::file::FileProjectsLocationsGetArgs;
 use crate::providers::gcp::clients::file::FileProjectsLocationsInstancesCreateArgs;
 use crate::providers::gcp::clients::file::FileProjectsLocationsInstancesDeleteArgs;
+use crate::providers::gcp::clients::file::FileProjectsLocationsInstancesGetArgs;
+use crate::providers::gcp::clients::file::FileProjectsLocationsInstancesListArgs;
 use crate::providers::gcp::clients::file::FileProjectsLocationsInstancesPatchArgs;
 use crate::providers::gcp::clients::file::FileProjectsLocationsInstancesPauseReplicaArgs;
 use crate::providers::gcp::clients::file::FileProjectsLocationsInstancesPromoteReplicaArgs;
@@ -45,9 +69,14 @@ use crate::providers::gcp::clients::file::FileProjectsLocationsInstancesResumeRe
 use crate::providers::gcp::clients::file::FileProjectsLocationsInstancesRevertArgs;
 use crate::providers::gcp::clients::file::FileProjectsLocationsInstancesSnapshotsCreateArgs;
 use crate::providers::gcp::clients::file::FileProjectsLocationsInstancesSnapshotsDeleteArgs;
+use crate::providers::gcp::clients::file::FileProjectsLocationsInstancesSnapshotsGetArgs;
+use crate::providers::gcp::clients::file::FileProjectsLocationsInstancesSnapshotsListArgs;
 use crate::providers::gcp::clients::file::FileProjectsLocationsInstancesSnapshotsPatchArgs;
+use crate::providers::gcp::clients::file::FileProjectsLocationsListArgs;
 use crate::providers::gcp::clients::file::FileProjectsLocationsOperationsCancelArgs;
 use crate::providers::gcp::clients::file::FileProjectsLocationsOperationsDeleteArgs;
+use crate::providers::gcp::clients::file::FileProjectsLocationsOperationsGetArgs;
+use crate::providers::gcp::clients::file::FileProjectsLocationsOperationsListArgs;
 use crate::provider_client::{ProviderClient, ProviderError};
 use foundation_core::valtron::{execute, StreamIterator};
 use foundation_core::wire::simple_http::client::SimpleHttpClient;
@@ -87,6 +116,86 @@ where
             client,
             http_client: Arc::new(http_client),
         }
+    }
+
+    /// File projects locations get.
+    ///
+    /// Read-only operation - no state tracking.
+    ///
+    /// # Arguments
+    ///
+    /// * `args` - Request arguments
+    ///
+    /// # Returns
+    ///
+    /// StreamIterator yielding the Location result.
+    ///
+    /// # Errors
+    ///
+    /// Returns ProviderError if the API request fails.
+    pub fn file_projects_locations_get(
+        &self,
+        args: &FileProjectsLocationsGetArgs,
+    ) -> Result<
+        impl StreamIterator<
+            D = Result<Location, ProviderError<ApiError>>,
+            P = crate::providers::gcp::clients::types::ApiPending,
+        > + Send
+        + 'static,
+        ProviderError<ApiError>,
+    > {
+        let builder = file_projects_locations_get_builder(
+            &self.http_client,
+            &args.name,
+        )
+        .map_err(ProviderError::Api)?;
+
+        let task = file_projects_locations_get_task(builder)
+            .map_err(ProviderError::Api)?;
+
+        execute(task, None).map_err(|e: String| ProviderError::ExecuteFailed(e.to_string()))
+    }
+
+    /// File projects locations list.
+    ///
+    /// Read-only operation - no state tracking.
+    ///
+    /// # Arguments
+    ///
+    /// * `args` - Request arguments
+    ///
+    /// # Returns
+    ///
+    /// StreamIterator yielding the ListLocationsResponse result.
+    ///
+    /// # Errors
+    ///
+    /// Returns ProviderError if the API request fails.
+    pub fn file_projects_locations_list(
+        &self,
+        args: &FileProjectsLocationsListArgs,
+    ) -> Result<
+        impl StreamIterator<
+            D = Result<ListLocationsResponse, ProviderError<ApiError>>,
+            P = crate::providers::gcp::clients::types::ApiPending,
+        > + Send
+        + 'static,
+        ProviderError<ApiError>,
+    > {
+        let builder = file_projects_locations_list_builder(
+            &self.http_client,
+            &args.name,
+            &args.extraLocationTypes,
+            &args.filter,
+            &args.pageSize,
+            &args.pageToken,
+        )
+        .map_err(ProviderError::Api)?;
+
+        let task = file_projects_locations_list_task(builder)
+            .map_err(ProviderError::Api)?;
+
+        execute(task, None).map_err(|e: String| ProviderError::ExecuteFailed(e.to_string()))
     }
 
     /// File projects locations backups create.
@@ -174,6 +283,86 @@ where
         let store_task = StoreStateIdentifierTask::new(task, state_store, args, stage);
 
         execute(store_task, None).map_err(|e: String| ProviderError::ExecuteFailed(e.to_string()))
+    }
+
+    /// File projects locations backups get.
+    ///
+    /// Read-only operation - no state tracking.
+    ///
+    /// # Arguments
+    ///
+    /// * `args` - Request arguments
+    ///
+    /// # Returns
+    ///
+    /// StreamIterator yielding the Backup result.
+    ///
+    /// # Errors
+    ///
+    /// Returns ProviderError if the API request fails.
+    pub fn file_projects_locations_backups_get(
+        &self,
+        args: &FileProjectsLocationsBackupsGetArgs,
+    ) -> Result<
+        impl StreamIterator<
+            D = Result<Backup, ProviderError<ApiError>>,
+            P = crate::providers::gcp::clients::types::ApiPending,
+        > + Send
+        + 'static,
+        ProviderError<ApiError>,
+    > {
+        let builder = file_projects_locations_backups_get_builder(
+            &self.http_client,
+            &args.name,
+        )
+        .map_err(ProviderError::Api)?;
+
+        let task = file_projects_locations_backups_get_task(builder)
+            .map_err(ProviderError::Api)?;
+
+        execute(task, None).map_err(|e: String| ProviderError::ExecuteFailed(e.to_string()))
+    }
+
+    /// File projects locations backups list.
+    ///
+    /// Read-only operation - no state tracking.
+    ///
+    /// # Arguments
+    ///
+    /// * `args` - Request arguments
+    ///
+    /// # Returns
+    ///
+    /// StreamIterator yielding the ListBackupsResponse result.
+    ///
+    /// # Errors
+    ///
+    /// Returns ProviderError if the API request fails.
+    pub fn file_projects_locations_backups_list(
+        &self,
+        args: &FileProjectsLocationsBackupsListArgs,
+    ) -> Result<
+        impl StreamIterator<
+            D = Result<ListBackupsResponse, ProviderError<ApiError>>,
+            P = crate::providers::gcp::clients::types::ApiPending,
+        > + Send
+        + 'static,
+        ProviderError<ApiError>,
+    > {
+        let builder = file_projects_locations_backups_list_builder(
+            &self.http_client,
+            &args.parent,
+            &args.filter,
+            &args.orderBy,
+            &args.pageSize,
+            &args.pageToken,
+        )
+        .map_err(ProviderError::Api)?;
+
+        let task = file_projects_locations_backups_list_task(builder)
+            .map_err(ProviderError::Api)?;
+
+        execute(task, None).map_err(|e: String| ProviderError::ExecuteFailed(e.to_string()))
     }
 
     /// File projects locations backups patch.
@@ -306,6 +495,86 @@ where
         let store_task = StoreStateIdentifierTask::new(task, state_store, args, stage);
 
         execute(store_task, None).map_err(|e: String| ProviderError::ExecuteFailed(e.to_string()))
+    }
+
+    /// File projects locations instances get.
+    ///
+    /// Read-only operation - no state tracking.
+    ///
+    /// # Arguments
+    ///
+    /// * `args` - Request arguments
+    ///
+    /// # Returns
+    ///
+    /// StreamIterator yielding the Instance result.
+    ///
+    /// # Errors
+    ///
+    /// Returns ProviderError if the API request fails.
+    pub fn file_projects_locations_instances_get(
+        &self,
+        args: &FileProjectsLocationsInstancesGetArgs,
+    ) -> Result<
+        impl StreamIterator<
+            D = Result<Instance, ProviderError<ApiError>>,
+            P = crate::providers::gcp::clients::types::ApiPending,
+        > + Send
+        + 'static,
+        ProviderError<ApiError>,
+    > {
+        let builder = file_projects_locations_instances_get_builder(
+            &self.http_client,
+            &args.name,
+        )
+        .map_err(ProviderError::Api)?;
+
+        let task = file_projects_locations_instances_get_task(builder)
+            .map_err(ProviderError::Api)?;
+
+        execute(task, None).map_err(|e: String| ProviderError::ExecuteFailed(e.to_string()))
+    }
+
+    /// File projects locations instances list.
+    ///
+    /// Read-only operation - no state tracking.
+    ///
+    /// # Arguments
+    ///
+    /// * `args` - Request arguments
+    ///
+    /// # Returns
+    ///
+    /// StreamIterator yielding the ListInstancesResponse result.
+    ///
+    /// # Errors
+    ///
+    /// Returns ProviderError if the API request fails.
+    pub fn file_projects_locations_instances_list(
+        &self,
+        args: &FileProjectsLocationsInstancesListArgs,
+    ) -> Result<
+        impl StreamIterator<
+            D = Result<ListInstancesResponse, ProviderError<ApiError>>,
+            P = crate::providers::gcp::clients::types::ApiPending,
+        > + Send
+        + 'static,
+        ProviderError<ApiError>,
+    > {
+        let builder = file_projects_locations_instances_list_builder(
+            &self.http_client,
+            &args.parent,
+            &args.filter,
+            &args.orderBy,
+            &args.pageSize,
+            &args.pageToken,
+        )
+        .map_err(ProviderError::Api)?;
+
+        let task = file_projects_locations_instances_list_task(builder)
+            .map_err(ProviderError::Api)?;
+
+        execute(task, None).map_err(|e: String| ProviderError::ExecuteFailed(e.to_string()))
     }
 
     /// File projects locations instances patch.
@@ -654,6 +923,87 @@ where
         execute(store_task, None).map_err(|e: String| ProviderError::ExecuteFailed(e.to_string()))
     }
 
+    /// File projects locations instances snapshots get.
+    ///
+    /// Read-only operation - no state tracking.
+    ///
+    /// # Arguments
+    ///
+    /// * `args` - Request arguments
+    ///
+    /// # Returns
+    ///
+    /// StreamIterator yielding the Snapshot result.
+    ///
+    /// # Errors
+    ///
+    /// Returns ProviderError if the API request fails.
+    pub fn file_projects_locations_instances_snapshots_get(
+        &self,
+        args: &FileProjectsLocationsInstancesSnapshotsGetArgs,
+    ) -> Result<
+        impl StreamIterator<
+            D = Result<Snapshot, ProviderError<ApiError>>,
+            P = crate::providers::gcp::clients::types::ApiPending,
+        > + Send
+        + 'static,
+        ProviderError<ApiError>,
+    > {
+        let builder = file_projects_locations_instances_snapshots_get_builder(
+            &self.http_client,
+            &args.name,
+        )
+        .map_err(ProviderError::Api)?;
+
+        let task = file_projects_locations_instances_snapshots_get_task(builder)
+            .map_err(ProviderError::Api)?;
+
+        execute(task, None).map_err(|e: String| ProviderError::ExecuteFailed(e.to_string()))
+    }
+
+    /// File projects locations instances snapshots list.
+    ///
+    /// Read-only operation - no state tracking.
+    ///
+    /// # Arguments
+    ///
+    /// * `args` - Request arguments
+    ///
+    /// # Returns
+    ///
+    /// StreamIterator yielding the ListSnapshotsResponse result.
+    ///
+    /// # Errors
+    ///
+    /// Returns ProviderError if the API request fails.
+    pub fn file_projects_locations_instances_snapshots_list(
+        &self,
+        args: &FileProjectsLocationsInstancesSnapshotsListArgs,
+    ) -> Result<
+        impl StreamIterator<
+            D = Result<ListSnapshotsResponse, ProviderError<ApiError>>,
+            P = crate::providers::gcp::clients::types::ApiPending,
+        > + Send
+        + 'static,
+        ProviderError<ApiError>,
+    > {
+        let builder = file_projects_locations_instances_snapshots_list_builder(
+            &self.http_client,
+            &args.parent,
+            &args.filter,
+            &args.orderBy,
+            &args.pageSize,
+            &args.pageToken,
+            &args.returnPartialSuccess,
+        )
+        .map_err(ProviderError::Api)?;
+
+        let task = file_projects_locations_instances_snapshots_list_task(builder)
+            .map_err(ProviderError::Api)?;
+
+        execute(task, None).map_err(|e: String| ProviderError::ExecuteFailed(e.to_string()))
+    }
+
     /// File projects locations instances snapshots patch.
     ///
     /// Automatically stores the result in the state store on success.
@@ -782,6 +1132,86 @@ where
         let store_task = StoreStateIdentifierTask::new(task, state_store, args, stage);
 
         execute(store_task, None).map_err(|e: String| ProviderError::ExecuteFailed(e.to_string()))
+    }
+
+    /// File projects locations operations get.
+    ///
+    /// Read-only operation - no state tracking.
+    ///
+    /// # Arguments
+    ///
+    /// * `args` - Request arguments
+    ///
+    /// # Returns
+    ///
+    /// StreamIterator yielding the Operation result.
+    ///
+    /// # Errors
+    ///
+    /// Returns ProviderError if the API request fails.
+    pub fn file_projects_locations_operations_get(
+        &self,
+        args: &FileProjectsLocationsOperationsGetArgs,
+    ) -> Result<
+        impl StreamIterator<
+            D = Result<Operation, ProviderError<ApiError>>,
+            P = crate::providers::gcp::clients::types::ApiPending,
+        > + Send
+        + 'static,
+        ProviderError<ApiError>,
+    > {
+        let builder = file_projects_locations_operations_get_builder(
+            &self.http_client,
+            &args.name,
+        )
+        .map_err(ProviderError::Api)?;
+
+        let task = file_projects_locations_operations_get_task(builder)
+            .map_err(ProviderError::Api)?;
+
+        execute(task, None).map_err(|e: String| ProviderError::ExecuteFailed(e.to_string()))
+    }
+
+    /// File projects locations operations list.
+    ///
+    /// Read-only operation - no state tracking.
+    ///
+    /// # Arguments
+    ///
+    /// * `args` - Request arguments
+    ///
+    /// # Returns
+    ///
+    /// StreamIterator yielding the ListOperationsResponse result.
+    ///
+    /// # Errors
+    ///
+    /// Returns ProviderError if the API request fails.
+    pub fn file_projects_locations_operations_list(
+        &self,
+        args: &FileProjectsLocationsOperationsListArgs,
+    ) -> Result<
+        impl StreamIterator<
+            D = Result<ListOperationsResponse, ProviderError<ApiError>>,
+            P = crate::providers::gcp::clients::types::ApiPending,
+        > + Send
+        + 'static,
+        ProviderError<ApiError>,
+    > {
+        let builder = file_projects_locations_operations_list_builder(
+            &self.http_client,
+            &args.name,
+            &args.filter,
+            &args.pageSize,
+            &args.pageToken,
+            &args.returnPartialSuccess,
+        )
+        .map_err(ProviderError::Api)?;
+
+        let task = file_projects_locations_operations_list_task(builder)
+            .map_err(ProviderError::Api)?;
+
+        execute(task, None).map_err(|e: String| ProviderError::ExecuteFailed(e.to_string()))
     }
 
 }

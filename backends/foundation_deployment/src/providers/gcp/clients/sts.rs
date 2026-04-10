@@ -7,7 +7,6 @@
 
 #![cfg(feature = "gcp")]
 
-
 use crate::providers::gcp::clients::types::*;
 use crate::providers::gcp::resources::*;
 use foundation_core::valtron::{
@@ -17,10 +16,11 @@ use foundation_core::valtron::{
 use foundation_core::wire::simple_http::client::{
     body_reader, ClientRequestBuilder, RequestIntro, SimpleHttpClient, SystemDnsResolver,
 };
+use foundation_db::state::resource_identifier::ResourceIdentifier;
 use foundation_macros::JsonHash;
 use serde::Serialize;
 
-/// GET v1/token
+/// POST v1/token
 /// Exchanges a credential for a Google OAuth 2.0 access token. The token asserts an external identity within an identity pool, or it applies a Credential Access Boundary to a Google access token. Note that workforce pools do not support Credential Access Boundaries. When you call this method, do not send the Authorization HTTP header in the request. This method does not require the Authorization header, and using the header can cause the request to fail.
 ///
 /// Returns `ClientRequestBuilder` for customization.
@@ -28,22 +28,19 @@ use serde::Serialize;
 
 pub fn sts_token_builder(
     client: &SimpleHttpClient,
-    body: &GoogleIdentityStsV1ExchangeTokenRequest,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!("https://sts.googleapis.com/v1/token",);
 
     // Build request
     let builder = client
-        .get(&endpoint_url)
+        .post(&endpoint_url)
         .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
 
-    builder
-        .body_json(body)
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+    Ok(builder)
 }
 
-/// GET v1/token
+/// POST v1/token
 /// Exchanges a credential for a Google OAuth 2.0 access token. The token asserts an external identity within an identity pool, or it applies a Credential Access Boundary to a Google access token. Note that workforce pools do not support Credential Access Boundaries. When you call this method, do not send the Authorization HTTP header in the request. This method does not require the Authorization header, and using the header can cause the request to fail.
 ///
 /// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
@@ -117,7 +114,7 @@ pub fn sts_token_task(
         .map_pending(|_| ApiPending::Sending))
 }
 
-/// GET v1/token
+/// POST v1/token
 /// Exchanges a credential for a Google OAuth 2.0 access token. The token asserts an external identity within an identity pool, or it applies a Credential Access Boundary to a Google access token. Note that workforce pools do not support Credential Access Boundaries. When you call this method, do not send the Authorization HTTP header in the request. This method does not require the Authorization header, and using the header can cause the request to fail.
 ///
 /// Takes a `ClientRequestBuilder`, builds and executes the request,
@@ -151,14 +148,7 @@ pub fn sts_token_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
-/// Arguments for [`sts_token`].
-#[derive(Debug, Clone, Serialize, JsonHash)]
-pub struct StsTokenArgs {
-    /// Request body.
-    pub body: GoogleIdentityStsV1ExchangeTokenRequest,
-}
-
-/// GET v1/token
+/// POST v1/token
 /// Exchanges a credential for a Google OAuth 2.0 access token. The token asserts an external identity within an identity pool, or it applies a Credential Access Boundary to a Google access token. Note that workforce pools do not support Credential Access Boundaries. When you call this method, do not send the Authorization HTTP header in the request. This method does not require the Authorization header, and using the header can cause the request to fail.
 ///
 /// Simplest API - builds and executes the request in one call.
@@ -171,7 +161,6 @@ pub struct StsTokenArgs {
 
 pub fn sts_token(
     client: &SimpleHttpClient,
-    args: &StsTokenArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<GoogleIdentityStsV1ExchangeTokenResponse>, ApiError>,
@@ -180,6 +169,29 @@ pub fn sts_token(
         + 'static,
     ApiError,
 > {
-    let builder = sts_token_builder(client, &args.body)?;
+    let builder = sts_token_builder(client)?;
     sts_token_execute(builder)
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for GoogleIdentityStsV1ExchangeTokenResponse
+// =============================================================================
+
+/// ResourceIdentifier implementation for GoogleIdentityStsV1ExchangeTokenResponse with StsTokenArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<StsTokenArgs> for GoogleIdentityStsV1ExchangeTokenResponse {
+    fn generate_resource_id(&self, input: &StsTokenArgs) -> String {
+        "gcp::sts::GoogleIdentityStsV1ExchangeTokenResponse".to_string()
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::sts::GoogleIdentityStsV1ExchangeTokenResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
 }

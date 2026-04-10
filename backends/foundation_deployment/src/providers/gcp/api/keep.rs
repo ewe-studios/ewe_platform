@@ -12,17 +12,25 @@
 #![cfg(feature = "gcp")]
 
 use crate::providers::gcp::clients::keep::{
+    keep_media_download_builder, keep_media_download_task,
     keep_notes_create_builder, keep_notes_create_task,
     keep_notes_delete_builder, keep_notes_delete_task,
+    keep_notes_get_builder, keep_notes_get_task,
+    keep_notes_list_builder, keep_notes_list_task,
     keep_notes_permissions_batch_create_builder, keep_notes_permissions_batch_create_task,
     keep_notes_permissions_batch_delete_builder, keep_notes_permissions_batch_delete_task,
 };
 use crate::providers::gcp::clients::types::{ApiError, ApiPending};
+use crate::providers::gcp::clients::keep::Attachment;
 use crate::providers::gcp::clients::keep::BatchCreatePermissionsResponse;
 use crate::providers::gcp::clients::keep::Empty;
+use crate::providers::gcp::clients::keep::ListNotesResponse;
 use crate::providers::gcp::clients::keep::Note;
+use crate::providers::gcp::clients::keep::KeepMediaDownloadArgs;
 use crate::providers::gcp::clients::keep::KeepNotesCreateArgs;
 use crate::providers::gcp::clients::keep::KeepNotesDeleteArgs;
+use crate::providers::gcp::clients::keep::KeepNotesGetArgs;
+use crate::providers::gcp::clients::keep::KeepNotesListArgs;
 use crate::providers::gcp::clients::keep::KeepNotesPermissionsBatchCreateArgs;
 use crate::providers::gcp::clients::keep::KeepNotesPermissionsBatchDeleteArgs;
 use crate::provider_client::{ProviderClient, ProviderError};
@@ -64,6 +72,45 @@ where
             client,
             http_client: Arc::new(http_client),
         }
+    }
+
+    /// Keep media download.
+    ///
+    /// Read-only operation - no state tracking.
+    ///
+    /// # Arguments
+    ///
+    /// * `args` - Request arguments
+    ///
+    /// # Returns
+    ///
+    /// StreamIterator yielding the Attachment result.
+    ///
+    /// # Errors
+    ///
+    /// Returns ProviderError if the API request fails.
+    pub fn keep_media_download(
+        &self,
+        args: &KeepMediaDownloadArgs,
+    ) -> Result<
+        impl StreamIterator<
+            D = Result<Attachment, ProviderError<ApiError>>,
+            P = crate::providers::gcp::clients::types::ApiPending,
+        > + Send
+        + 'static,
+        ProviderError<ApiError>,
+    > {
+        let builder = keep_media_download_builder(
+            &self.http_client,
+            &args.name,
+            &args.mimeType,
+        )
+        .map_err(ProviderError::Api)?;
+
+        let task = keep_media_download_task(builder)
+            .map_err(ProviderError::Api)?;
+
+        execute(task, None).map_err(|e: String| ProviderError::ExecuteFailed(e.to_string()))
     }
 
     /// Keep notes create.
@@ -149,6 +196,84 @@ where
         let store_task = StoreStateIdentifierTask::new(task, state_store, args, stage);
 
         execute(store_task, None).map_err(|e: String| ProviderError::ExecuteFailed(e.to_string()))
+    }
+
+    /// Keep notes get.
+    ///
+    /// Read-only operation - no state tracking.
+    ///
+    /// # Arguments
+    ///
+    /// * `args` - Request arguments
+    ///
+    /// # Returns
+    ///
+    /// StreamIterator yielding the Note result.
+    ///
+    /// # Errors
+    ///
+    /// Returns ProviderError if the API request fails.
+    pub fn keep_notes_get(
+        &self,
+        args: &KeepNotesGetArgs,
+    ) -> Result<
+        impl StreamIterator<
+            D = Result<Note, ProviderError<ApiError>>,
+            P = crate::providers::gcp::clients::types::ApiPending,
+        > + Send
+        + 'static,
+        ProviderError<ApiError>,
+    > {
+        let builder = keep_notes_get_builder(
+            &self.http_client,
+            &args.name,
+        )
+        .map_err(ProviderError::Api)?;
+
+        let task = keep_notes_get_task(builder)
+            .map_err(ProviderError::Api)?;
+
+        execute(task, None).map_err(|e: String| ProviderError::ExecuteFailed(e.to_string()))
+    }
+
+    /// Keep notes list.
+    ///
+    /// Read-only operation - no state tracking.
+    ///
+    /// # Arguments
+    ///
+    /// * `args` - Request arguments
+    ///
+    /// # Returns
+    ///
+    /// StreamIterator yielding the ListNotesResponse result.
+    ///
+    /// # Errors
+    ///
+    /// Returns ProviderError if the API request fails.
+    pub fn keep_notes_list(
+        &self,
+        args: &KeepNotesListArgs,
+    ) -> Result<
+        impl StreamIterator<
+            D = Result<ListNotesResponse, ProviderError<ApiError>>,
+            P = crate::providers::gcp::clients::types::ApiPending,
+        > + Send
+        + 'static,
+        ProviderError<ApiError>,
+    > {
+        let builder = keep_notes_list_builder(
+            &self.http_client,
+            &args.filter,
+            &args.pageSize,
+            &args.pageToken,
+        )
+        .map_err(ProviderError::Api)?;
+
+        let task = keep_notes_list_task(builder)
+            .map_err(ProviderError::Api)?;
+
+        execute(task, None).map_err(|e: String| ProviderError::ExecuteFailed(e.to_string()))
     }
 
     /// Keep notes permissions batch create.

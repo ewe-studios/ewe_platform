@@ -7,7 +7,6 @@
 
 #![cfg(feature = "gcp")]
 
-
 use crate::providers::gcp::clients::types::*;
 use crate::providers::gcp::resources::*;
 use foundation_core::valtron::{
@@ -17,6 +16,7 @@ use foundation_core::valtron::{
 use foundation_core::wire::simple_http::client::{
     body_reader, ClientRequestBuilder, RequestIntro, SimpleHttpClient, SystemDnsResolver,
 };
+use foundation_db::state::resource_identifier::ResourceIdentifier;
 use foundation_macros::JsonHash;
 use serde::Serialize;
 
@@ -31,8 +31,10 @@ pub fn artifactregistry_projects_get_project_settings_builder(
     name: &String,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
-    let endpoint_url =
-        format!("https://artifactregistry.googleapis.com/v1/projects/{}/projectSettings",);
+    let endpoint_url = format!(
+        "https://artifactregistry.googleapis.com/v1/projects/{}/projectSettings",
+        name,
+    );
 
     // Build request
     let builder = client
@@ -179,8 +181,663 @@ pub fn artifactregistry_projects_get_project_settings(
     artifactregistry_projects_get_project_settings_execute(builder)
 }
 
+/// PATCH v1/projects/{projectsId}/projectSettings
+/// Updates the Settings for the Project.
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `artifactregistry_projects_update_project_settings_execute()` to send, or `artifactregistry_projects_update_project_settings` for simplest API.
+
+pub fn artifactregistry_projects_update_project_settings_builder(
+    client: &SimpleHttpClient,
+    name: &String,
+    updateMask: &Option<Option<String>>,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!(
+        "https://artifactregistry.googleapis.com/v1/projects/{}/projectSettings",
+        name,
+    );
+
+    // Build request
+    let mut query_parts = Vec::new();
+    if let Some(val) = updateMask.as_ref() {
+        query_parts.push(format!("updateMask={}", val));
+    }
+
+    let url_with_query = if query_parts.is_empty() {
+        endpoint_url
+    } else {
+        format!("{}?{}", endpoint_url, query_parts.join("&"))
+    };
+
+    let builder = client
+        .patch(&url_with_query)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// PATCH v1/projects/{projectsId}/projectSettings
+/// Updates the Settings for the Project.
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `artifactregistry_projects_update_project_settings_execute()` or `artifactregistry_projects_update_project_settings`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `artifactregistry_projects_update_project_settings_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn artifactregistry_projects_update_project_settings_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<ProjectSettings>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: ProjectSettings = serde_json::from_str(&body)
+                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// PATCH v1/projects/{projectsId}/projectSettings
+/// Updates the Settings for the Project.
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `artifactregistry_projects_update_project_settings_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `artifactregistry_projects_update_project_settings_task()`.
+/// For the simplest API, use `artifactregistry_projects_update_project_settings()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `artifactregistry_projects_update_project_settings_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn artifactregistry_projects_update_project_settings_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<ProjectSettings>, ApiError>, P = ApiPending>
+        + Send
+        + 'static,
+    ApiError,
+> {
+    let task = artifactregistry_projects_update_project_settings_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`artifactregistry_projects_update_project_settings`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct ArtifactregistryProjectsUpdateProjectSettingsArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Query parameter: updateMask
+    pub updateMask: Option<Option<String>>,
+}
+
+/// PATCH v1/projects/{projectsId}/projectSettings
+/// Updates the Settings for the Project.
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `artifactregistry_projects_update_project_settings_builder()` + `artifactregistry_projects_update_project_settings_execute()`.
+/// For task-level control, use `artifactregistry_projects_update_project_settings_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn artifactregistry_projects_update_project_settings(
+    client: &SimpleHttpClient,
+    args: &ArtifactregistryProjectsUpdateProjectSettingsArgs,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<ProjectSettings>, ApiError>, P = ApiPending>
+        + Send
+        + 'static,
+    ApiError,
+> {
+    let builder = artifactregistry_projects_update_project_settings_builder(
+        client,
+        &args.name,
+        &args.updateMask,
+    )?;
+    artifactregistry_projects_update_project_settings_execute(builder)
+}
+
+/// GET v1/projects/{projectsId}/locations/{locationsId}
+/// Gets information about a location.
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `artifactregistry_projects_locations_get_execute()` to send, or `artifactregistry_projects_locations_get` for simplest API.
+
+pub fn artifactregistry_projects_locations_get_builder(
+    client: &SimpleHttpClient,
+    name: &String,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!(
+        "https://artifactregistry.googleapis.com/v1/projects/{}/locations/{locationsId}",
+        name,
+    );
+
+    // Build request
+    let builder = client
+        .get(&endpoint_url)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// GET v1/projects/{projectsId}/locations/{locationsId}
+/// Gets information about a location.
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `artifactregistry_projects_locations_get_execute()` or `artifactregistry_projects_locations_get`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `artifactregistry_projects_locations_get_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn artifactregistry_projects_locations_get_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<Location>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: Location = serde_json::from_str(&body)
+                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// GET v1/projects/{projectsId}/locations/{locationsId}
+/// Gets information about a location.
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `artifactregistry_projects_locations_get_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `artifactregistry_projects_locations_get_task()`.
+/// For the simplest API, use `artifactregistry_projects_locations_get()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `artifactregistry_projects_locations_get_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn artifactregistry_projects_locations_get_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<Location>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let task = artifactregistry_projects_locations_get_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`artifactregistry_projects_locations_get`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct ArtifactregistryProjectsLocationsGetArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
+/// GET v1/projects/{projectsId}/locations/{locationsId}
+/// Gets information about a location.
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `artifactregistry_projects_locations_get_builder()` + `artifactregistry_projects_locations_get_execute()`.
+/// For task-level control, use `artifactregistry_projects_locations_get_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn artifactregistry_projects_locations_get(
+    client: &SimpleHttpClient,
+    args: &ArtifactregistryProjectsLocationsGetArgs,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<Location>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let builder = artifactregistry_projects_locations_get_builder(client, &args.name)?;
+    artifactregistry_projects_locations_get_execute(builder)
+}
+
+/// GET v1/projects/{projectsId}/locations/{locationsId}/projectConfig
+/// Retrieves the project configuration.
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `artifactregistry_projects_locations_get_project_config_execute()` to send, or `artifactregistry_projects_locations_get_project_config` for simplest API.
+
+pub fn artifactregistry_projects_locations_get_project_config_builder(
+    client: &SimpleHttpClient,
+    name: &String,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!(
+        "https://artifactregistry.googleapis.com/v1/projects/{}/locations/{locationsId}/projectConfig",
+        name,
+    );
+
+    // Build request
+    let builder = client
+        .get(&endpoint_url)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// GET v1/projects/{projectsId}/locations/{locationsId}/projectConfig
+/// Retrieves the project configuration.
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `artifactregistry_projects_locations_get_project_config_execute()` or `artifactregistry_projects_locations_get_project_config`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `artifactregistry_projects_locations_get_project_config_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn artifactregistry_projects_locations_get_project_config_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<ProjectConfig>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: ProjectConfig = serde_json::from_str(&body)
+                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// GET v1/projects/{projectsId}/locations/{locationsId}/projectConfig
+/// Retrieves the project configuration.
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `artifactregistry_projects_locations_get_project_config_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `artifactregistry_projects_locations_get_project_config_task()`.
+/// For the simplest API, use `artifactregistry_projects_locations_get_project_config()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `artifactregistry_projects_locations_get_project_config_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn artifactregistry_projects_locations_get_project_config_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<ProjectConfig>, ApiError>, P = ApiPending>
+        + Send
+        + 'static,
+    ApiError,
+> {
+    let task = artifactregistry_projects_locations_get_project_config_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`artifactregistry_projects_locations_get_project_config`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct ArtifactregistryProjectsLocationsGetProjectConfigArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
+/// GET v1/projects/{projectsId}/locations/{locationsId}/projectConfig
+/// Retrieves the project configuration.
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `artifactregistry_projects_locations_get_project_config_builder()` + `artifactregistry_projects_locations_get_project_config_execute()`.
+/// For task-level control, use `artifactregistry_projects_locations_get_project_config_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn artifactregistry_projects_locations_get_project_config(
+    client: &SimpleHttpClient,
+    args: &ArtifactregistryProjectsLocationsGetProjectConfigArgs,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<ProjectConfig>, ApiError>, P = ApiPending>
+        + Send
+        + 'static,
+    ApiError,
+> {
+    let builder =
+        artifactregistry_projects_locations_get_project_config_builder(client, &args.name)?;
+    artifactregistry_projects_locations_get_project_config_execute(builder)
+}
+
+/// GET v1/projects/{projectsId}/locations/{locationsId}/vpcscConfig
+/// Retrieves the VPCSC Config for the Project.
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `artifactregistry_projects_locations_get_vpcsc_config_execute()` to send, or `artifactregistry_projects_locations_get_vpcsc_config` for simplest API.
+
+pub fn artifactregistry_projects_locations_get_vpcsc_config_builder(
+    client: &SimpleHttpClient,
+    name: &String,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!(
+        "https://artifactregistry.googleapis.com/v1/projects/{}/locations/{locationsId}/vpcscConfig",
+        name,
+    );
+
+    // Build request
+    let builder = client
+        .get(&endpoint_url)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// GET v1/projects/{projectsId}/locations/{locationsId}/vpcscConfig
+/// Retrieves the VPCSC Config for the Project.
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `artifactregistry_projects_locations_get_vpcsc_config_execute()` or `artifactregistry_projects_locations_get_vpcsc_config`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `artifactregistry_projects_locations_get_vpcsc_config_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn artifactregistry_projects_locations_get_vpcsc_config_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<VPCSCConfig>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: VPCSCConfig = serde_json::from_str(&body)
+                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// GET v1/projects/{projectsId}/locations/{locationsId}/vpcscConfig
+/// Retrieves the VPCSC Config for the Project.
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `artifactregistry_projects_locations_get_vpcsc_config_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `artifactregistry_projects_locations_get_vpcsc_config_task()`.
+/// For the simplest API, use `artifactregistry_projects_locations_get_vpcsc_config()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `artifactregistry_projects_locations_get_vpcsc_config_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn artifactregistry_projects_locations_get_vpcsc_config_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<VPCSCConfig>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let task = artifactregistry_projects_locations_get_vpcsc_config_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`artifactregistry_projects_locations_get_vpcsc_config`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct ArtifactregistryProjectsLocationsGetVpcscConfigArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
+/// GET v1/projects/{projectsId}/locations/{locationsId}/vpcscConfig
+/// Retrieves the VPCSC Config for the Project.
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `artifactregistry_projects_locations_get_vpcsc_config_builder()` + `artifactregistry_projects_locations_get_vpcsc_config_execute()`.
+/// For task-level control, use `artifactregistry_projects_locations_get_vpcsc_config_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn artifactregistry_projects_locations_get_vpcsc_config(
+    client: &SimpleHttpClient,
+    args: &ArtifactregistryProjectsLocationsGetVpcscConfigArgs,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<VPCSCConfig>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let builder = artifactregistry_projects_locations_get_vpcsc_config_builder(client, &args.name)?;
+    artifactregistry_projects_locations_get_vpcsc_config_execute(builder)
+}
+
 /// GET v1/projects/{projectsId}/locations
-/// Lists information about the supported locations for this service. This method can be called in two ways: * **List all public locations:** Use the path GET /v1/locations. * **List project-visible locations:** Use the path GET /v1/`projects/{project_id}/locations`. This may include public locations as well as private or other locations specifically visible to the project.
+/// Lists information about the supported locations for this service. This method lists locations based on the resource scope provided in the [ListLocationsRequest.name] field: * **Global locations**: If name is empty, the method lists the public locations available to all projects. * **Project-specific locations**: If name follows the format `projects/{project}`, the method lists locations visible to that specific project. This includes public, private, or other project-specific locations enabled for the project. For `gRPC` and client library implementations, the resource name is passed as the name field. For direct service calls, the resource name is incorporated into the request path based on the specific service implementation and version.
 ///
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `artifactregistry_projects_locations_list_execute()` to send, or `artifactregistry_projects_locations_list` for simplest API.
@@ -188,13 +845,16 @@ pub fn artifactregistry_projects_get_project_settings(
 pub fn artifactregistry_projects_locations_list_builder(
     client: &SimpleHttpClient,
     name: &String,
-    extraLocationTypes: &Option<String>,
-    filter: &Option<String>,
-    pageSize: &Option<i32>,
-    pageToken: &Option<String>,
+    extraLocationTypes: &Option<Option<String>>,
+    filter: &Option<Option<String>>,
+    pageSize: &Option<Option<String>>,
+    pageToken: &Option<Option<String>>,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
-    let endpoint_url = format!("https://artifactregistry.googleapis.com/v1/projects/{}/locations",);
+    let endpoint_url = format!(
+        "https://artifactregistry.googleapis.com/v1/projects/{}/locations",
+        name,
+    );
 
     // Build request
     let mut query_parts = Vec::new();
@@ -225,7 +885,7 @@ pub fn artifactregistry_projects_locations_list_builder(
 }
 
 /// GET v1/projects/{projectsId}/locations
-/// Lists information about the supported locations for this service. This method can be called in two ways: * **List all public locations:** Use the path GET /v1/locations. * **List project-visible locations:** Use the path GET /v1/`projects/{project_id}/locations`. This may include public locations as well as private or other locations specifically visible to the project.
+/// Lists information about the supported locations for this service. This method lists locations based on the resource scope provided in the [ListLocationsRequest.name] field: * **Global locations**: If name is empty, the method lists the public locations available to all projects. * **Project-specific locations**: If name follows the format `projects/{project}`, the method lists locations visible to that specific project. This includes public, private, or other project-specific locations enabled for the project. For `gRPC` and client library implementations, the resource name is passed as the name field. For direct service calls, the resource name is incorporated into the request path based on the specific service implementation and version.
 ///
 /// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
 /// and returns a `TaskIterator` for customization before execution.
@@ -299,7 +959,7 @@ pub fn artifactregistry_projects_locations_list_task(
 }
 
 /// GET v1/projects/{projectsId}/locations
-/// Lists information about the supported locations for this service. This method can be called in two ways: * **List all public locations:** Use the path GET /v1/locations. * **List project-visible locations:** Use the path GET /v1/`projects/{project_id}/locations`. This may include public locations as well as private or other locations specifically visible to the project.
+/// Lists information about the supported locations for this service. This method lists locations based on the resource scope provided in the [ListLocationsRequest.name] field: * **Global locations**: If name is empty, the method lists the public locations available to all projects. * **Project-specific locations**: If name follows the format `projects/{project}`, the method lists locations visible to that specific project. This includes public, private, or other project-specific locations enabled for the project. For `gRPC` and client library implementations, the resource name is passed as the name field. For direct service calls, the resource name is incorporated into the request path based on the specific service implementation and version.
 ///
 /// Takes a `ClientRequestBuilder`, builds and executes the request,
 /// and returns the parsed response via a `StreamIterator`.
@@ -336,17 +996,17 @@ pub struct ArtifactregistryProjectsLocationsListArgs {
     /// Path parameter: name
     pub name: String,
     /// Query parameter: extraLocationTypes
-    pub extraLocationTypes: Option<String>,
+    pub extraLocationTypes: Option<Option<String>>,
     /// Query parameter: filter
-    pub filter: Option<String>,
+    pub filter: Option<Option<String>>,
     /// Query parameter: pageSize
-    pub pageSize: Option<i32>,
+    pub pageSize: Option<Option<String>>,
     /// Query parameter: pageToken
-    pub pageToken: Option<String>,
+    pub pageToken: Option<Option<String>>,
 }
 
 /// GET v1/projects/{projectsId}/locations
-/// Lists information about the supported locations for this service. This method can be called in two ways: * **List all public locations:** Use the path GET /v1/locations. * **List project-visible locations:** Use the path GET /v1/`projects/{project_id}/locations`. This may include public locations as well as private or other locations specifically visible to the project.
+/// Lists information about the supported locations for this service. This method lists locations based on the resource scope provided in the [ListLocationsRequest.name] field: * **Global locations**: If name is empty, the method lists the public locations available to all projects. * **Project-specific locations**: If name follows the format `projects/{project}`, the method lists locations visible to that specific project. This includes public, private, or other project-specific locations enabled for the project. For `gRPC` and client library implementations, the resource name is passed as the name field. For direct service calls, the resource name is incorporated into the request path based on the specific service implementation and version.
 ///
 /// Simplest API - builds and executes the request in one call.
 /// For customization, use `artifactregistry_projects_locations_list_builder()` + `artifactregistry_projects_locations_list_execute()`.
@@ -374,4 +1034,11989 @@ pub fn artifactregistry_projects_locations_list(
         &args.pageToken,
     )?;
     artifactregistry_projects_locations_list_execute(builder)
+}
+
+/// PATCH v1/projects/{projectsId}/locations/{locationsId}/projectConfig
+/// Updates the project configuration.
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `artifactregistry_projects_locations_update_project_config_execute()` to send, or `artifactregistry_projects_locations_update_project_config` for simplest API.
+
+pub fn artifactregistry_projects_locations_update_project_config_builder(
+    client: &SimpleHttpClient,
+    name: &String,
+    updateMask: &Option<Option<String>>,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!(
+        "https://artifactregistry.googleapis.com/v1/projects/{}/locations/{locationsId}/projectConfig",
+        name,
+    );
+
+    // Build request
+    let mut query_parts = Vec::new();
+    if let Some(val) = updateMask.as_ref() {
+        query_parts.push(format!("updateMask={}", val));
+    }
+
+    let url_with_query = if query_parts.is_empty() {
+        endpoint_url
+    } else {
+        format!("{}?{}", endpoint_url, query_parts.join("&"))
+    };
+
+    let builder = client
+        .patch(&url_with_query)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// PATCH v1/projects/{projectsId}/locations/{locationsId}/projectConfig
+/// Updates the project configuration.
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `artifactregistry_projects_locations_update_project_config_execute()` or `artifactregistry_projects_locations_update_project_config`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `artifactregistry_projects_locations_update_project_config_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn artifactregistry_projects_locations_update_project_config_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<ProjectConfig>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: ProjectConfig = serde_json::from_str(&body)
+                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// PATCH v1/projects/{projectsId}/locations/{locationsId}/projectConfig
+/// Updates the project configuration.
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `artifactregistry_projects_locations_update_project_config_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `artifactregistry_projects_locations_update_project_config_task()`.
+/// For the simplest API, use `artifactregistry_projects_locations_update_project_config()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `artifactregistry_projects_locations_update_project_config_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn artifactregistry_projects_locations_update_project_config_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<ProjectConfig>, ApiError>, P = ApiPending>
+        + Send
+        + 'static,
+    ApiError,
+> {
+    let task = artifactregistry_projects_locations_update_project_config_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`artifactregistry_projects_locations_update_project_config`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct ArtifactregistryProjectsLocationsUpdateProjectConfigArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Query parameter: updateMask
+    pub updateMask: Option<Option<String>>,
+}
+
+/// PATCH v1/projects/{projectsId}/locations/{locationsId}/projectConfig
+/// Updates the project configuration.
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `artifactregistry_projects_locations_update_project_config_builder()` + `artifactregistry_projects_locations_update_project_config_execute()`.
+/// For task-level control, use `artifactregistry_projects_locations_update_project_config_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn artifactregistry_projects_locations_update_project_config(
+    client: &SimpleHttpClient,
+    args: &ArtifactregistryProjectsLocationsUpdateProjectConfigArgs,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<ProjectConfig>, ApiError>, P = ApiPending>
+        + Send
+        + 'static,
+    ApiError,
+> {
+    let builder = artifactregistry_projects_locations_update_project_config_builder(
+        client,
+        &args.name,
+        &args.updateMask,
+    )?;
+    artifactregistry_projects_locations_update_project_config_execute(builder)
+}
+
+/// PATCH v1/projects/{projectsId}/locations/{locationsId}/vpcscConfig
+/// Updates the VPCSC Config for the Project.
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `artifactregistry_projects_locations_update_vpcsc_config_execute()` to send, or `artifactregistry_projects_locations_update_vpcsc_config` for simplest API.
+
+pub fn artifactregistry_projects_locations_update_vpcsc_config_builder(
+    client: &SimpleHttpClient,
+    name: &String,
+    updateMask: &Option<Option<String>>,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!(
+        "https://artifactregistry.googleapis.com/v1/projects/{}/locations/{locationsId}/vpcscConfig",
+        name,
+    );
+
+    // Build request
+    let mut query_parts = Vec::new();
+    if let Some(val) = updateMask.as_ref() {
+        query_parts.push(format!("updateMask={}", val));
+    }
+
+    let url_with_query = if query_parts.is_empty() {
+        endpoint_url
+    } else {
+        format!("{}?{}", endpoint_url, query_parts.join("&"))
+    };
+
+    let builder = client
+        .patch(&url_with_query)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// PATCH v1/projects/{projectsId}/locations/{locationsId}/vpcscConfig
+/// Updates the VPCSC Config for the Project.
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `artifactregistry_projects_locations_update_vpcsc_config_execute()` or `artifactregistry_projects_locations_update_vpcsc_config`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `artifactregistry_projects_locations_update_vpcsc_config_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn artifactregistry_projects_locations_update_vpcsc_config_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<VPCSCConfig>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: VPCSCConfig = serde_json::from_str(&body)
+                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// PATCH v1/projects/{projectsId}/locations/{locationsId}/vpcscConfig
+/// Updates the VPCSC Config for the Project.
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `artifactregistry_projects_locations_update_vpcsc_config_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `artifactregistry_projects_locations_update_vpcsc_config_task()`.
+/// For the simplest API, use `artifactregistry_projects_locations_update_vpcsc_config()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `artifactregistry_projects_locations_update_vpcsc_config_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn artifactregistry_projects_locations_update_vpcsc_config_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<VPCSCConfig>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let task = artifactregistry_projects_locations_update_vpcsc_config_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`artifactregistry_projects_locations_update_vpcsc_config`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct ArtifactregistryProjectsLocationsUpdateVpcscConfigArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Query parameter: updateMask
+    pub updateMask: Option<Option<String>>,
+}
+
+/// PATCH v1/projects/{projectsId}/locations/{locationsId}/vpcscConfig
+/// Updates the VPCSC Config for the Project.
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `artifactregistry_projects_locations_update_vpcsc_config_builder()` + `artifactregistry_projects_locations_update_vpcsc_config_execute()`.
+/// For task-level control, use `artifactregistry_projects_locations_update_vpcsc_config_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn artifactregistry_projects_locations_update_vpcsc_config(
+    client: &SimpleHttpClient,
+    args: &ArtifactregistryProjectsLocationsUpdateVpcscConfigArgs,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<VPCSCConfig>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let builder = artifactregistry_projects_locations_update_vpcsc_config_builder(
+        client,
+        &args.name,
+        &args.updateMask,
+    )?;
+    artifactregistry_projects_locations_update_vpcsc_config_execute(builder)
+}
+
+/// POST v1/projects/{projectsId}/locations/{locationsId}/operations/{operationsId}:cancel
+/// Starts asynchronous cancellation on a long-running operation. The server makes a best effort to cancel the operation, but success is not guaranteed. If the server doesn't support this method, it returns google.rpc.Code.UNIMPLEMENTED. Clients can use Operations.GetOperation or other methods to check whether the cancellation succeeded or whether the operation completed despite cancellation. On successful cancellation, the operation is not deleted; instead, it becomes an operation with an Operation.error value with a google.rpc.Status.code of 1, corresponding to Code.CANCELLED.
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `artifactregistry_projects_locations_operations_cancel_execute()` to send, or `artifactregistry_projects_locations_operations_cancel` for simplest API.
+
+pub fn artifactregistry_projects_locations_operations_cancel_builder(
+    client: &SimpleHttpClient,
+    name: &String,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!(
+        "https://artifactregistry.googleapis.com/v1/projects/{}/locations/{locationsId}/operations/{operationsId}:cancel",
+        name,
+    );
+
+    // Build request
+    let builder = client
+        .post(&endpoint_url)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// POST v1/projects/{projectsId}/locations/{locationsId}/operations/{operationsId}:cancel
+/// Starts asynchronous cancellation on a long-running operation. The server makes a best effort to cancel the operation, but success is not guaranteed. If the server doesn't support this method, it returns google.rpc.Code.UNIMPLEMENTED. Clients can use Operations.GetOperation or other methods to check whether the cancellation succeeded or whether the operation completed despite cancellation. On successful cancellation, the operation is not deleted; instead, it becomes an operation with an Operation.error value with a google.rpc.Status.code of 1, corresponding to Code.CANCELLED.
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `artifactregistry_projects_locations_operations_cancel_execute()` or `artifactregistry_projects_locations_operations_cancel`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `artifactregistry_projects_locations_operations_cancel_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn artifactregistry_projects_locations_operations_cancel_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<Empty>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: Empty = serde_json::from_str(&body)
+                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// POST v1/projects/{projectsId}/locations/{locationsId}/operations/{operationsId}:cancel
+/// Starts asynchronous cancellation on a long-running operation. The server makes a best effort to cancel the operation, but success is not guaranteed. If the server doesn't support this method, it returns google.rpc.Code.UNIMPLEMENTED. Clients can use Operations.GetOperation or other methods to check whether the cancellation succeeded or whether the operation completed despite cancellation. On successful cancellation, the operation is not deleted; instead, it becomes an operation with an Operation.error value with a google.rpc.Status.code of 1, corresponding to Code.CANCELLED.
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `artifactregistry_projects_locations_operations_cancel_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `artifactregistry_projects_locations_operations_cancel_task()`.
+/// For the simplest API, use `artifactregistry_projects_locations_operations_cancel()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `artifactregistry_projects_locations_operations_cancel_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn artifactregistry_projects_locations_operations_cancel_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<Empty>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let task = artifactregistry_projects_locations_operations_cancel_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`artifactregistry_projects_locations_operations_cancel`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct ArtifactregistryProjectsLocationsOperationsCancelArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
+/// POST v1/projects/{projectsId}/locations/{locationsId}/operations/{operationsId}:cancel
+/// Starts asynchronous cancellation on a long-running operation. The server makes a best effort to cancel the operation, but success is not guaranteed. If the server doesn't support this method, it returns google.rpc.Code.UNIMPLEMENTED. Clients can use Operations.GetOperation or other methods to check whether the cancellation succeeded or whether the operation completed despite cancellation. On successful cancellation, the operation is not deleted; instead, it becomes an operation with an Operation.error value with a google.rpc.Status.code of 1, corresponding to Code.CANCELLED.
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `artifactregistry_projects_locations_operations_cancel_builder()` + `artifactregistry_projects_locations_operations_cancel_execute()`.
+/// For task-level control, use `artifactregistry_projects_locations_operations_cancel_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn artifactregistry_projects_locations_operations_cancel(
+    client: &SimpleHttpClient,
+    args: &ArtifactregistryProjectsLocationsOperationsCancelArgs,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<Empty>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let builder =
+        artifactregistry_projects_locations_operations_cancel_builder(client, &args.name)?;
+    artifactregistry_projects_locations_operations_cancel_execute(builder)
+}
+
+/// GET v1/projects/{projectsId}/locations/{locationsId}/operations/{operationsId}
+/// Gets the latest state of a long-running operation. Clients can use this method to poll the operation result at intervals as recommended by the API service.
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `artifactregistry_projects_locations_operations_get_execute()` to send, or `artifactregistry_projects_locations_operations_get` for simplest API.
+
+pub fn artifactregistry_projects_locations_operations_get_builder(
+    client: &SimpleHttpClient,
+    name: &String,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!(
+        "https://artifactregistry.googleapis.com/v1/projects/{}/locations/{locationsId}/operations/{operationsId}",
+        name,
+    );
+
+    // Build request
+    let builder = client
+        .get(&endpoint_url)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// GET v1/projects/{projectsId}/locations/{locationsId}/operations/{operationsId}
+/// Gets the latest state of a long-running operation. Clients can use this method to poll the operation result at intervals as recommended by the API service.
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `artifactregistry_projects_locations_operations_get_execute()` or `artifactregistry_projects_locations_operations_get`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `artifactregistry_projects_locations_operations_get_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn artifactregistry_projects_locations_operations_get_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<Operation>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: Operation = serde_json::from_str(&body)
+                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// GET v1/projects/{projectsId}/locations/{locationsId}/operations/{operationsId}
+/// Gets the latest state of a long-running operation. Clients can use this method to poll the operation result at intervals as recommended by the API service.
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `artifactregistry_projects_locations_operations_get_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `artifactregistry_projects_locations_operations_get_task()`.
+/// For the simplest API, use `artifactregistry_projects_locations_operations_get()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `artifactregistry_projects_locations_operations_get_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn artifactregistry_projects_locations_operations_get_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<Operation>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let task = artifactregistry_projects_locations_operations_get_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`artifactregistry_projects_locations_operations_get`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct ArtifactregistryProjectsLocationsOperationsGetArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
+/// GET v1/projects/{projectsId}/locations/{locationsId}/operations/{operationsId}
+/// Gets the latest state of a long-running operation. Clients can use this method to poll the operation result at intervals as recommended by the API service.
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `artifactregistry_projects_locations_operations_get_builder()` + `artifactregistry_projects_locations_operations_get_execute()`.
+/// For task-level control, use `artifactregistry_projects_locations_operations_get_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn artifactregistry_projects_locations_operations_get(
+    client: &SimpleHttpClient,
+    args: &ArtifactregistryProjectsLocationsOperationsGetArgs,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<Operation>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let builder = artifactregistry_projects_locations_operations_get_builder(client, &args.name)?;
+    artifactregistry_projects_locations_operations_get_execute(builder)
+}
+
+/// POST v1/projects/{projectsId}/locations/{locationsId}/repositories
+/// Creates a repository. The returned Operation will finish once the repository has been created. Its response will be the created Repository.
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `artifactregistry_projects_locations_repositories_create_execute()` to send, or `artifactregistry_projects_locations_repositories_create` for simplest API.
+
+pub fn artifactregistry_projects_locations_repositories_create_builder(
+    client: &SimpleHttpClient,
+    parent: &String,
+    repositoryId: &Option<Option<String>>,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!(
+        "https://artifactregistry.googleapis.com/v1/projects/{}/locations/{locationsId}/repositories",
+        parent,
+    );
+
+    // Build request
+    let mut query_parts = Vec::new();
+    if let Some(val) = repositoryId.as_ref() {
+        query_parts.push(format!("repositoryId={}", val));
+    }
+
+    let url_with_query = if query_parts.is_empty() {
+        endpoint_url
+    } else {
+        format!("{}?{}", endpoint_url, query_parts.join("&"))
+    };
+
+    let builder = client
+        .post(&url_with_query)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// POST v1/projects/{projectsId}/locations/{locationsId}/repositories
+/// Creates a repository. The returned Operation will finish once the repository has been created. Its response will be the created Repository.
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `artifactregistry_projects_locations_repositories_create_execute()` or `artifactregistry_projects_locations_repositories_create`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `artifactregistry_projects_locations_repositories_create_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn artifactregistry_projects_locations_repositories_create_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<Operation>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: Operation = serde_json::from_str(&body)
+                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// POST v1/projects/{projectsId}/locations/{locationsId}/repositories
+/// Creates a repository. The returned Operation will finish once the repository has been created. Its response will be the created Repository.
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `artifactregistry_projects_locations_repositories_create_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `artifactregistry_projects_locations_repositories_create_task()`.
+/// For the simplest API, use `artifactregistry_projects_locations_repositories_create()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `artifactregistry_projects_locations_repositories_create_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn artifactregistry_projects_locations_repositories_create_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<Operation>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let task = artifactregistry_projects_locations_repositories_create_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`artifactregistry_projects_locations_repositories_create`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct ArtifactregistryProjectsLocationsRepositoriesCreateArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Query parameter: repositoryId
+    pub repositoryId: Option<Option<String>>,
+}
+
+/// POST v1/projects/{projectsId}/locations/{locationsId}/repositories
+/// Creates a repository. The returned Operation will finish once the repository has been created. Its response will be the created Repository.
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `artifactregistry_projects_locations_repositories_create_builder()` + `artifactregistry_projects_locations_repositories_create_execute()`.
+/// For task-level control, use `artifactregistry_projects_locations_repositories_create_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn artifactregistry_projects_locations_repositories_create(
+    client: &SimpleHttpClient,
+    args: &ArtifactregistryProjectsLocationsRepositoriesCreateArgs,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<Operation>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let builder = artifactregistry_projects_locations_repositories_create_builder(
+        client,
+        &args.parent,
+        &args.repositoryId,
+    )?;
+    artifactregistry_projects_locations_repositories_create_execute(builder)
+}
+
+/// DELETE v1/projects/{projectsId}/locations/{locationsId}/repositories/{repositoriesId}
+/// Deletes a repository and all of its contents. The returned Operation will finish once the repository has been deleted. It will not have any Operation metadata and will return a google.protobuf.Empty response.
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `artifactregistry_projects_locations_repositories_delete_execute()` to send, or `artifactregistry_projects_locations_repositories_delete` for simplest API.
+
+pub fn artifactregistry_projects_locations_repositories_delete_builder(
+    client: &SimpleHttpClient,
+    name: &String,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!(
+        "https://artifactregistry.googleapis.com/v1/projects/{}/locations/{locationsId}/repositories/{repositoriesId}",
+        name,
+    );
+
+    // Build request
+    let builder = client
+        .delete(&endpoint_url)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// DELETE v1/projects/{projectsId}/locations/{locationsId}/repositories/{repositoriesId}
+/// Deletes a repository and all of its contents. The returned Operation will finish once the repository has been deleted. It will not have any Operation metadata and will return a google.protobuf.Empty response.
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `artifactregistry_projects_locations_repositories_delete_execute()` or `artifactregistry_projects_locations_repositories_delete`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `artifactregistry_projects_locations_repositories_delete_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn artifactregistry_projects_locations_repositories_delete_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<Operation>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: Operation = serde_json::from_str(&body)
+                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// DELETE v1/projects/{projectsId}/locations/{locationsId}/repositories/{repositoriesId}
+/// Deletes a repository and all of its contents. The returned Operation will finish once the repository has been deleted. It will not have any Operation metadata and will return a google.protobuf.Empty response.
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `artifactregistry_projects_locations_repositories_delete_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `artifactregistry_projects_locations_repositories_delete_task()`.
+/// For the simplest API, use `artifactregistry_projects_locations_repositories_delete()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `artifactregistry_projects_locations_repositories_delete_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn artifactregistry_projects_locations_repositories_delete_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<Operation>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let task = artifactregistry_projects_locations_repositories_delete_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`artifactregistry_projects_locations_repositories_delete`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct ArtifactregistryProjectsLocationsRepositoriesDeleteArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
+/// DELETE v1/projects/{projectsId}/locations/{locationsId}/repositories/{repositoriesId}
+/// Deletes a repository and all of its contents. The returned Operation will finish once the repository has been deleted. It will not have any Operation metadata and will return a google.protobuf.Empty response.
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `artifactregistry_projects_locations_repositories_delete_builder()` + `artifactregistry_projects_locations_repositories_delete_execute()`.
+/// For task-level control, use `artifactregistry_projects_locations_repositories_delete_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn artifactregistry_projects_locations_repositories_delete(
+    client: &SimpleHttpClient,
+    args: &ArtifactregistryProjectsLocationsRepositoriesDeleteArgs,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<Operation>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let builder =
+        artifactregistry_projects_locations_repositories_delete_builder(client, &args.name)?;
+    artifactregistry_projects_locations_repositories_delete_execute(builder)
+}
+
+/// POST v1/projects/{projectsId}/locations/{locationsId}/repositories/{repositoriesId}:exportArtifact
+/// Exports an artifact to a Cloud Storage bucket.
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `artifactregistry_projects_locations_repositories_export_artifact_execute()` to send, or `artifactregistry_projects_locations_repositories_export_artifact` for simplest API.
+
+pub fn artifactregistry_projects_locations_repositories_export_artifact_builder(
+    client: &SimpleHttpClient,
+    repository: &String,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!(
+        "https://artifactregistry.googleapis.com/v1/projects/{}/locations/{locationsId}/repositories/{repositoriesId}:exportArtifact",
+        repository,
+    );
+
+    // Build request
+    let builder = client
+        .post(&endpoint_url)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// POST v1/projects/{projectsId}/locations/{locationsId}/repositories/{repositoriesId}:exportArtifact
+/// Exports an artifact to a Cloud Storage bucket.
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `artifactregistry_projects_locations_repositories_export_artifact_execute()` or `artifactregistry_projects_locations_repositories_export_artifact`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `artifactregistry_projects_locations_repositories_export_artifact_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn artifactregistry_projects_locations_repositories_export_artifact_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<Operation>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: Operation = serde_json::from_str(&body)
+                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// POST v1/projects/{projectsId}/locations/{locationsId}/repositories/{repositoriesId}:exportArtifact
+/// Exports an artifact to a Cloud Storage bucket.
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `artifactregistry_projects_locations_repositories_export_artifact_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `artifactregistry_projects_locations_repositories_export_artifact_task()`.
+/// For the simplest API, use `artifactregistry_projects_locations_repositories_export_artifact()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `artifactregistry_projects_locations_repositories_export_artifact_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn artifactregistry_projects_locations_repositories_export_artifact_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<Operation>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let task = artifactregistry_projects_locations_repositories_export_artifact_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`artifactregistry_projects_locations_repositories_export_artifact`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct ArtifactregistryProjectsLocationsRepositoriesExportArtifactArgs {
+    /// Path parameter: repository
+    pub repository: String,
+}
+
+/// POST v1/projects/{projectsId}/locations/{locationsId}/repositories/{repositoriesId}:exportArtifact
+/// Exports an artifact to a Cloud Storage bucket.
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `artifactregistry_projects_locations_repositories_export_artifact_builder()` + `artifactregistry_projects_locations_repositories_export_artifact_execute()`.
+/// For task-level control, use `artifactregistry_projects_locations_repositories_export_artifact_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn artifactregistry_projects_locations_repositories_export_artifact(
+    client: &SimpleHttpClient,
+    args: &ArtifactregistryProjectsLocationsRepositoriesExportArtifactArgs,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<Operation>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let builder = artifactregistry_projects_locations_repositories_export_artifact_builder(
+        client,
+        &args.repository,
+    )?;
+    artifactregistry_projects_locations_repositories_export_artifact_execute(builder)
+}
+
+/// GET v1/projects/{projectsId}/locations/{locationsId}/repositories/{repositoriesId}
+/// Gets a repository.
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `artifactregistry_projects_locations_repositories_get_execute()` to send, or `artifactregistry_projects_locations_repositories_get` for simplest API.
+
+pub fn artifactregistry_projects_locations_repositories_get_builder(
+    client: &SimpleHttpClient,
+    name: &String,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!(
+        "https://artifactregistry.googleapis.com/v1/projects/{}/locations/{locationsId}/repositories/{repositoriesId}",
+        name,
+    );
+
+    // Build request
+    let builder = client
+        .get(&endpoint_url)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// GET v1/projects/{projectsId}/locations/{locationsId}/repositories/{repositoriesId}
+/// Gets a repository.
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `artifactregistry_projects_locations_repositories_get_execute()` or `artifactregistry_projects_locations_repositories_get`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `artifactregistry_projects_locations_repositories_get_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn artifactregistry_projects_locations_repositories_get_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<Repository>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: Repository = serde_json::from_str(&body)
+                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// GET v1/projects/{projectsId}/locations/{locationsId}/repositories/{repositoriesId}
+/// Gets a repository.
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `artifactregistry_projects_locations_repositories_get_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `artifactregistry_projects_locations_repositories_get_task()`.
+/// For the simplest API, use `artifactregistry_projects_locations_repositories_get()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `artifactregistry_projects_locations_repositories_get_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn artifactregistry_projects_locations_repositories_get_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<Repository>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let task = artifactregistry_projects_locations_repositories_get_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`artifactregistry_projects_locations_repositories_get`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct ArtifactregistryProjectsLocationsRepositoriesGetArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
+/// GET v1/projects/{projectsId}/locations/{locationsId}/repositories/{repositoriesId}
+/// Gets a repository.
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `artifactregistry_projects_locations_repositories_get_builder()` + `artifactregistry_projects_locations_repositories_get_execute()`.
+/// For task-level control, use `artifactregistry_projects_locations_repositories_get_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn artifactregistry_projects_locations_repositories_get(
+    client: &SimpleHttpClient,
+    args: &ArtifactregistryProjectsLocationsRepositoriesGetArgs,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<Repository>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let builder = artifactregistry_projects_locations_repositories_get_builder(client, &args.name)?;
+    artifactregistry_projects_locations_repositories_get_execute(builder)
+}
+
+/// GET v1/projects/{projectsId}/locations/{locationsId}/repositories/{repositoriesId}:getIamPolicy
+/// Gets the IAM policy for a given resource.
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `artifactregistry_projects_locations_repositories_get_iam_policy_execute()` to send, or `artifactregistry_projects_locations_repositories_get_iam_policy` for simplest API.
+
+pub fn artifactregistry_projects_locations_repositories_get_iam_policy_builder(
+    client: &SimpleHttpClient,
+    resource: &String,
+    options_requestedPolicyVersion: &Option<Option<String>>,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!(
+        "https://artifactregistry.googleapis.com/v1/projects/{}/locations/{locationsId}/repositories/{repositoriesId}:getIamPolicy",
+        resource,
+    );
+
+    // Build request
+    let mut query_parts = Vec::new();
+    if let Some(val) = options_requestedPolicyVersion.as_ref() {
+        query_parts.push(format!("options.requestedPolicyVersion={}", val));
+    }
+
+    let url_with_query = if query_parts.is_empty() {
+        endpoint_url
+    } else {
+        format!("{}?{}", endpoint_url, query_parts.join("&"))
+    };
+
+    let builder = client
+        .get(&url_with_query)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// GET v1/projects/{projectsId}/locations/{locationsId}/repositories/{repositoriesId}:getIamPolicy
+/// Gets the IAM policy for a given resource.
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `artifactregistry_projects_locations_repositories_get_iam_policy_execute()` or `artifactregistry_projects_locations_repositories_get_iam_policy`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `artifactregistry_projects_locations_repositories_get_iam_policy_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn artifactregistry_projects_locations_repositories_get_iam_policy_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<Policy>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: Policy = serde_json::from_str(&body)
+                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// GET v1/projects/{projectsId}/locations/{locationsId}/repositories/{repositoriesId}:getIamPolicy
+/// Gets the IAM policy for a given resource.
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `artifactregistry_projects_locations_repositories_get_iam_policy_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `artifactregistry_projects_locations_repositories_get_iam_policy_task()`.
+/// For the simplest API, use `artifactregistry_projects_locations_repositories_get_iam_policy()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `artifactregistry_projects_locations_repositories_get_iam_policy_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn artifactregistry_projects_locations_repositories_get_iam_policy_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<Policy>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let task = artifactregistry_projects_locations_repositories_get_iam_policy_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`artifactregistry_projects_locations_repositories_get_iam_policy`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct ArtifactregistryProjectsLocationsRepositoriesGetIamPolicyArgs {
+    /// Path parameter: resource
+    pub resource: String,
+    /// Query parameter: options_requestedPolicyVersion
+    pub options_requestedPolicyVersion: Option<Option<String>>,
+}
+
+/// GET v1/projects/{projectsId}/locations/{locationsId}/repositories/{repositoriesId}:getIamPolicy
+/// Gets the IAM policy for a given resource.
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `artifactregistry_projects_locations_repositories_get_iam_policy_builder()` + `artifactregistry_projects_locations_repositories_get_iam_policy_execute()`.
+/// For task-level control, use `artifactregistry_projects_locations_repositories_get_iam_policy_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn artifactregistry_projects_locations_repositories_get_iam_policy(
+    client: &SimpleHttpClient,
+    args: &ArtifactregistryProjectsLocationsRepositoriesGetIamPolicyArgs,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<Policy>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let builder = artifactregistry_projects_locations_repositories_get_iam_policy_builder(
+        client,
+        &args.resource,
+        &args.options_requestedPolicyVersion,
+    )?;
+    artifactregistry_projects_locations_repositories_get_iam_policy_execute(builder)
+}
+
+/// GET v1/projects/{projectsId}/locations/{locationsId}/repositories
+/// Lists repositories.
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `artifactregistry_projects_locations_repositories_list_execute()` to send, or `artifactregistry_projects_locations_repositories_list` for simplest API.
+
+pub fn artifactregistry_projects_locations_repositories_list_builder(
+    client: &SimpleHttpClient,
+    parent: &String,
+    filter: &Option<Option<String>>,
+    orderBy: &Option<Option<String>>,
+    pageSize: &Option<Option<String>>,
+    pageToken: &Option<Option<String>>,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!(
+        "https://artifactregistry.googleapis.com/v1/projects/{}/locations/{locationsId}/repositories",
+        parent,
+    );
+
+    // Build request
+    let mut query_parts = Vec::new();
+    if let Some(val) = filter.as_ref() {
+        query_parts.push(format!("filter={}", val));
+    }
+    if let Some(val) = orderBy.as_ref() {
+        query_parts.push(format!("orderBy={}", val));
+    }
+    if let Some(val) = pageSize.as_ref() {
+        query_parts.push(format!("pageSize={}", val));
+    }
+    if let Some(val) = pageToken.as_ref() {
+        query_parts.push(format!("pageToken={}", val));
+    }
+
+    let url_with_query = if query_parts.is_empty() {
+        endpoint_url
+    } else {
+        format!("{}?{}", endpoint_url, query_parts.join("&"))
+    };
+
+    let builder = client
+        .get(&url_with_query)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// GET v1/projects/{projectsId}/locations/{locationsId}/repositories
+/// Lists repositories.
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `artifactregistry_projects_locations_repositories_list_execute()` or `artifactregistry_projects_locations_repositories_list`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `artifactregistry_projects_locations_repositories_list_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn artifactregistry_projects_locations_repositories_list_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<ListRepositoriesResponse>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: ListRepositoriesResponse = serde_json::from_str(&body)
+                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// GET v1/projects/{projectsId}/locations/{locationsId}/repositories
+/// Lists repositories.
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `artifactregistry_projects_locations_repositories_list_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `artifactregistry_projects_locations_repositories_list_task()`.
+/// For the simplest API, use `artifactregistry_projects_locations_repositories_list()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `artifactregistry_projects_locations_repositories_list_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn artifactregistry_projects_locations_repositories_list_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<ListRepositoriesResponse>, ApiError>, P = ApiPending>
+        + Send
+        + 'static,
+    ApiError,
+> {
+    let task = artifactregistry_projects_locations_repositories_list_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`artifactregistry_projects_locations_repositories_list`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct ArtifactregistryProjectsLocationsRepositoriesListArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Query parameter: filter
+    pub filter: Option<Option<String>>,
+    /// Query parameter: orderBy
+    pub orderBy: Option<Option<String>>,
+    /// Query parameter: pageSize
+    pub pageSize: Option<Option<String>>,
+    /// Query parameter: pageToken
+    pub pageToken: Option<Option<String>>,
+}
+
+/// GET v1/projects/{projectsId}/locations/{locationsId}/repositories
+/// Lists repositories.
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `artifactregistry_projects_locations_repositories_list_builder()` + `artifactregistry_projects_locations_repositories_list_execute()`.
+/// For task-level control, use `artifactregistry_projects_locations_repositories_list_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn artifactregistry_projects_locations_repositories_list(
+    client: &SimpleHttpClient,
+    args: &ArtifactregistryProjectsLocationsRepositoriesListArgs,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<ListRepositoriesResponse>, ApiError>, P = ApiPending>
+        + Send
+        + 'static,
+    ApiError,
+> {
+    let builder = artifactregistry_projects_locations_repositories_list_builder(
+        client,
+        &args.parent,
+        &args.filter,
+        &args.orderBy,
+        &args.pageSize,
+        &args.pageToken,
+    )?;
+    artifactregistry_projects_locations_repositories_list_execute(builder)
+}
+
+/// PATCH v1/projects/{projectsId}/locations/{locationsId}/repositories/{repositoriesId}
+/// Updates a repository.
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `artifactregistry_projects_locations_repositories_patch_execute()` to send, or `artifactregistry_projects_locations_repositories_patch` for simplest API.
+
+pub fn artifactregistry_projects_locations_repositories_patch_builder(
+    client: &SimpleHttpClient,
+    name: &String,
+    updateMask: &Option<Option<String>>,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!(
+        "https://artifactregistry.googleapis.com/v1/projects/{}/locations/{locationsId}/repositories/{repositoriesId}",
+        name,
+    );
+
+    // Build request
+    let mut query_parts = Vec::new();
+    if let Some(val) = updateMask.as_ref() {
+        query_parts.push(format!("updateMask={}", val));
+    }
+
+    let url_with_query = if query_parts.is_empty() {
+        endpoint_url
+    } else {
+        format!("{}?{}", endpoint_url, query_parts.join("&"))
+    };
+
+    let builder = client
+        .patch(&url_with_query)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// PATCH v1/projects/{projectsId}/locations/{locationsId}/repositories/{repositoriesId}
+/// Updates a repository.
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `artifactregistry_projects_locations_repositories_patch_execute()` or `artifactregistry_projects_locations_repositories_patch`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `artifactregistry_projects_locations_repositories_patch_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn artifactregistry_projects_locations_repositories_patch_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<Repository>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: Repository = serde_json::from_str(&body)
+                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// PATCH v1/projects/{projectsId}/locations/{locationsId}/repositories/{repositoriesId}
+/// Updates a repository.
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `artifactregistry_projects_locations_repositories_patch_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `artifactregistry_projects_locations_repositories_patch_task()`.
+/// For the simplest API, use `artifactregistry_projects_locations_repositories_patch()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `artifactregistry_projects_locations_repositories_patch_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn artifactregistry_projects_locations_repositories_patch_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<Repository>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let task = artifactregistry_projects_locations_repositories_patch_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`artifactregistry_projects_locations_repositories_patch`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct ArtifactregistryProjectsLocationsRepositoriesPatchArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Query parameter: updateMask
+    pub updateMask: Option<Option<String>>,
+}
+
+/// PATCH v1/projects/{projectsId}/locations/{locationsId}/repositories/{repositoriesId}
+/// Updates a repository.
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `artifactregistry_projects_locations_repositories_patch_builder()` + `artifactregistry_projects_locations_repositories_patch_execute()`.
+/// For task-level control, use `artifactregistry_projects_locations_repositories_patch_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn artifactregistry_projects_locations_repositories_patch(
+    client: &SimpleHttpClient,
+    args: &ArtifactregistryProjectsLocationsRepositoriesPatchArgs,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<Repository>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let builder = artifactregistry_projects_locations_repositories_patch_builder(
+        client,
+        &args.name,
+        &args.updateMask,
+    )?;
+    artifactregistry_projects_locations_repositories_patch_execute(builder)
+}
+
+/// POST v1/projects/{projectsId}/locations/{locationsId}/repositories/{repositoriesId}:setIamPolicy
+/// Updates the IAM policy for a given resource.
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `artifactregistry_projects_locations_repositories_set_iam_policy_execute()` to send, or `artifactregistry_projects_locations_repositories_set_iam_policy` for simplest API.
+
+pub fn artifactregistry_projects_locations_repositories_set_iam_policy_builder(
+    client: &SimpleHttpClient,
+    resource: &String,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!(
+        "https://artifactregistry.googleapis.com/v1/projects/{}/locations/{locationsId}/repositories/{repositoriesId}:setIamPolicy",
+        resource,
+    );
+
+    // Build request
+    let builder = client
+        .post(&endpoint_url)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// POST v1/projects/{projectsId}/locations/{locationsId}/repositories/{repositoriesId}:setIamPolicy
+/// Updates the IAM policy for a given resource.
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `artifactregistry_projects_locations_repositories_set_iam_policy_execute()` or `artifactregistry_projects_locations_repositories_set_iam_policy`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `artifactregistry_projects_locations_repositories_set_iam_policy_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn artifactregistry_projects_locations_repositories_set_iam_policy_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<Policy>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: Policy = serde_json::from_str(&body)
+                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// POST v1/projects/{projectsId}/locations/{locationsId}/repositories/{repositoriesId}:setIamPolicy
+/// Updates the IAM policy for a given resource.
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `artifactregistry_projects_locations_repositories_set_iam_policy_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `artifactregistry_projects_locations_repositories_set_iam_policy_task()`.
+/// For the simplest API, use `artifactregistry_projects_locations_repositories_set_iam_policy()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `artifactregistry_projects_locations_repositories_set_iam_policy_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn artifactregistry_projects_locations_repositories_set_iam_policy_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<Policy>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let task = artifactregistry_projects_locations_repositories_set_iam_policy_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`artifactregistry_projects_locations_repositories_set_iam_policy`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct ArtifactregistryProjectsLocationsRepositoriesSetIamPolicyArgs {
+    /// Path parameter: resource
+    pub resource: String,
+}
+
+/// POST v1/projects/{projectsId}/locations/{locationsId}/repositories/{repositoriesId}:setIamPolicy
+/// Updates the IAM policy for a given resource.
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `artifactregistry_projects_locations_repositories_set_iam_policy_builder()` + `artifactregistry_projects_locations_repositories_set_iam_policy_execute()`.
+/// For task-level control, use `artifactregistry_projects_locations_repositories_set_iam_policy_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn artifactregistry_projects_locations_repositories_set_iam_policy(
+    client: &SimpleHttpClient,
+    args: &ArtifactregistryProjectsLocationsRepositoriesSetIamPolicyArgs,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<Policy>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let builder = artifactregistry_projects_locations_repositories_set_iam_policy_builder(
+        client,
+        &args.resource,
+    )?;
+    artifactregistry_projects_locations_repositories_set_iam_policy_execute(builder)
+}
+
+/// POST v1/projects/{projectsId}/locations/{locationsId}/repositories/{repositoriesId}:testIamPermissions
+/// Tests if the caller has a list of permissions on a resource.
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `artifactregistry_projects_locations_repositories_test_iam_permissions_execute()` to send, or `artifactregistry_projects_locations_repositories_test_iam_permissions` for simplest API.
+
+pub fn artifactregistry_projects_locations_repositories_test_iam_permissions_builder(
+    client: &SimpleHttpClient,
+    resource: &String,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!(
+        "https://artifactregistry.googleapis.com/v1/projects/{}/locations/{locationsId}/repositories/{repositoriesId}:testIamPermissions",
+        resource,
+    );
+
+    // Build request
+    let builder = client
+        .post(&endpoint_url)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// POST v1/projects/{projectsId}/locations/{locationsId}/repositories/{repositoriesId}:testIamPermissions
+/// Tests if the caller has a list of permissions on a resource.
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `artifactregistry_projects_locations_repositories_test_iam_permissions_execute()` or `artifactregistry_projects_locations_repositories_test_iam_permissions`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `artifactregistry_projects_locations_repositories_test_iam_permissions_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn artifactregistry_projects_locations_repositories_test_iam_permissions_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<TestIamPermissionsResponse>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: TestIamPermissionsResponse = serde_json::from_str(&body)
+                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// POST v1/projects/{projectsId}/locations/{locationsId}/repositories/{repositoriesId}:testIamPermissions
+/// Tests if the caller has a list of permissions on a resource.
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `artifactregistry_projects_locations_repositories_test_iam_permissions_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `artifactregistry_projects_locations_repositories_test_iam_permissions_task()`.
+/// For the simplest API, use `artifactregistry_projects_locations_repositories_test_iam_permissions()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `artifactregistry_projects_locations_repositories_test_iam_permissions_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn artifactregistry_projects_locations_repositories_test_iam_permissions_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<
+            D = Result<ApiResponse<TestIamPermissionsResponse>, ApiError>,
+            P = ApiPending,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    let task = artifactregistry_projects_locations_repositories_test_iam_permissions_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`artifactregistry_projects_locations_repositories_test_iam_permissions`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct ArtifactregistryProjectsLocationsRepositoriesTestIamPermissionsArgs {
+    /// Path parameter: resource
+    pub resource: String,
+}
+
+/// POST v1/projects/{projectsId}/locations/{locationsId}/repositories/{repositoriesId}:testIamPermissions
+/// Tests if the caller has a list of permissions on a resource.
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `artifactregistry_projects_locations_repositories_test_iam_permissions_builder()` + `artifactregistry_projects_locations_repositories_test_iam_permissions_execute()`.
+/// For task-level control, use `artifactregistry_projects_locations_repositories_test_iam_permissions_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn artifactregistry_projects_locations_repositories_test_iam_permissions(
+    client: &SimpleHttpClient,
+    args: &ArtifactregistryProjectsLocationsRepositoriesTestIamPermissionsArgs,
+) -> Result<
+    impl StreamIterator<
+            D = Result<ApiResponse<TestIamPermissionsResponse>, ApiError>,
+            P = ApiPending,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    let builder = artifactregistry_projects_locations_repositories_test_iam_permissions_builder(
+        client,
+        &args.resource,
+    )?;
+    artifactregistry_projects_locations_repositories_test_iam_permissions_execute(builder)
+}
+
+/// POST v1/projects/{projectsId}/locations/{locationsId}/repositories/{repositoriesId}/aptArtifacts:import
+/// Imports Apt artifacts. The returned Operation will complete once the resources are imported. Package, Version, and File resources are created based on the imported artifacts. Imported artifacts that conflict with existing resources are ignored.
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `artifactregistry_projects_locations_repositories_apt_artifacts_import_execute()` to send, or `artifactregistry_projects_locations_repositories_apt_artifacts_import` for simplest API.
+
+pub fn artifactregistry_projects_locations_repositories_apt_artifacts_import_builder(
+    client: &SimpleHttpClient,
+    parent: &String,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!(
+        "https://artifactregistry.googleapis.com/v1/projects/{}/locations/{locationsId}/repositories/{repositoriesId}/aptArtifacts:import",
+        parent,
+    );
+
+    // Build request
+    let builder = client
+        .post(&endpoint_url)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// POST v1/projects/{projectsId}/locations/{locationsId}/repositories/{repositoriesId}/aptArtifacts:import
+/// Imports Apt artifacts. The returned Operation will complete once the resources are imported. Package, Version, and File resources are created based on the imported artifacts. Imported artifacts that conflict with existing resources are ignored.
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `artifactregistry_projects_locations_repositories_apt_artifacts_import_execute()` or `artifactregistry_projects_locations_repositories_apt_artifacts_import`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `artifactregistry_projects_locations_repositories_apt_artifacts_import_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn artifactregistry_projects_locations_repositories_apt_artifacts_import_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<Operation>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: Operation = serde_json::from_str(&body)
+                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// POST v1/projects/{projectsId}/locations/{locationsId}/repositories/{repositoriesId}/aptArtifacts:import
+/// Imports Apt artifacts. The returned Operation will complete once the resources are imported. Package, Version, and File resources are created based on the imported artifacts. Imported artifacts that conflict with existing resources are ignored.
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `artifactregistry_projects_locations_repositories_apt_artifacts_import_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `artifactregistry_projects_locations_repositories_apt_artifacts_import_task()`.
+/// For the simplest API, use `artifactregistry_projects_locations_repositories_apt_artifacts_import()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `artifactregistry_projects_locations_repositories_apt_artifacts_import_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn artifactregistry_projects_locations_repositories_apt_artifacts_import_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<Operation>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let task = artifactregistry_projects_locations_repositories_apt_artifacts_import_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`artifactregistry_projects_locations_repositories_apt_artifacts_import`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct ArtifactregistryProjectsLocationsRepositoriesAptArtifactsImportArgs {
+    /// Path parameter: parent
+    pub parent: String,
+}
+
+/// POST v1/projects/{projectsId}/locations/{locationsId}/repositories/{repositoriesId}/aptArtifacts:import
+/// Imports Apt artifacts. The returned Operation will complete once the resources are imported. Package, Version, and File resources are created based on the imported artifacts. Imported artifacts that conflict with existing resources are ignored.
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `artifactregistry_projects_locations_repositories_apt_artifacts_import_builder()` + `artifactregistry_projects_locations_repositories_apt_artifacts_import_execute()`.
+/// For task-level control, use `artifactregistry_projects_locations_repositories_apt_artifacts_import_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn artifactregistry_projects_locations_repositories_apt_artifacts_import(
+    client: &SimpleHttpClient,
+    args: &ArtifactregistryProjectsLocationsRepositoriesAptArtifactsImportArgs,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<Operation>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let builder = artifactregistry_projects_locations_repositories_apt_artifacts_import_builder(
+        client,
+        &args.parent,
+    )?;
+    artifactregistry_projects_locations_repositories_apt_artifacts_import_execute(builder)
+}
+
+/// POST v1/projects/{projectsId}/locations/{locationsId}/repositories/{repositoriesId}/aptArtifacts:create
+/// Directly uploads an Apt artifact. The returned Operation will complete once the resources are uploaded. Package, Version, and File resources are created based on the imported artifact. Imported artifacts that conflict with existing resources are ignored.
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `artifactregistry_projects_locations_repositories_apt_artifacts_upload_execute()` to send, or `artifactregistry_projects_locations_repositories_apt_artifacts_upload` for simplest API.
+
+pub fn artifactregistry_projects_locations_repositories_apt_artifacts_upload_builder(
+    client: &SimpleHttpClient,
+    parent: &String,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!(
+        "https://artifactregistry.googleapis.com/v1/projects/{}/locations/{locationsId}/repositories/{repositoriesId}/aptArtifacts:create",
+        parent,
+    );
+
+    // Build request
+    let builder = client
+        .post(&endpoint_url)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// POST v1/projects/{projectsId}/locations/{locationsId}/repositories/{repositoriesId}/aptArtifacts:create
+/// Directly uploads an Apt artifact. The returned Operation will complete once the resources are uploaded. Package, Version, and File resources are created based on the imported artifact. Imported artifacts that conflict with existing resources are ignored.
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `artifactregistry_projects_locations_repositories_apt_artifacts_upload_execute()` or `artifactregistry_projects_locations_repositories_apt_artifacts_upload`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `artifactregistry_projects_locations_repositories_apt_artifacts_upload_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn artifactregistry_projects_locations_repositories_apt_artifacts_upload_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<UploadAptArtifactMediaResponse>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: UploadAptArtifactMediaResponse = serde_json::from_str(&body)
+                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// POST v1/projects/{projectsId}/locations/{locationsId}/repositories/{repositoriesId}/aptArtifacts:create
+/// Directly uploads an Apt artifact. The returned Operation will complete once the resources are uploaded. Package, Version, and File resources are created based on the imported artifact. Imported artifacts that conflict with existing resources are ignored.
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `artifactregistry_projects_locations_repositories_apt_artifacts_upload_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `artifactregistry_projects_locations_repositories_apt_artifacts_upload_task()`.
+/// For the simplest API, use `artifactregistry_projects_locations_repositories_apt_artifacts_upload()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `artifactregistry_projects_locations_repositories_apt_artifacts_upload_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn artifactregistry_projects_locations_repositories_apt_artifacts_upload_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<
+            D = Result<ApiResponse<UploadAptArtifactMediaResponse>, ApiError>,
+            P = ApiPending,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    let task = artifactregistry_projects_locations_repositories_apt_artifacts_upload_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`artifactregistry_projects_locations_repositories_apt_artifacts_upload`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct ArtifactregistryProjectsLocationsRepositoriesAptArtifactsUploadArgs {
+    /// Path parameter: parent
+    pub parent: String,
+}
+
+/// POST v1/projects/{projectsId}/locations/{locationsId}/repositories/{repositoriesId}/aptArtifacts:create
+/// Directly uploads an Apt artifact. The returned Operation will complete once the resources are uploaded. Package, Version, and File resources are created based on the imported artifact. Imported artifacts that conflict with existing resources are ignored.
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `artifactregistry_projects_locations_repositories_apt_artifacts_upload_builder()` + `artifactregistry_projects_locations_repositories_apt_artifacts_upload_execute()`.
+/// For task-level control, use `artifactregistry_projects_locations_repositories_apt_artifacts_upload_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn artifactregistry_projects_locations_repositories_apt_artifacts_upload(
+    client: &SimpleHttpClient,
+    args: &ArtifactregistryProjectsLocationsRepositoriesAptArtifactsUploadArgs,
+) -> Result<
+    impl StreamIterator<
+            D = Result<ApiResponse<UploadAptArtifactMediaResponse>, ApiError>,
+            P = ApiPending,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    let builder = artifactregistry_projects_locations_repositories_apt_artifacts_upload_builder(
+        client,
+        &args.parent,
+    )?;
+    artifactregistry_projects_locations_repositories_apt_artifacts_upload_execute(builder)
+}
+
+/// POST v1/projects/{projectsId}/locations/{locationsId}/repositories/{repositoriesId}/attachments
+/// Creates an attachment. The returned Operation will finish once the attachment has been created. Its response will be the created attachment.
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `artifactregistry_projects_locations_repositories_attachments_create_execute()` to send, or `artifactregistry_projects_locations_repositories_attachments_create` for simplest API.
+
+pub fn artifactregistry_projects_locations_repositories_attachments_create_builder(
+    client: &SimpleHttpClient,
+    parent: &String,
+    attachmentId: &Option<Option<String>>,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!(
+        "https://artifactregistry.googleapis.com/v1/projects/{}/locations/{locationsId}/repositories/{repositoriesId}/attachments",
+        parent,
+    );
+
+    // Build request
+    let mut query_parts = Vec::new();
+    if let Some(val) = attachmentId.as_ref() {
+        query_parts.push(format!("attachmentId={}", val));
+    }
+
+    let url_with_query = if query_parts.is_empty() {
+        endpoint_url
+    } else {
+        format!("{}?{}", endpoint_url, query_parts.join("&"))
+    };
+
+    let builder = client
+        .post(&url_with_query)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// POST v1/projects/{projectsId}/locations/{locationsId}/repositories/{repositoriesId}/attachments
+/// Creates an attachment. The returned Operation will finish once the attachment has been created. Its response will be the created attachment.
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `artifactregistry_projects_locations_repositories_attachments_create_execute()` or `artifactregistry_projects_locations_repositories_attachments_create`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `artifactregistry_projects_locations_repositories_attachments_create_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn artifactregistry_projects_locations_repositories_attachments_create_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<Operation>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: Operation = serde_json::from_str(&body)
+                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// POST v1/projects/{projectsId}/locations/{locationsId}/repositories/{repositoriesId}/attachments
+/// Creates an attachment. The returned Operation will finish once the attachment has been created. Its response will be the created attachment.
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `artifactregistry_projects_locations_repositories_attachments_create_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `artifactregistry_projects_locations_repositories_attachments_create_task()`.
+/// For the simplest API, use `artifactregistry_projects_locations_repositories_attachments_create()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `artifactregistry_projects_locations_repositories_attachments_create_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn artifactregistry_projects_locations_repositories_attachments_create_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<Operation>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let task = artifactregistry_projects_locations_repositories_attachments_create_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`artifactregistry_projects_locations_repositories_attachments_create`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct ArtifactregistryProjectsLocationsRepositoriesAttachmentsCreateArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Query parameter: attachmentId
+    pub attachmentId: Option<Option<String>>,
+}
+
+/// POST v1/projects/{projectsId}/locations/{locationsId}/repositories/{repositoriesId}/attachments
+/// Creates an attachment. The returned Operation will finish once the attachment has been created. Its response will be the created attachment.
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `artifactregistry_projects_locations_repositories_attachments_create_builder()` + `artifactregistry_projects_locations_repositories_attachments_create_execute()`.
+/// For task-level control, use `artifactregistry_projects_locations_repositories_attachments_create_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn artifactregistry_projects_locations_repositories_attachments_create(
+    client: &SimpleHttpClient,
+    args: &ArtifactregistryProjectsLocationsRepositoriesAttachmentsCreateArgs,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<Operation>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let builder = artifactregistry_projects_locations_repositories_attachments_create_builder(
+        client,
+        &args.parent,
+        &args.attachmentId,
+    )?;
+    artifactregistry_projects_locations_repositories_attachments_create_execute(builder)
+}
+
+/// DELETE v1/projects/{projectsId}/locations/{locationsId}/repositories/{repositoriesId}/attachments/{attachmentsId}
+/// Deletes an attachment. The returned Operation will finish once the attachments has been deleted. It will not have any Operation metadata and will return a google.protobuf.Empty response.
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `artifactregistry_projects_locations_repositories_attachments_delete_execute()` to send, or `artifactregistry_projects_locations_repositories_attachments_delete` for simplest API.
+
+pub fn artifactregistry_projects_locations_repositories_attachments_delete_builder(
+    client: &SimpleHttpClient,
+    name: &String,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!(
+        "https://artifactregistry.googleapis.com/v1/projects/{}/locations/{locationsId}/repositories/{repositoriesId}/attachments/{attachmentsId}",
+        name,
+    );
+
+    // Build request
+    let builder = client
+        .delete(&endpoint_url)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// DELETE v1/projects/{projectsId}/locations/{locationsId}/repositories/{repositoriesId}/attachments/{attachmentsId}
+/// Deletes an attachment. The returned Operation will finish once the attachments has been deleted. It will not have any Operation metadata and will return a google.protobuf.Empty response.
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `artifactregistry_projects_locations_repositories_attachments_delete_execute()` or `artifactregistry_projects_locations_repositories_attachments_delete`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `artifactregistry_projects_locations_repositories_attachments_delete_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn artifactregistry_projects_locations_repositories_attachments_delete_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<Operation>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: Operation = serde_json::from_str(&body)
+                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// DELETE v1/projects/{projectsId}/locations/{locationsId}/repositories/{repositoriesId}/attachments/{attachmentsId}
+/// Deletes an attachment. The returned Operation will finish once the attachments has been deleted. It will not have any Operation metadata and will return a google.protobuf.Empty response.
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `artifactregistry_projects_locations_repositories_attachments_delete_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `artifactregistry_projects_locations_repositories_attachments_delete_task()`.
+/// For the simplest API, use `artifactregistry_projects_locations_repositories_attachments_delete()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `artifactregistry_projects_locations_repositories_attachments_delete_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn artifactregistry_projects_locations_repositories_attachments_delete_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<Operation>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let task = artifactregistry_projects_locations_repositories_attachments_delete_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`artifactregistry_projects_locations_repositories_attachments_delete`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct ArtifactregistryProjectsLocationsRepositoriesAttachmentsDeleteArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
+/// DELETE v1/projects/{projectsId}/locations/{locationsId}/repositories/{repositoriesId}/attachments/{attachmentsId}
+/// Deletes an attachment. The returned Operation will finish once the attachments has been deleted. It will not have any Operation metadata and will return a google.protobuf.Empty response.
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `artifactregistry_projects_locations_repositories_attachments_delete_builder()` + `artifactregistry_projects_locations_repositories_attachments_delete_execute()`.
+/// For task-level control, use `artifactregistry_projects_locations_repositories_attachments_delete_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn artifactregistry_projects_locations_repositories_attachments_delete(
+    client: &SimpleHttpClient,
+    args: &ArtifactregistryProjectsLocationsRepositoriesAttachmentsDeleteArgs,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<Operation>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let builder = artifactregistry_projects_locations_repositories_attachments_delete_builder(
+        client, &args.name,
+    )?;
+    artifactregistry_projects_locations_repositories_attachments_delete_execute(builder)
+}
+
+/// GET v1/projects/{projectsId}/locations/{locationsId}/repositories/{repositoriesId}/attachments/{attachmentsId}
+/// Gets an attachment.
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `artifactregistry_projects_locations_repositories_attachments_get_execute()` to send, or `artifactregistry_projects_locations_repositories_attachments_get` for simplest API.
+
+pub fn artifactregistry_projects_locations_repositories_attachments_get_builder(
+    client: &SimpleHttpClient,
+    name: &String,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!(
+        "https://artifactregistry.googleapis.com/v1/projects/{}/locations/{locationsId}/repositories/{repositoriesId}/attachments/{attachmentsId}",
+        name,
+    );
+
+    // Build request
+    let builder = client
+        .get(&endpoint_url)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// GET v1/projects/{projectsId}/locations/{locationsId}/repositories/{repositoriesId}/attachments/{attachmentsId}
+/// Gets an attachment.
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `artifactregistry_projects_locations_repositories_attachments_get_execute()` or `artifactregistry_projects_locations_repositories_attachments_get`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `artifactregistry_projects_locations_repositories_attachments_get_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn artifactregistry_projects_locations_repositories_attachments_get_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<Attachment>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: Attachment = serde_json::from_str(&body)
+                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// GET v1/projects/{projectsId}/locations/{locationsId}/repositories/{repositoriesId}/attachments/{attachmentsId}
+/// Gets an attachment.
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `artifactregistry_projects_locations_repositories_attachments_get_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `artifactregistry_projects_locations_repositories_attachments_get_task()`.
+/// For the simplest API, use `artifactregistry_projects_locations_repositories_attachments_get()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `artifactregistry_projects_locations_repositories_attachments_get_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn artifactregistry_projects_locations_repositories_attachments_get_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<Attachment>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let task = artifactregistry_projects_locations_repositories_attachments_get_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`artifactregistry_projects_locations_repositories_attachments_get`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct ArtifactregistryProjectsLocationsRepositoriesAttachmentsGetArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
+/// GET v1/projects/{projectsId}/locations/{locationsId}/repositories/{repositoriesId}/attachments/{attachmentsId}
+/// Gets an attachment.
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `artifactregistry_projects_locations_repositories_attachments_get_builder()` + `artifactregistry_projects_locations_repositories_attachments_get_execute()`.
+/// For task-level control, use `artifactregistry_projects_locations_repositories_attachments_get_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn artifactregistry_projects_locations_repositories_attachments_get(
+    client: &SimpleHttpClient,
+    args: &ArtifactregistryProjectsLocationsRepositoriesAttachmentsGetArgs,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<Attachment>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let builder = artifactregistry_projects_locations_repositories_attachments_get_builder(
+        client, &args.name,
+    )?;
+    artifactregistry_projects_locations_repositories_attachments_get_execute(builder)
+}
+
+/// GET v1/projects/{projectsId}/locations/{locationsId}/repositories/{repositoriesId}/attachments
+/// Lists attachments.
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `artifactregistry_projects_locations_repositories_attachments_list_execute()` to send, or `artifactregistry_projects_locations_repositories_attachments_list` for simplest API.
+
+pub fn artifactregistry_projects_locations_repositories_attachments_list_builder(
+    client: &SimpleHttpClient,
+    parent: &String,
+    filter: &Option<Option<String>>,
+    pageSize: &Option<Option<String>>,
+    pageToken: &Option<Option<String>>,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!(
+        "https://artifactregistry.googleapis.com/v1/projects/{}/locations/{locationsId}/repositories/{repositoriesId}/attachments",
+        parent,
+    );
+
+    // Build request
+    let mut query_parts = Vec::new();
+    if let Some(val) = filter.as_ref() {
+        query_parts.push(format!("filter={}", val));
+    }
+    if let Some(val) = pageSize.as_ref() {
+        query_parts.push(format!("pageSize={}", val));
+    }
+    if let Some(val) = pageToken.as_ref() {
+        query_parts.push(format!("pageToken={}", val));
+    }
+
+    let url_with_query = if query_parts.is_empty() {
+        endpoint_url
+    } else {
+        format!("{}?{}", endpoint_url, query_parts.join("&"))
+    };
+
+    let builder = client
+        .get(&url_with_query)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// GET v1/projects/{projectsId}/locations/{locationsId}/repositories/{repositoriesId}/attachments
+/// Lists attachments.
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `artifactregistry_projects_locations_repositories_attachments_list_execute()` or `artifactregistry_projects_locations_repositories_attachments_list`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `artifactregistry_projects_locations_repositories_attachments_list_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn artifactregistry_projects_locations_repositories_attachments_list_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<ListAttachmentsResponse>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: ListAttachmentsResponse = serde_json::from_str(&body)
+                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// GET v1/projects/{projectsId}/locations/{locationsId}/repositories/{repositoriesId}/attachments
+/// Lists attachments.
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `artifactregistry_projects_locations_repositories_attachments_list_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `artifactregistry_projects_locations_repositories_attachments_list_task()`.
+/// For the simplest API, use `artifactregistry_projects_locations_repositories_attachments_list()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `artifactregistry_projects_locations_repositories_attachments_list_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn artifactregistry_projects_locations_repositories_attachments_list_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<ListAttachmentsResponse>, ApiError>, P = ApiPending>
+        + Send
+        + 'static,
+    ApiError,
+> {
+    let task = artifactregistry_projects_locations_repositories_attachments_list_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`artifactregistry_projects_locations_repositories_attachments_list`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct ArtifactregistryProjectsLocationsRepositoriesAttachmentsListArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Query parameter: filter
+    pub filter: Option<Option<String>>,
+    /// Query parameter: pageSize
+    pub pageSize: Option<Option<String>>,
+    /// Query parameter: pageToken
+    pub pageToken: Option<Option<String>>,
+}
+
+/// GET v1/projects/{projectsId}/locations/{locationsId}/repositories/{repositoriesId}/attachments
+/// Lists attachments.
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `artifactregistry_projects_locations_repositories_attachments_list_builder()` + `artifactregistry_projects_locations_repositories_attachments_list_execute()`.
+/// For task-level control, use `artifactregistry_projects_locations_repositories_attachments_list_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn artifactregistry_projects_locations_repositories_attachments_list(
+    client: &SimpleHttpClient,
+    args: &ArtifactregistryProjectsLocationsRepositoriesAttachmentsListArgs,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<ListAttachmentsResponse>, ApiError>, P = ApiPending>
+        + Send
+        + 'static,
+    ApiError,
+> {
+    let builder = artifactregistry_projects_locations_repositories_attachments_list_builder(
+        client,
+        &args.parent,
+        &args.filter,
+        &args.pageSize,
+        &args.pageToken,
+    )?;
+    artifactregistry_projects_locations_repositories_attachments_list_execute(builder)
+}
+
+/// GET v1/projects/{projectsId}/locations/{locationsId}/repositories/{repositoriesId}/dockerImages/{dockerImagesId}
+/// Gets a docker image.
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `artifactregistry_projects_locations_repositories_docker_images_get_execute()` to send, or `artifactregistry_projects_locations_repositories_docker_images_get` for simplest API.
+
+pub fn artifactregistry_projects_locations_repositories_docker_images_get_builder(
+    client: &SimpleHttpClient,
+    name: &String,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!(
+        "https://artifactregistry.googleapis.com/v1/projects/{}/locations/{locationsId}/repositories/{repositoriesId}/dockerImages/{dockerImagesId}",
+        name,
+    );
+
+    // Build request
+    let builder = client
+        .get(&endpoint_url)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// GET v1/projects/{projectsId}/locations/{locationsId}/repositories/{repositoriesId}/dockerImages/{dockerImagesId}
+/// Gets a docker image.
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `artifactregistry_projects_locations_repositories_docker_images_get_execute()` or `artifactregistry_projects_locations_repositories_docker_images_get`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `artifactregistry_projects_locations_repositories_docker_images_get_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn artifactregistry_projects_locations_repositories_docker_images_get_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<DockerImage>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: DockerImage = serde_json::from_str(&body)
+                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// GET v1/projects/{projectsId}/locations/{locationsId}/repositories/{repositoriesId}/dockerImages/{dockerImagesId}
+/// Gets a docker image.
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `artifactregistry_projects_locations_repositories_docker_images_get_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `artifactregistry_projects_locations_repositories_docker_images_get_task()`.
+/// For the simplest API, use `artifactregistry_projects_locations_repositories_docker_images_get()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `artifactregistry_projects_locations_repositories_docker_images_get_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn artifactregistry_projects_locations_repositories_docker_images_get_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<DockerImage>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let task = artifactregistry_projects_locations_repositories_docker_images_get_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`artifactregistry_projects_locations_repositories_docker_images_get`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct ArtifactregistryProjectsLocationsRepositoriesDockerImagesGetArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
+/// GET v1/projects/{projectsId}/locations/{locationsId}/repositories/{repositoriesId}/dockerImages/{dockerImagesId}
+/// Gets a docker image.
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `artifactregistry_projects_locations_repositories_docker_images_get_builder()` + `artifactregistry_projects_locations_repositories_docker_images_get_execute()`.
+/// For task-level control, use `artifactregistry_projects_locations_repositories_docker_images_get_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn artifactregistry_projects_locations_repositories_docker_images_get(
+    client: &SimpleHttpClient,
+    args: &ArtifactregistryProjectsLocationsRepositoriesDockerImagesGetArgs,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<DockerImage>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let builder = artifactregistry_projects_locations_repositories_docker_images_get_builder(
+        client, &args.name,
+    )?;
+    artifactregistry_projects_locations_repositories_docker_images_get_execute(builder)
+}
+
+/// GET v1/projects/{projectsId}/locations/{locationsId}/repositories/{repositoriesId}/dockerImages
+/// Lists docker images.
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `artifactregistry_projects_locations_repositories_docker_images_list_execute()` to send, or `artifactregistry_projects_locations_repositories_docker_images_list` for simplest API.
+
+pub fn artifactregistry_projects_locations_repositories_docker_images_list_builder(
+    client: &SimpleHttpClient,
+    parent: &String,
+    orderBy: &Option<Option<String>>,
+    pageSize: &Option<Option<String>>,
+    pageToken: &Option<Option<String>>,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!(
+        "https://artifactregistry.googleapis.com/v1/projects/{}/locations/{locationsId}/repositories/{repositoriesId}/dockerImages",
+        parent,
+    );
+
+    // Build request
+    let mut query_parts = Vec::new();
+    if let Some(val) = orderBy.as_ref() {
+        query_parts.push(format!("orderBy={}", val));
+    }
+    if let Some(val) = pageSize.as_ref() {
+        query_parts.push(format!("pageSize={}", val));
+    }
+    if let Some(val) = pageToken.as_ref() {
+        query_parts.push(format!("pageToken={}", val));
+    }
+
+    let url_with_query = if query_parts.is_empty() {
+        endpoint_url
+    } else {
+        format!("{}?{}", endpoint_url, query_parts.join("&"))
+    };
+
+    let builder = client
+        .get(&url_with_query)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// GET v1/projects/{projectsId}/locations/{locationsId}/repositories/{repositoriesId}/dockerImages
+/// Lists docker images.
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `artifactregistry_projects_locations_repositories_docker_images_list_execute()` or `artifactregistry_projects_locations_repositories_docker_images_list`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `artifactregistry_projects_locations_repositories_docker_images_list_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn artifactregistry_projects_locations_repositories_docker_images_list_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<ListDockerImagesResponse>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: ListDockerImagesResponse = serde_json::from_str(&body)
+                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// GET v1/projects/{projectsId}/locations/{locationsId}/repositories/{repositoriesId}/dockerImages
+/// Lists docker images.
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `artifactregistry_projects_locations_repositories_docker_images_list_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `artifactregistry_projects_locations_repositories_docker_images_list_task()`.
+/// For the simplest API, use `artifactregistry_projects_locations_repositories_docker_images_list()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `artifactregistry_projects_locations_repositories_docker_images_list_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn artifactregistry_projects_locations_repositories_docker_images_list_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<ListDockerImagesResponse>, ApiError>, P = ApiPending>
+        + Send
+        + 'static,
+    ApiError,
+> {
+    let task = artifactregistry_projects_locations_repositories_docker_images_list_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`artifactregistry_projects_locations_repositories_docker_images_list`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct ArtifactregistryProjectsLocationsRepositoriesDockerImagesListArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Query parameter: orderBy
+    pub orderBy: Option<Option<String>>,
+    /// Query parameter: pageSize
+    pub pageSize: Option<Option<String>>,
+    /// Query parameter: pageToken
+    pub pageToken: Option<Option<String>>,
+}
+
+/// GET v1/projects/{projectsId}/locations/{locationsId}/repositories/{repositoriesId}/dockerImages
+/// Lists docker images.
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `artifactregistry_projects_locations_repositories_docker_images_list_builder()` + `artifactregistry_projects_locations_repositories_docker_images_list_execute()`.
+/// For task-level control, use `artifactregistry_projects_locations_repositories_docker_images_list_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn artifactregistry_projects_locations_repositories_docker_images_list(
+    client: &SimpleHttpClient,
+    args: &ArtifactregistryProjectsLocationsRepositoriesDockerImagesListArgs,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<ListDockerImagesResponse>, ApiError>, P = ApiPending>
+        + Send
+        + 'static,
+    ApiError,
+> {
+    let builder = artifactregistry_projects_locations_repositories_docker_images_list_builder(
+        client,
+        &args.parent,
+        &args.orderBy,
+        &args.pageSize,
+        &args.pageToken,
+    )?;
+    artifactregistry_projects_locations_repositories_docker_images_list_execute(builder)
+}
+
+/// DELETE v1/projects/{projectsId}/locations/{locationsId}/repositories/{repositoriesId}/files/{filesId}
+/// Deletes a file and all of its content. It is only allowed on generic repositories. The returned operation will complete once the file has been deleted.
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `artifactregistry_projects_locations_repositories_files_delete_execute()` to send, or `artifactregistry_projects_locations_repositories_files_delete` for simplest API.
+
+pub fn artifactregistry_projects_locations_repositories_files_delete_builder(
+    client: &SimpleHttpClient,
+    name: &String,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!(
+        "https://artifactregistry.googleapis.com/v1/projects/{}/locations/{locationsId}/repositories/{repositoriesId}/files/{filesId}",
+        name,
+    );
+
+    // Build request
+    let builder = client
+        .delete(&endpoint_url)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// DELETE v1/projects/{projectsId}/locations/{locationsId}/repositories/{repositoriesId}/files/{filesId}
+/// Deletes a file and all of its content. It is only allowed on generic repositories. The returned operation will complete once the file has been deleted.
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `artifactregistry_projects_locations_repositories_files_delete_execute()` or `artifactregistry_projects_locations_repositories_files_delete`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `artifactregistry_projects_locations_repositories_files_delete_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn artifactregistry_projects_locations_repositories_files_delete_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<Operation>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: Operation = serde_json::from_str(&body)
+                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// DELETE v1/projects/{projectsId}/locations/{locationsId}/repositories/{repositoriesId}/files/{filesId}
+/// Deletes a file and all of its content. It is only allowed on generic repositories. The returned operation will complete once the file has been deleted.
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `artifactregistry_projects_locations_repositories_files_delete_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `artifactregistry_projects_locations_repositories_files_delete_task()`.
+/// For the simplest API, use `artifactregistry_projects_locations_repositories_files_delete()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `artifactregistry_projects_locations_repositories_files_delete_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn artifactregistry_projects_locations_repositories_files_delete_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<Operation>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let task = artifactregistry_projects_locations_repositories_files_delete_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`artifactregistry_projects_locations_repositories_files_delete`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct ArtifactregistryProjectsLocationsRepositoriesFilesDeleteArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
+/// DELETE v1/projects/{projectsId}/locations/{locationsId}/repositories/{repositoriesId}/files/{filesId}
+/// Deletes a file and all of its content. It is only allowed on generic repositories. The returned operation will complete once the file has been deleted.
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `artifactregistry_projects_locations_repositories_files_delete_builder()` + `artifactregistry_projects_locations_repositories_files_delete_execute()`.
+/// For task-level control, use `artifactregistry_projects_locations_repositories_files_delete_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn artifactregistry_projects_locations_repositories_files_delete(
+    client: &SimpleHttpClient,
+    args: &ArtifactregistryProjectsLocationsRepositoriesFilesDeleteArgs,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<Operation>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let builder =
+        artifactregistry_projects_locations_repositories_files_delete_builder(client, &args.name)?;
+    artifactregistry_projects_locations_repositories_files_delete_execute(builder)
+}
+
+/// GET v1/projects/{projectsId}/locations/{locationsId}/repositories/{repositoriesId}/files/{filesId}:download
+/// Download a file.
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `artifactregistry_projects_locations_repositories_files_download_execute()` to send, or `artifactregistry_projects_locations_repositories_files_download` for simplest API.
+
+pub fn artifactregistry_projects_locations_repositories_files_download_builder(
+    client: &SimpleHttpClient,
+    name: &String,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!(
+        "https://artifactregistry.googleapis.com/v1/projects/{}/locations/{locationsId}/repositories/{repositoriesId}/files/{filesId}:download",
+        name,
+    );
+
+    // Build request
+    let builder = client
+        .get(&endpoint_url)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// GET v1/projects/{projectsId}/locations/{locationsId}/repositories/{repositoriesId}/files/{filesId}:download
+/// Download a file.
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `artifactregistry_projects_locations_repositories_files_download_execute()` or `artifactregistry_projects_locations_repositories_files_download`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `artifactregistry_projects_locations_repositories_files_download_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn artifactregistry_projects_locations_repositories_files_download_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<DownloadFileResponse>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: DownloadFileResponse = serde_json::from_str(&body)
+                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// GET v1/projects/{projectsId}/locations/{locationsId}/repositories/{repositoriesId}/files/{filesId}:download
+/// Download a file.
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `artifactregistry_projects_locations_repositories_files_download_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `artifactregistry_projects_locations_repositories_files_download_task()`.
+/// For the simplest API, use `artifactregistry_projects_locations_repositories_files_download()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `artifactregistry_projects_locations_repositories_files_download_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn artifactregistry_projects_locations_repositories_files_download_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<DownloadFileResponse>, ApiError>, P = ApiPending>
+        + Send
+        + 'static,
+    ApiError,
+> {
+    let task = artifactregistry_projects_locations_repositories_files_download_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`artifactregistry_projects_locations_repositories_files_download`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct ArtifactregistryProjectsLocationsRepositoriesFilesDownloadArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
+/// GET v1/projects/{projectsId}/locations/{locationsId}/repositories/{repositoriesId}/files/{filesId}:download
+/// Download a file.
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `artifactregistry_projects_locations_repositories_files_download_builder()` + `artifactregistry_projects_locations_repositories_files_download_execute()`.
+/// For task-level control, use `artifactregistry_projects_locations_repositories_files_download_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn artifactregistry_projects_locations_repositories_files_download(
+    client: &SimpleHttpClient,
+    args: &ArtifactregistryProjectsLocationsRepositoriesFilesDownloadArgs,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<DownloadFileResponse>, ApiError>, P = ApiPending>
+        + Send
+        + 'static,
+    ApiError,
+> {
+    let builder = artifactregistry_projects_locations_repositories_files_download_builder(
+        client, &args.name,
+    )?;
+    artifactregistry_projects_locations_repositories_files_download_execute(builder)
+}
+
+/// GET v1/projects/{projectsId}/locations/{locationsId}/repositories/{repositoriesId}/files/{filesId}
+/// Gets a file.
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `artifactregistry_projects_locations_repositories_files_get_execute()` to send, or `artifactregistry_projects_locations_repositories_files_get` for simplest API.
+
+pub fn artifactregistry_projects_locations_repositories_files_get_builder(
+    client: &SimpleHttpClient,
+    name: &String,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!(
+        "https://artifactregistry.googleapis.com/v1/projects/{}/locations/{locationsId}/repositories/{repositoriesId}/files/{filesId}",
+        name,
+    );
+
+    // Build request
+    let builder = client
+        .get(&endpoint_url)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// GET v1/projects/{projectsId}/locations/{locationsId}/repositories/{repositoriesId}/files/{filesId}
+/// Gets a file.
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `artifactregistry_projects_locations_repositories_files_get_execute()` or `artifactregistry_projects_locations_repositories_files_get`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `artifactregistry_projects_locations_repositories_files_get_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn artifactregistry_projects_locations_repositories_files_get_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<GoogleDevtoolsArtifactregistryV1File>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: GoogleDevtoolsArtifactregistryV1File = serde_json::from_str(&body)
+                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// GET v1/projects/{projectsId}/locations/{locationsId}/repositories/{repositoriesId}/files/{filesId}
+/// Gets a file.
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `artifactregistry_projects_locations_repositories_files_get_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `artifactregistry_projects_locations_repositories_files_get_task()`.
+/// For the simplest API, use `artifactregistry_projects_locations_repositories_files_get()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `artifactregistry_projects_locations_repositories_files_get_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn artifactregistry_projects_locations_repositories_files_get_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<
+            D = Result<ApiResponse<GoogleDevtoolsArtifactregistryV1File>, ApiError>,
+            P = ApiPending,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    let task = artifactregistry_projects_locations_repositories_files_get_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`artifactregistry_projects_locations_repositories_files_get`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct ArtifactregistryProjectsLocationsRepositoriesFilesGetArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
+/// GET v1/projects/{projectsId}/locations/{locationsId}/repositories/{repositoriesId}/files/{filesId}
+/// Gets a file.
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `artifactregistry_projects_locations_repositories_files_get_builder()` + `artifactregistry_projects_locations_repositories_files_get_execute()`.
+/// For task-level control, use `artifactregistry_projects_locations_repositories_files_get_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn artifactregistry_projects_locations_repositories_files_get(
+    client: &SimpleHttpClient,
+    args: &ArtifactregistryProjectsLocationsRepositoriesFilesGetArgs,
+) -> Result<
+    impl StreamIterator<
+            D = Result<ApiResponse<GoogleDevtoolsArtifactregistryV1File>, ApiError>,
+            P = ApiPending,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    let builder =
+        artifactregistry_projects_locations_repositories_files_get_builder(client, &args.name)?;
+    artifactregistry_projects_locations_repositories_files_get_execute(builder)
+}
+
+/// GET v1/projects/{projectsId}/locations/{locationsId}/repositories/{repositoriesId}/files
+/// Lists files.
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `artifactregistry_projects_locations_repositories_files_list_execute()` to send, or `artifactregistry_projects_locations_repositories_files_list` for simplest API.
+
+pub fn artifactregistry_projects_locations_repositories_files_list_builder(
+    client: &SimpleHttpClient,
+    parent: &String,
+    filter: &Option<Option<String>>,
+    orderBy: &Option<Option<String>>,
+    pageSize: &Option<Option<String>>,
+    pageToken: &Option<Option<String>>,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!(
+        "https://artifactregistry.googleapis.com/v1/projects/{}/locations/{locationsId}/repositories/{repositoriesId}/files",
+        parent,
+    );
+
+    // Build request
+    let mut query_parts = Vec::new();
+    if let Some(val) = filter.as_ref() {
+        query_parts.push(format!("filter={}", val));
+    }
+    if let Some(val) = orderBy.as_ref() {
+        query_parts.push(format!("orderBy={}", val));
+    }
+    if let Some(val) = pageSize.as_ref() {
+        query_parts.push(format!("pageSize={}", val));
+    }
+    if let Some(val) = pageToken.as_ref() {
+        query_parts.push(format!("pageToken={}", val));
+    }
+
+    let url_with_query = if query_parts.is_empty() {
+        endpoint_url
+    } else {
+        format!("{}?{}", endpoint_url, query_parts.join("&"))
+    };
+
+    let builder = client
+        .get(&url_with_query)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// GET v1/projects/{projectsId}/locations/{locationsId}/repositories/{repositoriesId}/files
+/// Lists files.
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `artifactregistry_projects_locations_repositories_files_list_execute()` or `artifactregistry_projects_locations_repositories_files_list`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `artifactregistry_projects_locations_repositories_files_list_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn artifactregistry_projects_locations_repositories_files_list_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<ListFilesResponse>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: ListFilesResponse = serde_json::from_str(&body)
+                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// GET v1/projects/{projectsId}/locations/{locationsId}/repositories/{repositoriesId}/files
+/// Lists files.
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `artifactregistry_projects_locations_repositories_files_list_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `artifactregistry_projects_locations_repositories_files_list_task()`.
+/// For the simplest API, use `artifactregistry_projects_locations_repositories_files_list()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `artifactregistry_projects_locations_repositories_files_list_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn artifactregistry_projects_locations_repositories_files_list_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<ListFilesResponse>, ApiError>, P = ApiPending>
+        + Send
+        + 'static,
+    ApiError,
+> {
+    let task = artifactregistry_projects_locations_repositories_files_list_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`artifactregistry_projects_locations_repositories_files_list`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct ArtifactregistryProjectsLocationsRepositoriesFilesListArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Query parameter: filter
+    pub filter: Option<Option<String>>,
+    /// Query parameter: orderBy
+    pub orderBy: Option<Option<String>>,
+    /// Query parameter: pageSize
+    pub pageSize: Option<Option<String>>,
+    /// Query parameter: pageToken
+    pub pageToken: Option<Option<String>>,
+}
+
+/// GET v1/projects/{projectsId}/locations/{locationsId}/repositories/{repositoriesId}/files
+/// Lists files.
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `artifactregistry_projects_locations_repositories_files_list_builder()` + `artifactregistry_projects_locations_repositories_files_list_execute()`.
+/// For task-level control, use `artifactregistry_projects_locations_repositories_files_list_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn artifactregistry_projects_locations_repositories_files_list(
+    client: &SimpleHttpClient,
+    args: &ArtifactregistryProjectsLocationsRepositoriesFilesListArgs,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<ListFilesResponse>, ApiError>, P = ApiPending>
+        + Send
+        + 'static,
+    ApiError,
+> {
+    let builder = artifactregistry_projects_locations_repositories_files_list_builder(
+        client,
+        &args.parent,
+        &args.filter,
+        &args.orderBy,
+        &args.pageSize,
+        &args.pageToken,
+    )?;
+    artifactregistry_projects_locations_repositories_files_list_execute(builder)
+}
+
+/// PATCH v1/projects/{projectsId}/locations/{locationsId}/repositories/{repositoriesId}/files/{filesId}
+/// Updates a file.
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `artifactregistry_projects_locations_repositories_files_patch_execute()` to send, or `artifactregistry_projects_locations_repositories_files_patch` for simplest API.
+
+pub fn artifactregistry_projects_locations_repositories_files_patch_builder(
+    client: &SimpleHttpClient,
+    name: &String,
+    updateMask: &Option<Option<String>>,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!(
+        "https://artifactregistry.googleapis.com/v1/projects/{}/locations/{locationsId}/repositories/{repositoriesId}/files/{filesId}",
+        name,
+    );
+
+    // Build request
+    let mut query_parts = Vec::new();
+    if let Some(val) = updateMask.as_ref() {
+        query_parts.push(format!("updateMask={}", val));
+    }
+
+    let url_with_query = if query_parts.is_empty() {
+        endpoint_url
+    } else {
+        format!("{}?{}", endpoint_url, query_parts.join("&"))
+    };
+
+    let builder = client
+        .patch(&url_with_query)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// PATCH v1/projects/{projectsId}/locations/{locationsId}/repositories/{repositoriesId}/files/{filesId}
+/// Updates a file.
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `artifactregistry_projects_locations_repositories_files_patch_execute()` or `artifactregistry_projects_locations_repositories_files_patch`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `artifactregistry_projects_locations_repositories_files_patch_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn artifactregistry_projects_locations_repositories_files_patch_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<GoogleDevtoolsArtifactregistryV1File>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: GoogleDevtoolsArtifactregistryV1File = serde_json::from_str(&body)
+                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// PATCH v1/projects/{projectsId}/locations/{locationsId}/repositories/{repositoriesId}/files/{filesId}
+/// Updates a file.
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `artifactregistry_projects_locations_repositories_files_patch_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `artifactregistry_projects_locations_repositories_files_patch_task()`.
+/// For the simplest API, use `artifactregistry_projects_locations_repositories_files_patch()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `artifactregistry_projects_locations_repositories_files_patch_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn artifactregistry_projects_locations_repositories_files_patch_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<
+            D = Result<ApiResponse<GoogleDevtoolsArtifactregistryV1File>, ApiError>,
+            P = ApiPending,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    let task = artifactregistry_projects_locations_repositories_files_patch_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`artifactregistry_projects_locations_repositories_files_patch`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct ArtifactregistryProjectsLocationsRepositoriesFilesPatchArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Query parameter: updateMask
+    pub updateMask: Option<Option<String>>,
+}
+
+/// PATCH v1/projects/{projectsId}/locations/{locationsId}/repositories/{repositoriesId}/files/{filesId}
+/// Updates a file.
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `artifactregistry_projects_locations_repositories_files_patch_builder()` + `artifactregistry_projects_locations_repositories_files_patch_execute()`.
+/// For task-level control, use `artifactregistry_projects_locations_repositories_files_patch_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn artifactregistry_projects_locations_repositories_files_patch(
+    client: &SimpleHttpClient,
+    args: &ArtifactregistryProjectsLocationsRepositoriesFilesPatchArgs,
+) -> Result<
+    impl StreamIterator<
+            D = Result<ApiResponse<GoogleDevtoolsArtifactregistryV1File>, ApiError>,
+            P = ApiPending,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    let builder = artifactregistry_projects_locations_repositories_files_patch_builder(
+        client,
+        &args.name,
+        &args.updateMask,
+    )?;
+    artifactregistry_projects_locations_repositories_files_patch_execute(builder)
+}
+
+/// POST v1/projects/{projectsId}/locations/{locationsId}/repositories/{repositoriesId}/files:upload
+/// Directly uploads a file to a repository. The returned Operation will complete once the resources are uploaded.
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `artifactregistry_projects_locations_repositories_files_upload_execute()` to send, or `artifactregistry_projects_locations_repositories_files_upload` for simplest API.
+
+pub fn artifactregistry_projects_locations_repositories_files_upload_builder(
+    client: &SimpleHttpClient,
+    parent: &String,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!(
+        "https://artifactregistry.googleapis.com/v1/projects/{}/locations/{locationsId}/repositories/{repositoriesId}/files:upload",
+        parent,
+    );
+
+    // Build request
+    let builder = client
+        .post(&endpoint_url)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// POST v1/projects/{projectsId}/locations/{locationsId}/repositories/{repositoriesId}/files:upload
+/// Directly uploads a file to a repository. The returned Operation will complete once the resources are uploaded.
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `artifactregistry_projects_locations_repositories_files_upload_execute()` or `artifactregistry_projects_locations_repositories_files_upload`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `artifactregistry_projects_locations_repositories_files_upload_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn artifactregistry_projects_locations_repositories_files_upload_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<UploadFileMediaResponse>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: UploadFileMediaResponse = serde_json::from_str(&body)
+                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// POST v1/projects/{projectsId}/locations/{locationsId}/repositories/{repositoriesId}/files:upload
+/// Directly uploads a file to a repository. The returned Operation will complete once the resources are uploaded.
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `artifactregistry_projects_locations_repositories_files_upload_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `artifactregistry_projects_locations_repositories_files_upload_task()`.
+/// For the simplest API, use `artifactregistry_projects_locations_repositories_files_upload()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `artifactregistry_projects_locations_repositories_files_upload_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn artifactregistry_projects_locations_repositories_files_upload_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<UploadFileMediaResponse>, ApiError>, P = ApiPending>
+        + Send
+        + 'static,
+    ApiError,
+> {
+    let task = artifactregistry_projects_locations_repositories_files_upload_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`artifactregistry_projects_locations_repositories_files_upload`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct ArtifactregistryProjectsLocationsRepositoriesFilesUploadArgs {
+    /// Path parameter: parent
+    pub parent: String,
+}
+
+/// POST v1/projects/{projectsId}/locations/{locationsId}/repositories/{repositoriesId}/files:upload
+/// Directly uploads a file to a repository. The returned Operation will complete once the resources are uploaded.
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `artifactregistry_projects_locations_repositories_files_upload_builder()` + `artifactregistry_projects_locations_repositories_files_upload_execute()`.
+/// For task-level control, use `artifactregistry_projects_locations_repositories_files_upload_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn artifactregistry_projects_locations_repositories_files_upload(
+    client: &SimpleHttpClient,
+    args: &ArtifactregistryProjectsLocationsRepositoriesFilesUploadArgs,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<UploadFileMediaResponse>, ApiError>, P = ApiPending>
+        + Send
+        + 'static,
+    ApiError,
+> {
+    let builder = artifactregistry_projects_locations_repositories_files_upload_builder(
+        client,
+        &args.parent,
+    )?;
+    artifactregistry_projects_locations_repositories_files_upload_execute(builder)
+}
+
+/// POST v1/projects/{projectsId}/locations/{locationsId}/repositories/{repositoriesId}/genericArtifacts:create
+/// Directly uploads a Generic artifact. The returned operation will complete once the resources are uploaded. Package, version, and file resources are created based on the uploaded artifact. Uploaded artifacts that conflict with existing resources will raise an ALREADY_EXISTS error.
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `artifactregistry_projects_locations_repositories_generic_artifacts_upload_execute()` to send, or `artifactregistry_projects_locations_repositories_generic_artifacts_upload` for simplest API.
+
+pub fn artifactregistry_projects_locations_repositories_generic_artifacts_upload_builder(
+    client: &SimpleHttpClient,
+    parent: &String,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!(
+        "https://artifactregistry.googleapis.com/v1/projects/{}/locations/{locationsId}/repositories/{repositoriesId}/genericArtifacts:create",
+        parent,
+    );
+
+    // Build request
+    let builder = client
+        .post(&endpoint_url)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// POST v1/projects/{projectsId}/locations/{locationsId}/repositories/{repositoriesId}/genericArtifacts:create
+/// Directly uploads a Generic artifact. The returned operation will complete once the resources are uploaded. Package, version, and file resources are created based on the uploaded artifact. Uploaded artifacts that conflict with existing resources will raise an ALREADY_EXISTS error.
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `artifactregistry_projects_locations_repositories_generic_artifacts_upload_execute()` or `artifactregistry_projects_locations_repositories_generic_artifacts_upload`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `artifactregistry_projects_locations_repositories_generic_artifacts_upload_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn artifactregistry_projects_locations_repositories_generic_artifacts_upload_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<UploadGenericArtifactMediaResponse>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: UploadGenericArtifactMediaResponse = serde_json::from_str(&body)
+                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// POST v1/projects/{projectsId}/locations/{locationsId}/repositories/{repositoriesId}/genericArtifacts:create
+/// Directly uploads a Generic artifact. The returned operation will complete once the resources are uploaded. Package, version, and file resources are created based on the uploaded artifact. Uploaded artifacts that conflict with existing resources will raise an ALREADY_EXISTS error.
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `artifactregistry_projects_locations_repositories_generic_artifacts_upload_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `artifactregistry_projects_locations_repositories_generic_artifacts_upload_task()`.
+/// For the simplest API, use `artifactregistry_projects_locations_repositories_generic_artifacts_upload()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `artifactregistry_projects_locations_repositories_generic_artifacts_upload_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn artifactregistry_projects_locations_repositories_generic_artifacts_upload_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<
+            D = Result<ApiResponse<UploadGenericArtifactMediaResponse>, ApiError>,
+            P = ApiPending,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    let task =
+        artifactregistry_projects_locations_repositories_generic_artifacts_upload_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`artifactregistry_projects_locations_repositories_generic_artifacts_upload`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct ArtifactregistryProjectsLocationsRepositoriesGenericArtifactsUploadArgs {
+    /// Path parameter: parent
+    pub parent: String,
+}
+
+/// POST v1/projects/{projectsId}/locations/{locationsId}/repositories/{repositoriesId}/genericArtifacts:create
+/// Directly uploads a Generic artifact. The returned operation will complete once the resources are uploaded. Package, version, and file resources are created based on the uploaded artifact. Uploaded artifacts that conflict with existing resources will raise an ALREADY_EXISTS error.
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `artifactregistry_projects_locations_repositories_generic_artifacts_upload_builder()` + `artifactregistry_projects_locations_repositories_generic_artifacts_upload_execute()`.
+/// For task-level control, use `artifactregistry_projects_locations_repositories_generic_artifacts_upload_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn artifactregistry_projects_locations_repositories_generic_artifacts_upload(
+    client: &SimpleHttpClient,
+    args: &ArtifactregistryProjectsLocationsRepositoriesGenericArtifactsUploadArgs,
+) -> Result<
+    impl StreamIterator<
+            D = Result<ApiResponse<UploadGenericArtifactMediaResponse>, ApiError>,
+            P = ApiPending,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    let builder =
+        artifactregistry_projects_locations_repositories_generic_artifacts_upload_builder(
+            client,
+            &args.parent,
+        )?;
+    artifactregistry_projects_locations_repositories_generic_artifacts_upload_execute(builder)
+}
+
+/// POST v1/projects/{projectsId}/locations/{locationsId}/repositories/{repositoriesId}/goModules:create
+/// Directly uploads a Go module. The returned Operation will complete once the Go module is uploaded. Package, Version, and File resources are created based on the uploaded Go module.
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `artifactregistry_projects_locations_repositories_go_modules_upload_execute()` to send, or `artifactregistry_projects_locations_repositories_go_modules_upload` for simplest API.
+
+pub fn artifactregistry_projects_locations_repositories_go_modules_upload_builder(
+    client: &SimpleHttpClient,
+    parent: &String,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!(
+        "https://artifactregistry.googleapis.com/v1/projects/{}/locations/{locationsId}/repositories/{repositoriesId}/goModules:create",
+        parent,
+    );
+
+    // Build request
+    let builder = client
+        .post(&endpoint_url)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// POST v1/projects/{projectsId}/locations/{locationsId}/repositories/{repositoriesId}/goModules:create
+/// Directly uploads a Go module. The returned Operation will complete once the Go module is uploaded. Package, Version, and File resources are created based on the uploaded Go module.
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `artifactregistry_projects_locations_repositories_go_modules_upload_execute()` or `artifactregistry_projects_locations_repositories_go_modules_upload`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `artifactregistry_projects_locations_repositories_go_modules_upload_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn artifactregistry_projects_locations_repositories_go_modules_upload_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<UploadGoModuleMediaResponse>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: UploadGoModuleMediaResponse = serde_json::from_str(&body)
+                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// POST v1/projects/{projectsId}/locations/{locationsId}/repositories/{repositoriesId}/goModules:create
+/// Directly uploads a Go module. The returned Operation will complete once the Go module is uploaded. Package, Version, and File resources are created based on the uploaded Go module.
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `artifactregistry_projects_locations_repositories_go_modules_upload_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `artifactregistry_projects_locations_repositories_go_modules_upload_task()`.
+/// For the simplest API, use `artifactregistry_projects_locations_repositories_go_modules_upload()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `artifactregistry_projects_locations_repositories_go_modules_upload_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn artifactregistry_projects_locations_repositories_go_modules_upload_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<
+            D = Result<ApiResponse<UploadGoModuleMediaResponse>, ApiError>,
+            P = ApiPending,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    let task = artifactregistry_projects_locations_repositories_go_modules_upload_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`artifactregistry_projects_locations_repositories_go_modules_upload`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct ArtifactregistryProjectsLocationsRepositoriesGoModulesUploadArgs {
+    /// Path parameter: parent
+    pub parent: String,
+}
+
+/// POST v1/projects/{projectsId}/locations/{locationsId}/repositories/{repositoriesId}/goModules:create
+/// Directly uploads a Go module. The returned Operation will complete once the Go module is uploaded. Package, Version, and File resources are created based on the uploaded Go module.
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `artifactregistry_projects_locations_repositories_go_modules_upload_builder()` + `artifactregistry_projects_locations_repositories_go_modules_upload_execute()`.
+/// For task-level control, use `artifactregistry_projects_locations_repositories_go_modules_upload_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn artifactregistry_projects_locations_repositories_go_modules_upload(
+    client: &SimpleHttpClient,
+    args: &ArtifactregistryProjectsLocationsRepositoriesGoModulesUploadArgs,
+) -> Result<
+    impl StreamIterator<
+            D = Result<ApiResponse<UploadGoModuleMediaResponse>, ApiError>,
+            P = ApiPending,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    let builder = artifactregistry_projects_locations_repositories_go_modules_upload_builder(
+        client,
+        &args.parent,
+    )?;
+    artifactregistry_projects_locations_repositories_go_modules_upload_execute(builder)
+}
+
+/// POST v1/projects/{projectsId}/locations/{locationsId}/repositories/{repositoriesId}/googetArtifacts:import
+/// Imports GooGet artifacts. The returned Operation will complete once the resources are imported. Package, Version, and File resources are created based on the imported artifacts. Imported artifacts that conflict with existing resources are ignored.
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `artifactregistry_projects_locations_repositories_googet_artifacts_import_execute()` to send, or `artifactregistry_projects_locations_repositories_googet_artifacts_import` for simplest API.
+
+pub fn artifactregistry_projects_locations_repositories_googet_artifacts_import_builder(
+    client: &SimpleHttpClient,
+    parent: &String,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!(
+        "https://artifactregistry.googleapis.com/v1/projects/{}/locations/{locationsId}/repositories/{repositoriesId}/googetArtifacts:import",
+        parent,
+    );
+
+    // Build request
+    let builder = client
+        .post(&endpoint_url)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// POST v1/projects/{projectsId}/locations/{locationsId}/repositories/{repositoriesId}/googetArtifacts:import
+/// Imports GooGet artifacts. The returned Operation will complete once the resources are imported. Package, Version, and File resources are created based on the imported artifacts. Imported artifacts that conflict with existing resources are ignored.
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `artifactregistry_projects_locations_repositories_googet_artifacts_import_execute()` or `artifactregistry_projects_locations_repositories_googet_artifacts_import`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `artifactregistry_projects_locations_repositories_googet_artifacts_import_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn artifactregistry_projects_locations_repositories_googet_artifacts_import_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<Operation>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: Operation = serde_json::from_str(&body)
+                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// POST v1/projects/{projectsId}/locations/{locationsId}/repositories/{repositoriesId}/googetArtifacts:import
+/// Imports GooGet artifacts. The returned Operation will complete once the resources are imported. Package, Version, and File resources are created based on the imported artifacts. Imported artifacts that conflict with existing resources are ignored.
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `artifactregistry_projects_locations_repositories_googet_artifacts_import_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `artifactregistry_projects_locations_repositories_googet_artifacts_import_task()`.
+/// For the simplest API, use `artifactregistry_projects_locations_repositories_googet_artifacts_import()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `artifactregistry_projects_locations_repositories_googet_artifacts_import_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn artifactregistry_projects_locations_repositories_googet_artifacts_import_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<Operation>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let task =
+        artifactregistry_projects_locations_repositories_googet_artifacts_import_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`artifactregistry_projects_locations_repositories_googet_artifacts_import`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct ArtifactregistryProjectsLocationsRepositoriesGoogetArtifactsImportArgs {
+    /// Path parameter: parent
+    pub parent: String,
+}
+
+/// POST v1/projects/{projectsId}/locations/{locationsId}/repositories/{repositoriesId}/googetArtifacts:import
+/// Imports GooGet artifacts. The returned Operation will complete once the resources are imported. Package, Version, and File resources are created based on the imported artifacts. Imported artifacts that conflict with existing resources are ignored.
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `artifactregistry_projects_locations_repositories_googet_artifacts_import_builder()` + `artifactregistry_projects_locations_repositories_googet_artifacts_import_execute()`.
+/// For task-level control, use `artifactregistry_projects_locations_repositories_googet_artifacts_import_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn artifactregistry_projects_locations_repositories_googet_artifacts_import(
+    client: &SimpleHttpClient,
+    args: &ArtifactregistryProjectsLocationsRepositoriesGoogetArtifactsImportArgs,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<Operation>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let builder = artifactregistry_projects_locations_repositories_googet_artifacts_import_builder(
+        client,
+        &args.parent,
+    )?;
+    artifactregistry_projects_locations_repositories_googet_artifacts_import_execute(builder)
+}
+
+/// POST v1/projects/{projectsId}/locations/{locationsId}/repositories/{repositoriesId}/googetArtifacts:create
+/// Directly uploads a GooGet artifact. The returned Operation will complete once the resources are uploaded. Package, Version, and File resources are created based on the imported artifact. Imported artifacts that conflict with existing resources are ignored.
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `artifactregistry_projects_locations_repositories_googet_artifacts_upload_execute()` to send, or `artifactregistry_projects_locations_repositories_googet_artifacts_upload` for simplest API.
+
+pub fn artifactregistry_projects_locations_repositories_googet_artifacts_upload_builder(
+    client: &SimpleHttpClient,
+    parent: &String,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!(
+        "https://artifactregistry.googleapis.com/v1/projects/{}/locations/{locationsId}/repositories/{repositoriesId}/googetArtifacts:create",
+        parent,
+    );
+
+    // Build request
+    let builder = client
+        .post(&endpoint_url)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// POST v1/projects/{projectsId}/locations/{locationsId}/repositories/{repositoriesId}/googetArtifacts:create
+/// Directly uploads a GooGet artifact. The returned Operation will complete once the resources are uploaded. Package, Version, and File resources are created based on the imported artifact. Imported artifacts that conflict with existing resources are ignored.
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `artifactregistry_projects_locations_repositories_googet_artifacts_upload_execute()` or `artifactregistry_projects_locations_repositories_googet_artifacts_upload`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `artifactregistry_projects_locations_repositories_googet_artifacts_upload_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn artifactregistry_projects_locations_repositories_googet_artifacts_upload_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<UploadGoogetArtifactMediaResponse>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: UploadGoogetArtifactMediaResponse = serde_json::from_str(&body)
+                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// POST v1/projects/{projectsId}/locations/{locationsId}/repositories/{repositoriesId}/googetArtifacts:create
+/// Directly uploads a GooGet artifact. The returned Operation will complete once the resources are uploaded. Package, Version, and File resources are created based on the imported artifact. Imported artifacts that conflict with existing resources are ignored.
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `artifactregistry_projects_locations_repositories_googet_artifacts_upload_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `artifactregistry_projects_locations_repositories_googet_artifacts_upload_task()`.
+/// For the simplest API, use `artifactregistry_projects_locations_repositories_googet_artifacts_upload()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `artifactregistry_projects_locations_repositories_googet_artifacts_upload_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn artifactregistry_projects_locations_repositories_googet_artifacts_upload_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<
+            D = Result<ApiResponse<UploadGoogetArtifactMediaResponse>, ApiError>,
+            P = ApiPending,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    let task =
+        artifactregistry_projects_locations_repositories_googet_artifacts_upload_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`artifactregistry_projects_locations_repositories_googet_artifacts_upload`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct ArtifactregistryProjectsLocationsRepositoriesGoogetArtifactsUploadArgs {
+    /// Path parameter: parent
+    pub parent: String,
+}
+
+/// POST v1/projects/{projectsId}/locations/{locationsId}/repositories/{repositoriesId}/googetArtifacts:create
+/// Directly uploads a GooGet artifact. The returned Operation will complete once the resources are uploaded. Package, Version, and File resources are created based on the imported artifact. Imported artifacts that conflict with existing resources are ignored.
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `artifactregistry_projects_locations_repositories_googet_artifacts_upload_builder()` + `artifactregistry_projects_locations_repositories_googet_artifacts_upload_execute()`.
+/// For task-level control, use `artifactregistry_projects_locations_repositories_googet_artifacts_upload_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn artifactregistry_projects_locations_repositories_googet_artifacts_upload(
+    client: &SimpleHttpClient,
+    args: &ArtifactregistryProjectsLocationsRepositoriesGoogetArtifactsUploadArgs,
+) -> Result<
+    impl StreamIterator<
+            D = Result<ApiResponse<UploadGoogetArtifactMediaResponse>, ApiError>,
+            P = ApiPending,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    let builder = artifactregistry_projects_locations_repositories_googet_artifacts_upload_builder(
+        client,
+        &args.parent,
+    )?;
+    artifactregistry_projects_locations_repositories_googet_artifacts_upload_execute(builder)
+}
+
+/// POST v1/projects/{projectsId}/locations/{locationsId}/repositories/{repositoriesId}/kfpArtifacts:create
+/// Directly uploads a KFP artifact. The returned Operation will complete once the resource is uploaded. Package, Version, and File resources will be created based on the uploaded artifact. Uploaded artifacts that conflict with existing resources will be overwritten.
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `artifactregistry_projects_locations_repositories_kfp_artifacts_upload_execute()` to send, or `artifactregistry_projects_locations_repositories_kfp_artifacts_upload` for simplest API.
+
+pub fn artifactregistry_projects_locations_repositories_kfp_artifacts_upload_builder(
+    client: &SimpleHttpClient,
+    parent: &String,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!(
+        "https://artifactregistry.googleapis.com/v1/projects/{}/locations/{locationsId}/repositories/{repositoriesId}/kfpArtifacts:create",
+        parent,
+    );
+
+    // Build request
+    let builder = client
+        .post(&endpoint_url)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// POST v1/projects/{projectsId}/locations/{locationsId}/repositories/{repositoriesId}/kfpArtifacts:create
+/// Directly uploads a KFP artifact. The returned Operation will complete once the resource is uploaded. Package, Version, and File resources will be created based on the uploaded artifact. Uploaded artifacts that conflict with existing resources will be overwritten.
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `artifactregistry_projects_locations_repositories_kfp_artifacts_upload_execute()` or `artifactregistry_projects_locations_repositories_kfp_artifacts_upload`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `artifactregistry_projects_locations_repositories_kfp_artifacts_upload_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn artifactregistry_projects_locations_repositories_kfp_artifacts_upload_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<UploadKfpArtifactMediaResponse>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: UploadKfpArtifactMediaResponse = serde_json::from_str(&body)
+                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// POST v1/projects/{projectsId}/locations/{locationsId}/repositories/{repositoriesId}/kfpArtifacts:create
+/// Directly uploads a KFP artifact. The returned Operation will complete once the resource is uploaded. Package, Version, and File resources will be created based on the uploaded artifact. Uploaded artifacts that conflict with existing resources will be overwritten.
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `artifactregistry_projects_locations_repositories_kfp_artifacts_upload_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `artifactregistry_projects_locations_repositories_kfp_artifacts_upload_task()`.
+/// For the simplest API, use `artifactregistry_projects_locations_repositories_kfp_artifacts_upload()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `artifactregistry_projects_locations_repositories_kfp_artifacts_upload_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn artifactregistry_projects_locations_repositories_kfp_artifacts_upload_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<
+            D = Result<ApiResponse<UploadKfpArtifactMediaResponse>, ApiError>,
+            P = ApiPending,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    let task = artifactregistry_projects_locations_repositories_kfp_artifacts_upload_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`artifactregistry_projects_locations_repositories_kfp_artifacts_upload`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct ArtifactregistryProjectsLocationsRepositoriesKfpArtifactsUploadArgs {
+    /// Path parameter: parent
+    pub parent: String,
+}
+
+/// POST v1/projects/{projectsId}/locations/{locationsId}/repositories/{repositoriesId}/kfpArtifacts:create
+/// Directly uploads a KFP artifact. The returned Operation will complete once the resource is uploaded. Package, Version, and File resources will be created based on the uploaded artifact. Uploaded artifacts that conflict with existing resources will be overwritten.
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `artifactregistry_projects_locations_repositories_kfp_artifacts_upload_builder()` + `artifactregistry_projects_locations_repositories_kfp_artifacts_upload_execute()`.
+/// For task-level control, use `artifactregistry_projects_locations_repositories_kfp_artifacts_upload_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn artifactregistry_projects_locations_repositories_kfp_artifacts_upload(
+    client: &SimpleHttpClient,
+    args: &ArtifactregistryProjectsLocationsRepositoriesKfpArtifactsUploadArgs,
+) -> Result<
+    impl StreamIterator<
+            D = Result<ApiResponse<UploadKfpArtifactMediaResponse>, ApiError>,
+            P = ApiPending,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    let builder = artifactregistry_projects_locations_repositories_kfp_artifacts_upload_builder(
+        client,
+        &args.parent,
+    )?;
+    artifactregistry_projects_locations_repositories_kfp_artifacts_upload_execute(builder)
+}
+
+/// GET v1/projects/{projectsId}/locations/{locationsId}/repositories/{repositoriesId}/mavenArtifacts/{mavenArtifactsId}
+/// Gets a maven artifact.
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `artifactregistry_projects_locations_repositories_maven_artifacts_get_execute()` to send, or `artifactregistry_projects_locations_repositories_maven_artifacts_get` for simplest API.
+
+pub fn artifactregistry_projects_locations_repositories_maven_artifacts_get_builder(
+    client: &SimpleHttpClient,
+    name: &String,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!(
+        "https://artifactregistry.googleapis.com/v1/projects/{}/locations/{locationsId}/repositories/{repositoriesId}/mavenArtifacts/{mavenArtifactsId}",
+        name,
+    );
+
+    // Build request
+    let builder = client
+        .get(&endpoint_url)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// GET v1/projects/{projectsId}/locations/{locationsId}/repositories/{repositoriesId}/mavenArtifacts/{mavenArtifactsId}
+/// Gets a maven artifact.
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `artifactregistry_projects_locations_repositories_maven_artifacts_get_execute()` or `artifactregistry_projects_locations_repositories_maven_artifacts_get`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `artifactregistry_projects_locations_repositories_maven_artifacts_get_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn artifactregistry_projects_locations_repositories_maven_artifacts_get_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<MavenArtifact>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: MavenArtifact = serde_json::from_str(&body)
+                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// GET v1/projects/{projectsId}/locations/{locationsId}/repositories/{repositoriesId}/mavenArtifacts/{mavenArtifactsId}
+/// Gets a maven artifact.
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `artifactregistry_projects_locations_repositories_maven_artifacts_get_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `artifactregistry_projects_locations_repositories_maven_artifacts_get_task()`.
+/// For the simplest API, use `artifactregistry_projects_locations_repositories_maven_artifacts_get()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `artifactregistry_projects_locations_repositories_maven_artifacts_get_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn artifactregistry_projects_locations_repositories_maven_artifacts_get_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<MavenArtifact>, ApiError>, P = ApiPending>
+        + Send
+        + 'static,
+    ApiError,
+> {
+    let task = artifactregistry_projects_locations_repositories_maven_artifacts_get_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`artifactregistry_projects_locations_repositories_maven_artifacts_get`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct ArtifactregistryProjectsLocationsRepositoriesMavenArtifactsGetArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
+/// GET v1/projects/{projectsId}/locations/{locationsId}/repositories/{repositoriesId}/mavenArtifacts/{mavenArtifactsId}
+/// Gets a maven artifact.
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `artifactregistry_projects_locations_repositories_maven_artifacts_get_builder()` + `artifactregistry_projects_locations_repositories_maven_artifacts_get_execute()`.
+/// For task-level control, use `artifactregistry_projects_locations_repositories_maven_artifacts_get_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn artifactregistry_projects_locations_repositories_maven_artifacts_get(
+    client: &SimpleHttpClient,
+    args: &ArtifactregistryProjectsLocationsRepositoriesMavenArtifactsGetArgs,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<MavenArtifact>, ApiError>, P = ApiPending>
+        + Send
+        + 'static,
+    ApiError,
+> {
+    let builder = artifactregistry_projects_locations_repositories_maven_artifacts_get_builder(
+        client, &args.name,
+    )?;
+    artifactregistry_projects_locations_repositories_maven_artifacts_get_execute(builder)
+}
+
+/// GET v1/projects/{projectsId}/locations/{locationsId}/repositories/{repositoriesId}/mavenArtifacts
+/// Lists maven artifacts.
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `artifactregistry_projects_locations_repositories_maven_artifacts_list_execute()` to send, or `artifactregistry_projects_locations_repositories_maven_artifacts_list` for simplest API.
+
+pub fn artifactregistry_projects_locations_repositories_maven_artifacts_list_builder(
+    client: &SimpleHttpClient,
+    parent: &String,
+    pageSize: &Option<Option<String>>,
+    pageToken: &Option<Option<String>>,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!(
+        "https://artifactregistry.googleapis.com/v1/projects/{}/locations/{locationsId}/repositories/{repositoriesId}/mavenArtifacts",
+        parent,
+    );
+
+    // Build request
+    let mut query_parts = Vec::new();
+    if let Some(val) = pageSize.as_ref() {
+        query_parts.push(format!("pageSize={}", val));
+    }
+    if let Some(val) = pageToken.as_ref() {
+        query_parts.push(format!("pageToken={}", val));
+    }
+
+    let url_with_query = if query_parts.is_empty() {
+        endpoint_url
+    } else {
+        format!("{}?{}", endpoint_url, query_parts.join("&"))
+    };
+
+    let builder = client
+        .get(&url_with_query)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// GET v1/projects/{projectsId}/locations/{locationsId}/repositories/{repositoriesId}/mavenArtifacts
+/// Lists maven artifacts.
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `artifactregistry_projects_locations_repositories_maven_artifacts_list_execute()` or `artifactregistry_projects_locations_repositories_maven_artifacts_list`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `artifactregistry_projects_locations_repositories_maven_artifacts_list_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn artifactregistry_projects_locations_repositories_maven_artifacts_list_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<ListMavenArtifactsResponse>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: ListMavenArtifactsResponse = serde_json::from_str(&body)
+                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// GET v1/projects/{projectsId}/locations/{locationsId}/repositories/{repositoriesId}/mavenArtifacts
+/// Lists maven artifacts.
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `artifactregistry_projects_locations_repositories_maven_artifacts_list_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `artifactregistry_projects_locations_repositories_maven_artifacts_list_task()`.
+/// For the simplest API, use `artifactregistry_projects_locations_repositories_maven_artifacts_list()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `artifactregistry_projects_locations_repositories_maven_artifacts_list_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn artifactregistry_projects_locations_repositories_maven_artifacts_list_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<
+            D = Result<ApiResponse<ListMavenArtifactsResponse>, ApiError>,
+            P = ApiPending,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    let task = artifactregistry_projects_locations_repositories_maven_artifacts_list_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`artifactregistry_projects_locations_repositories_maven_artifacts_list`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct ArtifactregistryProjectsLocationsRepositoriesMavenArtifactsListArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Query parameter: pageSize
+    pub pageSize: Option<Option<String>>,
+    /// Query parameter: pageToken
+    pub pageToken: Option<Option<String>>,
+}
+
+/// GET v1/projects/{projectsId}/locations/{locationsId}/repositories/{repositoriesId}/mavenArtifacts
+/// Lists maven artifacts.
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `artifactregistry_projects_locations_repositories_maven_artifacts_list_builder()` + `artifactregistry_projects_locations_repositories_maven_artifacts_list_execute()`.
+/// For task-level control, use `artifactregistry_projects_locations_repositories_maven_artifacts_list_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn artifactregistry_projects_locations_repositories_maven_artifacts_list(
+    client: &SimpleHttpClient,
+    args: &ArtifactregistryProjectsLocationsRepositoriesMavenArtifactsListArgs,
+) -> Result<
+    impl StreamIterator<
+            D = Result<ApiResponse<ListMavenArtifactsResponse>, ApiError>,
+            P = ApiPending,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    let builder = artifactregistry_projects_locations_repositories_maven_artifacts_list_builder(
+        client,
+        &args.parent,
+        &args.pageSize,
+        &args.pageToken,
+    )?;
+    artifactregistry_projects_locations_repositories_maven_artifacts_list_execute(builder)
+}
+
+/// GET v1/projects/{projectsId}/locations/{locationsId}/repositories/{repositoriesId}/npmPackages/{npmPackagesId}
+/// Gets a npm package.
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `artifactregistry_projects_locations_repositories_npm_packages_get_execute()` to send, or `artifactregistry_projects_locations_repositories_npm_packages_get` for simplest API.
+
+pub fn artifactregistry_projects_locations_repositories_npm_packages_get_builder(
+    client: &SimpleHttpClient,
+    name: &String,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!(
+        "https://artifactregistry.googleapis.com/v1/projects/{}/locations/{locationsId}/repositories/{repositoriesId}/npmPackages/{npmPackagesId}",
+        name,
+    );
+
+    // Build request
+    let builder = client
+        .get(&endpoint_url)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// GET v1/projects/{projectsId}/locations/{locationsId}/repositories/{repositoriesId}/npmPackages/{npmPackagesId}
+/// Gets a npm package.
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `artifactregistry_projects_locations_repositories_npm_packages_get_execute()` or `artifactregistry_projects_locations_repositories_npm_packages_get`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `artifactregistry_projects_locations_repositories_npm_packages_get_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn artifactregistry_projects_locations_repositories_npm_packages_get_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<NpmPackage>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: NpmPackage = serde_json::from_str(&body)
+                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// GET v1/projects/{projectsId}/locations/{locationsId}/repositories/{repositoriesId}/npmPackages/{npmPackagesId}
+/// Gets a npm package.
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `artifactregistry_projects_locations_repositories_npm_packages_get_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `artifactregistry_projects_locations_repositories_npm_packages_get_task()`.
+/// For the simplest API, use `artifactregistry_projects_locations_repositories_npm_packages_get()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `artifactregistry_projects_locations_repositories_npm_packages_get_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn artifactregistry_projects_locations_repositories_npm_packages_get_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<NpmPackage>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let task = artifactregistry_projects_locations_repositories_npm_packages_get_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`artifactregistry_projects_locations_repositories_npm_packages_get`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct ArtifactregistryProjectsLocationsRepositoriesNpmPackagesGetArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
+/// GET v1/projects/{projectsId}/locations/{locationsId}/repositories/{repositoriesId}/npmPackages/{npmPackagesId}
+/// Gets a npm package.
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `artifactregistry_projects_locations_repositories_npm_packages_get_builder()` + `artifactregistry_projects_locations_repositories_npm_packages_get_execute()`.
+/// For task-level control, use `artifactregistry_projects_locations_repositories_npm_packages_get_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn artifactregistry_projects_locations_repositories_npm_packages_get(
+    client: &SimpleHttpClient,
+    args: &ArtifactregistryProjectsLocationsRepositoriesNpmPackagesGetArgs,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<NpmPackage>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let builder = artifactregistry_projects_locations_repositories_npm_packages_get_builder(
+        client, &args.name,
+    )?;
+    artifactregistry_projects_locations_repositories_npm_packages_get_execute(builder)
+}
+
+/// GET v1/projects/{projectsId}/locations/{locationsId}/repositories/{repositoriesId}/npmPackages
+/// Lists npm packages.
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `artifactregistry_projects_locations_repositories_npm_packages_list_execute()` to send, or `artifactregistry_projects_locations_repositories_npm_packages_list` for simplest API.
+
+pub fn artifactregistry_projects_locations_repositories_npm_packages_list_builder(
+    client: &SimpleHttpClient,
+    parent: &String,
+    pageSize: &Option<Option<String>>,
+    pageToken: &Option<Option<String>>,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!(
+        "https://artifactregistry.googleapis.com/v1/projects/{}/locations/{locationsId}/repositories/{repositoriesId}/npmPackages",
+        parent,
+    );
+
+    // Build request
+    let mut query_parts = Vec::new();
+    if let Some(val) = pageSize.as_ref() {
+        query_parts.push(format!("pageSize={}", val));
+    }
+    if let Some(val) = pageToken.as_ref() {
+        query_parts.push(format!("pageToken={}", val));
+    }
+
+    let url_with_query = if query_parts.is_empty() {
+        endpoint_url
+    } else {
+        format!("{}?{}", endpoint_url, query_parts.join("&"))
+    };
+
+    let builder = client
+        .get(&url_with_query)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// GET v1/projects/{projectsId}/locations/{locationsId}/repositories/{repositoriesId}/npmPackages
+/// Lists npm packages.
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `artifactregistry_projects_locations_repositories_npm_packages_list_execute()` or `artifactregistry_projects_locations_repositories_npm_packages_list`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `artifactregistry_projects_locations_repositories_npm_packages_list_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn artifactregistry_projects_locations_repositories_npm_packages_list_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<ListNpmPackagesResponse>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: ListNpmPackagesResponse = serde_json::from_str(&body)
+                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// GET v1/projects/{projectsId}/locations/{locationsId}/repositories/{repositoriesId}/npmPackages
+/// Lists npm packages.
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `artifactregistry_projects_locations_repositories_npm_packages_list_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `artifactregistry_projects_locations_repositories_npm_packages_list_task()`.
+/// For the simplest API, use `artifactregistry_projects_locations_repositories_npm_packages_list()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `artifactregistry_projects_locations_repositories_npm_packages_list_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn artifactregistry_projects_locations_repositories_npm_packages_list_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<ListNpmPackagesResponse>, ApiError>, P = ApiPending>
+        + Send
+        + 'static,
+    ApiError,
+> {
+    let task = artifactregistry_projects_locations_repositories_npm_packages_list_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`artifactregistry_projects_locations_repositories_npm_packages_list`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct ArtifactregistryProjectsLocationsRepositoriesNpmPackagesListArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Query parameter: pageSize
+    pub pageSize: Option<Option<String>>,
+    /// Query parameter: pageToken
+    pub pageToken: Option<Option<String>>,
+}
+
+/// GET v1/projects/{projectsId}/locations/{locationsId}/repositories/{repositoriesId}/npmPackages
+/// Lists npm packages.
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `artifactregistry_projects_locations_repositories_npm_packages_list_builder()` + `artifactregistry_projects_locations_repositories_npm_packages_list_execute()`.
+/// For task-level control, use `artifactregistry_projects_locations_repositories_npm_packages_list_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn artifactregistry_projects_locations_repositories_npm_packages_list(
+    client: &SimpleHttpClient,
+    args: &ArtifactregistryProjectsLocationsRepositoriesNpmPackagesListArgs,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<ListNpmPackagesResponse>, ApiError>, P = ApiPending>
+        + Send
+        + 'static,
+    ApiError,
+> {
+    let builder = artifactregistry_projects_locations_repositories_npm_packages_list_builder(
+        client,
+        &args.parent,
+        &args.pageSize,
+        &args.pageToken,
+    )?;
+    artifactregistry_projects_locations_repositories_npm_packages_list_execute(builder)
+}
+
+/// DELETE v1/projects/{projectsId}/locations/{locationsId}/repositories/{repositoriesId}/packages/{packagesId}
+/// Deletes a package and all of its versions and tags. The returned operation will complete once the package has been deleted.
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `artifactregistry_projects_locations_repositories_packages_delete_execute()` to send, or `artifactregistry_projects_locations_repositories_packages_delete` for simplest API.
+
+pub fn artifactregistry_projects_locations_repositories_packages_delete_builder(
+    client: &SimpleHttpClient,
+    name: &String,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!(
+        "https://artifactregistry.googleapis.com/v1/projects/{}/locations/{locationsId}/repositories/{repositoriesId}/packages/{packagesId}",
+        name,
+    );
+
+    // Build request
+    let builder = client
+        .delete(&endpoint_url)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// DELETE v1/projects/{projectsId}/locations/{locationsId}/repositories/{repositoriesId}/packages/{packagesId}
+/// Deletes a package and all of its versions and tags. The returned operation will complete once the package has been deleted.
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `artifactregistry_projects_locations_repositories_packages_delete_execute()` or `artifactregistry_projects_locations_repositories_packages_delete`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `artifactregistry_projects_locations_repositories_packages_delete_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn artifactregistry_projects_locations_repositories_packages_delete_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<Operation>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: Operation = serde_json::from_str(&body)
+                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// DELETE v1/projects/{projectsId}/locations/{locationsId}/repositories/{repositoriesId}/packages/{packagesId}
+/// Deletes a package and all of its versions and tags. The returned operation will complete once the package has been deleted.
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `artifactregistry_projects_locations_repositories_packages_delete_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `artifactregistry_projects_locations_repositories_packages_delete_task()`.
+/// For the simplest API, use `artifactregistry_projects_locations_repositories_packages_delete()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `artifactregistry_projects_locations_repositories_packages_delete_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn artifactregistry_projects_locations_repositories_packages_delete_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<Operation>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let task = artifactregistry_projects_locations_repositories_packages_delete_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`artifactregistry_projects_locations_repositories_packages_delete`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct ArtifactregistryProjectsLocationsRepositoriesPackagesDeleteArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
+/// DELETE v1/projects/{projectsId}/locations/{locationsId}/repositories/{repositoriesId}/packages/{packagesId}
+/// Deletes a package and all of its versions and tags. The returned operation will complete once the package has been deleted.
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `artifactregistry_projects_locations_repositories_packages_delete_builder()` + `artifactregistry_projects_locations_repositories_packages_delete_execute()`.
+/// For task-level control, use `artifactregistry_projects_locations_repositories_packages_delete_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn artifactregistry_projects_locations_repositories_packages_delete(
+    client: &SimpleHttpClient,
+    args: &ArtifactregistryProjectsLocationsRepositoriesPackagesDeleteArgs,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<Operation>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let builder = artifactregistry_projects_locations_repositories_packages_delete_builder(
+        client, &args.name,
+    )?;
+    artifactregistry_projects_locations_repositories_packages_delete_execute(builder)
+}
+
+/// GET v1/projects/{projectsId}/locations/{locationsId}/repositories/{repositoriesId}/packages/{packagesId}
+/// Gets a package.
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `artifactregistry_projects_locations_repositories_packages_get_execute()` to send, or `artifactregistry_projects_locations_repositories_packages_get` for simplest API.
+
+pub fn artifactregistry_projects_locations_repositories_packages_get_builder(
+    client: &SimpleHttpClient,
+    name: &String,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!(
+        "https://artifactregistry.googleapis.com/v1/projects/{}/locations/{locationsId}/repositories/{repositoriesId}/packages/{packagesId}",
+        name,
+    );
+
+    // Build request
+    let builder = client
+        .get(&endpoint_url)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// GET v1/projects/{projectsId}/locations/{locationsId}/repositories/{repositoriesId}/packages/{packagesId}
+/// Gets a package.
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `artifactregistry_projects_locations_repositories_packages_get_execute()` or `artifactregistry_projects_locations_repositories_packages_get`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `artifactregistry_projects_locations_repositories_packages_get_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn artifactregistry_projects_locations_repositories_packages_get_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<Package>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: Package = serde_json::from_str(&body)
+                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// GET v1/projects/{projectsId}/locations/{locationsId}/repositories/{repositoriesId}/packages/{packagesId}
+/// Gets a package.
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `artifactregistry_projects_locations_repositories_packages_get_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `artifactregistry_projects_locations_repositories_packages_get_task()`.
+/// For the simplest API, use `artifactregistry_projects_locations_repositories_packages_get()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `artifactregistry_projects_locations_repositories_packages_get_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn artifactregistry_projects_locations_repositories_packages_get_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<Package>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let task = artifactregistry_projects_locations_repositories_packages_get_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`artifactregistry_projects_locations_repositories_packages_get`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct ArtifactregistryProjectsLocationsRepositoriesPackagesGetArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
+/// GET v1/projects/{projectsId}/locations/{locationsId}/repositories/{repositoriesId}/packages/{packagesId}
+/// Gets a package.
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `artifactregistry_projects_locations_repositories_packages_get_builder()` + `artifactregistry_projects_locations_repositories_packages_get_execute()`.
+/// For task-level control, use `artifactregistry_projects_locations_repositories_packages_get_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn artifactregistry_projects_locations_repositories_packages_get(
+    client: &SimpleHttpClient,
+    args: &ArtifactregistryProjectsLocationsRepositoriesPackagesGetArgs,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<Package>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let builder =
+        artifactregistry_projects_locations_repositories_packages_get_builder(client, &args.name)?;
+    artifactregistry_projects_locations_repositories_packages_get_execute(builder)
+}
+
+/// GET v1/projects/{projectsId}/locations/{locationsId}/repositories/{repositoriesId}/packages
+/// Lists packages.
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `artifactregistry_projects_locations_repositories_packages_list_execute()` to send, or `artifactregistry_projects_locations_repositories_packages_list` for simplest API.
+
+pub fn artifactregistry_projects_locations_repositories_packages_list_builder(
+    client: &SimpleHttpClient,
+    parent: &String,
+    filter: &Option<Option<String>>,
+    orderBy: &Option<Option<String>>,
+    pageSize: &Option<Option<String>>,
+    pageToken: &Option<Option<String>>,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!(
+        "https://artifactregistry.googleapis.com/v1/projects/{}/locations/{locationsId}/repositories/{repositoriesId}/packages",
+        parent,
+    );
+
+    // Build request
+    let mut query_parts = Vec::new();
+    if let Some(val) = filter.as_ref() {
+        query_parts.push(format!("filter={}", val));
+    }
+    if let Some(val) = orderBy.as_ref() {
+        query_parts.push(format!("orderBy={}", val));
+    }
+    if let Some(val) = pageSize.as_ref() {
+        query_parts.push(format!("pageSize={}", val));
+    }
+    if let Some(val) = pageToken.as_ref() {
+        query_parts.push(format!("pageToken={}", val));
+    }
+
+    let url_with_query = if query_parts.is_empty() {
+        endpoint_url
+    } else {
+        format!("{}?{}", endpoint_url, query_parts.join("&"))
+    };
+
+    let builder = client
+        .get(&url_with_query)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// GET v1/projects/{projectsId}/locations/{locationsId}/repositories/{repositoriesId}/packages
+/// Lists packages.
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `artifactregistry_projects_locations_repositories_packages_list_execute()` or `artifactregistry_projects_locations_repositories_packages_list`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `artifactregistry_projects_locations_repositories_packages_list_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn artifactregistry_projects_locations_repositories_packages_list_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<ListPackagesResponse>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: ListPackagesResponse = serde_json::from_str(&body)
+                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// GET v1/projects/{projectsId}/locations/{locationsId}/repositories/{repositoriesId}/packages
+/// Lists packages.
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `artifactregistry_projects_locations_repositories_packages_list_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `artifactregistry_projects_locations_repositories_packages_list_task()`.
+/// For the simplest API, use `artifactregistry_projects_locations_repositories_packages_list()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `artifactregistry_projects_locations_repositories_packages_list_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn artifactregistry_projects_locations_repositories_packages_list_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<ListPackagesResponse>, ApiError>, P = ApiPending>
+        + Send
+        + 'static,
+    ApiError,
+> {
+    let task = artifactregistry_projects_locations_repositories_packages_list_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`artifactregistry_projects_locations_repositories_packages_list`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct ArtifactregistryProjectsLocationsRepositoriesPackagesListArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Query parameter: filter
+    pub filter: Option<Option<String>>,
+    /// Query parameter: orderBy
+    pub orderBy: Option<Option<String>>,
+    /// Query parameter: pageSize
+    pub pageSize: Option<Option<String>>,
+    /// Query parameter: pageToken
+    pub pageToken: Option<Option<String>>,
+}
+
+/// GET v1/projects/{projectsId}/locations/{locationsId}/repositories/{repositoriesId}/packages
+/// Lists packages.
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `artifactregistry_projects_locations_repositories_packages_list_builder()` + `artifactregistry_projects_locations_repositories_packages_list_execute()`.
+/// For task-level control, use `artifactregistry_projects_locations_repositories_packages_list_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn artifactregistry_projects_locations_repositories_packages_list(
+    client: &SimpleHttpClient,
+    args: &ArtifactregistryProjectsLocationsRepositoriesPackagesListArgs,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<ListPackagesResponse>, ApiError>, P = ApiPending>
+        + Send
+        + 'static,
+    ApiError,
+> {
+    let builder = artifactregistry_projects_locations_repositories_packages_list_builder(
+        client,
+        &args.parent,
+        &args.filter,
+        &args.orderBy,
+        &args.pageSize,
+        &args.pageToken,
+    )?;
+    artifactregistry_projects_locations_repositories_packages_list_execute(builder)
+}
+
+/// PATCH v1/projects/{projectsId}/locations/{locationsId}/repositories/{repositoriesId}/packages/{packagesId}
+/// Updates a package.
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `artifactregistry_projects_locations_repositories_packages_patch_execute()` to send, or `artifactregistry_projects_locations_repositories_packages_patch` for simplest API.
+
+pub fn artifactregistry_projects_locations_repositories_packages_patch_builder(
+    client: &SimpleHttpClient,
+    name: &String,
+    updateMask: &Option<Option<String>>,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!(
+        "https://artifactregistry.googleapis.com/v1/projects/{}/locations/{locationsId}/repositories/{repositoriesId}/packages/{packagesId}",
+        name,
+    );
+
+    // Build request
+    let mut query_parts = Vec::new();
+    if let Some(val) = updateMask.as_ref() {
+        query_parts.push(format!("updateMask={}", val));
+    }
+
+    let url_with_query = if query_parts.is_empty() {
+        endpoint_url
+    } else {
+        format!("{}?{}", endpoint_url, query_parts.join("&"))
+    };
+
+    let builder = client
+        .patch(&url_with_query)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// PATCH v1/projects/{projectsId}/locations/{locationsId}/repositories/{repositoriesId}/packages/{packagesId}
+/// Updates a package.
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `artifactregistry_projects_locations_repositories_packages_patch_execute()` or `artifactregistry_projects_locations_repositories_packages_patch`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `artifactregistry_projects_locations_repositories_packages_patch_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn artifactregistry_projects_locations_repositories_packages_patch_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<Package>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: Package = serde_json::from_str(&body)
+                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// PATCH v1/projects/{projectsId}/locations/{locationsId}/repositories/{repositoriesId}/packages/{packagesId}
+/// Updates a package.
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `artifactregistry_projects_locations_repositories_packages_patch_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `artifactregistry_projects_locations_repositories_packages_patch_task()`.
+/// For the simplest API, use `artifactregistry_projects_locations_repositories_packages_patch()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `artifactregistry_projects_locations_repositories_packages_patch_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn artifactregistry_projects_locations_repositories_packages_patch_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<Package>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let task = artifactregistry_projects_locations_repositories_packages_patch_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`artifactregistry_projects_locations_repositories_packages_patch`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct ArtifactregistryProjectsLocationsRepositoriesPackagesPatchArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Query parameter: updateMask
+    pub updateMask: Option<Option<String>>,
+}
+
+/// PATCH v1/projects/{projectsId}/locations/{locationsId}/repositories/{repositoriesId}/packages/{packagesId}
+/// Updates a package.
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `artifactregistry_projects_locations_repositories_packages_patch_builder()` + `artifactregistry_projects_locations_repositories_packages_patch_execute()`.
+/// For task-level control, use `artifactregistry_projects_locations_repositories_packages_patch_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn artifactregistry_projects_locations_repositories_packages_patch(
+    client: &SimpleHttpClient,
+    args: &ArtifactregistryProjectsLocationsRepositoriesPackagesPatchArgs,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<Package>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let builder = artifactregistry_projects_locations_repositories_packages_patch_builder(
+        client,
+        &args.name,
+        &args.updateMask,
+    )?;
+    artifactregistry_projects_locations_repositories_packages_patch_execute(builder)
+}
+
+/// POST v1/projects/{projectsId}/locations/{locationsId}/repositories/{repositoriesId}/packages/{packagesId}/tags
+/// Creates a tag.
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `artifactregistry_projects_locations_repositories_packages_tags_create_execute()` to send, or `artifactregistry_projects_locations_repositories_packages_tags_create` for simplest API.
+
+pub fn artifactregistry_projects_locations_repositories_packages_tags_create_builder(
+    client: &SimpleHttpClient,
+    parent: &String,
+    tagId: &Option<Option<String>>,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!(
+        "https://artifactregistry.googleapis.com/v1/projects/{}/locations/{locationsId}/repositories/{repositoriesId}/packages/{packagesId}/tags",
+        parent,
+    );
+
+    // Build request
+    let mut query_parts = Vec::new();
+    if let Some(val) = tagId.as_ref() {
+        query_parts.push(format!("tagId={}", val));
+    }
+
+    let url_with_query = if query_parts.is_empty() {
+        endpoint_url
+    } else {
+        format!("{}?{}", endpoint_url, query_parts.join("&"))
+    };
+
+    let builder = client
+        .post(&url_with_query)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// POST v1/projects/{projectsId}/locations/{locationsId}/repositories/{repositoriesId}/packages/{packagesId}/tags
+/// Creates a tag.
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `artifactregistry_projects_locations_repositories_packages_tags_create_execute()` or `artifactregistry_projects_locations_repositories_packages_tags_create`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `artifactregistry_projects_locations_repositories_packages_tags_create_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn artifactregistry_projects_locations_repositories_packages_tags_create_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<Tag>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: Tag = serde_json::from_str(&body)
+                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// POST v1/projects/{projectsId}/locations/{locationsId}/repositories/{repositoriesId}/packages/{packagesId}/tags
+/// Creates a tag.
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `artifactregistry_projects_locations_repositories_packages_tags_create_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `artifactregistry_projects_locations_repositories_packages_tags_create_task()`.
+/// For the simplest API, use `artifactregistry_projects_locations_repositories_packages_tags_create()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `artifactregistry_projects_locations_repositories_packages_tags_create_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn artifactregistry_projects_locations_repositories_packages_tags_create_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<Tag>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let task = artifactregistry_projects_locations_repositories_packages_tags_create_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`artifactregistry_projects_locations_repositories_packages_tags_create`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct ArtifactregistryProjectsLocationsRepositoriesPackagesTagsCreateArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Query parameter: tagId
+    pub tagId: Option<Option<String>>,
+}
+
+/// POST v1/projects/{projectsId}/locations/{locationsId}/repositories/{repositoriesId}/packages/{packagesId}/tags
+/// Creates a tag.
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `artifactregistry_projects_locations_repositories_packages_tags_create_builder()` + `artifactregistry_projects_locations_repositories_packages_tags_create_execute()`.
+/// For task-level control, use `artifactregistry_projects_locations_repositories_packages_tags_create_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn artifactregistry_projects_locations_repositories_packages_tags_create(
+    client: &SimpleHttpClient,
+    args: &ArtifactregistryProjectsLocationsRepositoriesPackagesTagsCreateArgs,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<Tag>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let builder = artifactregistry_projects_locations_repositories_packages_tags_create_builder(
+        client,
+        &args.parent,
+        &args.tagId,
+    )?;
+    artifactregistry_projects_locations_repositories_packages_tags_create_execute(builder)
+}
+
+/// DELETE v1/projects/{projectsId}/locations/{locationsId}/repositories/{repositoriesId}/packages/{packagesId}/tags/{tagsId}
+/// Deletes a tag.
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `artifactregistry_projects_locations_repositories_packages_tags_delete_execute()` to send, or `artifactregistry_projects_locations_repositories_packages_tags_delete` for simplest API.
+
+pub fn artifactregistry_projects_locations_repositories_packages_tags_delete_builder(
+    client: &SimpleHttpClient,
+    name: &String,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!(
+        "https://artifactregistry.googleapis.com/v1/projects/{}/locations/{locationsId}/repositories/{repositoriesId}/packages/{packagesId}/tags/{tagsId}",
+        name,
+    );
+
+    // Build request
+    let builder = client
+        .delete(&endpoint_url)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// DELETE v1/projects/{projectsId}/locations/{locationsId}/repositories/{repositoriesId}/packages/{packagesId}/tags/{tagsId}
+/// Deletes a tag.
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `artifactregistry_projects_locations_repositories_packages_tags_delete_execute()` or `artifactregistry_projects_locations_repositories_packages_tags_delete`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `artifactregistry_projects_locations_repositories_packages_tags_delete_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn artifactregistry_projects_locations_repositories_packages_tags_delete_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<Empty>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: Empty = serde_json::from_str(&body)
+                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// DELETE v1/projects/{projectsId}/locations/{locationsId}/repositories/{repositoriesId}/packages/{packagesId}/tags/{tagsId}
+/// Deletes a tag.
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `artifactregistry_projects_locations_repositories_packages_tags_delete_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `artifactregistry_projects_locations_repositories_packages_tags_delete_task()`.
+/// For the simplest API, use `artifactregistry_projects_locations_repositories_packages_tags_delete()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `artifactregistry_projects_locations_repositories_packages_tags_delete_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn artifactregistry_projects_locations_repositories_packages_tags_delete_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<Empty>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let task = artifactregistry_projects_locations_repositories_packages_tags_delete_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`artifactregistry_projects_locations_repositories_packages_tags_delete`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct ArtifactregistryProjectsLocationsRepositoriesPackagesTagsDeleteArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
+/// DELETE v1/projects/{projectsId}/locations/{locationsId}/repositories/{repositoriesId}/packages/{packagesId}/tags/{tagsId}
+/// Deletes a tag.
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `artifactregistry_projects_locations_repositories_packages_tags_delete_builder()` + `artifactregistry_projects_locations_repositories_packages_tags_delete_execute()`.
+/// For task-level control, use `artifactregistry_projects_locations_repositories_packages_tags_delete_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn artifactregistry_projects_locations_repositories_packages_tags_delete(
+    client: &SimpleHttpClient,
+    args: &ArtifactregistryProjectsLocationsRepositoriesPackagesTagsDeleteArgs,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<Empty>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let builder = artifactregistry_projects_locations_repositories_packages_tags_delete_builder(
+        client, &args.name,
+    )?;
+    artifactregistry_projects_locations_repositories_packages_tags_delete_execute(builder)
+}
+
+/// GET v1/projects/{projectsId}/locations/{locationsId}/repositories/{repositoriesId}/packages/{packagesId}/tags/{tagsId}
+/// Gets a tag.
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `artifactregistry_projects_locations_repositories_packages_tags_get_execute()` to send, or `artifactregistry_projects_locations_repositories_packages_tags_get` for simplest API.
+
+pub fn artifactregistry_projects_locations_repositories_packages_tags_get_builder(
+    client: &SimpleHttpClient,
+    name: &String,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!(
+        "https://artifactregistry.googleapis.com/v1/projects/{}/locations/{locationsId}/repositories/{repositoriesId}/packages/{packagesId}/tags/{tagsId}",
+        name,
+    );
+
+    // Build request
+    let builder = client
+        .get(&endpoint_url)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// GET v1/projects/{projectsId}/locations/{locationsId}/repositories/{repositoriesId}/packages/{packagesId}/tags/{tagsId}
+/// Gets a tag.
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `artifactregistry_projects_locations_repositories_packages_tags_get_execute()` or `artifactregistry_projects_locations_repositories_packages_tags_get`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `artifactregistry_projects_locations_repositories_packages_tags_get_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn artifactregistry_projects_locations_repositories_packages_tags_get_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<Tag>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: Tag = serde_json::from_str(&body)
+                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// GET v1/projects/{projectsId}/locations/{locationsId}/repositories/{repositoriesId}/packages/{packagesId}/tags/{tagsId}
+/// Gets a tag.
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `artifactregistry_projects_locations_repositories_packages_tags_get_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `artifactregistry_projects_locations_repositories_packages_tags_get_task()`.
+/// For the simplest API, use `artifactregistry_projects_locations_repositories_packages_tags_get()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `artifactregistry_projects_locations_repositories_packages_tags_get_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn artifactregistry_projects_locations_repositories_packages_tags_get_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<Tag>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let task = artifactregistry_projects_locations_repositories_packages_tags_get_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`artifactregistry_projects_locations_repositories_packages_tags_get`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct ArtifactregistryProjectsLocationsRepositoriesPackagesTagsGetArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
+/// GET v1/projects/{projectsId}/locations/{locationsId}/repositories/{repositoriesId}/packages/{packagesId}/tags/{tagsId}
+/// Gets a tag.
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `artifactregistry_projects_locations_repositories_packages_tags_get_builder()` + `artifactregistry_projects_locations_repositories_packages_tags_get_execute()`.
+/// For task-level control, use `artifactregistry_projects_locations_repositories_packages_tags_get_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn artifactregistry_projects_locations_repositories_packages_tags_get(
+    client: &SimpleHttpClient,
+    args: &ArtifactregistryProjectsLocationsRepositoriesPackagesTagsGetArgs,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<Tag>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let builder = artifactregistry_projects_locations_repositories_packages_tags_get_builder(
+        client, &args.name,
+    )?;
+    artifactregistry_projects_locations_repositories_packages_tags_get_execute(builder)
+}
+
+/// GET v1/projects/{projectsId}/locations/{locationsId}/repositories/{repositoriesId}/packages/{packagesId}/tags
+/// Lists tags.
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `artifactregistry_projects_locations_repositories_packages_tags_list_execute()` to send, or `artifactregistry_projects_locations_repositories_packages_tags_list` for simplest API.
+
+pub fn artifactregistry_projects_locations_repositories_packages_tags_list_builder(
+    client: &SimpleHttpClient,
+    parent: &String,
+    filter: &Option<Option<String>>,
+    pageSize: &Option<Option<String>>,
+    pageToken: &Option<Option<String>>,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!(
+        "https://artifactregistry.googleapis.com/v1/projects/{}/locations/{locationsId}/repositories/{repositoriesId}/packages/{packagesId}/tags",
+        parent,
+    );
+
+    // Build request
+    let mut query_parts = Vec::new();
+    if let Some(val) = filter.as_ref() {
+        query_parts.push(format!("filter={}", val));
+    }
+    if let Some(val) = pageSize.as_ref() {
+        query_parts.push(format!("pageSize={}", val));
+    }
+    if let Some(val) = pageToken.as_ref() {
+        query_parts.push(format!("pageToken={}", val));
+    }
+
+    let url_with_query = if query_parts.is_empty() {
+        endpoint_url
+    } else {
+        format!("{}?{}", endpoint_url, query_parts.join("&"))
+    };
+
+    let builder = client
+        .get(&url_with_query)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// GET v1/projects/{projectsId}/locations/{locationsId}/repositories/{repositoriesId}/packages/{packagesId}/tags
+/// Lists tags.
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `artifactregistry_projects_locations_repositories_packages_tags_list_execute()` or `artifactregistry_projects_locations_repositories_packages_tags_list`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `artifactregistry_projects_locations_repositories_packages_tags_list_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn artifactregistry_projects_locations_repositories_packages_tags_list_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<ListTagsResponse>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: ListTagsResponse = serde_json::from_str(&body)
+                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// GET v1/projects/{projectsId}/locations/{locationsId}/repositories/{repositoriesId}/packages/{packagesId}/tags
+/// Lists tags.
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `artifactregistry_projects_locations_repositories_packages_tags_list_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `artifactregistry_projects_locations_repositories_packages_tags_list_task()`.
+/// For the simplest API, use `artifactregistry_projects_locations_repositories_packages_tags_list()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `artifactregistry_projects_locations_repositories_packages_tags_list_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn artifactregistry_projects_locations_repositories_packages_tags_list_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<ListTagsResponse>, ApiError>, P = ApiPending>
+        + Send
+        + 'static,
+    ApiError,
+> {
+    let task = artifactregistry_projects_locations_repositories_packages_tags_list_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`artifactregistry_projects_locations_repositories_packages_tags_list`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct ArtifactregistryProjectsLocationsRepositoriesPackagesTagsListArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Query parameter: filter
+    pub filter: Option<Option<String>>,
+    /// Query parameter: pageSize
+    pub pageSize: Option<Option<String>>,
+    /// Query parameter: pageToken
+    pub pageToken: Option<Option<String>>,
+}
+
+/// GET v1/projects/{projectsId}/locations/{locationsId}/repositories/{repositoriesId}/packages/{packagesId}/tags
+/// Lists tags.
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `artifactregistry_projects_locations_repositories_packages_tags_list_builder()` + `artifactregistry_projects_locations_repositories_packages_tags_list_execute()`.
+/// For task-level control, use `artifactregistry_projects_locations_repositories_packages_tags_list_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn artifactregistry_projects_locations_repositories_packages_tags_list(
+    client: &SimpleHttpClient,
+    args: &ArtifactregistryProjectsLocationsRepositoriesPackagesTagsListArgs,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<ListTagsResponse>, ApiError>, P = ApiPending>
+        + Send
+        + 'static,
+    ApiError,
+> {
+    let builder = artifactregistry_projects_locations_repositories_packages_tags_list_builder(
+        client,
+        &args.parent,
+        &args.filter,
+        &args.pageSize,
+        &args.pageToken,
+    )?;
+    artifactregistry_projects_locations_repositories_packages_tags_list_execute(builder)
+}
+
+/// PATCH v1/projects/{projectsId}/locations/{locationsId}/repositories/{repositoriesId}/packages/{packagesId}/tags/{tagsId}
+/// Updates a tag.
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `artifactregistry_projects_locations_repositories_packages_tags_patch_execute()` to send, or `artifactregistry_projects_locations_repositories_packages_tags_patch` for simplest API.
+
+pub fn artifactregistry_projects_locations_repositories_packages_tags_patch_builder(
+    client: &SimpleHttpClient,
+    name: &String,
+    updateMask: &Option<Option<String>>,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!(
+        "https://artifactregistry.googleapis.com/v1/projects/{}/locations/{locationsId}/repositories/{repositoriesId}/packages/{packagesId}/tags/{tagsId}",
+        name,
+    );
+
+    // Build request
+    let mut query_parts = Vec::new();
+    if let Some(val) = updateMask.as_ref() {
+        query_parts.push(format!("updateMask={}", val));
+    }
+
+    let url_with_query = if query_parts.is_empty() {
+        endpoint_url
+    } else {
+        format!("{}?{}", endpoint_url, query_parts.join("&"))
+    };
+
+    let builder = client
+        .patch(&url_with_query)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// PATCH v1/projects/{projectsId}/locations/{locationsId}/repositories/{repositoriesId}/packages/{packagesId}/tags/{tagsId}
+/// Updates a tag.
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `artifactregistry_projects_locations_repositories_packages_tags_patch_execute()` or `artifactregistry_projects_locations_repositories_packages_tags_patch`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `artifactregistry_projects_locations_repositories_packages_tags_patch_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn artifactregistry_projects_locations_repositories_packages_tags_patch_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<Tag>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: Tag = serde_json::from_str(&body)
+                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// PATCH v1/projects/{projectsId}/locations/{locationsId}/repositories/{repositoriesId}/packages/{packagesId}/tags/{tagsId}
+/// Updates a tag.
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `artifactregistry_projects_locations_repositories_packages_tags_patch_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `artifactregistry_projects_locations_repositories_packages_tags_patch_task()`.
+/// For the simplest API, use `artifactregistry_projects_locations_repositories_packages_tags_patch()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `artifactregistry_projects_locations_repositories_packages_tags_patch_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn artifactregistry_projects_locations_repositories_packages_tags_patch_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<Tag>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let task = artifactregistry_projects_locations_repositories_packages_tags_patch_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`artifactregistry_projects_locations_repositories_packages_tags_patch`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct ArtifactregistryProjectsLocationsRepositoriesPackagesTagsPatchArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Query parameter: updateMask
+    pub updateMask: Option<Option<String>>,
+}
+
+/// PATCH v1/projects/{projectsId}/locations/{locationsId}/repositories/{repositoriesId}/packages/{packagesId}/tags/{tagsId}
+/// Updates a tag.
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `artifactregistry_projects_locations_repositories_packages_tags_patch_builder()` + `artifactregistry_projects_locations_repositories_packages_tags_patch_execute()`.
+/// For task-level control, use `artifactregistry_projects_locations_repositories_packages_tags_patch_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn artifactregistry_projects_locations_repositories_packages_tags_patch(
+    client: &SimpleHttpClient,
+    args: &ArtifactregistryProjectsLocationsRepositoriesPackagesTagsPatchArgs,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<Tag>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let builder = artifactregistry_projects_locations_repositories_packages_tags_patch_builder(
+        client,
+        &args.name,
+        &args.updateMask,
+    )?;
+    artifactregistry_projects_locations_repositories_packages_tags_patch_execute(builder)
+}
+
+/// POST v1/projects/{projectsId}/locations/{locationsId}/repositories/{repositoriesId}/packages/{packagesId}/versions:batchDelete
+/// Deletes multiple versions across a repository. The returned operation will complete once the versions have been deleted.
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `artifactregistry_projects_locations_repositories_packages_versions_batch_delete_execute()` to send, or `artifactregistry_projects_locations_repositories_packages_versions_batch_delete` for simplest API.
+
+pub fn artifactregistry_projects_locations_repositories_packages_versions_batch_delete_builder(
+    client: &SimpleHttpClient,
+    parent: &String,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!(
+        "https://artifactregistry.googleapis.com/v1/projects/{}/locations/{locationsId}/repositories/{repositoriesId}/packages/{packagesId}/versions:batchDelete",
+        parent,
+    );
+
+    // Build request
+    let builder = client
+        .post(&endpoint_url)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// POST v1/projects/{projectsId}/locations/{locationsId}/repositories/{repositoriesId}/packages/{packagesId}/versions:batchDelete
+/// Deletes multiple versions across a repository. The returned operation will complete once the versions have been deleted.
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `artifactregistry_projects_locations_repositories_packages_versions_batch_delete_execute()` or `artifactregistry_projects_locations_repositories_packages_versions_batch_delete`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `artifactregistry_projects_locations_repositories_packages_versions_batch_delete_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn artifactregistry_projects_locations_repositories_packages_versions_batch_delete_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<Operation>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: Operation = serde_json::from_str(&body)
+                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// POST v1/projects/{projectsId}/locations/{locationsId}/repositories/{repositoriesId}/packages/{packagesId}/versions:batchDelete
+/// Deletes multiple versions across a repository. The returned operation will complete once the versions have been deleted.
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `artifactregistry_projects_locations_repositories_packages_versions_batch_delete_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `artifactregistry_projects_locations_repositories_packages_versions_batch_delete_task()`.
+/// For the simplest API, use `artifactregistry_projects_locations_repositories_packages_versions_batch_delete()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `artifactregistry_projects_locations_repositories_packages_versions_batch_delete_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn artifactregistry_projects_locations_repositories_packages_versions_batch_delete_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<Operation>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let task =
+        artifactregistry_projects_locations_repositories_packages_versions_batch_delete_task(
+            builder,
+        )?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`artifactregistry_projects_locations_repositories_packages_versions_batch_delete`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct ArtifactregistryProjectsLocationsRepositoriesPackagesVersionsBatchDeleteArgs {
+    /// Path parameter: parent
+    pub parent: String,
+}
+
+/// POST v1/projects/{projectsId}/locations/{locationsId}/repositories/{repositoriesId}/packages/{packagesId}/versions:batchDelete
+/// Deletes multiple versions across a repository. The returned operation will complete once the versions have been deleted.
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `artifactregistry_projects_locations_repositories_packages_versions_batch_delete_builder()` + `artifactregistry_projects_locations_repositories_packages_versions_batch_delete_execute()`.
+/// For task-level control, use `artifactregistry_projects_locations_repositories_packages_versions_batch_delete_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn artifactregistry_projects_locations_repositories_packages_versions_batch_delete(
+    client: &SimpleHttpClient,
+    args: &ArtifactregistryProjectsLocationsRepositoriesPackagesVersionsBatchDeleteArgs,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<Operation>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let builder =
+        artifactregistry_projects_locations_repositories_packages_versions_batch_delete_builder(
+            client,
+            &args.parent,
+        )?;
+    artifactregistry_projects_locations_repositories_packages_versions_batch_delete_execute(builder)
+}
+
+/// DELETE v1/projects/{projectsId}/locations/{locationsId}/repositories/{repositoriesId}/packages/{packagesId}/versions/{versionsId}
+/// Deletes a version and all of its content. The returned operation will complete once the version has been deleted.
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `artifactregistry_projects_locations_repositories_packages_versions_delete_execute()` to send, or `artifactregistry_projects_locations_repositories_packages_versions_delete` for simplest API.
+
+pub fn artifactregistry_projects_locations_repositories_packages_versions_delete_builder(
+    client: &SimpleHttpClient,
+    name: &String,
+    force: &Option<Option<String>>,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!(
+        "https://artifactregistry.googleapis.com/v1/projects/{}/locations/{locationsId}/repositories/{repositoriesId}/packages/{packagesId}/versions/{versionsId}",
+        name,
+    );
+
+    // Build request
+    let mut query_parts = Vec::new();
+    if let Some(val) = force.as_ref() {
+        query_parts.push(format!("force={}", val));
+    }
+
+    let url_with_query = if query_parts.is_empty() {
+        endpoint_url
+    } else {
+        format!("{}?{}", endpoint_url, query_parts.join("&"))
+    };
+
+    let builder = client
+        .delete(&url_with_query)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// DELETE v1/projects/{projectsId}/locations/{locationsId}/repositories/{repositoriesId}/packages/{packagesId}/versions/{versionsId}
+/// Deletes a version and all of its content. The returned operation will complete once the version has been deleted.
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `artifactregistry_projects_locations_repositories_packages_versions_delete_execute()` or `artifactregistry_projects_locations_repositories_packages_versions_delete`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `artifactregistry_projects_locations_repositories_packages_versions_delete_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn artifactregistry_projects_locations_repositories_packages_versions_delete_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<Operation>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: Operation = serde_json::from_str(&body)
+                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// DELETE v1/projects/{projectsId}/locations/{locationsId}/repositories/{repositoriesId}/packages/{packagesId}/versions/{versionsId}
+/// Deletes a version and all of its content. The returned operation will complete once the version has been deleted.
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `artifactregistry_projects_locations_repositories_packages_versions_delete_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `artifactregistry_projects_locations_repositories_packages_versions_delete_task()`.
+/// For the simplest API, use `artifactregistry_projects_locations_repositories_packages_versions_delete()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `artifactregistry_projects_locations_repositories_packages_versions_delete_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn artifactregistry_projects_locations_repositories_packages_versions_delete_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<Operation>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let task =
+        artifactregistry_projects_locations_repositories_packages_versions_delete_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`artifactregistry_projects_locations_repositories_packages_versions_delete`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct ArtifactregistryProjectsLocationsRepositoriesPackagesVersionsDeleteArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Query parameter: force
+    pub force: Option<Option<String>>,
+}
+
+/// DELETE v1/projects/{projectsId}/locations/{locationsId}/repositories/{repositoriesId}/packages/{packagesId}/versions/{versionsId}
+/// Deletes a version and all of its content. The returned operation will complete once the version has been deleted.
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `artifactregistry_projects_locations_repositories_packages_versions_delete_builder()` + `artifactregistry_projects_locations_repositories_packages_versions_delete_execute()`.
+/// For task-level control, use `artifactregistry_projects_locations_repositories_packages_versions_delete_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn artifactregistry_projects_locations_repositories_packages_versions_delete(
+    client: &SimpleHttpClient,
+    args: &ArtifactregistryProjectsLocationsRepositoriesPackagesVersionsDeleteArgs,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<Operation>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let builder =
+        artifactregistry_projects_locations_repositories_packages_versions_delete_builder(
+            client,
+            &args.name,
+            &args.force,
+        )?;
+    artifactregistry_projects_locations_repositories_packages_versions_delete_execute(builder)
+}
+
+/// GET v1/projects/{projectsId}/locations/{locationsId}/repositories/{repositoriesId}/packages/{packagesId}/versions/{versionsId}
+/// Gets a version
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `artifactregistry_projects_locations_repositories_packages_versions_get_execute()` to send, or `artifactregistry_projects_locations_repositories_packages_versions_get` for simplest API.
+
+pub fn artifactregistry_projects_locations_repositories_packages_versions_get_builder(
+    client: &SimpleHttpClient,
+    name: &String,
+    view: &Option<Option<String>>,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!(
+        "https://artifactregistry.googleapis.com/v1/projects/{}/locations/{locationsId}/repositories/{repositoriesId}/packages/{packagesId}/versions/{versionsId}",
+        name,
+    );
+
+    // Build request
+    let mut query_parts = Vec::new();
+    if let Some(val) = view.as_ref() {
+        query_parts.push(format!("view={}", val));
+    }
+
+    let url_with_query = if query_parts.is_empty() {
+        endpoint_url
+    } else {
+        format!("{}?{}", endpoint_url, query_parts.join("&"))
+    };
+
+    let builder = client
+        .get(&url_with_query)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// GET v1/projects/{projectsId}/locations/{locationsId}/repositories/{repositoriesId}/packages/{packagesId}/versions/{versionsId}
+/// Gets a version
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `artifactregistry_projects_locations_repositories_packages_versions_get_execute()` or `artifactregistry_projects_locations_repositories_packages_versions_get`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `artifactregistry_projects_locations_repositories_packages_versions_get_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn artifactregistry_projects_locations_repositories_packages_versions_get_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<Version>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: Version = serde_json::from_str(&body)
+                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// GET v1/projects/{projectsId}/locations/{locationsId}/repositories/{repositoriesId}/packages/{packagesId}/versions/{versionsId}
+/// Gets a version
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `artifactregistry_projects_locations_repositories_packages_versions_get_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `artifactregistry_projects_locations_repositories_packages_versions_get_task()`.
+/// For the simplest API, use `artifactregistry_projects_locations_repositories_packages_versions_get()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `artifactregistry_projects_locations_repositories_packages_versions_get_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn artifactregistry_projects_locations_repositories_packages_versions_get_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<Version>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let task =
+        artifactregistry_projects_locations_repositories_packages_versions_get_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`artifactregistry_projects_locations_repositories_packages_versions_get`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct ArtifactregistryProjectsLocationsRepositoriesPackagesVersionsGetArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Query parameter: view
+    pub view: Option<Option<String>>,
+}
+
+/// GET v1/projects/{projectsId}/locations/{locationsId}/repositories/{repositoriesId}/packages/{packagesId}/versions/{versionsId}
+/// Gets a version
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `artifactregistry_projects_locations_repositories_packages_versions_get_builder()` + `artifactregistry_projects_locations_repositories_packages_versions_get_execute()`.
+/// For task-level control, use `artifactregistry_projects_locations_repositories_packages_versions_get_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn artifactregistry_projects_locations_repositories_packages_versions_get(
+    client: &SimpleHttpClient,
+    args: &ArtifactregistryProjectsLocationsRepositoriesPackagesVersionsGetArgs,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<Version>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let builder = artifactregistry_projects_locations_repositories_packages_versions_get_builder(
+        client, &args.name, &args.view,
+    )?;
+    artifactregistry_projects_locations_repositories_packages_versions_get_execute(builder)
+}
+
+/// GET v1/projects/{projectsId}/locations/{locationsId}/repositories/{repositoriesId}/packages/{packagesId}/versions
+/// Lists versions.
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `artifactregistry_projects_locations_repositories_packages_versions_list_execute()` to send, or `artifactregistry_projects_locations_repositories_packages_versions_list` for simplest API.
+
+pub fn artifactregistry_projects_locations_repositories_packages_versions_list_builder(
+    client: &SimpleHttpClient,
+    parent: &String,
+    filter: &Option<Option<String>>,
+    orderBy: &Option<Option<String>>,
+    pageSize: &Option<Option<String>>,
+    pageToken: &Option<Option<String>>,
+    view: &Option<Option<String>>,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!(
+        "https://artifactregistry.googleapis.com/v1/projects/{}/locations/{locationsId}/repositories/{repositoriesId}/packages/{packagesId}/versions",
+        parent,
+    );
+
+    // Build request
+    let mut query_parts = Vec::new();
+    if let Some(val) = filter.as_ref() {
+        query_parts.push(format!("filter={}", val));
+    }
+    if let Some(val) = orderBy.as_ref() {
+        query_parts.push(format!("orderBy={}", val));
+    }
+    if let Some(val) = pageSize.as_ref() {
+        query_parts.push(format!("pageSize={}", val));
+    }
+    if let Some(val) = pageToken.as_ref() {
+        query_parts.push(format!("pageToken={}", val));
+    }
+    if let Some(val) = view.as_ref() {
+        query_parts.push(format!("view={}", val));
+    }
+
+    let url_with_query = if query_parts.is_empty() {
+        endpoint_url
+    } else {
+        format!("{}?{}", endpoint_url, query_parts.join("&"))
+    };
+
+    let builder = client
+        .get(&url_with_query)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// GET v1/projects/{projectsId}/locations/{locationsId}/repositories/{repositoriesId}/packages/{packagesId}/versions
+/// Lists versions.
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `artifactregistry_projects_locations_repositories_packages_versions_list_execute()` or `artifactregistry_projects_locations_repositories_packages_versions_list`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `artifactregistry_projects_locations_repositories_packages_versions_list_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn artifactregistry_projects_locations_repositories_packages_versions_list_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<ListVersionsResponse>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: ListVersionsResponse = serde_json::from_str(&body)
+                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// GET v1/projects/{projectsId}/locations/{locationsId}/repositories/{repositoriesId}/packages/{packagesId}/versions
+/// Lists versions.
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `artifactregistry_projects_locations_repositories_packages_versions_list_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `artifactregistry_projects_locations_repositories_packages_versions_list_task()`.
+/// For the simplest API, use `artifactregistry_projects_locations_repositories_packages_versions_list()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `artifactregistry_projects_locations_repositories_packages_versions_list_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn artifactregistry_projects_locations_repositories_packages_versions_list_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<ListVersionsResponse>, ApiError>, P = ApiPending>
+        + Send
+        + 'static,
+    ApiError,
+> {
+    let task =
+        artifactregistry_projects_locations_repositories_packages_versions_list_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`artifactregistry_projects_locations_repositories_packages_versions_list`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct ArtifactregistryProjectsLocationsRepositoriesPackagesVersionsListArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Query parameter: filter
+    pub filter: Option<Option<String>>,
+    /// Query parameter: orderBy
+    pub orderBy: Option<Option<String>>,
+    /// Query parameter: pageSize
+    pub pageSize: Option<Option<String>>,
+    /// Query parameter: pageToken
+    pub pageToken: Option<Option<String>>,
+    /// Query parameter: view
+    pub view: Option<Option<String>>,
+}
+
+/// GET v1/projects/{projectsId}/locations/{locationsId}/repositories/{repositoriesId}/packages/{packagesId}/versions
+/// Lists versions.
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `artifactregistry_projects_locations_repositories_packages_versions_list_builder()` + `artifactregistry_projects_locations_repositories_packages_versions_list_execute()`.
+/// For task-level control, use `artifactregistry_projects_locations_repositories_packages_versions_list_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn artifactregistry_projects_locations_repositories_packages_versions_list(
+    client: &SimpleHttpClient,
+    args: &ArtifactregistryProjectsLocationsRepositoriesPackagesVersionsListArgs,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<ListVersionsResponse>, ApiError>, P = ApiPending>
+        + Send
+        + 'static,
+    ApiError,
+> {
+    let builder = artifactregistry_projects_locations_repositories_packages_versions_list_builder(
+        client,
+        &args.parent,
+        &args.filter,
+        &args.orderBy,
+        &args.pageSize,
+        &args.pageToken,
+        &args.view,
+    )?;
+    artifactregistry_projects_locations_repositories_packages_versions_list_execute(builder)
+}
+
+/// PATCH v1/projects/{projectsId}/locations/{locationsId}/repositories/{repositoriesId}/packages/{packagesId}/versions/{versionsId}
+/// Updates a version.
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `artifactregistry_projects_locations_repositories_packages_versions_patch_execute()` to send, or `artifactregistry_projects_locations_repositories_packages_versions_patch` for simplest API.
+
+pub fn artifactregistry_projects_locations_repositories_packages_versions_patch_builder(
+    client: &SimpleHttpClient,
+    name: &String,
+    updateMask: &Option<Option<String>>,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!(
+        "https://artifactregistry.googleapis.com/v1/projects/{}/locations/{locationsId}/repositories/{repositoriesId}/packages/{packagesId}/versions/{versionsId}",
+        name,
+    );
+
+    // Build request
+    let mut query_parts = Vec::new();
+    if let Some(val) = updateMask.as_ref() {
+        query_parts.push(format!("updateMask={}", val));
+    }
+
+    let url_with_query = if query_parts.is_empty() {
+        endpoint_url
+    } else {
+        format!("{}?{}", endpoint_url, query_parts.join("&"))
+    };
+
+    let builder = client
+        .patch(&url_with_query)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// PATCH v1/projects/{projectsId}/locations/{locationsId}/repositories/{repositoriesId}/packages/{packagesId}/versions/{versionsId}
+/// Updates a version.
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `artifactregistry_projects_locations_repositories_packages_versions_patch_execute()` or `artifactregistry_projects_locations_repositories_packages_versions_patch`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `artifactregistry_projects_locations_repositories_packages_versions_patch_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn artifactregistry_projects_locations_repositories_packages_versions_patch_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<Version>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: Version = serde_json::from_str(&body)
+                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// PATCH v1/projects/{projectsId}/locations/{locationsId}/repositories/{repositoriesId}/packages/{packagesId}/versions/{versionsId}
+/// Updates a version.
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `artifactregistry_projects_locations_repositories_packages_versions_patch_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `artifactregistry_projects_locations_repositories_packages_versions_patch_task()`.
+/// For the simplest API, use `artifactregistry_projects_locations_repositories_packages_versions_patch()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `artifactregistry_projects_locations_repositories_packages_versions_patch_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn artifactregistry_projects_locations_repositories_packages_versions_patch_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<Version>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let task =
+        artifactregistry_projects_locations_repositories_packages_versions_patch_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`artifactregistry_projects_locations_repositories_packages_versions_patch`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct ArtifactregistryProjectsLocationsRepositoriesPackagesVersionsPatchArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Query parameter: updateMask
+    pub updateMask: Option<Option<String>>,
+}
+
+/// PATCH v1/projects/{projectsId}/locations/{locationsId}/repositories/{repositoriesId}/packages/{packagesId}/versions/{versionsId}
+/// Updates a version.
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `artifactregistry_projects_locations_repositories_packages_versions_patch_builder()` + `artifactregistry_projects_locations_repositories_packages_versions_patch_execute()`.
+/// For task-level control, use `artifactregistry_projects_locations_repositories_packages_versions_patch_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn artifactregistry_projects_locations_repositories_packages_versions_patch(
+    client: &SimpleHttpClient,
+    args: &ArtifactregistryProjectsLocationsRepositoriesPackagesVersionsPatchArgs,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<Version>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let builder = artifactregistry_projects_locations_repositories_packages_versions_patch_builder(
+        client,
+        &args.name,
+        &args.updateMask,
+    )?;
+    artifactregistry_projects_locations_repositories_packages_versions_patch_execute(builder)
+}
+
+/// GET v1/projects/{projectsId}/locations/{locationsId}/repositories/{repositoriesId}/pythonPackages/{pythonPackagesId}
+/// Gets a python package.
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `artifactregistry_projects_locations_repositories_python_packages_get_execute()` to send, or `artifactregistry_projects_locations_repositories_python_packages_get` for simplest API.
+
+pub fn artifactregistry_projects_locations_repositories_python_packages_get_builder(
+    client: &SimpleHttpClient,
+    name: &String,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!(
+        "https://artifactregistry.googleapis.com/v1/projects/{}/locations/{locationsId}/repositories/{repositoriesId}/pythonPackages/{pythonPackagesId}",
+        name,
+    );
+
+    // Build request
+    let builder = client
+        .get(&endpoint_url)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// GET v1/projects/{projectsId}/locations/{locationsId}/repositories/{repositoriesId}/pythonPackages/{pythonPackagesId}
+/// Gets a python package.
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `artifactregistry_projects_locations_repositories_python_packages_get_execute()` or `artifactregistry_projects_locations_repositories_python_packages_get`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `artifactregistry_projects_locations_repositories_python_packages_get_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn artifactregistry_projects_locations_repositories_python_packages_get_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<PythonPackage>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: PythonPackage = serde_json::from_str(&body)
+                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// GET v1/projects/{projectsId}/locations/{locationsId}/repositories/{repositoriesId}/pythonPackages/{pythonPackagesId}
+/// Gets a python package.
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `artifactregistry_projects_locations_repositories_python_packages_get_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `artifactregistry_projects_locations_repositories_python_packages_get_task()`.
+/// For the simplest API, use `artifactregistry_projects_locations_repositories_python_packages_get()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `artifactregistry_projects_locations_repositories_python_packages_get_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn artifactregistry_projects_locations_repositories_python_packages_get_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<PythonPackage>, ApiError>, P = ApiPending>
+        + Send
+        + 'static,
+    ApiError,
+> {
+    let task = artifactregistry_projects_locations_repositories_python_packages_get_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`artifactregistry_projects_locations_repositories_python_packages_get`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct ArtifactregistryProjectsLocationsRepositoriesPythonPackagesGetArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
+/// GET v1/projects/{projectsId}/locations/{locationsId}/repositories/{repositoriesId}/pythonPackages/{pythonPackagesId}
+/// Gets a python package.
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `artifactregistry_projects_locations_repositories_python_packages_get_builder()` + `artifactregistry_projects_locations_repositories_python_packages_get_execute()`.
+/// For task-level control, use `artifactregistry_projects_locations_repositories_python_packages_get_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn artifactregistry_projects_locations_repositories_python_packages_get(
+    client: &SimpleHttpClient,
+    args: &ArtifactregistryProjectsLocationsRepositoriesPythonPackagesGetArgs,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<PythonPackage>, ApiError>, P = ApiPending>
+        + Send
+        + 'static,
+    ApiError,
+> {
+    let builder = artifactregistry_projects_locations_repositories_python_packages_get_builder(
+        client, &args.name,
+    )?;
+    artifactregistry_projects_locations_repositories_python_packages_get_execute(builder)
+}
+
+/// GET v1/projects/{projectsId}/locations/{locationsId}/repositories/{repositoriesId}/pythonPackages
+/// Lists python packages.
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `artifactregistry_projects_locations_repositories_python_packages_list_execute()` to send, or `artifactregistry_projects_locations_repositories_python_packages_list` for simplest API.
+
+pub fn artifactregistry_projects_locations_repositories_python_packages_list_builder(
+    client: &SimpleHttpClient,
+    parent: &String,
+    pageSize: &Option<Option<String>>,
+    pageToken: &Option<Option<String>>,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!(
+        "https://artifactregistry.googleapis.com/v1/projects/{}/locations/{locationsId}/repositories/{repositoriesId}/pythonPackages",
+        parent,
+    );
+
+    // Build request
+    let mut query_parts = Vec::new();
+    if let Some(val) = pageSize.as_ref() {
+        query_parts.push(format!("pageSize={}", val));
+    }
+    if let Some(val) = pageToken.as_ref() {
+        query_parts.push(format!("pageToken={}", val));
+    }
+
+    let url_with_query = if query_parts.is_empty() {
+        endpoint_url
+    } else {
+        format!("{}?{}", endpoint_url, query_parts.join("&"))
+    };
+
+    let builder = client
+        .get(&url_with_query)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// GET v1/projects/{projectsId}/locations/{locationsId}/repositories/{repositoriesId}/pythonPackages
+/// Lists python packages.
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `artifactregistry_projects_locations_repositories_python_packages_list_execute()` or `artifactregistry_projects_locations_repositories_python_packages_list`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `artifactregistry_projects_locations_repositories_python_packages_list_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn artifactregistry_projects_locations_repositories_python_packages_list_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<ListPythonPackagesResponse>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: ListPythonPackagesResponse = serde_json::from_str(&body)
+                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// GET v1/projects/{projectsId}/locations/{locationsId}/repositories/{repositoriesId}/pythonPackages
+/// Lists python packages.
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `artifactregistry_projects_locations_repositories_python_packages_list_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `artifactregistry_projects_locations_repositories_python_packages_list_task()`.
+/// For the simplest API, use `artifactregistry_projects_locations_repositories_python_packages_list()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `artifactregistry_projects_locations_repositories_python_packages_list_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn artifactregistry_projects_locations_repositories_python_packages_list_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<
+            D = Result<ApiResponse<ListPythonPackagesResponse>, ApiError>,
+            P = ApiPending,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    let task = artifactregistry_projects_locations_repositories_python_packages_list_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`artifactregistry_projects_locations_repositories_python_packages_list`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct ArtifactregistryProjectsLocationsRepositoriesPythonPackagesListArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Query parameter: pageSize
+    pub pageSize: Option<Option<String>>,
+    /// Query parameter: pageToken
+    pub pageToken: Option<Option<String>>,
+}
+
+/// GET v1/projects/{projectsId}/locations/{locationsId}/repositories/{repositoriesId}/pythonPackages
+/// Lists python packages.
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `artifactregistry_projects_locations_repositories_python_packages_list_builder()` + `artifactregistry_projects_locations_repositories_python_packages_list_execute()`.
+/// For task-level control, use `artifactregistry_projects_locations_repositories_python_packages_list_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn artifactregistry_projects_locations_repositories_python_packages_list(
+    client: &SimpleHttpClient,
+    args: &ArtifactregistryProjectsLocationsRepositoriesPythonPackagesListArgs,
+) -> Result<
+    impl StreamIterator<
+            D = Result<ApiResponse<ListPythonPackagesResponse>, ApiError>,
+            P = ApiPending,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    let builder = artifactregistry_projects_locations_repositories_python_packages_list_builder(
+        client,
+        &args.parent,
+        &args.pageSize,
+        &args.pageToken,
+    )?;
+    artifactregistry_projects_locations_repositories_python_packages_list_execute(builder)
+}
+
+/// POST v1/projects/{projectsId}/locations/{locationsId}/repositories/{repositoriesId}/rules
+/// Creates a rule.
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `artifactregistry_projects_locations_repositories_rules_create_execute()` to send, or `artifactregistry_projects_locations_repositories_rules_create` for simplest API.
+
+pub fn artifactregistry_projects_locations_repositories_rules_create_builder(
+    client: &SimpleHttpClient,
+    parent: &String,
+    ruleId: &Option<Option<String>>,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!(
+        "https://artifactregistry.googleapis.com/v1/projects/{}/locations/{locationsId}/repositories/{repositoriesId}/rules",
+        parent,
+    );
+
+    // Build request
+    let mut query_parts = Vec::new();
+    if let Some(val) = ruleId.as_ref() {
+        query_parts.push(format!("ruleId={}", val));
+    }
+
+    let url_with_query = if query_parts.is_empty() {
+        endpoint_url
+    } else {
+        format!("{}?{}", endpoint_url, query_parts.join("&"))
+    };
+
+    let builder = client
+        .post(&url_with_query)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// POST v1/projects/{projectsId}/locations/{locationsId}/repositories/{repositoriesId}/rules
+/// Creates a rule.
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `artifactregistry_projects_locations_repositories_rules_create_execute()` or `artifactregistry_projects_locations_repositories_rules_create`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `artifactregistry_projects_locations_repositories_rules_create_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn artifactregistry_projects_locations_repositories_rules_create_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<GoogleDevtoolsArtifactregistryV1Rule>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: GoogleDevtoolsArtifactregistryV1Rule = serde_json::from_str(&body)
+                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// POST v1/projects/{projectsId}/locations/{locationsId}/repositories/{repositoriesId}/rules
+/// Creates a rule.
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `artifactregistry_projects_locations_repositories_rules_create_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `artifactregistry_projects_locations_repositories_rules_create_task()`.
+/// For the simplest API, use `artifactregistry_projects_locations_repositories_rules_create()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `artifactregistry_projects_locations_repositories_rules_create_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn artifactregistry_projects_locations_repositories_rules_create_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<
+            D = Result<ApiResponse<GoogleDevtoolsArtifactregistryV1Rule>, ApiError>,
+            P = ApiPending,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    let task = artifactregistry_projects_locations_repositories_rules_create_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`artifactregistry_projects_locations_repositories_rules_create`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct ArtifactregistryProjectsLocationsRepositoriesRulesCreateArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Query parameter: ruleId
+    pub ruleId: Option<Option<String>>,
+}
+
+/// POST v1/projects/{projectsId}/locations/{locationsId}/repositories/{repositoriesId}/rules
+/// Creates a rule.
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `artifactregistry_projects_locations_repositories_rules_create_builder()` + `artifactregistry_projects_locations_repositories_rules_create_execute()`.
+/// For task-level control, use `artifactregistry_projects_locations_repositories_rules_create_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn artifactregistry_projects_locations_repositories_rules_create(
+    client: &SimpleHttpClient,
+    args: &ArtifactregistryProjectsLocationsRepositoriesRulesCreateArgs,
+) -> Result<
+    impl StreamIterator<
+            D = Result<ApiResponse<GoogleDevtoolsArtifactregistryV1Rule>, ApiError>,
+            P = ApiPending,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    let builder = artifactregistry_projects_locations_repositories_rules_create_builder(
+        client,
+        &args.parent,
+        &args.ruleId,
+    )?;
+    artifactregistry_projects_locations_repositories_rules_create_execute(builder)
+}
+
+/// DELETE v1/projects/{projectsId}/locations/{locationsId}/repositories/{repositoriesId}/rules/{rulesId}
+/// Deletes a rule.
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `artifactregistry_projects_locations_repositories_rules_delete_execute()` to send, or `artifactregistry_projects_locations_repositories_rules_delete` for simplest API.
+
+pub fn artifactregistry_projects_locations_repositories_rules_delete_builder(
+    client: &SimpleHttpClient,
+    name: &String,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!(
+        "https://artifactregistry.googleapis.com/v1/projects/{}/locations/{locationsId}/repositories/{repositoriesId}/rules/{rulesId}",
+        name,
+    );
+
+    // Build request
+    let builder = client
+        .delete(&endpoint_url)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// DELETE v1/projects/{projectsId}/locations/{locationsId}/repositories/{repositoriesId}/rules/{rulesId}
+/// Deletes a rule.
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `artifactregistry_projects_locations_repositories_rules_delete_execute()` or `artifactregistry_projects_locations_repositories_rules_delete`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `artifactregistry_projects_locations_repositories_rules_delete_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn artifactregistry_projects_locations_repositories_rules_delete_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<Empty>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: Empty = serde_json::from_str(&body)
+                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// DELETE v1/projects/{projectsId}/locations/{locationsId}/repositories/{repositoriesId}/rules/{rulesId}
+/// Deletes a rule.
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `artifactregistry_projects_locations_repositories_rules_delete_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `artifactregistry_projects_locations_repositories_rules_delete_task()`.
+/// For the simplest API, use `artifactregistry_projects_locations_repositories_rules_delete()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `artifactregistry_projects_locations_repositories_rules_delete_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn artifactregistry_projects_locations_repositories_rules_delete_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<Empty>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let task = artifactregistry_projects_locations_repositories_rules_delete_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`artifactregistry_projects_locations_repositories_rules_delete`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct ArtifactregistryProjectsLocationsRepositoriesRulesDeleteArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
+/// DELETE v1/projects/{projectsId}/locations/{locationsId}/repositories/{repositoriesId}/rules/{rulesId}
+/// Deletes a rule.
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `artifactregistry_projects_locations_repositories_rules_delete_builder()` + `artifactregistry_projects_locations_repositories_rules_delete_execute()`.
+/// For task-level control, use `artifactregistry_projects_locations_repositories_rules_delete_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn artifactregistry_projects_locations_repositories_rules_delete(
+    client: &SimpleHttpClient,
+    args: &ArtifactregistryProjectsLocationsRepositoriesRulesDeleteArgs,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<Empty>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let builder =
+        artifactregistry_projects_locations_repositories_rules_delete_builder(client, &args.name)?;
+    artifactregistry_projects_locations_repositories_rules_delete_execute(builder)
+}
+
+/// GET v1/projects/{projectsId}/locations/{locationsId}/repositories/{repositoriesId}/rules/{rulesId}
+/// Gets a rule.
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `artifactregistry_projects_locations_repositories_rules_get_execute()` to send, or `artifactregistry_projects_locations_repositories_rules_get` for simplest API.
+
+pub fn artifactregistry_projects_locations_repositories_rules_get_builder(
+    client: &SimpleHttpClient,
+    name: &String,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!(
+        "https://artifactregistry.googleapis.com/v1/projects/{}/locations/{locationsId}/repositories/{repositoriesId}/rules/{rulesId}",
+        name,
+    );
+
+    // Build request
+    let builder = client
+        .get(&endpoint_url)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// GET v1/projects/{projectsId}/locations/{locationsId}/repositories/{repositoriesId}/rules/{rulesId}
+/// Gets a rule.
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `artifactregistry_projects_locations_repositories_rules_get_execute()` or `artifactregistry_projects_locations_repositories_rules_get`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `artifactregistry_projects_locations_repositories_rules_get_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn artifactregistry_projects_locations_repositories_rules_get_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<GoogleDevtoolsArtifactregistryV1Rule>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: GoogleDevtoolsArtifactregistryV1Rule = serde_json::from_str(&body)
+                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// GET v1/projects/{projectsId}/locations/{locationsId}/repositories/{repositoriesId}/rules/{rulesId}
+/// Gets a rule.
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `artifactregistry_projects_locations_repositories_rules_get_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `artifactregistry_projects_locations_repositories_rules_get_task()`.
+/// For the simplest API, use `artifactregistry_projects_locations_repositories_rules_get()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `artifactregistry_projects_locations_repositories_rules_get_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn artifactregistry_projects_locations_repositories_rules_get_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<
+            D = Result<ApiResponse<GoogleDevtoolsArtifactregistryV1Rule>, ApiError>,
+            P = ApiPending,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    let task = artifactregistry_projects_locations_repositories_rules_get_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`artifactregistry_projects_locations_repositories_rules_get`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct ArtifactregistryProjectsLocationsRepositoriesRulesGetArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
+/// GET v1/projects/{projectsId}/locations/{locationsId}/repositories/{repositoriesId}/rules/{rulesId}
+/// Gets a rule.
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `artifactregistry_projects_locations_repositories_rules_get_builder()` + `artifactregistry_projects_locations_repositories_rules_get_execute()`.
+/// For task-level control, use `artifactregistry_projects_locations_repositories_rules_get_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn artifactregistry_projects_locations_repositories_rules_get(
+    client: &SimpleHttpClient,
+    args: &ArtifactregistryProjectsLocationsRepositoriesRulesGetArgs,
+) -> Result<
+    impl StreamIterator<
+            D = Result<ApiResponse<GoogleDevtoolsArtifactregistryV1Rule>, ApiError>,
+            P = ApiPending,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    let builder =
+        artifactregistry_projects_locations_repositories_rules_get_builder(client, &args.name)?;
+    artifactregistry_projects_locations_repositories_rules_get_execute(builder)
+}
+
+/// GET v1/projects/{projectsId}/locations/{locationsId}/repositories/{repositoriesId}/rules
+/// Lists rules.
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `artifactregistry_projects_locations_repositories_rules_list_execute()` to send, or `artifactregistry_projects_locations_repositories_rules_list` for simplest API.
+
+pub fn artifactregistry_projects_locations_repositories_rules_list_builder(
+    client: &SimpleHttpClient,
+    parent: &String,
+    pageSize: &Option<Option<String>>,
+    pageToken: &Option<Option<String>>,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!(
+        "https://artifactregistry.googleapis.com/v1/projects/{}/locations/{locationsId}/repositories/{repositoriesId}/rules",
+        parent,
+    );
+
+    // Build request
+    let mut query_parts = Vec::new();
+    if let Some(val) = pageSize.as_ref() {
+        query_parts.push(format!("pageSize={}", val));
+    }
+    if let Some(val) = pageToken.as_ref() {
+        query_parts.push(format!("pageToken={}", val));
+    }
+
+    let url_with_query = if query_parts.is_empty() {
+        endpoint_url
+    } else {
+        format!("{}?{}", endpoint_url, query_parts.join("&"))
+    };
+
+    let builder = client
+        .get(&url_with_query)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// GET v1/projects/{projectsId}/locations/{locationsId}/repositories/{repositoriesId}/rules
+/// Lists rules.
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `artifactregistry_projects_locations_repositories_rules_list_execute()` or `artifactregistry_projects_locations_repositories_rules_list`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `artifactregistry_projects_locations_repositories_rules_list_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn artifactregistry_projects_locations_repositories_rules_list_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<ListRulesResponse>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: ListRulesResponse = serde_json::from_str(&body)
+                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// GET v1/projects/{projectsId}/locations/{locationsId}/repositories/{repositoriesId}/rules
+/// Lists rules.
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `artifactregistry_projects_locations_repositories_rules_list_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `artifactregistry_projects_locations_repositories_rules_list_task()`.
+/// For the simplest API, use `artifactregistry_projects_locations_repositories_rules_list()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `artifactregistry_projects_locations_repositories_rules_list_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn artifactregistry_projects_locations_repositories_rules_list_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<ListRulesResponse>, ApiError>, P = ApiPending>
+        + Send
+        + 'static,
+    ApiError,
+> {
+    let task = artifactregistry_projects_locations_repositories_rules_list_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`artifactregistry_projects_locations_repositories_rules_list`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct ArtifactregistryProjectsLocationsRepositoriesRulesListArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Query parameter: pageSize
+    pub pageSize: Option<Option<String>>,
+    /// Query parameter: pageToken
+    pub pageToken: Option<Option<String>>,
+}
+
+/// GET v1/projects/{projectsId}/locations/{locationsId}/repositories/{repositoriesId}/rules
+/// Lists rules.
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `artifactregistry_projects_locations_repositories_rules_list_builder()` + `artifactregistry_projects_locations_repositories_rules_list_execute()`.
+/// For task-level control, use `artifactregistry_projects_locations_repositories_rules_list_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn artifactregistry_projects_locations_repositories_rules_list(
+    client: &SimpleHttpClient,
+    args: &ArtifactregistryProjectsLocationsRepositoriesRulesListArgs,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<ListRulesResponse>, ApiError>, P = ApiPending>
+        + Send
+        + 'static,
+    ApiError,
+> {
+    let builder = artifactregistry_projects_locations_repositories_rules_list_builder(
+        client,
+        &args.parent,
+        &args.pageSize,
+        &args.pageToken,
+    )?;
+    artifactregistry_projects_locations_repositories_rules_list_execute(builder)
+}
+
+/// PATCH v1/projects/{projectsId}/locations/{locationsId}/repositories/{repositoriesId}/rules/{rulesId}
+/// Updates a rule.
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `artifactregistry_projects_locations_repositories_rules_patch_execute()` to send, or `artifactregistry_projects_locations_repositories_rules_patch` for simplest API.
+
+pub fn artifactregistry_projects_locations_repositories_rules_patch_builder(
+    client: &SimpleHttpClient,
+    name: &String,
+    updateMask: &Option<Option<String>>,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!(
+        "https://artifactregistry.googleapis.com/v1/projects/{}/locations/{locationsId}/repositories/{repositoriesId}/rules/{rulesId}",
+        name,
+    );
+
+    // Build request
+    let mut query_parts = Vec::new();
+    if let Some(val) = updateMask.as_ref() {
+        query_parts.push(format!("updateMask={}", val));
+    }
+
+    let url_with_query = if query_parts.is_empty() {
+        endpoint_url
+    } else {
+        format!("{}?{}", endpoint_url, query_parts.join("&"))
+    };
+
+    let builder = client
+        .patch(&url_with_query)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// PATCH v1/projects/{projectsId}/locations/{locationsId}/repositories/{repositoriesId}/rules/{rulesId}
+/// Updates a rule.
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `artifactregistry_projects_locations_repositories_rules_patch_execute()` or `artifactregistry_projects_locations_repositories_rules_patch`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `artifactregistry_projects_locations_repositories_rules_patch_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn artifactregistry_projects_locations_repositories_rules_patch_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<GoogleDevtoolsArtifactregistryV1Rule>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: GoogleDevtoolsArtifactregistryV1Rule = serde_json::from_str(&body)
+                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// PATCH v1/projects/{projectsId}/locations/{locationsId}/repositories/{repositoriesId}/rules/{rulesId}
+/// Updates a rule.
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `artifactregistry_projects_locations_repositories_rules_patch_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `artifactregistry_projects_locations_repositories_rules_patch_task()`.
+/// For the simplest API, use `artifactregistry_projects_locations_repositories_rules_patch()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `artifactregistry_projects_locations_repositories_rules_patch_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn artifactregistry_projects_locations_repositories_rules_patch_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<
+            D = Result<ApiResponse<GoogleDevtoolsArtifactregistryV1Rule>, ApiError>,
+            P = ApiPending,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    let task = artifactregistry_projects_locations_repositories_rules_patch_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`artifactregistry_projects_locations_repositories_rules_patch`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct ArtifactregistryProjectsLocationsRepositoriesRulesPatchArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Query parameter: updateMask
+    pub updateMask: Option<Option<String>>,
+}
+
+/// PATCH v1/projects/{projectsId}/locations/{locationsId}/repositories/{repositoriesId}/rules/{rulesId}
+/// Updates a rule.
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `artifactregistry_projects_locations_repositories_rules_patch_builder()` + `artifactregistry_projects_locations_repositories_rules_patch_execute()`.
+/// For task-level control, use `artifactregistry_projects_locations_repositories_rules_patch_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn artifactregistry_projects_locations_repositories_rules_patch(
+    client: &SimpleHttpClient,
+    args: &ArtifactregistryProjectsLocationsRepositoriesRulesPatchArgs,
+) -> Result<
+    impl StreamIterator<
+            D = Result<ApiResponse<GoogleDevtoolsArtifactregistryV1Rule>, ApiError>,
+            P = ApiPending,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    let builder = artifactregistry_projects_locations_repositories_rules_patch_builder(
+        client,
+        &args.name,
+        &args.updateMask,
+    )?;
+    artifactregistry_projects_locations_repositories_rules_patch_execute(builder)
+}
+
+/// POST v1/projects/{projectsId}/locations/{locationsId}/repositories/{repositoriesId}/yumArtifacts:import
+/// Imports Yum (RPM) artifacts. The returned Operation will complete once the resources are imported. Package, Version, and File resources are created based on the imported artifacts. Imported artifacts that conflict with existing resources are ignored.
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `artifactregistry_projects_locations_repositories_yum_artifacts_import_execute()` to send, or `artifactregistry_projects_locations_repositories_yum_artifacts_import` for simplest API.
+
+pub fn artifactregistry_projects_locations_repositories_yum_artifacts_import_builder(
+    client: &SimpleHttpClient,
+    parent: &String,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!(
+        "https://artifactregistry.googleapis.com/v1/projects/{}/locations/{locationsId}/repositories/{repositoriesId}/yumArtifacts:import",
+        parent,
+    );
+
+    // Build request
+    let builder = client
+        .post(&endpoint_url)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// POST v1/projects/{projectsId}/locations/{locationsId}/repositories/{repositoriesId}/yumArtifacts:import
+/// Imports Yum (RPM) artifacts. The returned Operation will complete once the resources are imported. Package, Version, and File resources are created based on the imported artifacts. Imported artifacts that conflict with existing resources are ignored.
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `artifactregistry_projects_locations_repositories_yum_artifacts_import_execute()` or `artifactregistry_projects_locations_repositories_yum_artifacts_import`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `artifactregistry_projects_locations_repositories_yum_artifacts_import_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn artifactregistry_projects_locations_repositories_yum_artifacts_import_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<Operation>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: Operation = serde_json::from_str(&body)
+                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// POST v1/projects/{projectsId}/locations/{locationsId}/repositories/{repositoriesId}/yumArtifacts:import
+/// Imports Yum (RPM) artifacts. The returned Operation will complete once the resources are imported. Package, Version, and File resources are created based on the imported artifacts. Imported artifacts that conflict with existing resources are ignored.
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `artifactregistry_projects_locations_repositories_yum_artifacts_import_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `artifactregistry_projects_locations_repositories_yum_artifacts_import_task()`.
+/// For the simplest API, use `artifactregistry_projects_locations_repositories_yum_artifacts_import()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `artifactregistry_projects_locations_repositories_yum_artifacts_import_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn artifactregistry_projects_locations_repositories_yum_artifacts_import_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<Operation>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let task = artifactregistry_projects_locations_repositories_yum_artifacts_import_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`artifactregistry_projects_locations_repositories_yum_artifacts_import`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct ArtifactregistryProjectsLocationsRepositoriesYumArtifactsImportArgs {
+    /// Path parameter: parent
+    pub parent: String,
+}
+
+/// POST v1/projects/{projectsId}/locations/{locationsId}/repositories/{repositoriesId}/yumArtifacts:import
+/// Imports Yum (RPM) artifacts. The returned Operation will complete once the resources are imported. Package, Version, and File resources are created based on the imported artifacts. Imported artifacts that conflict with existing resources are ignored.
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `artifactregistry_projects_locations_repositories_yum_artifacts_import_builder()` + `artifactregistry_projects_locations_repositories_yum_artifacts_import_execute()`.
+/// For task-level control, use `artifactregistry_projects_locations_repositories_yum_artifacts_import_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn artifactregistry_projects_locations_repositories_yum_artifacts_import(
+    client: &SimpleHttpClient,
+    args: &ArtifactregistryProjectsLocationsRepositoriesYumArtifactsImportArgs,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<Operation>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let builder = artifactregistry_projects_locations_repositories_yum_artifacts_import_builder(
+        client,
+        &args.parent,
+    )?;
+    artifactregistry_projects_locations_repositories_yum_artifacts_import_execute(builder)
+}
+
+/// POST v1/projects/{projectsId}/locations/{locationsId}/repositories/{repositoriesId}/yumArtifacts:create
+/// Directly uploads a Yum artifact. The returned Operation will complete once the resources are uploaded. Package, Version, and File resources are created based on the imported artifact. Imported artifacts that conflict with existing resources are ignored.
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `artifactregistry_projects_locations_repositories_yum_artifacts_upload_execute()` to send, or `artifactregistry_projects_locations_repositories_yum_artifacts_upload` for simplest API.
+
+pub fn artifactregistry_projects_locations_repositories_yum_artifacts_upload_builder(
+    client: &SimpleHttpClient,
+    parent: &String,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!(
+        "https://artifactregistry.googleapis.com/v1/projects/{}/locations/{locationsId}/repositories/{repositoriesId}/yumArtifacts:create",
+        parent,
+    );
+
+    // Build request
+    let builder = client
+        .post(&endpoint_url)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// POST v1/projects/{projectsId}/locations/{locationsId}/repositories/{repositoriesId}/yumArtifacts:create
+/// Directly uploads a Yum artifact. The returned Operation will complete once the resources are uploaded. Package, Version, and File resources are created based on the imported artifact. Imported artifacts that conflict with existing resources are ignored.
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `artifactregistry_projects_locations_repositories_yum_artifacts_upload_execute()` or `artifactregistry_projects_locations_repositories_yum_artifacts_upload`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `artifactregistry_projects_locations_repositories_yum_artifacts_upload_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn artifactregistry_projects_locations_repositories_yum_artifacts_upload_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<UploadYumArtifactMediaResponse>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: UploadYumArtifactMediaResponse = serde_json::from_str(&body)
+                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// POST v1/projects/{projectsId}/locations/{locationsId}/repositories/{repositoriesId}/yumArtifacts:create
+/// Directly uploads a Yum artifact. The returned Operation will complete once the resources are uploaded. Package, Version, and File resources are created based on the imported artifact. Imported artifacts that conflict with existing resources are ignored.
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `artifactregistry_projects_locations_repositories_yum_artifacts_upload_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `artifactregistry_projects_locations_repositories_yum_artifacts_upload_task()`.
+/// For the simplest API, use `artifactregistry_projects_locations_repositories_yum_artifacts_upload()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `artifactregistry_projects_locations_repositories_yum_artifacts_upload_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn artifactregistry_projects_locations_repositories_yum_artifacts_upload_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<
+            D = Result<ApiResponse<UploadYumArtifactMediaResponse>, ApiError>,
+            P = ApiPending,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    let task = artifactregistry_projects_locations_repositories_yum_artifacts_upload_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`artifactregistry_projects_locations_repositories_yum_artifacts_upload`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct ArtifactregistryProjectsLocationsRepositoriesYumArtifactsUploadArgs {
+    /// Path parameter: parent
+    pub parent: String,
+}
+
+/// POST v1/projects/{projectsId}/locations/{locationsId}/repositories/{repositoriesId}/yumArtifacts:create
+/// Directly uploads a Yum artifact. The returned Operation will complete once the resources are uploaded. Package, Version, and File resources are created based on the imported artifact. Imported artifacts that conflict with existing resources are ignored.
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `artifactregistry_projects_locations_repositories_yum_artifacts_upload_builder()` + `artifactregistry_projects_locations_repositories_yum_artifacts_upload_execute()`.
+/// For task-level control, use `artifactregistry_projects_locations_repositories_yum_artifacts_upload_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn artifactregistry_projects_locations_repositories_yum_artifacts_upload(
+    client: &SimpleHttpClient,
+    args: &ArtifactregistryProjectsLocationsRepositoriesYumArtifactsUploadArgs,
+) -> Result<
+    impl StreamIterator<
+            D = Result<ApiResponse<UploadYumArtifactMediaResponse>, ApiError>,
+            P = ApiPending,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    let builder = artifactregistry_projects_locations_repositories_yum_artifacts_upload_builder(
+        client,
+        &args.parent,
+    )?;
+    artifactregistry_projects_locations_repositories_yum_artifacts_upload_execute(builder)
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for ProjectSettings
+// =============================================================================
+
+/// ResourceIdentifier implementation for ProjectSettings with ArtifactregistryProjectsGetProjectSettingsArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<ArtifactregistryProjectsGetProjectSettingsArgs> for ProjectSettings {
+    fn generate_resource_id(
+        &self,
+        input: &ArtifactregistryProjectsGetProjectSettingsArgs,
+    ) -> String {
+        format!("gcp::artifactregistry::ProjectSettings/{}", input.name)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::artifactregistry::ProjectSettings"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for ProjectSettings
+// =============================================================================
+
+/// ResourceIdentifier implementation for ProjectSettings with ArtifactregistryProjectsUpdateProjectSettingsArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<ArtifactregistryProjectsUpdateProjectSettingsArgs> for ProjectSettings {
+    fn generate_resource_id(
+        &self,
+        input: &ArtifactregistryProjectsUpdateProjectSettingsArgs,
+    ) -> String {
+        format!("gcp::artifactregistry::ProjectSettings/{}", input.name)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::artifactregistry::ProjectSettings"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for Location
+// =============================================================================
+
+/// ResourceIdentifier implementation for Location with ArtifactregistryProjectsLocationsGetArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<ArtifactregistryProjectsLocationsGetArgs> for Location {
+    fn generate_resource_id(&self, input: &ArtifactregistryProjectsLocationsGetArgs) -> String {
+        format!("gcp::artifactregistry::Location/{}", input.name)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::artifactregistry::Location"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for ProjectConfig
+// =============================================================================
+
+/// ResourceIdentifier implementation for ProjectConfig with ArtifactregistryProjectsLocationsGetProjectConfigArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<ArtifactregistryProjectsLocationsGetProjectConfigArgs> for ProjectConfig {
+    fn generate_resource_id(
+        &self,
+        input: &ArtifactregistryProjectsLocationsGetProjectConfigArgs,
+    ) -> String {
+        format!("gcp::artifactregistry::ProjectConfig/{}", input.name)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::artifactregistry::ProjectConfig"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for VPCSCConfig
+// =============================================================================
+
+/// ResourceIdentifier implementation for VPCSCConfig with ArtifactregistryProjectsLocationsGetVpcscConfigArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<ArtifactregistryProjectsLocationsGetVpcscConfigArgs> for VPCSCConfig {
+    fn generate_resource_id(
+        &self,
+        input: &ArtifactregistryProjectsLocationsGetVpcscConfigArgs,
+    ) -> String {
+        format!("gcp::artifactregistry::VPCSCConfig/{}", input.name)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::artifactregistry::VPCSCConfig"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for ListLocationsResponse
+// =============================================================================
+
+/// ResourceIdentifier implementation for ListLocationsResponse with ArtifactregistryProjectsLocationsListArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<ArtifactregistryProjectsLocationsListArgs> for ListLocationsResponse {
+    fn generate_resource_id(&self, input: &ArtifactregistryProjectsLocationsListArgs) -> String {
+        format!(
+            "gcp::artifactregistry::ListLocationsResponse/{}",
+            input.name
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::artifactregistry::ListLocationsResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for ProjectConfig
+// =============================================================================
+
+/// ResourceIdentifier implementation for ProjectConfig with ArtifactregistryProjectsLocationsUpdateProjectConfigArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<ArtifactregistryProjectsLocationsUpdateProjectConfigArgs>
+    for ProjectConfig
+{
+    fn generate_resource_id(
+        &self,
+        input: &ArtifactregistryProjectsLocationsUpdateProjectConfigArgs,
+    ) -> String {
+        format!("gcp::artifactregistry::ProjectConfig/{}", input.name)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::artifactregistry::ProjectConfig"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for VPCSCConfig
+// =============================================================================
+
+/// ResourceIdentifier implementation for VPCSCConfig with ArtifactregistryProjectsLocationsUpdateVpcscConfigArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<ArtifactregistryProjectsLocationsUpdateVpcscConfigArgs> for VPCSCConfig {
+    fn generate_resource_id(
+        &self,
+        input: &ArtifactregistryProjectsLocationsUpdateVpcscConfigArgs,
+    ) -> String {
+        format!("gcp::artifactregistry::VPCSCConfig/{}", input.name)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::artifactregistry::VPCSCConfig"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for Empty
+// =============================================================================
+
+/// ResourceIdentifier implementation for Empty with ArtifactregistryProjectsLocationsOperationsCancelArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<ArtifactregistryProjectsLocationsOperationsCancelArgs> for Empty {
+    fn generate_resource_id(
+        &self,
+        input: &ArtifactregistryProjectsLocationsOperationsCancelArgs,
+    ) -> String {
+        format!("gcp::artifactregistry::Empty/{}", input.name)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::artifactregistry::Empty"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for Operation
+// =============================================================================
+
+/// ResourceIdentifier implementation for Operation with ArtifactregistryProjectsLocationsOperationsGetArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<ArtifactregistryProjectsLocationsOperationsGetArgs> for Operation {
+    fn generate_resource_id(
+        &self,
+        input: &ArtifactregistryProjectsLocationsOperationsGetArgs,
+    ) -> String {
+        format!("gcp::artifactregistry::Operation/{}", input.name)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::artifactregistry::Operation"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for Operation
+// =============================================================================
+
+/// ResourceIdentifier implementation for Operation with ArtifactregistryProjectsLocationsRepositoriesCreateArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<ArtifactregistryProjectsLocationsRepositoriesCreateArgs> for Operation {
+    fn generate_resource_id(
+        &self,
+        input: &ArtifactregistryProjectsLocationsRepositoriesCreateArgs,
+    ) -> String {
+        format!("gcp::artifactregistry::Operation/{}", input.parent)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::artifactregistry::Operation"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for Operation
+// =============================================================================
+
+/// ResourceIdentifier implementation for Operation with ArtifactregistryProjectsLocationsRepositoriesDeleteArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<ArtifactregistryProjectsLocationsRepositoriesDeleteArgs> for Operation {
+    fn generate_resource_id(
+        &self,
+        input: &ArtifactregistryProjectsLocationsRepositoriesDeleteArgs,
+    ) -> String {
+        format!("gcp::artifactregistry::Operation/{}", input.name)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::artifactregistry::Operation"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for Operation
+// =============================================================================
+
+/// ResourceIdentifier implementation for Operation with ArtifactregistryProjectsLocationsRepositoriesExportArtifactArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<ArtifactregistryProjectsLocationsRepositoriesExportArtifactArgs>
+    for Operation
+{
+    fn generate_resource_id(
+        &self,
+        input: &ArtifactregistryProjectsLocationsRepositoriesExportArtifactArgs,
+    ) -> String {
+        format!("gcp::artifactregistry::Operation/{}", input.repository)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::artifactregistry::Operation"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for Repository
+// =============================================================================
+
+/// ResourceIdentifier implementation for Repository with ArtifactregistryProjectsLocationsRepositoriesGetArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<ArtifactregistryProjectsLocationsRepositoriesGetArgs> for Repository {
+    fn generate_resource_id(
+        &self,
+        input: &ArtifactregistryProjectsLocationsRepositoriesGetArgs,
+    ) -> String {
+        format!("gcp::artifactregistry::Repository/{}", input.name)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::artifactregistry::Repository"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for Policy
+// =============================================================================
+
+/// ResourceIdentifier implementation for Policy with ArtifactregistryProjectsLocationsRepositoriesGetIamPolicyArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<ArtifactregistryProjectsLocationsRepositoriesGetIamPolicyArgs> for Policy {
+    fn generate_resource_id(
+        &self,
+        input: &ArtifactregistryProjectsLocationsRepositoriesGetIamPolicyArgs,
+    ) -> String {
+        format!("gcp::artifactregistry::Policy/{}", input.resource)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::artifactregistry::Policy"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for ListRepositoriesResponse
+// =============================================================================
+
+/// ResourceIdentifier implementation for ListRepositoriesResponse with ArtifactregistryProjectsLocationsRepositoriesListArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<ArtifactregistryProjectsLocationsRepositoriesListArgs>
+    for ListRepositoriesResponse
+{
+    fn generate_resource_id(
+        &self,
+        input: &ArtifactregistryProjectsLocationsRepositoriesListArgs,
+    ) -> String {
+        format!(
+            "gcp::artifactregistry::ListRepositoriesResponse/{}",
+            input.parent
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::artifactregistry::ListRepositoriesResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for Repository
+// =============================================================================
+
+/// ResourceIdentifier implementation for Repository with ArtifactregistryProjectsLocationsRepositoriesPatchArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<ArtifactregistryProjectsLocationsRepositoriesPatchArgs> for Repository {
+    fn generate_resource_id(
+        &self,
+        input: &ArtifactregistryProjectsLocationsRepositoriesPatchArgs,
+    ) -> String {
+        format!("gcp::artifactregistry::Repository/{}", input.name)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::artifactregistry::Repository"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for Policy
+// =============================================================================
+
+/// ResourceIdentifier implementation for Policy with ArtifactregistryProjectsLocationsRepositoriesSetIamPolicyArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<ArtifactregistryProjectsLocationsRepositoriesSetIamPolicyArgs> for Policy {
+    fn generate_resource_id(
+        &self,
+        input: &ArtifactregistryProjectsLocationsRepositoriesSetIamPolicyArgs,
+    ) -> String {
+        format!("gcp::artifactregistry::Policy/{}", input.resource)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::artifactregistry::Policy"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for TestIamPermissionsResponse
+// =============================================================================
+
+/// ResourceIdentifier implementation for TestIamPermissionsResponse with ArtifactregistryProjectsLocationsRepositoriesTestIamPermissionsArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<ArtifactregistryProjectsLocationsRepositoriesTestIamPermissionsArgs>
+    for TestIamPermissionsResponse
+{
+    fn generate_resource_id(
+        &self,
+        input: &ArtifactregistryProjectsLocationsRepositoriesTestIamPermissionsArgs,
+    ) -> String {
+        format!(
+            "gcp::artifactregistry::TestIamPermissionsResponse/{}",
+            input.resource
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::artifactregistry::TestIamPermissionsResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for Operation
+// =============================================================================
+
+/// ResourceIdentifier implementation for Operation with ArtifactregistryProjectsLocationsRepositoriesAptArtifactsImportArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<ArtifactregistryProjectsLocationsRepositoriesAptArtifactsImportArgs>
+    for Operation
+{
+    fn generate_resource_id(
+        &self,
+        input: &ArtifactregistryProjectsLocationsRepositoriesAptArtifactsImportArgs,
+    ) -> String {
+        format!("gcp::artifactregistry::Operation/{}", input.parent)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::artifactregistry::Operation"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for UploadAptArtifactMediaResponse
+// =============================================================================
+
+/// ResourceIdentifier implementation for UploadAptArtifactMediaResponse with ArtifactregistryProjectsLocationsRepositoriesAptArtifactsUploadArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<ArtifactregistryProjectsLocationsRepositoriesAptArtifactsUploadArgs>
+    for UploadAptArtifactMediaResponse
+{
+    fn generate_resource_id(
+        &self,
+        input: &ArtifactregistryProjectsLocationsRepositoriesAptArtifactsUploadArgs,
+    ) -> String {
+        format!(
+            "gcp::artifactregistry::UploadAptArtifactMediaResponse/{}",
+            input.parent
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::artifactregistry::UploadAptArtifactMediaResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for Operation
+// =============================================================================
+
+/// ResourceIdentifier implementation for Operation with ArtifactregistryProjectsLocationsRepositoriesAttachmentsCreateArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<ArtifactregistryProjectsLocationsRepositoriesAttachmentsCreateArgs>
+    for Operation
+{
+    fn generate_resource_id(
+        &self,
+        input: &ArtifactregistryProjectsLocationsRepositoriesAttachmentsCreateArgs,
+    ) -> String {
+        format!("gcp::artifactregistry::Operation/{}", input.parent)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::artifactregistry::Operation"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for Operation
+// =============================================================================
+
+/// ResourceIdentifier implementation for Operation with ArtifactregistryProjectsLocationsRepositoriesAttachmentsDeleteArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<ArtifactregistryProjectsLocationsRepositoriesAttachmentsDeleteArgs>
+    for Operation
+{
+    fn generate_resource_id(
+        &self,
+        input: &ArtifactregistryProjectsLocationsRepositoriesAttachmentsDeleteArgs,
+    ) -> String {
+        format!("gcp::artifactregistry::Operation/{}", input.name)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::artifactregistry::Operation"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for Attachment
+// =============================================================================
+
+/// ResourceIdentifier implementation for Attachment with ArtifactregistryProjectsLocationsRepositoriesAttachmentsGetArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<ArtifactregistryProjectsLocationsRepositoriesAttachmentsGetArgs>
+    for Attachment
+{
+    fn generate_resource_id(
+        &self,
+        input: &ArtifactregistryProjectsLocationsRepositoriesAttachmentsGetArgs,
+    ) -> String {
+        format!("gcp::artifactregistry::Attachment/{}", input.name)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::artifactregistry::Attachment"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for ListAttachmentsResponse
+// =============================================================================
+
+/// ResourceIdentifier implementation for ListAttachmentsResponse with ArtifactregistryProjectsLocationsRepositoriesAttachmentsListArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<ArtifactregistryProjectsLocationsRepositoriesAttachmentsListArgs>
+    for ListAttachmentsResponse
+{
+    fn generate_resource_id(
+        &self,
+        input: &ArtifactregistryProjectsLocationsRepositoriesAttachmentsListArgs,
+    ) -> String {
+        format!(
+            "gcp::artifactregistry::ListAttachmentsResponse/{}",
+            input.parent
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::artifactregistry::ListAttachmentsResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for DockerImage
+// =============================================================================
+
+/// ResourceIdentifier implementation for DockerImage with ArtifactregistryProjectsLocationsRepositoriesDockerImagesGetArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<ArtifactregistryProjectsLocationsRepositoriesDockerImagesGetArgs>
+    for DockerImage
+{
+    fn generate_resource_id(
+        &self,
+        input: &ArtifactregistryProjectsLocationsRepositoriesDockerImagesGetArgs,
+    ) -> String {
+        format!("gcp::artifactregistry::DockerImage/{}", input.name)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::artifactregistry::DockerImage"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for ListDockerImagesResponse
+// =============================================================================
+
+/// ResourceIdentifier implementation for ListDockerImagesResponse with ArtifactregistryProjectsLocationsRepositoriesDockerImagesListArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<ArtifactregistryProjectsLocationsRepositoriesDockerImagesListArgs>
+    for ListDockerImagesResponse
+{
+    fn generate_resource_id(
+        &self,
+        input: &ArtifactregistryProjectsLocationsRepositoriesDockerImagesListArgs,
+    ) -> String {
+        format!(
+            "gcp::artifactregistry::ListDockerImagesResponse/{}",
+            input.parent
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::artifactregistry::ListDockerImagesResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for Operation
+// =============================================================================
+
+/// ResourceIdentifier implementation for Operation with ArtifactregistryProjectsLocationsRepositoriesFilesDeleteArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<ArtifactregistryProjectsLocationsRepositoriesFilesDeleteArgs>
+    for Operation
+{
+    fn generate_resource_id(
+        &self,
+        input: &ArtifactregistryProjectsLocationsRepositoriesFilesDeleteArgs,
+    ) -> String {
+        format!("gcp::artifactregistry::Operation/{}", input.name)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::artifactregistry::Operation"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for DownloadFileResponse
+// =============================================================================
+
+/// ResourceIdentifier implementation for DownloadFileResponse with ArtifactregistryProjectsLocationsRepositoriesFilesDownloadArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<ArtifactregistryProjectsLocationsRepositoriesFilesDownloadArgs>
+    for DownloadFileResponse
+{
+    fn generate_resource_id(
+        &self,
+        input: &ArtifactregistryProjectsLocationsRepositoriesFilesDownloadArgs,
+    ) -> String {
+        format!("gcp::artifactregistry::DownloadFileResponse/{}", input.name)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::artifactregistry::DownloadFileResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for GoogleDevtoolsArtifactregistryV1File
+// =============================================================================
+
+/// ResourceIdentifier implementation for GoogleDevtoolsArtifactregistryV1File with ArtifactregistryProjectsLocationsRepositoriesFilesGetArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<ArtifactregistryProjectsLocationsRepositoriesFilesGetArgs>
+    for GoogleDevtoolsArtifactregistryV1File
+{
+    fn generate_resource_id(
+        &self,
+        input: &ArtifactregistryProjectsLocationsRepositoriesFilesGetArgs,
+    ) -> String {
+        format!(
+            "gcp::artifactregistry::GoogleDevtoolsArtifactregistryV1File/{}",
+            input.name
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::artifactregistry::GoogleDevtoolsArtifactregistryV1File"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for ListFilesResponse
+// =============================================================================
+
+/// ResourceIdentifier implementation for ListFilesResponse with ArtifactregistryProjectsLocationsRepositoriesFilesListArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<ArtifactregistryProjectsLocationsRepositoriesFilesListArgs>
+    for ListFilesResponse
+{
+    fn generate_resource_id(
+        &self,
+        input: &ArtifactregistryProjectsLocationsRepositoriesFilesListArgs,
+    ) -> String {
+        format!("gcp::artifactregistry::ListFilesResponse/{}", input.parent)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::artifactregistry::ListFilesResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for GoogleDevtoolsArtifactregistryV1File
+// =============================================================================
+
+/// ResourceIdentifier implementation for GoogleDevtoolsArtifactregistryV1File with ArtifactregistryProjectsLocationsRepositoriesFilesPatchArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<ArtifactregistryProjectsLocationsRepositoriesFilesPatchArgs>
+    for GoogleDevtoolsArtifactregistryV1File
+{
+    fn generate_resource_id(
+        &self,
+        input: &ArtifactregistryProjectsLocationsRepositoriesFilesPatchArgs,
+    ) -> String {
+        format!(
+            "gcp::artifactregistry::GoogleDevtoolsArtifactregistryV1File/{}",
+            input.name
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::artifactregistry::GoogleDevtoolsArtifactregistryV1File"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for UploadFileMediaResponse
+// =============================================================================
+
+/// ResourceIdentifier implementation for UploadFileMediaResponse with ArtifactregistryProjectsLocationsRepositoriesFilesUploadArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<ArtifactregistryProjectsLocationsRepositoriesFilesUploadArgs>
+    for UploadFileMediaResponse
+{
+    fn generate_resource_id(
+        &self,
+        input: &ArtifactregistryProjectsLocationsRepositoriesFilesUploadArgs,
+    ) -> String {
+        format!(
+            "gcp::artifactregistry::UploadFileMediaResponse/{}",
+            input.parent
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::artifactregistry::UploadFileMediaResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for UploadGenericArtifactMediaResponse
+// =============================================================================
+
+/// ResourceIdentifier implementation for UploadGenericArtifactMediaResponse with ArtifactregistryProjectsLocationsRepositoriesGenericArtifactsUploadArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<ArtifactregistryProjectsLocationsRepositoriesGenericArtifactsUploadArgs>
+    for UploadGenericArtifactMediaResponse
+{
+    fn generate_resource_id(
+        &self,
+        input: &ArtifactregistryProjectsLocationsRepositoriesGenericArtifactsUploadArgs,
+    ) -> String {
+        format!(
+            "gcp::artifactregistry::UploadGenericArtifactMediaResponse/{}",
+            input.parent
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::artifactregistry::UploadGenericArtifactMediaResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for UploadGoModuleMediaResponse
+// =============================================================================
+
+/// ResourceIdentifier implementation for UploadGoModuleMediaResponse with ArtifactregistryProjectsLocationsRepositoriesGoModulesUploadArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<ArtifactregistryProjectsLocationsRepositoriesGoModulesUploadArgs>
+    for UploadGoModuleMediaResponse
+{
+    fn generate_resource_id(
+        &self,
+        input: &ArtifactregistryProjectsLocationsRepositoriesGoModulesUploadArgs,
+    ) -> String {
+        format!(
+            "gcp::artifactregistry::UploadGoModuleMediaResponse/{}",
+            input.parent
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::artifactregistry::UploadGoModuleMediaResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for Operation
+// =============================================================================
+
+/// ResourceIdentifier implementation for Operation with ArtifactregistryProjectsLocationsRepositoriesGoogetArtifactsImportArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<ArtifactregistryProjectsLocationsRepositoriesGoogetArtifactsImportArgs>
+    for Operation
+{
+    fn generate_resource_id(
+        &self,
+        input: &ArtifactregistryProjectsLocationsRepositoriesGoogetArtifactsImportArgs,
+    ) -> String {
+        format!("gcp::artifactregistry::Operation/{}", input.parent)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::artifactregistry::Operation"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for UploadGoogetArtifactMediaResponse
+// =============================================================================
+
+/// ResourceIdentifier implementation for UploadGoogetArtifactMediaResponse with ArtifactregistryProjectsLocationsRepositoriesGoogetArtifactsUploadArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<ArtifactregistryProjectsLocationsRepositoriesGoogetArtifactsUploadArgs>
+    for UploadGoogetArtifactMediaResponse
+{
+    fn generate_resource_id(
+        &self,
+        input: &ArtifactregistryProjectsLocationsRepositoriesGoogetArtifactsUploadArgs,
+    ) -> String {
+        format!(
+            "gcp::artifactregistry::UploadGoogetArtifactMediaResponse/{}",
+            input.parent
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::artifactregistry::UploadGoogetArtifactMediaResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for UploadKfpArtifactMediaResponse
+// =============================================================================
+
+/// ResourceIdentifier implementation for UploadKfpArtifactMediaResponse with ArtifactregistryProjectsLocationsRepositoriesKfpArtifactsUploadArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<ArtifactregistryProjectsLocationsRepositoriesKfpArtifactsUploadArgs>
+    for UploadKfpArtifactMediaResponse
+{
+    fn generate_resource_id(
+        &self,
+        input: &ArtifactregistryProjectsLocationsRepositoriesKfpArtifactsUploadArgs,
+    ) -> String {
+        format!(
+            "gcp::artifactregistry::UploadKfpArtifactMediaResponse/{}",
+            input.parent
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::artifactregistry::UploadKfpArtifactMediaResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for MavenArtifact
+// =============================================================================
+
+/// ResourceIdentifier implementation for MavenArtifact with ArtifactregistryProjectsLocationsRepositoriesMavenArtifactsGetArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<ArtifactregistryProjectsLocationsRepositoriesMavenArtifactsGetArgs>
+    for MavenArtifact
+{
+    fn generate_resource_id(
+        &self,
+        input: &ArtifactregistryProjectsLocationsRepositoriesMavenArtifactsGetArgs,
+    ) -> String {
+        format!("gcp::artifactregistry::MavenArtifact/{}", input.name)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::artifactregistry::MavenArtifact"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for ListMavenArtifactsResponse
+// =============================================================================
+
+/// ResourceIdentifier implementation for ListMavenArtifactsResponse with ArtifactregistryProjectsLocationsRepositoriesMavenArtifactsListArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<ArtifactregistryProjectsLocationsRepositoriesMavenArtifactsListArgs>
+    for ListMavenArtifactsResponse
+{
+    fn generate_resource_id(
+        &self,
+        input: &ArtifactregistryProjectsLocationsRepositoriesMavenArtifactsListArgs,
+    ) -> String {
+        format!(
+            "gcp::artifactregistry::ListMavenArtifactsResponse/{}",
+            input.parent
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::artifactregistry::ListMavenArtifactsResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for NpmPackage
+// =============================================================================
+
+/// ResourceIdentifier implementation for NpmPackage with ArtifactregistryProjectsLocationsRepositoriesNpmPackagesGetArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<ArtifactregistryProjectsLocationsRepositoriesNpmPackagesGetArgs>
+    for NpmPackage
+{
+    fn generate_resource_id(
+        &self,
+        input: &ArtifactregistryProjectsLocationsRepositoriesNpmPackagesGetArgs,
+    ) -> String {
+        format!("gcp::artifactregistry::NpmPackage/{}", input.name)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::artifactregistry::NpmPackage"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for ListNpmPackagesResponse
+// =============================================================================
+
+/// ResourceIdentifier implementation for ListNpmPackagesResponse with ArtifactregistryProjectsLocationsRepositoriesNpmPackagesListArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<ArtifactregistryProjectsLocationsRepositoriesNpmPackagesListArgs>
+    for ListNpmPackagesResponse
+{
+    fn generate_resource_id(
+        &self,
+        input: &ArtifactregistryProjectsLocationsRepositoriesNpmPackagesListArgs,
+    ) -> String {
+        format!(
+            "gcp::artifactregistry::ListNpmPackagesResponse/{}",
+            input.parent
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::artifactregistry::ListNpmPackagesResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for Operation
+// =============================================================================
+
+/// ResourceIdentifier implementation for Operation with ArtifactregistryProjectsLocationsRepositoriesPackagesDeleteArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<ArtifactregistryProjectsLocationsRepositoriesPackagesDeleteArgs>
+    for Operation
+{
+    fn generate_resource_id(
+        &self,
+        input: &ArtifactregistryProjectsLocationsRepositoriesPackagesDeleteArgs,
+    ) -> String {
+        format!("gcp::artifactregistry::Operation/{}", input.name)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::artifactregistry::Operation"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for Package
+// =============================================================================
+
+/// ResourceIdentifier implementation for Package with ArtifactregistryProjectsLocationsRepositoriesPackagesGetArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<ArtifactregistryProjectsLocationsRepositoriesPackagesGetArgs> for Package {
+    fn generate_resource_id(
+        &self,
+        input: &ArtifactregistryProjectsLocationsRepositoriesPackagesGetArgs,
+    ) -> String {
+        format!("gcp::artifactregistry::Package/{}", input.name)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::artifactregistry::Package"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for ListPackagesResponse
+// =============================================================================
+
+/// ResourceIdentifier implementation for ListPackagesResponse with ArtifactregistryProjectsLocationsRepositoriesPackagesListArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<ArtifactregistryProjectsLocationsRepositoriesPackagesListArgs>
+    for ListPackagesResponse
+{
+    fn generate_resource_id(
+        &self,
+        input: &ArtifactregistryProjectsLocationsRepositoriesPackagesListArgs,
+    ) -> String {
+        format!(
+            "gcp::artifactregistry::ListPackagesResponse/{}",
+            input.parent
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::artifactregistry::ListPackagesResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for Package
+// =============================================================================
+
+/// ResourceIdentifier implementation for Package with ArtifactregistryProjectsLocationsRepositoriesPackagesPatchArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<ArtifactregistryProjectsLocationsRepositoriesPackagesPatchArgs>
+    for Package
+{
+    fn generate_resource_id(
+        &self,
+        input: &ArtifactregistryProjectsLocationsRepositoriesPackagesPatchArgs,
+    ) -> String {
+        format!("gcp::artifactregistry::Package/{}", input.name)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::artifactregistry::Package"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for Tag
+// =============================================================================
+
+/// ResourceIdentifier implementation for Tag with ArtifactregistryProjectsLocationsRepositoriesPackagesTagsCreateArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<ArtifactregistryProjectsLocationsRepositoriesPackagesTagsCreateArgs>
+    for Tag
+{
+    fn generate_resource_id(
+        &self,
+        input: &ArtifactregistryProjectsLocationsRepositoriesPackagesTagsCreateArgs,
+    ) -> String {
+        format!("gcp::artifactregistry::Tag/{}", input.parent)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::artifactregistry::Tag"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for Empty
+// =============================================================================
+
+/// ResourceIdentifier implementation for Empty with ArtifactregistryProjectsLocationsRepositoriesPackagesTagsDeleteArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<ArtifactregistryProjectsLocationsRepositoriesPackagesTagsDeleteArgs>
+    for Empty
+{
+    fn generate_resource_id(
+        &self,
+        input: &ArtifactregistryProjectsLocationsRepositoriesPackagesTagsDeleteArgs,
+    ) -> String {
+        format!("gcp::artifactregistry::Empty/{}", input.name)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::artifactregistry::Empty"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for Tag
+// =============================================================================
+
+/// ResourceIdentifier implementation for Tag with ArtifactregistryProjectsLocationsRepositoriesPackagesTagsGetArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<ArtifactregistryProjectsLocationsRepositoriesPackagesTagsGetArgs> for Tag {
+    fn generate_resource_id(
+        &self,
+        input: &ArtifactregistryProjectsLocationsRepositoriesPackagesTagsGetArgs,
+    ) -> String {
+        format!("gcp::artifactregistry::Tag/{}", input.name)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::artifactregistry::Tag"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for ListTagsResponse
+// =============================================================================
+
+/// ResourceIdentifier implementation for ListTagsResponse with ArtifactregistryProjectsLocationsRepositoriesPackagesTagsListArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<ArtifactregistryProjectsLocationsRepositoriesPackagesTagsListArgs>
+    for ListTagsResponse
+{
+    fn generate_resource_id(
+        &self,
+        input: &ArtifactregistryProjectsLocationsRepositoriesPackagesTagsListArgs,
+    ) -> String {
+        format!("gcp::artifactregistry::ListTagsResponse/{}", input.parent)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::artifactregistry::ListTagsResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for Tag
+// =============================================================================
+
+/// ResourceIdentifier implementation for Tag with ArtifactregistryProjectsLocationsRepositoriesPackagesTagsPatchArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<ArtifactregistryProjectsLocationsRepositoriesPackagesTagsPatchArgs>
+    for Tag
+{
+    fn generate_resource_id(
+        &self,
+        input: &ArtifactregistryProjectsLocationsRepositoriesPackagesTagsPatchArgs,
+    ) -> String {
+        format!("gcp::artifactregistry::Tag/{}", input.name)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::artifactregistry::Tag"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for Operation
+// =============================================================================
+
+/// ResourceIdentifier implementation for Operation with ArtifactregistryProjectsLocationsRepositoriesPackagesVersionsBatchDeleteArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl
+    ResourceIdentifier<ArtifactregistryProjectsLocationsRepositoriesPackagesVersionsBatchDeleteArgs>
+    for Operation
+{
+    fn generate_resource_id(
+        &self,
+        input: &ArtifactregistryProjectsLocationsRepositoriesPackagesVersionsBatchDeleteArgs,
+    ) -> String {
+        format!("gcp::artifactregistry::Operation/{}", input.parent)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::artifactregistry::Operation"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for Operation
+// =============================================================================
+
+/// ResourceIdentifier implementation for Operation with ArtifactregistryProjectsLocationsRepositoriesPackagesVersionsDeleteArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<ArtifactregistryProjectsLocationsRepositoriesPackagesVersionsDeleteArgs>
+    for Operation
+{
+    fn generate_resource_id(
+        &self,
+        input: &ArtifactregistryProjectsLocationsRepositoriesPackagesVersionsDeleteArgs,
+    ) -> String {
+        format!("gcp::artifactregistry::Operation/{}", input.name)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::artifactregistry::Operation"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for Version
+// =============================================================================
+
+/// ResourceIdentifier implementation for Version with ArtifactregistryProjectsLocationsRepositoriesPackagesVersionsGetArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<ArtifactregistryProjectsLocationsRepositoriesPackagesVersionsGetArgs>
+    for Version
+{
+    fn generate_resource_id(
+        &self,
+        input: &ArtifactregistryProjectsLocationsRepositoriesPackagesVersionsGetArgs,
+    ) -> String {
+        format!("gcp::artifactregistry::Version/{}", input.name)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::artifactregistry::Version"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for ListVersionsResponse
+// =============================================================================
+
+/// ResourceIdentifier implementation for ListVersionsResponse with ArtifactregistryProjectsLocationsRepositoriesPackagesVersionsListArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<ArtifactregistryProjectsLocationsRepositoriesPackagesVersionsListArgs>
+    for ListVersionsResponse
+{
+    fn generate_resource_id(
+        &self,
+        input: &ArtifactregistryProjectsLocationsRepositoriesPackagesVersionsListArgs,
+    ) -> String {
+        format!(
+            "gcp::artifactregistry::ListVersionsResponse/{}",
+            input.parent
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::artifactregistry::ListVersionsResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for Version
+// =============================================================================
+
+/// ResourceIdentifier implementation for Version with ArtifactregistryProjectsLocationsRepositoriesPackagesVersionsPatchArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<ArtifactregistryProjectsLocationsRepositoriesPackagesVersionsPatchArgs>
+    for Version
+{
+    fn generate_resource_id(
+        &self,
+        input: &ArtifactregistryProjectsLocationsRepositoriesPackagesVersionsPatchArgs,
+    ) -> String {
+        format!("gcp::artifactregistry::Version/{}", input.name)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::artifactregistry::Version"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for PythonPackage
+// =============================================================================
+
+/// ResourceIdentifier implementation for PythonPackage with ArtifactregistryProjectsLocationsRepositoriesPythonPackagesGetArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<ArtifactregistryProjectsLocationsRepositoriesPythonPackagesGetArgs>
+    for PythonPackage
+{
+    fn generate_resource_id(
+        &self,
+        input: &ArtifactregistryProjectsLocationsRepositoriesPythonPackagesGetArgs,
+    ) -> String {
+        format!("gcp::artifactregistry::PythonPackage/{}", input.name)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::artifactregistry::PythonPackage"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for ListPythonPackagesResponse
+// =============================================================================
+
+/// ResourceIdentifier implementation for ListPythonPackagesResponse with ArtifactregistryProjectsLocationsRepositoriesPythonPackagesListArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<ArtifactregistryProjectsLocationsRepositoriesPythonPackagesListArgs>
+    for ListPythonPackagesResponse
+{
+    fn generate_resource_id(
+        &self,
+        input: &ArtifactregistryProjectsLocationsRepositoriesPythonPackagesListArgs,
+    ) -> String {
+        format!(
+            "gcp::artifactregistry::ListPythonPackagesResponse/{}",
+            input.parent
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::artifactregistry::ListPythonPackagesResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for GoogleDevtoolsArtifactregistryV1Rule
+// =============================================================================
+
+/// ResourceIdentifier implementation for GoogleDevtoolsArtifactregistryV1Rule with ArtifactregistryProjectsLocationsRepositoriesRulesCreateArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<ArtifactregistryProjectsLocationsRepositoriesRulesCreateArgs>
+    for GoogleDevtoolsArtifactregistryV1Rule
+{
+    fn generate_resource_id(
+        &self,
+        input: &ArtifactregistryProjectsLocationsRepositoriesRulesCreateArgs,
+    ) -> String {
+        format!(
+            "gcp::artifactregistry::GoogleDevtoolsArtifactregistryV1Rule/{}",
+            input.parent
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::artifactregistry::GoogleDevtoolsArtifactregistryV1Rule"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for Empty
+// =============================================================================
+
+/// ResourceIdentifier implementation for Empty with ArtifactregistryProjectsLocationsRepositoriesRulesDeleteArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<ArtifactregistryProjectsLocationsRepositoriesRulesDeleteArgs> for Empty {
+    fn generate_resource_id(
+        &self,
+        input: &ArtifactregistryProjectsLocationsRepositoriesRulesDeleteArgs,
+    ) -> String {
+        format!("gcp::artifactregistry::Empty/{}", input.name)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::artifactregistry::Empty"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for GoogleDevtoolsArtifactregistryV1Rule
+// =============================================================================
+
+/// ResourceIdentifier implementation for GoogleDevtoolsArtifactregistryV1Rule with ArtifactregistryProjectsLocationsRepositoriesRulesGetArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<ArtifactregistryProjectsLocationsRepositoriesRulesGetArgs>
+    for GoogleDevtoolsArtifactregistryV1Rule
+{
+    fn generate_resource_id(
+        &self,
+        input: &ArtifactregistryProjectsLocationsRepositoriesRulesGetArgs,
+    ) -> String {
+        format!(
+            "gcp::artifactregistry::GoogleDevtoolsArtifactregistryV1Rule/{}",
+            input.name
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::artifactregistry::GoogleDevtoolsArtifactregistryV1Rule"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for ListRulesResponse
+// =============================================================================
+
+/// ResourceIdentifier implementation for ListRulesResponse with ArtifactregistryProjectsLocationsRepositoriesRulesListArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<ArtifactregistryProjectsLocationsRepositoriesRulesListArgs>
+    for ListRulesResponse
+{
+    fn generate_resource_id(
+        &self,
+        input: &ArtifactregistryProjectsLocationsRepositoriesRulesListArgs,
+    ) -> String {
+        format!("gcp::artifactregistry::ListRulesResponse/{}", input.parent)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::artifactregistry::ListRulesResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for GoogleDevtoolsArtifactregistryV1Rule
+// =============================================================================
+
+/// ResourceIdentifier implementation for GoogleDevtoolsArtifactregistryV1Rule with ArtifactregistryProjectsLocationsRepositoriesRulesPatchArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<ArtifactregistryProjectsLocationsRepositoriesRulesPatchArgs>
+    for GoogleDevtoolsArtifactregistryV1Rule
+{
+    fn generate_resource_id(
+        &self,
+        input: &ArtifactregistryProjectsLocationsRepositoriesRulesPatchArgs,
+    ) -> String {
+        format!(
+            "gcp::artifactregistry::GoogleDevtoolsArtifactregistryV1Rule/{}",
+            input.name
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::artifactregistry::GoogleDevtoolsArtifactregistryV1Rule"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for Operation
+// =============================================================================
+
+/// ResourceIdentifier implementation for Operation with ArtifactregistryProjectsLocationsRepositoriesYumArtifactsImportArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<ArtifactregistryProjectsLocationsRepositoriesYumArtifactsImportArgs>
+    for Operation
+{
+    fn generate_resource_id(
+        &self,
+        input: &ArtifactregistryProjectsLocationsRepositoriesYumArtifactsImportArgs,
+    ) -> String {
+        format!("gcp::artifactregistry::Operation/{}", input.parent)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::artifactregistry::Operation"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for UploadYumArtifactMediaResponse
+// =============================================================================
+
+/// ResourceIdentifier implementation for UploadYumArtifactMediaResponse with ArtifactregistryProjectsLocationsRepositoriesYumArtifactsUploadArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<ArtifactregistryProjectsLocationsRepositoriesYumArtifactsUploadArgs>
+    for UploadYumArtifactMediaResponse
+{
+    fn generate_resource_id(
+        &self,
+        input: &ArtifactregistryProjectsLocationsRepositoriesYumArtifactsUploadArgs,
+    ) -> String {
+        format!(
+            "gcp::artifactregistry::UploadYumArtifactMediaResponse/{}",
+            input.parent
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::artifactregistry::UploadYumArtifactMediaResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
 }

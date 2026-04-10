@@ -7,7 +7,6 @@
 
 #![cfg(feature = "gcp")]
 
-
 use crate::providers::gcp::clients::types::*;
 use crate::providers::gcp::resources::*;
 use foundation_core::valtron::{
@@ -17,10 +16,11 @@ use foundation_core::valtron::{
 use foundation_core::wire::simple_http::client::{
     body_reader, ClientRequestBuilder, RequestIntro, SimpleHttpClient, SystemDnsResolver,
 };
+use foundation_db::state::resource_identifier::ResourceIdentifier;
 use foundation_macros::JsonHash;
 use serde::Serialize;
 
-/// GET webResource/{id}
+/// DELETE webResource/{id}
 /// Relinquish ownership of a website or domain.
 ///
 /// Returns `ClientRequestBuilder` for customization.
@@ -38,13 +38,13 @@ pub fn site_verification_web_resource_delete_builder(
 
     // Build request
     let builder = client
-        .get(&endpoint_url)
+        .delete(&endpoint_url)
         .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
 
     Ok(builder)
 }
 
-/// GET webResource/{id}
+/// DELETE webResource/{id}
 /// Relinquish ownership of a website or domain.
 ///
 /// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
@@ -115,7 +115,7 @@ pub fn site_verification_web_resource_delete_task(
         .map_pending(|_| ApiPending::Sending))
 }
 
-/// GET webResource/{id}
+/// DELETE webResource/{id}
 /// Relinquish ownership of a website or domain.
 ///
 /// Takes a `ClientRequestBuilder`, builds and executes the request,
@@ -152,7 +152,7 @@ pub struct SiteVerificationWebResourceDeleteArgs {
     pub id: String,
 }
 
-/// GET webResource/{id}
+/// DELETE webResource/{id}
 /// Relinquish ownership of a website or domain.
 ///
 /// Simplest API - builds and executes the request in one call.
@@ -174,7 +174,172 @@ pub fn site_verification_web_resource_delete(
     site_verification_web_resource_delete_execute(builder)
 }
 
-/// GET token
+/// GET webResource/{id}
+/// Get the most current data for a website or domain.
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `site_verification_web_resource_get_execute()` to send, or `site_verification_web_resource_get` for simplest API.
+
+pub fn site_verification_web_resource_get_builder(
+    client: &SimpleHttpClient,
+    id: &String,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!(
+        "https://www.googleapis.com/siteVerification/v1/webResource/{}",
+        id,
+    );
+
+    // Build request
+    let builder = client
+        .get(&endpoint_url)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// GET webResource/{id}
+/// Get the most current data for a website or domain.
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `site_verification_web_resource_get_execute()` or `site_verification_web_resource_get`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `site_verification_web_resource_get_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn site_verification_web_resource_get_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<SiteVerificationWebResourceResource>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: SiteVerificationWebResourceResource = serde_json::from_str(&body)
+                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// GET webResource/{id}
+/// Get the most current data for a website or domain.
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `site_verification_web_resource_get_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `site_verification_web_resource_get_task()`.
+/// For the simplest API, use `site_verification_web_resource_get()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `site_verification_web_resource_get_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn site_verification_web_resource_get_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<
+            D = Result<ApiResponse<SiteVerificationWebResourceResource>, ApiError>,
+            P = ApiPending,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    let task = site_verification_web_resource_get_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`site_verification_web_resource_get`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct SiteVerificationWebResourceGetArgs {
+    /// Path parameter: id
+    pub id: String,
+}
+
+/// GET webResource/{id}
+/// Get the most current data for a website or domain.
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `site_verification_web_resource_get_builder()` + `site_verification_web_resource_get_execute()`.
+/// For task-level control, use `site_verification_web_resource_get_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn site_verification_web_resource_get(
+    client: &SimpleHttpClient,
+    args: &SiteVerificationWebResourceGetArgs,
+) -> Result<
+    impl StreamIterator<
+            D = Result<ApiResponse<SiteVerificationWebResourceResource>, ApiError>,
+            P = ApiPending,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    let builder = site_verification_web_resource_get_builder(client, &args.id)?;
+    site_verification_web_resource_get_execute(builder)
+}
+
+/// POST token
 /// Get a verification token for placing on a website or domain.
 ///
 /// Returns `ClientRequestBuilder` for customization.
@@ -182,22 +347,19 @@ pub fn site_verification_web_resource_delete(
 
 pub fn site_verification_web_resource_get_token_builder(
     client: &SimpleHttpClient,
-    body: &SiteVerificationWebResourceGettokenRequest,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!("https://www.googleapis.com/siteVerification/v1/token",);
 
     // Build request
     let builder = client
-        .get(&endpoint_url)
+        .post(&endpoint_url)
         .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
 
-    builder
-        .body_json(body)
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+    Ok(builder)
 }
 
-/// GET token
+/// POST token
 /// Get a verification token for placing on a website or domain.
 ///
 /// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
@@ -272,7 +434,7 @@ pub fn site_verification_web_resource_get_token_task(
         .map_pending(|_| ApiPending::Sending))
 }
 
-/// GET token
+/// POST token
 /// Get a verification token for placing on a website or domain.
 ///
 /// Takes a `ClientRequestBuilder`, builds and executes the request,
@@ -306,14 +468,7 @@ pub fn site_verification_web_resource_get_token_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
-/// Arguments for [`site_verification_web_resource_get_token`].
-#[derive(Debug, Clone, Serialize, JsonHash)]
-pub struct SiteVerificationWebResourceGetTokenArgs {
-    /// Request body.
-    pub body: SiteVerificationWebResourceGettokenRequest,
-}
-
-/// GET token
+/// POST token
 /// Get a verification token for placing on a website or domain.
 ///
 /// Simplest API - builds and executes the request in one call.
@@ -326,7 +481,6 @@ pub struct SiteVerificationWebResourceGetTokenArgs {
 
 pub fn site_verification_web_resource_get_token(
     client: &SimpleHttpClient,
-    args: &SiteVerificationWebResourceGetTokenArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<SiteVerificationWebResourceGettokenResponse>, ApiError>,
@@ -335,8 +489,181 @@ pub fn site_verification_web_resource_get_token(
         + 'static,
     ApiError,
 > {
-    let builder = site_verification_web_resource_get_token_builder(client, &args.body)?;
+    let builder = site_verification_web_resource_get_token_builder(client)?;
     site_verification_web_resource_get_token_execute(builder)
+}
+
+/// POST webResource
+/// Attempt verification of a website or domain.
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `site_verification_web_resource_insert_execute()` to send, or `site_verification_web_resource_insert` for simplest API.
+
+pub fn site_verification_web_resource_insert_builder(
+    client: &SimpleHttpClient,
+    verificationMethod: &Option<Option<String>>,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!("https://www.googleapis.com/siteVerification/v1/webResource",);
+
+    // Build request
+    let mut query_parts = Vec::new();
+    if let Some(val) = verificationMethod.as_ref() {
+        query_parts.push(format!("verificationMethod={}", val));
+    }
+
+    let url_with_query = if query_parts.is_empty() {
+        endpoint_url
+    } else {
+        format!("{}?{}", endpoint_url, query_parts.join("&"))
+    };
+
+    let builder = client
+        .post(&url_with_query)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// POST webResource
+/// Attempt verification of a website or domain.
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `site_verification_web_resource_insert_execute()` or `site_verification_web_resource_insert`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `site_verification_web_resource_insert_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn site_verification_web_resource_insert_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<SiteVerificationWebResourceResource>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: SiteVerificationWebResourceResource = serde_json::from_str(&body)
+                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// POST webResource
+/// Attempt verification of a website or domain.
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `site_verification_web_resource_insert_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `site_verification_web_resource_insert_task()`.
+/// For the simplest API, use `site_verification_web_resource_insert()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `site_verification_web_resource_insert_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn site_verification_web_resource_insert_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<
+            D = Result<ApiResponse<SiteVerificationWebResourceResource>, ApiError>,
+            P = ApiPending,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    let task = site_verification_web_resource_insert_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`site_verification_web_resource_insert`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct SiteVerificationWebResourceInsertArgs {
+    /// Query parameter: verificationMethod
+    pub verificationMethod: Option<Option<String>>,
+}
+
+/// POST webResource
+/// Attempt verification of a website or domain.
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `site_verification_web_resource_insert_builder()` + `site_verification_web_resource_insert_execute()`.
+/// For task-level control, use `site_verification_web_resource_insert_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn site_verification_web_resource_insert(
+    client: &SimpleHttpClient,
+    args: &SiteVerificationWebResourceInsertArgs,
+) -> Result<
+    impl StreamIterator<
+            D = Result<ApiResponse<SiteVerificationWebResourceResource>, ApiError>,
+            P = ApiPending,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    let builder = site_verification_web_resource_insert_builder(client, &args.verificationMethod)?;
+    site_verification_web_resource_insert_execute(builder)
 }
 
 /// GET webResource
@@ -491,4 +818,493 @@ pub fn site_verification_web_resource_list(
 > {
     let builder = site_verification_web_resource_list_builder(client)?;
     site_verification_web_resource_list_execute(builder)
+}
+
+/// PATCH webResource/{id}
+/// Modify the list of owners for your website or domain. This method supports patch semantics.
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `site_verification_web_resource_patch_execute()` to send, or `site_verification_web_resource_patch` for simplest API.
+
+pub fn site_verification_web_resource_patch_builder(
+    client: &SimpleHttpClient,
+    id: &String,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!(
+        "https://www.googleapis.com/siteVerification/v1/webResource/{}",
+        id,
+    );
+
+    // Build request
+    let builder = client
+        .patch(&endpoint_url)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// PATCH webResource/{id}
+/// Modify the list of owners for your website or domain. This method supports patch semantics.
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `site_verification_web_resource_patch_execute()` or `site_verification_web_resource_patch`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `site_verification_web_resource_patch_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn site_verification_web_resource_patch_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<SiteVerificationWebResourceResource>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: SiteVerificationWebResourceResource = serde_json::from_str(&body)
+                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// PATCH webResource/{id}
+/// Modify the list of owners for your website or domain. This method supports patch semantics.
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `site_verification_web_resource_patch_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `site_verification_web_resource_patch_task()`.
+/// For the simplest API, use `site_verification_web_resource_patch()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `site_verification_web_resource_patch_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn site_verification_web_resource_patch_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<
+            D = Result<ApiResponse<SiteVerificationWebResourceResource>, ApiError>,
+            P = ApiPending,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    let task = site_verification_web_resource_patch_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`site_verification_web_resource_patch`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct SiteVerificationWebResourcePatchArgs {
+    /// Path parameter: id
+    pub id: String,
+}
+
+/// PATCH webResource/{id}
+/// Modify the list of owners for your website or domain. This method supports patch semantics.
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `site_verification_web_resource_patch_builder()` + `site_verification_web_resource_patch_execute()`.
+/// For task-level control, use `site_verification_web_resource_patch_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn site_verification_web_resource_patch(
+    client: &SimpleHttpClient,
+    args: &SiteVerificationWebResourcePatchArgs,
+) -> Result<
+    impl StreamIterator<
+            D = Result<ApiResponse<SiteVerificationWebResourceResource>, ApiError>,
+            P = ApiPending,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    let builder = site_verification_web_resource_patch_builder(client, &args.id)?;
+    site_verification_web_resource_patch_execute(builder)
+}
+
+/// PUT webResource/{id}
+/// Modify the list of owners for your website or domain.
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `site_verification_web_resource_update_execute()` to send, or `site_verification_web_resource_update` for simplest API.
+
+pub fn site_verification_web_resource_update_builder(
+    client: &SimpleHttpClient,
+    id: &String,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!(
+        "https://www.googleapis.com/siteVerification/v1/webResource/{}",
+        id,
+    );
+
+    // Build request
+    let builder = client
+        .put(&endpoint_url)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// PUT webResource/{id}
+/// Modify the list of owners for your website or domain.
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `site_verification_web_resource_update_execute()` or `site_verification_web_resource_update`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `site_verification_web_resource_update_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn site_verification_web_resource_update_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<SiteVerificationWebResourceResource>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: SiteVerificationWebResourceResource = serde_json::from_str(&body)
+                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// PUT webResource/{id}
+/// Modify the list of owners for your website or domain.
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `site_verification_web_resource_update_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `site_verification_web_resource_update_task()`.
+/// For the simplest API, use `site_verification_web_resource_update()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `site_verification_web_resource_update_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn site_verification_web_resource_update_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<
+            D = Result<ApiResponse<SiteVerificationWebResourceResource>, ApiError>,
+            P = ApiPending,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    let task = site_verification_web_resource_update_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`site_verification_web_resource_update`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct SiteVerificationWebResourceUpdateArgs {
+    /// Path parameter: id
+    pub id: String,
+}
+
+/// PUT webResource/{id}
+/// Modify the list of owners for your website or domain.
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `site_verification_web_resource_update_builder()` + `site_verification_web_resource_update_execute()`.
+/// For task-level control, use `site_verification_web_resource_update_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn site_verification_web_resource_update(
+    client: &SimpleHttpClient,
+    args: &SiteVerificationWebResourceUpdateArgs,
+) -> Result<
+    impl StreamIterator<
+            D = Result<ApiResponse<SiteVerificationWebResourceResource>, ApiError>,
+            P = ApiPending,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    let builder = site_verification_web_resource_update_builder(client, &args.id)?;
+    site_verification_web_resource_update_execute(builder)
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for SiteVerificationWebResourceResource
+// =============================================================================
+
+/// ResourceIdentifier implementation for SiteVerificationWebResourceResource with SiteVerificationWebResourceGetArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<SiteVerificationWebResourceGetArgs>
+    for SiteVerificationWebResourceResource
+{
+    fn generate_resource_id(&self, input: &SiteVerificationWebResourceGetArgs) -> String {
+        format!(
+            "gcp::siteVerification::SiteVerificationWebResourceResource/{}",
+            input.id
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::siteVerification::SiteVerificationWebResourceResource"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for SiteVerificationWebResourceGettokenResponse
+// =============================================================================
+
+/// ResourceIdentifier implementation for SiteVerificationWebResourceGettokenResponse with SiteVerificationWebResourceGetTokenArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<SiteVerificationWebResourceGetTokenArgs>
+    for SiteVerificationWebResourceGettokenResponse
+{
+    fn generate_resource_id(&self, input: &SiteVerificationWebResourceGetTokenArgs) -> String {
+        "gcp::siteVerification::SiteVerificationWebResourceGettokenResponse".to_string()
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::siteVerification::SiteVerificationWebResourceGettokenResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for SiteVerificationWebResourceResource
+// =============================================================================
+
+/// ResourceIdentifier implementation for SiteVerificationWebResourceResource with SiteVerificationWebResourceInsertArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<SiteVerificationWebResourceInsertArgs>
+    for SiteVerificationWebResourceResource
+{
+    fn generate_resource_id(&self, input: &SiteVerificationWebResourceInsertArgs) -> String {
+        "gcp::siteVerification::SiteVerificationWebResourceResource".to_string()
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::siteVerification::SiteVerificationWebResourceResource"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for SiteVerificationWebResourceListResponse
+// =============================================================================
+
+/// ResourceIdentifier implementation for SiteVerificationWebResourceListResponse with SiteVerificationWebResourceListArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<SiteVerificationWebResourceListArgs>
+    for SiteVerificationWebResourceListResponse
+{
+    fn generate_resource_id(&self, input: &SiteVerificationWebResourceListArgs) -> String {
+        "gcp::siteVerification::SiteVerificationWebResourceListResponse".to_string()
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::siteVerification::SiteVerificationWebResourceListResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for SiteVerificationWebResourceResource
+// =============================================================================
+
+/// ResourceIdentifier implementation for SiteVerificationWebResourceResource with SiteVerificationWebResourcePatchArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<SiteVerificationWebResourcePatchArgs>
+    for SiteVerificationWebResourceResource
+{
+    fn generate_resource_id(&self, input: &SiteVerificationWebResourcePatchArgs) -> String {
+        format!(
+            "gcp::siteVerification::SiteVerificationWebResourceResource/{}",
+            input.id
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::siteVerification::SiteVerificationWebResourceResource"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for SiteVerificationWebResourceResource
+// =============================================================================
+
+/// ResourceIdentifier implementation for SiteVerificationWebResourceResource with SiteVerificationWebResourceUpdateArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<SiteVerificationWebResourceUpdateArgs>
+    for SiteVerificationWebResourceResource
+{
+    fn generate_resource_id(&self, input: &SiteVerificationWebResourceUpdateArgs) -> String {
+        format!(
+            "gcp::siteVerification::SiteVerificationWebResourceResource/{}",
+            input.id
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::siteVerification::SiteVerificationWebResourceResource"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
 }

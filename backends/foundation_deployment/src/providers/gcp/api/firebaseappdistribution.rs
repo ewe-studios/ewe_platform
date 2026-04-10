@@ -13,46 +13,73 @@
 
 use crate::providers::gcp::clients::firebaseappdistribution::{
     firebaseappdistribution_media_upload_builder, firebaseappdistribution_media_upload_task,
+    firebaseappdistribution_projects_apps_get_aab_info_builder, firebaseappdistribution_projects_apps_get_aab_info_task,
     firebaseappdistribution_projects_apps_releases_batch_delete_builder, firebaseappdistribution_projects_apps_releases_batch_delete_task,
     firebaseappdistribution_projects_apps_releases_distribute_builder, firebaseappdistribution_projects_apps_releases_distribute_task,
+    firebaseappdistribution_projects_apps_releases_get_builder, firebaseappdistribution_projects_apps_releases_get_task,
+    firebaseappdistribution_projects_apps_releases_list_builder, firebaseappdistribution_projects_apps_releases_list_task,
     firebaseappdistribution_projects_apps_releases_patch_builder, firebaseappdistribution_projects_apps_releases_patch_task,
     firebaseappdistribution_projects_apps_releases_feedback_reports_delete_builder, firebaseappdistribution_projects_apps_releases_feedback_reports_delete_task,
+    firebaseappdistribution_projects_apps_releases_feedback_reports_get_builder, firebaseappdistribution_projects_apps_releases_feedback_reports_get_task,
+    firebaseappdistribution_projects_apps_releases_feedback_reports_list_builder, firebaseappdistribution_projects_apps_releases_feedback_reports_list_task,
     firebaseappdistribution_projects_apps_releases_operations_cancel_builder, firebaseappdistribution_projects_apps_releases_operations_cancel_task,
     firebaseappdistribution_projects_apps_releases_operations_delete_builder, firebaseappdistribution_projects_apps_releases_operations_delete_task,
+    firebaseappdistribution_projects_apps_releases_operations_get_builder, firebaseappdistribution_projects_apps_releases_operations_get_task,
+    firebaseappdistribution_projects_apps_releases_operations_list_builder, firebaseappdistribution_projects_apps_releases_operations_list_task,
     firebaseappdistribution_projects_apps_releases_operations_wait_builder, firebaseappdistribution_projects_apps_releases_operations_wait_task,
     firebaseappdistribution_projects_groups_batch_join_builder, firebaseappdistribution_projects_groups_batch_join_task,
     firebaseappdistribution_projects_groups_batch_leave_builder, firebaseappdistribution_projects_groups_batch_leave_task,
     firebaseappdistribution_projects_groups_create_builder, firebaseappdistribution_projects_groups_create_task,
     firebaseappdistribution_projects_groups_delete_builder, firebaseappdistribution_projects_groups_delete_task,
+    firebaseappdistribution_projects_groups_get_builder, firebaseappdistribution_projects_groups_get_task,
+    firebaseappdistribution_projects_groups_list_builder, firebaseappdistribution_projects_groups_list_task,
     firebaseappdistribution_projects_groups_patch_builder, firebaseappdistribution_projects_groups_patch_task,
     firebaseappdistribution_projects_testers_batch_add_builder, firebaseappdistribution_projects_testers_batch_add_task,
     firebaseappdistribution_projects_testers_batch_remove_builder, firebaseappdistribution_projects_testers_batch_remove_task,
+    firebaseappdistribution_projects_testers_list_builder, firebaseappdistribution_projects_testers_list_task,
     firebaseappdistribution_projects_testers_patch_builder, firebaseappdistribution_projects_testers_patch_task,
 };
 use crate::providers::gcp::clients::types::{ApiError, ApiPending};
+use crate::providers::gcp::clients::firebaseappdistribution::GoogleFirebaseAppdistroV1AabInfo;
 use crate::providers::gcp::clients::firebaseappdistribution::GoogleFirebaseAppdistroV1BatchAddTestersResponse;
 use crate::providers::gcp::clients::firebaseappdistribution::GoogleFirebaseAppdistroV1BatchRemoveTestersResponse;
 use crate::providers::gcp::clients::firebaseappdistribution::GoogleFirebaseAppdistroV1DistributeReleaseResponse;
+use crate::providers::gcp::clients::firebaseappdistribution::GoogleFirebaseAppdistroV1FeedbackReport;
 use crate::providers::gcp::clients::firebaseappdistribution::GoogleFirebaseAppdistroV1Group;
+use crate::providers::gcp::clients::firebaseappdistribution::GoogleFirebaseAppdistroV1ListFeedbackReportsResponse;
+use crate::providers::gcp::clients::firebaseappdistribution::GoogleFirebaseAppdistroV1ListGroupsResponse;
+use crate::providers::gcp::clients::firebaseappdistribution::GoogleFirebaseAppdistroV1ListReleasesResponse;
+use crate::providers::gcp::clients::firebaseappdistribution::GoogleFirebaseAppdistroV1ListTestersResponse;
 use crate::providers::gcp::clients::firebaseappdistribution::GoogleFirebaseAppdistroV1Release;
 use crate::providers::gcp::clients::firebaseappdistribution::GoogleFirebaseAppdistroV1Tester;
+use crate::providers::gcp::clients::firebaseappdistribution::GoogleLongrunningListOperationsResponse;
 use crate::providers::gcp::clients::firebaseappdistribution::GoogleLongrunningOperation;
 use crate::providers::gcp::clients::firebaseappdistribution::GoogleProtobufEmpty;
 use crate::providers::gcp::clients::firebaseappdistribution::FirebaseappdistributionMediaUploadArgs;
+use crate::providers::gcp::clients::firebaseappdistribution::FirebaseappdistributionProjectsAppsGetAabInfoArgs;
 use crate::providers::gcp::clients::firebaseappdistribution::FirebaseappdistributionProjectsAppsReleasesBatchDeleteArgs;
 use crate::providers::gcp::clients::firebaseappdistribution::FirebaseappdistributionProjectsAppsReleasesDistributeArgs;
 use crate::providers::gcp::clients::firebaseappdistribution::FirebaseappdistributionProjectsAppsReleasesFeedbackReportsDeleteArgs;
+use crate::providers::gcp::clients::firebaseappdistribution::FirebaseappdistributionProjectsAppsReleasesFeedbackReportsGetArgs;
+use crate::providers::gcp::clients::firebaseappdistribution::FirebaseappdistributionProjectsAppsReleasesFeedbackReportsListArgs;
+use crate::providers::gcp::clients::firebaseappdistribution::FirebaseappdistributionProjectsAppsReleasesGetArgs;
+use crate::providers::gcp::clients::firebaseappdistribution::FirebaseappdistributionProjectsAppsReleasesListArgs;
 use crate::providers::gcp::clients::firebaseappdistribution::FirebaseappdistributionProjectsAppsReleasesOperationsCancelArgs;
 use crate::providers::gcp::clients::firebaseappdistribution::FirebaseappdistributionProjectsAppsReleasesOperationsDeleteArgs;
+use crate::providers::gcp::clients::firebaseappdistribution::FirebaseappdistributionProjectsAppsReleasesOperationsGetArgs;
+use crate::providers::gcp::clients::firebaseappdistribution::FirebaseappdistributionProjectsAppsReleasesOperationsListArgs;
 use crate::providers::gcp::clients::firebaseappdistribution::FirebaseappdistributionProjectsAppsReleasesOperationsWaitArgs;
 use crate::providers::gcp::clients::firebaseappdistribution::FirebaseappdistributionProjectsAppsReleasesPatchArgs;
 use crate::providers::gcp::clients::firebaseappdistribution::FirebaseappdistributionProjectsGroupsBatchJoinArgs;
 use crate::providers::gcp::clients::firebaseappdistribution::FirebaseappdistributionProjectsGroupsBatchLeaveArgs;
 use crate::providers::gcp::clients::firebaseappdistribution::FirebaseappdistributionProjectsGroupsCreateArgs;
 use crate::providers::gcp::clients::firebaseappdistribution::FirebaseappdistributionProjectsGroupsDeleteArgs;
+use crate::providers::gcp::clients::firebaseappdistribution::FirebaseappdistributionProjectsGroupsGetArgs;
+use crate::providers::gcp::clients::firebaseappdistribution::FirebaseappdistributionProjectsGroupsListArgs;
 use crate::providers::gcp::clients::firebaseappdistribution::FirebaseappdistributionProjectsGroupsPatchArgs;
 use crate::providers::gcp::clients::firebaseappdistribution::FirebaseappdistributionProjectsTestersBatchAddArgs;
 use crate::providers::gcp::clients::firebaseappdistribution::FirebaseappdistributionProjectsTestersBatchRemoveArgs;
+use crate::providers::gcp::clients::firebaseappdistribution::FirebaseappdistributionProjectsTestersListArgs;
 use crate::providers::gcp::clients::firebaseappdistribution::FirebaseappdistributionProjectsTestersPatchArgs;
 use crate::provider_client::{ProviderClient, ProviderError};
 use foundation_core::valtron::{execute, StreamIterator};
@@ -136,6 +163,44 @@ where
         let store_task = StoreStateIdentifierTask::new(task, state_store, args, stage);
 
         execute(store_task, None).map_err(|e: String| ProviderError::ExecuteFailed(e.to_string()))
+    }
+
+    /// Firebaseappdistribution projects apps get aab info.
+    ///
+    /// Read-only operation - no state tracking.
+    ///
+    /// # Arguments
+    ///
+    /// * `args` - Request arguments
+    ///
+    /// # Returns
+    ///
+    /// StreamIterator yielding the GoogleFirebaseAppdistroV1AabInfo result.
+    ///
+    /// # Errors
+    ///
+    /// Returns ProviderError if the API request fails.
+    pub fn firebaseappdistribution_projects_apps_get_aab_info(
+        &self,
+        args: &FirebaseappdistributionProjectsAppsGetAabInfoArgs,
+    ) -> Result<
+        impl StreamIterator<
+            D = Result<GoogleFirebaseAppdistroV1AabInfo, ProviderError<ApiError>>,
+            P = crate::providers::gcp::clients::types::ApiPending,
+        > + Send
+        + 'static,
+        ProviderError<ApiError>,
+    > {
+        let builder = firebaseappdistribution_projects_apps_get_aab_info_builder(
+            &self.http_client,
+            &args.name,
+        )
+        .map_err(ProviderError::Api)?;
+
+        let task = firebaseappdistribution_projects_apps_get_aab_info_task(builder)
+            .map_err(ProviderError::Api)?;
+
+        execute(task, None).map_err(|e: String| ProviderError::ExecuteFailed(e.to_string()))
     }
 
     /// Firebaseappdistribution projects apps releases batch delete.
@@ -222,6 +287,86 @@ where
         let store_task = StoreStateIdentifierTask::new(task, state_store, args, stage);
 
         execute(store_task, None).map_err(|e: String| ProviderError::ExecuteFailed(e.to_string()))
+    }
+
+    /// Firebaseappdistribution projects apps releases get.
+    ///
+    /// Read-only operation - no state tracking.
+    ///
+    /// # Arguments
+    ///
+    /// * `args` - Request arguments
+    ///
+    /// # Returns
+    ///
+    /// StreamIterator yielding the GoogleFirebaseAppdistroV1Release result.
+    ///
+    /// # Errors
+    ///
+    /// Returns ProviderError if the API request fails.
+    pub fn firebaseappdistribution_projects_apps_releases_get(
+        &self,
+        args: &FirebaseappdistributionProjectsAppsReleasesGetArgs,
+    ) -> Result<
+        impl StreamIterator<
+            D = Result<GoogleFirebaseAppdistroV1Release, ProviderError<ApiError>>,
+            P = crate::providers::gcp::clients::types::ApiPending,
+        > + Send
+        + 'static,
+        ProviderError<ApiError>,
+    > {
+        let builder = firebaseappdistribution_projects_apps_releases_get_builder(
+            &self.http_client,
+            &args.name,
+        )
+        .map_err(ProviderError::Api)?;
+
+        let task = firebaseappdistribution_projects_apps_releases_get_task(builder)
+            .map_err(ProviderError::Api)?;
+
+        execute(task, None).map_err(|e: String| ProviderError::ExecuteFailed(e.to_string()))
+    }
+
+    /// Firebaseappdistribution projects apps releases list.
+    ///
+    /// Read-only operation - no state tracking.
+    ///
+    /// # Arguments
+    ///
+    /// * `args` - Request arguments
+    ///
+    /// # Returns
+    ///
+    /// StreamIterator yielding the GoogleFirebaseAppdistroV1ListReleasesResponse result.
+    ///
+    /// # Errors
+    ///
+    /// Returns ProviderError if the API request fails.
+    pub fn firebaseappdistribution_projects_apps_releases_list(
+        &self,
+        args: &FirebaseappdistributionProjectsAppsReleasesListArgs,
+    ) -> Result<
+        impl StreamIterator<
+            D = Result<GoogleFirebaseAppdistroV1ListReleasesResponse, ProviderError<ApiError>>,
+            P = crate::providers::gcp::clients::types::ApiPending,
+        > + Send
+        + 'static,
+        ProviderError<ApiError>,
+    > {
+        let builder = firebaseappdistribution_projects_apps_releases_list_builder(
+            &self.http_client,
+            &args.parent,
+            &args.filter,
+            &args.orderBy,
+            &args.pageSize,
+            &args.pageToken,
+        )
+        .map_err(ProviderError::Api)?;
+
+        let task = firebaseappdistribution_projects_apps_releases_list_task(builder)
+            .map_err(ProviderError::Api)?;
+
+        execute(task, None).map_err(|e: String| ProviderError::ExecuteFailed(e.to_string()))
     }
 
     /// Firebaseappdistribution projects apps releases patch.
@@ -311,6 +456,84 @@ where
         execute(store_task, None).map_err(|e: String| ProviderError::ExecuteFailed(e.to_string()))
     }
 
+    /// Firebaseappdistribution projects apps releases feedback reports get.
+    ///
+    /// Read-only operation - no state tracking.
+    ///
+    /// # Arguments
+    ///
+    /// * `args` - Request arguments
+    ///
+    /// # Returns
+    ///
+    /// StreamIterator yielding the GoogleFirebaseAppdistroV1FeedbackReport result.
+    ///
+    /// # Errors
+    ///
+    /// Returns ProviderError if the API request fails.
+    pub fn firebaseappdistribution_projects_apps_releases_feedback_reports_get(
+        &self,
+        args: &FirebaseappdistributionProjectsAppsReleasesFeedbackReportsGetArgs,
+    ) -> Result<
+        impl StreamIterator<
+            D = Result<GoogleFirebaseAppdistroV1FeedbackReport, ProviderError<ApiError>>,
+            P = crate::providers::gcp::clients::types::ApiPending,
+        > + Send
+        + 'static,
+        ProviderError<ApiError>,
+    > {
+        let builder = firebaseappdistribution_projects_apps_releases_feedback_reports_get_builder(
+            &self.http_client,
+            &args.name,
+        )
+        .map_err(ProviderError::Api)?;
+
+        let task = firebaseappdistribution_projects_apps_releases_feedback_reports_get_task(builder)
+            .map_err(ProviderError::Api)?;
+
+        execute(task, None).map_err(|e: String| ProviderError::ExecuteFailed(e.to_string()))
+    }
+
+    /// Firebaseappdistribution projects apps releases feedback reports list.
+    ///
+    /// Read-only operation - no state tracking.
+    ///
+    /// # Arguments
+    ///
+    /// * `args` - Request arguments
+    ///
+    /// # Returns
+    ///
+    /// StreamIterator yielding the GoogleFirebaseAppdistroV1ListFeedbackReportsResponse result.
+    ///
+    /// # Errors
+    ///
+    /// Returns ProviderError if the API request fails.
+    pub fn firebaseappdistribution_projects_apps_releases_feedback_reports_list(
+        &self,
+        args: &FirebaseappdistributionProjectsAppsReleasesFeedbackReportsListArgs,
+    ) -> Result<
+        impl StreamIterator<
+            D = Result<GoogleFirebaseAppdistroV1ListFeedbackReportsResponse, ProviderError<ApiError>>,
+            P = crate::providers::gcp::clients::types::ApiPending,
+        > + Send
+        + 'static,
+        ProviderError<ApiError>,
+    > {
+        let builder = firebaseappdistribution_projects_apps_releases_feedback_reports_list_builder(
+            &self.http_client,
+            &args.parent,
+            &args.pageSize,
+            &args.pageToken,
+        )
+        .map_err(ProviderError::Api)?;
+
+        let task = firebaseappdistribution_projects_apps_releases_feedback_reports_list_task(builder)
+            .map_err(ProviderError::Api)?;
+
+        execute(task, None).map_err(|e: String| ProviderError::ExecuteFailed(e.to_string()))
+    }
+
     /// Firebaseappdistribution projects apps releases operations cancel.
     ///
     /// Automatically stores the result in the state store on success.
@@ -395,6 +618,86 @@ where
         let store_task = StoreStateIdentifierTask::new(task, state_store, args, stage);
 
         execute(store_task, None).map_err(|e: String| ProviderError::ExecuteFailed(e.to_string()))
+    }
+
+    /// Firebaseappdistribution projects apps releases operations get.
+    ///
+    /// Read-only operation - no state tracking.
+    ///
+    /// # Arguments
+    ///
+    /// * `args` - Request arguments
+    ///
+    /// # Returns
+    ///
+    /// StreamIterator yielding the GoogleLongrunningOperation result.
+    ///
+    /// # Errors
+    ///
+    /// Returns ProviderError if the API request fails.
+    pub fn firebaseappdistribution_projects_apps_releases_operations_get(
+        &self,
+        args: &FirebaseappdistributionProjectsAppsReleasesOperationsGetArgs,
+    ) -> Result<
+        impl StreamIterator<
+            D = Result<GoogleLongrunningOperation, ProviderError<ApiError>>,
+            P = crate::providers::gcp::clients::types::ApiPending,
+        > + Send
+        + 'static,
+        ProviderError<ApiError>,
+    > {
+        let builder = firebaseappdistribution_projects_apps_releases_operations_get_builder(
+            &self.http_client,
+            &args.name,
+        )
+        .map_err(ProviderError::Api)?;
+
+        let task = firebaseappdistribution_projects_apps_releases_operations_get_task(builder)
+            .map_err(ProviderError::Api)?;
+
+        execute(task, None).map_err(|e: String| ProviderError::ExecuteFailed(e.to_string()))
+    }
+
+    /// Firebaseappdistribution projects apps releases operations list.
+    ///
+    /// Read-only operation - no state tracking.
+    ///
+    /// # Arguments
+    ///
+    /// * `args` - Request arguments
+    ///
+    /// # Returns
+    ///
+    /// StreamIterator yielding the GoogleLongrunningListOperationsResponse result.
+    ///
+    /// # Errors
+    ///
+    /// Returns ProviderError if the API request fails.
+    pub fn firebaseappdistribution_projects_apps_releases_operations_list(
+        &self,
+        args: &FirebaseappdistributionProjectsAppsReleasesOperationsListArgs,
+    ) -> Result<
+        impl StreamIterator<
+            D = Result<GoogleLongrunningListOperationsResponse, ProviderError<ApiError>>,
+            P = crate::providers::gcp::clients::types::ApiPending,
+        > + Send
+        + 'static,
+        ProviderError<ApiError>,
+    > {
+        let builder = firebaseappdistribution_projects_apps_releases_operations_list_builder(
+            &self.http_client,
+            &args.name,
+            &args.filter,
+            &args.pageSize,
+            &args.pageToken,
+            &args.returnPartialSuccess,
+        )
+        .map_err(ProviderError::Api)?;
+
+        let task = firebaseappdistribution_projects_apps_releases_operations_list_task(builder)
+            .map_err(ProviderError::Api)?;
+
+        execute(task, None).map_err(|e: String| ProviderError::ExecuteFailed(e.to_string()))
     }
 
     /// Firebaseappdistribution projects apps releases operations wait.
@@ -613,6 +916,84 @@ where
         execute(store_task, None).map_err(|e: String| ProviderError::ExecuteFailed(e.to_string()))
     }
 
+    /// Firebaseappdistribution projects groups get.
+    ///
+    /// Read-only operation - no state tracking.
+    ///
+    /// # Arguments
+    ///
+    /// * `args` - Request arguments
+    ///
+    /// # Returns
+    ///
+    /// StreamIterator yielding the GoogleFirebaseAppdistroV1Group result.
+    ///
+    /// # Errors
+    ///
+    /// Returns ProviderError if the API request fails.
+    pub fn firebaseappdistribution_projects_groups_get(
+        &self,
+        args: &FirebaseappdistributionProjectsGroupsGetArgs,
+    ) -> Result<
+        impl StreamIterator<
+            D = Result<GoogleFirebaseAppdistroV1Group, ProviderError<ApiError>>,
+            P = crate::providers::gcp::clients::types::ApiPending,
+        > + Send
+        + 'static,
+        ProviderError<ApiError>,
+    > {
+        let builder = firebaseappdistribution_projects_groups_get_builder(
+            &self.http_client,
+            &args.name,
+        )
+        .map_err(ProviderError::Api)?;
+
+        let task = firebaseappdistribution_projects_groups_get_task(builder)
+            .map_err(ProviderError::Api)?;
+
+        execute(task, None).map_err(|e: String| ProviderError::ExecuteFailed(e.to_string()))
+    }
+
+    /// Firebaseappdistribution projects groups list.
+    ///
+    /// Read-only operation - no state tracking.
+    ///
+    /// # Arguments
+    ///
+    /// * `args` - Request arguments
+    ///
+    /// # Returns
+    ///
+    /// StreamIterator yielding the GoogleFirebaseAppdistroV1ListGroupsResponse result.
+    ///
+    /// # Errors
+    ///
+    /// Returns ProviderError if the API request fails.
+    pub fn firebaseappdistribution_projects_groups_list(
+        &self,
+        args: &FirebaseappdistributionProjectsGroupsListArgs,
+    ) -> Result<
+        impl StreamIterator<
+            D = Result<GoogleFirebaseAppdistroV1ListGroupsResponse, ProviderError<ApiError>>,
+            P = crate::providers::gcp::clients::types::ApiPending,
+        > + Send
+        + 'static,
+        ProviderError<ApiError>,
+    > {
+        let builder = firebaseappdistribution_projects_groups_list_builder(
+            &self.http_client,
+            &args.parent,
+            &args.pageSize,
+            &args.pageToken,
+        )
+        .map_err(ProviderError::Api)?;
+
+        let task = firebaseappdistribution_projects_groups_list_task(builder)
+            .map_err(ProviderError::Api)?;
+
+        execute(task, None).map_err(|e: String| ProviderError::ExecuteFailed(e.to_string()))
+    }
+
     /// Firebaseappdistribution projects groups patch.
     ///
     /// Automatically stores the result in the state store on success.
@@ -741,6 +1122,47 @@ where
         let store_task = StoreStateIdentifierTask::new(task, state_store, args, stage);
 
         execute(store_task, None).map_err(|e: String| ProviderError::ExecuteFailed(e.to_string()))
+    }
+
+    /// Firebaseappdistribution projects testers list.
+    ///
+    /// Read-only operation - no state tracking.
+    ///
+    /// # Arguments
+    ///
+    /// * `args` - Request arguments
+    ///
+    /// # Returns
+    ///
+    /// StreamIterator yielding the GoogleFirebaseAppdistroV1ListTestersResponse result.
+    ///
+    /// # Errors
+    ///
+    /// Returns ProviderError if the API request fails.
+    pub fn firebaseappdistribution_projects_testers_list(
+        &self,
+        args: &FirebaseappdistributionProjectsTestersListArgs,
+    ) -> Result<
+        impl StreamIterator<
+            D = Result<GoogleFirebaseAppdistroV1ListTestersResponse, ProviderError<ApiError>>,
+            P = crate::providers::gcp::clients::types::ApiPending,
+        > + Send
+        + 'static,
+        ProviderError<ApiError>,
+    > {
+        let builder = firebaseappdistribution_projects_testers_list_builder(
+            &self.http_client,
+            &args.parent,
+            &args.filter,
+            &args.pageSize,
+            &args.pageToken,
+        )
+        .map_err(ProviderError::Api)?;
+
+        let task = firebaseappdistribution_projects_testers_list_task(builder)
+            .map_err(ProviderError::Api)?;
+
+        execute(task, None).map_err(|e: String| ProviderError::ExecuteFailed(e.to_string()))
     }
 
     /// Firebaseappdistribution projects testers patch.

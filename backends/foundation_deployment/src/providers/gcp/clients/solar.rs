@@ -7,7 +7,6 @@
 
 #![cfg(feature = "gcp")]
 
-
 use crate::providers::gcp::clients::types::*;
 use crate::providers::gcp::resources::*;
 use foundation_core::valtron::{
@@ -17,6 +16,7 @@ use foundation_core::valtron::{
 use foundation_core::wire::simple_http::client::{
     body_reader, ClientRequestBuilder, RequestIntro, SimpleHttpClient, SystemDnsResolver,
 };
+use foundation_db::state::resource_identifier::ResourceIdentifier;
 use foundation_macros::JsonHash;
 use serde::Serialize;
 
@@ -28,11 +28,11 @@ use serde::Serialize;
 
 pub fn solar_building_insights_find_closest_builder(
     client: &SimpleHttpClient,
-    exactQualityRequired: &Option<bool>,
-    experiments: &Option<String>,
-    location_latitude: &Option<f64>,
-    location_longitude: &Option<f64>,
-    requiredQuality: &Option<String>,
+    exactQualityRequired: &Option<Option<String>>,
+    experiments: &Option<Option<String>>,
+    location_latitude: &Option<Option<String>>,
+    location_longitude: &Option<Option<String>>,
+    requiredQuality: &Option<Option<String>>,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!("https://solar.googleapis.com/v1/buildingInsights:findClosest",);
@@ -178,15 +178,15 @@ pub fn solar_building_insights_find_closest_execute(
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct SolarBuildingInsightsFindClosestArgs {
     /// Query parameter: exactQualityRequired
-    pub exactQualityRequired: Option<bool>,
+    pub exactQualityRequired: Option<Option<String>>,
     /// Query parameter: experiments
-    pub experiments: Option<String>,
+    pub experiments: Option<Option<String>>,
     /// Query parameter: location_latitude
-    pub location_latitude: Option<f64>,
+    pub location_latitude: Option<Option<String>>,
     /// Query parameter: location_longitude
-    pub location_longitude: Option<f64>,
+    pub location_longitude: Option<Option<String>>,
     /// Query parameter: requiredQuality
-    pub requiredQuality: Option<String>,
+    pub requiredQuality: Option<Option<String>>,
 }
 
 /// GET v1/buildingInsights:findClosest
@@ -228,14 +228,14 @@ pub fn solar_building_insights_find_closest(
 
 pub fn solar_data_layers_get_builder(
     client: &SimpleHttpClient,
-    exactQualityRequired: &Option<bool>,
-    experiments: &Option<String>,
-    location_latitude: &Option<f64>,
-    location_longitude: &Option<f64>,
-    pixelSizeMeters: &Option<f32>,
-    radiusMeters: &Option<f32>,
-    requiredQuality: &Option<String>,
-    view: &Option<String>,
+    exactQualityRequired: &Option<Option<String>>,
+    experiments: &Option<Option<String>>,
+    location_latitude: &Option<Option<String>>,
+    location_longitude: &Option<Option<String>>,
+    pixelSizeMeters: &Option<Option<String>>,
+    radiusMeters: &Option<Option<String>>,
+    requiredQuality: &Option<Option<String>>,
+    view: &Option<Option<String>>,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!("https://solar.googleapis.com/v1/dataLayers:get",);
@@ -388,21 +388,21 @@ pub fn solar_data_layers_get_execute(
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct SolarDataLayersGetArgs {
     /// Query parameter: exactQualityRequired
-    pub exactQualityRequired: Option<bool>,
+    pub exactQualityRequired: Option<Option<String>>,
     /// Query parameter: experiments
-    pub experiments: Option<String>,
+    pub experiments: Option<Option<String>>,
     /// Query parameter: location_latitude
-    pub location_latitude: Option<f64>,
+    pub location_latitude: Option<Option<String>>,
     /// Query parameter: location_longitude
-    pub location_longitude: Option<f64>,
+    pub location_longitude: Option<Option<String>>,
     /// Query parameter: pixelSizeMeters
-    pub pixelSizeMeters: Option<f32>,
+    pub pixelSizeMeters: Option<Option<String>>,
     /// Query parameter: radiusMeters
-    pub radiusMeters: Option<f32>,
+    pub radiusMeters: Option<Option<String>>,
     /// Query parameter: requiredQuality
-    pub requiredQuality: Option<String>,
+    pub requiredQuality: Option<Option<String>>,
     /// Query parameter: view
-    pub view: Option<String>,
+    pub view: Option<Option<String>>,
 }
 
 /// GET v1/dataLayers:get
@@ -445,7 +445,7 @@ pub fn solar_data_layers_get(
 
 pub fn solar_geo_tiff_get_builder(
     client: &SimpleHttpClient,
-    id: &Option<String>,
+    id: &Option<Option<String>>,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!("https://solar.googleapis.com/v1/geoTiff:get",);
@@ -577,7 +577,7 @@ pub fn solar_geo_tiff_get_execute(
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct SolarGeoTiffGetArgs {
     /// Query parameter: id
-    pub id: Option<String>,
+    pub id: Option<Option<String>>,
 }
 
 /// GET v1/geoTiff:get
@@ -600,4 +600,73 @@ pub fn solar_geo_tiff_get(
 > {
     let builder = solar_geo_tiff_get_builder(client, &args.id)?;
     solar_geo_tiff_get_execute(builder)
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for BuildingInsights
+// =============================================================================
+
+/// ResourceIdentifier implementation for BuildingInsights with SolarBuildingInsightsFindClosestArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<SolarBuildingInsightsFindClosestArgs> for BuildingInsights {
+    fn generate_resource_id(&self, input: &SolarBuildingInsightsFindClosestArgs) -> String {
+        "gcp::solar::BuildingInsights".to_string()
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::solar::BuildingInsights"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for DataLayers
+// =============================================================================
+
+/// ResourceIdentifier implementation for DataLayers with SolarDataLayersGetArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<SolarDataLayersGetArgs> for DataLayers {
+    fn generate_resource_id(&self, input: &SolarDataLayersGetArgs) -> String {
+        "gcp::solar::DataLayers".to_string()
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::solar::DataLayers"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for HttpBody
+// =============================================================================
+
+/// ResourceIdentifier implementation for HttpBody with SolarGeoTiffGetArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<SolarGeoTiffGetArgs> for HttpBody {
+    fn generate_resource_id(&self, input: &SolarGeoTiffGetArgs) -> String {
+        "gcp::solar::HttpBody".to_string()
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::solar::HttpBody"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
 }

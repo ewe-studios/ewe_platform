@@ -7,7 +7,6 @@
 
 #![cfg(feature = "gcp")]
 
-
 use crate::providers::gcp::clients::types::*;
 use crate::providers::gcp::resources::*;
 use foundation_core::valtron::{
@@ -17,6 +16,7 @@ use foundation_core::valtron::{
 use foundation_core::wire::simple_http::client::{
     body_reader, ClientRequestBuilder, RequestIntro, SimpleHttpClient, SystemDnsResolver,
 };
+use foundation_db::state::resource_identifier::ResourceIdentifier;
 use foundation_macros::JsonHash;
 use serde::Serialize;
 
@@ -28,13 +28,13 @@ use serde::Serialize;
 
 pub fn kgsearch_entities_search_builder(
     client: &SimpleHttpClient,
-    ids: &Option<String>,
-    indent: &Option<bool>,
-    languages: &Option<String>,
-    limit: &Option<i32>,
-    prefix: &Option<bool>,
-    query: &Option<String>,
-    types: &Option<String>,
+    ids: &Option<Option<String>>,
+    indent: &Option<Option<String>>,
+    languages: &Option<Option<String>>,
+    limit: &Option<Option<String>>,
+    prefix: &Option<Option<String>>,
+    query: &Option<Option<String>>,
+    types: &Option<Option<String>>,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!("https://kgsearch.googleapis.com/v1/entities:search",);
@@ -186,19 +186,19 @@ pub fn kgsearch_entities_search_execute(
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct KgsearchEntitiesSearchArgs {
     /// Query parameter: ids
-    pub ids: Option<String>,
+    pub ids: Option<Option<String>>,
     /// Query parameter: indent
-    pub indent: Option<bool>,
+    pub indent: Option<Option<String>>,
     /// Query parameter: languages
-    pub languages: Option<String>,
+    pub languages: Option<Option<String>>,
     /// Query parameter: limit
-    pub limit: Option<i32>,
+    pub limit: Option<Option<String>>,
     /// Query parameter: prefix
-    pub prefix: Option<bool>,
+    pub prefix: Option<Option<String>>,
     /// Query parameter: query
-    pub query: Option<String>,
+    pub query: Option<Option<String>>,
     /// Query parameter: types
-    pub types: Option<String>,
+    pub types: Option<Option<String>>,
 }
 
 /// GET v1/entities:search
@@ -232,4 +232,27 @@ pub fn kgsearch_entities_search(
         &args.types,
     )?;
     kgsearch_entities_search_execute(builder)
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for SearchResponse
+// =============================================================================
+
+/// ResourceIdentifier implementation for SearchResponse with KgsearchEntitiesSearchArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<KgsearchEntitiesSearchArgs> for SearchResponse {
+    fn generate_resource_id(&self, input: &KgsearchEntitiesSearchArgs) -> String {
+        "gcp::kgsearch::SearchResponse".to_string()
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::kgsearch::SearchResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
 }

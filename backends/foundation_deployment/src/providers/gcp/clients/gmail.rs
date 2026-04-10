@@ -7,7 +7,6 @@
 
 #![cfg(feature = "gcp")]
 
-
 use crate::providers::gcp::clients::types::*;
 use crate::providers::gcp::resources::*;
 use foundation_core::valtron::{
@@ -17,6 +16,7 @@ use foundation_core::valtron::{
 use foundation_core::wire::simple_http::client::{
     body_reader, ClientRequestBuilder, RequestIntro, SimpleHttpClient, SystemDnsResolver,
 };
+use foundation_db::state::resource_identifier::ResourceIdentifier;
 use foundation_macros::JsonHash;
 use serde::Serialize;
 
@@ -177,7 +177,7 @@ pub fn gmail_users_get_profile(
     gmail_users_get_profile_execute(builder)
 }
 
-/// GET gmail/v1/users/{userId}/stop
+/// POST gmail/v1/users/{userId}/stop
 /// Stop receiving push notifications for the given user mailbox.
 ///
 /// Returns `ClientRequestBuilder` for customization.
@@ -195,13 +195,13 @@ pub fn gmail_users_stop_builder(
 
     // Build request
     let builder = client
-        .get(&endpoint_url)
+        .post(&endpoint_url)
         .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
 
     Ok(builder)
 }
 
-/// GET gmail/v1/users/{userId}/stop
+/// POST gmail/v1/users/{userId}/stop
 /// Stop receiving push notifications for the given user mailbox.
 ///
 /// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
@@ -272,7 +272,7 @@ pub fn gmail_users_stop_task(
         .map_pending(|_| ApiPending::Sending))
 }
 
-/// GET gmail/v1/users/{userId}/stop
+/// POST gmail/v1/users/{userId}/stop
 /// Stop receiving push notifications for the given user mailbox.
 ///
 /// Takes a `ClientRequestBuilder`, builds and executes the request,
@@ -309,7 +309,7 @@ pub struct GmailUsersStopArgs {
     pub userId: String,
 }
 
-/// GET gmail/v1/users/{userId}/stop
+/// POST gmail/v1/users/{userId}/stop
 /// Stop receiving push notifications for the given user mailbox.
 ///
 /// Simplest API - builds and executes the request in one call.
@@ -331,7 +331,7 @@ pub fn gmail_users_stop(
     gmail_users_stop_execute(builder)
 }
 
-/// GET gmail/v1/users/{userId}/watch
+/// POST gmail/v1/users/{userId}/watch
 /// Set up or update a push notification watch on the given user mailbox.
 ///
 /// Returns `ClientRequestBuilder` for customization.
@@ -340,7 +340,6 @@ pub fn gmail_users_stop(
 pub fn gmail_users_watch_builder(
     client: &SimpleHttpClient,
     userId: &String,
-    body: &WatchRequest,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
@@ -350,15 +349,13 @@ pub fn gmail_users_watch_builder(
 
     // Build request
     let builder = client
-        .get(&endpoint_url)
+        .post(&endpoint_url)
         .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
 
-    builder
-        .body_json(body)
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+    Ok(builder)
 }
 
-/// GET gmail/v1/users/{userId}/watch
+/// POST gmail/v1/users/{userId}/watch
 /// Set up or update a push notification watch on the given user mailbox.
 ///
 /// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
@@ -432,7 +429,7 @@ pub fn gmail_users_watch_task(
         .map_pending(|_| ApiPending::Sending))
 }
 
-/// GET gmail/v1/users/{userId}/watch
+/// POST gmail/v1/users/{userId}/watch
 /// Set up or update a push notification watch on the given user mailbox.
 ///
 /// Takes a `ClientRequestBuilder`, builds and executes the request,
@@ -469,11 +466,9 @@ pub fn gmail_users_watch_execute(
 pub struct GmailUsersWatchArgs {
     /// Path parameter: userId
     pub userId: String,
-    /// Request body.
-    pub body: WatchRequest,
 }
 
-/// GET gmail/v1/users/{userId}/watch
+/// POST gmail/v1/users/{userId}/watch
 /// Set up or update a push notification watch on the given user mailbox.
 ///
 /// Simplest API - builds and executes the request in one call.
@@ -493,11 +488,11 @@ pub fn gmail_users_watch(
         + 'static,
     ApiError,
 > {
-    let builder = gmail_users_watch_builder(client, &args.userId, &args.body)?;
+    let builder = gmail_users_watch_builder(client, &args.userId)?;
     gmail_users_watch_execute(builder)
 }
 
-/// GET gmail/v1/users/{userId}/drafts
+/// POST gmail/v1/users/{userId}/drafts
 /// Creates a new draft with the DRAFT label.
 ///
 /// Returns `ClientRequestBuilder` for customization.
@@ -506,7 +501,6 @@ pub fn gmail_users_watch(
 pub fn gmail_users_drafts_create_builder(
     client: &SimpleHttpClient,
     userId: &String,
-    body: &Draft,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
@@ -516,15 +510,13 @@ pub fn gmail_users_drafts_create_builder(
 
     // Build request
     let builder = client
-        .get(&endpoint_url)
+        .post(&endpoint_url)
         .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
 
-    builder
-        .body_json(body)
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+    Ok(builder)
 }
 
-/// GET gmail/v1/users/{userId}/drafts
+/// POST gmail/v1/users/{userId}/drafts
 /// Creates a new draft with the DRAFT label.
 ///
 /// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
@@ -598,7 +590,7 @@ pub fn gmail_users_drafts_create_task(
         .map_pending(|_| ApiPending::Sending))
 }
 
-/// GET gmail/v1/users/{userId}/drafts
+/// POST gmail/v1/users/{userId}/drafts
 /// Creates a new draft with the DRAFT label.
 ///
 /// Takes a `ClientRequestBuilder`, builds and executes the request,
@@ -633,11 +625,9 @@ pub fn gmail_users_drafts_create_execute(
 pub struct GmailUsersDraftsCreateArgs {
     /// Path parameter: userId
     pub userId: String,
-    /// Request body.
-    pub body: Draft,
 }
 
-/// GET gmail/v1/users/{userId}/drafts
+/// POST gmail/v1/users/{userId}/drafts
 /// Creates a new draft with the DRAFT label.
 ///
 /// Simplest API - builds and executes the request in one call.
@@ -655,11 +645,11 @@ pub fn gmail_users_drafts_create(
     impl StreamIterator<D = Result<ApiResponse<Draft>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = gmail_users_drafts_create_builder(client, &args.userId, &args.body)?;
+    let builder = gmail_users_drafts_create_builder(client, &args.userId)?;
     gmail_users_drafts_create_execute(builder)
 }
 
-/// GET gmail/v1/users/{userId}/drafts/{id}
+/// DELETE gmail/v1/users/{userId}/drafts/{id}
 /// Immediately and permanently deletes the specified draft. Does not simply trash it.
 ///
 /// Returns `ClientRequestBuilder` for customization.
@@ -678,13 +668,13 @@ pub fn gmail_users_drafts_delete_builder(
 
     // Build request
     let builder = client
-        .get(&endpoint_url)
+        .delete(&endpoint_url)
         .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
 
     Ok(builder)
 }
 
-/// GET gmail/v1/users/{userId}/drafts/{id}
+/// DELETE gmail/v1/users/{userId}/drafts/{id}
 /// Immediately and permanently deletes the specified draft. Does not simply trash it.
 ///
 /// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
@@ -755,7 +745,7 @@ pub fn gmail_users_drafts_delete_task(
         .map_pending(|_| ApiPending::Sending))
 }
 
-/// GET gmail/v1/users/{userId}/drafts/{id}
+/// DELETE gmail/v1/users/{userId}/drafts/{id}
 /// Immediately and permanently deletes the specified draft. Does not simply trash it.
 ///
 /// Takes a `ClientRequestBuilder`, builds and executes the request,
@@ -794,7 +784,7 @@ pub struct GmailUsersDraftsDeleteArgs {
     pub id: String,
 }
 
-/// GET gmail/v1/users/{userId}/drafts/{id}
+/// DELETE gmail/v1/users/{userId}/drafts/{id}
 /// Immediately and permanently deletes the specified draft. Does not simply trash it.
 ///
 /// Simplest API - builds and executes the request in one call.
@@ -816,7 +806,381 @@ pub fn gmail_users_drafts_delete(
     gmail_users_drafts_delete_execute(builder)
 }
 
-/// GET gmail/v1/users/{userId}/drafts/send
+/// GET gmail/v1/users/{userId}/drafts/{id}
+/// Gets the specified draft.
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `gmail_users_drafts_get_execute()` to send, or `gmail_users_drafts_get` for simplest API.
+
+pub fn gmail_users_drafts_get_builder(
+    client: &SimpleHttpClient,
+    userId: &String,
+    id: &String,
+    format: &Option<Option<String>>,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!(
+        "https://gmail.googleapis.com/gmail/v1/users/{}/drafts/{}",
+        userId, id,
+    );
+
+    // Build request
+    let mut query_parts = Vec::new();
+    if let Some(val) = format.as_ref() {
+        query_parts.push(format!("format={}", val));
+    }
+
+    let url_with_query = if query_parts.is_empty() {
+        endpoint_url
+    } else {
+        format!("{}?{}", endpoint_url, query_parts.join("&"))
+    };
+
+    let builder = client
+        .get(&url_with_query)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// GET gmail/v1/users/{userId}/drafts/{id}
+/// Gets the specified draft.
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `gmail_users_drafts_get_execute()` or `gmail_users_drafts_get`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `gmail_users_drafts_get_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn gmail_users_drafts_get_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<Draft>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: Draft = serde_json::from_str(&body)
+                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// GET gmail/v1/users/{userId}/drafts/{id}
+/// Gets the specified draft.
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `gmail_users_drafts_get_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `gmail_users_drafts_get_task()`.
+/// For the simplest API, use `gmail_users_drafts_get()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `gmail_users_drafts_get_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn gmail_users_drafts_get_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<Draft>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let task = gmail_users_drafts_get_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`gmail_users_drafts_get`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct GmailUsersDraftsGetArgs {
+    /// Path parameter: userId
+    pub userId: String,
+    /// Path parameter: id
+    pub id: String,
+    /// Query parameter: format
+    pub format: Option<Option<String>>,
+}
+
+/// GET gmail/v1/users/{userId}/drafts/{id}
+/// Gets the specified draft.
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `gmail_users_drafts_get_builder()` + `gmail_users_drafts_get_execute()`.
+/// For task-level control, use `gmail_users_drafts_get_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn gmail_users_drafts_get(
+    client: &SimpleHttpClient,
+    args: &GmailUsersDraftsGetArgs,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<Draft>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let builder = gmail_users_drafts_get_builder(client, &args.userId, &args.id, &args.format)?;
+    gmail_users_drafts_get_execute(builder)
+}
+
+/// GET gmail/v1/users/{userId}/drafts
+/// Lists the drafts in the user's mailbox.
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `gmail_users_drafts_list_execute()` to send, or `gmail_users_drafts_list` for simplest API.
+
+pub fn gmail_users_drafts_list_builder(
+    client: &SimpleHttpClient,
+    userId: &String,
+    includeSpamTrash: &Option<Option<String>>,
+    maxResults: &Option<Option<String>>,
+    pageToken: &Option<Option<String>>,
+    q: &Option<Option<String>>,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!(
+        "https://gmail.googleapis.com/gmail/v1/users/{}/drafts",
+        userId,
+    );
+
+    // Build request
+    let mut query_parts = Vec::new();
+    if let Some(val) = includeSpamTrash.as_ref() {
+        query_parts.push(format!("includeSpamTrash={}", val));
+    }
+    if let Some(val) = maxResults.as_ref() {
+        query_parts.push(format!("maxResults={}", val));
+    }
+    if let Some(val) = pageToken.as_ref() {
+        query_parts.push(format!("pageToken={}", val));
+    }
+    if let Some(val) = q.as_ref() {
+        query_parts.push(format!("q={}", val));
+    }
+
+    let url_with_query = if query_parts.is_empty() {
+        endpoint_url
+    } else {
+        format!("{}?{}", endpoint_url, query_parts.join("&"))
+    };
+
+    let builder = client
+        .get(&url_with_query)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// GET gmail/v1/users/{userId}/drafts
+/// Lists the drafts in the user's mailbox.
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `gmail_users_drafts_list_execute()` or `gmail_users_drafts_list`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `gmail_users_drafts_list_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn gmail_users_drafts_list_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<ListDraftsResponse>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: ListDraftsResponse = serde_json::from_str(&body)
+                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// GET gmail/v1/users/{userId}/drafts
+/// Lists the drafts in the user's mailbox.
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `gmail_users_drafts_list_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `gmail_users_drafts_list_task()`.
+/// For the simplest API, use `gmail_users_drafts_list()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `gmail_users_drafts_list_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn gmail_users_drafts_list_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<ListDraftsResponse>, ApiError>, P = ApiPending>
+        + Send
+        + 'static,
+    ApiError,
+> {
+    let task = gmail_users_drafts_list_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`gmail_users_drafts_list`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct GmailUsersDraftsListArgs {
+    /// Path parameter: userId
+    pub userId: String,
+    /// Query parameter: includeSpamTrash
+    pub includeSpamTrash: Option<Option<String>>,
+    /// Query parameter: maxResults
+    pub maxResults: Option<Option<String>>,
+    /// Query parameter: pageToken
+    pub pageToken: Option<Option<String>>,
+    /// Query parameter: q
+    pub q: Option<Option<String>>,
+}
+
+/// GET gmail/v1/users/{userId}/drafts
+/// Lists the drafts in the user's mailbox.
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `gmail_users_drafts_list_builder()` + `gmail_users_drafts_list_execute()`.
+/// For task-level control, use `gmail_users_drafts_list_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn gmail_users_drafts_list(
+    client: &SimpleHttpClient,
+    args: &GmailUsersDraftsListArgs,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<ListDraftsResponse>, ApiError>, P = ApiPending>
+        + Send
+        + 'static,
+    ApiError,
+> {
+    let builder = gmail_users_drafts_list_builder(
+        client,
+        &args.userId,
+        &args.includeSpamTrash,
+        &args.maxResults,
+        &args.pageToken,
+        &args.q,
+    )?;
+    gmail_users_drafts_list_execute(builder)
+}
+
+/// POST gmail/v1/users/{userId}/drafts/send
 /// Sends the specified, existing draft to the recipients in the To, Cc, and Bcc headers.
 ///
 /// Returns `ClientRequestBuilder` for customization.
@@ -825,7 +1189,6 @@ pub fn gmail_users_drafts_delete(
 pub fn gmail_users_drafts_send_builder(
     client: &SimpleHttpClient,
     userId: &String,
-    body: &Draft,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
@@ -835,15 +1198,13 @@ pub fn gmail_users_drafts_send_builder(
 
     // Build request
     let builder = client
-        .get(&endpoint_url)
+        .post(&endpoint_url)
         .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
 
-    builder
-        .body_json(body)
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+    Ok(builder)
 }
 
-/// GET gmail/v1/users/{userId}/drafts/send
+/// POST gmail/v1/users/{userId}/drafts/send
 /// Sends the specified, existing draft to the recipients in the To, Cc, and Bcc headers.
 ///
 /// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
@@ -917,7 +1278,7 @@ pub fn gmail_users_drafts_send_task(
         .map_pending(|_| ApiPending::Sending))
 }
 
-/// GET gmail/v1/users/{userId}/drafts/send
+/// POST gmail/v1/users/{userId}/drafts/send
 /// Sends the specified, existing draft to the recipients in the To, Cc, and Bcc headers.
 ///
 /// Takes a `ClientRequestBuilder`, builds and executes the request,
@@ -952,11 +1313,9 @@ pub fn gmail_users_drafts_send_execute(
 pub struct GmailUsersDraftsSendArgs {
     /// Path parameter: userId
     pub userId: String,
-    /// Request body.
-    pub body: Draft,
 }
 
-/// GET gmail/v1/users/{userId}/drafts/send
+/// POST gmail/v1/users/{userId}/drafts/send
 /// Sends the specified, existing draft to the recipients in the To, Cc, and Bcc headers.
 ///
 /// Simplest API - builds and executes the request in one call.
@@ -974,8 +1333,168 @@ pub fn gmail_users_drafts_send(
     impl StreamIterator<D = Result<ApiResponse<Message>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = gmail_users_drafts_send_builder(client, &args.userId, &args.body)?;
+    let builder = gmail_users_drafts_send_builder(client, &args.userId)?;
     gmail_users_drafts_send_execute(builder)
+}
+
+/// PUT gmail/v1/users/{userId}/drafts/{id}
+/// Replaces a draft's content.
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `gmail_users_drafts_update_execute()` to send, or `gmail_users_drafts_update` for simplest API.
+
+pub fn gmail_users_drafts_update_builder(
+    client: &SimpleHttpClient,
+    userId: &String,
+    id: &String,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!(
+        "https://gmail.googleapis.com/gmail/v1/users/{}/drafts/{}",
+        userId, id,
+    );
+
+    // Build request
+    let builder = client
+        .put(&endpoint_url)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// PUT gmail/v1/users/{userId}/drafts/{id}
+/// Replaces a draft's content.
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `gmail_users_drafts_update_execute()` or `gmail_users_drafts_update`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `gmail_users_drafts_update_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn gmail_users_drafts_update_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<Draft>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: Draft = serde_json::from_str(&body)
+                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// PUT gmail/v1/users/{userId}/drafts/{id}
+/// Replaces a draft's content.
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `gmail_users_drafts_update_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `gmail_users_drafts_update_task()`.
+/// For the simplest API, use `gmail_users_drafts_update()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `gmail_users_drafts_update_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn gmail_users_drafts_update_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<Draft>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let task = gmail_users_drafts_update_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`gmail_users_drafts_update`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct GmailUsersDraftsUpdateArgs {
+    /// Path parameter: userId
+    pub userId: String,
+    /// Path parameter: id
+    pub id: String,
+}
+
+/// PUT gmail/v1/users/{userId}/drafts/{id}
+/// Replaces a draft's content.
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `gmail_users_drafts_update_builder()` + `gmail_users_drafts_update_execute()`.
+/// For task-level control, use `gmail_users_drafts_update_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn gmail_users_drafts_update(
+    client: &SimpleHttpClient,
+    args: &GmailUsersDraftsUpdateArgs,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<Draft>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let builder = gmail_users_drafts_update_builder(client, &args.userId, &args.id)?;
+    gmail_users_drafts_update_execute(builder)
 }
 
 /// GET gmail/v1/users/{userId}/history
@@ -987,11 +1506,11 @@ pub fn gmail_users_drafts_send(
 pub fn gmail_users_history_list_builder(
     client: &SimpleHttpClient,
     userId: &String,
-    historyTypes: &Option<String>,
-    labelId: &Option<String>,
-    maxResults: &Option<i32>,
-    pageToken: &Option<String>,
-    startHistoryId: &Option<String>,
+    historyTypes: &Option<Option<String>>,
+    labelId: &Option<Option<String>>,
+    maxResults: &Option<Option<String>>,
+    pageToken: &Option<Option<String>>,
+    startHistoryId: &Option<Option<String>>,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
@@ -1142,15 +1661,15 @@ pub struct GmailUsersHistoryListArgs {
     /// Path parameter: userId
     pub userId: String,
     /// Query parameter: historyTypes
-    pub historyTypes: Option<String>,
+    pub historyTypes: Option<Option<String>>,
     /// Query parameter: labelId
-    pub labelId: Option<String>,
+    pub labelId: Option<Option<String>>,
     /// Query parameter: maxResults
-    pub maxResults: Option<i32>,
+    pub maxResults: Option<Option<String>>,
     /// Query parameter: pageToken
-    pub pageToken: Option<String>,
+    pub pageToken: Option<Option<String>>,
     /// Query parameter: startHistoryId
-    pub startHistoryId: Option<String>,
+    pub startHistoryId: Option<Option<String>>,
 }
 
 /// GET gmail/v1/users/{userId}/history
@@ -1185,7 +1704,7 @@ pub fn gmail_users_history_list(
     gmail_users_history_list_execute(builder)
 }
 
-/// GET gmail/v1/users/{userId}/labels
+/// POST gmail/v1/users/{userId}/labels
 /// Creates a new label.
 ///
 /// Returns `ClientRequestBuilder` for customization.
@@ -1194,7 +1713,6 @@ pub fn gmail_users_history_list(
 pub fn gmail_users_labels_create_builder(
     client: &SimpleHttpClient,
     userId: &String,
-    body: &Label,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
@@ -1204,15 +1722,13 @@ pub fn gmail_users_labels_create_builder(
 
     // Build request
     let builder = client
-        .get(&endpoint_url)
+        .post(&endpoint_url)
         .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
 
-    builder
-        .body_json(body)
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+    Ok(builder)
 }
 
-/// GET gmail/v1/users/{userId}/labels
+/// POST gmail/v1/users/{userId}/labels
 /// Creates a new label.
 ///
 /// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
@@ -1286,7 +1802,7 @@ pub fn gmail_users_labels_create_task(
         .map_pending(|_| ApiPending::Sending))
 }
 
-/// GET gmail/v1/users/{userId}/labels
+/// POST gmail/v1/users/{userId}/labels
 /// Creates a new label.
 ///
 /// Takes a `ClientRequestBuilder`, builds and executes the request,
@@ -1321,11 +1837,9 @@ pub fn gmail_users_labels_create_execute(
 pub struct GmailUsersLabelsCreateArgs {
     /// Path parameter: userId
     pub userId: String,
-    /// Request body.
-    pub body: Label,
 }
 
-/// GET gmail/v1/users/{userId}/labels
+/// POST gmail/v1/users/{userId}/labels
 /// Creates a new label.
 ///
 /// Simplest API - builds and executes the request in one call.
@@ -1343,11 +1857,11 @@ pub fn gmail_users_labels_create(
     impl StreamIterator<D = Result<ApiResponse<Label>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = gmail_users_labels_create_builder(client, &args.userId, &args.body)?;
+    let builder = gmail_users_labels_create_builder(client, &args.userId)?;
     gmail_users_labels_create_execute(builder)
 }
 
-/// GET gmail/v1/users/{userId}/labels/{id}
+/// DELETE gmail/v1/users/{userId}/labels/{id}
 /// Immediately and permanently deletes the specified label and removes it from any messages and threads that it is applied to.
 ///
 /// Returns `ClientRequestBuilder` for customization.
@@ -1366,13 +1880,13 @@ pub fn gmail_users_labels_delete_builder(
 
     // Build request
     let builder = client
-        .get(&endpoint_url)
+        .delete(&endpoint_url)
         .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
 
     Ok(builder)
 }
 
-/// GET gmail/v1/users/{userId}/labels/{id}
+/// DELETE gmail/v1/users/{userId}/labels/{id}
 /// Immediately and permanently deletes the specified label and removes it from any messages and threads that it is applied to.
 ///
 /// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
@@ -1443,7 +1957,7 @@ pub fn gmail_users_labels_delete_task(
         .map_pending(|_| ApiPending::Sending))
 }
 
-/// GET gmail/v1/users/{userId}/labels/{id}
+/// DELETE gmail/v1/users/{userId}/labels/{id}
 /// Immediately and permanently deletes the specified label and removes it from any messages and threads that it is applied to.
 ///
 /// Takes a `ClientRequestBuilder`, builds and executes the request,
@@ -1482,7 +1996,7 @@ pub struct GmailUsersLabelsDeleteArgs {
     pub id: String,
 }
 
-/// GET gmail/v1/users/{userId}/labels/{id}
+/// DELETE gmail/v1/users/{userId}/labels/{id}
 /// Immediately and permanently deletes the specified label and removes it from any messages and threads that it is applied to.
 ///
 /// Simplest API - builds and executes the request in one call.
@@ -1504,7 +2018,648 @@ pub fn gmail_users_labels_delete(
     gmail_users_labels_delete_execute(builder)
 }
 
-/// GET gmail/v1/users/{userId}/messages/batchDelete
+/// GET gmail/v1/users/{userId}/labels/{id}
+/// Gets the specified label.
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `gmail_users_labels_get_execute()` to send, or `gmail_users_labels_get` for simplest API.
+
+pub fn gmail_users_labels_get_builder(
+    client: &SimpleHttpClient,
+    userId: &String,
+    id: &String,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!(
+        "https://gmail.googleapis.com/gmail/v1/users/{}/labels/{}",
+        userId, id,
+    );
+
+    // Build request
+    let builder = client
+        .get(&endpoint_url)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// GET gmail/v1/users/{userId}/labels/{id}
+/// Gets the specified label.
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `gmail_users_labels_get_execute()` or `gmail_users_labels_get`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `gmail_users_labels_get_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn gmail_users_labels_get_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<Label>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: Label = serde_json::from_str(&body)
+                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// GET gmail/v1/users/{userId}/labels/{id}
+/// Gets the specified label.
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `gmail_users_labels_get_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `gmail_users_labels_get_task()`.
+/// For the simplest API, use `gmail_users_labels_get()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `gmail_users_labels_get_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn gmail_users_labels_get_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<Label>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let task = gmail_users_labels_get_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`gmail_users_labels_get`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct GmailUsersLabelsGetArgs {
+    /// Path parameter: userId
+    pub userId: String,
+    /// Path parameter: id
+    pub id: String,
+}
+
+/// GET gmail/v1/users/{userId}/labels/{id}
+/// Gets the specified label.
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `gmail_users_labels_get_builder()` + `gmail_users_labels_get_execute()`.
+/// For task-level control, use `gmail_users_labels_get_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn gmail_users_labels_get(
+    client: &SimpleHttpClient,
+    args: &GmailUsersLabelsGetArgs,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<Label>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let builder = gmail_users_labels_get_builder(client, &args.userId, &args.id)?;
+    gmail_users_labels_get_execute(builder)
+}
+
+/// GET gmail/v1/users/{userId}/labels
+/// Lists all labels in the user's mailbox.
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `gmail_users_labels_list_execute()` to send, or `gmail_users_labels_list` for simplest API.
+
+pub fn gmail_users_labels_list_builder(
+    client: &SimpleHttpClient,
+    userId: &String,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!(
+        "https://gmail.googleapis.com/gmail/v1/users/{}/labels",
+        userId,
+    );
+
+    // Build request
+    let builder = client
+        .get(&endpoint_url)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// GET gmail/v1/users/{userId}/labels
+/// Lists all labels in the user's mailbox.
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `gmail_users_labels_list_execute()` or `gmail_users_labels_list`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `gmail_users_labels_list_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn gmail_users_labels_list_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<ListLabelsResponse>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: ListLabelsResponse = serde_json::from_str(&body)
+                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// GET gmail/v1/users/{userId}/labels
+/// Lists all labels in the user's mailbox.
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `gmail_users_labels_list_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `gmail_users_labels_list_task()`.
+/// For the simplest API, use `gmail_users_labels_list()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `gmail_users_labels_list_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn gmail_users_labels_list_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<ListLabelsResponse>, ApiError>, P = ApiPending>
+        + Send
+        + 'static,
+    ApiError,
+> {
+    let task = gmail_users_labels_list_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`gmail_users_labels_list`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct GmailUsersLabelsListArgs {
+    /// Path parameter: userId
+    pub userId: String,
+}
+
+/// GET gmail/v1/users/{userId}/labels
+/// Lists all labels in the user's mailbox.
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `gmail_users_labels_list_builder()` + `gmail_users_labels_list_execute()`.
+/// For task-level control, use `gmail_users_labels_list_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn gmail_users_labels_list(
+    client: &SimpleHttpClient,
+    args: &GmailUsersLabelsListArgs,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<ListLabelsResponse>, ApiError>, P = ApiPending>
+        + Send
+        + 'static,
+    ApiError,
+> {
+    let builder = gmail_users_labels_list_builder(client, &args.userId)?;
+    gmail_users_labels_list_execute(builder)
+}
+
+/// PATCH gmail/v1/users/{userId}/labels/{id}
+/// Patch the specified label.
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `gmail_users_labels_patch_execute()` to send, or `gmail_users_labels_patch` for simplest API.
+
+pub fn gmail_users_labels_patch_builder(
+    client: &SimpleHttpClient,
+    userId: &String,
+    id: &String,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!(
+        "https://gmail.googleapis.com/gmail/v1/users/{}/labels/{}",
+        userId, id,
+    );
+
+    // Build request
+    let builder = client
+        .patch(&endpoint_url)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// PATCH gmail/v1/users/{userId}/labels/{id}
+/// Patch the specified label.
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `gmail_users_labels_patch_execute()` or `gmail_users_labels_patch`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `gmail_users_labels_patch_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn gmail_users_labels_patch_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<Label>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: Label = serde_json::from_str(&body)
+                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// PATCH gmail/v1/users/{userId}/labels/{id}
+/// Patch the specified label.
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `gmail_users_labels_patch_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `gmail_users_labels_patch_task()`.
+/// For the simplest API, use `gmail_users_labels_patch()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `gmail_users_labels_patch_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn gmail_users_labels_patch_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<Label>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let task = gmail_users_labels_patch_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`gmail_users_labels_patch`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct GmailUsersLabelsPatchArgs {
+    /// Path parameter: userId
+    pub userId: String,
+    /// Path parameter: id
+    pub id: String,
+}
+
+/// PATCH gmail/v1/users/{userId}/labels/{id}
+/// Patch the specified label.
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `gmail_users_labels_patch_builder()` + `gmail_users_labels_patch_execute()`.
+/// For task-level control, use `gmail_users_labels_patch_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn gmail_users_labels_patch(
+    client: &SimpleHttpClient,
+    args: &GmailUsersLabelsPatchArgs,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<Label>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let builder = gmail_users_labels_patch_builder(client, &args.userId, &args.id)?;
+    gmail_users_labels_patch_execute(builder)
+}
+
+/// PUT gmail/v1/users/{userId}/labels/{id}
+/// Updates the specified label.
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `gmail_users_labels_update_execute()` to send, or `gmail_users_labels_update` for simplest API.
+
+pub fn gmail_users_labels_update_builder(
+    client: &SimpleHttpClient,
+    userId: &String,
+    id: &String,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!(
+        "https://gmail.googleapis.com/gmail/v1/users/{}/labels/{}",
+        userId, id,
+    );
+
+    // Build request
+    let builder = client
+        .put(&endpoint_url)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// PUT gmail/v1/users/{userId}/labels/{id}
+/// Updates the specified label.
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `gmail_users_labels_update_execute()` or `gmail_users_labels_update`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `gmail_users_labels_update_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn gmail_users_labels_update_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<Label>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: Label = serde_json::from_str(&body)
+                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// PUT gmail/v1/users/{userId}/labels/{id}
+/// Updates the specified label.
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `gmail_users_labels_update_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `gmail_users_labels_update_task()`.
+/// For the simplest API, use `gmail_users_labels_update()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `gmail_users_labels_update_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn gmail_users_labels_update_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<Label>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let task = gmail_users_labels_update_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`gmail_users_labels_update`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct GmailUsersLabelsUpdateArgs {
+    /// Path parameter: userId
+    pub userId: String,
+    /// Path parameter: id
+    pub id: String,
+}
+
+/// PUT gmail/v1/users/{userId}/labels/{id}
+/// Updates the specified label.
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `gmail_users_labels_update_builder()` + `gmail_users_labels_update_execute()`.
+/// For task-level control, use `gmail_users_labels_update_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn gmail_users_labels_update(
+    client: &SimpleHttpClient,
+    args: &GmailUsersLabelsUpdateArgs,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<Label>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let builder = gmail_users_labels_update_builder(client, &args.userId, &args.id)?;
+    gmail_users_labels_update_execute(builder)
+}
+
+/// POST gmail/v1/users/{userId}/messages/batchDelete
 /// Deletes many messages by message ID. Provides no guarantees that messages were not already deleted or even existed at all.
 ///
 /// Returns `ClientRequestBuilder` for customization.
@@ -1513,7 +2668,6 @@ pub fn gmail_users_labels_delete(
 pub fn gmail_users_messages_batch_delete_builder(
     client: &SimpleHttpClient,
     userId: &String,
-    body: &BatchDeleteMessagesRequest,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
@@ -1523,15 +2677,13 @@ pub fn gmail_users_messages_batch_delete_builder(
 
     // Build request
     let builder = client
-        .get(&endpoint_url)
+        .post(&endpoint_url)
         .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
 
-    builder
-        .body_json(body)
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+    Ok(builder)
 }
 
-/// GET gmail/v1/users/{userId}/messages/batchDelete
+/// POST gmail/v1/users/{userId}/messages/batchDelete
 /// Deletes many messages by message ID. Provides no guarantees that messages were not already deleted or even existed at all.
 ///
 /// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
@@ -1602,7 +2754,7 @@ pub fn gmail_users_messages_batch_delete_task(
         .map_pending(|_| ApiPending::Sending))
 }
 
-/// GET gmail/v1/users/{userId}/messages/batchDelete
+/// POST gmail/v1/users/{userId}/messages/batchDelete
 /// Deletes many messages by message ID. Provides no guarantees that messages were not already deleted or even existed at all.
 ///
 /// Takes a `ClientRequestBuilder`, builds and executes the request,
@@ -1637,11 +2789,9 @@ pub fn gmail_users_messages_batch_delete_execute(
 pub struct GmailUsersMessagesBatchDeleteArgs {
     /// Path parameter: userId
     pub userId: String,
-    /// Request body.
-    pub body: BatchDeleteMessagesRequest,
 }
 
-/// GET gmail/v1/users/{userId}/messages/batchDelete
+/// POST gmail/v1/users/{userId}/messages/batchDelete
 /// Deletes many messages by message ID. Provides no guarantees that messages were not already deleted or even existed at all.
 ///
 /// Simplest API - builds and executes the request in one call.
@@ -1659,11 +2809,11 @@ pub fn gmail_users_messages_batch_delete(
     impl StreamIterator<D = Result<ApiResponse<()>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = gmail_users_messages_batch_delete_builder(client, &args.userId, &args.body)?;
+    let builder = gmail_users_messages_batch_delete_builder(client, &args.userId)?;
     gmail_users_messages_batch_delete_execute(builder)
 }
 
-/// GET gmail/v1/users/{userId}/messages/batchModify
+/// POST gmail/v1/users/{userId}/messages/batchModify
 /// Modifies the labels on the specified messages.
 ///
 /// Returns `ClientRequestBuilder` for customization.
@@ -1672,7 +2822,6 @@ pub fn gmail_users_messages_batch_delete(
 pub fn gmail_users_messages_batch_modify_builder(
     client: &SimpleHttpClient,
     userId: &String,
-    body: &BatchModifyMessagesRequest,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
@@ -1682,15 +2831,13 @@ pub fn gmail_users_messages_batch_modify_builder(
 
     // Build request
     let builder = client
-        .get(&endpoint_url)
+        .post(&endpoint_url)
         .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
 
-    builder
-        .body_json(body)
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+    Ok(builder)
 }
 
-/// GET gmail/v1/users/{userId}/messages/batchModify
+/// POST gmail/v1/users/{userId}/messages/batchModify
 /// Modifies the labels on the specified messages.
 ///
 /// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
@@ -1761,7 +2908,7 @@ pub fn gmail_users_messages_batch_modify_task(
         .map_pending(|_| ApiPending::Sending))
 }
 
-/// GET gmail/v1/users/{userId}/messages/batchModify
+/// POST gmail/v1/users/{userId}/messages/batchModify
 /// Modifies the labels on the specified messages.
 ///
 /// Takes a `ClientRequestBuilder`, builds and executes the request,
@@ -1796,11 +2943,9 @@ pub fn gmail_users_messages_batch_modify_execute(
 pub struct GmailUsersMessagesBatchModifyArgs {
     /// Path parameter: userId
     pub userId: String,
-    /// Request body.
-    pub body: BatchModifyMessagesRequest,
 }
 
-/// GET gmail/v1/users/{userId}/messages/batchModify
+/// POST gmail/v1/users/{userId}/messages/batchModify
 /// Modifies the labels on the specified messages.
 ///
 /// Simplest API - builds and executes the request in one call.
@@ -1818,11 +2963,11 @@ pub fn gmail_users_messages_batch_modify(
     impl StreamIterator<D = Result<ApiResponse<()>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = gmail_users_messages_batch_modify_builder(client, &args.userId, &args.body)?;
+    let builder = gmail_users_messages_batch_modify_builder(client, &args.userId)?;
     gmail_users_messages_batch_modify_execute(builder)
 }
 
-/// GET gmail/v1/users/{userId}/messages/{id}
+/// DELETE gmail/v1/users/{userId}/messages/{id}
 /// Immediately and permanently deletes the specified message. This operation cannot be undone. Prefer messages.trash instead.
 ///
 /// Returns `ClientRequestBuilder` for customization.
@@ -1841,13 +2986,13 @@ pub fn gmail_users_messages_delete_builder(
 
     // Build request
     let builder = client
-        .get(&endpoint_url)
+        .delete(&endpoint_url)
         .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
 
     Ok(builder)
 }
 
-/// GET gmail/v1/users/{userId}/messages/{id}
+/// DELETE gmail/v1/users/{userId}/messages/{id}
 /// Immediately and permanently deletes the specified message. This operation cannot be undone. Prefer messages.trash instead.
 ///
 /// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
@@ -1918,7 +3063,7 @@ pub fn gmail_users_messages_delete_task(
         .map_pending(|_| ApiPending::Sending))
 }
 
-/// GET gmail/v1/users/{userId}/messages/{id}
+/// DELETE gmail/v1/users/{userId}/messages/{id}
 /// Immediately and permanently deletes the specified message. This operation cannot be undone. Prefer messages.trash instead.
 ///
 /// Takes a `ClientRequestBuilder`, builds and executes the request,
@@ -1957,7 +3102,7 @@ pub struct GmailUsersMessagesDeleteArgs {
     pub id: String,
 }
 
-/// GET gmail/v1/users/{userId}/messages/{id}
+/// DELETE gmail/v1/users/{userId}/messages/{id}
 /// Immediately and permanently deletes the specified message. This operation cannot be undone. Prefer messages.trash instead.
 ///
 /// Simplest API - builds and executes the request in one call.
@@ -1979,7 +3124,193 @@ pub fn gmail_users_messages_delete(
     gmail_users_messages_delete_execute(builder)
 }
 
-/// GET gmail/v1/users/{userId}/messages/import
+/// GET gmail/v1/users/{userId}/messages/{id}
+/// Gets the specified message.
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `gmail_users_messages_get_execute()` to send, or `gmail_users_messages_get` for simplest API.
+
+pub fn gmail_users_messages_get_builder(
+    client: &SimpleHttpClient,
+    userId: &String,
+    id: &String,
+    format: &Option<Option<String>>,
+    metadataHeaders: &Option<Option<String>>,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!(
+        "https://gmail.googleapis.com/gmail/v1/users/{}/messages/{}",
+        userId, id,
+    );
+
+    // Build request
+    let mut query_parts = Vec::new();
+    if let Some(val) = format.as_ref() {
+        query_parts.push(format!("format={}", val));
+    }
+    if let Some(val) = metadataHeaders.as_ref() {
+        query_parts.push(format!("metadataHeaders={}", val));
+    }
+
+    let url_with_query = if query_parts.is_empty() {
+        endpoint_url
+    } else {
+        format!("{}?{}", endpoint_url, query_parts.join("&"))
+    };
+
+    let builder = client
+        .get(&url_with_query)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// GET gmail/v1/users/{userId}/messages/{id}
+/// Gets the specified message.
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `gmail_users_messages_get_execute()` or `gmail_users_messages_get`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `gmail_users_messages_get_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn gmail_users_messages_get_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<Message>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: Message = serde_json::from_str(&body)
+                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// GET gmail/v1/users/{userId}/messages/{id}
+/// Gets the specified message.
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `gmail_users_messages_get_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `gmail_users_messages_get_task()`.
+/// For the simplest API, use `gmail_users_messages_get()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `gmail_users_messages_get_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn gmail_users_messages_get_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<Message>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let task = gmail_users_messages_get_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`gmail_users_messages_get`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct GmailUsersMessagesGetArgs {
+    /// Path parameter: userId
+    pub userId: String,
+    /// Path parameter: id
+    pub id: String,
+    /// Query parameter: format
+    pub format: Option<Option<String>>,
+    /// Query parameter: metadataHeaders
+    pub metadataHeaders: Option<Option<String>>,
+}
+
+/// GET gmail/v1/users/{userId}/messages/{id}
+/// Gets the specified message.
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `gmail_users_messages_get_builder()` + `gmail_users_messages_get_execute()`.
+/// For task-level control, use `gmail_users_messages_get_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn gmail_users_messages_get(
+    client: &SimpleHttpClient,
+    args: &GmailUsersMessagesGetArgs,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<Message>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let builder = gmail_users_messages_get_builder(
+        client,
+        &args.userId,
+        &args.id,
+        &args.format,
+        &args.metadataHeaders,
+    )?;
+    gmail_users_messages_get_execute(builder)
+}
+
+/// POST gmail/v1/users/{userId}/messages/import
 /// Imports a message into only this user's mailbox, with standard email delivery scanning and classification similar to receiving via SMTP. This method doesn't perform SPF checks, so it might not work for some spam messages, such as those attempting to perform domain spoofing. This method does not send a message. Note that the maximum size of the message is 150MB.
 ///
 /// Returns `ClientRequestBuilder` for customization.
@@ -1988,11 +3319,10 @@ pub fn gmail_users_messages_delete(
 pub fn gmail_users_messages_import_builder(
     client: &SimpleHttpClient,
     userId: &String,
-    deleted: &Option<bool>,
-    internalDateSource: &Option<String>,
-    neverMarkSpam: &Option<bool>,
-    processForCalendar: &Option<bool>,
-    body: &Message,
+    deleted: &Option<Option<String>>,
+    internalDateSource: &Option<Option<String>>,
+    neverMarkSpam: &Option<Option<String>>,
+    processForCalendar: &Option<Option<String>>,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
@@ -2022,15 +3352,13 @@ pub fn gmail_users_messages_import_builder(
     };
 
     let builder = client
-        .get(&url_with_query)
+        .post(&url_with_query)
         .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
 
-    builder
-        .body_json(body)
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+    Ok(builder)
 }
 
-/// GET gmail/v1/users/{userId}/messages/import
+/// POST gmail/v1/users/{userId}/messages/import
 /// Imports a message into only this user's mailbox, with standard email delivery scanning and classification similar to receiving via SMTP. This method doesn't perform SPF checks, so it might not work for some spam messages, such as those attempting to perform domain spoofing. This method does not send a message. Note that the maximum size of the message is 150MB.
 ///
 /// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
@@ -2104,7 +3432,7 @@ pub fn gmail_users_messages_import_task(
         .map_pending(|_| ApiPending::Sending))
 }
 
-/// GET gmail/v1/users/{userId}/messages/import
+/// POST gmail/v1/users/{userId}/messages/import
 /// Imports a message into only this user's mailbox, with standard email delivery scanning and classification similar to receiving via SMTP. This method doesn't perform SPF checks, so it might not work for some spam messages, such as those attempting to perform domain spoofing. This method does not send a message. Note that the maximum size of the message is 150MB.
 ///
 /// Takes a `ClientRequestBuilder`, builds and executes the request,
@@ -2140,18 +3468,16 @@ pub struct GmailUsersMessagesImportArgs {
     /// Path parameter: userId
     pub userId: String,
     /// Query parameter: deleted
-    pub deleted: Option<bool>,
+    pub deleted: Option<Option<String>>,
     /// Query parameter: internalDateSource
-    pub internalDateSource: Option<String>,
+    pub internalDateSource: Option<Option<String>>,
     /// Query parameter: neverMarkSpam
-    pub neverMarkSpam: Option<bool>,
+    pub neverMarkSpam: Option<Option<String>>,
     /// Query parameter: processForCalendar
-    pub processForCalendar: Option<bool>,
-    /// Request body.
-    pub body: Message,
+    pub processForCalendar: Option<Option<String>>,
 }
 
-/// GET gmail/v1/users/{userId}/messages/import
+/// POST gmail/v1/users/{userId}/messages/import
 /// Imports a message into only this user's mailbox, with standard email delivery scanning and classification similar to receiving via SMTP. This method doesn't perform SPF checks, so it might not work for some spam messages, such as those attempting to perform domain spoofing. This method does not send a message. Note that the maximum size of the message is 150MB.
 ///
 /// Simplest API - builds and executes the request in one call.
@@ -2176,12 +3502,11 @@ pub fn gmail_users_messages_import(
         &args.internalDateSource,
         &args.neverMarkSpam,
         &args.processForCalendar,
-        &args.body,
     )?;
     gmail_users_messages_import_execute(builder)
 }
 
-/// GET gmail/v1/users/{userId}/messages
+/// POST gmail/v1/users/{userId}/messages
 /// Directly inserts a message into only this user's mailbox similar to IMAP APPEND, bypassing most scanning and classification. Does not send a message.
 ///
 /// Returns `ClientRequestBuilder` for customization.
@@ -2190,9 +3515,8 @@ pub fn gmail_users_messages_import(
 pub fn gmail_users_messages_insert_builder(
     client: &SimpleHttpClient,
     userId: &String,
-    deleted: &Option<bool>,
-    internalDateSource: &Option<String>,
-    body: &Message,
+    deleted: &Option<Option<String>>,
+    internalDateSource: &Option<Option<String>>,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
@@ -2216,15 +3540,13 @@ pub fn gmail_users_messages_insert_builder(
     };
 
     let builder = client
-        .get(&url_with_query)
+        .post(&url_with_query)
         .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
 
-    builder
-        .body_json(body)
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+    Ok(builder)
 }
 
-/// GET gmail/v1/users/{userId}/messages
+/// POST gmail/v1/users/{userId}/messages
 /// Directly inserts a message into only this user's mailbox similar to IMAP APPEND, bypassing most scanning and classification. Does not send a message.
 ///
 /// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
@@ -2298,7 +3620,7 @@ pub fn gmail_users_messages_insert_task(
         .map_pending(|_| ApiPending::Sending))
 }
 
-/// GET gmail/v1/users/{userId}/messages
+/// POST gmail/v1/users/{userId}/messages
 /// Directly inserts a message into only this user's mailbox similar to IMAP APPEND, bypassing most scanning and classification. Does not send a message.
 ///
 /// Takes a `ClientRequestBuilder`, builds and executes the request,
@@ -2334,14 +3656,12 @@ pub struct GmailUsersMessagesInsertArgs {
     /// Path parameter: userId
     pub userId: String,
     /// Query parameter: deleted
-    pub deleted: Option<bool>,
+    pub deleted: Option<Option<String>>,
     /// Query parameter: internalDateSource
-    pub internalDateSource: Option<String>,
-    /// Request body.
-    pub body: Message,
+    pub internalDateSource: Option<Option<String>>,
 }
 
-/// GET gmail/v1/users/{userId}/messages
+/// POST gmail/v1/users/{userId}/messages
 /// Directly inserts a message into only this user's mailbox similar to IMAP APPEND, bypassing most scanning and classification. Does not send a message.
 ///
 /// Simplest API - builds and executes the request in one call.
@@ -2364,12 +3684,218 @@ pub fn gmail_users_messages_insert(
         &args.userId,
         &args.deleted,
         &args.internalDateSource,
-        &args.body,
     )?;
     gmail_users_messages_insert_execute(builder)
 }
 
-/// GET gmail/v1/users/{userId}/messages/{id}/modify
+/// GET gmail/v1/users/{userId}/messages
+/// Lists the messages in the user's mailbox. For example usage, see [List Gmail messages](<https://developers.google.`com/workspace/gmail/api/guides/list-messages`>).
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `gmail_users_messages_list_execute()` to send, or `gmail_users_messages_list` for simplest API.
+
+pub fn gmail_users_messages_list_builder(
+    client: &SimpleHttpClient,
+    userId: &String,
+    includeSpamTrash: &Option<Option<String>>,
+    labelIds: &Option<Option<String>>,
+    maxResults: &Option<Option<String>>,
+    pageToken: &Option<Option<String>>,
+    q: &Option<Option<String>>,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!(
+        "https://gmail.googleapis.com/gmail/v1/users/{}/messages",
+        userId,
+    );
+
+    // Build request
+    let mut query_parts = Vec::new();
+    if let Some(val) = includeSpamTrash.as_ref() {
+        query_parts.push(format!("includeSpamTrash={}", val));
+    }
+    if let Some(val) = labelIds.as_ref() {
+        query_parts.push(format!("labelIds={}", val));
+    }
+    if let Some(val) = maxResults.as_ref() {
+        query_parts.push(format!("maxResults={}", val));
+    }
+    if let Some(val) = pageToken.as_ref() {
+        query_parts.push(format!("pageToken={}", val));
+    }
+    if let Some(val) = q.as_ref() {
+        query_parts.push(format!("q={}", val));
+    }
+
+    let url_with_query = if query_parts.is_empty() {
+        endpoint_url
+    } else {
+        format!("{}?{}", endpoint_url, query_parts.join("&"))
+    };
+
+    let builder = client
+        .get(&url_with_query)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// GET gmail/v1/users/{userId}/messages
+/// Lists the messages in the user's mailbox. For example usage, see [List Gmail messages](<https://developers.google.`com/workspace/gmail/api/guides/list-messages`>).
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `gmail_users_messages_list_execute()` or `gmail_users_messages_list`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `gmail_users_messages_list_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn gmail_users_messages_list_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<ListMessagesResponse>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: ListMessagesResponse = serde_json::from_str(&body)
+                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// GET gmail/v1/users/{userId}/messages
+/// Lists the messages in the user's mailbox. For example usage, see [List Gmail messages](<https://developers.google.`com/workspace/gmail/api/guides/list-messages`>).
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `gmail_users_messages_list_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `gmail_users_messages_list_task()`.
+/// For the simplest API, use `gmail_users_messages_list()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `gmail_users_messages_list_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn gmail_users_messages_list_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<ListMessagesResponse>, ApiError>, P = ApiPending>
+        + Send
+        + 'static,
+    ApiError,
+> {
+    let task = gmail_users_messages_list_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`gmail_users_messages_list`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct GmailUsersMessagesListArgs {
+    /// Path parameter: userId
+    pub userId: String,
+    /// Query parameter: includeSpamTrash
+    pub includeSpamTrash: Option<Option<String>>,
+    /// Query parameter: labelIds
+    pub labelIds: Option<Option<String>>,
+    /// Query parameter: maxResults
+    pub maxResults: Option<Option<String>>,
+    /// Query parameter: pageToken
+    pub pageToken: Option<Option<String>>,
+    /// Query parameter: q
+    pub q: Option<Option<String>>,
+}
+
+/// GET gmail/v1/users/{userId}/messages
+/// Lists the messages in the user's mailbox. For example usage, see [List Gmail messages](<https://developers.google.`com/workspace/gmail/api/guides/list-messages`>).
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `gmail_users_messages_list_builder()` + `gmail_users_messages_list_execute()`.
+/// For task-level control, use `gmail_users_messages_list_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn gmail_users_messages_list(
+    client: &SimpleHttpClient,
+    args: &GmailUsersMessagesListArgs,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<ListMessagesResponse>, ApiError>, P = ApiPending>
+        + Send
+        + 'static,
+    ApiError,
+> {
+    let builder = gmail_users_messages_list_builder(
+        client,
+        &args.userId,
+        &args.includeSpamTrash,
+        &args.labelIds,
+        &args.maxResults,
+        &args.pageToken,
+        &args.q,
+    )?;
+    gmail_users_messages_list_execute(builder)
+}
+
+/// POST gmail/v1/users/{userId}/messages/{id}/modify
 /// Modifies the labels on the specified message.
 ///
 /// Returns `ClientRequestBuilder` for customization.
@@ -2379,7 +3905,6 @@ pub fn gmail_users_messages_modify_builder(
     client: &SimpleHttpClient,
     userId: &String,
     id: &String,
-    body: &ModifyMessageRequest,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
@@ -2389,15 +3914,13 @@ pub fn gmail_users_messages_modify_builder(
 
     // Build request
     let builder = client
-        .get(&endpoint_url)
+        .post(&endpoint_url)
         .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
 
-    builder
-        .body_json(body)
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+    Ok(builder)
 }
 
-/// GET gmail/v1/users/{userId}/messages/{id}/modify
+/// POST gmail/v1/users/{userId}/messages/{id}/modify
 /// Modifies the labels on the specified message.
 ///
 /// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
@@ -2471,7 +3994,7 @@ pub fn gmail_users_messages_modify_task(
         .map_pending(|_| ApiPending::Sending))
 }
 
-/// GET gmail/v1/users/{userId}/messages/{id}/modify
+/// POST gmail/v1/users/{userId}/messages/{id}/modify
 /// Modifies the labels on the specified message.
 ///
 /// Takes a `ClientRequestBuilder`, builds and executes the request,
@@ -2508,11 +4031,9 @@ pub struct GmailUsersMessagesModifyArgs {
     pub userId: String,
     /// Path parameter: id
     pub id: String,
-    /// Request body.
-    pub body: ModifyMessageRequest,
 }
 
-/// GET gmail/v1/users/{userId}/messages/{id}/modify
+/// POST gmail/v1/users/{userId}/messages/{id}/modify
 /// Modifies the labels on the specified message.
 ///
 /// Simplest API - builds and executes the request in one call.
@@ -2530,11 +4051,11 @@ pub fn gmail_users_messages_modify(
     impl StreamIterator<D = Result<ApiResponse<Message>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = gmail_users_messages_modify_builder(client, &args.userId, &args.id, &args.body)?;
+    let builder = gmail_users_messages_modify_builder(client, &args.userId, &args.id)?;
     gmail_users_messages_modify_execute(builder)
 }
 
-/// GET gmail/v1/users/{userId}/messages/send
+/// POST gmail/v1/users/{userId}/messages/send
 /// Sends the specified message to the recipients in the To, Cc, and Bcc headers. For example usage, see [Sending email](<https://developers.google.`com/workspace/gmail/api/guides/sending`>).
 ///
 /// Returns `ClientRequestBuilder` for customization.
@@ -2543,7 +4064,6 @@ pub fn gmail_users_messages_modify(
 pub fn gmail_users_messages_send_builder(
     client: &SimpleHttpClient,
     userId: &String,
-    body: &Message,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
@@ -2553,15 +4073,13 @@ pub fn gmail_users_messages_send_builder(
 
     // Build request
     let builder = client
-        .get(&endpoint_url)
+        .post(&endpoint_url)
         .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
 
-    builder
-        .body_json(body)
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+    Ok(builder)
 }
 
-/// GET gmail/v1/users/{userId}/messages/send
+/// POST gmail/v1/users/{userId}/messages/send
 /// Sends the specified message to the recipients in the To, Cc, and Bcc headers. For example usage, see [Sending email](<https://developers.google.`com/workspace/gmail/api/guides/sending`>).
 ///
 /// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
@@ -2635,7 +4153,7 @@ pub fn gmail_users_messages_send_task(
         .map_pending(|_| ApiPending::Sending))
 }
 
-/// GET gmail/v1/users/{userId}/messages/send
+/// POST gmail/v1/users/{userId}/messages/send
 /// Sends the specified message to the recipients in the To, Cc, and Bcc headers. For example usage, see [Sending email](<https://developers.google.`com/workspace/gmail/api/guides/sending`>).
 ///
 /// Takes a `ClientRequestBuilder`, builds and executes the request,
@@ -2670,11 +4188,9 @@ pub fn gmail_users_messages_send_execute(
 pub struct GmailUsersMessagesSendArgs {
     /// Path parameter: userId
     pub userId: String,
-    /// Request body.
-    pub body: Message,
 }
 
-/// GET gmail/v1/users/{userId}/messages/send
+/// POST gmail/v1/users/{userId}/messages/send
 /// Sends the specified message to the recipients in the To, Cc, and Bcc headers. For example usage, see [Sending email](<https://developers.google.`com/workspace/gmail/api/guides/sending`>).
 ///
 /// Simplest API - builds and executes the request in one call.
@@ -2692,11 +4208,11 @@ pub fn gmail_users_messages_send(
     impl StreamIterator<D = Result<ApiResponse<Message>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = gmail_users_messages_send_builder(client, &args.userId, &args.body)?;
+    let builder = gmail_users_messages_send_builder(client, &args.userId)?;
     gmail_users_messages_send_execute(builder)
 }
 
-/// GET gmail/v1/users/{userId}/messages/{id}/trash
+/// POST gmail/v1/users/{userId}/messages/{id}/trash
 /// Moves the specified message to the trash.
 ///
 /// Returns `ClientRequestBuilder` for customization.
@@ -2715,13 +4231,13 @@ pub fn gmail_users_messages_trash_builder(
 
     // Build request
     let builder = client
-        .get(&endpoint_url)
+        .post(&endpoint_url)
         .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
 
     Ok(builder)
 }
 
-/// GET gmail/v1/users/{userId}/messages/{id}/trash
+/// POST gmail/v1/users/{userId}/messages/{id}/trash
 /// Moves the specified message to the trash.
 ///
 /// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
@@ -2795,7 +4311,7 @@ pub fn gmail_users_messages_trash_task(
         .map_pending(|_| ApiPending::Sending))
 }
 
-/// GET gmail/v1/users/{userId}/messages/{id}/trash
+/// POST gmail/v1/users/{userId}/messages/{id}/trash
 /// Moves the specified message to the trash.
 ///
 /// Takes a `ClientRequestBuilder`, builds and executes the request,
@@ -2834,7 +4350,7 @@ pub struct GmailUsersMessagesTrashArgs {
     pub id: String,
 }
 
-/// GET gmail/v1/users/{userId}/messages/{id}/trash
+/// POST gmail/v1/users/{userId}/messages/{id}/trash
 /// Moves the specified message to the trash.
 ///
 /// Simplest API - builds and executes the request in one call.
@@ -2856,7 +4372,7 @@ pub fn gmail_users_messages_trash(
     gmail_users_messages_trash_execute(builder)
 }
 
-/// GET gmail/v1/users/{userId}/messages/{id}/untrash
+/// POST gmail/v1/users/{userId}/messages/{id}/untrash
 /// Removes the specified message from the trash.
 ///
 /// Returns `ClientRequestBuilder` for customization.
@@ -2875,13 +4391,13 @@ pub fn gmail_users_messages_untrash_builder(
 
     // Build request
     let builder = client
-        .get(&endpoint_url)
+        .post(&endpoint_url)
         .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
 
     Ok(builder)
 }
 
-/// GET gmail/v1/users/{userId}/messages/{id}/untrash
+/// POST gmail/v1/users/{userId}/messages/{id}/untrash
 /// Removes the specified message from the trash.
 ///
 /// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
@@ -2955,7 +4471,7 @@ pub fn gmail_users_messages_untrash_task(
         .map_pending(|_| ApiPending::Sending))
 }
 
-/// GET gmail/v1/users/{userId}/messages/{id}/untrash
+/// POST gmail/v1/users/{userId}/messages/{id}/untrash
 /// Removes the specified message from the trash.
 ///
 /// Takes a `ClientRequestBuilder`, builds and executes the request,
@@ -2994,7 +4510,7 @@ pub struct GmailUsersMessagesUntrashArgs {
     pub id: String,
 }
 
-/// GET gmail/v1/users/{userId}/messages/{id}/untrash
+/// POST gmail/v1/users/{userId}/messages/{id}/untrash
 /// Removes the specified message from the trash.
 ///
 /// Simplest API - builds and executes the request in one call.
@@ -3989,7 +5505,808 @@ pub fn gmail_users_settings_get_vacation(
     gmail_users_settings_get_vacation_execute(builder)
 }
 
-/// GET gmail/v1/users/{userId}/settings/cse/identities
+/// PUT gmail/v1/users/{userId}/settings/autoForwarding
+/// Updates the auto-forwarding setting for the specified account. A verified forwarding address must be specified when auto-forwarding is enabled. This method is only available to service account clients that have been delegated domain-wide authority.
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `gmail_users_settings_update_auto_forwarding_execute()` to send, or `gmail_users_settings_update_auto_forwarding` for simplest API.
+
+pub fn gmail_users_settings_update_auto_forwarding_builder(
+    client: &SimpleHttpClient,
+    userId: &String,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!(
+        "https://gmail.googleapis.com/gmail/v1/users/{}/settings/autoForwarding",
+        userId,
+    );
+
+    // Build request
+    let builder = client
+        .put(&endpoint_url)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// PUT gmail/v1/users/{userId}/settings/autoForwarding
+/// Updates the auto-forwarding setting for the specified account. A verified forwarding address must be specified when auto-forwarding is enabled. This method is only available to service account clients that have been delegated domain-wide authority.
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `gmail_users_settings_update_auto_forwarding_execute()` or `gmail_users_settings_update_auto_forwarding`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `gmail_users_settings_update_auto_forwarding_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn gmail_users_settings_update_auto_forwarding_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<AutoForwarding>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: AutoForwarding = serde_json::from_str(&body)
+                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// PUT gmail/v1/users/{userId}/settings/autoForwarding
+/// Updates the auto-forwarding setting for the specified account. A verified forwarding address must be specified when auto-forwarding is enabled. This method is only available to service account clients that have been delegated domain-wide authority.
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `gmail_users_settings_update_auto_forwarding_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `gmail_users_settings_update_auto_forwarding_task()`.
+/// For the simplest API, use `gmail_users_settings_update_auto_forwarding()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `gmail_users_settings_update_auto_forwarding_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn gmail_users_settings_update_auto_forwarding_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<AutoForwarding>, ApiError>, P = ApiPending>
+        + Send
+        + 'static,
+    ApiError,
+> {
+    let task = gmail_users_settings_update_auto_forwarding_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`gmail_users_settings_update_auto_forwarding`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct GmailUsersSettingsUpdateAutoForwardingArgs {
+    /// Path parameter: userId
+    pub userId: String,
+}
+
+/// PUT gmail/v1/users/{userId}/settings/autoForwarding
+/// Updates the auto-forwarding setting for the specified account. A verified forwarding address must be specified when auto-forwarding is enabled. This method is only available to service account clients that have been delegated domain-wide authority.
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `gmail_users_settings_update_auto_forwarding_builder()` + `gmail_users_settings_update_auto_forwarding_execute()`.
+/// For task-level control, use `gmail_users_settings_update_auto_forwarding_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn gmail_users_settings_update_auto_forwarding(
+    client: &SimpleHttpClient,
+    args: &GmailUsersSettingsUpdateAutoForwardingArgs,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<AutoForwarding>, ApiError>, P = ApiPending>
+        + Send
+        + 'static,
+    ApiError,
+> {
+    let builder = gmail_users_settings_update_auto_forwarding_builder(client, &args.userId)?;
+    gmail_users_settings_update_auto_forwarding_execute(builder)
+}
+
+/// PUT gmail/v1/users/{userId}/settings/imap
+/// Updates IMAP settings.
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `gmail_users_settings_update_imap_execute()` to send, or `gmail_users_settings_update_imap` for simplest API.
+
+pub fn gmail_users_settings_update_imap_builder(
+    client: &SimpleHttpClient,
+    userId: &String,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!(
+        "https://gmail.googleapis.com/gmail/v1/users/{}/settings/imap",
+        userId,
+    );
+
+    // Build request
+    let builder = client
+        .put(&endpoint_url)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// PUT gmail/v1/users/{userId}/settings/imap
+/// Updates IMAP settings.
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `gmail_users_settings_update_imap_execute()` or `gmail_users_settings_update_imap`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `gmail_users_settings_update_imap_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn gmail_users_settings_update_imap_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<ImapSettings>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: ImapSettings = serde_json::from_str(&body)
+                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// PUT gmail/v1/users/{userId}/settings/imap
+/// Updates IMAP settings.
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `gmail_users_settings_update_imap_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `gmail_users_settings_update_imap_task()`.
+/// For the simplest API, use `gmail_users_settings_update_imap()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `gmail_users_settings_update_imap_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn gmail_users_settings_update_imap_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<ImapSettings>, ApiError>, P = ApiPending>
+        + Send
+        + 'static,
+    ApiError,
+> {
+    let task = gmail_users_settings_update_imap_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`gmail_users_settings_update_imap`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct GmailUsersSettingsUpdateImapArgs {
+    /// Path parameter: userId
+    pub userId: String,
+}
+
+/// PUT gmail/v1/users/{userId}/settings/imap
+/// Updates IMAP settings.
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `gmail_users_settings_update_imap_builder()` + `gmail_users_settings_update_imap_execute()`.
+/// For task-level control, use `gmail_users_settings_update_imap_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn gmail_users_settings_update_imap(
+    client: &SimpleHttpClient,
+    args: &GmailUsersSettingsUpdateImapArgs,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<ImapSettings>, ApiError>, P = ApiPending>
+        + Send
+        + 'static,
+    ApiError,
+> {
+    let builder = gmail_users_settings_update_imap_builder(client, &args.userId)?;
+    gmail_users_settings_update_imap_execute(builder)
+}
+
+/// PUT gmail/v1/users/{userId}/settings/language
+/// Updates language settings. If successful, the return object contains the `displayLanguage` that was saved for the user, which may differ from the value passed into the request. This is because the requested `displayLanguage` may not be directly supported by Gmail but have a close variant that is, and so the variant may be chosen and saved instead.
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `gmail_users_settings_update_language_execute()` to send, or `gmail_users_settings_update_language` for simplest API.
+
+pub fn gmail_users_settings_update_language_builder(
+    client: &SimpleHttpClient,
+    userId: &String,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!(
+        "https://gmail.googleapis.com/gmail/v1/users/{}/settings/language",
+        userId,
+    );
+
+    // Build request
+    let builder = client
+        .put(&endpoint_url)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// PUT gmail/v1/users/{userId}/settings/language
+/// Updates language settings. If successful, the return object contains the `displayLanguage` that was saved for the user, which may differ from the value passed into the request. This is because the requested `displayLanguage` may not be directly supported by Gmail but have a close variant that is, and so the variant may be chosen and saved instead.
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `gmail_users_settings_update_language_execute()` or `gmail_users_settings_update_language`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `gmail_users_settings_update_language_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn gmail_users_settings_update_language_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<LanguageSettings>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: LanguageSettings = serde_json::from_str(&body)
+                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// PUT gmail/v1/users/{userId}/settings/language
+/// Updates language settings. If successful, the return object contains the `displayLanguage` that was saved for the user, which may differ from the value passed into the request. This is because the requested `displayLanguage` may not be directly supported by Gmail but have a close variant that is, and so the variant may be chosen and saved instead.
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `gmail_users_settings_update_language_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `gmail_users_settings_update_language_task()`.
+/// For the simplest API, use `gmail_users_settings_update_language()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `gmail_users_settings_update_language_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn gmail_users_settings_update_language_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<LanguageSettings>, ApiError>, P = ApiPending>
+        + Send
+        + 'static,
+    ApiError,
+> {
+    let task = gmail_users_settings_update_language_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`gmail_users_settings_update_language`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct GmailUsersSettingsUpdateLanguageArgs {
+    /// Path parameter: userId
+    pub userId: String,
+}
+
+/// PUT gmail/v1/users/{userId}/settings/language
+/// Updates language settings. If successful, the return object contains the `displayLanguage` that was saved for the user, which may differ from the value passed into the request. This is because the requested `displayLanguage` may not be directly supported by Gmail but have a close variant that is, and so the variant may be chosen and saved instead.
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `gmail_users_settings_update_language_builder()` + `gmail_users_settings_update_language_execute()`.
+/// For task-level control, use `gmail_users_settings_update_language_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn gmail_users_settings_update_language(
+    client: &SimpleHttpClient,
+    args: &GmailUsersSettingsUpdateLanguageArgs,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<LanguageSettings>, ApiError>, P = ApiPending>
+        + Send
+        + 'static,
+    ApiError,
+> {
+    let builder = gmail_users_settings_update_language_builder(client, &args.userId)?;
+    gmail_users_settings_update_language_execute(builder)
+}
+
+/// PUT gmail/v1/users/{userId}/settings/pop
+/// Updates POP settings.
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `gmail_users_settings_update_pop_execute()` to send, or `gmail_users_settings_update_pop` for simplest API.
+
+pub fn gmail_users_settings_update_pop_builder(
+    client: &SimpleHttpClient,
+    userId: &String,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!(
+        "https://gmail.googleapis.com/gmail/v1/users/{}/settings/pop",
+        userId,
+    );
+
+    // Build request
+    let builder = client
+        .put(&endpoint_url)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// PUT gmail/v1/users/{userId}/settings/pop
+/// Updates POP settings.
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `gmail_users_settings_update_pop_execute()` or `gmail_users_settings_update_pop`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `gmail_users_settings_update_pop_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn gmail_users_settings_update_pop_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<PopSettings>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: PopSettings = serde_json::from_str(&body)
+                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// PUT gmail/v1/users/{userId}/settings/pop
+/// Updates POP settings.
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `gmail_users_settings_update_pop_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `gmail_users_settings_update_pop_task()`.
+/// For the simplest API, use `gmail_users_settings_update_pop()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `gmail_users_settings_update_pop_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn gmail_users_settings_update_pop_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<PopSettings>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let task = gmail_users_settings_update_pop_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`gmail_users_settings_update_pop`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct GmailUsersSettingsUpdatePopArgs {
+    /// Path parameter: userId
+    pub userId: String,
+}
+
+/// PUT gmail/v1/users/{userId}/settings/pop
+/// Updates POP settings.
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `gmail_users_settings_update_pop_builder()` + `gmail_users_settings_update_pop_execute()`.
+/// For task-level control, use `gmail_users_settings_update_pop_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn gmail_users_settings_update_pop(
+    client: &SimpleHttpClient,
+    args: &GmailUsersSettingsUpdatePopArgs,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<PopSettings>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let builder = gmail_users_settings_update_pop_builder(client, &args.userId)?;
+    gmail_users_settings_update_pop_execute(builder)
+}
+
+/// PUT gmail/v1/users/{userId}/settings/vacation
+/// Updates vacation responder settings.
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `gmail_users_settings_update_vacation_execute()` to send, or `gmail_users_settings_update_vacation` for simplest API.
+
+pub fn gmail_users_settings_update_vacation_builder(
+    client: &SimpleHttpClient,
+    userId: &String,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!(
+        "https://gmail.googleapis.com/gmail/v1/users/{}/settings/vacation",
+        userId,
+    );
+
+    // Build request
+    let builder = client
+        .put(&endpoint_url)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// PUT gmail/v1/users/{userId}/settings/vacation
+/// Updates vacation responder settings.
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `gmail_users_settings_update_vacation_execute()` or `gmail_users_settings_update_vacation`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `gmail_users_settings_update_vacation_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn gmail_users_settings_update_vacation_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<VacationSettings>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: VacationSettings = serde_json::from_str(&body)
+                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// PUT gmail/v1/users/{userId}/settings/vacation
+/// Updates vacation responder settings.
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `gmail_users_settings_update_vacation_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `gmail_users_settings_update_vacation_task()`.
+/// For the simplest API, use `gmail_users_settings_update_vacation()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `gmail_users_settings_update_vacation_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn gmail_users_settings_update_vacation_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<VacationSettings>, ApiError>, P = ApiPending>
+        + Send
+        + 'static,
+    ApiError,
+> {
+    let task = gmail_users_settings_update_vacation_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`gmail_users_settings_update_vacation`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct GmailUsersSettingsUpdateVacationArgs {
+    /// Path parameter: userId
+    pub userId: String,
+}
+
+/// PUT gmail/v1/users/{userId}/settings/vacation
+/// Updates vacation responder settings.
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `gmail_users_settings_update_vacation_builder()` + `gmail_users_settings_update_vacation_execute()`.
+/// For task-level control, use `gmail_users_settings_update_vacation_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn gmail_users_settings_update_vacation(
+    client: &SimpleHttpClient,
+    args: &GmailUsersSettingsUpdateVacationArgs,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<VacationSettings>, ApiError>, P = ApiPending>
+        + Send
+        + 'static,
+    ApiError,
+> {
+    let builder = gmail_users_settings_update_vacation_builder(client, &args.userId)?;
+    gmail_users_settings_update_vacation_execute(builder)
+}
+
+/// POST gmail/v1/users/{userId}/settings/cse/identities
 /// Creates and configures a client-side encryption identity that's authorized to send mail from the user account. Google publishes the S/MIME certificate to a shared domain-wide directory so that people within a Google Workspace organization can encrypt and send mail to the identity. For administrators managing identities and keypairs for users in their organization, requests require authorization with a [service account](<https://developers.google.`com/identity/protocols/OAuth2ServiceAccount`>) that has [domain-wide delegation authority](<https://developers.google.`com/identity/protocols/OAuth2ServiceAccount`#delegatingauthority>) to impersonate users with the <https://www.googleapis.`com/auth/gmail`.settings.basic> scope. For users managing their own identities and keypairs, requests require [hardware key encryption](<https://support.google.`com/a/answer/14153163`>) turned on and configured.
 ///
 /// Returns `ClientRequestBuilder` for customization.
@@ -3998,7 +6315,6 @@ pub fn gmail_users_settings_get_vacation(
 pub fn gmail_users_settings_cse_identities_create_builder(
     client: &SimpleHttpClient,
     userId: &String,
-    body: &CseIdentity,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
@@ -4008,15 +6324,13 @@ pub fn gmail_users_settings_cse_identities_create_builder(
 
     // Build request
     let builder = client
-        .get(&endpoint_url)
+        .post(&endpoint_url)
         .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
 
-    builder
-        .body_json(body)
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+    Ok(builder)
 }
 
-/// GET gmail/v1/users/{userId}/settings/cse/identities
+/// POST gmail/v1/users/{userId}/settings/cse/identities
 /// Creates and configures a client-side encryption identity that's authorized to send mail from the user account. Google publishes the S/MIME certificate to a shared domain-wide directory so that people within a Google Workspace organization can encrypt and send mail to the identity. For administrators managing identities and keypairs for users in their organization, requests require authorization with a [service account](<https://developers.google.`com/identity/protocols/OAuth2ServiceAccount`>) that has [domain-wide delegation authority](<https://developers.google.`com/identity/protocols/OAuth2ServiceAccount`#delegatingauthority>) to impersonate users with the <https://www.googleapis.`com/auth/gmail`.settings.basic> scope. For users managing their own identities and keypairs, requests require [hardware key encryption](<https://support.google.`com/a/answer/14153163`>) turned on and configured.
 ///
 /// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
@@ -4090,7 +6404,7 @@ pub fn gmail_users_settings_cse_identities_create_task(
         .map_pending(|_| ApiPending::Sending))
 }
 
-/// GET gmail/v1/users/{userId}/settings/cse/identities
+/// POST gmail/v1/users/{userId}/settings/cse/identities
 /// Creates and configures a client-side encryption identity that's authorized to send mail from the user account. Google publishes the S/MIME certificate to a shared domain-wide directory so that people within a Google Workspace organization can encrypt and send mail to the identity. For administrators managing identities and keypairs for users in their organization, requests require authorization with a [service account](<https://developers.google.`com/identity/protocols/OAuth2ServiceAccount`>) that has [domain-wide delegation authority](<https://developers.google.`com/identity/protocols/OAuth2ServiceAccount`#delegatingauthority>) to impersonate users with the <https://www.googleapis.`com/auth/gmail`.settings.basic> scope. For users managing their own identities and keypairs, requests require [hardware key encryption](<https://support.google.`com/a/answer/14153163`>) turned on and configured.
 ///
 /// Takes a `ClientRequestBuilder`, builds and executes the request,
@@ -4125,11 +6439,9 @@ pub fn gmail_users_settings_cse_identities_create_execute(
 pub struct GmailUsersSettingsCseIdentitiesCreateArgs {
     /// Path parameter: userId
     pub userId: String,
-    /// Request body.
-    pub body: CseIdentity,
 }
 
-/// GET gmail/v1/users/{userId}/settings/cse/identities
+/// POST gmail/v1/users/{userId}/settings/cse/identities
 /// Creates and configures a client-side encryption identity that's authorized to send mail from the user account. Google publishes the S/MIME certificate to a shared domain-wide directory so that people within a Google Workspace organization can encrypt and send mail to the identity. For administrators managing identities and keypairs for users in their organization, requests require authorization with a [service account](<https://developers.google.`com/identity/protocols/OAuth2ServiceAccount`>) that has [domain-wide delegation authority](<https://developers.google.`com/identity/protocols/OAuth2ServiceAccount`#delegatingauthority>) to impersonate users with the <https://www.googleapis.`com/auth/gmail`.settings.basic> scope. For users managing their own identities and keypairs, requests require [hardware key encryption](<https://support.google.`com/a/answer/14153163`>) turned on and configured.
 ///
 /// Simplest API - builds and executes the request in one call.
@@ -4147,12 +6459,11 @@ pub fn gmail_users_settings_cse_identities_create(
     impl StreamIterator<D = Result<ApiResponse<CseIdentity>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder =
-        gmail_users_settings_cse_identities_create_builder(client, &args.userId, &args.body)?;
+    let builder = gmail_users_settings_cse_identities_create_builder(client, &args.userId)?;
     gmail_users_settings_cse_identities_create_execute(builder)
 }
 
-/// GET gmail/v1/users/{userId}/settings/cse/identities/{cseEmailAddress}
+/// DELETE gmail/v1/users/{userId}/settings/cse/identities/{cseEmailAddress}
 /// Deletes a client-side encryption identity. The authenticated user can no longer use the identity to send encrypted messages. You cannot restore the identity after you delete it. Instead, use the CreateCseIdentity method to create another identity with the same configuration. For administrators managing identities and keypairs for users in their organization, requests require authorization with a [service account](<https://developers.google.`com/identity/protocols/OAuth2ServiceAccount`>) that has [domain-wide delegation authority](<https://developers.google.`com/identity/protocols/OAuth2ServiceAccount`#delegatingauthority>) to impersonate users with the <https://www.googleapis.`com/auth/gmail`.settings.basic> scope. For users managing their own identities and keypairs, requests require [hardware key encryption](<https://support.google.`com/a/answer/14153163`>) turned on and configured.
 ///
 /// Returns `ClientRequestBuilder` for customization.
@@ -4171,13 +6482,13 @@ pub fn gmail_users_settings_cse_identities_delete_builder(
 
     // Build request
     let builder = client
-        .get(&endpoint_url)
+        .delete(&endpoint_url)
         .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
 
     Ok(builder)
 }
 
-/// GET gmail/v1/users/{userId}/settings/cse/identities/{cseEmailAddress}
+/// DELETE gmail/v1/users/{userId}/settings/cse/identities/{cseEmailAddress}
 /// Deletes a client-side encryption identity. The authenticated user can no longer use the identity to send encrypted messages. You cannot restore the identity after you delete it. Instead, use the CreateCseIdentity method to create another identity with the same configuration. For administrators managing identities and keypairs for users in their organization, requests require authorization with a [service account](<https://developers.google.`com/identity/protocols/OAuth2ServiceAccount`>) that has [domain-wide delegation authority](<https://developers.google.`com/identity/protocols/OAuth2ServiceAccount`#delegatingauthority>) to impersonate users with the <https://www.googleapis.`com/auth/gmail`.settings.basic> scope. For users managing their own identities and keypairs, requests require [hardware key encryption](<https://support.google.`com/a/answer/14153163`>) turned on and configured.
 ///
 /// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
@@ -4248,7 +6559,7 @@ pub fn gmail_users_settings_cse_identities_delete_task(
         .map_pending(|_| ApiPending::Sending))
 }
 
-/// GET gmail/v1/users/{userId}/settings/cse/identities/{cseEmailAddress}
+/// DELETE gmail/v1/users/{userId}/settings/cse/identities/{cseEmailAddress}
 /// Deletes a client-side encryption identity. The authenticated user can no longer use the identity to send encrypted messages. You cannot restore the identity after you delete it. Instead, use the CreateCseIdentity method to create another identity with the same configuration. For administrators managing identities and keypairs for users in their organization, requests require authorization with a [service account](<https://developers.google.`com/identity/protocols/OAuth2ServiceAccount`>) that has [domain-wide delegation authority](<https://developers.google.`com/identity/protocols/OAuth2ServiceAccount`#delegatingauthority>) to impersonate users with the <https://www.googleapis.`com/auth/gmail`.settings.basic> scope. For users managing their own identities and keypairs, requests require [hardware key encryption](<https://support.google.`com/a/answer/14153163`>) turned on and configured.
 ///
 /// Takes a `ClientRequestBuilder`, builds and executes the request,
@@ -4287,7 +6598,7 @@ pub struct GmailUsersSettingsCseIdentitiesDeleteArgs {
     pub cseEmailAddress: String,
 }
 
-/// GET gmail/v1/users/{userId}/settings/cse/identities/{cseEmailAddress}
+/// DELETE gmail/v1/users/{userId}/settings/cse/identities/{cseEmailAddress}
 /// Deletes a client-side encryption identity. The authenticated user can no longer use the identity to send encrypted messages. You cannot restore the identity after you delete it. Instead, use the CreateCseIdentity method to create another identity with the same configuration. For administrators managing identities and keypairs for users in their organization, requests require authorization with a [service account](<https://developers.google.`com/identity/protocols/OAuth2ServiceAccount`>) that has [domain-wide delegation authority](<https://developers.google.`com/identity/protocols/OAuth2ServiceAccount`#delegatingauthority>) to impersonate users with the <https://www.googleapis.`com/auth/gmail`.settings.basic> scope. For users managing their own identities and keypairs, requests require [hardware key encryption](<https://support.google.`com/a/answer/14153163`>) turned on and configured.
 ///
 /// Simplest API - builds and executes the request in one call.
@@ -4313,7 +6624,357 @@ pub fn gmail_users_settings_cse_identities_delete(
     gmail_users_settings_cse_identities_delete_execute(builder)
 }
 
-/// GET gmail/v1/users/{userId}/settings/cse/identities/{emailAddress}
+/// GET gmail/v1/users/{userId}/settings/cse/identities/{cseEmailAddress}
+/// Retrieves a client-side encryption identity configuration. For administrators managing identities and keypairs for users in their organization, requests require authorization with a [service account](<https://developers.google.`com/identity/protocols/OAuth2ServiceAccount`>) that has [domain-wide delegation authority](<https://developers.google.`com/identity/protocols/OAuth2ServiceAccount`#delegatingauthority>) to impersonate users with the <https://www.googleapis.`com/auth/gmail`.settings.basic> scope. For users managing their own identities and keypairs, requests require [hardware key encryption](<https://support.google.`com/a/answer/14153163`>) turned on and configured.
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `gmail_users_settings_cse_identities_get_execute()` to send, or `gmail_users_settings_cse_identities_get` for simplest API.
+
+pub fn gmail_users_settings_cse_identities_get_builder(
+    client: &SimpleHttpClient,
+    userId: &String,
+    cseEmailAddress: &String,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!(
+        "https://gmail.googleapis.com/gmail/v1/users/{}/settings/cse/identities/{}",
+        userId, cseEmailAddress,
+    );
+
+    // Build request
+    let builder = client
+        .get(&endpoint_url)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// GET gmail/v1/users/{userId}/settings/cse/identities/{cseEmailAddress}
+/// Retrieves a client-side encryption identity configuration. For administrators managing identities and keypairs for users in their organization, requests require authorization with a [service account](<https://developers.google.`com/identity/protocols/OAuth2ServiceAccount`>) that has [domain-wide delegation authority](<https://developers.google.`com/identity/protocols/OAuth2ServiceAccount`#delegatingauthority>) to impersonate users with the <https://www.googleapis.`com/auth/gmail`.settings.basic> scope. For users managing their own identities and keypairs, requests require [hardware key encryption](<https://support.google.`com/a/answer/14153163`>) turned on and configured.
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `gmail_users_settings_cse_identities_get_execute()` or `gmail_users_settings_cse_identities_get`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `gmail_users_settings_cse_identities_get_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn gmail_users_settings_cse_identities_get_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<CseIdentity>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: CseIdentity = serde_json::from_str(&body)
+                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// GET gmail/v1/users/{userId}/settings/cse/identities/{cseEmailAddress}
+/// Retrieves a client-side encryption identity configuration. For administrators managing identities and keypairs for users in their organization, requests require authorization with a [service account](<https://developers.google.`com/identity/protocols/OAuth2ServiceAccount`>) that has [domain-wide delegation authority](<https://developers.google.`com/identity/protocols/OAuth2ServiceAccount`#delegatingauthority>) to impersonate users with the <https://www.googleapis.`com/auth/gmail`.settings.basic> scope. For users managing their own identities and keypairs, requests require [hardware key encryption](<https://support.google.`com/a/answer/14153163`>) turned on and configured.
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `gmail_users_settings_cse_identities_get_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `gmail_users_settings_cse_identities_get_task()`.
+/// For the simplest API, use `gmail_users_settings_cse_identities_get()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `gmail_users_settings_cse_identities_get_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn gmail_users_settings_cse_identities_get_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<CseIdentity>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let task = gmail_users_settings_cse_identities_get_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`gmail_users_settings_cse_identities_get`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct GmailUsersSettingsCseIdentitiesGetArgs {
+    /// Path parameter: userId
+    pub userId: String,
+    /// Path parameter: cseEmailAddress
+    pub cseEmailAddress: String,
+}
+
+/// GET gmail/v1/users/{userId}/settings/cse/identities/{cseEmailAddress}
+/// Retrieves a client-side encryption identity configuration. For administrators managing identities and keypairs for users in their organization, requests require authorization with a [service account](<https://developers.google.`com/identity/protocols/OAuth2ServiceAccount`>) that has [domain-wide delegation authority](<https://developers.google.`com/identity/protocols/OAuth2ServiceAccount`#delegatingauthority>) to impersonate users with the <https://www.googleapis.`com/auth/gmail`.settings.basic> scope. For users managing their own identities and keypairs, requests require [hardware key encryption](<https://support.google.`com/a/answer/14153163`>) turned on and configured.
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `gmail_users_settings_cse_identities_get_builder()` + `gmail_users_settings_cse_identities_get_execute()`.
+/// For task-level control, use `gmail_users_settings_cse_identities_get_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn gmail_users_settings_cse_identities_get(
+    client: &SimpleHttpClient,
+    args: &GmailUsersSettingsCseIdentitiesGetArgs,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<CseIdentity>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let builder = gmail_users_settings_cse_identities_get_builder(
+        client,
+        &args.userId,
+        &args.cseEmailAddress,
+    )?;
+    gmail_users_settings_cse_identities_get_execute(builder)
+}
+
+/// GET gmail/v1/users/{userId}/settings/cse/identities
+/// Lists the client-side encrypted identities for an authenticated user. For administrators managing identities and keypairs for users in their organization, requests require authorization with a [service account](<https://developers.google.`com/identity/protocols/OAuth2ServiceAccount`>) that has [domain-wide delegation authority](<https://developers.google.`com/identity/protocols/OAuth2ServiceAccount`#delegatingauthority>) to impersonate users with the <https://www.googleapis.`com/auth/gmail`.settings.basic> scope. For users managing their own identities and keypairs, requests require [hardware key encryption](<https://support.google.`com/a/answer/14153163`>) turned on and configured.
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `gmail_users_settings_cse_identities_list_execute()` to send, or `gmail_users_settings_cse_identities_list` for simplest API.
+
+pub fn gmail_users_settings_cse_identities_list_builder(
+    client: &SimpleHttpClient,
+    userId: &String,
+    pageSize: &Option<Option<String>>,
+    pageToken: &Option<Option<String>>,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!(
+        "https://gmail.googleapis.com/gmail/v1/users/{}/settings/cse/identities",
+        userId,
+    );
+
+    // Build request
+    let mut query_parts = Vec::new();
+    if let Some(val) = pageSize.as_ref() {
+        query_parts.push(format!("pageSize={}", val));
+    }
+    if let Some(val) = pageToken.as_ref() {
+        query_parts.push(format!("pageToken={}", val));
+    }
+
+    let url_with_query = if query_parts.is_empty() {
+        endpoint_url
+    } else {
+        format!("{}?{}", endpoint_url, query_parts.join("&"))
+    };
+
+    let builder = client
+        .get(&url_with_query)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// GET gmail/v1/users/{userId}/settings/cse/identities
+/// Lists the client-side encrypted identities for an authenticated user. For administrators managing identities and keypairs for users in their organization, requests require authorization with a [service account](<https://developers.google.`com/identity/protocols/OAuth2ServiceAccount`>) that has [domain-wide delegation authority](<https://developers.google.`com/identity/protocols/OAuth2ServiceAccount`#delegatingauthority>) to impersonate users with the <https://www.googleapis.`com/auth/gmail`.settings.basic> scope. For users managing their own identities and keypairs, requests require [hardware key encryption](<https://support.google.`com/a/answer/14153163`>) turned on and configured.
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `gmail_users_settings_cse_identities_list_execute()` or `gmail_users_settings_cse_identities_list`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `gmail_users_settings_cse_identities_list_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn gmail_users_settings_cse_identities_list_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<ListCseIdentitiesResponse>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: ListCseIdentitiesResponse = serde_json::from_str(&body)
+                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// GET gmail/v1/users/{userId}/settings/cse/identities
+/// Lists the client-side encrypted identities for an authenticated user. For administrators managing identities and keypairs for users in their organization, requests require authorization with a [service account](<https://developers.google.`com/identity/protocols/OAuth2ServiceAccount`>) that has [domain-wide delegation authority](<https://developers.google.`com/identity/protocols/OAuth2ServiceAccount`#delegatingauthority>) to impersonate users with the <https://www.googleapis.`com/auth/gmail`.settings.basic> scope. For users managing their own identities and keypairs, requests require [hardware key encryption](<https://support.google.`com/a/answer/14153163`>) turned on and configured.
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `gmail_users_settings_cse_identities_list_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `gmail_users_settings_cse_identities_list_task()`.
+/// For the simplest API, use `gmail_users_settings_cse_identities_list()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `gmail_users_settings_cse_identities_list_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn gmail_users_settings_cse_identities_list_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<ListCseIdentitiesResponse>, ApiError>, P = ApiPending>
+        + Send
+        + 'static,
+    ApiError,
+> {
+    let task = gmail_users_settings_cse_identities_list_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`gmail_users_settings_cse_identities_list`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct GmailUsersSettingsCseIdentitiesListArgs {
+    /// Path parameter: userId
+    pub userId: String,
+    /// Query parameter: pageSize
+    pub pageSize: Option<Option<String>>,
+    /// Query parameter: pageToken
+    pub pageToken: Option<Option<String>>,
+}
+
+/// GET gmail/v1/users/{userId}/settings/cse/identities
+/// Lists the client-side encrypted identities for an authenticated user. For administrators managing identities and keypairs for users in their organization, requests require authorization with a [service account](<https://developers.google.`com/identity/protocols/OAuth2ServiceAccount`>) that has [domain-wide delegation authority](<https://developers.google.`com/identity/protocols/OAuth2ServiceAccount`#delegatingauthority>) to impersonate users with the <https://www.googleapis.`com/auth/gmail`.settings.basic> scope. For users managing their own identities and keypairs, requests require [hardware key encryption](<https://support.google.`com/a/answer/14153163`>) turned on and configured.
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `gmail_users_settings_cse_identities_list_builder()` + `gmail_users_settings_cse_identities_list_execute()`.
+/// For task-level control, use `gmail_users_settings_cse_identities_list_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn gmail_users_settings_cse_identities_list(
+    client: &SimpleHttpClient,
+    args: &GmailUsersSettingsCseIdentitiesListArgs,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<ListCseIdentitiesResponse>, ApiError>, P = ApiPending>
+        + Send
+        + 'static,
+    ApiError,
+> {
+    let builder = gmail_users_settings_cse_identities_list_builder(
+        client,
+        &args.userId,
+        &args.pageSize,
+        &args.pageToken,
+    )?;
+    gmail_users_settings_cse_identities_list_execute(builder)
+}
+
+/// PATCH gmail/v1/users/{userId}/settings/cse/identities/{emailAddress}
 /// Associates a different key pair with an existing client-side encryption identity. The updated key pair must validate against Google's [S/MIME certificate profiles](<https://support.google.`com/a/answer/7300887`>). For administrators managing identities and keypairs for users in their organization, requests require authorization with a [service account](<https://developers.google.`com/identity/protocols/OAuth2ServiceAccount`>) that has [domain-wide delegation authority](<https://developers.google.`com/identity/protocols/OAuth2ServiceAccount`#delegatingauthority>) to impersonate users with the <https://www.googleapis.`com/auth/gmail`.settings.basic> scope. For users managing their own identities and keypairs, requests require [hardware key encryption](<https://support.google.`com/a/answer/14153163`>) turned on and configured.
 ///
 /// Returns `ClientRequestBuilder` for customization.
@@ -4323,7 +6984,6 @@ pub fn gmail_users_settings_cse_identities_patch_builder(
     client: &SimpleHttpClient,
     userId: &String,
     emailAddress: &String,
-    body: &CseIdentity,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
@@ -4333,15 +6993,13 @@ pub fn gmail_users_settings_cse_identities_patch_builder(
 
     // Build request
     let builder = client
-        .get(&endpoint_url)
+        .patch(&endpoint_url)
         .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
 
-    builder
-        .body_json(body)
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+    Ok(builder)
 }
 
-/// GET gmail/v1/users/{userId}/settings/cse/identities/{emailAddress}
+/// PATCH gmail/v1/users/{userId}/settings/cse/identities/{emailAddress}
 /// Associates a different key pair with an existing client-side encryption identity. The updated key pair must validate against Google's [S/MIME certificate profiles](<https://support.google.`com/a/answer/7300887`>). For administrators managing identities and keypairs for users in their organization, requests require authorization with a [service account](<https://developers.google.`com/identity/protocols/OAuth2ServiceAccount`>) that has [domain-wide delegation authority](<https://developers.google.`com/identity/protocols/OAuth2ServiceAccount`#delegatingauthority>) to impersonate users with the <https://www.googleapis.`com/auth/gmail`.settings.basic> scope. For users managing their own identities and keypairs, requests require [hardware key encryption](<https://support.google.`com/a/answer/14153163`>) turned on and configured.
 ///
 /// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
@@ -4415,7 +7073,7 @@ pub fn gmail_users_settings_cse_identities_patch_task(
         .map_pending(|_| ApiPending::Sending))
 }
 
-/// GET gmail/v1/users/{userId}/settings/cse/identities/{emailAddress}
+/// PATCH gmail/v1/users/{userId}/settings/cse/identities/{emailAddress}
 /// Associates a different key pair with an existing client-side encryption identity. The updated key pair must validate against Google's [S/MIME certificate profiles](<https://support.google.`com/a/answer/7300887`>). For administrators managing identities and keypairs for users in their organization, requests require authorization with a [service account](<https://developers.google.`com/identity/protocols/OAuth2ServiceAccount`>) that has [domain-wide delegation authority](<https://developers.google.`com/identity/protocols/OAuth2ServiceAccount`#delegatingauthority>) to impersonate users with the <https://www.googleapis.`com/auth/gmail`.settings.basic> scope. For users managing their own identities and keypairs, requests require [hardware key encryption](<https://support.google.`com/a/answer/14153163`>) turned on and configured.
 ///
 /// Takes a `ClientRequestBuilder`, builds and executes the request,
@@ -4452,11 +7110,9 @@ pub struct GmailUsersSettingsCseIdentitiesPatchArgs {
     pub userId: String,
     /// Path parameter: emailAddress
     pub emailAddress: String,
-    /// Request body.
-    pub body: CseIdentity,
 }
 
-/// GET gmail/v1/users/{userId}/settings/cse/identities/{emailAddress}
+/// PATCH gmail/v1/users/{userId}/settings/cse/identities/{emailAddress}
 /// Associates a different key pair with an existing client-side encryption identity. The updated key pair must validate against Google's [S/MIME certificate profiles](<https://support.google.`com/a/answer/7300887`>). For administrators managing identities and keypairs for users in their organization, requests require authorization with a [service account](<https://developers.google.`com/identity/protocols/OAuth2ServiceAccount`>) that has [domain-wide delegation authority](<https://developers.google.`com/identity/protocols/OAuth2ServiceAccount`#delegatingauthority>) to impersonate users with the <https://www.googleapis.`com/auth/gmail`.settings.basic> scope. For users managing their own identities and keypairs, requests require [hardware key encryption](<https://support.google.`com/a/answer/14153163`>) turned on and configured.
 ///
 /// Simplest API - builds and executes the request in one call.
@@ -4478,12 +7134,11 @@ pub fn gmail_users_settings_cse_identities_patch(
         client,
         &args.userId,
         &args.emailAddress,
-        &args.body,
     )?;
     gmail_users_settings_cse_identities_patch_execute(builder)
 }
 
-/// GET gmail/v1/users/{userId}/settings/cse/keypairs
+/// POST gmail/v1/users/{userId}/settings/cse/keypairs
 /// Creates and uploads a client-side encryption S/MIME public key certificate chain and private key metadata for the authenticated user. For administrators managing identities and keypairs for users in their organization, requests require authorization with a [service account](<https://developers.google.`com/identity/protocols/OAuth2ServiceAccount`>) that has [domain-wide delegation authority](<https://developers.google.`com/identity/protocols/OAuth2ServiceAccount`#delegatingauthority>) to impersonate users with the <https://www.googleapis.`com/auth/gmail`.settings.basic> scope. For users managing their own identities and keypairs, requests require [hardware key encryption](<https://support.google.`com/a/answer/14153163`>) turned on and configured.
 ///
 /// Returns `ClientRequestBuilder` for customization.
@@ -4492,7 +7147,6 @@ pub fn gmail_users_settings_cse_identities_patch(
 pub fn gmail_users_settings_cse_keypairs_create_builder(
     client: &SimpleHttpClient,
     userId: &String,
-    body: &CseKeyPair,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
@@ -4502,15 +7156,13 @@ pub fn gmail_users_settings_cse_keypairs_create_builder(
 
     // Build request
     let builder = client
-        .get(&endpoint_url)
+        .post(&endpoint_url)
         .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
 
-    builder
-        .body_json(body)
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+    Ok(builder)
 }
 
-/// GET gmail/v1/users/{userId}/settings/cse/keypairs
+/// POST gmail/v1/users/{userId}/settings/cse/keypairs
 /// Creates and uploads a client-side encryption S/MIME public key certificate chain and private key metadata for the authenticated user. For administrators managing identities and keypairs for users in their organization, requests require authorization with a [service account](<https://developers.google.`com/identity/protocols/OAuth2ServiceAccount`>) that has [domain-wide delegation authority](<https://developers.google.`com/identity/protocols/OAuth2ServiceAccount`#delegatingauthority>) to impersonate users with the <https://www.googleapis.`com/auth/gmail`.settings.basic> scope. For users managing their own identities and keypairs, requests require [hardware key encryption](<https://support.google.`com/a/answer/14153163`>) turned on and configured.
 ///
 /// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
@@ -4584,7 +7236,7 @@ pub fn gmail_users_settings_cse_keypairs_create_task(
         .map_pending(|_| ApiPending::Sending))
 }
 
-/// GET gmail/v1/users/{userId}/settings/cse/keypairs
+/// POST gmail/v1/users/{userId}/settings/cse/keypairs
 /// Creates and uploads a client-side encryption S/MIME public key certificate chain and private key metadata for the authenticated user. For administrators managing identities and keypairs for users in their organization, requests require authorization with a [service account](<https://developers.google.`com/identity/protocols/OAuth2ServiceAccount`>) that has [domain-wide delegation authority](<https://developers.google.`com/identity/protocols/OAuth2ServiceAccount`#delegatingauthority>) to impersonate users with the <https://www.googleapis.`com/auth/gmail`.settings.basic> scope. For users managing their own identities and keypairs, requests require [hardware key encryption](<https://support.google.`com/a/answer/14153163`>) turned on and configured.
 ///
 /// Takes a `ClientRequestBuilder`, builds and executes the request,
@@ -4619,11 +7271,9 @@ pub fn gmail_users_settings_cse_keypairs_create_execute(
 pub struct GmailUsersSettingsCseKeypairsCreateArgs {
     /// Path parameter: userId
     pub userId: String,
-    /// Request body.
-    pub body: CseKeyPair,
 }
 
-/// GET gmail/v1/users/{userId}/settings/cse/keypairs
+/// POST gmail/v1/users/{userId}/settings/cse/keypairs
 /// Creates and uploads a client-side encryption S/MIME public key certificate chain and private key metadata for the authenticated user. For administrators managing identities and keypairs for users in their organization, requests require authorization with a [service account](<https://developers.google.`com/identity/protocols/OAuth2ServiceAccount`>) that has [domain-wide delegation authority](<https://developers.google.`com/identity/protocols/OAuth2ServiceAccount`#delegatingauthority>) to impersonate users with the <https://www.googleapis.`com/auth/gmail`.settings.basic> scope. For users managing their own identities and keypairs, requests require [hardware key encryption](<https://support.google.`com/a/answer/14153163`>) turned on and configured.
 ///
 /// Simplest API - builds and executes the request in one call.
@@ -4641,12 +7291,11 @@ pub fn gmail_users_settings_cse_keypairs_create(
     impl StreamIterator<D = Result<ApiResponse<CseKeyPair>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder =
-        gmail_users_settings_cse_keypairs_create_builder(client, &args.userId, &args.body)?;
+    let builder = gmail_users_settings_cse_keypairs_create_builder(client, &args.userId)?;
     gmail_users_settings_cse_keypairs_create_execute(builder)
 }
 
-/// GET gmail/v1/users/{userId}/settings/cse/keypairs/{keyPairId}:disable
+/// POST gmail/v1/users/{userId}/settings/cse/keypairs/{keyPairId}:disable
 /// Turns off a client-side encryption key pair. The authenticated user can no longer use the key pair to decrypt incoming CSE message texts or sign outgoing CSE mail. To regain access, use the EnableCseKeyPair to turn on the key pair. After 30 days, you can permanently delete the key pair by using the ObliterateCseKeyPair method. For administrators managing identities and keypairs for users in their organization, requests require authorization with a [service account](<https://developers.google.`com/identity/protocols/OAuth2ServiceAccount`>) that has [domain-wide delegation authority](<https://developers.google.`com/identity/protocols/OAuth2ServiceAccount`#delegatingauthority>) to impersonate users with the <https://www.googleapis.`com/auth/gmail`.settings.basic> scope. For users managing their own identities and keypairs, requests require [hardware key encryption](<https://support.google.`com/a/answer/14153163`>) turned on and configured.
 ///
 /// Returns `ClientRequestBuilder` for customization.
@@ -4656,7 +7305,6 @@ pub fn gmail_users_settings_cse_keypairs_disable_builder(
     client: &SimpleHttpClient,
     userId: &String,
     keyPairId: &String,
-    body: &DisableCseKeyPairRequest,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
@@ -4666,15 +7314,13 @@ pub fn gmail_users_settings_cse_keypairs_disable_builder(
 
     // Build request
     let builder = client
-        .get(&endpoint_url)
+        .post(&endpoint_url)
         .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
 
-    builder
-        .body_json(body)
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+    Ok(builder)
 }
 
-/// GET gmail/v1/users/{userId}/settings/cse/keypairs/{keyPairId}:disable
+/// POST gmail/v1/users/{userId}/settings/cse/keypairs/{keyPairId}:disable
 /// Turns off a client-side encryption key pair. The authenticated user can no longer use the key pair to decrypt incoming CSE message texts or sign outgoing CSE mail. To regain access, use the EnableCseKeyPair to turn on the key pair. After 30 days, you can permanently delete the key pair by using the ObliterateCseKeyPair method. For administrators managing identities and keypairs for users in their organization, requests require authorization with a [service account](<https://developers.google.`com/identity/protocols/OAuth2ServiceAccount`>) that has [domain-wide delegation authority](<https://developers.google.`com/identity/protocols/OAuth2ServiceAccount`#delegatingauthority>) to impersonate users with the <https://www.googleapis.`com/auth/gmail`.settings.basic> scope. For users managing their own identities and keypairs, requests require [hardware key encryption](<https://support.google.`com/a/answer/14153163`>) turned on and configured.
 ///
 /// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
@@ -4748,7 +7394,7 @@ pub fn gmail_users_settings_cse_keypairs_disable_task(
         .map_pending(|_| ApiPending::Sending))
 }
 
-/// GET gmail/v1/users/{userId}/settings/cse/keypairs/{keyPairId}:disable
+/// POST gmail/v1/users/{userId}/settings/cse/keypairs/{keyPairId}:disable
 /// Turns off a client-side encryption key pair. The authenticated user can no longer use the key pair to decrypt incoming CSE message texts or sign outgoing CSE mail. To regain access, use the EnableCseKeyPair to turn on the key pair. After 30 days, you can permanently delete the key pair by using the ObliterateCseKeyPair method. For administrators managing identities and keypairs for users in their organization, requests require authorization with a [service account](<https://developers.google.`com/identity/protocols/OAuth2ServiceAccount`>) that has [domain-wide delegation authority](<https://developers.google.`com/identity/protocols/OAuth2ServiceAccount`#delegatingauthority>) to impersonate users with the <https://www.googleapis.`com/auth/gmail`.settings.basic> scope. For users managing their own identities and keypairs, requests require [hardware key encryption](<https://support.google.`com/a/answer/14153163`>) turned on and configured.
 ///
 /// Takes a `ClientRequestBuilder`, builds and executes the request,
@@ -4785,11 +7431,9 @@ pub struct GmailUsersSettingsCseKeypairsDisableArgs {
     pub userId: String,
     /// Path parameter: keyPairId
     pub keyPairId: String,
-    /// Request body.
-    pub body: DisableCseKeyPairRequest,
 }
 
-/// GET gmail/v1/users/{userId}/settings/cse/keypairs/{keyPairId}:disable
+/// POST gmail/v1/users/{userId}/settings/cse/keypairs/{keyPairId}:disable
 /// Turns off a client-side encryption key pair. The authenticated user can no longer use the key pair to decrypt incoming CSE message texts or sign outgoing CSE mail. To regain access, use the EnableCseKeyPair to turn on the key pair. After 30 days, you can permanently delete the key pair by using the ObliterateCseKeyPair method. For administrators managing identities and keypairs for users in their organization, requests require authorization with a [service account](<https://developers.google.`com/identity/protocols/OAuth2ServiceAccount`>) that has [domain-wide delegation authority](<https://developers.google.`com/identity/protocols/OAuth2ServiceAccount`#delegatingauthority>) to impersonate users with the <https://www.googleapis.`com/auth/gmail`.settings.basic> scope. For users managing their own identities and keypairs, requests require [hardware key encryption](<https://support.google.`com/a/answer/14153163`>) turned on and configured.
 ///
 /// Simplest API - builds and executes the request in one call.
@@ -4807,16 +7451,12 @@ pub fn gmail_users_settings_cse_keypairs_disable(
     impl StreamIterator<D = Result<ApiResponse<CseKeyPair>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = gmail_users_settings_cse_keypairs_disable_builder(
-        client,
-        &args.userId,
-        &args.keyPairId,
-        &args.body,
-    )?;
+    let builder =
+        gmail_users_settings_cse_keypairs_disable_builder(client, &args.userId, &args.keyPairId)?;
     gmail_users_settings_cse_keypairs_disable_execute(builder)
 }
 
-/// GET gmail/v1/users/{userId}/settings/cse/keypairs/{keyPairId}:enable
+/// POST gmail/v1/users/{userId}/settings/cse/keypairs/{keyPairId}:enable
 /// Turns on a client-side encryption key pair that was turned off. The key pair becomes active again for any associated client-side encryption identities. For administrators managing identities and keypairs for users in their organization, requests require authorization with a [service account](<https://developers.google.`com/identity/protocols/OAuth2ServiceAccount`>) that has [domain-wide delegation authority](<https://developers.google.`com/identity/protocols/OAuth2ServiceAccount`#delegatingauthority>) to impersonate users with the <https://www.googleapis.`com/auth/gmail`.settings.basic> scope. For users managing their own identities and keypairs, requests require [hardware key encryption](<https://support.google.`com/a/answer/14153163`>) turned on and configured.
 ///
 /// Returns `ClientRequestBuilder` for customization.
@@ -4826,7 +7466,6 @@ pub fn gmail_users_settings_cse_keypairs_enable_builder(
     client: &SimpleHttpClient,
     userId: &String,
     keyPairId: &String,
-    body: &EnableCseKeyPairRequest,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
@@ -4836,15 +7475,13 @@ pub fn gmail_users_settings_cse_keypairs_enable_builder(
 
     // Build request
     let builder = client
-        .get(&endpoint_url)
+        .post(&endpoint_url)
         .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
 
-    builder
-        .body_json(body)
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+    Ok(builder)
 }
 
-/// GET gmail/v1/users/{userId}/settings/cse/keypairs/{keyPairId}:enable
+/// POST gmail/v1/users/{userId}/settings/cse/keypairs/{keyPairId}:enable
 /// Turns on a client-side encryption key pair that was turned off. The key pair becomes active again for any associated client-side encryption identities. For administrators managing identities and keypairs for users in their organization, requests require authorization with a [service account](<https://developers.google.`com/identity/protocols/OAuth2ServiceAccount`>) that has [domain-wide delegation authority](<https://developers.google.`com/identity/protocols/OAuth2ServiceAccount`#delegatingauthority>) to impersonate users with the <https://www.googleapis.`com/auth/gmail`.settings.basic> scope. For users managing their own identities and keypairs, requests require [hardware key encryption](<https://support.google.`com/a/answer/14153163`>) turned on and configured.
 ///
 /// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
@@ -4918,7 +7555,7 @@ pub fn gmail_users_settings_cse_keypairs_enable_task(
         .map_pending(|_| ApiPending::Sending))
 }
 
-/// GET gmail/v1/users/{userId}/settings/cse/keypairs/{keyPairId}:enable
+/// POST gmail/v1/users/{userId}/settings/cse/keypairs/{keyPairId}:enable
 /// Turns on a client-side encryption key pair that was turned off. The key pair becomes active again for any associated client-side encryption identities. For administrators managing identities and keypairs for users in their organization, requests require authorization with a [service account](<https://developers.google.`com/identity/protocols/OAuth2ServiceAccount`>) that has [domain-wide delegation authority](<https://developers.google.`com/identity/protocols/OAuth2ServiceAccount`#delegatingauthority>) to impersonate users with the <https://www.googleapis.`com/auth/gmail`.settings.basic> scope. For users managing their own identities and keypairs, requests require [hardware key encryption](<https://support.google.`com/a/answer/14153163`>) turned on and configured.
 ///
 /// Takes a `ClientRequestBuilder`, builds and executes the request,
@@ -4955,11 +7592,9 @@ pub struct GmailUsersSettingsCseKeypairsEnableArgs {
     pub userId: String,
     /// Path parameter: keyPairId
     pub keyPairId: String,
-    /// Request body.
-    pub body: EnableCseKeyPairRequest,
 }
 
-/// GET gmail/v1/users/{userId}/settings/cse/keypairs/{keyPairId}:enable
+/// POST gmail/v1/users/{userId}/settings/cse/keypairs/{keyPairId}:enable
 /// Turns on a client-side encryption key pair that was turned off. The key pair becomes active again for any associated client-side encryption identities. For administrators managing identities and keypairs for users in their organization, requests require authorization with a [service account](<https://developers.google.`com/identity/protocols/OAuth2ServiceAccount`>) that has [domain-wide delegation authority](<https://developers.google.`com/identity/protocols/OAuth2ServiceAccount`#delegatingauthority>) to impersonate users with the <https://www.googleapis.`com/auth/gmail`.settings.basic> scope. For users managing their own identities and keypairs, requests require [hardware key encryption](<https://support.google.`com/a/answer/14153163`>) turned on and configured.
 ///
 /// Simplest API - builds and executes the request in one call.
@@ -4977,12 +7612,8 @@ pub fn gmail_users_settings_cse_keypairs_enable(
     impl StreamIterator<D = Result<ApiResponse<CseKeyPair>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = gmail_users_settings_cse_keypairs_enable_builder(
-        client,
-        &args.userId,
-        &args.keyPairId,
-        &args.body,
-    )?;
+    let builder =
+        gmail_users_settings_cse_keypairs_enable_builder(client, &args.userId, &args.keyPairId)?;
     gmail_users_settings_cse_keypairs_enable_execute(builder)
 }
 
@@ -5147,7 +7778,193 @@ pub fn gmail_users_settings_cse_keypairs_get(
     gmail_users_settings_cse_keypairs_get_execute(builder)
 }
 
-/// GET gmail/v1/users/{userId}/settings/cse/keypairs/{keyPairId}:obliterate
+/// GET gmail/v1/users/{userId}/settings/cse/keypairs
+/// Lists client-side encryption key pairs for an authenticated user. For administrators managing identities and keypairs for users in their organization, requests require authorization with a [service account](<https://developers.google.`com/identity/protocols/OAuth2ServiceAccount`>) that has [domain-wide delegation authority](<https://developers.google.`com/identity/protocols/OAuth2ServiceAccount`#delegatingauthority>) to impersonate users with the <https://www.googleapis.`com/auth/gmail`.settings.basic> scope. For users managing their own identities and keypairs, requests require [hardware key encryption](<https://support.google.`com/a/answer/14153163`>) turned on and configured.
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `gmail_users_settings_cse_keypairs_list_execute()` to send, or `gmail_users_settings_cse_keypairs_list` for simplest API.
+
+pub fn gmail_users_settings_cse_keypairs_list_builder(
+    client: &SimpleHttpClient,
+    userId: &String,
+    pageSize: &Option<Option<String>>,
+    pageToken: &Option<Option<String>>,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!(
+        "https://gmail.googleapis.com/gmail/v1/users/{}/settings/cse/keypairs",
+        userId,
+    );
+
+    // Build request
+    let mut query_parts = Vec::new();
+    if let Some(val) = pageSize.as_ref() {
+        query_parts.push(format!("pageSize={}", val));
+    }
+    if let Some(val) = pageToken.as_ref() {
+        query_parts.push(format!("pageToken={}", val));
+    }
+
+    let url_with_query = if query_parts.is_empty() {
+        endpoint_url
+    } else {
+        format!("{}?{}", endpoint_url, query_parts.join("&"))
+    };
+
+    let builder = client
+        .get(&url_with_query)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// GET gmail/v1/users/{userId}/settings/cse/keypairs
+/// Lists client-side encryption key pairs for an authenticated user. For administrators managing identities and keypairs for users in their organization, requests require authorization with a [service account](<https://developers.google.`com/identity/protocols/OAuth2ServiceAccount`>) that has [domain-wide delegation authority](<https://developers.google.`com/identity/protocols/OAuth2ServiceAccount`#delegatingauthority>) to impersonate users with the <https://www.googleapis.`com/auth/gmail`.settings.basic> scope. For users managing their own identities and keypairs, requests require [hardware key encryption](<https://support.google.`com/a/answer/14153163`>) turned on and configured.
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `gmail_users_settings_cse_keypairs_list_execute()` or `gmail_users_settings_cse_keypairs_list`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `gmail_users_settings_cse_keypairs_list_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn gmail_users_settings_cse_keypairs_list_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<ListCseKeyPairsResponse>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: ListCseKeyPairsResponse = serde_json::from_str(&body)
+                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// GET gmail/v1/users/{userId}/settings/cse/keypairs
+/// Lists client-side encryption key pairs for an authenticated user. For administrators managing identities and keypairs for users in their organization, requests require authorization with a [service account](<https://developers.google.`com/identity/protocols/OAuth2ServiceAccount`>) that has [domain-wide delegation authority](<https://developers.google.`com/identity/protocols/OAuth2ServiceAccount`#delegatingauthority>) to impersonate users with the <https://www.googleapis.`com/auth/gmail`.settings.basic> scope. For users managing their own identities and keypairs, requests require [hardware key encryption](<https://support.google.`com/a/answer/14153163`>) turned on and configured.
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `gmail_users_settings_cse_keypairs_list_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `gmail_users_settings_cse_keypairs_list_task()`.
+/// For the simplest API, use `gmail_users_settings_cse_keypairs_list()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `gmail_users_settings_cse_keypairs_list_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn gmail_users_settings_cse_keypairs_list_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<ListCseKeyPairsResponse>, ApiError>, P = ApiPending>
+        + Send
+        + 'static,
+    ApiError,
+> {
+    let task = gmail_users_settings_cse_keypairs_list_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`gmail_users_settings_cse_keypairs_list`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct GmailUsersSettingsCseKeypairsListArgs {
+    /// Path parameter: userId
+    pub userId: String,
+    /// Query parameter: pageSize
+    pub pageSize: Option<Option<String>>,
+    /// Query parameter: pageToken
+    pub pageToken: Option<Option<String>>,
+}
+
+/// GET gmail/v1/users/{userId}/settings/cse/keypairs
+/// Lists client-side encryption key pairs for an authenticated user. For administrators managing identities and keypairs for users in their organization, requests require authorization with a [service account](<https://developers.google.`com/identity/protocols/OAuth2ServiceAccount`>) that has [domain-wide delegation authority](<https://developers.google.`com/identity/protocols/OAuth2ServiceAccount`#delegatingauthority>) to impersonate users with the <https://www.googleapis.`com/auth/gmail`.settings.basic> scope. For users managing their own identities and keypairs, requests require [hardware key encryption](<https://support.google.`com/a/answer/14153163`>) turned on and configured.
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `gmail_users_settings_cse_keypairs_list_builder()` + `gmail_users_settings_cse_keypairs_list_execute()`.
+/// For task-level control, use `gmail_users_settings_cse_keypairs_list_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn gmail_users_settings_cse_keypairs_list(
+    client: &SimpleHttpClient,
+    args: &GmailUsersSettingsCseKeypairsListArgs,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<ListCseKeyPairsResponse>, ApiError>, P = ApiPending>
+        + Send
+        + 'static,
+    ApiError,
+> {
+    let builder = gmail_users_settings_cse_keypairs_list_builder(
+        client,
+        &args.userId,
+        &args.pageSize,
+        &args.pageToken,
+    )?;
+    gmail_users_settings_cse_keypairs_list_execute(builder)
+}
+
+/// POST gmail/v1/users/{userId}/settings/cse/keypairs/{keyPairId}:obliterate
 /// Deletes a client-side encryption key pair permanently and immediately. You can only permanently delete key pairs that have been turned off for more than 30 days. To turn off a key pair, use the DisableCseKeyPair method. Gmail can't restore or decrypt any messages that were encrypted by an obliterated key. Authenticated users and Google Workspace administrators lose access to reading the encrypted messages. For administrators managing identities and keypairs for users in their organization, requests require authorization with a [service account](<https://developers.google.`com/identity/protocols/OAuth2ServiceAccount`>) that has [domain-wide delegation authority](<https://developers.google.`com/identity/protocols/OAuth2ServiceAccount`#delegatingauthority>) to impersonate users with the <https://www.googleapis.`com/auth/gmail`.settings.basic> scope. For users managing their own identities and keypairs, requests require [hardware key encryption](<https://support.google.`com/a/answer/14153163`>) turned on and configured.
 ///
 /// Returns `ClientRequestBuilder` for customization.
@@ -5157,7 +7974,6 @@ pub fn gmail_users_settings_cse_keypairs_obliterate_builder(
     client: &SimpleHttpClient,
     userId: &String,
     keyPairId: &String,
-    body: &ObliterateCseKeyPairRequest,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
@@ -5167,15 +7983,13 @@ pub fn gmail_users_settings_cse_keypairs_obliterate_builder(
 
     // Build request
     let builder = client
-        .get(&endpoint_url)
+        .post(&endpoint_url)
         .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
 
-    builder
-        .body_json(body)
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+    Ok(builder)
 }
 
-/// GET gmail/v1/users/{userId}/settings/cse/keypairs/{keyPairId}:obliterate
+/// POST gmail/v1/users/{userId}/settings/cse/keypairs/{keyPairId}:obliterate
 /// Deletes a client-side encryption key pair permanently and immediately. You can only permanently delete key pairs that have been turned off for more than 30 days. To turn off a key pair, use the DisableCseKeyPair method. Gmail can't restore or decrypt any messages that were encrypted by an obliterated key. Authenticated users and Google Workspace administrators lose access to reading the encrypted messages. For administrators managing identities and keypairs for users in their organization, requests require authorization with a [service account](<https://developers.google.`com/identity/protocols/OAuth2ServiceAccount`>) that has [domain-wide delegation authority](<https://developers.google.`com/identity/protocols/OAuth2ServiceAccount`#delegatingauthority>) to impersonate users with the <https://www.googleapis.`com/auth/gmail`.settings.basic> scope. For users managing their own identities and keypairs, requests require [hardware key encryption](<https://support.google.`com/a/answer/14153163`>) turned on and configured.
 ///
 /// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
@@ -5246,7 +8060,7 @@ pub fn gmail_users_settings_cse_keypairs_obliterate_task(
         .map_pending(|_| ApiPending::Sending))
 }
 
-/// GET gmail/v1/users/{userId}/settings/cse/keypairs/{keyPairId}:obliterate
+/// POST gmail/v1/users/{userId}/settings/cse/keypairs/{keyPairId}:obliterate
 /// Deletes a client-side encryption key pair permanently and immediately. You can only permanently delete key pairs that have been turned off for more than 30 days. To turn off a key pair, use the DisableCseKeyPair method. Gmail can't restore or decrypt any messages that were encrypted by an obliterated key. Authenticated users and Google Workspace administrators lose access to reading the encrypted messages. For administrators managing identities and keypairs for users in their organization, requests require authorization with a [service account](<https://developers.google.`com/identity/protocols/OAuth2ServiceAccount`>) that has [domain-wide delegation authority](<https://developers.google.`com/identity/protocols/OAuth2ServiceAccount`#delegatingauthority>) to impersonate users with the <https://www.googleapis.`com/auth/gmail`.settings.basic> scope. For users managing their own identities and keypairs, requests require [hardware key encryption](<https://support.google.`com/a/answer/14153163`>) turned on and configured.
 ///
 /// Takes a `ClientRequestBuilder`, builds and executes the request,
@@ -5283,11 +8097,9 @@ pub struct GmailUsersSettingsCseKeypairsObliterateArgs {
     pub userId: String,
     /// Path parameter: keyPairId
     pub keyPairId: String,
-    /// Request body.
-    pub body: ObliterateCseKeyPairRequest,
 }
 
-/// GET gmail/v1/users/{userId}/settings/cse/keypairs/{keyPairId}:obliterate
+/// POST gmail/v1/users/{userId}/settings/cse/keypairs/{keyPairId}:obliterate
 /// Deletes a client-side encryption key pair permanently and immediately. You can only permanently delete key pairs that have been turned off for more than 30 days. To turn off a key pair, use the DisableCseKeyPair method. Gmail can't restore or decrypt any messages that were encrypted by an obliterated key. Authenticated users and Google Workspace administrators lose access to reading the encrypted messages. For administrators managing identities and keypairs for users in their organization, requests require authorization with a [service account](<https://developers.google.`com/identity/protocols/OAuth2ServiceAccount`>) that has [domain-wide delegation authority](<https://developers.google.`com/identity/protocols/OAuth2ServiceAccount`#delegatingauthority>) to impersonate users with the <https://www.googleapis.`com/auth/gmail`.settings.basic> scope. For users managing their own identities and keypairs, requests require [hardware key encryption](<https://support.google.`com/a/answer/14153163`>) turned on and configured.
 ///
 /// Simplest API - builds and executes the request in one call.
@@ -5309,12 +8121,11 @@ pub fn gmail_users_settings_cse_keypairs_obliterate(
         client,
         &args.userId,
         &args.keyPairId,
-        &args.body,
     )?;
     gmail_users_settings_cse_keypairs_obliterate_execute(builder)
 }
 
-/// GET gmail/v1/users/{userId}/settings/delegates
+/// POST gmail/v1/users/{userId}/settings/delegates
 /// Adds a delegate with its verification status set directly to accepted, without sending any verification email. The delegate user must be a member of the same Google Workspace organization as the delegator user. Gmail imposes limitations on the number of delegates and delegators each user in a Google Workspace organization can have. These limits depend on your organization, but in general each user can have up to 25 delegates and up to 10 delegators. Note that a delegate user must be referred to by their primary email address, and not an email alias. Also note that when a new delegate is created, there may be up to a one minute delay before the new delegate is available for use. This method is only available to service account clients that have been delegated domain-wide authority.
 ///
 /// Returns `ClientRequestBuilder` for customization.
@@ -5323,7 +8134,6 @@ pub fn gmail_users_settings_cse_keypairs_obliterate(
 pub fn gmail_users_settings_delegates_create_builder(
     client: &SimpleHttpClient,
     userId: &String,
-    body: &Delegate,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
@@ -5333,15 +8143,13 @@ pub fn gmail_users_settings_delegates_create_builder(
 
     // Build request
     let builder = client
-        .get(&endpoint_url)
+        .post(&endpoint_url)
         .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
 
-    builder
-        .body_json(body)
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+    Ok(builder)
 }
 
-/// GET gmail/v1/users/{userId}/settings/delegates
+/// POST gmail/v1/users/{userId}/settings/delegates
 /// Adds a delegate with its verification status set directly to accepted, without sending any verification email. The delegate user must be a member of the same Google Workspace organization as the delegator user. Gmail imposes limitations on the number of delegates and delegators each user in a Google Workspace organization can have. These limits depend on your organization, but in general each user can have up to 25 delegates and up to 10 delegators. Note that a delegate user must be referred to by their primary email address, and not an email alias. Also note that when a new delegate is created, there may be up to a one minute delay before the new delegate is available for use. This method is only available to service account clients that have been delegated domain-wide authority.
 ///
 /// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
@@ -5415,7 +8223,7 @@ pub fn gmail_users_settings_delegates_create_task(
         .map_pending(|_| ApiPending::Sending))
 }
 
-/// GET gmail/v1/users/{userId}/settings/delegates
+/// POST gmail/v1/users/{userId}/settings/delegates
 /// Adds a delegate with its verification status set directly to accepted, without sending any verification email. The delegate user must be a member of the same Google Workspace organization as the delegator user. Gmail imposes limitations on the number of delegates and delegators each user in a Google Workspace organization can have. These limits depend on your organization, but in general each user can have up to 25 delegates and up to 10 delegators. Note that a delegate user must be referred to by their primary email address, and not an email alias. Also note that when a new delegate is created, there may be up to a one minute delay before the new delegate is available for use. This method is only available to service account clients that have been delegated domain-wide authority.
 ///
 /// Takes a `ClientRequestBuilder`, builds and executes the request,
@@ -5450,11 +8258,9 @@ pub fn gmail_users_settings_delegates_create_execute(
 pub struct GmailUsersSettingsDelegatesCreateArgs {
     /// Path parameter: userId
     pub userId: String,
-    /// Request body.
-    pub body: Delegate,
 }
 
-/// GET gmail/v1/users/{userId}/settings/delegates
+/// POST gmail/v1/users/{userId}/settings/delegates
 /// Adds a delegate with its verification status set directly to accepted, without sending any verification email. The delegate user must be a member of the same Google Workspace organization as the delegator user. Gmail imposes limitations on the number of delegates and delegators each user in a Google Workspace organization can have. These limits depend on your organization, but in general each user can have up to 25 delegates and up to 10 delegators. Note that a delegate user must be referred to by their primary email address, and not an email alias. Also note that when a new delegate is created, there may be up to a one minute delay before the new delegate is available for use. This method is only available to service account clients that have been delegated domain-wide authority.
 ///
 /// Simplest API - builds and executes the request in one call.
@@ -5472,11 +8278,11 @@ pub fn gmail_users_settings_delegates_create(
     impl StreamIterator<D = Result<ApiResponse<Delegate>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = gmail_users_settings_delegates_create_builder(client, &args.userId, &args.body)?;
+    let builder = gmail_users_settings_delegates_create_builder(client, &args.userId)?;
     gmail_users_settings_delegates_create_execute(builder)
 }
 
-/// GET gmail/v1/users/{userId}/settings/delegates/{delegateEmail}
+/// DELETE gmail/v1/users/{userId}/settings/delegates/{delegateEmail}
 /// Removes the specified delegate (which can be of any verification status), and revokes any verification that may have been required for using it. Note that a delegate user must be referred to by their primary email address, and not an email alias. This method is only available to service account clients that have been delegated domain-wide authority.
 ///
 /// Returns `ClientRequestBuilder` for customization.
@@ -5495,13 +8301,13 @@ pub fn gmail_users_settings_delegates_delete_builder(
 
     // Build request
     let builder = client
-        .get(&endpoint_url)
+        .delete(&endpoint_url)
         .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
 
     Ok(builder)
 }
 
-/// GET gmail/v1/users/{userId}/settings/delegates/{delegateEmail}
+/// DELETE gmail/v1/users/{userId}/settings/delegates/{delegateEmail}
 /// Removes the specified delegate (which can be of any verification status), and revokes any verification that may have been required for using it. Note that a delegate user must be referred to by their primary email address, and not an email alias. This method is only available to service account clients that have been delegated domain-wide authority.
 ///
 /// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
@@ -5572,7 +8378,7 @@ pub fn gmail_users_settings_delegates_delete_task(
         .map_pending(|_| ApiPending::Sending))
 }
 
-/// GET gmail/v1/users/{userId}/settings/delegates/{delegateEmail}
+/// DELETE gmail/v1/users/{userId}/settings/delegates/{delegateEmail}
 /// Removes the specified delegate (which can be of any verification status), and revokes any verification that may have been required for using it. Note that a delegate user must be referred to by their primary email address, and not an email alias. This method is only available to service account clients that have been delegated domain-wide authority.
 ///
 /// Takes a `ClientRequestBuilder`, builds and executes the request,
@@ -5611,7 +8417,7 @@ pub struct GmailUsersSettingsDelegatesDeleteArgs {
     pub delegateEmail: String,
 }
 
-/// GET gmail/v1/users/{userId}/settings/delegates/{delegateEmail}
+/// DELETE gmail/v1/users/{userId}/settings/delegates/{delegateEmail}
 /// Removes the specified delegate (which can be of any verification status), and revokes any verification that may have been required for using it. Note that a delegate user must be referred to by their primary email address, and not an email alias. This method is only available to service account clients that have been delegated domain-wide authority.
 ///
 /// Simplest API - builds and executes the request in one call.
@@ -5634,7 +8440,329 @@ pub fn gmail_users_settings_delegates_delete(
     gmail_users_settings_delegates_delete_execute(builder)
 }
 
-/// GET gmail/v1/users/{userId}/settings/filters
+/// GET gmail/v1/users/{userId}/settings/delegates/{delegateEmail}
+/// Gets the specified delegate. Note that a delegate user must be referred to by their primary email address, and not an email alias. This method is only available to service account clients that have been delegated domain-wide authority.
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `gmail_users_settings_delegates_get_execute()` to send, or `gmail_users_settings_delegates_get` for simplest API.
+
+pub fn gmail_users_settings_delegates_get_builder(
+    client: &SimpleHttpClient,
+    userId: &String,
+    delegateEmail: &String,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!(
+        "https://gmail.googleapis.com/gmail/v1/users/{}/settings/delegates/{}",
+        userId, delegateEmail,
+    );
+
+    // Build request
+    let builder = client
+        .get(&endpoint_url)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// GET gmail/v1/users/{userId}/settings/delegates/{delegateEmail}
+/// Gets the specified delegate. Note that a delegate user must be referred to by their primary email address, and not an email alias. This method is only available to service account clients that have been delegated domain-wide authority.
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `gmail_users_settings_delegates_get_execute()` or `gmail_users_settings_delegates_get`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `gmail_users_settings_delegates_get_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn gmail_users_settings_delegates_get_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<Delegate>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: Delegate = serde_json::from_str(&body)
+                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// GET gmail/v1/users/{userId}/settings/delegates/{delegateEmail}
+/// Gets the specified delegate. Note that a delegate user must be referred to by their primary email address, and not an email alias. This method is only available to service account clients that have been delegated domain-wide authority.
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `gmail_users_settings_delegates_get_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `gmail_users_settings_delegates_get_task()`.
+/// For the simplest API, use `gmail_users_settings_delegates_get()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `gmail_users_settings_delegates_get_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn gmail_users_settings_delegates_get_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<Delegate>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let task = gmail_users_settings_delegates_get_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`gmail_users_settings_delegates_get`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct GmailUsersSettingsDelegatesGetArgs {
+    /// Path parameter: userId
+    pub userId: String,
+    /// Path parameter: delegateEmail
+    pub delegateEmail: String,
+}
+
+/// GET gmail/v1/users/{userId}/settings/delegates/{delegateEmail}
+/// Gets the specified delegate. Note that a delegate user must be referred to by their primary email address, and not an email alias. This method is only available to service account clients that have been delegated domain-wide authority.
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `gmail_users_settings_delegates_get_builder()` + `gmail_users_settings_delegates_get_execute()`.
+/// For task-level control, use `gmail_users_settings_delegates_get_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn gmail_users_settings_delegates_get(
+    client: &SimpleHttpClient,
+    args: &GmailUsersSettingsDelegatesGetArgs,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<Delegate>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let builder =
+        gmail_users_settings_delegates_get_builder(client, &args.userId, &args.delegateEmail)?;
+    gmail_users_settings_delegates_get_execute(builder)
+}
+
+/// GET gmail/v1/users/{userId}/settings/delegates
+/// Lists the delegates for the specified account. This method is only available to service account clients that have been delegated domain-wide authority.
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `gmail_users_settings_delegates_list_execute()` to send, or `gmail_users_settings_delegates_list` for simplest API.
+
+pub fn gmail_users_settings_delegates_list_builder(
+    client: &SimpleHttpClient,
+    userId: &String,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!(
+        "https://gmail.googleapis.com/gmail/v1/users/{}/settings/delegates",
+        userId,
+    );
+
+    // Build request
+    let builder = client
+        .get(&endpoint_url)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// GET gmail/v1/users/{userId}/settings/delegates
+/// Lists the delegates for the specified account. This method is only available to service account clients that have been delegated domain-wide authority.
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `gmail_users_settings_delegates_list_execute()` or `gmail_users_settings_delegates_list`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `gmail_users_settings_delegates_list_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn gmail_users_settings_delegates_list_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<ListDelegatesResponse>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: ListDelegatesResponse = serde_json::from_str(&body)
+                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// GET gmail/v1/users/{userId}/settings/delegates
+/// Lists the delegates for the specified account. This method is only available to service account clients that have been delegated domain-wide authority.
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `gmail_users_settings_delegates_list_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `gmail_users_settings_delegates_list_task()`.
+/// For the simplest API, use `gmail_users_settings_delegates_list()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `gmail_users_settings_delegates_list_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn gmail_users_settings_delegates_list_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<ListDelegatesResponse>, ApiError>, P = ApiPending>
+        + Send
+        + 'static,
+    ApiError,
+> {
+    let task = gmail_users_settings_delegates_list_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`gmail_users_settings_delegates_list`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct GmailUsersSettingsDelegatesListArgs {
+    /// Path parameter: userId
+    pub userId: String,
+}
+
+/// GET gmail/v1/users/{userId}/settings/delegates
+/// Lists the delegates for the specified account. This method is only available to service account clients that have been delegated domain-wide authority.
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `gmail_users_settings_delegates_list_builder()` + `gmail_users_settings_delegates_list_execute()`.
+/// For task-level control, use `gmail_users_settings_delegates_list_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn gmail_users_settings_delegates_list(
+    client: &SimpleHttpClient,
+    args: &GmailUsersSettingsDelegatesListArgs,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<ListDelegatesResponse>, ApiError>, P = ApiPending>
+        + Send
+        + 'static,
+    ApiError,
+> {
+    let builder = gmail_users_settings_delegates_list_builder(client, &args.userId)?;
+    gmail_users_settings_delegates_list_execute(builder)
+}
+
+/// POST gmail/v1/users/{userId}/settings/filters
 /// Creates a filter. Note: you can only create a maximum of 1,000 filters.
 ///
 /// Returns `ClientRequestBuilder` for customization.
@@ -5643,7 +8771,6 @@ pub fn gmail_users_settings_delegates_delete(
 pub fn gmail_users_settings_filters_create_builder(
     client: &SimpleHttpClient,
     userId: &String,
-    body: &Filter,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
@@ -5653,15 +8780,13 @@ pub fn gmail_users_settings_filters_create_builder(
 
     // Build request
     let builder = client
-        .get(&endpoint_url)
+        .post(&endpoint_url)
         .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
 
-    builder
-        .body_json(body)
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+    Ok(builder)
 }
 
-/// GET gmail/v1/users/{userId}/settings/filters
+/// POST gmail/v1/users/{userId}/settings/filters
 /// Creates a filter. Note: you can only create a maximum of 1,000 filters.
 ///
 /// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
@@ -5735,7 +8860,7 @@ pub fn gmail_users_settings_filters_create_task(
         .map_pending(|_| ApiPending::Sending))
 }
 
-/// GET gmail/v1/users/{userId}/settings/filters
+/// POST gmail/v1/users/{userId}/settings/filters
 /// Creates a filter. Note: you can only create a maximum of 1,000 filters.
 ///
 /// Takes a `ClientRequestBuilder`, builds and executes the request,
@@ -5770,11 +8895,9 @@ pub fn gmail_users_settings_filters_create_execute(
 pub struct GmailUsersSettingsFiltersCreateArgs {
     /// Path parameter: userId
     pub userId: String,
-    /// Request body.
-    pub body: Filter,
 }
 
-/// GET gmail/v1/users/{userId}/settings/filters
+/// POST gmail/v1/users/{userId}/settings/filters
 /// Creates a filter. Note: you can only create a maximum of 1,000 filters.
 ///
 /// Simplest API - builds and executes the request in one call.
@@ -5792,11 +8915,11 @@ pub fn gmail_users_settings_filters_create(
     impl StreamIterator<D = Result<ApiResponse<Filter>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = gmail_users_settings_filters_create_builder(client, &args.userId, &args.body)?;
+    let builder = gmail_users_settings_filters_create_builder(client, &args.userId)?;
     gmail_users_settings_filters_create_execute(builder)
 }
 
-/// GET gmail/v1/users/{userId}/settings/filters/{id}
+/// DELETE gmail/v1/users/{userId}/settings/filters/{id}
 /// Immediately and permanently deletes the specified filter.
 ///
 /// Returns `ClientRequestBuilder` for customization.
@@ -5815,13 +8938,13 @@ pub fn gmail_users_settings_filters_delete_builder(
 
     // Build request
     let builder = client
-        .get(&endpoint_url)
+        .delete(&endpoint_url)
         .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
 
     Ok(builder)
 }
 
-/// GET gmail/v1/users/{userId}/settings/filters/{id}
+/// DELETE gmail/v1/users/{userId}/settings/filters/{id}
 /// Immediately and permanently deletes the specified filter.
 ///
 /// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
@@ -5892,7 +9015,7 @@ pub fn gmail_users_settings_filters_delete_task(
         .map_pending(|_| ApiPending::Sending))
 }
 
-/// GET gmail/v1/users/{userId}/settings/filters/{id}
+/// DELETE gmail/v1/users/{userId}/settings/filters/{id}
 /// Immediately and permanently deletes the specified filter.
 ///
 /// Takes a `ClientRequestBuilder`, builds and executes the request,
@@ -5931,7 +9054,7 @@ pub struct GmailUsersSettingsFiltersDeleteArgs {
     pub id: String,
 }
 
-/// GET gmail/v1/users/{userId}/settings/filters/{id}
+/// DELETE gmail/v1/users/{userId}/settings/filters/{id}
 /// Immediately and permanently deletes the specified filter.
 ///
 /// Simplest API - builds and executes the request in one call.
@@ -5953,7 +9076,328 @@ pub fn gmail_users_settings_filters_delete(
     gmail_users_settings_filters_delete_execute(builder)
 }
 
-/// GET gmail/v1/users/{userId}/settings/forwardingAddresses
+/// GET gmail/v1/users/{userId}/settings/filters/{id}
+/// Gets a filter.
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `gmail_users_settings_filters_get_execute()` to send, or `gmail_users_settings_filters_get` for simplest API.
+
+pub fn gmail_users_settings_filters_get_builder(
+    client: &SimpleHttpClient,
+    userId: &String,
+    id: &String,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!(
+        "https://gmail.googleapis.com/gmail/v1/users/{}/settings/filters/{}",
+        userId, id,
+    );
+
+    // Build request
+    let builder = client
+        .get(&endpoint_url)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// GET gmail/v1/users/{userId}/settings/filters/{id}
+/// Gets a filter.
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `gmail_users_settings_filters_get_execute()` or `gmail_users_settings_filters_get`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `gmail_users_settings_filters_get_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn gmail_users_settings_filters_get_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<Filter>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: Filter = serde_json::from_str(&body)
+                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// GET gmail/v1/users/{userId}/settings/filters/{id}
+/// Gets a filter.
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `gmail_users_settings_filters_get_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `gmail_users_settings_filters_get_task()`.
+/// For the simplest API, use `gmail_users_settings_filters_get()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `gmail_users_settings_filters_get_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn gmail_users_settings_filters_get_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<Filter>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let task = gmail_users_settings_filters_get_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`gmail_users_settings_filters_get`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct GmailUsersSettingsFiltersGetArgs {
+    /// Path parameter: userId
+    pub userId: String,
+    /// Path parameter: id
+    pub id: String,
+}
+
+/// GET gmail/v1/users/{userId}/settings/filters/{id}
+/// Gets a filter.
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `gmail_users_settings_filters_get_builder()` + `gmail_users_settings_filters_get_execute()`.
+/// For task-level control, use `gmail_users_settings_filters_get_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn gmail_users_settings_filters_get(
+    client: &SimpleHttpClient,
+    args: &GmailUsersSettingsFiltersGetArgs,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<Filter>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let builder = gmail_users_settings_filters_get_builder(client, &args.userId, &args.id)?;
+    gmail_users_settings_filters_get_execute(builder)
+}
+
+/// GET gmail/v1/users/{userId}/settings/filters
+/// Lists the message filters of a Gmail user.
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `gmail_users_settings_filters_list_execute()` to send, or `gmail_users_settings_filters_list` for simplest API.
+
+pub fn gmail_users_settings_filters_list_builder(
+    client: &SimpleHttpClient,
+    userId: &String,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!(
+        "https://gmail.googleapis.com/gmail/v1/users/{}/settings/filters",
+        userId,
+    );
+
+    // Build request
+    let builder = client
+        .get(&endpoint_url)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// GET gmail/v1/users/{userId}/settings/filters
+/// Lists the message filters of a Gmail user.
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `gmail_users_settings_filters_list_execute()` or `gmail_users_settings_filters_list`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `gmail_users_settings_filters_list_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn gmail_users_settings_filters_list_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<ListFiltersResponse>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: ListFiltersResponse = serde_json::from_str(&body)
+                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// GET gmail/v1/users/{userId}/settings/filters
+/// Lists the message filters of a Gmail user.
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `gmail_users_settings_filters_list_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `gmail_users_settings_filters_list_task()`.
+/// For the simplest API, use `gmail_users_settings_filters_list()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `gmail_users_settings_filters_list_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn gmail_users_settings_filters_list_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<ListFiltersResponse>, ApiError>, P = ApiPending>
+        + Send
+        + 'static,
+    ApiError,
+> {
+    let task = gmail_users_settings_filters_list_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`gmail_users_settings_filters_list`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct GmailUsersSettingsFiltersListArgs {
+    /// Path parameter: userId
+    pub userId: String,
+}
+
+/// GET gmail/v1/users/{userId}/settings/filters
+/// Lists the message filters of a Gmail user.
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `gmail_users_settings_filters_list_builder()` + `gmail_users_settings_filters_list_execute()`.
+/// For task-level control, use `gmail_users_settings_filters_list_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn gmail_users_settings_filters_list(
+    client: &SimpleHttpClient,
+    args: &GmailUsersSettingsFiltersListArgs,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<ListFiltersResponse>, ApiError>, P = ApiPending>
+        + Send
+        + 'static,
+    ApiError,
+> {
+    let builder = gmail_users_settings_filters_list_builder(client, &args.userId)?;
+    gmail_users_settings_filters_list_execute(builder)
+}
+
+/// POST gmail/v1/users/{userId}/settings/forwardingAddresses
 /// Creates a forwarding address. If ownership verification is required, a message will be sent to the recipient and the resource's verification status will be set to pending; otherwise, the resource will be created with verification status set to accepted. This method is only available to service account clients that have been delegated domain-wide authority.
 ///
 /// Returns `ClientRequestBuilder` for customization.
@@ -5962,7 +9406,6 @@ pub fn gmail_users_settings_filters_delete(
 pub fn gmail_users_settings_forwarding_addresses_create_builder(
     client: &SimpleHttpClient,
     userId: &String,
-    body: &ForwardingAddress,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
@@ -5972,15 +9415,13 @@ pub fn gmail_users_settings_forwarding_addresses_create_builder(
 
     // Build request
     let builder = client
-        .get(&endpoint_url)
+        .post(&endpoint_url)
         .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
 
-    builder
-        .body_json(body)
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+    Ok(builder)
 }
 
-/// GET gmail/v1/users/{userId}/settings/forwardingAddresses
+/// POST gmail/v1/users/{userId}/settings/forwardingAddresses
 /// Creates a forwarding address. If ownership verification is required, a message will be sent to the recipient and the resource's verification status will be set to pending; otherwise, the resource will be created with verification status set to accepted. This method is only available to service account clients that have been delegated domain-wide authority.
 ///
 /// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
@@ -6054,7 +9495,7 @@ pub fn gmail_users_settings_forwarding_addresses_create_task(
         .map_pending(|_| ApiPending::Sending))
 }
 
-/// GET gmail/v1/users/{userId}/settings/forwardingAddresses
+/// POST gmail/v1/users/{userId}/settings/forwardingAddresses
 /// Creates a forwarding address. If ownership verification is required, a message will be sent to the recipient and the resource's verification status will be set to pending; otherwise, the resource will be created with verification status set to accepted. This method is only available to service account clients that have been delegated domain-wide authority.
 ///
 /// Takes a `ClientRequestBuilder`, builds and executes the request,
@@ -6091,11 +9532,9 @@ pub fn gmail_users_settings_forwarding_addresses_create_execute(
 pub struct GmailUsersSettingsForwardingAddressesCreateArgs {
     /// Path parameter: userId
     pub userId: String,
-    /// Request body.
-    pub body: ForwardingAddress,
 }
 
-/// GET gmail/v1/users/{userId}/settings/forwardingAddresses
+/// POST gmail/v1/users/{userId}/settings/forwardingAddresses
 /// Creates a forwarding address. If ownership verification is required, a message will be sent to the recipient and the resource's verification status will be set to pending; otherwise, the resource will be created with verification status set to accepted. This method is only available to service account clients that have been delegated domain-wide authority.
 ///
 /// Simplest API - builds and executes the request in one call.
@@ -6115,12 +9554,11 @@ pub fn gmail_users_settings_forwarding_addresses_create(
         + 'static,
     ApiError,
 > {
-    let builder =
-        gmail_users_settings_forwarding_addresses_create_builder(client, &args.userId, &args.body)?;
+    let builder = gmail_users_settings_forwarding_addresses_create_builder(client, &args.userId)?;
     gmail_users_settings_forwarding_addresses_create_execute(builder)
 }
 
-/// GET gmail/v1/users/{userId}/settings/forwardingAddresses/{forwardingEmail}
+/// DELETE gmail/v1/users/{userId}/settings/forwardingAddresses/{forwardingEmail}
 /// Deletes the specified forwarding address and revokes any verification that may have been required. This method is only available to service account clients that have been delegated domain-wide authority.
 ///
 /// Returns `ClientRequestBuilder` for customization.
@@ -6139,13 +9577,13 @@ pub fn gmail_users_settings_forwarding_addresses_delete_builder(
 
     // Build request
     let builder = client
-        .get(&endpoint_url)
+        .delete(&endpoint_url)
         .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
 
     Ok(builder)
 }
 
-/// GET gmail/v1/users/{userId}/settings/forwardingAddresses/{forwardingEmail}
+/// DELETE gmail/v1/users/{userId}/settings/forwardingAddresses/{forwardingEmail}
 /// Deletes the specified forwarding address and revokes any verification that may have been required. This method is only available to service account clients that have been delegated domain-wide authority.
 ///
 /// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
@@ -6216,7 +9654,7 @@ pub fn gmail_users_settings_forwarding_addresses_delete_task(
         .map_pending(|_| ApiPending::Sending))
 }
 
-/// GET gmail/v1/users/{userId}/settings/forwardingAddresses/{forwardingEmail}
+/// DELETE gmail/v1/users/{userId}/settings/forwardingAddresses/{forwardingEmail}
 /// Deletes the specified forwarding address and revokes any verification that may have been required. This method is only available to service account clients that have been delegated domain-wide authority.
 ///
 /// Takes a `ClientRequestBuilder`, builds and executes the request,
@@ -6255,7 +9693,7 @@ pub struct GmailUsersSettingsForwardingAddressesDeleteArgs {
     pub forwardingEmail: String,
 }
 
-/// GET gmail/v1/users/{userId}/settings/forwardingAddresses/{forwardingEmail}
+/// DELETE gmail/v1/users/{userId}/settings/forwardingAddresses/{forwardingEmail}
 /// Deletes the specified forwarding address and revokes any verification that may have been required. This method is only available to service account clients that have been delegated domain-wide authority.
 ///
 /// Simplest API - builds and executes the request in one call.
@@ -6281,7 +9719,340 @@ pub fn gmail_users_settings_forwarding_addresses_delete(
     gmail_users_settings_forwarding_addresses_delete_execute(builder)
 }
 
-/// GET gmail/v1/users/{userId}/settings/sendAs
+/// GET gmail/v1/users/{userId}/settings/forwardingAddresses/{forwardingEmail}
+/// Gets the specified forwarding address.
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `gmail_users_settings_forwarding_addresses_get_execute()` to send, or `gmail_users_settings_forwarding_addresses_get` for simplest API.
+
+pub fn gmail_users_settings_forwarding_addresses_get_builder(
+    client: &SimpleHttpClient,
+    userId: &String,
+    forwardingEmail: &String,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!(
+        "https://gmail.googleapis.com/gmail/v1/users/{}/settings/forwardingAddresses/{}",
+        userId, forwardingEmail,
+    );
+
+    // Build request
+    let builder = client
+        .get(&endpoint_url)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// GET gmail/v1/users/{userId}/settings/forwardingAddresses/{forwardingEmail}
+/// Gets the specified forwarding address.
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `gmail_users_settings_forwarding_addresses_get_execute()` or `gmail_users_settings_forwarding_addresses_get`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `gmail_users_settings_forwarding_addresses_get_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn gmail_users_settings_forwarding_addresses_get_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<ForwardingAddress>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: ForwardingAddress = serde_json::from_str(&body)
+                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// GET gmail/v1/users/{userId}/settings/forwardingAddresses/{forwardingEmail}
+/// Gets the specified forwarding address.
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `gmail_users_settings_forwarding_addresses_get_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `gmail_users_settings_forwarding_addresses_get_task()`.
+/// For the simplest API, use `gmail_users_settings_forwarding_addresses_get()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `gmail_users_settings_forwarding_addresses_get_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn gmail_users_settings_forwarding_addresses_get_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<ForwardingAddress>, ApiError>, P = ApiPending>
+        + Send
+        + 'static,
+    ApiError,
+> {
+    let task = gmail_users_settings_forwarding_addresses_get_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`gmail_users_settings_forwarding_addresses_get`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct GmailUsersSettingsForwardingAddressesGetArgs {
+    /// Path parameter: userId
+    pub userId: String,
+    /// Path parameter: forwardingEmail
+    pub forwardingEmail: String,
+}
+
+/// GET gmail/v1/users/{userId}/settings/forwardingAddresses/{forwardingEmail}
+/// Gets the specified forwarding address.
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `gmail_users_settings_forwarding_addresses_get_builder()` + `gmail_users_settings_forwarding_addresses_get_execute()`.
+/// For task-level control, use `gmail_users_settings_forwarding_addresses_get_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn gmail_users_settings_forwarding_addresses_get(
+    client: &SimpleHttpClient,
+    args: &GmailUsersSettingsForwardingAddressesGetArgs,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<ForwardingAddress>, ApiError>, P = ApiPending>
+        + Send
+        + 'static,
+    ApiError,
+> {
+    let builder = gmail_users_settings_forwarding_addresses_get_builder(
+        client,
+        &args.userId,
+        &args.forwardingEmail,
+    )?;
+    gmail_users_settings_forwarding_addresses_get_execute(builder)
+}
+
+/// GET gmail/v1/users/{userId}/settings/forwardingAddresses
+/// Lists the forwarding addresses for the specified account.
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `gmail_users_settings_forwarding_addresses_list_execute()` to send, or `gmail_users_settings_forwarding_addresses_list` for simplest API.
+
+pub fn gmail_users_settings_forwarding_addresses_list_builder(
+    client: &SimpleHttpClient,
+    userId: &String,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!(
+        "https://gmail.googleapis.com/gmail/v1/users/{}/settings/forwardingAddresses",
+        userId,
+    );
+
+    // Build request
+    let builder = client
+        .get(&endpoint_url)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// GET gmail/v1/users/{userId}/settings/forwardingAddresses
+/// Lists the forwarding addresses for the specified account.
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `gmail_users_settings_forwarding_addresses_list_execute()` or `gmail_users_settings_forwarding_addresses_list`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `gmail_users_settings_forwarding_addresses_list_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn gmail_users_settings_forwarding_addresses_list_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<ListForwardingAddressesResponse>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: ListForwardingAddressesResponse = serde_json::from_str(&body)
+                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// GET gmail/v1/users/{userId}/settings/forwardingAddresses
+/// Lists the forwarding addresses for the specified account.
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `gmail_users_settings_forwarding_addresses_list_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `gmail_users_settings_forwarding_addresses_list_task()`.
+/// For the simplest API, use `gmail_users_settings_forwarding_addresses_list()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `gmail_users_settings_forwarding_addresses_list_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn gmail_users_settings_forwarding_addresses_list_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<
+            D = Result<ApiResponse<ListForwardingAddressesResponse>, ApiError>,
+            P = ApiPending,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    let task = gmail_users_settings_forwarding_addresses_list_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`gmail_users_settings_forwarding_addresses_list`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct GmailUsersSettingsForwardingAddressesListArgs {
+    /// Path parameter: userId
+    pub userId: String,
+}
+
+/// GET gmail/v1/users/{userId}/settings/forwardingAddresses
+/// Lists the forwarding addresses for the specified account.
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `gmail_users_settings_forwarding_addresses_list_builder()` + `gmail_users_settings_forwarding_addresses_list_execute()`.
+/// For task-level control, use `gmail_users_settings_forwarding_addresses_list_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn gmail_users_settings_forwarding_addresses_list(
+    client: &SimpleHttpClient,
+    args: &GmailUsersSettingsForwardingAddressesListArgs,
+) -> Result<
+    impl StreamIterator<
+            D = Result<ApiResponse<ListForwardingAddressesResponse>, ApiError>,
+            P = ApiPending,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    let builder = gmail_users_settings_forwarding_addresses_list_builder(client, &args.userId)?;
+    gmail_users_settings_forwarding_addresses_list_execute(builder)
+}
+
+/// POST gmail/v1/users/{userId}/settings/sendAs
 /// Creates a custom "from" send-as alias. If an SMTP MSA is specified, Gmail will attempt to connect to the SMTP service to validate the configuration before creating the alias. If ownership verification is required for the alias, a message will be sent to the email address and the resource's verification status will be set to pending; otherwise, the resource will be created with verification status set to accepted. If a signature is provided, Gmail will sanitize the HTML before saving it with the alias. This method is only available to service account clients that have been delegated domain-wide authority.
 ///
 /// Returns `ClientRequestBuilder` for customization.
@@ -6290,7 +10061,6 @@ pub fn gmail_users_settings_forwarding_addresses_delete(
 pub fn gmail_users_settings_send_as_create_builder(
     client: &SimpleHttpClient,
     userId: &String,
-    body: &SendAs,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
@@ -6300,15 +10070,13 @@ pub fn gmail_users_settings_send_as_create_builder(
 
     // Build request
     let builder = client
-        .get(&endpoint_url)
+        .post(&endpoint_url)
         .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
 
-    builder
-        .body_json(body)
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+    Ok(builder)
 }
 
-/// GET gmail/v1/users/{userId}/settings/sendAs
+/// POST gmail/v1/users/{userId}/settings/sendAs
 /// Creates a custom "from" send-as alias. If an SMTP MSA is specified, Gmail will attempt to connect to the SMTP service to validate the configuration before creating the alias. If ownership verification is required for the alias, a message will be sent to the email address and the resource's verification status will be set to pending; otherwise, the resource will be created with verification status set to accepted. If a signature is provided, Gmail will sanitize the HTML before saving it with the alias. This method is only available to service account clients that have been delegated domain-wide authority.
 ///
 /// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
@@ -6382,7 +10150,7 @@ pub fn gmail_users_settings_send_as_create_task(
         .map_pending(|_| ApiPending::Sending))
 }
 
-/// GET gmail/v1/users/{userId}/settings/sendAs
+/// POST gmail/v1/users/{userId}/settings/sendAs
 /// Creates a custom "from" send-as alias. If an SMTP MSA is specified, Gmail will attempt to connect to the SMTP service to validate the configuration before creating the alias. If ownership verification is required for the alias, a message will be sent to the email address and the resource's verification status will be set to pending; otherwise, the resource will be created with verification status set to accepted. If a signature is provided, Gmail will sanitize the HTML before saving it with the alias. This method is only available to service account clients that have been delegated domain-wide authority.
 ///
 /// Takes a `ClientRequestBuilder`, builds and executes the request,
@@ -6417,11 +10185,9 @@ pub fn gmail_users_settings_send_as_create_execute(
 pub struct GmailUsersSettingsSendAsCreateArgs {
     /// Path parameter: userId
     pub userId: String,
-    /// Request body.
-    pub body: SendAs,
 }
 
-/// GET gmail/v1/users/{userId}/settings/sendAs
+/// POST gmail/v1/users/{userId}/settings/sendAs
 /// Creates a custom "from" send-as alias. If an SMTP MSA is specified, Gmail will attempt to connect to the SMTP service to validate the configuration before creating the alias. If ownership verification is required for the alias, a message will be sent to the email address and the resource's verification status will be set to pending; otherwise, the resource will be created with verification status set to accepted. If a signature is provided, Gmail will sanitize the HTML before saving it with the alias. This method is only available to service account clients that have been delegated domain-wide authority.
 ///
 /// Simplest API - builds and executes the request in one call.
@@ -6439,11 +10205,11 @@ pub fn gmail_users_settings_send_as_create(
     impl StreamIterator<D = Result<ApiResponse<SendAs>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = gmail_users_settings_send_as_create_builder(client, &args.userId, &args.body)?;
+    let builder = gmail_users_settings_send_as_create_builder(client, &args.userId)?;
     gmail_users_settings_send_as_create_execute(builder)
 }
 
-/// GET gmail/v1/users/{userId}/settings/sendAs/{sendAsEmail}
+/// DELETE gmail/v1/users/{userId}/settings/sendAs/{sendAsEmail}
 /// Deletes the specified send-as alias. Revokes any verification that may have been required for using it. This method is only available to service account clients that have been delegated domain-wide authority.
 ///
 /// Returns `ClientRequestBuilder` for customization.
@@ -6462,13 +10228,13 @@ pub fn gmail_users_settings_send_as_delete_builder(
 
     // Build request
     let builder = client
-        .get(&endpoint_url)
+        .delete(&endpoint_url)
         .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
 
     Ok(builder)
 }
 
-/// GET gmail/v1/users/{userId}/settings/sendAs/{sendAsEmail}
+/// DELETE gmail/v1/users/{userId}/settings/sendAs/{sendAsEmail}
 /// Deletes the specified send-as alias. Revokes any verification that may have been required for using it. This method is only available to service account clients that have been delegated domain-wide authority.
 ///
 /// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
@@ -6539,7 +10305,7 @@ pub fn gmail_users_settings_send_as_delete_task(
         .map_pending(|_| ApiPending::Sending))
 }
 
-/// GET gmail/v1/users/{userId}/settings/sendAs/{sendAsEmail}
+/// DELETE gmail/v1/users/{userId}/settings/sendAs/{sendAsEmail}
 /// Deletes the specified send-as alias. Revokes any verification that may have been required for using it. This method is only available to service account clients that have been delegated domain-wide authority.
 ///
 /// Takes a `ClientRequestBuilder`, builds and executes the request,
@@ -6578,7 +10344,7 @@ pub struct GmailUsersSettingsSendAsDeleteArgs {
     pub sendAsEmail: String,
 }
 
-/// GET gmail/v1/users/{userId}/settings/sendAs/{sendAsEmail}
+/// DELETE gmail/v1/users/{userId}/settings/sendAs/{sendAsEmail}
 /// Deletes the specified send-as alias. Revokes any verification that may have been required for using it. This method is only available to service account clients that have been delegated domain-wide authority.
 ///
 /// Simplest API - builds and executes the request in one call.
@@ -6601,7 +10367,651 @@ pub fn gmail_users_settings_send_as_delete(
     gmail_users_settings_send_as_delete_execute(builder)
 }
 
-/// GET gmail/v1/users/{userId}/settings/sendAs/{sendAsEmail}/verify
+/// GET gmail/v1/users/{userId}/settings/sendAs/{sendAsEmail}
+/// Gets the specified send-as alias. Fails with an HTTP 404 error if the specified address is not a member of the collection.
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `gmail_users_settings_send_as_get_execute()` to send, or `gmail_users_settings_send_as_get` for simplest API.
+
+pub fn gmail_users_settings_send_as_get_builder(
+    client: &SimpleHttpClient,
+    userId: &String,
+    sendAsEmail: &String,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!(
+        "https://gmail.googleapis.com/gmail/v1/users/{}/settings/sendAs/{}",
+        userId, sendAsEmail,
+    );
+
+    // Build request
+    let builder = client
+        .get(&endpoint_url)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// GET gmail/v1/users/{userId}/settings/sendAs/{sendAsEmail}
+/// Gets the specified send-as alias. Fails with an HTTP 404 error if the specified address is not a member of the collection.
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `gmail_users_settings_send_as_get_execute()` or `gmail_users_settings_send_as_get`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `gmail_users_settings_send_as_get_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn gmail_users_settings_send_as_get_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<SendAs>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: SendAs = serde_json::from_str(&body)
+                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// GET gmail/v1/users/{userId}/settings/sendAs/{sendAsEmail}
+/// Gets the specified send-as alias. Fails with an HTTP 404 error if the specified address is not a member of the collection.
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `gmail_users_settings_send_as_get_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `gmail_users_settings_send_as_get_task()`.
+/// For the simplest API, use `gmail_users_settings_send_as_get()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `gmail_users_settings_send_as_get_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn gmail_users_settings_send_as_get_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<SendAs>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let task = gmail_users_settings_send_as_get_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`gmail_users_settings_send_as_get`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct GmailUsersSettingsSendAsGetArgs {
+    /// Path parameter: userId
+    pub userId: String,
+    /// Path parameter: sendAsEmail
+    pub sendAsEmail: String,
+}
+
+/// GET gmail/v1/users/{userId}/settings/sendAs/{sendAsEmail}
+/// Gets the specified send-as alias. Fails with an HTTP 404 error if the specified address is not a member of the collection.
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `gmail_users_settings_send_as_get_builder()` + `gmail_users_settings_send_as_get_execute()`.
+/// For task-level control, use `gmail_users_settings_send_as_get_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn gmail_users_settings_send_as_get(
+    client: &SimpleHttpClient,
+    args: &GmailUsersSettingsSendAsGetArgs,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<SendAs>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let builder =
+        gmail_users_settings_send_as_get_builder(client, &args.userId, &args.sendAsEmail)?;
+    gmail_users_settings_send_as_get_execute(builder)
+}
+
+/// GET gmail/v1/users/{userId}/settings/sendAs
+/// Lists the send-as aliases for the specified account. The result includes the primary send-as address associated with the account as well as any custom "from" aliases.
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `gmail_users_settings_send_as_list_execute()` to send, or `gmail_users_settings_send_as_list` for simplest API.
+
+pub fn gmail_users_settings_send_as_list_builder(
+    client: &SimpleHttpClient,
+    userId: &String,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!(
+        "https://gmail.googleapis.com/gmail/v1/users/{}/settings/sendAs",
+        userId,
+    );
+
+    // Build request
+    let builder = client
+        .get(&endpoint_url)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// GET gmail/v1/users/{userId}/settings/sendAs
+/// Lists the send-as aliases for the specified account. The result includes the primary send-as address associated with the account as well as any custom "from" aliases.
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `gmail_users_settings_send_as_list_execute()` or `gmail_users_settings_send_as_list`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `gmail_users_settings_send_as_list_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn gmail_users_settings_send_as_list_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<ListSendAsResponse>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: ListSendAsResponse = serde_json::from_str(&body)
+                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// GET gmail/v1/users/{userId}/settings/sendAs
+/// Lists the send-as aliases for the specified account. The result includes the primary send-as address associated with the account as well as any custom "from" aliases.
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `gmail_users_settings_send_as_list_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `gmail_users_settings_send_as_list_task()`.
+/// For the simplest API, use `gmail_users_settings_send_as_list()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `gmail_users_settings_send_as_list_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn gmail_users_settings_send_as_list_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<ListSendAsResponse>, ApiError>, P = ApiPending>
+        + Send
+        + 'static,
+    ApiError,
+> {
+    let task = gmail_users_settings_send_as_list_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`gmail_users_settings_send_as_list`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct GmailUsersSettingsSendAsListArgs {
+    /// Path parameter: userId
+    pub userId: String,
+}
+
+/// GET gmail/v1/users/{userId}/settings/sendAs
+/// Lists the send-as aliases for the specified account. The result includes the primary send-as address associated with the account as well as any custom "from" aliases.
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `gmail_users_settings_send_as_list_builder()` + `gmail_users_settings_send_as_list_execute()`.
+/// For task-level control, use `gmail_users_settings_send_as_list_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn gmail_users_settings_send_as_list(
+    client: &SimpleHttpClient,
+    args: &GmailUsersSettingsSendAsListArgs,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<ListSendAsResponse>, ApiError>, P = ApiPending>
+        + Send
+        + 'static,
+    ApiError,
+> {
+    let builder = gmail_users_settings_send_as_list_builder(client, &args.userId)?;
+    gmail_users_settings_send_as_list_execute(builder)
+}
+
+/// PATCH gmail/v1/users/{userId}/settings/sendAs/{sendAsEmail}
+/// Patch the specified send-as alias.
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `gmail_users_settings_send_as_patch_execute()` to send, or `gmail_users_settings_send_as_patch` for simplest API.
+
+pub fn gmail_users_settings_send_as_patch_builder(
+    client: &SimpleHttpClient,
+    userId: &String,
+    sendAsEmail: &String,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!(
+        "https://gmail.googleapis.com/gmail/v1/users/{}/settings/sendAs/{}",
+        userId, sendAsEmail,
+    );
+
+    // Build request
+    let builder = client
+        .patch(&endpoint_url)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// PATCH gmail/v1/users/{userId}/settings/sendAs/{sendAsEmail}
+/// Patch the specified send-as alias.
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `gmail_users_settings_send_as_patch_execute()` or `gmail_users_settings_send_as_patch`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `gmail_users_settings_send_as_patch_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn gmail_users_settings_send_as_patch_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<SendAs>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: SendAs = serde_json::from_str(&body)
+                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// PATCH gmail/v1/users/{userId}/settings/sendAs/{sendAsEmail}
+/// Patch the specified send-as alias.
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `gmail_users_settings_send_as_patch_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `gmail_users_settings_send_as_patch_task()`.
+/// For the simplest API, use `gmail_users_settings_send_as_patch()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `gmail_users_settings_send_as_patch_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn gmail_users_settings_send_as_patch_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<SendAs>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let task = gmail_users_settings_send_as_patch_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`gmail_users_settings_send_as_patch`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct GmailUsersSettingsSendAsPatchArgs {
+    /// Path parameter: userId
+    pub userId: String,
+    /// Path parameter: sendAsEmail
+    pub sendAsEmail: String,
+}
+
+/// PATCH gmail/v1/users/{userId}/settings/sendAs/{sendAsEmail}
+/// Patch the specified send-as alias.
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `gmail_users_settings_send_as_patch_builder()` + `gmail_users_settings_send_as_patch_execute()`.
+/// For task-level control, use `gmail_users_settings_send_as_patch_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn gmail_users_settings_send_as_patch(
+    client: &SimpleHttpClient,
+    args: &GmailUsersSettingsSendAsPatchArgs,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<SendAs>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let builder =
+        gmail_users_settings_send_as_patch_builder(client, &args.userId, &args.sendAsEmail)?;
+    gmail_users_settings_send_as_patch_execute(builder)
+}
+
+/// PUT gmail/v1/users/{userId}/settings/sendAs/{sendAsEmail}
+/// Updates a send-as alias. If a signature is provided, Gmail will sanitize the HTML before saving it with the alias. Addresses other than the primary address for the account can only be updated by service account clients that have been delegated domain-wide authority.
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `gmail_users_settings_send_as_update_execute()` to send, or `gmail_users_settings_send_as_update` for simplest API.
+
+pub fn gmail_users_settings_send_as_update_builder(
+    client: &SimpleHttpClient,
+    userId: &String,
+    sendAsEmail: &String,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!(
+        "https://gmail.googleapis.com/gmail/v1/users/{}/settings/sendAs/{}",
+        userId, sendAsEmail,
+    );
+
+    // Build request
+    let builder = client
+        .put(&endpoint_url)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// PUT gmail/v1/users/{userId}/settings/sendAs/{sendAsEmail}
+/// Updates a send-as alias. If a signature is provided, Gmail will sanitize the HTML before saving it with the alias. Addresses other than the primary address for the account can only be updated by service account clients that have been delegated domain-wide authority.
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `gmail_users_settings_send_as_update_execute()` or `gmail_users_settings_send_as_update`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `gmail_users_settings_send_as_update_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn gmail_users_settings_send_as_update_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<SendAs>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: SendAs = serde_json::from_str(&body)
+                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// PUT gmail/v1/users/{userId}/settings/sendAs/{sendAsEmail}
+/// Updates a send-as alias. If a signature is provided, Gmail will sanitize the HTML before saving it with the alias. Addresses other than the primary address for the account can only be updated by service account clients that have been delegated domain-wide authority.
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `gmail_users_settings_send_as_update_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `gmail_users_settings_send_as_update_task()`.
+/// For the simplest API, use `gmail_users_settings_send_as_update()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `gmail_users_settings_send_as_update_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn gmail_users_settings_send_as_update_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<SendAs>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let task = gmail_users_settings_send_as_update_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`gmail_users_settings_send_as_update`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct GmailUsersSettingsSendAsUpdateArgs {
+    /// Path parameter: userId
+    pub userId: String,
+    /// Path parameter: sendAsEmail
+    pub sendAsEmail: String,
+}
+
+/// PUT gmail/v1/users/{userId}/settings/sendAs/{sendAsEmail}
+/// Updates a send-as alias. If a signature is provided, Gmail will sanitize the HTML before saving it with the alias. Addresses other than the primary address for the account can only be updated by service account clients that have been delegated domain-wide authority.
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `gmail_users_settings_send_as_update_builder()` + `gmail_users_settings_send_as_update_execute()`.
+/// For task-level control, use `gmail_users_settings_send_as_update_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn gmail_users_settings_send_as_update(
+    client: &SimpleHttpClient,
+    args: &GmailUsersSettingsSendAsUpdateArgs,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<SendAs>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let builder =
+        gmail_users_settings_send_as_update_builder(client, &args.userId, &args.sendAsEmail)?;
+    gmail_users_settings_send_as_update_execute(builder)
+}
+
+/// POST gmail/v1/users/{userId}/settings/sendAs/{sendAsEmail}/verify
 /// Sends a verification email to the specified send-as alias address. The verification status must be pending. This method is only available to service account clients that have been delegated domain-wide authority.
 ///
 /// Returns `ClientRequestBuilder` for customization.
@@ -6620,13 +11030,13 @@ pub fn gmail_users_settings_send_as_verify_builder(
 
     // Build request
     let builder = client
-        .get(&endpoint_url)
+        .post(&endpoint_url)
         .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
 
     Ok(builder)
 }
 
-/// GET gmail/v1/users/{userId}/settings/sendAs/{sendAsEmail}/verify
+/// POST gmail/v1/users/{userId}/settings/sendAs/{sendAsEmail}/verify
 /// Sends a verification email to the specified send-as alias address. The verification status must be pending. This method is only available to service account clients that have been delegated domain-wide authority.
 ///
 /// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
@@ -6697,7 +11107,7 @@ pub fn gmail_users_settings_send_as_verify_task(
         .map_pending(|_| ApiPending::Sending))
 }
 
-/// GET gmail/v1/users/{userId}/settings/sendAs/{sendAsEmail}/verify
+/// POST gmail/v1/users/{userId}/settings/sendAs/{sendAsEmail}/verify
 /// Sends a verification email to the specified send-as alias address. The verification status must be pending. This method is only available to service account clients that have been delegated domain-wide authority.
 ///
 /// Takes a `ClientRequestBuilder`, builds and executes the request,
@@ -6736,7 +11146,7 @@ pub struct GmailUsersSettingsSendAsVerifyArgs {
     pub sendAsEmail: String,
 }
 
-/// GET gmail/v1/users/{userId}/settings/sendAs/{sendAsEmail}/verify
+/// POST gmail/v1/users/{userId}/settings/sendAs/{sendAsEmail}/verify
 /// Sends a verification email to the specified send-as alias address. The verification status must be pending. This method is only available to service account clients that have been delegated domain-wide authority.
 ///
 /// Simplest API - builds and executes the request in one call.
@@ -6759,7 +11169,7 @@ pub fn gmail_users_settings_send_as_verify(
     gmail_users_settings_send_as_verify_execute(builder)
 }
 
-/// GET gmail/v1/users/{userId}/settings/sendAs/{sendAsEmail}/smimeInfo/{id}
+/// DELETE gmail/v1/users/{userId}/settings/sendAs/{sendAsEmail}/smimeInfo/{id}
 /// Deletes the specified S/MIME config for the specified send-as alias.
 ///
 /// Returns `ClientRequestBuilder` for customization.
@@ -6779,13 +11189,13 @@ pub fn gmail_users_settings_send_as_smime_info_delete_builder(
 
     // Build request
     let builder = client
-        .get(&endpoint_url)
+        .delete(&endpoint_url)
         .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
 
     Ok(builder)
 }
 
-/// GET gmail/v1/users/{userId}/settings/sendAs/{sendAsEmail}/smimeInfo/{id}
+/// DELETE gmail/v1/users/{userId}/settings/sendAs/{sendAsEmail}/smimeInfo/{id}
 /// Deletes the specified S/MIME config for the specified send-as alias.
 ///
 /// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
@@ -6856,7 +11266,7 @@ pub fn gmail_users_settings_send_as_smime_info_delete_task(
         .map_pending(|_| ApiPending::Sending))
 }
 
-/// GET gmail/v1/users/{userId}/settings/sendAs/{sendAsEmail}/smimeInfo/{id}
+/// DELETE gmail/v1/users/{userId}/settings/sendAs/{sendAsEmail}/smimeInfo/{id}
 /// Deletes the specified S/MIME config for the specified send-as alias.
 ///
 /// Takes a `ClientRequestBuilder`, builds and executes the request,
@@ -6897,7 +11307,7 @@ pub struct GmailUsersSettingsSendAsSmimeInfoDeleteArgs {
     pub id: String,
 }
 
-/// GET gmail/v1/users/{userId}/settings/sendAs/{sendAsEmail}/smimeInfo/{id}
+/// DELETE gmail/v1/users/{userId}/settings/sendAs/{sendAsEmail}/smimeInfo/{id}
 /// Deletes the specified S/MIME config for the specified send-as alias.
 ///
 /// Simplest API - builds and executes the request in one call.
@@ -6924,7 +11334,175 @@ pub fn gmail_users_settings_send_as_smime_info_delete(
     gmail_users_settings_send_as_smime_info_delete_execute(builder)
 }
 
-/// GET gmail/v1/users/{userId}/settings/sendAs/{sendAsEmail}/smimeInfo
+/// GET gmail/v1/users/{userId}/settings/sendAs/{sendAsEmail}/smimeInfo/{id}
+/// Gets the specified S/MIME config for the specified send-as alias.
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `gmail_users_settings_send_as_smime_info_get_execute()` to send, or `gmail_users_settings_send_as_smime_info_get` for simplest API.
+
+pub fn gmail_users_settings_send_as_smime_info_get_builder(
+    client: &SimpleHttpClient,
+    userId: &String,
+    sendAsEmail: &String,
+    id: &String,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!(
+        "https://gmail.googleapis.com/gmail/v1/users/{}/settings/sendAs/{}/smimeInfo/{}",
+        userId, sendAsEmail, id,
+    );
+
+    // Build request
+    let builder = client
+        .get(&endpoint_url)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// GET gmail/v1/users/{userId}/settings/sendAs/{sendAsEmail}/smimeInfo/{id}
+/// Gets the specified S/MIME config for the specified send-as alias.
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `gmail_users_settings_send_as_smime_info_get_execute()` or `gmail_users_settings_send_as_smime_info_get`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `gmail_users_settings_send_as_smime_info_get_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn gmail_users_settings_send_as_smime_info_get_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<SmimeInfo>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: SmimeInfo = serde_json::from_str(&body)
+                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// GET gmail/v1/users/{userId}/settings/sendAs/{sendAsEmail}/smimeInfo/{id}
+/// Gets the specified S/MIME config for the specified send-as alias.
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `gmail_users_settings_send_as_smime_info_get_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `gmail_users_settings_send_as_smime_info_get_task()`.
+/// For the simplest API, use `gmail_users_settings_send_as_smime_info_get()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `gmail_users_settings_send_as_smime_info_get_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn gmail_users_settings_send_as_smime_info_get_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<SmimeInfo>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let task = gmail_users_settings_send_as_smime_info_get_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`gmail_users_settings_send_as_smime_info_get`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct GmailUsersSettingsSendAsSmimeInfoGetArgs {
+    /// Path parameter: userId
+    pub userId: String,
+    /// Path parameter: sendAsEmail
+    pub sendAsEmail: String,
+    /// Path parameter: id
+    pub id: String,
+}
+
+/// GET gmail/v1/users/{userId}/settings/sendAs/{sendAsEmail}/smimeInfo/{id}
+/// Gets the specified S/MIME config for the specified send-as alias.
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `gmail_users_settings_send_as_smime_info_get_builder()` + `gmail_users_settings_send_as_smime_info_get_execute()`.
+/// For task-level control, use `gmail_users_settings_send_as_smime_info_get_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn gmail_users_settings_send_as_smime_info_get(
+    client: &SimpleHttpClient,
+    args: &GmailUsersSettingsSendAsSmimeInfoGetArgs,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<SmimeInfo>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let builder = gmail_users_settings_send_as_smime_info_get_builder(
+        client,
+        &args.userId,
+        &args.sendAsEmail,
+        &args.id,
+    )?;
+    gmail_users_settings_send_as_smime_info_get_execute(builder)
+}
+
+/// POST gmail/v1/users/{userId}/settings/sendAs/{sendAsEmail}/smimeInfo
 /// Insert (upload) the given S/MIME config for the specified send-as alias. Note that pkcs12 format is required for the key.
 ///
 /// Returns `ClientRequestBuilder` for customization.
@@ -6934,7 +11512,6 @@ pub fn gmail_users_settings_send_as_smime_info_insert_builder(
     client: &SimpleHttpClient,
     userId: &String,
     sendAsEmail: &String,
-    body: &SmimeInfo,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
@@ -6944,15 +11521,13 @@ pub fn gmail_users_settings_send_as_smime_info_insert_builder(
 
     // Build request
     let builder = client
-        .get(&endpoint_url)
+        .post(&endpoint_url)
         .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
 
-    builder
-        .body_json(body)
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+    Ok(builder)
 }
 
-/// GET gmail/v1/users/{userId}/settings/sendAs/{sendAsEmail}/smimeInfo
+/// POST gmail/v1/users/{userId}/settings/sendAs/{sendAsEmail}/smimeInfo
 /// Insert (upload) the given S/MIME config for the specified send-as alias. Note that pkcs12 format is required for the key.
 ///
 /// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
@@ -7026,7 +11601,7 @@ pub fn gmail_users_settings_send_as_smime_info_insert_task(
         .map_pending(|_| ApiPending::Sending))
 }
 
-/// GET gmail/v1/users/{userId}/settings/sendAs/{sendAsEmail}/smimeInfo
+/// POST gmail/v1/users/{userId}/settings/sendAs/{sendAsEmail}/smimeInfo
 /// Insert (upload) the given S/MIME config for the specified send-as alias. Note that pkcs12 format is required for the key.
 ///
 /// Takes a `ClientRequestBuilder`, builds and executes the request,
@@ -7063,11 +11638,9 @@ pub struct GmailUsersSettingsSendAsSmimeInfoInsertArgs {
     pub userId: String,
     /// Path parameter: sendAsEmail
     pub sendAsEmail: String,
-    /// Request body.
-    pub body: SmimeInfo,
 }
 
-/// GET gmail/v1/users/{userId}/settings/sendAs/{sendAsEmail}/smimeInfo
+/// POST gmail/v1/users/{userId}/settings/sendAs/{sendAsEmail}/smimeInfo
 /// Insert (upload) the given S/MIME config for the specified send-as alias. Note that pkcs12 format is required for the key.
 ///
 /// Simplest API - builds and executes the request in one call.
@@ -7089,12 +11662,179 @@ pub fn gmail_users_settings_send_as_smime_info_insert(
         client,
         &args.userId,
         &args.sendAsEmail,
-        &args.body,
     )?;
     gmail_users_settings_send_as_smime_info_insert_execute(builder)
 }
 
-/// GET gmail/v1/users/{userId}/settings/sendAs/{sendAsEmail}/smimeInfo/{id}/setDefault
+/// GET gmail/v1/users/{userId}/settings/sendAs/{sendAsEmail}/smimeInfo
+/// Lists S/MIME configs for the specified send-as alias.
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `gmail_users_settings_send_as_smime_info_list_execute()` to send, or `gmail_users_settings_send_as_smime_info_list` for simplest API.
+
+pub fn gmail_users_settings_send_as_smime_info_list_builder(
+    client: &SimpleHttpClient,
+    userId: &String,
+    sendAsEmail: &String,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!(
+        "https://gmail.googleapis.com/gmail/v1/users/{}/settings/sendAs/{}/smimeInfo",
+        userId, sendAsEmail,
+    );
+
+    // Build request
+    let builder = client
+        .get(&endpoint_url)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// GET gmail/v1/users/{userId}/settings/sendAs/{sendAsEmail}/smimeInfo
+/// Lists S/MIME configs for the specified send-as alias.
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `gmail_users_settings_send_as_smime_info_list_execute()` or `gmail_users_settings_send_as_smime_info_list`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `gmail_users_settings_send_as_smime_info_list_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn gmail_users_settings_send_as_smime_info_list_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<ListSmimeInfoResponse>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: ListSmimeInfoResponse = serde_json::from_str(&body)
+                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// GET gmail/v1/users/{userId}/settings/sendAs/{sendAsEmail}/smimeInfo
+/// Lists S/MIME configs for the specified send-as alias.
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `gmail_users_settings_send_as_smime_info_list_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `gmail_users_settings_send_as_smime_info_list_task()`.
+/// For the simplest API, use `gmail_users_settings_send_as_smime_info_list()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `gmail_users_settings_send_as_smime_info_list_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn gmail_users_settings_send_as_smime_info_list_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<ListSmimeInfoResponse>, ApiError>, P = ApiPending>
+        + Send
+        + 'static,
+    ApiError,
+> {
+    let task = gmail_users_settings_send_as_smime_info_list_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`gmail_users_settings_send_as_smime_info_list`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct GmailUsersSettingsSendAsSmimeInfoListArgs {
+    /// Path parameter: userId
+    pub userId: String,
+    /// Path parameter: sendAsEmail
+    pub sendAsEmail: String,
+}
+
+/// GET gmail/v1/users/{userId}/settings/sendAs/{sendAsEmail}/smimeInfo
+/// Lists S/MIME configs for the specified send-as alias.
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `gmail_users_settings_send_as_smime_info_list_builder()` + `gmail_users_settings_send_as_smime_info_list_execute()`.
+/// For task-level control, use `gmail_users_settings_send_as_smime_info_list_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn gmail_users_settings_send_as_smime_info_list(
+    client: &SimpleHttpClient,
+    args: &GmailUsersSettingsSendAsSmimeInfoListArgs,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<ListSmimeInfoResponse>, ApiError>, P = ApiPending>
+        + Send
+        + 'static,
+    ApiError,
+> {
+    let builder = gmail_users_settings_send_as_smime_info_list_builder(
+        client,
+        &args.userId,
+        &args.sendAsEmail,
+    )?;
+    gmail_users_settings_send_as_smime_info_list_execute(builder)
+}
+
+/// POST gmail/v1/users/{userId}/settings/sendAs/{sendAsEmail}/smimeInfo/{id}/setDefault
 /// Sets the default S/MIME config for the specified send-as alias.
 ///
 /// Returns `ClientRequestBuilder` for customization.
@@ -7114,13 +11854,13 @@ pub fn gmail_users_settings_send_as_smime_info_set_default_builder(
 
     // Build request
     let builder = client
-        .get(&endpoint_url)
+        .post(&endpoint_url)
         .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
 
     Ok(builder)
 }
 
-/// GET gmail/v1/users/{userId}/settings/sendAs/{sendAsEmail}/smimeInfo/{id}/setDefault
+/// POST gmail/v1/users/{userId}/settings/sendAs/{sendAsEmail}/smimeInfo/{id}/setDefault
 /// Sets the default S/MIME config for the specified send-as alias.
 ///
 /// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
@@ -7191,7 +11931,7 @@ pub fn gmail_users_settings_send_as_smime_info_set_default_task(
         .map_pending(|_| ApiPending::Sending))
 }
 
-/// GET gmail/v1/users/{userId}/settings/sendAs/{sendAsEmail}/smimeInfo/{id}/setDefault
+/// POST gmail/v1/users/{userId}/settings/sendAs/{sendAsEmail}/smimeInfo/{id}/setDefault
 /// Sets the default S/MIME config for the specified send-as alias.
 ///
 /// Takes a `ClientRequestBuilder`, builds and executes the request,
@@ -7232,7 +11972,7 @@ pub struct GmailUsersSettingsSendAsSmimeInfoSetDefaultArgs {
     pub id: String,
 }
 
-/// GET gmail/v1/users/{userId}/settings/sendAs/{sendAsEmail}/smimeInfo/{id}/setDefault
+/// POST gmail/v1/users/{userId}/settings/sendAs/{sendAsEmail}/smimeInfo/{id}/setDefault
 /// Sets the default S/MIME config for the specified send-as alias.
 ///
 /// Simplest API - builds and executes the request in one call.
@@ -7259,7 +11999,7 @@ pub fn gmail_users_settings_send_as_smime_info_set_default(
     gmail_users_settings_send_as_smime_info_set_default_execute(builder)
 }
 
-/// GET gmail/v1/users/{userId}/threads/{id}
+/// DELETE gmail/v1/users/{userId}/threads/{id}
 /// Immediately and permanently deletes the specified thread. Any messages that belong to the thread are also deleted. This operation cannot be undone. Prefer threads.trash instead.
 ///
 /// Returns `ClientRequestBuilder` for customization.
@@ -7278,13 +12018,13 @@ pub fn gmail_users_threads_delete_builder(
 
     // Build request
     let builder = client
-        .get(&endpoint_url)
+        .delete(&endpoint_url)
         .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
 
     Ok(builder)
 }
 
-/// GET gmail/v1/users/{userId}/threads/{id}
+/// DELETE gmail/v1/users/{userId}/threads/{id}
 /// Immediately and permanently deletes the specified thread. Any messages that belong to the thread are also deleted. This operation cannot be undone. Prefer threads.trash instead.
 ///
 /// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
@@ -7355,7 +12095,7 @@ pub fn gmail_users_threads_delete_task(
         .map_pending(|_| ApiPending::Sending))
 }
 
-/// GET gmail/v1/users/{userId}/threads/{id}
+/// DELETE gmail/v1/users/{userId}/threads/{id}
 /// Immediately and permanently deletes the specified thread. Any messages that belong to the thread are also deleted. This operation cannot be undone. Prefer threads.trash instead.
 ///
 /// Takes a `ClientRequestBuilder`, builds and executes the request,
@@ -7394,7 +12134,7 @@ pub struct GmailUsersThreadsDeleteArgs {
     pub id: String,
 }
 
-/// GET gmail/v1/users/{userId}/threads/{id}
+/// DELETE gmail/v1/users/{userId}/threads/{id}
 /// Immediately and permanently deletes the specified thread. Any messages that belong to the thread are also deleted. This operation cannot be undone. Prefer threads.trash instead.
 ///
 /// Simplest API - builds and executes the request in one call.
@@ -7416,6 +12156,192 @@ pub fn gmail_users_threads_delete(
     gmail_users_threads_delete_execute(builder)
 }
 
+/// GET gmail/v1/users/{userId}/threads/{id}
+/// Gets the specified thread.
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `gmail_users_threads_get_execute()` to send, or `gmail_users_threads_get` for simplest API.
+
+pub fn gmail_users_threads_get_builder(
+    client: &SimpleHttpClient,
+    userId: &String,
+    id: &String,
+    format: &Option<Option<String>>,
+    metadataHeaders: &Option<Option<String>>,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!(
+        "https://gmail.googleapis.com/gmail/v1/users/{}/threads/{}",
+        userId, id,
+    );
+
+    // Build request
+    let mut query_parts = Vec::new();
+    if let Some(val) = format.as_ref() {
+        query_parts.push(format!("format={}", val));
+    }
+    if let Some(val) = metadataHeaders.as_ref() {
+        query_parts.push(format!("metadataHeaders={}", val));
+    }
+
+    let url_with_query = if query_parts.is_empty() {
+        endpoint_url
+    } else {
+        format!("{}?{}", endpoint_url, query_parts.join("&"))
+    };
+
+    let builder = client
+        .get(&url_with_query)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// GET gmail/v1/users/{userId}/threads/{id}
+/// Gets the specified thread.
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `gmail_users_threads_get_execute()` or `gmail_users_threads_get`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `gmail_users_threads_get_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn gmail_users_threads_get_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<Thread>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: Thread = serde_json::from_str(&body)
+                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// GET gmail/v1/users/{userId}/threads/{id}
+/// Gets the specified thread.
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `gmail_users_threads_get_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `gmail_users_threads_get_task()`.
+/// For the simplest API, use `gmail_users_threads_get()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `gmail_users_threads_get_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn gmail_users_threads_get_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<Thread>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let task = gmail_users_threads_get_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`gmail_users_threads_get`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct GmailUsersThreadsGetArgs {
+    /// Path parameter: userId
+    pub userId: String,
+    /// Path parameter: id
+    pub id: String,
+    /// Query parameter: format
+    pub format: Option<Option<String>>,
+    /// Query parameter: metadataHeaders
+    pub metadataHeaders: Option<Option<String>>,
+}
+
+/// GET gmail/v1/users/{userId}/threads/{id}
+/// Gets the specified thread.
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `gmail_users_threads_get_builder()` + `gmail_users_threads_get_execute()`.
+/// For task-level control, use `gmail_users_threads_get_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn gmail_users_threads_get(
+    client: &SimpleHttpClient,
+    args: &GmailUsersThreadsGetArgs,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<Thread>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let builder = gmail_users_threads_get_builder(
+        client,
+        &args.userId,
+        &args.id,
+        &args.format,
+        &args.metadataHeaders,
+    )?;
+    gmail_users_threads_get_execute(builder)
+}
+
 /// GET gmail/v1/users/{userId}/threads
 /// Lists the threads in the user's mailbox.
 ///
@@ -7425,11 +12351,11 @@ pub fn gmail_users_threads_delete(
 pub fn gmail_users_threads_list_builder(
     client: &SimpleHttpClient,
     userId: &String,
-    includeSpamTrash: &Option<bool>,
-    labelIds: &Option<String>,
-    maxResults: &Option<i32>,
-    pageToken: &Option<String>,
-    q: &Option<String>,
+    includeSpamTrash: &Option<Option<String>>,
+    labelIds: &Option<Option<String>>,
+    maxResults: &Option<Option<String>>,
+    pageToken: &Option<Option<String>>,
+    q: &Option<Option<String>>,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
@@ -7580,15 +12506,15 @@ pub struct GmailUsersThreadsListArgs {
     /// Path parameter: userId
     pub userId: String,
     /// Query parameter: includeSpamTrash
-    pub includeSpamTrash: Option<bool>,
+    pub includeSpamTrash: Option<Option<String>>,
     /// Query parameter: labelIds
-    pub labelIds: Option<String>,
+    pub labelIds: Option<Option<String>>,
     /// Query parameter: maxResults
-    pub maxResults: Option<i32>,
+    pub maxResults: Option<Option<String>>,
     /// Query parameter: pageToken
-    pub pageToken: Option<String>,
+    pub pageToken: Option<Option<String>>,
     /// Query parameter: q
-    pub q: Option<String>,
+    pub q: Option<Option<String>>,
 }
 
 /// GET gmail/v1/users/{userId}/threads
@@ -7623,7 +12549,7 @@ pub fn gmail_users_threads_list(
     gmail_users_threads_list_execute(builder)
 }
 
-/// GET gmail/v1/users/{userId}/threads/{id}/modify
+/// POST gmail/v1/users/{userId}/threads/{id}/modify
 /// Modifies the labels applied to the thread. This applies to all messages in the thread.
 ///
 /// Returns `ClientRequestBuilder` for customization.
@@ -7633,7 +12559,6 @@ pub fn gmail_users_threads_modify_builder(
     client: &SimpleHttpClient,
     userId: &String,
     id: &String,
-    body: &ModifyThreadRequest,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
@@ -7643,15 +12568,13 @@ pub fn gmail_users_threads_modify_builder(
 
     // Build request
     let builder = client
-        .get(&endpoint_url)
+        .post(&endpoint_url)
         .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
 
-    builder
-        .body_json(body)
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+    Ok(builder)
 }
 
-/// GET gmail/v1/users/{userId}/threads/{id}/modify
+/// POST gmail/v1/users/{userId}/threads/{id}/modify
 /// Modifies the labels applied to the thread. This applies to all messages in the thread.
 ///
 /// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
@@ -7725,7 +12648,7 @@ pub fn gmail_users_threads_modify_task(
         .map_pending(|_| ApiPending::Sending))
 }
 
-/// GET gmail/v1/users/{userId}/threads/{id}/modify
+/// POST gmail/v1/users/{userId}/threads/{id}/modify
 /// Modifies the labels applied to the thread. This applies to all messages in the thread.
 ///
 /// Takes a `ClientRequestBuilder`, builds and executes the request,
@@ -7762,11 +12685,9 @@ pub struct GmailUsersThreadsModifyArgs {
     pub userId: String,
     /// Path parameter: id
     pub id: String,
-    /// Request body.
-    pub body: ModifyThreadRequest,
 }
 
-/// GET gmail/v1/users/{userId}/threads/{id}/modify
+/// POST gmail/v1/users/{userId}/threads/{id}/modify
 /// Modifies the labels applied to the thread. This applies to all messages in the thread.
 ///
 /// Simplest API - builds and executes the request in one call.
@@ -7784,11 +12705,11 @@ pub fn gmail_users_threads_modify(
     impl StreamIterator<D = Result<ApiResponse<Thread>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = gmail_users_threads_modify_builder(client, &args.userId, &args.id, &args.body)?;
+    let builder = gmail_users_threads_modify_builder(client, &args.userId, &args.id)?;
     gmail_users_threads_modify_execute(builder)
 }
 
-/// GET gmail/v1/users/{userId}/threads/{id}/trash
+/// POST gmail/v1/users/{userId}/threads/{id}/trash
 /// Moves the specified thread to the trash. Any messages that belong to the thread are also moved to the trash.
 ///
 /// Returns `ClientRequestBuilder` for customization.
@@ -7807,13 +12728,13 @@ pub fn gmail_users_threads_trash_builder(
 
     // Build request
     let builder = client
-        .get(&endpoint_url)
+        .post(&endpoint_url)
         .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
 
     Ok(builder)
 }
 
-/// GET gmail/v1/users/{userId}/threads/{id}/trash
+/// POST gmail/v1/users/{userId}/threads/{id}/trash
 /// Moves the specified thread to the trash. Any messages that belong to the thread are also moved to the trash.
 ///
 /// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
@@ -7887,7 +12808,7 @@ pub fn gmail_users_threads_trash_task(
         .map_pending(|_| ApiPending::Sending))
 }
 
-/// GET gmail/v1/users/{userId}/threads/{id}/trash
+/// POST gmail/v1/users/{userId}/threads/{id}/trash
 /// Moves the specified thread to the trash. Any messages that belong to the thread are also moved to the trash.
 ///
 /// Takes a `ClientRequestBuilder`, builds and executes the request,
@@ -7926,7 +12847,7 @@ pub struct GmailUsersThreadsTrashArgs {
     pub id: String,
 }
 
-/// GET gmail/v1/users/{userId}/threads/{id}/trash
+/// POST gmail/v1/users/{userId}/threads/{id}/trash
 /// Moves the specified thread to the trash. Any messages that belong to the thread are also moved to the trash.
 ///
 /// Simplest API - builds and executes the request in one call.
@@ -7948,7 +12869,7 @@ pub fn gmail_users_threads_trash(
     gmail_users_threads_trash_execute(builder)
 }
 
-/// GET gmail/v1/users/{userId}/threads/{id}/untrash
+/// POST gmail/v1/users/{userId}/threads/{id}/untrash
 /// Removes the specified thread from the trash. Any messages that belong to the thread are also removed from the trash.
 ///
 /// Returns `ClientRequestBuilder` for customization.
@@ -7967,13 +12888,13 @@ pub fn gmail_users_threads_untrash_builder(
 
     // Build request
     let builder = client
-        .get(&endpoint_url)
+        .post(&endpoint_url)
         .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
 
     Ok(builder)
 }
 
-/// GET gmail/v1/users/{userId}/threads/{id}/untrash
+/// POST gmail/v1/users/{userId}/threads/{id}/untrash
 /// Removes the specified thread from the trash. Any messages that belong to the thread are also removed from the trash.
 ///
 /// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
@@ -8047,7 +12968,7 @@ pub fn gmail_users_threads_untrash_task(
         .map_pending(|_| ApiPending::Sending))
 }
 
-/// GET gmail/v1/users/{userId}/threads/{id}/untrash
+/// POST gmail/v1/users/{userId}/threads/{id}/untrash
 /// Removes the specified thread from the trash. Any messages that belong to the thread are also removed from the trash.
 ///
 /// Takes a `ClientRequestBuilder`, builds and executes the request,
@@ -8086,7 +13007,7 @@ pub struct GmailUsersThreadsUntrashArgs {
     pub id: String,
 }
 
-/// GET gmail/v1/users/{userId}/threads/{id}/untrash
+/// POST gmail/v1/users/{userId}/threads/{id}/untrash
 /// Removes the specified thread from the trash. Any messages that belong to the thread are also removed from the trash.
 ///
 /// Simplest API - builds and executes the request in one call.
@@ -8106,4 +13027,1497 @@ pub fn gmail_users_threads_untrash(
 > {
     let builder = gmail_users_threads_untrash_builder(client, &args.userId, &args.id)?;
     gmail_users_threads_untrash_execute(builder)
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for Profile
+// =============================================================================
+
+/// ResourceIdentifier implementation for Profile with GmailUsersGetProfileArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<GmailUsersGetProfileArgs> for Profile {
+    fn generate_resource_id(&self, input: &GmailUsersGetProfileArgs) -> String {
+        format!("gcp::gmail::Profile/{}", input.userId)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::gmail::Profile"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for WatchResponse
+// =============================================================================
+
+/// ResourceIdentifier implementation for WatchResponse with GmailUsersWatchArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<GmailUsersWatchArgs> for WatchResponse {
+    fn generate_resource_id(&self, input: &GmailUsersWatchArgs) -> String {
+        format!("gcp::gmail::WatchResponse/{}", input.userId)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::gmail::WatchResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for Draft
+// =============================================================================
+
+/// ResourceIdentifier implementation for Draft with GmailUsersDraftsCreateArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<GmailUsersDraftsCreateArgs> for Draft {
+    fn generate_resource_id(&self, input: &GmailUsersDraftsCreateArgs) -> String {
+        format!("gcp::gmail::Draft/{}", input.userId)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::gmail::Draft"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for Draft
+// =============================================================================
+
+/// ResourceIdentifier implementation for Draft with GmailUsersDraftsGetArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<GmailUsersDraftsGetArgs> for Draft {
+    fn generate_resource_id(&self, input: &GmailUsersDraftsGetArgs) -> String {
+        format!("gcp::gmail::Draft/{}/{}", input.userId, input.id)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::gmail::Draft"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for ListDraftsResponse
+// =============================================================================
+
+/// ResourceIdentifier implementation for ListDraftsResponse with GmailUsersDraftsListArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<GmailUsersDraftsListArgs> for ListDraftsResponse {
+    fn generate_resource_id(&self, input: &GmailUsersDraftsListArgs) -> String {
+        format!("gcp::gmail::ListDraftsResponse/{}", input.userId)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::gmail::ListDraftsResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for Message
+// =============================================================================
+
+/// ResourceIdentifier implementation for Message with GmailUsersDraftsSendArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<GmailUsersDraftsSendArgs> for Message {
+    fn generate_resource_id(&self, input: &GmailUsersDraftsSendArgs) -> String {
+        format!("gcp::gmail::Message/{}", input.userId)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::gmail::Message"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for Draft
+// =============================================================================
+
+/// ResourceIdentifier implementation for Draft with GmailUsersDraftsUpdateArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<GmailUsersDraftsUpdateArgs> for Draft {
+    fn generate_resource_id(&self, input: &GmailUsersDraftsUpdateArgs) -> String {
+        format!("gcp::gmail::Draft/{}/{}", input.userId, input.id)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::gmail::Draft"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for ListHistoryResponse
+// =============================================================================
+
+/// ResourceIdentifier implementation for ListHistoryResponse with GmailUsersHistoryListArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<GmailUsersHistoryListArgs> for ListHistoryResponse {
+    fn generate_resource_id(&self, input: &GmailUsersHistoryListArgs) -> String {
+        format!("gcp::gmail::ListHistoryResponse/{}", input.userId)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::gmail::ListHistoryResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for Label
+// =============================================================================
+
+/// ResourceIdentifier implementation for Label with GmailUsersLabelsCreateArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<GmailUsersLabelsCreateArgs> for Label {
+    fn generate_resource_id(&self, input: &GmailUsersLabelsCreateArgs) -> String {
+        format!("gcp::gmail::Label/{}", input.userId)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::gmail::Label"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for Label
+// =============================================================================
+
+/// ResourceIdentifier implementation for Label with GmailUsersLabelsGetArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<GmailUsersLabelsGetArgs> for Label {
+    fn generate_resource_id(&self, input: &GmailUsersLabelsGetArgs) -> String {
+        format!("gcp::gmail::Label/{}/{}", input.userId, input.id)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::gmail::Label"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for ListLabelsResponse
+// =============================================================================
+
+/// ResourceIdentifier implementation for ListLabelsResponse with GmailUsersLabelsListArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<GmailUsersLabelsListArgs> for ListLabelsResponse {
+    fn generate_resource_id(&self, input: &GmailUsersLabelsListArgs) -> String {
+        format!("gcp::gmail::ListLabelsResponse/{}", input.userId)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::gmail::ListLabelsResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for Label
+// =============================================================================
+
+/// ResourceIdentifier implementation for Label with GmailUsersLabelsPatchArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<GmailUsersLabelsPatchArgs> for Label {
+    fn generate_resource_id(&self, input: &GmailUsersLabelsPatchArgs) -> String {
+        format!("gcp::gmail::Label/{}/{}", input.userId, input.id)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::gmail::Label"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for Label
+// =============================================================================
+
+/// ResourceIdentifier implementation for Label with GmailUsersLabelsUpdateArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<GmailUsersLabelsUpdateArgs> for Label {
+    fn generate_resource_id(&self, input: &GmailUsersLabelsUpdateArgs) -> String {
+        format!("gcp::gmail::Label/{}/{}", input.userId, input.id)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::gmail::Label"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for Message
+// =============================================================================
+
+/// ResourceIdentifier implementation for Message with GmailUsersMessagesGetArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<GmailUsersMessagesGetArgs> for Message {
+    fn generate_resource_id(&self, input: &GmailUsersMessagesGetArgs) -> String {
+        format!("gcp::gmail::Message/{}/{}", input.userId, input.id)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::gmail::Message"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for Message
+// =============================================================================
+
+/// ResourceIdentifier implementation for Message with GmailUsersMessagesImportArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<GmailUsersMessagesImportArgs> for Message {
+    fn generate_resource_id(&self, input: &GmailUsersMessagesImportArgs) -> String {
+        format!("gcp::gmail::Message/{}", input.userId)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::gmail::Message"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for Message
+// =============================================================================
+
+/// ResourceIdentifier implementation for Message with GmailUsersMessagesInsertArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<GmailUsersMessagesInsertArgs> for Message {
+    fn generate_resource_id(&self, input: &GmailUsersMessagesInsertArgs) -> String {
+        format!("gcp::gmail::Message/{}", input.userId)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::gmail::Message"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for ListMessagesResponse
+// =============================================================================
+
+/// ResourceIdentifier implementation for ListMessagesResponse with GmailUsersMessagesListArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<GmailUsersMessagesListArgs> for ListMessagesResponse {
+    fn generate_resource_id(&self, input: &GmailUsersMessagesListArgs) -> String {
+        format!("gcp::gmail::ListMessagesResponse/{}", input.userId)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::gmail::ListMessagesResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for Message
+// =============================================================================
+
+/// ResourceIdentifier implementation for Message with GmailUsersMessagesModifyArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<GmailUsersMessagesModifyArgs> for Message {
+    fn generate_resource_id(&self, input: &GmailUsersMessagesModifyArgs) -> String {
+        format!("gcp::gmail::Message/{}/{}", input.userId, input.id)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::gmail::Message"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for Message
+// =============================================================================
+
+/// ResourceIdentifier implementation for Message with GmailUsersMessagesSendArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<GmailUsersMessagesSendArgs> for Message {
+    fn generate_resource_id(&self, input: &GmailUsersMessagesSendArgs) -> String {
+        format!("gcp::gmail::Message/{}", input.userId)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::gmail::Message"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for Message
+// =============================================================================
+
+/// ResourceIdentifier implementation for Message with GmailUsersMessagesTrashArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<GmailUsersMessagesTrashArgs> for Message {
+    fn generate_resource_id(&self, input: &GmailUsersMessagesTrashArgs) -> String {
+        format!("gcp::gmail::Message/{}/{}", input.userId, input.id)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::gmail::Message"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for Message
+// =============================================================================
+
+/// ResourceIdentifier implementation for Message with GmailUsersMessagesUntrashArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<GmailUsersMessagesUntrashArgs> for Message {
+    fn generate_resource_id(&self, input: &GmailUsersMessagesUntrashArgs) -> String {
+        format!("gcp::gmail::Message/{}/{}", input.userId, input.id)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::gmail::Message"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for MessagePartBody
+// =============================================================================
+
+/// ResourceIdentifier implementation for MessagePartBody with GmailUsersMessagesAttachmentsGetArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<GmailUsersMessagesAttachmentsGetArgs> for MessagePartBody {
+    fn generate_resource_id(&self, input: &GmailUsersMessagesAttachmentsGetArgs) -> String {
+        format!(
+            "gcp::gmail::MessagePartBody/{}/{}/{}",
+            input.userId, input.messageId, input.id
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::gmail::MessagePartBody"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for AutoForwarding
+// =============================================================================
+
+/// ResourceIdentifier implementation for AutoForwarding with GmailUsersSettingsGetAutoForwardingArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<GmailUsersSettingsGetAutoForwardingArgs> for AutoForwarding {
+    fn generate_resource_id(&self, input: &GmailUsersSettingsGetAutoForwardingArgs) -> String {
+        format!("gcp::gmail::AutoForwarding/{}", input.userId)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::gmail::AutoForwarding"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for ImapSettings
+// =============================================================================
+
+/// ResourceIdentifier implementation for ImapSettings with GmailUsersSettingsGetImapArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<GmailUsersSettingsGetImapArgs> for ImapSettings {
+    fn generate_resource_id(&self, input: &GmailUsersSettingsGetImapArgs) -> String {
+        format!("gcp::gmail::ImapSettings/{}", input.userId)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::gmail::ImapSettings"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for LanguageSettings
+// =============================================================================
+
+/// ResourceIdentifier implementation for LanguageSettings with GmailUsersSettingsGetLanguageArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<GmailUsersSettingsGetLanguageArgs> for LanguageSettings {
+    fn generate_resource_id(&self, input: &GmailUsersSettingsGetLanguageArgs) -> String {
+        format!("gcp::gmail::LanguageSettings/{}", input.userId)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::gmail::LanguageSettings"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for PopSettings
+// =============================================================================
+
+/// ResourceIdentifier implementation for PopSettings with GmailUsersSettingsGetPopArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<GmailUsersSettingsGetPopArgs> for PopSettings {
+    fn generate_resource_id(&self, input: &GmailUsersSettingsGetPopArgs) -> String {
+        format!("gcp::gmail::PopSettings/{}", input.userId)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::gmail::PopSettings"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for VacationSettings
+// =============================================================================
+
+/// ResourceIdentifier implementation for VacationSettings with GmailUsersSettingsGetVacationArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<GmailUsersSettingsGetVacationArgs> for VacationSettings {
+    fn generate_resource_id(&self, input: &GmailUsersSettingsGetVacationArgs) -> String {
+        format!("gcp::gmail::VacationSettings/{}", input.userId)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::gmail::VacationSettings"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for AutoForwarding
+// =============================================================================
+
+/// ResourceIdentifier implementation for AutoForwarding with GmailUsersSettingsUpdateAutoForwardingArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<GmailUsersSettingsUpdateAutoForwardingArgs> for AutoForwarding {
+    fn generate_resource_id(&self, input: &GmailUsersSettingsUpdateAutoForwardingArgs) -> String {
+        format!("gcp::gmail::AutoForwarding/{}", input.userId)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::gmail::AutoForwarding"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for ImapSettings
+// =============================================================================
+
+/// ResourceIdentifier implementation for ImapSettings with GmailUsersSettingsUpdateImapArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<GmailUsersSettingsUpdateImapArgs> for ImapSettings {
+    fn generate_resource_id(&self, input: &GmailUsersSettingsUpdateImapArgs) -> String {
+        format!("gcp::gmail::ImapSettings/{}", input.userId)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::gmail::ImapSettings"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for LanguageSettings
+// =============================================================================
+
+/// ResourceIdentifier implementation for LanguageSettings with GmailUsersSettingsUpdateLanguageArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<GmailUsersSettingsUpdateLanguageArgs> for LanguageSettings {
+    fn generate_resource_id(&self, input: &GmailUsersSettingsUpdateLanguageArgs) -> String {
+        format!("gcp::gmail::LanguageSettings/{}", input.userId)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::gmail::LanguageSettings"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for PopSettings
+// =============================================================================
+
+/// ResourceIdentifier implementation for PopSettings with GmailUsersSettingsUpdatePopArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<GmailUsersSettingsUpdatePopArgs> for PopSettings {
+    fn generate_resource_id(&self, input: &GmailUsersSettingsUpdatePopArgs) -> String {
+        format!("gcp::gmail::PopSettings/{}", input.userId)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::gmail::PopSettings"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for VacationSettings
+// =============================================================================
+
+/// ResourceIdentifier implementation for VacationSettings with GmailUsersSettingsUpdateVacationArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<GmailUsersSettingsUpdateVacationArgs> for VacationSettings {
+    fn generate_resource_id(&self, input: &GmailUsersSettingsUpdateVacationArgs) -> String {
+        format!("gcp::gmail::VacationSettings/{}", input.userId)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::gmail::VacationSettings"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for CseIdentity
+// =============================================================================
+
+/// ResourceIdentifier implementation for CseIdentity with GmailUsersSettingsCseIdentitiesCreateArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<GmailUsersSettingsCseIdentitiesCreateArgs> for CseIdentity {
+    fn generate_resource_id(&self, input: &GmailUsersSettingsCseIdentitiesCreateArgs) -> String {
+        format!("gcp::gmail::CseIdentity/{}", input.userId)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::gmail::CseIdentity"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for CseIdentity
+// =============================================================================
+
+/// ResourceIdentifier implementation for CseIdentity with GmailUsersSettingsCseIdentitiesGetArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<GmailUsersSettingsCseIdentitiesGetArgs> for CseIdentity {
+    fn generate_resource_id(&self, input: &GmailUsersSettingsCseIdentitiesGetArgs) -> String {
+        format!(
+            "gcp::gmail::CseIdentity/{}/{}",
+            input.userId, input.cseEmailAddress
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::gmail::CseIdentity"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for ListCseIdentitiesResponse
+// =============================================================================
+
+/// ResourceIdentifier implementation for ListCseIdentitiesResponse with GmailUsersSettingsCseIdentitiesListArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<GmailUsersSettingsCseIdentitiesListArgs> for ListCseIdentitiesResponse {
+    fn generate_resource_id(&self, input: &GmailUsersSettingsCseIdentitiesListArgs) -> String {
+        format!("gcp::gmail::ListCseIdentitiesResponse/{}", input.userId)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::gmail::ListCseIdentitiesResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for CseIdentity
+// =============================================================================
+
+/// ResourceIdentifier implementation for CseIdentity with GmailUsersSettingsCseIdentitiesPatchArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<GmailUsersSettingsCseIdentitiesPatchArgs> for CseIdentity {
+    fn generate_resource_id(&self, input: &GmailUsersSettingsCseIdentitiesPatchArgs) -> String {
+        format!(
+            "gcp::gmail::CseIdentity/{}/{}",
+            input.userId, input.emailAddress
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::gmail::CseIdentity"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for CseKeyPair
+// =============================================================================
+
+/// ResourceIdentifier implementation for CseKeyPair with GmailUsersSettingsCseKeypairsCreateArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<GmailUsersSettingsCseKeypairsCreateArgs> for CseKeyPair {
+    fn generate_resource_id(&self, input: &GmailUsersSettingsCseKeypairsCreateArgs) -> String {
+        format!("gcp::gmail::CseKeyPair/{}", input.userId)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::gmail::CseKeyPair"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for CseKeyPair
+// =============================================================================
+
+/// ResourceIdentifier implementation for CseKeyPair with GmailUsersSettingsCseKeypairsDisableArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<GmailUsersSettingsCseKeypairsDisableArgs> for CseKeyPair {
+    fn generate_resource_id(&self, input: &GmailUsersSettingsCseKeypairsDisableArgs) -> String {
+        format!(
+            "gcp::gmail::CseKeyPair/{}/{}",
+            input.userId, input.keyPairId
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::gmail::CseKeyPair"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for CseKeyPair
+// =============================================================================
+
+/// ResourceIdentifier implementation for CseKeyPair with GmailUsersSettingsCseKeypairsEnableArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<GmailUsersSettingsCseKeypairsEnableArgs> for CseKeyPair {
+    fn generate_resource_id(&self, input: &GmailUsersSettingsCseKeypairsEnableArgs) -> String {
+        format!(
+            "gcp::gmail::CseKeyPair/{}/{}",
+            input.userId, input.keyPairId
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::gmail::CseKeyPair"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for CseKeyPair
+// =============================================================================
+
+/// ResourceIdentifier implementation for CseKeyPair with GmailUsersSettingsCseKeypairsGetArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<GmailUsersSettingsCseKeypairsGetArgs> for CseKeyPair {
+    fn generate_resource_id(&self, input: &GmailUsersSettingsCseKeypairsGetArgs) -> String {
+        format!(
+            "gcp::gmail::CseKeyPair/{}/{}",
+            input.userId, input.keyPairId
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::gmail::CseKeyPair"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for ListCseKeyPairsResponse
+// =============================================================================
+
+/// ResourceIdentifier implementation for ListCseKeyPairsResponse with GmailUsersSettingsCseKeypairsListArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<GmailUsersSettingsCseKeypairsListArgs> for ListCseKeyPairsResponse {
+    fn generate_resource_id(&self, input: &GmailUsersSettingsCseKeypairsListArgs) -> String {
+        format!("gcp::gmail::ListCseKeyPairsResponse/{}", input.userId)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::gmail::ListCseKeyPairsResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for Delegate
+// =============================================================================
+
+/// ResourceIdentifier implementation for Delegate with GmailUsersSettingsDelegatesCreateArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<GmailUsersSettingsDelegatesCreateArgs> for Delegate {
+    fn generate_resource_id(&self, input: &GmailUsersSettingsDelegatesCreateArgs) -> String {
+        format!("gcp::gmail::Delegate/{}", input.userId)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::gmail::Delegate"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for Delegate
+// =============================================================================
+
+/// ResourceIdentifier implementation for Delegate with GmailUsersSettingsDelegatesGetArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<GmailUsersSettingsDelegatesGetArgs> for Delegate {
+    fn generate_resource_id(&self, input: &GmailUsersSettingsDelegatesGetArgs) -> String {
+        format!(
+            "gcp::gmail::Delegate/{}/{}",
+            input.userId, input.delegateEmail
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::gmail::Delegate"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for ListDelegatesResponse
+// =============================================================================
+
+/// ResourceIdentifier implementation for ListDelegatesResponse with GmailUsersSettingsDelegatesListArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<GmailUsersSettingsDelegatesListArgs> for ListDelegatesResponse {
+    fn generate_resource_id(&self, input: &GmailUsersSettingsDelegatesListArgs) -> String {
+        format!("gcp::gmail::ListDelegatesResponse/{}", input.userId)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::gmail::ListDelegatesResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for Filter
+// =============================================================================
+
+/// ResourceIdentifier implementation for Filter with GmailUsersSettingsFiltersCreateArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<GmailUsersSettingsFiltersCreateArgs> for Filter {
+    fn generate_resource_id(&self, input: &GmailUsersSettingsFiltersCreateArgs) -> String {
+        format!("gcp::gmail::Filter/{}", input.userId)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::gmail::Filter"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for Filter
+// =============================================================================
+
+/// ResourceIdentifier implementation for Filter with GmailUsersSettingsFiltersGetArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<GmailUsersSettingsFiltersGetArgs> for Filter {
+    fn generate_resource_id(&self, input: &GmailUsersSettingsFiltersGetArgs) -> String {
+        format!("gcp::gmail::Filter/{}/{}", input.userId, input.id)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::gmail::Filter"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for ListFiltersResponse
+// =============================================================================
+
+/// ResourceIdentifier implementation for ListFiltersResponse with GmailUsersSettingsFiltersListArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<GmailUsersSettingsFiltersListArgs> for ListFiltersResponse {
+    fn generate_resource_id(&self, input: &GmailUsersSettingsFiltersListArgs) -> String {
+        format!("gcp::gmail::ListFiltersResponse/{}", input.userId)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::gmail::ListFiltersResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for ForwardingAddress
+// =============================================================================
+
+/// ResourceIdentifier implementation for ForwardingAddress with GmailUsersSettingsForwardingAddressesCreateArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<GmailUsersSettingsForwardingAddressesCreateArgs> for ForwardingAddress {
+    fn generate_resource_id(
+        &self,
+        input: &GmailUsersSettingsForwardingAddressesCreateArgs,
+    ) -> String {
+        format!("gcp::gmail::ForwardingAddress/{}", input.userId)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::gmail::ForwardingAddress"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for ForwardingAddress
+// =============================================================================
+
+/// ResourceIdentifier implementation for ForwardingAddress with GmailUsersSettingsForwardingAddressesGetArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<GmailUsersSettingsForwardingAddressesGetArgs> for ForwardingAddress {
+    fn generate_resource_id(&self, input: &GmailUsersSettingsForwardingAddressesGetArgs) -> String {
+        format!(
+            "gcp::gmail::ForwardingAddress/{}/{}",
+            input.userId, input.forwardingEmail
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::gmail::ForwardingAddress"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for ListForwardingAddressesResponse
+// =============================================================================
+
+/// ResourceIdentifier implementation for ListForwardingAddressesResponse with GmailUsersSettingsForwardingAddressesListArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<GmailUsersSettingsForwardingAddressesListArgs>
+    for ListForwardingAddressesResponse
+{
+    fn generate_resource_id(
+        &self,
+        input: &GmailUsersSettingsForwardingAddressesListArgs,
+    ) -> String {
+        format!(
+            "gcp::gmail::ListForwardingAddressesResponse/{}",
+            input.userId
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::gmail::ListForwardingAddressesResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for SendAs
+// =============================================================================
+
+/// ResourceIdentifier implementation for SendAs with GmailUsersSettingsSendAsCreateArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<GmailUsersSettingsSendAsCreateArgs> for SendAs {
+    fn generate_resource_id(&self, input: &GmailUsersSettingsSendAsCreateArgs) -> String {
+        format!("gcp::gmail::SendAs/{}", input.userId)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::gmail::SendAs"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for SendAs
+// =============================================================================
+
+/// ResourceIdentifier implementation for SendAs with GmailUsersSettingsSendAsGetArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<GmailUsersSettingsSendAsGetArgs> for SendAs {
+    fn generate_resource_id(&self, input: &GmailUsersSettingsSendAsGetArgs) -> String {
+        format!("gcp::gmail::SendAs/{}/{}", input.userId, input.sendAsEmail)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::gmail::SendAs"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for ListSendAsResponse
+// =============================================================================
+
+/// ResourceIdentifier implementation for ListSendAsResponse with GmailUsersSettingsSendAsListArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<GmailUsersSettingsSendAsListArgs> for ListSendAsResponse {
+    fn generate_resource_id(&self, input: &GmailUsersSettingsSendAsListArgs) -> String {
+        format!("gcp::gmail::ListSendAsResponse/{}", input.userId)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::gmail::ListSendAsResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for SendAs
+// =============================================================================
+
+/// ResourceIdentifier implementation for SendAs with GmailUsersSettingsSendAsPatchArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<GmailUsersSettingsSendAsPatchArgs> for SendAs {
+    fn generate_resource_id(&self, input: &GmailUsersSettingsSendAsPatchArgs) -> String {
+        format!("gcp::gmail::SendAs/{}/{}", input.userId, input.sendAsEmail)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::gmail::SendAs"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for SendAs
+// =============================================================================
+
+/// ResourceIdentifier implementation for SendAs with GmailUsersSettingsSendAsUpdateArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<GmailUsersSettingsSendAsUpdateArgs> for SendAs {
+    fn generate_resource_id(&self, input: &GmailUsersSettingsSendAsUpdateArgs) -> String {
+        format!("gcp::gmail::SendAs/{}/{}", input.userId, input.sendAsEmail)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::gmail::SendAs"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for SmimeInfo
+// =============================================================================
+
+/// ResourceIdentifier implementation for SmimeInfo with GmailUsersSettingsSendAsSmimeInfoGetArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<GmailUsersSettingsSendAsSmimeInfoGetArgs> for SmimeInfo {
+    fn generate_resource_id(&self, input: &GmailUsersSettingsSendAsSmimeInfoGetArgs) -> String {
+        format!(
+            "gcp::gmail::SmimeInfo/{}/{}/{}",
+            input.userId, input.sendAsEmail, input.id
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::gmail::SmimeInfo"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for SmimeInfo
+// =============================================================================
+
+/// ResourceIdentifier implementation for SmimeInfo with GmailUsersSettingsSendAsSmimeInfoInsertArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<GmailUsersSettingsSendAsSmimeInfoInsertArgs> for SmimeInfo {
+    fn generate_resource_id(&self, input: &GmailUsersSettingsSendAsSmimeInfoInsertArgs) -> String {
+        format!(
+            "gcp::gmail::SmimeInfo/{}/{}",
+            input.userId, input.sendAsEmail
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::gmail::SmimeInfo"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for ListSmimeInfoResponse
+// =============================================================================
+
+/// ResourceIdentifier implementation for ListSmimeInfoResponse with GmailUsersSettingsSendAsSmimeInfoListArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<GmailUsersSettingsSendAsSmimeInfoListArgs> for ListSmimeInfoResponse {
+    fn generate_resource_id(&self, input: &GmailUsersSettingsSendAsSmimeInfoListArgs) -> String {
+        format!(
+            "gcp::gmail::ListSmimeInfoResponse/{}/{}",
+            input.userId, input.sendAsEmail
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::gmail::ListSmimeInfoResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for Thread
+// =============================================================================
+
+/// ResourceIdentifier implementation for Thread with GmailUsersThreadsGetArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<GmailUsersThreadsGetArgs> for Thread {
+    fn generate_resource_id(&self, input: &GmailUsersThreadsGetArgs) -> String {
+        format!("gcp::gmail::Thread/{}/{}", input.userId, input.id)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::gmail::Thread"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for ListThreadsResponse
+// =============================================================================
+
+/// ResourceIdentifier implementation for ListThreadsResponse with GmailUsersThreadsListArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<GmailUsersThreadsListArgs> for ListThreadsResponse {
+    fn generate_resource_id(&self, input: &GmailUsersThreadsListArgs) -> String {
+        format!("gcp::gmail::ListThreadsResponse/{}", input.userId)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::gmail::ListThreadsResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for Thread
+// =============================================================================
+
+/// ResourceIdentifier implementation for Thread with GmailUsersThreadsModifyArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<GmailUsersThreadsModifyArgs> for Thread {
+    fn generate_resource_id(&self, input: &GmailUsersThreadsModifyArgs) -> String {
+        format!("gcp::gmail::Thread/{}/{}", input.userId, input.id)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::gmail::Thread"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for Thread
+// =============================================================================
+
+/// ResourceIdentifier implementation for Thread with GmailUsersThreadsTrashArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<GmailUsersThreadsTrashArgs> for Thread {
+    fn generate_resource_id(&self, input: &GmailUsersThreadsTrashArgs) -> String {
+        format!("gcp::gmail::Thread/{}/{}", input.userId, input.id)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::gmail::Thread"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for Thread
+// =============================================================================
+
+/// ResourceIdentifier implementation for Thread with GmailUsersThreadsUntrashArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<GmailUsersThreadsUntrashArgs> for Thread {
+    fn generate_resource_id(&self, input: &GmailUsersThreadsUntrashArgs) -> String {
+        format!("gcp::gmail::Thread/{}/{}", input.userId, input.id)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::gmail::Thread"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
 }

@@ -712,7 +712,7 @@
       }
     }
   },
-  "revision": "20260402",
+  "revision": "20260408",
   "rootUrl": "https://customsearch.googleapis.com/",
   "schemas": {
     "Promotion": {

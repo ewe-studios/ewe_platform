@@ -7,7 +7,6 @@
 
 #![cfg(feature = "gcp")]
 
-
 use crate::providers::gcp::clients::types::*;
 use crate::providers::gcp::resources::*;
 use foundation_core::valtron::{
@@ -17,10 +16,11 @@ use foundation_core::valtron::{
 use foundation_core::wire::simple_http::client::{
     body_reader, ClientRequestBuilder, RequestIntro, SimpleHttpClient, SystemDnsResolver,
 };
+use foundation_db::state::resource_identifier::ResourceIdentifier;
 use foundation_macros::JsonHash;
 use serde::Serialize;
 
-/// GET v1/locations/{locationsId}:fetchVerificationOptions
+/// POST v1/locations/{locationsId}:fetchVerificationOptions
 /// Reports all eligible verification options for a location in a specific language.
 ///
 /// Returns `ClientRequestBuilder` for customization.
@@ -29,24 +29,22 @@ use serde::Serialize;
 pub fn mybusinessverifications_locations_fetch_verification_options_builder(
     client: &SimpleHttpClient,
     location: &String,
-    body: &FetchVerificationOptionsRequest,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
         "https://mybusinessverifications.googleapis.com/v1/locations/{}:fetchVerificationOptions",
+        location,
     );
 
     // Build request
     let builder = client
-        .get(&endpoint_url)
+        .post(&endpoint_url)
         .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
 
-    builder
-        .body_json(body)
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+    Ok(builder)
 }
 
-/// GET v1/locations/{locationsId}:fetchVerificationOptions
+/// POST v1/locations/{locationsId}:fetchVerificationOptions
 /// Reports all eligible verification options for a location in a specific language.
 ///
 /// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
@@ -120,7 +118,7 @@ pub fn mybusinessverifications_locations_fetch_verification_options_task(
         .map_pending(|_| ApiPending::Sending))
 }
 
-/// GET v1/locations/{locationsId}:fetchVerificationOptions
+/// POST v1/locations/{locationsId}:fetchVerificationOptions
 /// Reports all eligible verification options for a location in a specific language.
 ///
 /// Takes a `ClientRequestBuilder`, builds and executes the request,
@@ -159,11 +157,9 @@ pub fn mybusinessverifications_locations_fetch_verification_options_execute(
 pub struct MybusinessverificationsLocationsFetchVerificationOptionsArgs {
     /// Path parameter: location
     pub location: String,
-    /// Request body.
-    pub body: FetchVerificationOptionsRequest,
 }
 
-/// GET v1/locations/{locationsId}:fetchVerificationOptions
+/// POST v1/locations/{locationsId}:fetchVerificationOptions
 /// Reports all eligible verification options for a location in a specific language.
 ///
 /// Simplest API - builds and executes the request in one call.
@@ -188,7 +184,6 @@ pub fn mybusinessverifications_locations_fetch_verification_options(
     let builder = mybusinessverifications_locations_fetch_verification_options_builder(
         client,
         &args.location,
-        &args.body,
     )?;
     mybusinessverifications_locations_fetch_verification_options_execute(builder)
 }
@@ -206,6 +201,7 @@ pub fn mybusinessverifications_locations_get_voice_of_merchant_state_builder(
     // Build URL
     let endpoint_url = format!(
         "https://mybusinessverifications.googleapis.com/v1/locations/{}/VoiceOfMerchantState",
+        name,
     );
 
     // Build request
@@ -354,7 +350,7 @@ pub fn mybusinessverifications_locations_get_voice_of_merchant_state(
     mybusinessverifications_locations_get_voice_of_merchant_state_execute(builder)
 }
 
-/// GET v1/locations/{locationsId}:verify
+/// POST v1/locations/{locationsId}:verify
 /// Starts the verification process for a location.
 ///
 /// Returns `ClientRequestBuilder` for customization.
@@ -363,23 +359,22 @@ pub fn mybusinessverifications_locations_get_voice_of_merchant_state(
 pub fn mybusinessverifications_locations_verify_builder(
     client: &SimpleHttpClient,
     name: &String,
-    body: &VerifyLocationRequest,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
-    let endpoint_url =
-        format!("https://mybusinessverifications.googleapis.com/v1/locations/{}:verify",);
+    let endpoint_url = format!(
+        "https://mybusinessverifications.googleapis.com/v1/locations/{}:verify",
+        name,
+    );
 
     // Build request
     let builder = client
-        .get(&endpoint_url)
+        .post(&endpoint_url)
         .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
 
-    builder
-        .body_json(body)
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+    Ok(builder)
 }
 
-/// GET v1/locations/{locationsId}:verify
+/// POST v1/locations/{locationsId}:verify
 /// Starts the verification process for a location.
 ///
 /// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
@@ -453,7 +448,7 @@ pub fn mybusinessverifications_locations_verify_task(
         .map_pending(|_| ApiPending::Sending))
 }
 
-/// GET v1/locations/{locationsId}:verify
+/// POST v1/locations/{locationsId}:verify
 /// Starts the verification process for a location.
 ///
 /// Takes a `ClientRequestBuilder`, builds and executes the request,
@@ -490,11 +485,9 @@ pub fn mybusinessverifications_locations_verify_execute(
 pub struct MybusinessverificationsLocationsVerifyArgs {
     /// Path parameter: name
     pub name: String,
-    /// Request body.
-    pub body: VerifyLocationRequest,
 }
 
-/// GET v1/locations/{locationsId}:verify
+/// POST v1/locations/{locationsId}:verify
 /// Starts the verification process for a location.
 ///
 /// Simplest API - builds and executes the request in one call.
@@ -514,8 +507,174 @@ pub fn mybusinessverifications_locations_verify(
         + 'static,
     ApiError,
 > {
-    let builder = mybusinessverifications_locations_verify_builder(client, &args.name, &args.body)?;
+    let builder = mybusinessverifications_locations_verify_builder(client, &args.name)?;
     mybusinessverifications_locations_verify_execute(builder)
+}
+
+/// POST v1/locations/{locationsId}/verifications/{verificationsId}:complete
+/// Completes a `PENDING` verification. It is only necessary for non AUTO verification methods. AUTO verification request is instantly VERIFIED upon creation.
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `mybusinessverifications_locations_verifications_complete_execute()` to send, or `mybusinessverifications_locations_verifications_complete` for simplest API.
+
+pub fn mybusinessverifications_locations_verifications_complete_builder(
+    client: &SimpleHttpClient,
+    name: &String,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!(
+        "https://mybusinessverifications.googleapis.com/v1/locations/{}/verifications/{verificationsId}:complete",
+        name,
+    );
+
+    // Build request
+    let builder = client
+        .post(&endpoint_url)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// POST v1/locations/{locationsId}/verifications/{verificationsId}:complete
+/// Completes a `PENDING` verification. It is only necessary for non AUTO verification methods. AUTO verification request is instantly VERIFIED upon creation.
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `mybusinessverifications_locations_verifications_complete_execute()` or `mybusinessverifications_locations_verifications_complete`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `mybusinessverifications_locations_verifications_complete_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn mybusinessverifications_locations_verifications_complete_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<CompleteVerificationResponse>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: CompleteVerificationResponse = serde_json::from_str(&body)
+                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// POST v1/locations/{locationsId}/verifications/{verificationsId}:complete
+/// Completes a `PENDING` verification. It is only necessary for non AUTO verification methods. AUTO verification request is instantly VERIFIED upon creation.
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `mybusinessverifications_locations_verifications_complete_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `mybusinessverifications_locations_verifications_complete_task()`.
+/// For the simplest API, use `mybusinessverifications_locations_verifications_complete()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `mybusinessverifications_locations_verifications_complete_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn mybusinessverifications_locations_verifications_complete_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<
+            D = Result<ApiResponse<CompleteVerificationResponse>, ApiError>,
+            P = ApiPending,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    let task = mybusinessverifications_locations_verifications_complete_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`mybusinessverifications_locations_verifications_complete`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct MybusinessverificationsLocationsVerificationsCompleteArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
+/// POST v1/locations/{locationsId}/verifications/{verificationsId}:complete
+/// Completes a `PENDING` verification. It is only necessary for non AUTO verification methods. AUTO verification request is instantly VERIFIED upon creation.
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `mybusinessverifications_locations_verifications_complete_builder()` + `mybusinessverifications_locations_verifications_complete_execute()`.
+/// For task-level control, use `mybusinessverifications_locations_verifications_complete_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn mybusinessverifications_locations_verifications_complete(
+    client: &SimpleHttpClient,
+    args: &MybusinessverificationsLocationsVerificationsCompleteArgs,
+) -> Result<
+    impl StreamIterator<
+            D = Result<ApiResponse<CompleteVerificationResponse>, ApiError>,
+            P = ApiPending,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    let builder =
+        mybusinessverifications_locations_verifications_complete_builder(client, &args.name)?;
+    mybusinessverifications_locations_verifications_complete_execute(builder)
 }
 
 /// GET v1/locations/{locationsId}/verifications
@@ -527,12 +686,14 @@ pub fn mybusinessverifications_locations_verify(
 pub fn mybusinessverifications_locations_verifications_list_builder(
     client: &SimpleHttpClient,
     parent: &String,
-    pageSize: &Option<i32>,
-    pageToken: &Option<String>,
+    pageSize: &Option<Option<String>>,
+    pageToken: &Option<Option<String>>,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
-    let endpoint_url =
-        format!("https://mybusinessverifications.googleapis.com/v1/locations/{}/verifications",);
+    let endpoint_url = format!(
+        "https://mybusinessverifications.googleapis.com/v1/locations/{}/verifications",
+        parent,
+    );
 
     // Build request
     let mut query_parts = Vec::new();
@@ -668,9 +829,9 @@ pub struct MybusinessverificationsLocationsVerificationsListArgs {
     /// Path parameter: parent
     pub parent: String,
     /// Query parameter: pageSize
-    pub pageSize: Option<i32>,
+    pub pageSize: Option<Option<String>>,
     /// Query parameter: pageToken
-    pub pageToken: Option<String>,
+    pub pageToken: Option<Option<String>>,
 }
 
 /// GET v1/locations/{locationsId}/verifications
@@ -702,7 +863,7 @@ pub fn mybusinessverifications_locations_verifications_list(
     mybusinessverifications_locations_verifications_list_execute(builder)
 }
 
-/// GET v1/verificationTokens:generate
+/// POST v1/verificationTokens:generate
 /// Generate a token for the provided location data to verify the location.
 ///
 /// Returns `ClientRequestBuilder` for customization.
@@ -710,7 +871,6 @@ pub fn mybusinessverifications_locations_verifications_list(
 
 pub fn mybusinessverifications_verification_tokens_generate_builder(
     client: &SimpleHttpClient,
-    body: &GenerateInstantVerificationTokenRequest,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url =
@@ -718,15 +878,13 @@ pub fn mybusinessverifications_verification_tokens_generate_builder(
 
     // Build request
     let builder = client
-        .get(&endpoint_url)
+        .post(&endpoint_url)
         .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
 
-    builder
-        .body_json(body)
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+    Ok(builder)
 }
 
-/// GET v1/verificationTokens:generate
+/// POST v1/verificationTokens:generate
 /// Generate a token for the provided location data to verify the location.
 ///
 /// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
@@ -800,7 +958,7 @@ pub fn mybusinessverifications_verification_tokens_generate_task(
         .map_pending(|_| ApiPending::Sending))
 }
 
-/// GET v1/verificationTokens:generate
+/// POST v1/verificationTokens:generate
 /// Generate a token for the provided location data to verify the location.
 ///
 /// Takes a `ClientRequestBuilder`, builds and executes the request,
@@ -834,14 +992,7 @@ pub fn mybusinessverifications_verification_tokens_generate_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
-/// Arguments for [`mybusinessverifications_verification_tokens_generate`].
-#[derive(Debug, Clone, Serialize, JsonHash)]
-pub struct MybusinessverificationsVerificationTokensGenerateArgs {
-    /// Request body.
-    pub body: GenerateInstantVerificationTokenRequest,
-}
-
-/// GET v1/verificationTokens:generate
+/// POST v1/verificationTokens:generate
 /// Generate a token for the provided location data to verify the location.
 ///
 /// Simplest API - builds and executes the request in one call.
@@ -854,7 +1005,6 @@ pub struct MybusinessverificationsVerificationTokensGenerateArgs {
 
 pub fn mybusinessverifications_verification_tokens_generate(
     client: &SimpleHttpClient,
-    args: &MybusinessverificationsVerificationTokensGenerateArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<GenerateInstantVerificationTokenResponse>, ApiError>,
@@ -863,6 +1013,184 @@ pub fn mybusinessverifications_verification_tokens_generate(
         + 'static,
     ApiError,
 > {
-    let builder = mybusinessverifications_verification_tokens_generate_builder(client, &args.body)?;
+    let builder = mybusinessverifications_verification_tokens_generate_builder(client)?;
     mybusinessverifications_verification_tokens_generate_execute(builder)
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for FetchVerificationOptionsResponse
+// =============================================================================
+
+/// ResourceIdentifier implementation for FetchVerificationOptionsResponse with MybusinessverificationsLocationsFetchVerificationOptionsArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<MybusinessverificationsLocationsFetchVerificationOptionsArgs>
+    for FetchVerificationOptionsResponse
+{
+    fn generate_resource_id(
+        &self,
+        input: &MybusinessverificationsLocationsFetchVerificationOptionsArgs,
+    ) -> String {
+        format!(
+            "gcp::mybusinessverifications::FetchVerificationOptionsResponse/{}",
+            input.location
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::mybusinessverifications::FetchVerificationOptionsResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for VoiceOfMerchantState
+// =============================================================================
+
+/// ResourceIdentifier implementation for VoiceOfMerchantState with MybusinessverificationsLocationsGetVoiceOfMerchantStateArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<MybusinessverificationsLocationsGetVoiceOfMerchantStateArgs>
+    for VoiceOfMerchantState
+{
+    fn generate_resource_id(
+        &self,
+        input: &MybusinessverificationsLocationsGetVoiceOfMerchantStateArgs,
+    ) -> String {
+        format!(
+            "gcp::mybusinessverifications::VoiceOfMerchantState/{}",
+            input.name
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::mybusinessverifications::VoiceOfMerchantState"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for VerifyLocationResponse
+// =============================================================================
+
+/// ResourceIdentifier implementation for VerifyLocationResponse with MybusinessverificationsLocationsVerifyArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<MybusinessverificationsLocationsVerifyArgs> for VerifyLocationResponse {
+    fn generate_resource_id(&self, input: &MybusinessverificationsLocationsVerifyArgs) -> String {
+        format!(
+            "gcp::mybusinessverifications::VerifyLocationResponse/{}",
+            input.name
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::mybusinessverifications::VerifyLocationResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for CompleteVerificationResponse
+// =============================================================================
+
+/// ResourceIdentifier implementation for CompleteVerificationResponse with MybusinessverificationsLocationsVerificationsCompleteArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<MybusinessverificationsLocationsVerificationsCompleteArgs>
+    for CompleteVerificationResponse
+{
+    fn generate_resource_id(
+        &self,
+        input: &MybusinessverificationsLocationsVerificationsCompleteArgs,
+    ) -> String {
+        format!(
+            "gcp::mybusinessverifications::CompleteVerificationResponse/{}",
+            input.name
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::mybusinessverifications::CompleteVerificationResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for ListVerificationsResponse
+// =============================================================================
+
+/// ResourceIdentifier implementation for ListVerificationsResponse with MybusinessverificationsLocationsVerificationsListArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<MybusinessverificationsLocationsVerificationsListArgs>
+    for ListVerificationsResponse
+{
+    fn generate_resource_id(
+        &self,
+        input: &MybusinessverificationsLocationsVerificationsListArgs,
+    ) -> String {
+        format!(
+            "gcp::mybusinessverifications::ListVerificationsResponse/{}",
+            input.parent
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::mybusinessverifications::ListVerificationsResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for GenerateInstantVerificationTokenResponse
+// =============================================================================
+
+/// ResourceIdentifier implementation for GenerateInstantVerificationTokenResponse with MybusinessverificationsVerificationTokensGenerateArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<MybusinessverificationsVerificationTokensGenerateArgs>
+    for GenerateInstantVerificationTokenResponse
+{
+    fn generate_resource_id(
+        &self,
+        input: &MybusinessverificationsVerificationTokensGenerateArgs,
+    ) -> String {
+        "gcp::mybusinessverifications::GenerateInstantVerificationTokenResponse".to_string()
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::mybusinessverifications::GenerateInstantVerificationTokenResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
 }

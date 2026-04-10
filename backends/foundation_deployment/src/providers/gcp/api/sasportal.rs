@@ -12,58 +12,85 @@
 #![cfg(feature = "gcp")]
 
 use crate::providers::gcp::clients::sasportal::{
+    sasportal_customers_get_builder, sasportal_customers_get_task,
+    sasportal_customers_list_builder, sasportal_customers_list_task,
+    sasportal_customers_list_gcp_project_deployments_builder, sasportal_customers_list_gcp_project_deployments_task,
+    sasportal_customers_list_legacy_organizations_builder, sasportal_customers_list_legacy_organizations_task,
     sasportal_customers_migrate_organization_builder, sasportal_customers_migrate_organization_task,
     sasportal_customers_patch_builder, sasportal_customers_patch_task,
     sasportal_customers_provision_deployment_builder, sasportal_customers_provision_deployment_task,
     sasportal_customers_setup_sas_analytics_builder, sasportal_customers_setup_sas_analytics_task,
     sasportal_customers_deployments_create_builder, sasportal_customers_deployments_create_task,
     sasportal_customers_deployments_delete_builder, sasportal_customers_deployments_delete_task,
+    sasportal_customers_deployments_get_builder, sasportal_customers_deployments_get_task,
+    sasportal_customers_deployments_list_builder, sasportal_customers_deployments_list_task,
     sasportal_customers_deployments_move_builder, sasportal_customers_deployments_move_task,
     sasportal_customers_deployments_patch_builder, sasportal_customers_deployments_patch_task,
     sasportal_customers_deployments_devices_create_builder, sasportal_customers_deployments_devices_create_task,
     sasportal_customers_deployments_devices_create_signed_builder, sasportal_customers_deployments_devices_create_signed_task,
+    sasportal_customers_deployments_devices_list_builder, sasportal_customers_deployments_devices_list_task,
     sasportal_customers_devices_create_builder, sasportal_customers_devices_create_task,
     sasportal_customers_devices_create_signed_builder, sasportal_customers_devices_create_signed_task,
     sasportal_customers_devices_delete_builder, sasportal_customers_devices_delete_task,
+    sasportal_customers_devices_get_builder, sasportal_customers_devices_get_task,
+    sasportal_customers_devices_list_builder, sasportal_customers_devices_list_task,
     sasportal_customers_devices_move_builder, sasportal_customers_devices_move_task,
     sasportal_customers_devices_patch_builder, sasportal_customers_devices_patch_task,
     sasportal_customers_devices_sign_device_builder, sasportal_customers_devices_sign_device_task,
     sasportal_customers_devices_update_signed_builder, sasportal_customers_devices_update_signed_task,
     sasportal_customers_nodes_create_builder, sasportal_customers_nodes_create_task,
     sasportal_customers_nodes_delete_builder, sasportal_customers_nodes_delete_task,
+    sasportal_customers_nodes_get_builder, sasportal_customers_nodes_get_task,
+    sasportal_customers_nodes_list_builder, sasportal_customers_nodes_list_task,
     sasportal_customers_nodes_move_builder, sasportal_customers_nodes_move_task,
     sasportal_customers_nodes_patch_builder, sasportal_customers_nodes_patch_task,
     sasportal_customers_nodes_deployments_create_builder, sasportal_customers_nodes_deployments_create_task,
+    sasportal_customers_nodes_deployments_list_builder, sasportal_customers_nodes_deployments_list_task,
     sasportal_customers_nodes_devices_create_builder, sasportal_customers_nodes_devices_create_task,
     sasportal_customers_nodes_devices_create_signed_builder, sasportal_customers_nodes_devices_create_signed_task,
+    sasportal_customers_nodes_devices_list_builder, sasportal_customers_nodes_devices_list_task,
     sasportal_customers_nodes_nodes_create_builder, sasportal_customers_nodes_nodes_create_task,
+    sasportal_customers_nodes_nodes_list_builder, sasportal_customers_nodes_nodes_list_task,
+    sasportal_deployments_get_builder, sasportal_deployments_get_task,
     sasportal_deployments_devices_delete_builder, sasportal_deployments_devices_delete_task,
+    sasportal_deployments_devices_get_builder, sasportal_deployments_devices_get_task,
     sasportal_deployments_devices_move_builder, sasportal_deployments_devices_move_task,
     sasportal_deployments_devices_patch_builder, sasportal_deployments_devices_patch_task,
     sasportal_deployments_devices_sign_device_builder, sasportal_deployments_devices_sign_device_task,
     sasportal_deployments_devices_update_signed_builder, sasportal_deployments_devices_update_signed_task,
     sasportal_installer_generate_secret_builder, sasportal_installer_generate_secret_task,
     sasportal_installer_validate_builder, sasportal_installer_validate_task,
+    sasportal_nodes_get_builder, sasportal_nodes_get_task,
     sasportal_nodes_deployments_delete_builder, sasportal_nodes_deployments_delete_task,
+    sasportal_nodes_deployments_get_builder, sasportal_nodes_deployments_get_task,
+    sasportal_nodes_deployments_list_builder, sasportal_nodes_deployments_list_task,
     sasportal_nodes_deployments_move_builder, sasportal_nodes_deployments_move_task,
     sasportal_nodes_deployments_patch_builder, sasportal_nodes_deployments_patch_task,
     sasportal_nodes_deployments_devices_create_builder, sasportal_nodes_deployments_devices_create_task,
     sasportal_nodes_deployments_devices_create_signed_builder, sasportal_nodes_deployments_devices_create_signed_task,
+    sasportal_nodes_deployments_devices_list_builder, sasportal_nodes_deployments_devices_list_task,
     sasportal_nodes_devices_create_builder, sasportal_nodes_devices_create_task,
     sasportal_nodes_devices_create_signed_builder, sasportal_nodes_devices_create_signed_task,
     sasportal_nodes_devices_delete_builder, sasportal_nodes_devices_delete_task,
+    sasportal_nodes_devices_get_builder, sasportal_nodes_devices_get_task,
+    sasportal_nodes_devices_list_builder, sasportal_nodes_devices_list_task,
     sasportal_nodes_devices_move_builder, sasportal_nodes_devices_move_task,
     sasportal_nodes_devices_patch_builder, sasportal_nodes_devices_patch_task,
     sasportal_nodes_devices_sign_device_builder, sasportal_nodes_devices_sign_device_task,
     sasportal_nodes_devices_update_signed_builder, sasportal_nodes_devices_update_signed_task,
     sasportal_nodes_nodes_create_builder, sasportal_nodes_nodes_create_task,
     sasportal_nodes_nodes_delete_builder, sasportal_nodes_nodes_delete_task,
+    sasportal_nodes_nodes_get_builder, sasportal_nodes_nodes_get_task,
+    sasportal_nodes_nodes_list_builder, sasportal_nodes_nodes_list_task,
     sasportal_nodes_nodes_move_builder, sasportal_nodes_nodes_move_task,
     sasportal_nodes_nodes_patch_builder, sasportal_nodes_nodes_patch_task,
     sasportal_nodes_nodes_deployments_create_builder, sasportal_nodes_nodes_deployments_create_task,
+    sasportal_nodes_nodes_deployments_list_builder, sasportal_nodes_nodes_deployments_list_task,
     sasportal_nodes_nodes_devices_create_builder, sasportal_nodes_nodes_devices_create_task,
     sasportal_nodes_nodes_devices_create_signed_builder, sasportal_nodes_nodes_devices_create_signed_task,
+    sasportal_nodes_nodes_devices_list_builder, sasportal_nodes_nodes_devices_list_task,
     sasportal_nodes_nodes_nodes_create_builder, sasportal_nodes_nodes_nodes_create_task,
+    sasportal_nodes_nodes_nodes_list_builder, sasportal_nodes_nodes_nodes_list_task,
     sasportal_policies_get_builder, sasportal_policies_get_task,
     sasportal_policies_set_builder, sasportal_policies_set_task,
     sasportal_policies_test_builder, sasportal_policies_test_task,
@@ -74,6 +101,12 @@ use crate::providers::gcp::clients::sasportal::SasPortalDeployment;
 use crate::providers::gcp::clients::sasportal::SasPortalDevice;
 use crate::providers::gcp::clients::sasportal::SasPortalEmpty;
 use crate::providers::gcp::clients::sasportal::SasPortalGenerateSecretResponse;
+use crate::providers::gcp::clients::sasportal::SasPortalListCustomersResponse;
+use crate::providers::gcp::clients::sasportal::SasPortalListDeploymentsResponse;
+use crate::providers::gcp::clients::sasportal::SasPortalListDevicesResponse;
+use crate::providers::gcp::clients::sasportal::SasPortalListGcpProjectDeploymentsResponse;
+use crate::providers::gcp::clients::sasportal::SasPortalListLegacyOrganizationsResponse;
+use crate::providers::gcp::clients::sasportal::SasPortalListNodesResponse;
 use crate::providers::gcp::clients::sasportal::SasPortalNode;
 use crate::providers::gcp::clients::sasportal::SasPortalOperation;
 use crate::providers::gcp::clients::sasportal::SasPortalPolicy;
@@ -84,53 +117,80 @@ use crate::providers::gcp::clients::sasportal::SasportalCustomersDeploymentsCrea
 use crate::providers::gcp::clients::sasportal::SasportalCustomersDeploymentsDeleteArgs;
 use crate::providers::gcp::clients::sasportal::SasportalCustomersDeploymentsDevicesCreateArgs;
 use crate::providers::gcp::clients::sasportal::SasportalCustomersDeploymentsDevicesCreateSignedArgs;
+use crate::providers::gcp::clients::sasportal::SasportalCustomersDeploymentsDevicesListArgs;
+use crate::providers::gcp::clients::sasportal::SasportalCustomersDeploymentsGetArgs;
+use crate::providers::gcp::clients::sasportal::SasportalCustomersDeploymentsListArgs;
 use crate::providers::gcp::clients::sasportal::SasportalCustomersDeploymentsMoveArgs;
 use crate::providers::gcp::clients::sasportal::SasportalCustomersDeploymentsPatchArgs;
 use crate::providers::gcp::clients::sasportal::SasportalCustomersDevicesCreateArgs;
 use crate::providers::gcp::clients::sasportal::SasportalCustomersDevicesCreateSignedArgs;
 use crate::providers::gcp::clients::sasportal::SasportalCustomersDevicesDeleteArgs;
+use crate::providers::gcp::clients::sasportal::SasportalCustomersDevicesGetArgs;
+use crate::providers::gcp::clients::sasportal::SasportalCustomersDevicesListArgs;
 use crate::providers::gcp::clients::sasportal::SasportalCustomersDevicesMoveArgs;
 use crate::providers::gcp::clients::sasportal::SasportalCustomersDevicesPatchArgs;
 use crate::providers::gcp::clients::sasportal::SasportalCustomersDevicesSignDeviceArgs;
 use crate::providers::gcp::clients::sasportal::SasportalCustomersDevicesUpdateSignedArgs;
+use crate::providers::gcp::clients::sasportal::SasportalCustomersGetArgs;
+use crate::providers::gcp::clients::sasportal::SasportalCustomersListArgs;
+use crate::providers::gcp::clients::sasportal::SasportalCustomersListGcpProjectDeploymentsArgs;
+use crate::providers::gcp::clients::sasportal::SasportalCustomersListLegacyOrganizationsArgs;
 use crate::providers::gcp::clients::sasportal::SasportalCustomersMigrateOrganizationArgs;
 use crate::providers::gcp::clients::sasportal::SasportalCustomersNodesCreateArgs;
 use crate::providers::gcp::clients::sasportal::SasportalCustomersNodesDeleteArgs;
 use crate::providers::gcp::clients::sasportal::SasportalCustomersNodesDeploymentsCreateArgs;
+use crate::providers::gcp::clients::sasportal::SasportalCustomersNodesDeploymentsListArgs;
 use crate::providers::gcp::clients::sasportal::SasportalCustomersNodesDevicesCreateArgs;
 use crate::providers::gcp::clients::sasportal::SasportalCustomersNodesDevicesCreateSignedArgs;
+use crate::providers::gcp::clients::sasportal::SasportalCustomersNodesDevicesListArgs;
+use crate::providers::gcp::clients::sasportal::SasportalCustomersNodesGetArgs;
+use crate::providers::gcp::clients::sasportal::SasportalCustomersNodesListArgs;
 use crate::providers::gcp::clients::sasportal::SasportalCustomersNodesMoveArgs;
 use crate::providers::gcp::clients::sasportal::SasportalCustomersNodesNodesCreateArgs;
+use crate::providers::gcp::clients::sasportal::SasportalCustomersNodesNodesListArgs;
 use crate::providers::gcp::clients::sasportal::SasportalCustomersNodesPatchArgs;
 use crate::providers::gcp::clients::sasportal::SasportalCustomersPatchArgs;
 use crate::providers::gcp::clients::sasportal::SasportalCustomersProvisionDeploymentArgs;
 use crate::providers::gcp::clients::sasportal::SasportalCustomersSetupSasAnalyticsArgs;
 use crate::providers::gcp::clients::sasportal::SasportalDeploymentsDevicesDeleteArgs;
+use crate::providers::gcp::clients::sasportal::SasportalDeploymentsDevicesGetArgs;
 use crate::providers::gcp::clients::sasportal::SasportalDeploymentsDevicesMoveArgs;
 use crate::providers::gcp::clients::sasportal::SasportalDeploymentsDevicesPatchArgs;
 use crate::providers::gcp::clients::sasportal::SasportalDeploymentsDevicesSignDeviceArgs;
 use crate::providers::gcp::clients::sasportal::SasportalDeploymentsDevicesUpdateSignedArgs;
+use crate::providers::gcp::clients::sasportal::SasportalDeploymentsGetArgs;
 use crate::providers::gcp::clients::sasportal::SasportalInstallerGenerateSecretArgs;
 use crate::providers::gcp::clients::sasportal::SasportalInstallerValidateArgs;
 use crate::providers::gcp::clients::sasportal::SasportalNodesDeploymentsDeleteArgs;
 use crate::providers::gcp::clients::sasportal::SasportalNodesDeploymentsDevicesCreateArgs;
 use crate::providers::gcp::clients::sasportal::SasportalNodesDeploymentsDevicesCreateSignedArgs;
+use crate::providers::gcp::clients::sasportal::SasportalNodesDeploymentsDevicesListArgs;
+use crate::providers::gcp::clients::sasportal::SasportalNodesDeploymentsGetArgs;
+use crate::providers::gcp::clients::sasportal::SasportalNodesDeploymentsListArgs;
 use crate::providers::gcp::clients::sasportal::SasportalNodesDeploymentsMoveArgs;
 use crate::providers::gcp::clients::sasportal::SasportalNodesDeploymentsPatchArgs;
 use crate::providers::gcp::clients::sasportal::SasportalNodesDevicesCreateArgs;
 use crate::providers::gcp::clients::sasportal::SasportalNodesDevicesCreateSignedArgs;
 use crate::providers::gcp::clients::sasportal::SasportalNodesDevicesDeleteArgs;
+use crate::providers::gcp::clients::sasportal::SasportalNodesDevicesGetArgs;
+use crate::providers::gcp::clients::sasportal::SasportalNodesDevicesListArgs;
 use crate::providers::gcp::clients::sasportal::SasportalNodesDevicesMoveArgs;
 use crate::providers::gcp::clients::sasportal::SasportalNodesDevicesPatchArgs;
 use crate::providers::gcp::clients::sasportal::SasportalNodesDevicesSignDeviceArgs;
 use crate::providers::gcp::clients::sasportal::SasportalNodesDevicesUpdateSignedArgs;
+use crate::providers::gcp::clients::sasportal::SasportalNodesGetArgs;
 use crate::providers::gcp::clients::sasportal::SasportalNodesNodesCreateArgs;
 use crate::providers::gcp::clients::sasportal::SasportalNodesNodesDeleteArgs;
 use crate::providers::gcp::clients::sasportal::SasportalNodesNodesDeploymentsCreateArgs;
+use crate::providers::gcp::clients::sasportal::SasportalNodesNodesDeploymentsListArgs;
 use crate::providers::gcp::clients::sasportal::SasportalNodesNodesDevicesCreateArgs;
 use crate::providers::gcp::clients::sasportal::SasportalNodesNodesDevicesCreateSignedArgs;
+use crate::providers::gcp::clients::sasportal::SasportalNodesNodesDevicesListArgs;
+use crate::providers::gcp::clients::sasportal::SasportalNodesNodesGetArgs;
+use crate::providers::gcp::clients::sasportal::SasportalNodesNodesListArgs;
 use crate::providers::gcp::clients::sasportal::SasportalNodesNodesMoveArgs;
 use crate::providers::gcp::clients::sasportal::SasportalNodesNodesNodesCreateArgs;
+use crate::providers::gcp::clients::sasportal::SasportalNodesNodesNodesListArgs;
 use crate::providers::gcp::clients::sasportal::SasportalNodesNodesPatchArgs;
 use crate::providers::gcp::clients::sasportal::SasportalPoliciesGetArgs;
 use crate::providers::gcp::clients::sasportal::SasportalPoliciesSetArgs;
@@ -174,6 +234,157 @@ where
             client,
             http_client: Arc::new(http_client),
         }
+    }
+
+    /// Sasportal customers get.
+    ///
+    /// Read-only operation - no state tracking.
+    ///
+    /// # Arguments
+    ///
+    /// * `args` - Request arguments
+    ///
+    /// # Returns
+    ///
+    /// StreamIterator yielding the SasPortalCustomer result.
+    ///
+    /// # Errors
+    ///
+    /// Returns ProviderError if the API request fails.
+    pub fn sasportal_customers_get(
+        &self,
+        args: &SasportalCustomersGetArgs,
+    ) -> Result<
+        impl StreamIterator<
+            D = Result<SasPortalCustomer, ProviderError<ApiError>>,
+            P = crate::providers::gcp::clients::types::ApiPending,
+        > + Send
+        + 'static,
+        ProviderError<ApiError>,
+    > {
+        let builder = sasportal_customers_get_builder(
+            &self.http_client,
+            &args.name,
+        )
+        .map_err(ProviderError::Api)?;
+
+        let task = sasportal_customers_get_task(builder)
+            .map_err(ProviderError::Api)?;
+
+        execute(task, None).map_err(|e: String| ProviderError::ExecuteFailed(e.to_string()))
+    }
+
+    /// Sasportal customers list.
+    ///
+    /// Read-only operation - no state tracking.
+    ///
+    /// # Arguments
+    ///
+    /// * `args` - Request arguments
+    ///
+    /// # Returns
+    ///
+    /// StreamIterator yielding the SasPortalListCustomersResponse result.
+    ///
+    /// # Errors
+    ///
+    /// Returns ProviderError if the API request fails.
+    pub fn sasportal_customers_list(
+        &self,
+        args: &SasportalCustomersListArgs,
+    ) -> Result<
+        impl StreamIterator<
+            D = Result<SasPortalListCustomersResponse, ProviderError<ApiError>>,
+            P = crate::providers::gcp::clients::types::ApiPending,
+        > + Send
+        + 'static,
+        ProviderError<ApiError>,
+    > {
+        let builder = sasportal_customers_list_builder(
+            &self.http_client,
+            &args.pageSize,
+            &args.pageToken,
+        )
+        .map_err(ProviderError::Api)?;
+
+        let task = sasportal_customers_list_task(builder)
+            .map_err(ProviderError::Api)?;
+
+        execute(task, None).map_err(|e: String| ProviderError::ExecuteFailed(e.to_string()))
+    }
+
+    /// Sasportal customers list gcp project deployments.
+    ///
+    /// Read-only operation - no state tracking.
+    ///
+    /// # Arguments
+    ///
+    /// * `args` - Request arguments
+    ///
+    /// # Returns
+    ///
+    /// StreamIterator yielding the SasPortalListGcpProjectDeploymentsResponse result.
+    ///
+    /// # Errors
+    ///
+    /// Returns ProviderError if the API request fails.
+    pub fn sasportal_customers_list_gcp_project_deployments(
+        &self,
+        args: &SasportalCustomersListGcpProjectDeploymentsArgs,
+    ) -> Result<
+        impl StreamIterator<
+            D = Result<SasPortalListGcpProjectDeploymentsResponse, ProviderError<ApiError>>,
+            P = crate::providers::gcp::clients::types::ApiPending,
+        > + Send
+        + 'static,
+        ProviderError<ApiError>,
+    > {
+        let builder = sasportal_customers_list_gcp_project_deployments_builder(
+            &self.http_client,
+        )
+        .map_err(ProviderError::Api)?;
+
+        let task = sasportal_customers_list_gcp_project_deployments_task(builder)
+            .map_err(ProviderError::Api)?;
+
+        execute(task, None).map_err(|e: String| ProviderError::ExecuteFailed(e.to_string()))
+    }
+
+    /// Sasportal customers list legacy organizations.
+    ///
+    /// Read-only operation - no state tracking.
+    ///
+    /// # Arguments
+    ///
+    /// * `args` - Request arguments
+    ///
+    /// # Returns
+    ///
+    /// StreamIterator yielding the SasPortalListLegacyOrganizationsResponse result.
+    ///
+    /// # Errors
+    ///
+    /// Returns ProviderError if the API request fails.
+    pub fn sasportal_customers_list_legacy_organizations(
+        &self,
+        args: &SasportalCustomersListLegacyOrganizationsArgs,
+    ) -> Result<
+        impl StreamIterator<
+            D = Result<SasPortalListLegacyOrganizationsResponse, ProviderError<ApiError>>,
+            P = crate::providers::gcp::clients::types::ApiPending,
+        > + Send
+        + 'static,
+        ProviderError<ApiError>,
+    > {
+        let builder = sasportal_customers_list_legacy_organizations_builder(
+            &self.http_client,
+        )
+        .map_err(ProviderError::Api)?;
+
+        let task = sasportal_customers_list_legacy_organizations_task(builder)
+            .map_err(ProviderError::Api)?;
+
+        execute(task, None).map_err(|e: String| ProviderError::ExecuteFailed(e.to_string()))
     }
 
     /// Sasportal customers migrate organization.
@@ -432,6 +643,85 @@ where
         execute(store_task, None).map_err(|e: String| ProviderError::ExecuteFailed(e.to_string()))
     }
 
+    /// Sasportal customers deployments get.
+    ///
+    /// Read-only operation - no state tracking.
+    ///
+    /// # Arguments
+    ///
+    /// * `args` - Request arguments
+    ///
+    /// # Returns
+    ///
+    /// StreamIterator yielding the SasPortalDeployment result.
+    ///
+    /// # Errors
+    ///
+    /// Returns ProviderError if the API request fails.
+    pub fn sasportal_customers_deployments_get(
+        &self,
+        args: &SasportalCustomersDeploymentsGetArgs,
+    ) -> Result<
+        impl StreamIterator<
+            D = Result<SasPortalDeployment, ProviderError<ApiError>>,
+            P = crate::providers::gcp::clients::types::ApiPending,
+        > + Send
+        + 'static,
+        ProviderError<ApiError>,
+    > {
+        let builder = sasportal_customers_deployments_get_builder(
+            &self.http_client,
+            &args.name,
+        )
+        .map_err(ProviderError::Api)?;
+
+        let task = sasportal_customers_deployments_get_task(builder)
+            .map_err(ProviderError::Api)?;
+
+        execute(task, None).map_err(|e: String| ProviderError::ExecuteFailed(e.to_string()))
+    }
+
+    /// Sasportal customers deployments list.
+    ///
+    /// Read-only operation - no state tracking.
+    ///
+    /// # Arguments
+    ///
+    /// * `args` - Request arguments
+    ///
+    /// # Returns
+    ///
+    /// StreamIterator yielding the SasPortalListDeploymentsResponse result.
+    ///
+    /// # Errors
+    ///
+    /// Returns ProviderError if the API request fails.
+    pub fn sasportal_customers_deployments_list(
+        &self,
+        args: &SasportalCustomersDeploymentsListArgs,
+    ) -> Result<
+        impl StreamIterator<
+            D = Result<SasPortalListDeploymentsResponse, ProviderError<ApiError>>,
+            P = crate::providers::gcp::clients::types::ApiPending,
+        > + Send
+        + 'static,
+        ProviderError<ApiError>,
+    > {
+        let builder = sasportal_customers_deployments_list_builder(
+            &self.http_client,
+            &args.parent,
+            &args.filter,
+            &args.pageSize,
+            &args.pageToken,
+        )
+        .map_err(ProviderError::Api)?;
+
+        let task = sasportal_customers_deployments_list_task(builder)
+            .map_err(ProviderError::Api)?;
+
+        execute(task, None).map_err(|e: String| ProviderError::ExecuteFailed(e.to_string()))
+    }
+
     /// Sasportal customers deployments move.
     ///
     /// Automatically stores the result in the state store on success.
@@ -605,6 +895,47 @@ where
         execute(store_task, None).map_err(|e: String| ProviderError::ExecuteFailed(e.to_string()))
     }
 
+    /// Sasportal customers deployments devices list.
+    ///
+    /// Read-only operation - no state tracking.
+    ///
+    /// # Arguments
+    ///
+    /// * `args` - Request arguments
+    ///
+    /// # Returns
+    ///
+    /// StreamIterator yielding the SasPortalListDevicesResponse result.
+    ///
+    /// # Errors
+    ///
+    /// Returns ProviderError if the API request fails.
+    pub fn sasportal_customers_deployments_devices_list(
+        &self,
+        args: &SasportalCustomersDeploymentsDevicesListArgs,
+    ) -> Result<
+        impl StreamIterator<
+            D = Result<SasPortalListDevicesResponse, ProviderError<ApiError>>,
+            P = crate::providers::gcp::clients::types::ApiPending,
+        > + Send
+        + 'static,
+        ProviderError<ApiError>,
+    > {
+        let builder = sasportal_customers_deployments_devices_list_builder(
+            &self.http_client,
+            &args.parent,
+            &args.filter,
+            &args.pageSize,
+            &args.pageToken,
+        )
+        .map_err(ProviderError::Api)?;
+
+        let task = sasportal_customers_deployments_devices_list_task(builder)
+            .map_err(ProviderError::Api)?;
+
+        execute(task, None).map_err(|e: String| ProviderError::ExecuteFailed(e.to_string()))
+    }
+
     /// Sasportal customers devices create.
     ///
     /// Automatically stores the result in the state store on success.
@@ -732,6 +1063,85 @@ where
         let store_task = StoreStateIdentifierTask::new(task, state_store, args, stage);
 
         execute(store_task, None).map_err(|e: String| ProviderError::ExecuteFailed(e.to_string()))
+    }
+
+    /// Sasportal customers devices get.
+    ///
+    /// Read-only operation - no state tracking.
+    ///
+    /// # Arguments
+    ///
+    /// * `args` - Request arguments
+    ///
+    /// # Returns
+    ///
+    /// StreamIterator yielding the SasPortalDevice result.
+    ///
+    /// # Errors
+    ///
+    /// Returns ProviderError if the API request fails.
+    pub fn sasportal_customers_devices_get(
+        &self,
+        args: &SasportalCustomersDevicesGetArgs,
+    ) -> Result<
+        impl StreamIterator<
+            D = Result<SasPortalDevice, ProviderError<ApiError>>,
+            P = crate::providers::gcp::clients::types::ApiPending,
+        > + Send
+        + 'static,
+        ProviderError<ApiError>,
+    > {
+        let builder = sasportal_customers_devices_get_builder(
+            &self.http_client,
+            &args.name,
+        )
+        .map_err(ProviderError::Api)?;
+
+        let task = sasportal_customers_devices_get_task(builder)
+            .map_err(ProviderError::Api)?;
+
+        execute(task, None).map_err(|e: String| ProviderError::ExecuteFailed(e.to_string()))
+    }
+
+    /// Sasportal customers devices list.
+    ///
+    /// Read-only operation - no state tracking.
+    ///
+    /// # Arguments
+    ///
+    /// * `args` - Request arguments
+    ///
+    /// # Returns
+    ///
+    /// StreamIterator yielding the SasPortalListDevicesResponse result.
+    ///
+    /// # Errors
+    ///
+    /// Returns ProviderError if the API request fails.
+    pub fn sasportal_customers_devices_list(
+        &self,
+        args: &SasportalCustomersDevicesListArgs,
+    ) -> Result<
+        impl StreamIterator<
+            D = Result<SasPortalListDevicesResponse, ProviderError<ApiError>>,
+            P = crate::providers::gcp::clients::types::ApiPending,
+        > + Send
+        + 'static,
+        ProviderError<ApiError>,
+    > {
+        let builder = sasportal_customers_devices_list_builder(
+            &self.http_client,
+            &args.parent,
+            &args.filter,
+            &args.pageSize,
+            &args.pageToken,
+        )
+        .map_err(ProviderError::Api)?;
+
+        let task = sasportal_customers_devices_list_task(builder)
+            .map_err(ProviderError::Api)?;
+
+        execute(task, None).map_err(|e: String| ProviderError::ExecuteFailed(e.to_string()))
     }
 
     /// Sasportal customers devices move.
@@ -993,6 +1403,85 @@ where
         execute(store_task, None).map_err(|e: String| ProviderError::ExecuteFailed(e.to_string()))
     }
 
+    /// Sasportal customers nodes get.
+    ///
+    /// Read-only operation - no state tracking.
+    ///
+    /// # Arguments
+    ///
+    /// * `args` - Request arguments
+    ///
+    /// # Returns
+    ///
+    /// StreamIterator yielding the SasPortalNode result.
+    ///
+    /// # Errors
+    ///
+    /// Returns ProviderError if the API request fails.
+    pub fn sasportal_customers_nodes_get(
+        &self,
+        args: &SasportalCustomersNodesGetArgs,
+    ) -> Result<
+        impl StreamIterator<
+            D = Result<SasPortalNode, ProviderError<ApiError>>,
+            P = crate::providers::gcp::clients::types::ApiPending,
+        > + Send
+        + 'static,
+        ProviderError<ApiError>,
+    > {
+        let builder = sasportal_customers_nodes_get_builder(
+            &self.http_client,
+            &args.name,
+        )
+        .map_err(ProviderError::Api)?;
+
+        let task = sasportal_customers_nodes_get_task(builder)
+            .map_err(ProviderError::Api)?;
+
+        execute(task, None).map_err(|e: String| ProviderError::ExecuteFailed(e.to_string()))
+    }
+
+    /// Sasportal customers nodes list.
+    ///
+    /// Read-only operation - no state tracking.
+    ///
+    /// # Arguments
+    ///
+    /// * `args` - Request arguments
+    ///
+    /// # Returns
+    ///
+    /// StreamIterator yielding the SasPortalListNodesResponse result.
+    ///
+    /// # Errors
+    ///
+    /// Returns ProviderError if the API request fails.
+    pub fn sasportal_customers_nodes_list(
+        &self,
+        args: &SasportalCustomersNodesListArgs,
+    ) -> Result<
+        impl StreamIterator<
+            D = Result<SasPortalListNodesResponse, ProviderError<ApiError>>,
+            P = crate::providers::gcp::clients::types::ApiPending,
+        > + Send
+        + 'static,
+        ProviderError<ApiError>,
+    > {
+        let builder = sasportal_customers_nodes_list_builder(
+            &self.http_client,
+            &args.parent,
+            &args.filter,
+            &args.pageSize,
+            &args.pageToken,
+        )
+        .map_err(ProviderError::Api)?;
+
+        let task = sasportal_customers_nodes_list_task(builder)
+            .map_err(ProviderError::Api)?;
+
+        execute(task, None).map_err(|e: String| ProviderError::ExecuteFailed(e.to_string()))
+    }
+
     /// Sasportal customers nodes move.
     ///
     /// Automatically stores the result in the state store on success.
@@ -1123,6 +1612,47 @@ where
         execute(store_task, None).map_err(|e: String| ProviderError::ExecuteFailed(e.to_string()))
     }
 
+    /// Sasportal customers nodes deployments list.
+    ///
+    /// Read-only operation - no state tracking.
+    ///
+    /// # Arguments
+    ///
+    /// * `args` - Request arguments
+    ///
+    /// # Returns
+    ///
+    /// StreamIterator yielding the SasPortalListDeploymentsResponse result.
+    ///
+    /// # Errors
+    ///
+    /// Returns ProviderError if the API request fails.
+    pub fn sasportal_customers_nodes_deployments_list(
+        &self,
+        args: &SasportalCustomersNodesDeploymentsListArgs,
+    ) -> Result<
+        impl StreamIterator<
+            D = Result<SasPortalListDeploymentsResponse, ProviderError<ApiError>>,
+            P = crate::providers::gcp::clients::types::ApiPending,
+        > + Send
+        + 'static,
+        ProviderError<ApiError>,
+    > {
+        let builder = sasportal_customers_nodes_deployments_list_builder(
+            &self.http_client,
+            &args.parent,
+            &args.filter,
+            &args.pageSize,
+            &args.pageToken,
+        )
+        .map_err(ProviderError::Api)?;
+
+        let task = sasportal_customers_nodes_deployments_list_task(builder)
+            .map_err(ProviderError::Api)?;
+
+        execute(task, None).map_err(|e: String| ProviderError::ExecuteFailed(e.to_string()))
+    }
+
     /// Sasportal customers nodes devices create.
     ///
     /// Automatically stores the result in the state store on success.
@@ -1209,6 +1739,47 @@ where
         execute(store_task, None).map_err(|e: String| ProviderError::ExecuteFailed(e.to_string()))
     }
 
+    /// Sasportal customers nodes devices list.
+    ///
+    /// Read-only operation - no state tracking.
+    ///
+    /// # Arguments
+    ///
+    /// * `args` - Request arguments
+    ///
+    /// # Returns
+    ///
+    /// StreamIterator yielding the SasPortalListDevicesResponse result.
+    ///
+    /// # Errors
+    ///
+    /// Returns ProviderError if the API request fails.
+    pub fn sasportal_customers_nodes_devices_list(
+        &self,
+        args: &SasportalCustomersNodesDevicesListArgs,
+    ) -> Result<
+        impl StreamIterator<
+            D = Result<SasPortalListDevicesResponse, ProviderError<ApiError>>,
+            P = crate::providers::gcp::clients::types::ApiPending,
+        > + Send
+        + 'static,
+        ProviderError<ApiError>,
+    > {
+        let builder = sasportal_customers_nodes_devices_list_builder(
+            &self.http_client,
+            &args.parent,
+            &args.filter,
+            &args.pageSize,
+            &args.pageToken,
+        )
+        .map_err(ProviderError::Api)?;
+
+        let task = sasportal_customers_nodes_devices_list_task(builder)
+            .map_err(ProviderError::Api)?;
+
+        execute(task, None).map_err(|e: String| ProviderError::ExecuteFailed(e.to_string()))
+    }
+
     /// Sasportal customers nodes nodes create.
     ///
     /// Automatically stores the result in the state store on success.
@@ -1252,6 +1823,85 @@ where
         execute(store_task, None).map_err(|e: String| ProviderError::ExecuteFailed(e.to_string()))
     }
 
+    /// Sasportal customers nodes nodes list.
+    ///
+    /// Read-only operation - no state tracking.
+    ///
+    /// # Arguments
+    ///
+    /// * `args` - Request arguments
+    ///
+    /// # Returns
+    ///
+    /// StreamIterator yielding the SasPortalListNodesResponse result.
+    ///
+    /// # Errors
+    ///
+    /// Returns ProviderError if the API request fails.
+    pub fn sasportal_customers_nodes_nodes_list(
+        &self,
+        args: &SasportalCustomersNodesNodesListArgs,
+    ) -> Result<
+        impl StreamIterator<
+            D = Result<SasPortalListNodesResponse, ProviderError<ApiError>>,
+            P = crate::providers::gcp::clients::types::ApiPending,
+        > + Send
+        + 'static,
+        ProviderError<ApiError>,
+    > {
+        let builder = sasportal_customers_nodes_nodes_list_builder(
+            &self.http_client,
+            &args.parent,
+            &args.filter,
+            &args.pageSize,
+            &args.pageToken,
+        )
+        .map_err(ProviderError::Api)?;
+
+        let task = sasportal_customers_nodes_nodes_list_task(builder)
+            .map_err(ProviderError::Api)?;
+
+        execute(task, None).map_err(|e: String| ProviderError::ExecuteFailed(e.to_string()))
+    }
+
+    /// Sasportal deployments get.
+    ///
+    /// Read-only operation - no state tracking.
+    ///
+    /// # Arguments
+    ///
+    /// * `args` - Request arguments
+    ///
+    /// # Returns
+    ///
+    /// StreamIterator yielding the SasPortalDeployment result.
+    ///
+    /// # Errors
+    ///
+    /// Returns ProviderError if the API request fails.
+    pub fn sasportal_deployments_get(
+        &self,
+        args: &SasportalDeploymentsGetArgs,
+    ) -> Result<
+        impl StreamIterator<
+            D = Result<SasPortalDeployment, ProviderError<ApiError>>,
+            P = crate::providers::gcp::clients::types::ApiPending,
+        > + Send
+        + 'static,
+        ProviderError<ApiError>,
+    > {
+        let builder = sasportal_deployments_get_builder(
+            &self.http_client,
+            &args.name,
+        )
+        .map_err(ProviderError::Api)?;
+
+        let task = sasportal_deployments_get_task(builder)
+            .map_err(ProviderError::Api)?;
+
+        execute(task, None).map_err(|e: String| ProviderError::ExecuteFailed(e.to_string()))
+    }
+
     /// Sasportal deployments devices delete.
     ///
     /// Automatically stores the result in the state store on success.
@@ -1293,6 +1943,44 @@ where
         let store_task = StoreStateIdentifierTask::new(task, state_store, args, stage);
 
         execute(store_task, None).map_err(|e: String| ProviderError::ExecuteFailed(e.to_string()))
+    }
+
+    /// Sasportal deployments devices get.
+    ///
+    /// Read-only operation - no state tracking.
+    ///
+    /// # Arguments
+    ///
+    /// * `args` - Request arguments
+    ///
+    /// # Returns
+    ///
+    /// StreamIterator yielding the SasPortalDevice result.
+    ///
+    /// # Errors
+    ///
+    /// Returns ProviderError if the API request fails.
+    pub fn sasportal_deployments_devices_get(
+        &self,
+        args: &SasportalDeploymentsDevicesGetArgs,
+    ) -> Result<
+        impl StreamIterator<
+            D = Result<SasPortalDevice, ProviderError<ApiError>>,
+            P = crate::providers::gcp::clients::types::ApiPending,
+        > + Send
+        + 'static,
+        ProviderError<ApiError>,
+    > {
+        let builder = sasportal_deployments_devices_get_builder(
+            &self.http_client,
+            &args.name,
+        )
+        .map_err(ProviderError::Api)?;
+
+        let task = sasportal_deployments_devices_get_task(builder)
+            .map_err(ProviderError::Api)?;
+
+        execute(task, None).map_err(|e: String| ProviderError::ExecuteFailed(e.to_string()))
     }
 
     /// Sasportal deployments devices move.
@@ -1512,7 +2200,7 @@ where
 
     /// Sasportal installer validate.
     ///
-    /// Automatically stores the result in the state store on success.
+    /// Read-only operation - no state tracking.
     ///
     /// # Arguments
     ///
@@ -1524,7 +2212,7 @@ where
     ///
     /// # Errors
     ///
-    /// Returns ProviderError if the API request or state storage fails.
+    /// Returns ProviderError if the API request fails.
     pub fn sasportal_installer_validate(
         &self,
         args: &SasportalInstallerValidateArgs,
@@ -1544,12 +2232,45 @@ where
         let task = sasportal_installer_validate_task(builder)
             .map_err(ProviderError::Api)?;
 
-        let state_store = self.client.state_store.clone();
-        let stage = Some(self.client.stage.clone());
+        execute(task, None).map_err(|e: String| ProviderError::ExecuteFailed(e.to_string()))
+    }
 
-        let store_task = StoreStateIdentifierTask::new(task, state_store, args, stage);
+    /// Sasportal nodes get.
+    ///
+    /// Read-only operation - no state tracking.
+    ///
+    /// # Arguments
+    ///
+    /// * `args` - Request arguments
+    ///
+    /// # Returns
+    ///
+    /// StreamIterator yielding the SasPortalNode result.
+    ///
+    /// # Errors
+    ///
+    /// Returns ProviderError if the API request fails.
+    pub fn sasportal_nodes_get(
+        &self,
+        args: &SasportalNodesGetArgs,
+    ) -> Result<
+        impl StreamIterator<
+            D = Result<SasPortalNode, ProviderError<ApiError>>,
+            P = crate::providers::gcp::clients::types::ApiPending,
+        > + Send
+        + 'static,
+        ProviderError<ApiError>,
+    > {
+        let builder = sasportal_nodes_get_builder(
+            &self.http_client,
+            &args.name,
+        )
+        .map_err(ProviderError::Api)?;
 
-        execute(store_task, None).map_err(|e: String| ProviderError::ExecuteFailed(e.to_string()))
+        let task = sasportal_nodes_get_task(builder)
+            .map_err(ProviderError::Api)?;
+
+        execute(task, None).map_err(|e: String| ProviderError::ExecuteFailed(e.to_string()))
     }
 
     /// Sasportal nodes deployments delete.
@@ -1593,6 +2314,85 @@ where
         let store_task = StoreStateIdentifierTask::new(task, state_store, args, stage);
 
         execute(store_task, None).map_err(|e: String| ProviderError::ExecuteFailed(e.to_string()))
+    }
+
+    /// Sasportal nodes deployments get.
+    ///
+    /// Read-only operation - no state tracking.
+    ///
+    /// # Arguments
+    ///
+    /// * `args` - Request arguments
+    ///
+    /// # Returns
+    ///
+    /// StreamIterator yielding the SasPortalDeployment result.
+    ///
+    /// # Errors
+    ///
+    /// Returns ProviderError if the API request fails.
+    pub fn sasportal_nodes_deployments_get(
+        &self,
+        args: &SasportalNodesDeploymentsGetArgs,
+    ) -> Result<
+        impl StreamIterator<
+            D = Result<SasPortalDeployment, ProviderError<ApiError>>,
+            P = crate::providers::gcp::clients::types::ApiPending,
+        > + Send
+        + 'static,
+        ProviderError<ApiError>,
+    > {
+        let builder = sasportal_nodes_deployments_get_builder(
+            &self.http_client,
+            &args.name,
+        )
+        .map_err(ProviderError::Api)?;
+
+        let task = sasportal_nodes_deployments_get_task(builder)
+            .map_err(ProviderError::Api)?;
+
+        execute(task, None).map_err(|e: String| ProviderError::ExecuteFailed(e.to_string()))
+    }
+
+    /// Sasportal nodes deployments list.
+    ///
+    /// Read-only operation - no state tracking.
+    ///
+    /// # Arguments
+    ///
+    /// * `args` - Request arguments
+    ///
+    /// # Returns
+    ///
+    /// StreamIterator yielding the SasPortalListDeploymentsResponse result.
+    ///
+    /// # Errors
+    ///
+    /// Returns ProviderError if the API request fails.
+    pub fn sasportal_nodes_deployments_list(
+        &self,
+        args: &SasportalNodesDeploymentsListArgs,
+    ) -> Result<
+        impl StreamIterator<
+            D = Result<SasPortalListDeploymentsResponse, ProviderError<ApiError>>,
+            P = crate::providers::gcp::clients::types::ApiPending,
+        > + Send
+        + 'static,
+        ProviderError<ApiError>,
+    > {
+        let builder = sasportal_nodes_deployments_list_builder(
+            &self.http_client,
+            &args.parent,
+            &args.filter,
+            &args.pageSize,
+            &args.pageToken,
+        )
+        .map_err(ProviderError::Api)?;
+
+        let task = sasportal_nodes_deployments_list_task(builder)
+            .map_err(ProviderError::Api)?;
+
+        execute(task, None).map_err(|e: String| ProviderError::ExecuteFailed(e.to_string()))
     }
 
     /// Sasportal nodes deployments move.
@@ -1768,6 +2568,47 @@ where
         execute(store_task, None).map_err(|e: String| ProviderError::ExecuteFailed(e.to_string()))
     }
 
+    /// Sasportal nodes deployments devices list.
+    ///
+    /// Read-only operation - no state tracking.
+    ///
+    /// # Arguments
+    ///
+    /// * `args` - Request arguments
+    ///
+    /// # Returns
+    ///
+    /// StreamIterator yielding the SasPortalListDevicesResponse result.
+    ///
+    /// # Errors
+    ///
+    /// Returns ProviderError if the API request fails.
+    pub fn sasportal_nodes_deployments_devices_list(
+        &self,
+        args: &SasportalNodesDeploymentsDevicesListArgs,
+    ) -> Result<
+        impl StreamIterator<
+            D = Result<SasPortalListDevicesResponse, ProviderError<ApiError>>,
+            P = crate::providers::gcp::clients::types::ApiPending,
+        > + Send
+        + 'static,
+        ProviderError<ApiError>,
+    > {
+        let builder = sasportal_nodes_deployments_devices_list_builder(
+            &self.http_client,
+            &args.parent,
+            &args.filter,
+            &args.pageSize,
+            &args.pageToken,
+        )
+        .map_err(ProviderError::Api)?;
+
+        let task = sasportal_nodes_deployments_devices_list_task(builder)
+            .map_err(ProviderError::Api)?;
+
+        execute(task, None).map_err(|e: String| ProviderError::ExecuteFailed(e.to_string()))
+    }
+
     /// Sasportal nodes devices create.
     ///
     /// Automatically stores the result in the state store on success.
@@ -1895,6 +2736,85 @@ where
         let store_task = StoreStateIdentifierTask::new(task, state_store, args, stage);
 
         execute(store_task, None).map_err(|e: String| ProviderError::ExecuteFailed(e.to_string()))
+    }
+
+    /// Sasportal nodes devices get.
+    ///
+    /// Read-only operation - no state tracking.
+    ///
+    /// # Arguments
+    ///
+    /// * `args` - Request arguments
+    ///
+    /// # Returns
+    ///
+    /// StreamIterator yielding the SasPortalDevice result.
+    ///
+    /// # Errors
+    ///
+    /// Returns ProviderError if the API request fails.
+    pub fn sasportal_nodes_devices_get(
+        &self,
+        args: &SasportalNodesDevicesGetArgs,
+    ) -> Result<
+        impl StreamIterator<
+            D = Result<SasPortalDevice, ProviderError<ApiError>>,
+            P = crate::providers::gcp::clients::types::ApiPending,
+        > + Send
+        + 'static,
+        ProviderError<ApiError>,
+    > {
+        let builder = sasportal_nodes_devices_get_builder(
+            &self.http_client,
+            &args.name,
+        )
+        .map_err(ProviderError::Api)?;
+
+        let task = sasportal_nodes_devices_get_task(builder)
+            .map_err(ProviderError::Api)?;
+
+        execute(task, None).map_err(|e: String| ProviderError::ExecuteFailed(e.to_string()))
+    }
+
+    /// Sasportal nodes devices list.
+    ///
+    /// Read-only operation - no state tracking.
+    ///
+    /// # Arguments
+    ///
+    /// * `args` - Request arguments
+    ///
+    /// # Returns
+    ///
+    /// StreamIterator yielding the SasPortalListDevicesResponse result.
+    ///
+    /// # Errors
+    ///
+    /// Returns ProviderError if the API request fails.
+    pub fn sasportal_nodes_devices_list(
+        &self,
+        args: &SasportalNodesDevicesListArgs,
+    ) -> Result<
+        impl StreamIterator<
+            D = Result<SasPortalListDevicesResponse, ProviderError<ApiError>>,
+            P = crate::providers::gcp::clients::types::ApiPending,
+        > + Send
+        + 'static,
+        ProviderError<ApiError>,
+    > {
+        let builder = sasportal_nodes_devices_list_builder(
+            &self.http_client,
+            &args.parent,
+            &args.filter,
+            &args.pageSize,
+            &args.pageToken,
+        )
+        .map_err(ProviderError::Api)?;
+
+        let task = sasportal_nodes_devices_list_task(builder)
+            .map_err(ProviderError::Api)?;
+
+        execute(task, None).map_err(|e: String| ProviderError::ExecuteFailed(e.to_string()))
     }
 
     /// Sasportal nodes devices move.
@@ -2156,6 +3076,85 @@ where
         execute(store_task, None).map_err(|e: String| ProviderError::ExecuteFailed(e.to_string()))
     }
 
+    /// Sasportal nodes nodes get.
+    ///
+    /// Read-only operation - no state tracking.
+    ///
+    /// # Arguments
+    ///
+    /// * `args` - Request arguments
+    ///
+    /// # Returns
+    ///
+    /// StreamIterator yielding the SasPortalNode result.
+    ///
+    /// # Errors
+    ///
+    /// Returns ProviderError if the API request fails.
+    pub fn sasportal_nodes_nodes_get(
+        &self,
+        args: &SasportalNodesNodesGetArgs,
+    ) -> Result<
+        impl StreamIterator<
+            D = Result<SasPortalNode, ProviderError<ApiError>>,
+            P = crate::providers::gcp::clients::types::ApiPending,
+        > + Send
+        + 'static,
+        ProviderError<ApiError>,
+    > {
+        let builder = sasportal_nodes_nodes_get_builder(
+            &self.http_client,
+            &args.name,
+        )
+        .map_err(ProviderError::Api)?;
+
+        let task = sasportal_nodes_nodes_get_task(builder)
+            .map_err(ProviderError::Api)?;
+
+        execute(task, None).map_err(|e: String| ProviderError::ExecuteFailed(e.to_string()))
+    }
+
+    /// Sasportal nodes nodes list.
+    ///
+    /// Read-only operation - no state tracking.
+    ///
+    /// # Arguments
+    ///
+    /// * `args` - Request arguments
+    ///
+    /// # Returns
+    ///
+    /// StreamIterator yielding the SasPortalListNodesResponse result.
+    ///
+    /// # Errors
+    ///
+    /// Returns ProviderError if the API request fails.
+    pub fn sasportal_nodes_nodes_list(
+        &self,
+        args: &SasportalNodesNodesListArgs,
+    ) -> Result<
+        impl StreamIterator<
+            D = Result<SasPortalListNodesResponse, ProviderError<ApiError>>,
+            P = crate::providers::gcp::clients::types::ApiPending,
+        > + Send
+        + 'static,
+        ProviderError<ApiError>,
+    > {
+        let builder = sasportal_nodes_nodes_list_builder(
+            &self.http_client,
+            &args.parent,
+            &args.filter,
+            &args.pageSize,
+            &args.pageToken,
+        )
+        .map_err(ProviderError::Api)?;
+
+        let task = sasportal_nodes_nodes_list_task(builder)
+            .map_err(ProviderError::Api)?;
+
+        execute(task, None).map_err(|e: String| ProviderError::ExecuteFailed(e.to_string()))
+    }
+
     /// Sasportal nodes nodes move.
     ///
     /// Automatically stores the result in the state store on success.
@@ -2286,6 +3285,47 @@ where
         execute(store_task, None).map_err(|e: String| ProviderError::ExecuteFailed(e.to_string()))
     }
 
+    /// Sasportal nodes nodes deployments list.
+    ///
+    /// Read-only operation - no state tracking.
+    ///
+    /// # Arguments
+    ///
+    /// * `args` - Request arguments
+    ///
+    /// # Returns
+    ///
+    /// StreamIterator yielding the SasPortalListDeploymentsResponse result.
+    ///
+    /// # Errors
+    ///
+    /// Returns ProviderError if the API request fails.
+    pub fn sasportal_nodes_nodes_deployments_list(
+        &self,
+        args: &SasportalNodesNodesDeploymentsListArgs,
+    ) -> Result<
+        impl StreamIterator<
+            D = Result<SasPortalListDeploymentsResponse, ProviderError<ApiError>>,
+            P = crate::providers::gcp::clients::types::ApiPending,
+        > + Send
+        + 'static,
+        ProviderError<ApiError>,
+    > {
+        let builder = sasportal_nodes_nodes_deployments_list_builder(
+            &self.http_client,
+            &args.parent,
+            &args.filter,
+            &args.pageSize,
+            &args.pageToken,
+        )
+        .map_err(ProviderError::Api)?;
+
+        let task = sasportal_nodes_nodes_deployments_list_task(builder)
+            .map_err(ProviderError::Api)?;
+
+        execute(task, None).map_err(|e: String| ProviderError::ExecuteFailed(e.to_string()))
+    }
+
     /// Sasportal nodes nodes devices create.
     ///
     /// Automatically stores the result in the state store on success.
@@ -2372,6 +3412,47 @@ where
         execute(store_task, None).map_err(|e: String| ProviderError::ExecuteFailed(e.to_string()))
     }
 
+    /// Sasportal nodes nodes devices list.
+    ///
+    /// Read-only operation - no state tracking.
+    ///
+    /// # Arguments
+    ///
+    /// * `args` - Request arguments
+    ///
+    /// # Returns
+    ///
+    /// StreamIterator yielding the SasPortalListDevicesResponse result.
+    ///
+    /// # Errors
+    ///
+    /// Returns ProviderError if the API request fails.
+    pub fn sasportal_nodes_nodes_devices_list(
+        &self,
+        args: &SasportalNodesNodesDevicesListArgs,
+    ) -> Result<
+        impl StreamIterator<
+            D = Result<SasPortalListDevicesResponse, ProviderError<ApiError>>,
+            P = crate::providers::gcp::clients::types::ApiPending,
+        > + Send
+        + 'static,
+        ProviderError<ApiError>,
+    > {
+        let builder = sasportal_nodes_nodes_devices_list_builder(
+            &self.http_client,
+            &args.parent,
+            &args.filter,
+            &args.pageSize,
+            &args.pageToken,
+        )
+        .map_err(ProviderError::Api)?;
+
+        let task = sasportal_nodes_nodes_devices_list_task(builder)
+            .map_err(ProviderError::Api)?;
+
+        execute(task, None).map_err(|e: String| ProviderError::ExecuteFailed(e.to_string()))
+    }
+
     /// Sasportal nodes nodes nodes create.
     ///
     /// Automatically stores the result in the state store on success.
@@ -2415,9 +3496,50 @@ where
         execute(store_task, None).map_err(|e: String| ProviderError::ExecuteFailed(e.to_string()))
     }
 
+    /// Sasportal nodes nodes nodes list.
+    ///
+    /// Read-only operation - no state tracking.
+    ///
+    /// # Arguments
+    ///
+    /// * `args` - Request arguments
+    ///
+    /// # Returns
+    ///
+    /// StreamIterator yielding the SasPortalListNodesResponse result.
+    ///
+    /// # Errors
+    ///
+    /// Returns ProviderError if the API request fails.
+    pub fn sasportal_nodes_nodes_nodes_list(
+        &self,
+        args: &SasportalNodesNodesNodesListArgs,
+    ) -> Result<
+        impl StreamIterator<
+            D = Result<SasPortalListNodesResponse, ProviderError<ApiError>>,
+            P = crate::providers::gcp::clients::types::ApiPending,
+        > + Send
+        + 'static,
+        ProviderError<ApiError>,
+    > {
+        let builder = sasportal_nodes_nodes_nodes_list_builder(
+            &self.http_client,
+            &args.parent,
+            &args.filter,
+            &args.pageSize,
+            &args.pageToken,
+        )
+        .map_err(ProviderError::Api)?;
+
+        let task = sasportal_nodes_nodes_nodes_list_task(builder)
+            .map_err(ProviderError::Api)?;
+
+        execute(task, None).map_err(|e: String| ProviderError::ExecuteFailed(e.to_string()))
+    }
+
     /// Sasportal policies get.
     ///
-    /// Automatically stores the result in the state store on success.
+    /// Read-only operation - no state tracking.
     ///
     /// # Arguments
     ///
@@ -2429,7 +3551,7 @@ where
     ///
     /// # Errors
     ///
-    /// Returns ProviderError if the API request or state storage fails.
+    /// Returns ProviderError if the API request fails.
     pub fn sasportal_policies_get(
         &self,
         args: &SasportalPoliciesGetArgs,
@@ -2449,12 +3571,7 @@ where
         let task = sasportal_policies_get_task(builder)
             .map_err(ProviderError::Api)?;
 
-        let state_store = self.client.state_store.clone();
-        let stage = Some(self.client.stage.clone());
-
-        let store_task = StoreStateIdentifierTask::new(task, state_store, args, stage);
-
-        execute(store_task, None).map_err(|e: String| ProviderError::ExecuteFailed(e.to_string()))
+        execute(task, None).map_err(|e: String| ProviderError::ExecuteFailed(e.to_string()))
     }
 
     /// Sasportal policies set.
@@ -2501,7 +3618,7 @@ where
 
     /// Sasportal policies test.
     ///
-    /// Automatically stores the result in the state store on success.
+    /// Read-only operation - no state tracking.
     ///
     /// # Arguments
     ///
@@ -2513,7 +3630,7 @@ where
     ///
     /// # Errors
     ///
-    /// Returns ProviderError if the API request or state storage fails.
+    /// Returns ProviderError if the API request fails.
     pub fn sasportal_policies_test(
         &self,
         args: &SasportalPoliciesTestArgs,
@@ -2533,12 +3650,7 @@ where
         let task = sasportal_policies_test_task(builder)
             .map_err(ProviderError::Api)?;
 
-        let state_store = self.client.state_store.clone();
-        let stage = Some(self.client.stage.clone());
-
-        let store_task = StoreStateIdentifierTask::new(task, state_store, args, stage);
-
-        execute(store_task, None).map_err(|e: String| ProviderError::ExecuteFailed(e.to_string()))
+        execute(task, None).map_err(|e: String| ProviderError::ExecuteFailed(e.to_string()))
     }
 
 }

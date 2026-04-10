@@ -12,16 +12,23 @@
 #![cfg(feature = "gcp")]
 
 use crate::providers::gcp::clients::analyticshub::{
+    analyticshub_organizations_locations_data_exchanges_list_builder, analyticshub_organizations_locations_data_exchanges_list_task,
     analyticshub_projects_locations_data_exchanges_create_builder, analyticshub_projects_locations_data_exchanges_create_task,
     analyticshub_projects_locations_data_exchanges_delete_builder, analyticshub_projects_locations_data_exchanges_delete_task,
+    analyticshub_projects_locations_data_exchanges_get_builder, analyticshub_projects_locations_data_exchanges_get_task,
     analyticshub_projects_locations_data_exchanges_get_iam_policy_builder, analyticshub_projects_locations_data_exchanges_get_iam_policy_task,
+    analyticshub_projects_locations_data_exchanges_list_builder, analyticshub_projects_locations_data_exchanges_list_task,
+    analyticshub_projects_locations_data_exchanges_list_subscriptions_builder, analyticshub_projects_locations_data_exchanges_list_subscriptions_task,
     analyticshub_projects_locations_data_exchanges_patch_builder, analyticshub_projects_locations_data_exchanges_patch_task,
     analyticshub_projects_locations_data_exchanges_set_iam_policy_builder, analyticshub_projects_locations_data_exchanges_set_iam_policy_task,
     analyticshub_projects_locations_data_exchanges_subscribe_builder, analyticshub_projects_locations_data_exchanges_subscribe_task,
     analyticshub_projects_locations_data_exchanges_test_iam_permissions_builder, analyticshub_projects_locations_data_exchanges_test_iam_permissions_task,
     analyticshub_projects_locations_data_exchanges_listings_create_builder, analyticshub_projects_locations_data_exchanges_listings_create_task,
     analyticshub_projects_locations_data_exchanges_listings_delete_builder, analyticshub_projects_locations_data_exchanges_listings_delete_task,
+    analyticshub_projects_locations_data_exchanges_listings_get_builder, analyticshub_projects_locations_data_exchanges_listings_get_task,
     analyticshub_projects_locations_data_exchanges_listings_get_iam_policy_builder, analyticshub_projects_locations_data_exchanges_listings_get_iam_policy_task,
+    analyticshub_projects_locations_data_exchanges_listings_list_builder, analyticshub_projects_locations_data_exchanges_listings_list_task,
+    analyticshub_projects_locations_data_exchanges_listings_list_subscriptions_builder, analyticshub_projects_locations_data_exchanges_listings_list_subscriptions_task,
     analyticshub_projects_locations_data_exchanges_listings_patch_builder, analyticshub_projects_locations_data_exchanges_listings_patch_task,
     analyticshub_projects_locations_data_exchanges_listings_set_iam_policy_builder, analyticshub_projects_locations_data_exchanges_listings_set_iam_policy_task,
     analyticshub_projects_locations_data_exchanges_listings_subscribe_builder, analyticshub_projects_locations_data_exchanges_listings_subscribe_task,
@@ -29,10 +36,14 @@ use crate::providers::gcp::clients::analyticshub::{
     analyticshub_projects_locations_data_exchanges_query_templates_approve_builder, analyticshub_projects_locations_data_exchanges_query_templates_approve_task,
     analyticshub_projects_locations_data_exchanges_query_templates_create_builder, analyticshub_projects_locations_data_exchanges_query_templates_create_task,
     analyticshub_projects_locations_data_exchanges_query_templates_delete_builder, analyticshub_projects_locations_data_exchanges_query_templates_delete_task,
+    analyticshub_projects_locations_data_exchanges_query_templates_get_builder, analyticshub_projects_locations_data_exchanges_query_templates_get_task,
+    analyticshub_projects_locations_data_exchanges_query_templates_list_builder, analyticshub_projects_locations_data_exchanges_query_templates_list_task,
     analyticshub_projects_locations_data_exchanges_query_templates_patch_builder, analyticshub_projects_locations_data_exchanges_query_templates_patch_task,
     analyticshub_projects_locations_data_exchanges_query_templates_submit_builder, analyticshub_projects_locations_data_exchanges_query_templates_submit_task,
     analyticshub_projects_locations_subscriptions_delete_builder, analyticshub_projects_locations_subscriptions_delete_task,
+    analyticshub_projects_locations_subscriptions_get_builder, analyticshub_projects_locations_subscriptions_get_task,
     analyticshub_projects_locations_subscriptions_get_iam_policy_builder, analyticshub_projects_locations_subscriptions_get_iam_policy_task,
+    analyticshub_projects_locations_subscriptions_list_builder, analyticshub_projects_locations_subscriptions_list_task,
     analyticshub_projects_locations_subscriptions_refresh_builder, analyticshub_projects_locations_subscriptions_refresh_task,
     analyticshub_projects_locations_subscriptions_revoke_builder, analyticshub_projects_locations_subscriptions_revoke_task,
     analyticshub_projects_locations_subscriptions_set_iam_policy_builder, analyticshub_projects_locations_subscriptions_set_iam_policy_task,
@@ -40,19 +51,33 @@ use crate::providers::gcp::clients::analyticshub::{
 use crate::providers::gcp::clients::types::{ApiError, ApiPending};
 use crate::providers::gcp::clients::analyticshub::DataExchange;
 use crate::providers::gcp::clients::analyticshub::Empty;
+use crate::providers::gcp::clients::analyticshub::ListDataExchangesResponse;
+use crate::providers::gcp::clients::analyticshub::ListListingsResponse;
+use crate::providers::gcp::clients::analyticshub::ListOrgDataExchangesResponse;
+use crate::providers::gcp::clients::analyticshub::ListQueryTemplatesResponse;
+use crate::providers::gcp::clients::analyticshub::ListSharedResourceSubscriptionsResponse;
+use crate::providers::gcp::clients::analyticshub::ListSubscriptionsResponse;
 use crate::providers::gcp::clients::analyticshub::Listing;
 use crate::providers::gcp::clients::analyticshub::Operation;
 use crate::providers::gcp::clients::analyticshub::Policy;
 use crate::providers::gcp::clients::analyticshub::QueryTemplate;
 use crate::providers::gcp::clients::analyticshub::RevokeSubscriptionResponse;
 use crate::providers::gcp::clients::analyticshub::SubscribeListingResponse;
+use crate::providers::gcp::clients::analyticshub::Subscription;
 use crate::providers::gcp::clients::analyticshub::TestIamPermissionsResponse;
+use crate::providers::gcp::clients::analyticshub::AnalyticshubOrganizationsLocationsDataExchangesListArgs;
 use crate::providers::gcp::clients::analyticshub::AnalyticshubProjectsLocationsDataExchangesCreateArgs;
 use crate::providers::gcp::clients::analyticshub::AnalyticshubProjectsLocationsDataExchangesDeleteArgs;
+use crate::providers::gcp::clients::analyticshub::AnalyticshubProjectsLocationsDataExchangesGetArgs;
 use crate::providers::gcp::clients::analyticshub::AnalyticshubProjectsLocationsDataExchangesGetIamPolicyArgs;
+use crate::providers::gcp::clients::analyticshub::AnalyticshubProjectsLocationsDataExchangesListArgs;
+use crate::providers::gcp::clients::analyticshub::AnalyticshubProjectsLocationsDataExchangesListSubscriptionsArgs;
 use crate::providers::gcp::clients::analyticshub::AnalyticshubProjectsLocationsDataExchangesListingsCreateArgs;
 use crate::providers::gcp::clients::analyticshub::AnalyticshubProjectsLocationsDataExchangesListingsDeleteArgs;
+use crate::providers::gcp::clients::analyticshub::AnalyticshubProjectsLocationsDataExchangesListingsGetArgs;
 use crate::providers::gcp::clients::analyticshub::AnalyticshubProjectsLocationsDataExchangesListingsGetIamPolicyArgs;
+use crate::providers::gcp::clients::analyticshub::AnalyticshubProjectsLocationsDataExchangesListingsListArgs;
+use crate::providers::gcp::clients::analyticshub::AnalyticshubProjectsLocationsDataExchangesListingsListSubscriptionsArgs;
 use crate::providers::gcp::clients::analyticshub::AnalyticshubProjectsLocationsDataExchangesListingsPatchArgs;
 use crate::providers::gcp::clients::analyticshub::AnalyticshubProjectsLocationsDataExchangesListingsSetIamPolicyArgs;
 use crate::providers::gcp::clients::analyticshub::AnalyticshubProjectsLocationsDataExchangesListingsSubscribeArgs;
@@ -61,13 +86,17 @@ use crate::providers::gcp::clients::analyticshub::AnalyticshubProjectsLocationsD
 use crate::providers::gcp::clients::analyticshub::AnalyticshubProjectsLocationsDataExchangesQueryTemplatesApproveArgs;
 use crate::providers::gcp::clients::analyticshub::AnalyticshubProjectsLocationsDataExchangesQueryTemplatesCreateArgs;
 use crate::providers::gcp::clients::analyticshub::AnalyticshubProjectsLocationsDataExchangesQueryTemplatesDeleteArgs;
+use crate::providers::gcp::clients::analyticshub::AnalyticshubProjectsLocationsDataExchangesQueryTemplatesGetArgs;
+use crate::providers::gcp::clients::analyticshub::AnalyticshubProjectsLocationsDataExchangesQueryTemplatesListArgs;
 use crate::providers::gcp::clients::analyticshub::AnalyticshubProjectsLocationsDataExchangesQueryTemplatesPatchArgs;
 use crate::providers::gcp::clients::analyticshub::AnalyticshubProjectsLocationsDataExchangesQueryTemplatesSubmitArgs;
 use crate::providers::gcp::clients::analyticshub::AnalyticshubProjectsLocationsDataExchangesSetIamPolicyArgs;
 use crate::providers::gcp::clients::analyticshub::AnalyticshubProjectsLocationsDataExchangesSubscribeArgs;
 use crate::providers::gcp::clients::analyticshub::AnalyticshubProjectsLocationsDataExchangesTestIamPermissionsArgs;
 use crate::providers::gcp::clients::analyticshub::AnalyticshubProjectsLocationsSubscriptionsDeleteArgs;
+use crate::providers::gcp::clients::analyticshub::AnalyticshubProjectsLocationsSubscriptionsGetArgs;
 use crate::providers::gcp::clients::analyticshub::AnalyticshubProjectsLocationsSubscriptionsGetIamPolicyArgs;
+use crate::providers::gcp::clients::analyticshub::AnalyticshubProjectsLocationsSubscriptionsListArgs;
 use crate::providers::gcp::clients::analyticshub::AnalyticshubProjectsLocationsSubscriptionsRefreshArgs;
 use crate::providers::gcp::clients::analyticshub::AnalyticshubProjectsLocationsSubscriptionsRevokeArgs;
 use crate::providers::gcp::clients::analyticshub::AnalyticshubProjectsLocationsSubscriptionsSetIamPolicyArgs;
@@ -110,6 +139,46 @@ where
             client,
             http_client: Arc::new(http_client),
         }
+    }
+
+    /// Analyticshub organizations locations data exchanges list.
+    ///
+    /// Read-only operation - no state tracking.
+    ///
+    /// # Arguments
+    ///
+    /// * `args` - Request arguments
+    ///
+    /// # Returns
+    ///
+    /// StreamIterator yielding the ListOrgDataExchangesResponse result.
+    ///
+    /// # Errors
+    ///
+    /// Returns ProviderError if the API request fails.
+    pub fn analyticshub_organizations_locations_data_exchanges_list(
+        &self,
+        args: &AnalyticshubOrganizationsLocationsDataExchangesListArgs,
+    ) -> Result<
+        impl StreamIterator<
+            D = Result<ListOrgDataExchangesResponse, ProviderError<ApiError>>,
+            P = crate::providers::gcp::clients::types::ApiPending,
+        > + Send
+        + 'static,
+        ProviderError<ApiError>,
+    > {
+        let builder = analyticshub_organizations_locations_data_exchanges_list_builder(
+            &self.http_client,
+            &args.organization,
+            &args.pageSize,
+            &args.pageToken,
+        )
+        .map_err(ProviderError::Api)?;
+
+        let task = analyticshub_organizations_locations_data_exchanges_list_task(builder)
+            .map_err(ProviderError::Api)?;
+
+        execute(task, None).map_err(|e: String| ProviderError::ExecuteFailed(e.to_string()))
     }
 
     /// Analyticshub projects locations data exchanges create.
@@ -199,9 +268,47 @@ where
         execute(store_task, None).map_err(|e: String| ProviderError::ExecuteFailed(e.to_string()))
     }
 
+    /// Analyticshub projects locations data exchanges get.
+    ///
+    /// Read-only operation - no state tracking.
+    ///
+    /// # Arguments
+    ///
+    /// * `args` - Request arguments
+    ///
+    /// # Returns
+    ///
+    /// StreamIterator yielding the DataExchange result.
+    ///
+    /// # Errors
+    ///
+    /// Returns ProviderError if the API request fails.
+    pub fn analyticshub_projects_locations_data_exchanges_get(
+        &self,
+        args: &AnalyticshubProjectsLocationsDataExchangesGetArgs,
+    ) -> Result<
+        impl StreamIterator<
+            D = Result<DataExchange, ProviderError<ApiError>>,
+            P = crate::providers::gcp::clients::types::ApiPending,
+        > + Send
+        + 'static,
+        ProviderError<ApiError>,
+    > {
+        let builder = analyticshub_projects_locations_data_exchanges_get_builder(
+            &self.http_client,
+            &args.name,
+        )
+        .map_err(ProviderError::Api)?;
+
+        let task = analyticshub_projects_locations_data_exchanges_get_task(builder)
+            .map_err(ProviderError::Api)?;
+
+        execute(task, None).map_err(|e: String| ProviderError::ExecuteFailed(e.to_string()))
+    }
+
     /// Analyticshub projects locations data exchanges get iam policy.
     ///
-    /// Automatically stores the result in the state store on success.
+    /// Read-only operation - no state tracking.
     ///
     /// # Arguments
     ///
@@ -213,7 +320,7 @@ where
     ///
     /// # Errors
     ///
-    /// Returns ProviderError if the API request or state storage fails.
+    /// Returns ProviderError if the API request fails.
     pub fn analyticshub_projects_locations_data_exchanges_get_iam_policy(
         &self,
         args: &AnalyticshubProjectsLocationsDataExchangesGetIamPolicyArgs,
@@ -234,12 +341,88 @@ where
         let task = analyticshub_projects_locations_data_exchanges_get_iam_policy_task(builder)
             .map_err(ProviderError::Api)?;
 
-        let state_store = self.client.state_store.clone();
-        let stage = Some(self.client.stage.clone());
+        execute(task, None).map_err(|e: String| ProviderError::ExecuteFailed(e.to_string()))
+    }
 
-        let store_task = StoreStateIdentifierTask::new(task, state_store, args, stage);
+    /// Analyticshub projects locations data exchanges list.
+    ///
+    /// Read-only operation - no state tracking.
+    ///
+    /// # Arguments
+    ///
+    /// * `args` - Request arguments
+    ///
+    /// # Returns
+    ///
+    /// StreamIterator yielding the ListDataExchangesResponse result.
+    ///
+    /// # Errors
+    ///
+    /// Returns ProviderError if the API request fails.
+    pub fn analyticshub_projects_locations_data_exchanges_list(
+        &self,
+        args: &AnalyticshubProjectsLocationsDataExchangesListArgs,
+    ) -> Result<
+        impl StreamIterator<
+            D = Result<ListDataExchangesResponse, ProviderError<ApiError>>,
+            P = crate::providers::gcp::clients::types::ApiPending,
+        > + Send
+        + 'static,
+        ProviderError<ApiError>,
+    > {
+        let builder = analyticshub_projects_locations_data_exchanges_list_builder(
+            &self.http_client,
+            &args.parent,
+            &args.pageSize,
+            &args.pageToken,
+        )
+        .map_err(ProviderError::Api)?;
 
-        execute(store_task, None).map_err(|e: String| ProviderError::ExecuteFailed(e.to_string()))
+        let task = analyticshub_projects_locations_data_exchanges_list_task(builder)
+            .map_err(ProviderError::Api)?;
+
+        execute(task, None).map_err(|e: String| ProviderError::ExecuteFailed(e.to_string()))
+    }
+
+    /// Analyticshub projects locations data exchanges list subscriptions.
+    ///
+    /// Read-only operation - no state tracking.
+    ///
+    /// # Arguments
+    ///
+    /// * `args` - Request arguments
+    ///
+    /// # Returns
+    ///
+    /// StreamIterator yielding the ListSharedResourceSubscriptionsResponse result.
+    ///
+    /// # Errors
+    ///
+    /// Returns ProviderError if the API request fails.
+    pub fn analyticshub_projects_locations_data_exchanges_list_subscriptions(
+        &self,
+        args: &AnalyticshubProjectsLocationsDataExchangesListSubscriptionsArgs,
+    ) -> Result<
+        impl StreamIterator<
+            D = Result<ListSharedResourceSubscriptionsResponse, ProviderError<ApiError>>,
+            P = crate::providers::gcp::clients::types::ApiPending,
+        > + Send
+        + 'static,
+        ProviderError<ApiError>,
+    > {
+        let builder = analyticshub_projects_locations_data_exchanges_list_subscriptions_builder(
+            &self.http_client,
+            &args.resource,
+            &args.includeDeletedSubscriptions,
+            &args.pageSize,
+            &args.pageToken,
+        )
+        .map_err(ProviderError::Api)?;
+
+        let task = analyticshub_projects_locations_data_exchanges_list_subscriptions_task(builder)
+            .map_err(ProviderError::Api)?;
+
+        execute(task, None).map_err(|e: String| ProviderError::ExecuteFailed(e.to_string()))
     }
 
     /// Analyticshub projects locations data exchanges patch.
@@ -374,7 +557,7 @@ where
 
     /// Analyticshub projects locations data exchanges test iam permissions.
     ///
-    /// Automatically stores the result in the state store on success.
+    /// Read-only operation - no state tracking.
     ///
     /// # Arguments
     ///
@@ -386,7 +569,7 @@ where
     ///
     /// # Errors
     ///
-    /// Returns ProviderError if the API request or state storage fails.
+    /// Returns ProviderError if the API request fails.
     pub fn analyticshub_projects_locations_data_exchanges_test_iam_permissions(
         &self,
         args: &AnalyticshubProjectsLocationsDataExchangesTestIamPermissionsArgs,
@@ -407,12 +590,7 @@ where
         let task = analyticshub_projects_locations_data_exchanges_test_iam_permissions_task(builder)
             .map_err(ProviderError::Api)?;
 
-        let state_store = self.client.state_store.clone();
-        let stage = Some(self.client.stage.clone());
-
-        let store_task = StoreStateIdentifierTask::new(task, state_store, args, stage);
-
-        execute(store_task, None).map_err(|e: String| ProviderError::ExecuteFailed(e.to_string()))
+        execute(task, None).map_err(|e: String| ProviderError::ExecuteFailed(e.to_string()))
     }
 
     /// Analyticshub projects locations data exchanges listings create.
@@ -461,7 +639,7 @@ where
 
     /// Analyticshub projects locations data exchanges listings delete.
     ///
-    /// Automatically stores the result in the state store on success.
+    /// Read-only operation - no state tracking.
     ///
     /// # Arguments
     ///
@@ -473,7 +651,7 @@ where
     ///
     /// # Errors
     ///
-    /// Returns ProviderError if the API request or state storage fails.
+    /// Returns ProviderError if the API request fails.
     pub fn analyticshub_projects_locations_data_exchanges_listings_delete(
         &self,
         args: &AnalyticshubProjectsLocationsDataExchangesListingsDeleteArgs,
@@ -495,17 +673,50 @@ where
         let task = analyticshub_projects_locations_data_exchanges_listings_delete_task(builder)
             .map_err(ProviderError::Api)?;
 
-        let state_store = self.client.state_store.clone();
-        let stage = Some(self.client.stage.clone());
+        execute(task, None).map_err(|e: String| ProviderError::ExecuteFailed(e.to_string()))
+    }
 
-        let store_task = StoreStateIdentifierTask::new(task, state_store, args, stage);
+    /// Analyticshub projects locations data exchanges listings get.
+    ///
+    /// Read-only operation - no state tracking.
+    ///
+    /// # Arguments
+    ///
+    /// * `args` - Request arguments
+    ///
+    /// # Returns
+    ///
+    /// StreamIterator yielding the Listing result.
+    ///
+    /// # Errors
+    ///
+    /// Returns ProviderError if the API request fails.
+    pub fn analyticshub_projects_locations_data_exchanges_listings_get(
+        &self,
+        args: &AnalyticshubProjectsLocationsDataExchangesListingsGetArgs,
+    ) -> Result<
+        impl StreamIterator<
+            D = Result<Listing, ProviderError<ApiError>>,
+            P = crate::providers::gcp::clients::types::ApiPending,
+        > + Send
+        + 'static,
+        ProviderError<ApiError>,
+    > {
+        let builder = analyticshub_projects_locations_data_exchanges_listings_get_builder(
+            &self.http_client,
+            &args.name,
+        )
+        .map_err(ProviderError::Api)?;
 
-        execute(store_task, None).map_err(|e: String| ProviderError::ExecuteFailed(e.to_string()))
+        let task = analyticshub_projects_locations_data_exchanges_listings_get_task(builder)
+            .map_err(ProviderError::Api)?;
+
+        execute(task, None).map_err(|e: String| ProviderError::ExecuteFailed(e.to_string()))
     }
 
     /// Analyticshub projects locations data exchanges listings get iam policy.
     ///
-    /// Automatically stores the result in the state store on success.
+    /// Read-only operation - no state tracking.
     ///
     /// # Arguments
     ///
@@ -517,7 +728,7 @@ where
     ///
     /// # Errors
     ///
-    /// Returns ProviderError if the API request or state storage fails.
+    /// Returns ProviderError if the API request fails.
     pub fn analyticshub_projects_locations_data_exchanges_listings_get_iam_policy(
         &self,
         args: &AnalyticshubProjectsLocationsDataExchangesListingsGetIamPolicyArgs,
@@ -538,17 +749,93 @@ where
         let task = analyticshub_projects_locations_data_exchanges_listings_get_iam_policy_task(builder)
             .map_err(ProviderError::Api)?;
 
-        let state_store = self.client.state_store.clone();
-        let stage = Some(self.client.stage.clone());
+        execute(task, None).map_err(|e: String| ProviderError::ExecuteFailed(e.to_string()))
+    }
 
-        let store_task = StoreStateIdentifierTask::new(task, state_store, args, stage);
+    /// Analyticshub projects locations data exchanges listings list.
+    ///
+    /// Read-only operation - no state tracking.
+    ///
+    /// # Arguments
+    ///
+    /// * `args` - Request arguments
+    ///
+    /// # Returns
+    ///
+    /// StreamIterator yielding the ListListingsResponse result.
+    ///
+    /// # Errors
+    ///
+    /// Returns ProviderError if the API request fails.
+    pub fn analyticshub_projects_locations_data_exchanges_listings_list(
+        &self,
+        args: &AnalyticshubProjectsLocationsDataExchangesListingsListArgs,
+    ) -> Result<
+        impl StreamIterator<
+            D = Result<ListListingsResponse, ProviderError<ApiError>>,
+            P = crate::providers::gcp::clients::types::ApiPending,
+        > + Send
+        + 'static,
+        ProviderError<ApiError>,
+    > {
+        let builder = analyticshub_projects_locations_data_exchanges_listings_list_builder(
+            &self.http_client,
+            &args.parent,
+            &args.pageSize,
+            &args.pageToken,
+        )
+        .map_err(ProviderError::Api)?;
 
-        execute(store_task, None).map_err(|e: String| ProviderError::ExecuteFailed(e.to_string()))
+        let task = analyticshub_projects_locations_data_exchanges_listings_list_task(builder)
+            .map_err(ProviderError::Api)?;
+
+        execute(task, None).map_err(|e: String| ProviderError::ExecuteFailed(e.to_string()))
+    }
+
+    /// Analyticshub projects locations data exchanges listings list subscriptions.
+    ///
+    /// Read-only operation - no state tracking.
+    ///
+    /// # Arguments
+    ///
+    /// * `args` - Request arguments
+    ///
+    /// # Returns
+    ///
+    /// StreamIterator yielding the ListSharedResourceSubscriptionsResponse result.
+    ///
+    /// # Errors
+    ///
+    /// Returns ProviderError if the API request fails.
+    pub fn analyticshub_projects_locations_data_exchanges_listings_list_subscriptions(
+        &self,
+        args: &AnalyticshubProjectsLocationsDataExchangesListingsListSubscriptionsArgs,
+    ) -> Result<
+        impl StreamIterator<
+            D = Result<ListSharedResourceSubscriptionsResponse, ProviderError<ApiError>>,
+            P = crate::providers::gcp::clients::types::ApiPending,
+        > + Send
+        + 'static,
+        ProviderError<ApiError>,
+    > {
+        let builder = analyticshub_projects_locations_data_exchanges_listings_list_subscriptions_builder(
+            &self.http_client,
+            &args.resource,
+            &args.includeDeletedSubscriptions,
+            &args.pageSize,
+            &args.pageToken,
+        )
+        .map_err(ProviderError::Api)?;
+
+        let task = analyticshub_projects_locations_data_exchanges_listings_list_subscriptions_task(builder)
+            .map_err(ProviderError::Api)?;
+
+        execute(task, None).map_err(|e: String| ProviderError::ExecuteFailed(e.to_string()))
     }
 
     /// Analyticshub projects locations data exchanges listings patch.
     ///
-    /// Automatically stores the result in the state store on success.
+    /// Read-only operation - no state tracking.
     ///
     /// # Arguments
     ///
@@ -560,7 +847,7 @@ where
     ///
     /// # Errors
     ///
-    /// Returns ProviderError if the API request or state storage fails.
+    /// Returns ProviderError if the API request fails.
     pub fn analyticshub_projects_locations_data_exchanges_listings_patch(
         &self,
         args: &AnalyticshubProjectsLocationsDataExchangesListingsPatchArgs,
@@ -582,17 +869,12 @@ where
         let task = analyticshub_projects_locations_data_exchanges_listings_patch_task(builder)
             .map_err(ProviderError::Api)?;
 
-        let state_store = self.client.state_store.clone();
-        let stage = Some(self.client.stage.clone());
-
-        let store_task = StoreStateIdentifierTask::new(task, state_store, args, stage);
-
-        execute(store_task, None).map_err(|e: String| ProviderError::ExecuteFailed(e.to_string()))
+        execute(task, None).map_err(|e: String| ProviderError::ExecuteFailed(e.to_string()))
     }
 
     /// Analyticshub projects locations data exchanges listings set iam policy.
     ///
-    /// Automatically stores the result in the state store on success.
+    /// Read-only operation - no state tracking.
     ///
     /// # Arguments
     ///
@@ -604,7 +886,7 @@ where
     ///
     /// # Errors
     ///
-    /// Returns ProviderError if the API request or state storage fails.
+    /// Returns ProviderError if the API request fails.
     pub fn analyticshub_projects_locations_data_exchanges_listings_set_iam_policy(
         &self,
         args: &AnalyticshubProjectsLocationsDataExchangesListingsSetIamPolicyArgs,
@@ -625,17 +907,12 @@ where
         let task = analyticshub_projects_locations_data_exchanges_listings_set_iam_policy_task(builder)
             .map_err(ProviderError::Api)?;
 
-        let state_store = self.client.state_store.clone();
-        let stage = Some(self.client.stage.clone());
-
-        let store_task = StoreStateIdentifierTask::new(task, state_store, args, stage);
-
-        execute(store_task, None).map_err(|e: String| ProviderError::ExecuteFailed(e.to_string()))
+        execute(task, None).map_err(|e: String| ProviderError::ExecuteFailed(e.to_string()))
     }
 
     /// Analyticshub projects locations data exchanges listings subscribe.
     ///
-    /// Automatically stores the result in the state store on success.
+    /// Read-only operation - no state tracking.
     ///
     /// # Arguments
     ///
@@ -647,7 +924,7 @@ where
     ///
     /// # Errors
     ///
-    /// Returns ProviderError if the API request or state storage fails.
+    /// Returns ProviderError if the API request fails.
     pub fn analyticshub_projects_locations_data_exchanges_listings_subscribe(
         &self,
         args: &AnalyticshubProjectsLocationsDataExchangesListingsSubscribeArgs,
@@ -668,17 +945,12 @@ where
         let task = analyticshub_projects_locations_data_exchanges_listings_subscribe_task(builder)
             .map_err(ProviderError::Api)?;
 
-        let state_store = self.client.state_store.clone();
-        let stage = Some(self.client.stage.clone());
-
-        let store_task = StoreStateIdentifierTask::new(task, state_store, args, stage);
-
-        execute(store_task, None).map_err(|e: String| ProviderError::ExecuteFailed(e.to_string()))
+        execute(task, None).map_err(|e: String| ProviderError::ExecuteFailed(e.to_string()))
     }
 
     /// Analyticshub projects locations data exchanges listings test iam permissions.
     ///
-    /// Automatically stores the result in the state store on success.
+    /// Read-only operation - no state tracking.
     ///
     /// # Arguments
     ///
@@ -690,7 +962,7 @@ where
     ///
     /// # Errors
     ///
-    /// Returns ProviderError if the API request or state storage fails.
+    /// Returns ProviderError if the API request fails.
     pub fn analyticshub_projects_locations_data_exchanges_listings_test_iam_permissions(
         &self,
         args: &AnalyticshubProjectsLocationsDataExchangesListingsTestIamPermissionsArgs,
@@ -711,17 +983,12 @@ where
         let task = analyticshub_projects_locations_data_exchanges_listings_test_iam_permissions_task(builder)
             .map_err(ProviderError::Api)?;
 
-        let state_store = self.client.state_store.clone();
-        let stage = Some(self.client.stage.clone());
-
-        let store_task = StoreStateIdentifierTask::new(task, state_store, args, stage);
-
-        execute(store_task, None).map_err(|e: String| ProviderError::ExecuteFailed(e.to_string()))
+        execute(task, None).map_err(|e: String| ProviderError::ExecuteFailed(e.to_string()))
     }
 
     /// Analyticshub projects locations data exchanges query templates approve.
     ///
-    /// Automatically stores the result in the state store on success.
+    /// Read-only operation - no state tracking.
     ///
     /// # Arguments
     ///
@@ -733,7 +1000,7 @@ where
     ///
     /// # Errors
     ///
-    /// Returns ProviderError if the API request or state storage fails.
+    /// Returns ProviderError if the API request fails.
     pub fn analyticshub_projects_locations_data_exchanges_query_templates_approve(
         &self,
         args: &AnalyticshubProjectsLocationsDataExchangesQueryTemplatesApproveArgs,
@@ -754,12 +1021,7 @@ where
         let task = analyticshub_projects_locations_data_exchanges_query_templates_approve_task(builder)
             .map_err(ProviderError::Api)?;
 
-        let state_store = self.client.state_store.clone();
-        let stage = Some(self.client.stage.clone());
-
-        let store_task = StoreStateIdentifierTask::new(task, state_store, args, stage);
-
-        execute(store_task, None).map_err(|e: String| ProviderError::ExecuteFailed(e.to_string()))
+        execute(task, None).map_err(|e: String| ProviderError::ExecuteFailed(e.to_string()))
     }
 
     /// Analyticshub projects locations data exchanges query templates create.
@@ -808,7 +1070,7 @@ where
 
     /// Analyticshub projects locations data exchanges query templates delete.
     ///
-    /// Automatically stores the result in the state store on success.
+    /// Read-only operation - no state tracking.
     ///
     /// # Arguments
     ///
@@ -820,7 +1082,7 @@ where
     ///
     /// # Errors
     ///
-    /// Returns ProviderError if the API request or state storage fails.
+    /// Returns ProviderError if the API request fails.
     pub fn analyticshub_projects_locations_data_exchanges_query_templates_delete(
         &self,
         args: &AnalyticshubProjectsLocationsDataExchangesQueryTemplatesDeleteArgs,
@@ -841,17 +1103,12 @@ where
         let task = analyticshub_projects_locations_data_exchanges_query_templates_delete_task(builder)
             .map_err(ProviderError::Api)?;
 
-        let state_store = self.client.state_store.clone();
-        let stage = Some(self.client.stage.clone());
-
-        let store_task = StoreStateIdentifierTask::new(task, state_store, args, stage);
-
-        execute(store_task, None).map_err(|e: String| ProviderError::ExecuteFailed(e.to_string()))
+        execute(task, None).map_err(|e: String| ProviderError::ExecuteFailed(e.to_string()))
     }
 
-    /// Analyticshub projects locations data exchanges query templates patch.
+    /// Analyticshub projects locations data exchanges query templates get.
     ///
-    /// Automatically stores the result in the state store on success.
+    /// Read-only operation - no state tracking.
     ///
     /// # Arguments
     ///
@@ -863,7 +1120,85 @@ where
     ///
     /// # Errors
     ///
-    /// Returns ProviderError if the API request or state storage fails.
+    /// Returns ProviderError if the API request fails.
+    pub fn analyticshub_projects_locations_data_exchanges_query_templates_get(
+        &self,
+        args: &AnalyticshubProjectsLocationsDataExchangesQueryTemplatesGetArgs,
+    ) -> Result<
+        impl StreamIterator<
+            D = Result<QueryTemplate, ProviderError<ApiError>>,
+            P = crate::providers::gcp::clients::types::ApiPending,
+        > + Send
+        + 'static,
+        ProviderError<ApiError>,
+    > {
+        let builder = analyticshub_projects_locations_data_exchanges_query_templates_get_builder(
+            &self.http_client,
+            &args.name,
+        )
+        .map_err(ProviderError::Api)?;
+
+        let task = analyticshub_projects_locations_data_exchanges_query_templates_get_task(builder)
+            .map_err(ProviderError::Api)?;
+
+        execute(task, None).map_err(|e: String| ProviderError::ExecuteFailed(e.to_string()))
+    }
+
+    /// Analyticshub projects locations data exchanges query templates list.
+    ///
+    /// Read-only operation - no state tracking.
+    ///
+    /// # Arguments
+    ///
+    /// * `args` - Request arguments
+    ///
+    /// # Returns
+    ///
+    /// StreamIterator yielding the ListQueryTemplatesResponse result.
+    ///
+    /// # Errors
+    ///
+    /// Returns ProviderError if the API request fails.
+    pub fn analyticshub_projects_locations_data_exchanges_query_templates_list(
+        &self,
+        args: &AnalyticshubProjectsLocationsDataExchangesQueryTemplatesListArgs,
+    ) -> Result<
+        impl StreamIterator<
+            D = Result<ListQueryTemplatesResponse, ProviderError<ApiError>>,
+            P = crate::providers::gcp::clients::types::ApiPending,
+        > + Send
+        + 'static,
+        ProviderError<ApiError>,
+    > {
+        let builder = analyticshub_projects_locations_data_exchanges_query_templates_list_builder(
+            &self.http_client,
+            &args.parent,
+            &args.pageSize,
+            &args.pageToken,
+        )
+        .map_err(ProviderError::Api)?;
+
+        let task = analyticshub_projects_locations_data_exchanges_query_templates_list_task(builder)
+            .map_err(ProviderError::Api)?;
+
+        execute(task, None).map_err(|e: String| ProviderError::ExecuteFailed(e.to_string()))
+    }
+
+    /// Analyticshub projects locations data exchanges query templates patch.
+    ///
+    /// Read-only operation - no state tracking.
+    ///
+    /// # Arguments
+    ///
+    /// * `args` - Request arguments
+    ///
+    /// # Returns
+    ///
+    /// StreamIterator yielding the QueryTemplate result.
+    ///
+    /// # Errors
+    ///
+    /// Returns ProviderError if the API request fails.
     pub fn analyticshub_projects_locations_data_exchanges_query_templates_patch(
         &self,
         args: &AnalyticshubProjectsLocationsDataExchangesQueryTemplatesPatchArgs,
@@ -885,17 +1220,12 @@ where
         let task = analyticshub_projects_locations_data_exchanges_query_templates_patch_task(builder)
             .map_err(ProviderError::Api)?;
 
-        let state_store = self.client.state_store.clone();
-        let stage = Some(self.client.stage.clone());
-
-        let store_task = StoreStateIdentifierTask::new(task, state_store, args, stage);
-
-        execute(store_task, None).map_err(|e: String| ProviderError::ExecuteFailed(e.to_string()))
+        execute(task, None).map_err(|e: String| ProviderError::ExecuteFailed(e.to_string()))
     }
 
     /// Analyticshub projects locations data exchanges query templates submit.
     ///
-    /// Automatically stores the result in the state store on success.
+    /// Read-only operation - no state tracking.
     ///
     /// # Arguments
     ///
@@ -907,7 +1237,7 @@ where
     ///
     /// # Errors
     ///
-    /// Returns ProviderError if the API request or state storage fails.
+    /// Returns ProviderError if the API request fails.
     pub fn analyticshub_projects_locations_data_exchanges_query_templates_submit(
         &self,
         args: &AnalyticshubProjectsLocationsDataExchangesQueryTemplatesSubmitArgs,
@@ -928,12 +1258,7 @@ where
         let task = analyticshub_projects_locations_data_exchanges_query_templates_submit_task(builder)
             .map_err(ProviderError::Api)?;
 
-        let state_store = self.client.state_store.clone();
-        let stage = Some(self.client.stage.clone());
-
-        let store_task = StoreStateIdentifierTask::new(task, state_store, args, stage);
-
-        execute(store_task, None).map_err(|e: String| ProviderError::ExecuteFailed(e.to_string()))
+        execute(task, None).map_err(|e: String| ProviderError::ExecuteFailed(e.to_string()))
     }
 
     /// Analyticshub projects locations subscriptions delete.
@@ -979,9 +1304,47 @@ where
         execute(store_task, None).map_err(|e: String| ProviderError::ExecuteFailed(e.to_string()))
     }
 
+    /// Analyticshub projects locations subscriptions get.
+    ///
+    /// Read-only operation - no state tracking.
+    ///
+    /// # Arguments
+    ///
+    /// * `args` - Request arguments
+    ///
+    /// # Returns
+    ///
+    /// StreamIterator yielding the Subscription result.
+    ///
+    /// # Errors
+    ///
+    /// Returns ProviderError if the API request fails.
+    pub fn analyticshub_projects_locations_subscriptions_get(
+        &self,
+        args: &AnalyticshubProjectsLocationsSubscriptionsGetArgs,
+    ) -> Result<
+        impl StreamIterator<
+            D = Result<Subscription, ProviderError<ApiError>>,
+            P = crate::providers::gcp::clients::types::ApiPending,
+        > + Send
+        + 'static,
+        ProviderError<ApiError>,
+    > {
+        let builder = analyticshub_projects_locations_subscriptions_get_builder(
+            &self.http_client,
+            &args.name,
+        )
+        .map_err(ProviderError::Api)?;
+
+        let task = analyticshub_projects_locations_subscriptions_get_task(builder)
+            .map_err(ProviderError::Api)?;
+
+        execute(task, None).map_err(|e: String| ProviderError::ExecuteFailed(e.to_string()))
+    }
+
     /// Analyticshub projects locations subscriptions get iam policy.
     ///
-    /// Automatically stores the result in the state store on success.
+    /// Read-only operation - no state tracking.
     ///
     /// # Arguments
     ///
@@ -993,7 +1356,7 @@ where
     ///
     /// # Errors
     ///
-    /// Returns ProviderError if the API request or state storage fails.
+    /// Returns ProviderError if the API request fails.
     pub fn analyticshub_projects_locations_subscriptions_get_iam_policy(
         &self,
         args: &AnalyticshubProjectsLocationsSubscriptionsGetIamPolicyArgs,
@@ -1014,12 +1377,48 @@ where
         let task = analyticshub_projects_locations_subscriptions_get_iam_policy_task(builder)
             .map_err(ProviderError::Api)?;
 
-        let state_store = self.client.state_store.clone();
-        let stage = Some(self.client.stage.clone());
+        execute(task, None).map_err(|e: String| ProviderError::ExecuteFailed(e.to_string()))
+    }
 
-        let store_task = StoreStateIdentifierTask::new(task, state_store, args, stage);
+    /// Analyticshub projects locations subscriptions list.
+    ///
+    /// Read-only operation - no state tracking.
+    ///
+    /// # Arguments
+    ///
+    /// * `args` - Request arguments
+    ///
+    /// # Returns
+    ///
+    /// StreamIterator yielding the ListSubscriptionsResponse result.
+    ///
+    /// # Errors
+    ///
+    /// Returns ProviderError if the API request fails.
+    pub fn analyticshub_projects_locations_subscriptions_list(
+        &self,
+        args: &AnalyticshubProjectsLocationsSubscriptionsListArgs,
+    ) -> Result<
+        impl StreamIterator<
+            D = Result<ListSubscriptionsResponse, ProviderError<ApiError>>,
+            P = crate::providers::gcp::clients::types::ApiPending,
+        > + Send
+        + 'static,
+        ProviderError<ApiError>,
+    > {
+        let builder = analyticshub_projects_locations_subscriptions_list_builder(
+            &self.http_client,
+            &args.parent,
+            &args.filter,
+            &args.pageSize,
+            &args.pageToken,
+        )
+        .map_err(ProviderError::Api)?;
 
-        execute(store_task, None).map_err(|e: String| ProviderError::ExecuteFailed(e.to_string()))
+        let task = analyticshub_projects_locations_subscriptions_list_task(builder)
+            .map_err(ProviderError::Api)?;
+
+        execute(task, None).map_err(|e: String| ProviderError::ExecuteFailed(e.to_string()))
     }
 
     /// Analyticshub projects locations subscriptions refresh.

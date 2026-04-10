@@ -7,7 +7,6 @@
 
 #![cfg(feature = "gcp")]
 
-
 use crate::providers::gcp::clients::types::*;
 use crate::providers::gcp::resources::*;
 use foundation_core::valtron::{
@@ -17,10 +16,11 @@ use foundation_core::valtron::{
 use foundation_core::wire::simple_http::client::{
     body_reader, ClientRequestBuilder, RequestIntro, SimpleHttpClient, SystemDnsResolver,
 };
+use foundation_db::state::resource_identifier::ResourceIdentifier;
 use foundation_macros::JsonHash;
 use serde::Serialize;
 
-/// GET v1b3/projects/{projectId}/snapshots
+/// DELETE v1b3/projects/{projectId}/snapshots
 /// Deletes a snapshot.
 ///
 /// Returns `ClientRequestBuilder` for customization.
@@ -29,8 +29,8 @@ use serde::Serialize;
 pub fn dataflow_projects_delete_snapshots_builder(
     client: &SimpleHttpClient,
     projectId: &String,
-    location: &Option<String>,
-    snapshotId: &Option<String>,
+    location: &Option<Option<String>>,
+    snapshotId: &Option<Option<String>>,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
@@ -54,13 +54,13 @@ pub fn dataflow_projects_delete_snapshots_builder(
     };
 
     let builder = client
-        .get(&url_with_query)
+        .delete(&url_with_query)
         .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
 
     Ok(builder)
 }
 
-/// GET v1b3/projects/{projectId}/snapshots
+/// DELETE v1b3/projects/{projectId}/snapshots
 /// Deletes a snapshot.
 ///
 /// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
@@ -134,7 +134,7 @@ pub fn dataflow_projects_delete_snapshots_task(
         .map_pending(|_| ApiPending::Sending))
 }
 
-/// GET v1b3/projects/{projectId}/snapshots
+/// DELETE v1b3/projects/{projectId}/snapshots
 /// Deletes a snapshot.
 ///
 /// Takes a `ClientRequestBuilder`, builds and executes the request,
@@ -172,12 +172,12 @@ pub struct DataflowProjectsDeleteSnapshotsArgs {
     /// Path parameter: projectId
     pub projectId: String,
     /// Query parameter: location
-    pub location: Option<String>,
+    pub location: Option<Option<String>>,
     /// Query parameter: snapshotId
-    pub snapshotId: Option<String>,
+    pub snapshotId: Option<Option<String>>,
 }
 
-/// GET v1b3/projects/{projectId}/snapshots
+/// DELETE v1b3/projects/{projectId}/snapshots
 /// Deletes a snapshot.
 ///
 /// Simplest API - builds and executes the request in one call.
@@ -206,7 +206,7 @@ pub fn dataflow_projects_delete_snapshots(
     dataflow_projects_delete_snapshots_execute(builder)
 }
 
-/// GET v1b3/projects/{projectId}/WorkerMessages
+/// POST v1b3/projects/{projectId}/WorkerMessages
 /// Send a worker_message to the service.
 ///
 /// Returns `ClientRequestBuilder` for customization.
@@ -215,7 +215,6 @@ pub fn dataflow_projects_delete_snapshots(
 pub fn dataflow_projects_worker_messages_builder(
     client: &SimpleHttpClient,
     projectId: &String,
-    body: &SendWorkerMessagesRequest,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
@@ -225,15 +224,13 @@ pub fn dataflow_projects_worker_messages_builder(
 
     // Build request
     let builder = client
-        .get(&endpoint_url)
+        .post(&endpoint_url)
         .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
 
-    builder
-        .body_json(body)
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+    Ok(builder)
 }
 
-/// GET v1b3/projects/{projectId}/WorkerMessages
+/// POST v1b3/projects/{projectId}/WorkerMessages
 /// Send a worker_message to the service.
 ///
 /// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
@@ -307,7 +304,7 @@ pub fn dataflow_projects_worker_messages_task(
         .map_pending(|_| ApiPending::Sending))
 }
 
-/// GET v1b3/projects/{projectId}/WorkerMessages
+/// POST v1b3/projects/{projectId}/WorkerMessages
 /// Send a worker_message to the service.
 ///
 /// Takes a `ClientRequestBuilder`, builds and executes the request,
@@ -346,11 +343,9 @@ pub fn dataflow_projects_worker_messages_execute(
 pub struct DataflowProjectsWorkerMessagesArgs {
     /// Path parameter: projectId
     pub projectId: String,
-    /// Request body.
-    pub body: SendWorkerMessagesRequest,
 }
 
-/// GET v1b3/projects/{projectId}/WorkerMessages
+/// POST v1b3/projects/{projectId}/WorkerMessages
 /// Send a worker_message to the service.
 ///
 /// Simplest API - builds and executes the request in one call.
@@ -372,7 +367,7 @@ pub fn dataflow_projects_worker_messages(
         + 'static,
     ApiError,
 > {
-    let builder = dataflow_projects_worker_messages_builder(client, &args.projectId, &args.body)?;
+    let builder = dataflow_projects_worker_messages_builder(client, &args.projectId)?;
     dataflow_projects_worker_messages_execute(builder)
 }
 
@@ -385,12 +380,12 @@ pub fn dataflow_projects_worker_messages(
 pub fn dataflow_projects_jobs_aggregated_builder(
     client: &SimpleHttpClient,
     projectId: &String,
-    filter: &Option<String>,
-    location: &Option<String>,
-    name: &Option<String>,
-    pageSize: &Option<i32>,
-    pageToken: &Option<String>,
-    view: &Option<String>,
+    filter: &Option<Option<String>>,
+    location: &Option<Option<String>>,
+    name: &Option<Option<String>>,
+    pageSize: &Option<Option<String>>,
+    pageToken: &Option<Option<String>>,
+    view: &Option<Option<String>>,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
@@ -544,17 +539,17 @@ pub struct DataflowProjectsJobsAggregatedArgs {
     /// Path parameter: projectId
     pub projectId: String,
     /// Query parameter: filter
-    pub filter: Option<String>,
+    pub filter: Option<Option<String>>,
     /// Query parameter: location
-    pub location: Option<String>,
+    pub location: Option<Option<String>>,
     /// Query parameter: name
-    pub name: Option<String>,
+    pub name: Option<Option<String>>,
     /// Query parameter: pageSize
-    pub pageSize: Option<i32>,
+    pub pageSize: Option<Option<String>>,
     /// Query parameter: pageToken
-    pub pageToken: Option<String>,
+    pub pageToken: Option<Option<String>>,
     /// Query parameter: view
-    pub view: Option<String>,
+    pub view: Option<Option<String>>,
 }
 
 /// GET v1b3/projects/{projectId}/jobs:aggregated
@@ -590,7 +585,7 @@ pub fn dataflow_projects_jobs_aggregated(
     dataflow_projects_jobs_aggregated_execute(builder)
 }
 
-/// GET v1b3/projects/{projectId}/jobs
+/// POST v1b3/projects/{projectId}/jobs
 /// Creates a Dataflow job. To create a job, we recommend using projects.locations.jobs.create with a [regional endpoint] (<https://cloud.google.`com/dataflow/docs/concepts/regional-endpoints`>). Using projects.jobs.create is not recommended, as your job will always start in us-central1. Do not enter confidential information when you supply string values using the API.
 ///
 /// Returns `ClientRequestBuilder` for customization.
@@ -599,10 +594,9 @@ pub fn dataflow_projects_jobs_aggregated(
 pub fn dataflow_projects_jobs_create_builder(
     client: &SimpleHttpClient,
     projectId: &String,
-    location: &Option<String>,
-    replaceJobId: &Option<String>,
-    view: &Option<String>,
-    body: &Job,
+    location: &Option<Option<String>>,
+    replaceJobId: &Option<Option<String>>,
+    view: &Option<Option<String>>,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
@@ -629,15 +623,13 @@ pub fn dataflow_projects_jobs_create_builder(
     };
 
     let builder = client
-        .get(&url_with_query)
+        .post(&url_with_query)
         .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
 
-    builder
-        .body_json(body)
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+    Ok(builder)
 }
 
-/// GET v1b3/projects/{projectId}/jobs
+/// POST v1b3/projects/{projectId}/jobs
 /// Creates a Dataflow job. To create a job, we recommend using projects.locations.jobs.create with a [regional endpoint] (<https://cloud.google.`com/dataflow/docs/concepts/regional-endpoints`>). Using projects.jobs.create is not recommended, as your job will always start in us-central1. Do not enter confidential information when you supply string values using the API.
 ///
 /// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
@@ -711,7 +703,7 @@ pub fn dataflow_projects_jobs_create_task(
         .map_pending(|_| ApiPending::Sending))
 }
 
-/// GET v1b3/projects/{projectId}/jobs
+/// POST v1b3/projects/{projectId}/jobs
 /// Creates a Dataflow job. To create a job, we recommend using projects.locations.jobs.create with a [regional endpoint] (<https://cloud.google.`com/dataflow/docs/concepts/regional-endpoints`>). Using projects.jobs.create is not recommended, as your job will always start in us-central1. Do not enter confidential information when you supply string values using the API.
 ///
 /// Takes a `ClientRequestBuilder`, builds and executes the request,
@@ -747,16 +739,14 @@ pub struct DataflowProjectsJobsCreateArgs {
     /// Path parameter: projectId
     pub projectId: String,
     /// Query parameter: location
-    pub location: Option<String>,
+    pub location: Option<Option<String>>,
     /// Query parameter: replaceJobId
-    pub replaceJobId: Option<String>,
+    pub replaceJobId: Option<Option<String>>,
     /// Query parameter: view
-    pub view: Option<String>,
-    /// Request body.
-    pub body: Job,
+    pub view: Option<Option<String>>,
 }
 
-/// GET v1b3/projects/{projectId}/jobs
+/// POST v1b3/projects/{projectId}/jobs
 /// Creates a Dataflow job. To create a job, we recommend using projects.locations.jobs.create with a [regional endpoint] (<https://cloud.google.`com/dataflow/docs/concepts/regional-endpoints`>). Using projects.jobs.create is not recommended, as your job will always start in us-central1. Do not enter confidential information when you supply string values using the API.
 ///
 /// Simplest API - builds and executes the request in one call.
@@ -780,7 +770,6 @@ pub fn dataflow_projects_jobs_create(
         &args.location,
         &args.replaceJobId,
         &args.view,
-        &args.body,
     )?;
     dataflow_projects_jobs_create_execute(builder)
 }
@@ -795,8 +784,8 @@ pub fn dataflow_projects_jobs_get_builder(
     client: &SimpleHttpClient,
     projectId: &String,
     jobId: &String,
-    location: &Option<String>,
-    view: &Option<String>,
+    location: &Option<Option<String>>,
+    view: &Option<Option<String>>,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
@@ -938,9 +927,9 @@ pub struct DataflowProjectsJobsGetArgs {
     /// Path parameter: jobId
     pub jobId: String,
     /// Query parameter: location
-    pub location: Option<String>,
+    pub location: Option<Option<String>>,
     /// Query parameter: view
-    pub view: Option<String>,
+    pub view: Option<Option<String>>,
 }
 
 /// GET v1b3/projects/{projectId}/jobs/{jobId}
@@ -981,8 +970,8 @@ pub fn dataflow_projects_jobs_get_metrics_builder(
     client: &SimpleHttpClient,
     projectId: &String,
     jobId: &String,
-    location: &Option<String>,
-    startTime: &Option<String>,
+    location: &Option<Option<String>>,
+    startTime: &Option<Option<String>>,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
@@ -1124,9 +1113,9 @@ pub struct DataflowProjectsJobsGetMetricsArgs {
     /// Path parameter: jobId
     pub jobId: String,
     /// Query parameter: location
-    pub location: Option<String>,
+    pub location: Option<Option<String>>,
     /// Query parameter: startTime
-    pub startTime: Option<String>,
+    pub startTime: Option<Option<String>>,
 }
 
 /// GET v1b3/projects/{projectId}/jobs/{jobId}/metrics
@@ -1157,7 +1146,221 @@ pub fn dataflow_projects_jobs_get_metrics(
     dataflow_projects_jobs_get_metrics_execute(builder)
 }
 
-/// GET v1b3/projects/{projectId}/jobs/{jobId}:snapshot
+/// GET v1b3/projects/{projectId}/jobs
+/// List the jobs of a project. To list the jobs of a project in a region, we recommend using projects.locations.jobs.list with a [regional endpoint] (<https://cloud.google.`com/dataflow/docs/concepts/regional-endpoints`>). To list the all jobs across all regions, use projects.jobs.aggregated. Using projects.jobs.list is not recommended, because you can only get the list of jobs that are running in us-central1. projects.locations.jobs.list and projects.jobs.list support filtering the list of jobs by name. Filtering by name isn't supported by projects.jobs.aggregated.
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `dataflow_projects_jobs_list_execute()` to send, or `dataflow_projects_jobs_list` for simplest API.
+
+pub fn dataflow_projects_jobs_list_builder(
+    client: &SimpleHttpClient,
+    projectId: &String,
+    filter: &Option<Option<String>>,
+    location: &Option<Option<String>>,
+    name: &Option<Option<String>>,
+    pageSize: &Option<Option<String>>,
+    pageToken: &Option<Option<String>>,
+    view: &Option<Option<String>>,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!(
+        "https://dataflow.googleapis.com/v1b3/projects/{}/jobs",
+        projectId,
+    );
+
+    // Build request
+    let mut query_parts = Vec::new();
+    if let Some(val) = filter.as_ref() {
+        query_parts.push(format!("filter={}", val));
+    }
+    if let Some(val) = location.as_ref() {
+        query_parts.push(format!("location={}", val));
+    }
+    if let Some(val) = name.as_ref() {
+        query_parts.push(format!("name={}", val));
+    }
+    if let Some(val) = pageSize.as_ref() {
+        query_parts.push(format!("pageSize={}", val));
+    }
+    if let Some(val) = pageToken.as_ref() {
+        query_parts.push(format!("pageToken={}", val));
+    }
+    if let Some(val) = view.as_ref() {
+        query_parts.push(format!("view={}", val));
+    }
+
+    let url_with_query = if query_parts.is_empty() {
+        endpoint_url
+    } else {
+        format!("{}?{}", endpoint_url, query_parts.join("&"))
+    };
+
+    let builder = client
+        .get(&url_with_query)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// GET v1b3/projects/{projectId}/jobs
+/// List the jobs of a project. To list the jobs of a project in a region, we recommend using projects.locations.jobs.list with a [regional endpoint] (<https://cloud.google.`com/dataflow/docs/concepts/regional-endpoints`>). To list the all jobs across all regions, use projects.jobs.aggregated. Using projects.jobs.list is not recommended, because you can only get the list of jobs that are running in us-central1. projects.locations.jobs.list and projects.jobs.list support filtering the list of jobs by name. Filtering by name isn't supported by projects.jobs.aggregated.
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `dataflow_projects_jobs_list_execute()` or `dataflow_projects_jobs_list`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `dataflow_projects_jobs_list_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn dataflow_projects_jobs_list_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<ListJobsResponse>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: ListJobsResponse = serde_json::from_str(&body)
+                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// GET v1b3/projects/{projectId}/jobs
+/// List the jobs of a project. To list the jobs of a project in a region, we recommend using projects.locations.jobs.list with a [regional endpoint] (<https://cloud.google.`com/dataflow/docs/concepts/regional-endpoints`>). To list the all jobs across all regions, use projects.jobs.aggregated. Using projects.jobs.list is not recommended, because you can only get the list of jobs that are running in us-central1. projects.locations.jobs.list and projects.jobs.list support filtering the list of jobs by name. Filtering by name isn't supported by projects.jobs.aggregated.
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `dataflow_projects_jobs_list_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `dataflow_projects_jobs_list_task()`.
+/// For the simplest API, use `dataflow_projects_jobs_list()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `dataflow_projects_jobs_list_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn dataflow_projects_jobs_list_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<ListJobsResponse>, ApiError>, P = ApiPending>
+        + Send
+        + 'static,
+    ApiError,
+> {
+    let task = dataflow_projects_jobs_list_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`dataflow_projects_jobs_list`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct DataflowProjectsJobsListArgs {
+    /// Path parameter: projectId
+    pub projectId: String,
+    /// Query parameter: filter
+    pub filter: Option<Option<String>>,
+    /// Query parameter: location
+    pub location: Option<Option<String>>,
+    /// Query parameter: name
+    pub name: Option<Option<String>>,
+    /// Query parameter: pageSize
+    pub pageSize: Option<Option<String>>,
+    /// Query parameter: pageToken
+    pub pageToken: Option<Option<String>>,
+    /// Query parameter: view
+    pub view: Option<Option<String>>,
+}
+
+/// GET v1b3/projects/{projectId}/jobs
+/// List the jobs of a project. To list the jobs of a project in a region, we recommend using projects.locations.jobs.list with a [regional endpoint] (<https://cloud.google.`com/dataflow/docs/concepts/regional-endpoints`>). To list the all jobs across all regions, use projects.jobs.aggregated. Using projects.jobs.list is not recommended, because you can only get the list of jobs that are running in us-central1. projects.locations.jobs.list and projects.jobs.list support filtering the list of jobs by name. Filtering by name isn't supported by projects.jobs.aggregated.
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `dataflow_projects_jobs_list_builder()` + `dataflow_projects_jobs_list_execute()`.
+/// For task-level control, use `dataflow_projects_jobs_list_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn dataflow_projects_jobs_list(
+    client: &SimpleHttpClient,
+    args: &DataflowProjectsJobsListArgs,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<ListJobsResponse>, ApiError>, P = ApiPending>
+        + Send
+        + 'static,
+    ApiError,
+> {
+    let builder = dataflow_projects_jobs_list_builder(
+        client,
+        &args.projectId,
+        &args.filter,
+        &args.location,
+        &args.name,
+        &args.pageSize,
+        &args.pageToken,
+        &args.view,
+    )?;
+    dataflow_projects_jobs_list_execute(builder)
+}
+
+/// POST v1b3/projects/{projectId}/jobs/{jobId}:snapshot
 /// Snapshot the state of a streaming job.
 ///
 /// Returns `ClientRequestBuilder` for customization.
@@ -1167,7 +1370,6 @@ pub fn dataflow_projects_jobs_snapshot_builder(
     client: &SimpleHttpClient,
     projectId: &String,
     jobId: &String,
-    body: &SnapshotJobRequest,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
@@ -1177,15 +1379,13 @@ pub fn dataflow_projects_jobs_snapshot_builder(
 
     // Build request
     let builder = client
-        .get(&endpoint_url)
+        .post(&endpoint_url)
         .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
 
-    builder
-        .body_json(body)
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+    Ok(builder)
 }
 
-/// GET v1b3/projects/{projectId}/jobs/{jobId}:snapshot
+/// POST v1b3/projects/{projectId}/jobs/{jobId}:snapshot
 /// Snapshot the state of a streaming job.
 ///
 /// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
@@ -1259,7 +1459,7 @@ pub fn dataflow_projects_jobs_snapshot_task(
         .map_pending(|_| ApiPending::Sending))
 }
 
-/// GET v1b3/projects/{projectId}/jobs/{jobId}:snapshot
+/// POST v1b3/projects/{projectId}/jobs/{jobId}:snapshot
 /// Snapshot the state of a streaming job.
 ///
 /// Takes a `ClientRequestBuilder`, builds and executes the request,
@@ -1296,11 +1496,9 @@ pub struct DataflowProjectsJobsSnapshotArgs {
     pub projectId: String,
     /// Path parameter: jobId
     pub jobId: String,
-    /// Request body.
-    pub body: SnapshotJobRequest,
 }
 
-/// GET v1b3/projects/{projectId}/jobs/{jobId}:snapshot
+/// POST v1b3/projects/{projectId}/jobs/{jobId}:snapshot
 /// Snapshot the state of a streaming job.
 ///
 /// Simplest API - builds and executes the request in one call.
@@ -1318,12 +1516,197 @@ pub fn dataflow_projects_jobs_snapshot(
     impl StreamIterator<D = Result<ApiResponse<Snapshot>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder =
-        dataflow_projects_jobs_snapshot_builder(client, &args.projectId, &args.jobId, &args.body)?;
+    let builder = dataflow_projects_jobs_snapshot_builder(client, &args.projectId, &args.jobId)?;
     dataflow_projects_jobs_snapshot_execute(builder)
 }
 
-/// GET v1b3/projects/{projectId}/jobs/{jobId}/debug/getConfig
+/// PUT v1b3/projects/{projectId}/jobs/{jobId}
+/// Updates the state of an existing Cloud Dataflow job. To update the state of an existing job, we recommend using projects.locations.jobs.update with a [regional endpoint] (<https://cloud.google.`com/dataflow/docs/concepts/regional-endpoints`>). Using projects.jobs.update is not recommended, as you can only update the state of jobs that are running in us-central1.
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `dataflow_projects_jobs_update_execute()` to send, or `dataflow_projects_jobs_update` for simplest API.
+
+pub fn dataflow_projects_jobs_update_builder(
+    client: &SimpleHttpClient,
+    projectId: &String,
+    jobId: &String,
+    location: &Option<Option<String>>,
+    updateMask: &Option<Option<String>>,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!(
+        "https://dataflow.googleapis.com/v1b3/projects/{}/jobs/{}",
+        projectId, jobId,
+    );
+
+    // Build request
+    let mut query_parts = Vec::new();
+    if let Some(val) = location.as_ref() {
+        query_parts.push(format!("location={}", val));
+    }
+    if let Some(val) = updateMask.as_ref() {
+        query_parts.push(format!("updateMask={}", val));
+    }
+
+    let url_with_query = if query_parts.is_empty() {
+        endpoint_url
+    } else {
+        format!("{}?{}", endpoint_url, query_parts.join("&"))
+    };
+
+    let builder = client
+        .put(&url_with_query)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// PUT v1b3/projects/{projectId}/jobs/{jobId}
+/// Updates the state of an existing Cloud Dataflow job. To update the state of an existing job, we recommend using projects.locations.jobs.update with a [regional endpoint] (<https://cloud.google.`com/dataflow/docs/concepts/regional-endpoints`>). Using projects.jobs.update is not recommended, as you can only update the state of jobs that are running in us-central1.
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `dataflow_projects_jobs_update_execute()` or `dataflow_projects_jobs_update`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `dataflow_projects_jobs_update_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn dataflow_projects_jobs_update_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<Job>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: Job = serde_json::from_str(&body)
+                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// PUT v1b3/projects/{projectId}/jobs/{jobId}
+/// Updates the state of an existing Cloud Dataflow job. To update the state of an existing job, we recommend using projects.locations.jobs.update with a [regional endpoint] (<https://cloud.google.`com/dataflow/docs/concepts/regional-endpoints`>). Using projects.jobs.update is not recommended, as you can only update the state of jobs that are running in us-central1.
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `dataflow_projects_jobs_update_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `dataflow_projects_jobs_update_task()`.
+/// For the simplest API, use `dataflow_projects_jobs_update()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `dataflow_projects_jobs_update_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn dataflow_projects_jobs_update_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<Job>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let task = dataflow_projects_jobs_update_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`dataflow_projects_jobs_update`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct DataflowProjectsJobsUpdateArgs {
+    /// Path parameter: projectId
+    pub projectId: String,
+    /// Path parameter: jobId
+    pub jobId: String,
+    /// Query parameter: location
+    pub location: Option<Option<String>>,
+    /// Query parameter: updateMask
+    pub updateMask: Option<Option<String>>,
+}
+
+/// PUT v1b3/projects/{projectId}/jobs/{jobId}
+/// Updates the state of an existing Cloud Dataflow job. To update the state of an existing job, we recommend using projects.locations.jobs.update with a [regional endpoint] (<https://cloud.google.`com/dataflow/docs/concepts/regional-endpoints`>). Using projects.jobs.update is not recommended, as you can only update the state of jobs that are running in us-central1.
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `dataflow_projects_jobs_update_builder()` + `dataflow_projects_jobs_update_execute()`.
+/// For task-level control, use `dataflow_projects_jobs_update_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn dataflow_projects_jobs_update(
+    client: &SimpleHttpClient,
+    args: &DataflowProjectsJobsUpdateArgs,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<Job>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let builder = dataflow_projects_jobs_update_builder(
+        client,
+        &args.projectId,
+        &args.jobId,
+        &args.location,
+        &args.updateMask,
+    )?;
+    dataflow_projects_jobs_update_execute(builder)
+}
+
+/// POST v1b3/projects/{projectId}/jobs/{jobId}/debug/getConfig
 /// Get encoded debug configuration for component. Not cacheable.
 ///
 /// Returns `ClientRequestBuilder` for customization.
@@ -1333,7 +1716,6 @@ pub fn dataflow_projects_jobs_debug_get_config_builder(
     client: &SimpleHttpClient,
     projectId: &String,
     jobId: &String,
-    body: &GetDebugConfigRequest,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
@@ -1343,15 +1725,13 @@ pub fn dataflow_projects_jobs_debug_get_config_builder(
 
     // Build request
     let builder = client
-        .get(&endpoint_url)
+        .post(&endpoint_url)
         .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
 
-    builder
-        .body_json(body)
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+    Ok(builder)
 }
 
-/// GET v1b3/projects/{projectId}/jobs/{jobId}/debug/getConfig
+/// POST v1b3/projects/{projectId}/jobs/{jobId}/debug/getConfig
 /// Get encoded debug configuration for component. Not cacheable.
 ///
 /// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
@@ -1425,7 +1805,7 @@ pub fn dataflow_projects_jobs_debug_get_config_task(
         .map_pending(|_| ApiPending::Sending))
 }
 
-/// GET v1b3/projects/{projectId}/jobs/{jobId}/debug/getConfig
+/// POST v1b3/projects/{projectId}/jobs/{jobId}/debug/getConfig
 /// Get encoded debug configuration for component. Not cacheable.
 ///
 /// Takes a `ClientRequestBuilder`, builds and executes the request,
@@ -1464,11 +1844,9 @@ pub struct DataflowProjectsJobsDebugGetConfigArgs {
     pub projectId: String,
     /// Path parameter: jobId
     pub jobId: String,
-    /// Request body.
-    pub body: GetDebugConfigRequest,
 }
 
-/// GET v1b3/projects/{projectId}/jobs/{jobId}/debug/getConfig
+/// POST v1b3/projects/{projectId}/jobs/{jobId}/debug/getConfig
 /// Get encoded debug configuration for component. Not cacheable.
 ///
 /// Simplest API - builds and executes the request in one call.
@@ -1488,16 +1866,12 @@ pub fn dataflow_projects_jobs_debug_get_config(
         + 'static,
     ApiError,
 > {
-    let builder = dataflow_projects_jobs_debug_get_config_builder(
-        client,
-        &args.projectId,
-        &args.jobId,
-        &args.body,
-    )?;
+    let builder =
+        dataflow_projects_jobs_debug_get_config_builder(client, &args.projectId, &args.jobId)?;
     dataflow_projects_jobs_debug_get_config_execute(builder)
 }
 
-/// GET v1b3/projects/{projectId}/jobs/{jobId}/debug/sendCapture
+/// POST v1b3/projects/{projectId}/jobs/{jobId}/debug/sendCapture
 /// Send encoded debug capture data for component.
 ///
 /// Returns `ClientRequestBuilder` for customization.
@@ -1507,7 +1881,6 @@ pub fn dataflow_projects_jobs_debug_send_capture_builder(
     client: &SimpleHttpClient,
     projectId: &String,
     jobId: &String,
-    body: &SendDebugCaptureRequest,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
@@ -1517,15 +1890,13 @@ pub fn dataflow_projects_jobs_debug_send_capture_builder(
 
     // Build request
     let builder = client
-        .get(&endpoint_url)
+        .post(&endpoint_url)
         .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
 
-    builder
-        .body_json(body)
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+    Ok(builder)
 }
 
-/// GET v1b3/projects/{projectId}/jobs/{jobId}/debug/sendCapture
+/// POST v1b3/projects/{projectId}/jobs/{jobId}/debug/sendCapture
 /// Send encoded debug capture data for component.
 ///
 /// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
@@ -1599,7 +1970,7 @@ pub fn dataflow_projects_jobs_debug_send_capture_task(
         .map_pending(|_| ApiPending::Sending))
 }
 
-/// GET v1b3/projects/{projectId}/jobs/{jobId}/debug/sendCapture
+/// POST v1b3/projects/{projectId}/jobs/{jobId}/debug/sendCapture
 /// Send encoded debug capture data for component.
 ///
 /// Takes a `ClientRequestBuilder`, builds and executes the request,
@@ -1638,11 +2009,9 @@ pub struct DataflowProjectsJobsDebugSendCaptureArgs {
     pub projectId: String,
     /// Path parameter: jobId
     pub jobId: String,
-    /// Request body.
-    pub body: SendDebugCaptureRequest,
 }
 
-/// GET v1b3/projects/{projectId}/jobs/{jobId}/debug/sendCapture
+/// POST v1b3/projects/{projectId}/jobs/{jobId}/debug/sendCapture
 /// Send encoded debug capture data for component.
 ///
 /// Simplest API - builds and executes the request in one call.
@@ -1662,12 +2031,8 @@ pub fn dataflow_projects_jobs_debug_send_capture(
         + 'static,
     ApiError,
 > {
-    let builder = dataflow_projects_jobs_debug_send_capture_builder(
-        client,
-        &args.projectId,
-        &args.jobId,
-        &args.body,
-    )?;
+    let builder =
+        dataflow_projects_jobs_debug_send_capture_builder(client, &args.projectId, &args.jobId)?;
     dataflow_projects_jobs_debug_send_capture_execute(builder)
 }
 
@@ -1681,12 +2046,12 @@ pub fn dataflow_projects_jobs_messages_list_builder(
     client: &SimpleHttpClient,
     projectId: &String,
     jobId: &String,
-    endTime: &Option<String>,
-    location: &Option<String>,
-    minimumImportance: &Option<String>,
-    pageSize: &Option<i32>,
-    pageToken: &Option<String>,
-    startTime: &Option<String>,
+    endTime: &Option<Option<String>>,
+    location: &Option<Option<String>>,
+    minimumImportance: &Option<Option<String>>,
+    pageSize: &Option<Option<String>>,
+    pageToken: &Option<Option<String>>,
+    startTime: &Option<Option<String>>,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
@@ -1842,17 +2207,17 @@ pub struct DataflowProjectsJobsMessagesListArgs {
     /// Path parameter: jobId
     pub jobId: String,
     /// Query parameter: endTime
-    pub endTime: Option<String>,
+    pub endTime: Option<Option<String>>,
     /// Query parameter: location
-    pub location: Option<String>,
+    pub location: Option<Option<String>>,
     /// Query parameter: minimumImportance
-    pub minimumImportance: Option<String>,
+    pub minimumImportance: Option<Option<String>>,
     /// Query parameter: pageSize
-    pub pageSize: Option<i32>,
+    pub pageSize: Option<Option<String>>,
     /// Query parameter: pageToken
-    pub pageToken: Option<String>,
+    pub pageToken: Option<Option<String>>,
     /// Query parameter: startTime
-    pub startTime: Option<String>,
+    pub startTime: Option<Option<String>>,
 }
 
 /// GET v1b3/projects/{projectId}/jobs/{jobId}/messages
@@ -1889,7 +2254,7 @@ pub fn dataflow_projects_jobs_messages_list(
     dataflow_projects_jobs_messages_list_execute(builder)
 }
 
-/// GET v1b3/projects/{projectId}/jobs/{jobId}/workItems:lease
+/// POST v1b3/projects/{projectId}/jobs/{jobId}/workItems:lease
 /// Leases a dataflow WorkItem to run.
 ///
 /// Returns `ClientRequestBuilder` for customization.
@@ -1899,7 +2264,6 @@ pub fn dataflow_projects_jobs_work_items_lease_builder(
     client: &SimpleHttpClient,
     projectId: &String,
     jobId: &String,
-    body: &LeaseWorkItemRequest,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
@@ -1909,15 +2273,13 @@ pub fn dataflow_projects_jobs_work_items_lease_builder(
 
     // Build request
     let builder = client
-        .get(&endpoint_url)
+        .post(&endpoint_url)
         .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
 
-    builder
-        .body_json(body)
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+    Ok(builder)
 }
 
-/// GET v1b3/projects/{projectId}/jobs/{jobId}/workItems:lease
+/// POST v1b3/projects/{projectId}/jobs/{jobId}/workItems:lease
 /// Leases a dataflow WorkItem to run.
 ///
 /// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
@@ -1991,7 +2353,7 @@ pub fn dataflow_projects_jobs_work_items_lease_task(
         .map_pending(|_| ApiPending::Sending))
 }
 
-/// GET v1b3/projects/{projectId}/jobs/{jobId}/workItems:lease
+/// POST v1b3/projects/{projectId}/jobs/{jobId}/workItems:lease
 /// Leases a dataflow WorkItem to run.
 ///
 /// Takes a `ClientRequestBuilder`, builds and executes the request,
@@ -2030,11 +2392,9 @@ pub struct DataflowProjectsJobsWorkItemsLeaseArgs {
     pub projectId: String,
     /// Path parameter: jobId
     pub jobId: String,
-    /// Request body.
-    pub body: LeaseWorkItemRequest,
 }
 
-/// GET v1b3/projects/{projectId}/jobs/{jobId}/workItems:lease
+/// POST v1b3/projects/{projectId}/jobs/{jobId}/workItems:lease
 /// Leases a dataflow WorkItem to run.
 ///
 /// Simplest API - builds and executes the request in one call.
@@ -2054,16 +2414,12 @@ pub fn dataflow_projects_jobs_work_items_lease(
         + 'static,
     ApiError,
 > {
-    let builder = dataflow_projects_jobs_work_items_lease_builder(
-        client,
-        &args.projectId,
-        &args.jobId,
-        &args.body,
-    )?;
+    let builder =
+        dataflow_projects_jobs_work_items_lease_builder(client, &args.projectId, &args.jobId)?;
     dataflow_projects_jobs_work_items_lease_execute(builder)
 }
 
-/// GET v1b3/projects/{projectId}/jobs/{jobId}/workItems:reportStatus
+/// POST v1b3/projects/{projectId}/jobs/{jobId}/workItems:reportStatus
 /// Reports the status of dataflow WorkItems leased by a worker.
 ///
 /// Returns `ClientRequestBuilder` for customization.
@@ -2073,7 +2429,6 @@ pub fn dataflow_projects_jobs_work_items_report_status_builder(
     client: &SimpleHttpClient,
     projectId: &String,
     jobId: &String,
-    body: &ReportWorkItemStatusRequest,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
@@ -2083,15 +2438,13 @@ pub fn dataflow_projects_jobs_work_items_report_status_builder(
 
     // Build request
     let builder = client
-        .get(&endpoint_url)
+        .post(&endpoint_url)
         .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
 
-    builder
-        .body_json(body)
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+    Ok(builder)
 }
 
-/// GET v1b3/projects/{projectId}/jobs/{jobId}/workItems:reportStatus
+/// POST v1b3/projects/{projectId}/jobs/{jobId}/workItems:reportStatus
 /// Reports the status of dataflow WorkItems leased by a worker.
 ///
 /// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
@@ -2165,7 +2518,7 @@ pub fn dataflow_projects_jobs_work_items_report_status_task(
         .map_pending(|_| ApiPending::Sending))
 }
 
-/// GET v1b3/projects/{projectId}/jobs/{jobId}/workItems:reportStatus
+/// POST v1b3/projects/{projectId}/jobs/{jobId}/workItems:reportStatus
 /// Reports the status of dataflow WorkItems leased by a worker.
 ///
 /// Takes a `ClientRequestBuilder`, builds and executes the request,
@@ -2206,11 +2559,9 @@ pub struct DataflowProjectsJobsWorkItemsReportStatusArgs {
     pub projectId: String,
     /// Path parameter: jobId
     pub jobId: String,
-    /// Request body.
-    pub body: ReportWorkItemStatusRequest,
 }
 
-/// GET v1b3/projects/{projectId}/jobs/{jobId}/workItems:reportStatus
+/// POST v1b3/projects/{projectId}/jobs/{jobId}/workItems:reportStatus
 /// Reports the status of dataflow WorkItems leased by a worker.
 ///
 /// Simplest API - builds and executes the request in one call.
@@ -2236,12 +2587,11 @@ pub fn dataflow_projects_jobs_work_items_report_status(
         client,
         &args.projectId,
         &args.jobId,
-        &args.body,
     )?;
     dataflow_projects_jobs_work_items_report_status_execute(builder)
 }
 
-/// GET v1b3/projects/{projectId}/locations/{location}/WorkerMessages
+/// POST v1b3/projects/{projectId}/locations/{location}/WorkerMessages
 /// Send a worker_message to the service.
 ///
 /// Returns `ClientRequestBuilder` for customization.
@@ -2251,7 +2601,6 @@ pub fn dataflow_projects_locations_worker_messages_builder(
     client: &SimpleHttpClient,
     projectId: &String,
     location: &String,
-    body: &SendWorkerMessagesRequest,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
@@ -2261,15 +2610,13 @@ pub fn dataflow_projects_locations_worker_messages_builder(
 
     // Build request
     let builder = client
-        .get(&endpoint_url)
+        .post(&endpoint_url)
         .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
 
-    builder
-        .body_json(body)
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+    Ok(builder)
 }
 
-/// GET v1b3/projects/{projectId}/locations/{location}/WorkerMessages
+/// POST v1b3/projects/{projectId}/locations/{location}/WorkerMessages
 /// Send a worker_message to the service.
 ///
 /// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
@@ -2343,7 +2690,7 @@ pub fn dataflow_projects_locations_worker_messages_task(
         .map_pending(|_| ApiPending::Sending))
 }
 
-/// GET v1b3/projects/{projectId}/locations/{location}/WorkerMessages
+/// POST v1b3/projects/{projectId}/locations/{location}/WorkerMessages
 /// Send a worker_message to the service.
 ///
 /// Takes a `ClientRequestBuilder`, builds and executes the request,
@@ -2384,11 +2731,9 @@ pub struct DataflowProjectsLocationsWorkerMessagesArgs {
     pub projectId: String,
     /// Path parameter: location
     pub location: String,
-    /// Request body.
-    pub body: SendWorkerMessagesRequest,
 }
 
-/// GET v1b3/projects/{projectId}/locations/{location}/WorkerMessages
+/// POST v1b3/projects/{projectId}/locations/{location}/WorkerMessages
 /// Send a worker_message to the service.
 ///
 /// Simplest API - builds and executes the request in one call.
@@ -2414,12 +2759,11 @@ pub fn dataflow_projects_locations_worker_messages(
         client,
         &args.projectId,
         &args.location,
-        &args.body,
     )?;
     dataflow_projects_locations_worker_messages_execute(builder)
 }
 
-/// GET v1b3/projects/{projectId}/locations/{location}/flexTemplates:launch
+/// POST v1b3/projects/{projectId}/locations/{location}/flexTemplates:launch
 /// Launch a job with a FlexTemplate.
 ///
 /// Returns `ClientRequestBuilder` for customization.
@@ -2429,7 +2773,6 @@ pub fn dataflow_projects_locations_flex_templates_launch_builder(
     client: &SimpleHttpClient,
     projectId: &String,
     location: &String,
-    body: &LaunchFlexTemplateRequest,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
@@ -2439,15 +2782,13 @@ pub fn dataflow_projects_locations_flex_templates_launch_builder(
 
     // Build request
     let builder = client
-        .get(&endpoint_url)
+        .post(&endpoint_url)
         .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
 
-    builder
-        .body_json(body)
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+    Ok(builder)
 }
 
-/// GET v1b3/projects/{projectId}/locations/{location}/flexTemplates:launch
+/// POST v1b3/projects/{projectId}/locations/{location}/flexTemplates:launch
 /// Launch a job with a FlexTemplate.
 ///
 /// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
@@ -2521,7 +2862,7 @@ pub fn dataflow_projects_locations_flex_templates_launch_task(
         .map_pending(|_| ApiPending::Sending))
 }
 
-/// GET v1b3/projects/{projectId}/locations/{location}/flexTemplates:launch
+/// POST v1b3/projects/{projectId}/locations/{location}/flexTemplates:launch
 /// Launch a job with a FlexTemplate.
 ///
 /// Takes a `ClientRequestBuilder`, builds and executes the request,
@@ -2562,11 +2903,9 @@ pub struct DataflowProjectsLocationsFlexTemplatesLaunchArgs {
     pub projectId: String,
     /// Path parameter: location
     pub location: String,
-    /// Request body.
-    pub body: LaunchFlexTemplateRequest,
 }
 
-/// GET v1b3/projects/{projectId}/locations/{location}/flexTemplates:launch
+/// POST v1b3/projects/{projectId}/locations/{location}/flexTemplates:launch
 /// Launch a job with a FlexTemplate.
 ///
 /// Simplest API - builds and executes the request in one call.
@@ -2592,12 +2931,11 @@ pub fn dataflow_projects_locations_flex_templates_launch(
         client,
         &args.projectId,
         &args.location,
-        &args.body,
     )?;
     dataflow_projects_locations_flex_templates_launch_execute(builder)
 }
 
-/// GET v1b3/projects/{projectId}/locations/{location}/jobs
+/// POST v1b3/projects/{projectId}/locations/{location}/jobs
 /// Creates a Dataflow job. To create a job, we recommend using projects.locations.jobs.create with a [regional endpoint] (<https://cloud.google.`com/dataflow/docs/concepts/regional-endpoints`>). Using projects.jobs.create is not recommended, as your job will always start in us-central1. Do not enter confidential information when you supply string values using the API.
 ///
 /// Returns `ClientRequestBuilder` for customization.
@@ -2607,9 +2945,8 @@ pub fn dataflow_projects_locations_jobs_create_builder(
     client: &SimpleHttpClient,
     projectId: &String,
     location: &String,
-    replaceJobId: &Option<String>,
-    view: &Option<String>,
-    body: &Job,
+    replaceJobId: &Option<Option<String>>,
+    view: &Option<Option<String>>,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
@@ -2633,15 +2970,13 @@ pub fn dataflow_projects_locations_jobs_create_builder(
     };
 
     let builder = client
-        .get(&url_with_query)
+        .post(&url_with_query)
         .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
 
-    builder
-        .body_json(body)
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+    Ok(builder)
 }
 
-/// GET v1b3/projects/{projectId}/locations/{location}/jobs
+/// POST v1b3/projects/{projectId}/locations/{location}/jobs
 /// Creates a Dataflow job. To create a job, we recommend using projects.locations.jobs.create with a [regional endpoint] (<https://cloud.google.`com/dataflow/docs/concepts/regional-endpoints`>). Using projects.jobs.create is not recommended, as your job will always start in us-central1. Do not enter confidential information when you supply string values using the API.
 ///
 /// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
@@ -2715,7 +3050,7 @@ pub fn dataflow_projects_locations_jobs_create_task(
         .map_pending(|_| ApiPending::Sending))
 }
 
-/// GET v1b3/projects/{projectId}/locations/{location}/jobs
+/// POST v1b3/projects/{projectId}/locations/{location}/jobs
 /// Creates a Dataflow job. To create a job, we recommend using projects.locations.jobs.create with a [regional endpoint] (<https://cloud.google.`com/dataflow/docs/concepts/regional-endpoints`>). Using projects.jobs.create is not recommended, as your job will always start in us-central1. Do not enter confidential information when you supply string values using the API.
 ///
 /// Takes a `ClientRequestBuilder`, builds and executes the request,
@@ -2753,14 +3088,12 @@ pub struct DataflowProjectsLocationsJobsCreateArgs {
     /// Path parameter: location
     pub location: String,
     /// Query parameter: replaceJobId
-    pub replaceJobId: Option<String>,
+    pub replaceJobId: Option<Option<String>>,
     /// Query parameter: view
-    pub view: Option<String>,
-    /// Request body.
-    pub body: Job,
+    pub view: Option<Option<String>>,
 }
 
-/// GET v1b3/projects/{projectId}/locations/{location}/jobs
+/// POST v1b3/projects/{projectId}/locations/{location}/jobs
 /// Creates a Dataflow job. To create a job, we recommend using projects.locations.jobs.create with a [regional endpoint] (<https://cloud.google.`com/dataflow/docs/concepts/regional-endpoints`>). Using projects.jobs.create is not recommended, as your job will always start in us-central1. Do not enter confidential information when you supply string values using the API.
 ///
 /// Simplest API - builds and executes the request in one call.
@@ -2784,7 +3117,6 @@ pub fn dataflow_projects_locations_jobs_create(
         &args.location,
         &args.replaceJobId,
         &args.view,
-        &args.body,
     )?;
     dataflow_projects_locations_jobs_create_execute(builder)
 }
@@ -2800,7 +3132,7 @@ pub fn dataflow_projects_locations_jobs_get_builder(
     projectId: &String,
     location: &String,
     jobId: &String,
-    view: &Option<String>,
+    view: &Option<Option<String>>,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
@@ -2941,7 +3273,7 @@ pub struct DataflowProjectsLocationsJobsGetArgs {
     /// Path parameter: jobId
     pub jobId: String,
     /// Query parameter: view
-    pub view: Option<String>,
+    pub view: Option<Option<String>>,
 }
 
 /// GET v1b3/projects/{projectId}/locations/{location}/jobs/{jobId}
@@ -2983,8 +3315,8 @@ pub fn dataflow_projects_locations_jobs_get_execution_details_builder(
     projectId: &String,
     location: &String,
     jobId: &String,
-    pageSize: &Option<i32>,
-    pageToken: &Option<String>,
+    pageSize: &Option<Option<String>>,
+    pageToken: &Option<Option<String>>,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
@@ -3130,9 +3462,9 @@ pub struct DataflowProjectsLocationsJobsGetExecutionDetailsArgs {
     /// Path parameter: jobId
     pub jobId: String,
     /// Query parameter: pageSize
-    pub pageSize: Option<i32>,
+    pub pageSize: Option<Option<String>>,
     /// Query parameter: pageToken
-    pub pageToken: Option<String>,
+    pub pageToken: Option<Option<String>>,
 }
 
 /// GET v1b3/projects/{projectId}/locations/{location}/jobs/{jobId}/executionDetails
@@ -3177,7 +3509,7 @@ pub fn dataflow_projects_locations_jobs_get_metrics_builder(
     projectId: &String,
     location: &String,
     jobId: &String,
-    startTime: &Option<String>,
+    startTime: &Option<Option<String>>,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
@@ -3318,7 +3650,7 @@ pub struct DataflowProjectsLocationsJobsGetMetricsArgs {
     /// Path parameter: jobId
     pub jobId: String,
     /// Query parameter: startTime
-    pub startTime: Option<String>,
+    pub startTime: Option<Option<String>>,
 }
 
 /// GET v1b3/projects/{projectId}/locations/{location}/jobs/{jobId}/metrics
@@ -3349,7 +3681,218 @@ pub fn dataflow_projects_locations_jobs_get_metrics(
     dataflow_projects_locations_jobs_get_metrics_execute(builder)
 }
 
-/// GET v1b3/projects/{projectId}/locations/{location}/jobs/{jobId}:snapshot
+/// GET v1b3/projects/{projectId}/locations/{location}/jobs
+/// List the jobs of a project. To list the jobs of a project in a region, we recommend using projects.locations.jobs.list with a [regional endpoint] (<https://cloud.google.`com/dataflow/docs/concepts/regional-endpoints`>). To list the all jobs across all regions, use projects.jobs.aggregated. Using projects.jobs.list is not recommended, because you can only get the list of jobs that are running in us-central1. projects.locations.jobs.list and projects.jobs.list support filtering the list of jobs by name. Filtering by name isn't supported by projects.jobs.aggregated.
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `dataflow_projects_locations_jobs_list_execute()` to send, or `dataflow_projects_locations_jobs_list` for simplest API.
+
+pub fn dataflow_projects_locations_jobs_list_builder(
+    client: &SimpleHttpClient,
+    projectId: &String,
+    location: &String,
+    filter: &Option<Option<String>>,
+    name: &Option<Option<String>>,
+    pageSize: &Option<Option<String>>,
+    pageToken: &Option<Option<String>>,
+    view: &Option<Option<String>>,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!(
+        "https://dataflow.googleapis.com/v1b3/projects/{}/locations/{}/jobs",
+        projectId, location,
+    );
+
+    // Build request
+    let mut query_parts = Vec::new();
+    if let Some(val) = filter.as_ref() {
+        query_parts.push(format!("filter={}", val));
+    }
+    if let Some(val) = name.as_ref() {
+        query_parts.push(format!("name={}", val));
+    }
+    if let Some(val) = pageSize.as_ref() {
+        query_parts.push(format!("pageSize={}", val));
+    }
+    if let Some(val) = pageToken.as_ref() {
+        query_parts.push(format!("pageToken={}", val));
+    }
+    if let Some(val) = view.as_ref() {
+        query_parts.push(format!("view={}", val));
+    }
+
+    let url_with_query = if query_parts.is_empty() {
+        endpoint_url
+    } else {
+        format!("{}?{}", endpoint_url, query_parts.join("&"))
+    };
+
+    let builder = client
+        .get(&url_with_query)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// GET v1b3/projects/{projectId}/locations/{location}/jobs
+/// List the jobs of a project. To list the jobs of a project in a region, we recommend using projects.locations.jobs.list with a [regional endpoint] (<https://cloud.google.`com/dataflow/docs/concepts/regional-endpoints`>). To list the all jobs across all regions, use projects.jobs.aggregated. Using projects.jobs.list is not recommended, because you can only get the list of jobs that are running in us-central1. projects.locations.jobs.list and projects.jobs.list support filtering the list of jobs by name. Filtering by name isn't supported by projects.jobs.aggregated.
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `dataflow_projects_locations_jobs_list_execute()` or `dataflow_projects_locations_jobs_list`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `dataflow_projects_locations_jobs_list_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn dataflow_projects_locations_jobs_list_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<ListJobsResponse>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: ListJobsResponse = serde_json::from_str(&body)
+                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// GET v1b3/projects/{projectId}/locations/{location}/jobs
+/// List the jobs of a project. To list the jobs of a project in a region, we recommend using projects.locations.jobs.list with a [regional endpoint] (<https://cloud.google.`com/dataflow/docs/concepts/regional-endpoints`>). To list the all jobs across all regions, use projects.jobs.aggregated. Using projects.jobs.list is not recommended, because you can only get the list of jobs that are running in us-central1. projects.locations.jobs.list and projects.jobs.list support filtering the list of jobs by name. Filtering by name isn't supported by projects.jobs.aggregated.
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `dataflow_projects_locations_jobs_list_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `dataflow_projects_locations_jobs_list_task()`.
+/// For the simplest API, use `dataflow_projects_locations_jobs_list()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `dataflow_projects_locations_jobs_list_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn dataflow_projects_locations_jobs_list_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<ListJobsResponse>, ApiError>, P = ApiPending>
+        + Send
+        + 'static,
+    ApiError,
+> {
+    let task = dataflow_projects_locations_jobs_list_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`dataflow_projects_locations_jobs_list`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct DataflowProjectsLocationsJobsListArgs {
+    /// Path parameter: projectId
+    pub projectId: String,
+    /// Path parameter: location
+    pub location: String,
+    /// Query parameter: filter
+    pub filter: Option<Option<String>>,
+    /// Query parameter: name
+    pub name: Option<Option<String>>,
+    /// Query parameter: pageSize
+    pub pageSize: Option<Option<String>>,
+    /// Query parameter: pageToken
+    pub pageToken: Option<Option<String>>,
+    /// Query parameter: view
+    pub view: Option<Option<String>>,
+}
+
+/// GET v1b3/projects/{projectId}/locations/{location}/jobs
+/// List the jobs of a project. To list the jobs of a project in a region, we recommend using projects.locations.jobs.list with a [regional endpoint] (<https://cloud.google.`com/dataflow/docs/concepts/regional-endpoints`>). To list the all jobs across all regions, use projects.jobs.aggregated. Using projects.jobs.list is not recommended, because you can only get the list of jobs that are running in us-central1. projects.locations.jobs.list and projects.jobs.list support filtering the list of jobs by name. Filtering by name isn't supported by projects.jobs.aggregated.
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `dataflow_projects_locations_jobs_list_builder()` + `dataflow_projects_locations_jobs_list_execute()`.
+/// For task-level control, use `dataflow_projects_locations_jobs_list_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn dataflow_projects_locations_jobs_list(
+    client: &SimpleHttpClient,
+    args: &DataflowProjectsLocationsJobsListArgs,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<ListJobsResponse>, ApiError>, P = ApiPending>
+        + Send
+        + 'static,
+    ApiError,
+> {
+    let builder = dataflow_projects_locations_jobs_list_builder(
+        client,
+        &args.projectId,
+        &args.location,
+        &args.filter,
+        &args.name,
+        &args.pageSize,
+        &args.pageToken,
+        &args.view,
+    )?;
+    dataflow_projects_locations_jobs_list_execute(builder)
+}
+
+/// POST v1b3/projects/{projectId}/locations/{location}/jobs/{jobId}:snapshot
 /// Snapshot the state of a streaming job.
 ///
 /// Returns `ClientRequestBuilder` for customization.
@@ -3360,7 +3903,6 @@ pub fn dataflow_projects_locations_jobs_snapshot_builder(
     projectId: &String,
     location: &String,
     jobId: &String,
-    body: &SnapshotJobRequest,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
@@ -3370,15 +3912,13 @@ pub fn dataflow_projects_locations_jobs_snapshot_builder(
 
     // Build request
     let builder = client
-        .get(&endpoint_url)
+        .post(&endpoint_url)
         .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
 
-    builder
-        .body_json(body)
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+    Ok(builder)
 }
 
-/// GET v1b3/projects/{projectId}/locations/{location}/jobs/{jobId}:snapshot
+/// POST v1b3/projects/{projectId}/locations/{location}/jobs/{jobId}:snapshot
 /// Snapshot the state of a streaming job.
 ///
 /// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
@@ -3452,7 +3992,7 @@ pub fn dataflow_projects_locations_jobs_snapshot_task(
         .map_pending(|_| ApiPending::Sending))
 }
 
-/// GET v1b3/projects/{projectId}/locations/{location}/jobs/{jobId}:snapshot
+/// POST v1b3/projects/{projectId}/locations/{location}/jobs/{jobId}:snapshot
 /// Snapshot the state of a streaming job.
 ///
 /// Takes a `ClientRequestBuilder`, builds and executes the request,
@@ -3491,11 +4031,9 @@ pub struct DataflowProjectsLocationsJobsSnapshotArgs {
     pub location: String,
     /// Path parameter: jobId
     pub jobId: String,
-    /// Request body.
-    pub body: SnapshotJobRequest,
 }
 
-/// GET v1b3/projects/{projectId}/locations/{location}/jobs/{jobId}:snapshot
+/// POST v1b3/projects/{projectId}/locations/{location}/jobs/{jobId}:snapshot
 /// Snapshot the state of a streaming job.
 ///
 /// Simplest API - builds and executes the request in one call.
@@ -3518,12 +4056,194 @@ pub fn dataflow_projects_locations_jobs_snapshot(
         &args.projectId,
         &args.location,
         &args.jobId,
-        &args.body,
     )?;
     dataflow_projects_locations_jobs_snapshot_execute(builder)
 }
 
-/// GET v1b3/projects/{projectId}/locations/{location}/jobs/{jobId}/debug/getConfig
+/// PUT v1b3/projects/{projectId}/locations/{location}/jobs/{jobId}
+/// Updates the state of an existing Cloud Dataflow job. To update the state of an existing job, we recommend using projects.locations.jobs.update with a [regional endpoint] (<https://cloud.google.`com/dataflow/docs/concepts/regional-endpoints`>). Using projects.jobs.update is not recommended, as you can only update the state of jobs that are running in us-central1.
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `dataflow_projects_locations_jobs_update_execute()` to send, or `dataflow_projects_locations_jobs_update` for simplest API.
+
+pub fn dataflow_projects_locations_jobs_update_builder(
+    client: &SimpleHttpClient,
+    projectId: &String,
+    location: &String,
+    jobId: &String,
+    updateMask: &Option<Option<String>>,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!(
+        "https://dataflow.googleapis.com/v1b3/projects/{}/locations/{}/jobs/{}",
+        projectId, location, jobId,
+    );
+
+    // Build request
+    let mut query_parts = Vec::new();
+    if let Some(val) = updateMask.as_ref() {
+        query_parts.push(format!("updateMask={}", val));
+    }
+
+    let url_with_query = if query_parts.is_empty() {
+        endpoint_url
+    } else {
+        format!("{}?{}", endpoint_url, query_parts.join("&"))
+    };
+
+    let builder = client
+        .put(&url_with_query)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// PUT v1b3/projects/{projectId}/locations/{location}/jobs/{jobId}
+/// Updates the state of an existing Cloud Dataflow job. To update the state of an existing job, we recommend using projects.locations.jobs.update with a [regional endpoint] (<https://cloud.google.`com/dataflow/docs/concepts/regional-endpoints`>). Using projects.jobs.update is not recommended, as you can only update the state of jobs that are running in us-central1.
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `dataflow_projects_locations_jobs_update_execute()` or `dataflow_projects_locations_jobs_update`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `dataflow_projects_locations_jobs_update_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn dataflow_projects_locations_jobs_update_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<Job>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: Job = serde_json::from_str(&body)
+                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// PUT v1b3/projects/{projectId}/locations/{location}/jobs/{jobId}
+/// Updates the state of an existing Cloud Dataflow job. To update the state of an existing job, we recommend using projects.locations.jobs.update with a [regional endpoint] (<https://cloud.google.`com/dataflow/docs/concepts/regional-endpoints`>). Using projects.jobs.update is not recommended, as you can only update the state of jobs that are running in us-central1.
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `dataflow_projects_locations_jobs_update_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `dataflow_projects_locations_jobs_update_task()`.
+/// For the simplest API, use `dataflow_projects_locations_jobs_update()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `dataflow_projects_locations_jobs_update_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn dataflow_projects_locations_jobs_update_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<Job>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let task = dataflow_projects_locations_jobs_update_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`dataflow_projects_locations_jobs_update`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct DataflowProjectsLocationsJobsUpdateArgs {
+    /// Path parameter: projectId
+    pub projectId: String,
+    /// Path parameter: location
+    pub location: String,
+    /// Path parameter: jobId
+    pub jobId: String,
+    /// Query parameter: updateMask
+    pub updateMask: Option<Option<String>>,
+}
+
+/// PUT v1b3/projects/{projectId}/locations/{location}/jobs/{jobId}
+/// Updates the state of an existing Cloud Dataflow job. To update the state of an existing job, we recommend using projects.locations.jobs.update with a [regional endpoint] (<https://cloud.google.`com/dataflow/docs/concepts/regional-endpoints`>). Using projects.jobs.update is not recommended, as you can only update the state of jobs that are running in us-central1.
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `dataflow_projects_locations_jobs_update_builder()` + `dataflow_projects_locations_jobs_update_execute()`.
+/// For task-level control, use `dataflow_projects_locations_jobs_update_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn dataflow_projects_locations_jobs_update(
+    client: &SimpleHttpClient,
+    args: &DataflowProjectsLocationsJobsUpdateArgs,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<Job>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let builder = dataflow_projects_locations_jobs_update_builder(
+        client,
+        &args.projectId,
+        &args.location,
+        &args.jobId,
+        &args.updateMask,
+    )?;
+    dataflow_projects_locations_jobs_update_execute(builder)
+}
+
+/// POST v1b3/projects/{projectId}/locations/{location}/jobs/{jobId}/debug/getConfig
 /// Get encoded debug configuration for component. Not cacheable.
 ///
 /// Returns `ClientRequestBuilder` for customization.
@@ -3534,7 +4254,6 @@ pub fn dataflow_projects_locations_jobs_debug_get_config_builder(
     projectId: &String,
     location: &String,
     jobId: &String,
-    body: &GetDebugConfigRequest,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
@@ -3544,15 +4263,13 @@ pub fn dataflow_projects_locations_jobs_debug_get_config_builder(
 
     // Build request
     let builder = client
-        .get(&endpoint_url)
+        .post(&endpoint_url)
         .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
 
-    builder
-        .body_json(body)
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+    Ok(builder)
 }
 
-/// GET v1b3/projects/{projectId}/locations/{location}/jobs/{jobId}/debug/getConfig
+/// POST v1b3/projects/{projectId}/locations/{location}/jobs/{jobId}/debug/getConfig
 /// Get encoded debug configuration for component. Not cacheable.
 ///
 /// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
@@ -3626,7 +4343,7 @@ pub fn dataflow_projects_locations_jobs_debug_get_config_task(
         .map_pending(|_| ApiPending::Sending))
 }
 
-/// GET v1b3/projects/{projectId}/locations/{location}/jobs/{jobId}/debug/getConfig
+/// POST v1b3/projects/{projectId}/locations/{location}/jobs/{jobId}/debug/getConfig
 /// Get encoded debug configuration for component. Not cacheable.
 ///
 /// Takes a `ClientRequestBuilder`, builds and executes the request,
@@ -3667,11 +4384,9 @@ pub struct DataflowProjectsLocationsJobsDebugGetConfigArgs {
     pub location: String,
     /// Path parameter: jobId
     pub jobId: String,
-    /// Request body.
-    pub body: GetDebugConfigRequest,
 }
 
-/// GET v1b3/projects/{projectId}/locations/{location}/jobs/{jobId}/debug/getConfig
+/// POST v1b3/projects/{projectId}/locations/{location}/jobs/{jobId}/debug/getConfig
 /// Get encoded debug configuration for component. Not cacheable.
 ///
 /// Simplest API - builds and executes the request in one call.
@@ -3696,12 +4411,11 @@ pub fn dataflow_projects_locations_jobs_debug_get_config(
         &args.projectId,
         &args.location,
         &args.jobId,
-        &args.body,
     )?;
     dataflow_projects_locations_jobs_debug_get_config_execute(builder)
 }
 
-/// GET v1b3/projects/{projectId}/locations/{location}/jobs/{jobId}/debug/getWorkerStacktraces
+/// POST v1b3/projects/{projectId}/locations/{location}/jobs/{jobId}/debug/getWorkerStacktraces
 /// Get worker stacktraces from debug capture.
 ///
 /// Returns `ClientRequestBuilder` for customization.
@@ -3712,7 +4426,6 @@ pub fn dataflow_projects_locations_jobs_debug_get_worker_stacktraces_builder(
     projectId: &String,
     location: &String,
     jobId: &String,
-    body: &GetWorkerStacktracesRequest,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
@@ -3724,15 +4437,13 @@ pub fn dataflow_projects_locations_jobs_debug_get_worker_stacktraces_builder(
 
     // Build request
     let builder = client
-        .get(&endpoint_url)
+        .post(&endpoint_url)
         .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
 
-    builder
-        .body_json(body)
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+    Ok(builder)
 }
 
-/// GET v1b3/projects/{projectId}/locations/{location}/jobs/{jobId}/debug/getWorkerStacktraces
+/// POST v1b3/projects/{projectId}/locations/{location}/jobs/{jobId}/debug/getWorkerStacktraces
 /// Get worker stacktraces from debug capture.
 ///
 /// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
@@ -3806,7 +4517,7 @@ pub fn dataflow_projects_locations_jobs_debug_get_worker_stacktraces_task(
         .map_pending(|_| ApiPending::Sending))
 }
 
-/// GET v1b3/projects/{projectId}/locations/{location}/jobs/{jobId}/debug/getWorkerStacktraces
+/// POST v1b3/projects/{projectId}/locations/{location}/jobs/{jobId}/debug/getWorkerStacktraces
 /// Get worker stacktraces from debug capture.
 ///
 /// Takes a `ClientRequestBuilder`, builds and executes the request,
@@ -3849,11 +4560,9 @@ pub struct DataflowProjectsLocationsJobsDebugGetWorkerStacktracesArgs {
     pub location: String,
     /// Path parameter: jobId
     pub jobId: String,
-    /// Request body.
-    pub body: GetWorkerStacktracesRequest,
 }
 
-/// GET v1b3/projects/{projectId}/locations/{location}/jobs/{jobId}/debug/getWorkerStacktraces
+/// POST v1b3/projects/{projectId}/locations/{location}/jobs/{jobId}/debug/getWorkerStacktraces
 /// Get worker stacktraces from debug capture.
 ///
 /// Simplest API - builds and executes the request in one call.
@@ -3880,12 +4589,11 @@ pub fn dataflow_projects_locations_jobs_debug_get_worker_stacktraces(
         &args.projectId,
         &args.location,
         &args.jobId,
-        &args.body,
     )?;
     dataflow_projects_locations_jobs_debug_get_worker_stacktraces_execute(builder)
 }
 
-/// GET v1b3/projects/{projectId}/locations/{location}/jobs/{jobId}/debug/sendCapture
+/// POST v1b3/projects/{projectId}/locations/{location}/jobs/{jobId}/debug/sendCapture
 /// Send encoded debug capture data for component.
 ///
 /// Returns `ClientRequestBuilder` for customization.
@@ -3896,7 +4604,6 @@ pub fn dataflow_projects_locations_jobs_debug_send_capture_builder(
     projectId: &String,
     location: &String,
     jobId: &String,
-    body: &SendDebugCaptureRequest,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
@@ -3906,15 +4613,13 @@ pub fn dataflow_projects_locations_jobs_debug_send_capture_builder(
 
     // Build request
     let builder = client
-        .get(&endpoint_url)
+        .post(&endpoint_url)
         .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
 
-    builder
-        .body_json(body)
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+    Ok(builder)
 }
 
-/// GET v1b3/projects/{projectId}/locations/{location}/jobs/{jobId}/debug/sendCapture
+/// POST v1b3/projects/{projectId}/locations/{location}/jobs/{jobId}/debug/sendCapture
 /// Send encoded debug capture data for component.
 ///
 /// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
@@ -3988,7 +4693,7 @@ pub fn dataflow_projects_locations_jobs_debug_send_capture_task(
         .map_pending(|_| ApiPending::Sending))
 }
 
-/// GET v1b3/projects/{projectId}/locations/{location}/jobs/{jobId}/debug/sendCapture
+/// POST v1b3/projects/{projectId}/locations/{location}/jobs/{jobId}/debug/sendCapture
 /// Send encoded debug capture data for component.
 ///
 /// Takes a `ClientRequestBuilder`, builds and executes the request,
@@ -4029,11 +4734,9 @@ pub struct DataflowProjectsLocationsJobsDebugSendCaptureArgs {
     pub location: String,
     /// Path parameter: jobId
     pub jobId: String,
-    /// Request body.
-    pub body: SendDebugCaptureRequest,
 }
 
-/// GET v1b3/projects/{projectId}/locations/{location}/jobs/{jobId}/debug/sendCapture
+/// POST v1b3/projects/{projectId}/locations/{location}/jobs/{jobId}/debug/sendCapture
 /// Send encoded debug capture data for component.
 ///
 /// Simplest API - builds and executes the request in one call.
@@ -4058,7 +4761,6 @@ pub fn dataflow_projects_locations_jobs_debug_send_capture(
         &args.projectId,
         &args.location,
         &args.jobId,
-        &args.body,
     )?;
     dataflow_projects_locations_jobs_debug_send_capture_execute(builder)
 }
@@ -4074,11 +4776,11 @@ pub fn dataflow_projects_locations_jobs_messages_list_builder(
     projectId: &String,
     location: &String,
     jobId: &String,
-    endTime: &Option<String>,
-    minimumImportance: &Option<String>,
-    pageSize: &Option<i32>,
-    pageToken: &Option<String>,
-    startTime: &Option<String>,
+    endTime: &Option<Option<String>>,
+    minimumImportance: &Option<Option<String>>,
+    pageSize: &Option<Option<String>>,
+    pageToken: &Option<Option<String>>,
+    startTime: &Option<Option<String>>,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
@@ -4233,15 +4935,15 @@ pub struct DataflowProjectsLocationsJobsMessagesListArgs {
     /// Path parameter: jobId
     pub jobId: String,
     /// Query parameter: endTime
-    pub endTime: Option<String>,
+    pub endTime: Option<Option<String>>,
     /// Query parameter: minimumImportance
-    pub minimumImportance: Option<String>,
+    pub minimumImportance: Option<Option<String>>,
     /// Query parameter: pageSize
-    pub pageSize: Option<i32>,
+    pub pageSize: Option<Option<String>>,
     /// Query parameter: pageToken
-    pub pageToken: Option<String>,
+    pub pageToken: Option<Option<String>>,
     /// Query parameter: startTime
-    pub startTime: Option<String>,
+    pub startTime: Option<Option<String>>,
 }
 
 /// GET v1b3/projects/{projectId}/locations/{location}/jobs/{jobId}/messages
@@ -4462,10 +5164,10 @@ pub fn dataflow_projects_locations_jobs_stages_get_execution_details_builder(
     location: &String,
     jobId: &String,
     stageId: &String,
-    endTime: &Option<String>,
-    pageSize: &Option<i32>,
-    pageToken: &Option<String>,
-    startTime: &Option<String>,
+    endTime: &Option<Option<String>>,
+    pageSize: &Option<Option<String>>,
+    pageToken: &Option<Option<String>>,
+    startTime: &Option<Option<String>>,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
@@ -4622,13 +5324,13 @@ pub struct DataflowProjectsLocationsJobsStagesGetExecutionDetailsArgs {
     /// Path parameter: stageId
     pub stageId: String,
     /// Query parameter: endTime
-    pub endTime: Option<String>,
+    pub endTime: Option<Option<String>>,
     /// Query parameter: pageSize
-    pub pageSize: Option<i32>,
+    pub pageSize: Option<Option<String>>,
     /// Query parameter: pageToken
-    pub pageToken: Option<String>,
+    pub pageToken: Option<Option<String>>,
     /// Query parameter: startTime
-    pub startTime: Option<String>,
+    pub startTime: Option<Option<String>>,
 }
 
 /// GET v1b3/projects/{projectId}/locations/{location}/jobs/{jobId}/stages/{stageId}/executionDetails
@@ -4665,7 +5367,7 @@ pub fn dataflow_projects_locations_jobs_stages_get_execution_details(
     dataflow_projects_locations_jobs_stages_get_execution_details_execute(builder)
 }
 
-/// GET v1b3/projects/{projectId}/locations/{location}/jobs/{jobId}/workItems:lease
+/// POST v1b3/projects/{projectId}/locations/{location}/jobs/{jobId}/workItems:lease
 /// Leases a dataflow WorkItem to run.
 ///
 /// Returns `ClientRequestBuilder` for customization.
@@ -4676,7 +5378,6 @@ pub fn dataflow_projects_locations_jobs_work_items_lease_builder(
     projectId: &String,
     location: &String,
     jobId: &String,
-    body: &LeaseWorkItemRequest,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
@@ -4686,15 +5387,13 @@ pub fn dataflow_projects_locations_jobs_work_items_lease_builder(
 
     // Build request
     let builder = client
-        .get(&endpoint_url)
+        .post(&endpoint_url)
         .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
 
-    builder
-        .body_json(body)
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+    Ok(builder)
 }
 
-/// GET v1b3/projects/{projectId}/locations/{location}/jobs/{jobId}/workItems:lease
+/// POST v1b3/projects/{projectId}/locations/{location}/jobs/{jobId}/workItems:lease
 /// Leases a dataflow WorkItem to run.
 ///
 /// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
@@ -4768,7 +5467,7 @@ pub fn dataflow_projects_locations_jobs_work_items_lease_task(
         .map_pending(|_| ApiPending::Sending))
 }
 
-/// GET v1b3/projects/{projectId}/locations/{location}/jobs/{jobId}/workItems:lease
+/// POST v1b3/projects/{projectId}/locations/{location}/jobs/{jobId}/workItems:lease
 /// Leases a dataflow WorkItem to run.
 ///
 /// Takes a `ClientRequestBuilder`, builds and executes the request,
@@ -4809,11 +5508,9 @@ pub struct DataflowProjectsLocationsJobsWorkItemsLeaseArgs {
     pub location: String,
     /// Path parameter: jobId
     pub jobId: String,
-    /// Request body.
-    pub body: LeaseWorkItemRequest,
 }
 
-/// GET v1b3/projects/{projectId}/locations/{location}/jobs/{jobId}/workItems:lease
+/// POST v1b3/projects/{projectId}/locations/{location}/jobs/{jobId}/workItems:lease
 /// Leases a dataflow WorkItem to run.
 ///
 /// Simplest API - builds and executes the request in one call.
@@ -4838,12 +5535,11 @@ pub fn dataflow_projects_locations_jobs_work_items_lease(
         &args.projectId,
         &args.location,
         &args.jobId,
-        &args.body,
     )?;
     dataflow_projects_locations_jobs_work_items_lease_execute(builder)
 }
 
-/// GET v1b3/projects/{projectId}/locations/{location}/jobs/{jobId}/workItems:reportStatus
+/// POST v1b3/projects/{projectId}/locations/{location}/jobs/{jobId}/workItems:reportStatus
 /// Reports the status of dataflow WorkItems leased by a worker.
 ///
 /// Returns `ClientRequestBuilder` for customization.
@@ -4854,7 +5550,6 @@ pub fn dataflow_projects_locations_jobs_work_items_report_status_builder(
     projectId: &String,
     location: &String,
     jobId: &String,
-    body: &ReportWorkItemStatusRequest,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
@@ -4866,15 +5561,13 @@ pub fn dataflow_projects_locations_jobs_work_items_report_status_builder(
 
     // Build request
     let builder = client
-        .get(&endpoint_url)
+        .post(&endpoint_url)
         .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
 
-    builder
-        .body_json(body)
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+    Ok(builder)
 }
 
-/// GET v1b3/projects/{projectId}/locations/{location}/jobs/{jobId}/workItems:reportStatus
+/// POST v1b3/projects/{projectId}/locations/{location}/jobs/{jobId}/workItems:reportStatus
 /// Reports the status of dataflow WorkItems leased by a worker.
 ///
 /// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
@@ -4948,7 +5641,7 @@ pub fn dataflow_projects_locations_jobs_work_items_report_status_task(
         .map_pending(|_| ApiPending::Sending))
 }
 
-/// GET v1b3/projects/{projectId}/locations/{location}/jobs/{jobId}/workItems:reportStatus
+/// POST v1b3/projects/{projectId}/locations/{location}/jobs/{jobId}/workItems:reportStatus
 /// Reports the status of dataflow WorkItems leased by a worker.
 ///
 /// Takes a `ClientRequestBuilder`, builds and executes the request,
@@ -4991,11 +5684,9 @@ pub struct DataflowProjectsLocationsJobsWorkItemsReportStatusArgs {
     pub location: String,
     /// Path parameter: jobId
     pub jobId: String,
-    /// Request body.
-    pub body: ReportWorkItemStatusRequest,
 }
 
-/// GET v1b3/projects/{projectId}/locations/{location}/jobs/{jobId}/workItems:reportStatus
+/// POST v1b3/projects/{projectId}/locations/{location}/jobs/{jobId}/workItems:reportStatus
 /// Reports the status of dataflow WorkItems leased by a worker.
 ///
 /// Simplest API - builds and executes the request in one call.
@@ -5022,12 +5713,11 @@ pub fn dataflow_projects_locations_jobs_work_items_report_status(
         &args.projectId,
         &args.location,
         &args.jobId,
-        &args.body,
     )?;
     dataflow_projects_locations_jobs_work_items_report_status_execute(builder)
 }
 
-/// GET v1b3/projects/{projectId}/locations/{location}/snapshots/{snapshotId}
+/// DELETE v1b3/projects/{projectId}/locations/{location}/snapshots/{snapshotId}
 /// Deletes a snapshot.
 ///
 /// Returns `ClientRequestBuilder` for customization.
@@ -5047,13 +5737,13 @@ pub fn dataflow_projects_locations_snapshots_delete_builder(
 
     // Build request
     let builder = client
-        .get(&endpoint_url)
+        .delete(&endpoint_url)
         .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
 
     Ok(builder)
 }
 
-/// GET v1b3/projects/{projectId}/locations/{location}/snapshots/{snapshotId}
+/// DELETE v1b3/projects/{projectId}/locations/{location}/snapshots/{snapshotId}
 /// Deletes a snapshot.
 ///
 /// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
@@ -5127,7 +5817,7 @@ pub fn dataflow_projects_locations_snapshots_delete_task(
         .map_pending(|_| ApiPending::Sending))
 }
 
-/// GET v1b3/projects/{projectId}/locations/{location}/snapshots/{snapshotId}
+/// DELETE v1b3/projects/{projectId}/locations/{location}/snapshots/{snapshotId}
 /// Deletes a snapshot.
 ///
 /// Takes a `ClientRequestBuilder`, builds and executes the request,
@@ -5170,7 +5860,7 @@ pub struct DataflowProjectsLocationsSnapshotsDeleteArgs {
     pub snapshotId: String,
 }
 
-/// GET v1b3/projects/{projectId}/locations/{location}/snapshots/{snapshotId}
+/// DELETE v1b3/projects/{projectId}/locations/{location}/snapshots/{snapshotId}
 /// Deletes a snapshot.
 ///
 /// Simplest API - builds and executes the request in one call.
@@ -5199,6 +5889,174 @@ pub fn dataflow_projects_locations_snapshots_delete(
     dataflow_projects_locations_snapshots_delete_execute(builder)
 }
 
+/// GET v1b3/projects/{projectId}/locations/{location}/snapshots/{snapshotId}
+/// Gets information about a snapshot.
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `dataflow_projects_locations_snapshots_get_execute()` to send, or `dataflow_projects_locations_snapshots_get` for simplest API.
+
+pub fn dataflow_projects_locations_snapshots_get_builder(
+    client: &SimpleHttpClient,
+    projectId: &String,
+    location: &String,
+    snapshotId: &String,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!(
+        "https://dataflow.googleapis.com/v1b3/projects/{}/locations/{}/snapshots/{}",
+        projectId, location, snapshotId,
+    );
+
+    // Build request
+    let builder = client
+        .get(&endpoint_url)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// GET v1b3/projects/{projectId}/locations/{location}/snapshots/{snapshotId}
+/// Gets information about a snapshot.
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `dataflow_projects_locations_snapshots_get_execute()` or `dataflow_projects_locations_snapshots_get`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `dataflow_projects_locations_snapshots_get_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn dataflow_projects_locations_snapshots_get_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<Snapshot>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: Snapshot = serde_json::from_str(&body)
+                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// GET v1b3/projects/{projectId}/locations/{location}/snapshots/{snapshotId}
+/// Gets information about a snapshot.
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `dataflow_projects_locations_snapshots_get_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `dataflow_projects_locations_snapshots_get_task()`.
+/// For the simplest API, use `dataflow_projects_locations_snapshots_get()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `dataflow_projects_locations_snapshots_get_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn dataflow_projects_locations_snapshots_get_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<Snapshot>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let task = dataflow_projects_locations_snapshots_get_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`dataflow_projects_locations_snapshots_get`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct DataflowProjectsLocationsSnapshotsGetArgs {
+    /// Path parameter: projectId
+    pub projectId: String,
+    /// Path parameter: location
+    pub location: String,
+    /// Path parameter: snapshotId
+    pub snapshotId: String,
+}
+
+/// GET v1b3/projects/{projectId}/locations/{location}/snapshots/{snapshotId}
+/// Gets information about a snapshot.
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `dataflow_projects_locations_snapshots_get_builder()` + `dataflow_projects_locations_snapshots_get_execute()`.
+/// For task-level control, use `dataflow_projects_locations_snapshots_get_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn dataflow_projects_locations_snapshots_get(
+    client: &SimpleHttpClient,
+    args: &DataflowProjectsLocationsSnapshotsGetArgs,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<Snapshot>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let builder = dataflow_projects_locations_snapshots_get_builder(
+        client,
+        &args.projectId,
+        &args.location,
+        &args.snapshotId,
+    )?;
+    dataflow_projects_locations_snapshots_get_execute(builder)
+}
+
 /// GET v1b3/projects/{projectId}/locations/{location}/snapshots
 /// Lists snapshots.
 ///
@@ -5209,7 +6067,7 @@ pub fn dataflow_projects_locations_snapshots_list_builder(
     client: &SimpleHttpClient,
     projectId: &String,
     location: &String,
-    jobId: &Option<String>,
+    jobId: &Option<Option<String>>,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
@@ -5350,7 +6208,7 @@ pub struct DataflowProjectsLocationsSnapshotsListArgs {
     /// Path parameter: location
     pub location: String,
     /// Query parameter: jobId
-    pub jobId: Option<String>,
+    pub jobId: Option<Option<String>>,
 }
 
 /// GET v1b3/projects/{projectId}/locations/{location}/snapshots
@@ -5382,7 +6240,7 @@ pub fn dataflow_projects_locations_snapshots_list(
     dataflow_projects_locations_snapshots_list_execute(builder)
 }
 
-/// GET v1b3/projects/{projectId}/locations/{location}/templates
+/// POST v1b3/projects/{projectId}/locations/{location}/templates
 /// Creates a Cloud Dataflow job from a template. Do not enter confidential information when you supply string values using the API. To create a job, we recommend using projects.locations.templates.create with a [regional endpoint] (<https://cloud.google.`com/dataflow/docs/concepts/regional-endpoints`>). Using projects.templates.create is not recommended, because your job will always start in us-central1.
 ///
 /// Returns `ClientRequestBuilder` for customization.
@@ -5392,7 +6250,6 @@ pub fn dataflow_projects_locations_templates_create_builder(
     client: &SimpleHttpClient,
     projectId: &String,
     location: &String,
-    body: &CreateJobFromTemplateRequest,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
@@ -5402,15 +6259,13 @@ pub fn dataflow_projects_locations_templates_create_builder(
 
     // Build request
     let builder = client
-        .get(&endpoint_url)
+        .post(&endpoint_url)
         .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
 
-    builder
-        .body_json(body)
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+    Ok(builder)
 }
 
-/// GET v1b3/projects/{projectId}/locations/{location}/templates
+/// POST v1b3/projects/{projectId}/locations/{location}/templates
 /// Creates a Cloud Dataflow job from a template. Do not enter confidential information when you supply string values using the API. To create a job, we recommend using projects.locations.templates.create with a [regional endpoint] (<https://cloud.google.`com/dataflow/docs/concepts/regional-endpoints`>). Using projects.templates.create is not recommended, because your job will always start in us-central1.
 ///
 /// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
@@ -5484,7 +6339,7 @@ pub fn dataflow_projects_locations_templates_create_task(
         .map_pending(|_| ApiPending::Sending))
 }
 
-/// GET v1b3/projects/{projectId}/locations/{location}/templates
+/// POST v1b3/projects/{projectId}/locations/{location}/templates
 /// Creates a Cloud Dataflow job from a template. Do not enter confidential information when you supply string values using the API. To create a job, we recommend using projects.locations.templates.create with a [regional endpoint] (<https://cloud.google.`com/dataflow/docs/concepts/regional-endpoints`>). Using projects.templates.create is not recommended, because your job will always start in us-central1.
 ///
 /// Takes a `ClientRequestBuilder`, builds and executes the request,
@@ -5521,11 +6376,9 @@ pub struct DataflowProjectsLocationsTemplatesCreateArgs {
     pub projectId: String,
     /// Path parameter: location
     pub location: String,
-    /// Request body.
-    pub body: CreateJobFromTemplateRequest,
 }
 
-/// GET v1b3/projects/{projectId}/locations/{location}/templates
+/// POST v1b3/projects/{projectId}/locations/{location}/templates
 /// Creates a Cloud Dataflow job from a template. Do not enter confidential information when you supply string values using the API. To create a job, we recommend using projects.locations.templates.create with a [regional endpoint] (<https://cloud.google.`com/dataflow/docs/concepts/regional-endpoints`>). Using projects.templates.create is not recommended, because your job will always start in us-central1.
 ///
 /// Simplest API - builds and executes the request in one call.
@@ -5547,7 +6400,6 @@ pub fn dataflow_projects_locations_templates_create(
         client,
         &args.projectId,
         &args.location,
-        &args.body,
     )?;
     dataflow_projects_locations_templates_create_execute(builder)
 }
@@ -5562,8 +6414,8 @@ pub fn dataflow_projects_locations_templates_get_builder(
     client: &SimpleHttpClient,
     projectId: &String,
     location: &String,
-    gcsPath: &Option<String>,
-    view: &Option<String>,
+    gcsPath: &Option<Option<String>>,
+    view: &Option<Option<String>>,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
@@ -5707,9 +6559,9 @@ pub struct DataflowProjectsLocationsTemplatesGetArgs {
     /// Path parameter: location
     pub location: String,
     /// Query parameter: gcsPath
-    pub gcsPath: Option<String>,
+    pub gcsPath: Option<Option<String>>,
     /// Query parameter: view
-    pub view: Option<String>,
+    pub view: Option<Option<String>>,
 }
 
 /// GET v1b3/projects/{projectId}/locations/{location}/templates:get
@@ -5742,7 +6594,7 @@ pub fn dataflow_projects_locations_templates_get(
     dataflow_projects_locations_templates_get_execute(builder)
 }
 
-/// GET v1b3/projects/{projectId}/locations/{location}/templates:launch
+/// POST v1b3/projects/{projectId}/locations/{location}/templates:launch
 /// Launches a template. To launch a template, we recommend using projects.locations.templates.launch with a [regional endpoint] (<https://cloud.google.`com/dataflow/docs/concepts/regional-endpoints`>). Using projects.templates.launch is not recommended, because jobs launched from the template will always start in us-central1.
 ///
 /// Returns `ClientRequestBuilder` for customization.
@@ -5752,11 +6604,10 @@ pub fn dataflow_projects_locations_templates_launch_builder(
     client: &SimpleHttpClient,
     projectId: &String,
     location: &String,
-    dynamicTemplate_gcsPath: &Option<String>,
-    dynamicTemplate_stagingLocation: &Option<String>,
-    gcsPath: &Option<String>,
-    validateOnly: &Option<bool>,
-    body: &LaunchTemplateParameters,
+    dynamicTemplate_gcsPath: &Option<Option<String>>,
+    dynamicTemplate_stagingLocation: &Option<Option<String>>,
+    gcsPath: &Option<Option<String>>,
+    validateOnly: &Option<Option<String>>,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
@@ -5786,15 +6637,13 @@ pub fn dataflow_projects_locations_templates_launch_builder(
     };
 
     let builder = client
-        .get(&url_with_query)
+        .post(&url_with_query)
         .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
 
-    builder
-        .body_json(body)
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+    Ok(builder)
 }
 
-/// GET v1b3/projects/{projectId}/locations/{location}/templates:launch
+/// POST v1b3/projects/{projectId}/locations/{location}/templates:launch
 /// Launches a template. To launch a template, we recommend using projects.locations.templates.launch with a [regional endpoint] (<https://cloud.google.`com/dataflow/docs/concepts/regional-endpoints`>). Using projects.templates.launch is not recommended, because jobs launched from the template will always start in us-central1.
 ///
 /// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
@@ -5868,7 +6717,7 @@ pub fn dataflow_projects_locations_templates_launch_task(
         .map_pending(|_| ApiPending::Sending))
 }
 
-/// GET v1b3/projects/{projectId}/locations/{location}/templates:launch
+/// POST v1b3/projects/{projectId}/locations/{location}/templates:launch
 /// Launches a template. To launch a template, we recommend using projects.locations.templates.launch with a [regional endpoint] (<https://cloud.google.`com/dataflow/docs/concepts/regional-endpoints`>). Using projects.templates.launch is not recommended, because jobs launched from the template will always start in us-central1.
 ///
 /// Takes a `ClientRequestBuilder`, builds and executes the request,
@@ -5908,18 +6757,16 @@ pub struct DataflowProjectsLocationsTemplatesLaunchArgs {
     /// Path parameter: location
     pub location: String,
     /// Query parameter: dynamicTemplate_gcsPath
-    pub dynamicTemplate_gcsPath: Option<String>,
+    pub dynamicTemplate_gcsPath: Option<Option<String>>,
     /// Query parameter: dynamicTemplate_stagingLocation
-    pub dynamicTemplate_stagingLocation: Option<String>,
+    pub dynamicTemplate_stagingLocation: Option<Option<String>>,
     /// Query parameter: gcsPath
-    pub gcsPath: Option<String>,
+    pub gcsPath: Option<Option<String>>,
     /// Query parameter: validateOnly
-    pub validateOnly: Option<bool>,
-    /// Request body.
-    pub body: LaunchTemplateParameters,
+    pub validateOnly: Option<Option<String>>,
 }
 
-/// GET v1b3/projects/{projectId}/locations/{location}/templates:launch
+/// POST v1b3/projects/{projectId}/locations/{location}/templates:launch
 /// Launches a template. To launch a template, we recommend using projects.locations.templates.launch with a [regional endpoint] (<https://cloud.google.`com/dataflow/docs/concepts/regional-endpoints`>). Using projects.templates.launch is not recommended, because jobs launched from the template will always start in us-central1.
 ///
 /// Simplest API - builds and executes the request in one call.
@@ -5947,7 +6794,6 @@ pub fn dataflow_projects_locations_templates_launch(
         &args.dynamicTemplate_stagingLocation,
         &args.gcsPath,
         &args.validateOnly,
-        &args.body,
     )?;
     dataflow_projects_locations_templates_launch_execute(builder)
 }
@@ -5962,7 +6808,7 @@ pub fn dataflow_projects_snapshots_get_builder(
     client: &SimpleHttpClient,
     projectId: &String,
     snapshotId: &String,
-    location: &Option<String>,
+    location: &Option<Option<String>>,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
@@ -6101,7 +6947,7 @@ pub struct DataflowProjectsSnapshotsGetArgs {
     /// Path parameter: snapshotId
     pub snapshotId: String,
     /// Query parameter: location
-    pub location: Option<String>,
+    pub location: Option<Option<String>>,
 }
 
 /// GET v1b3/projects/{projectId}/snapshots/{snapshotId}
@@ -6131,7 +6977,193 @@ pub fn dataflow_projects_snapshots_get(
     dataflow_projects_snapshots_get_execute(builder)
 }
 
-/// GET v1b3/projects/{projectId}/templates
+/// GET v1b3/projects/{projectId}/snapshots
+/// Lists snapshots.
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `dataflow_projects_snapshots_list_execute()` to send, or `dataflow_projects_snapshots_list` for simplest API.
+
+pub fn dataflow_projects_snapshots_list_builder(
+    client: &SimpleHttpClient,
+    projectId: &String,
+    jobId: &Option<Option<String>>,
+    location: &Option<Option<String>>,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!(
+        "https://dataflow.googleapis.com/v1b3/projects/{}/snapshots",
+        projectId,
+    );
+
+    // Build request
+    let mut query_parts = Vec::new();
+    if let Some(val) = jobId.as_ref() {
+        query_parts.push(format!("jobId={}", val));
+    }
+    if let Some(val) = location.as_ref() {
+        query_parts.push(format!("location={}", val));
+    }
+
+    let url_with_query = if query_parts.is_empty() {
+        endpoint_url
+    } else {
+        format!("{}?{}", endpoint_url, query_parts.join("&"))
+    };
+
+    let builder = client
+        .get(&url_with_query)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// GET v1b3/projects/{projectId}/snapshots
+/// Lists snapshots.
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `dataflow_projects_snapshots_list_execute()` or `dataflow_projects_snapshots_list`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `dataflow_projects_snapshots_list_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn dataflow_projects_snapshots_list_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<ListSnapshotsResponse>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: ListSnapshotsResponse = serde_json::from_str(&body)
+                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// GET v1b3/projects/{projectId}/snapshots
+/// Lists snapshots.
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `dataflow_projects_snapshots_list_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `dataflow_projects_snapshots_list_task()`.
+/// For the simplest API, use `dataflow_projects_snapshots_list()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `dataflow_projects_snapshots_list_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn dataflow_projects_snapshots_list_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<ListSnapshotsResponse>, ApiError>, P = ApiPending>
+        + Send
+        + 'static,
+    ApiError,
+> {
+    let task = dataflow_projects_snapshots_list_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`dataflow_projects_snapshots_list`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct DataflowProjectsSnapshotsListArgs {
+    /// Path parameter: projectId
+    pub projectId: String,
+    /// Query parameter: jobId
+    pub jobId: Option<Option<String>>,
+    /// Query parameter: location
+    pub location: Option<Option<String>>,
+}
+
+/// GET v1b3/projects/{projectId}/snapshots
+/// Lists snapshots.
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `dataflow_projects_snapshots_list_builder()` + `dataflow_projects_snapshots_list_execute()`.
+/// For task-level control, use `dataflow_projects_snapshots_list_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn dataflow_projects_snapshots_list(
+    client: &SimpleHttpClient,
+    args: &DataflowProjectsSnapshotsListArgs,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<ListSnapshotsResponse>, ApiError>, P = ApiPending>
+        + Send
+        + 'static,
+    ApiError,
+> {
+    let builder = dataflow_projects_snapshots_list_builder(
+        client,
+        &args.projectId,
+        &args.jobId,
+        &args.location,
+    )?;
+    dataflow_projects_snapshots_list_execute(builder)
+}
+
+/// POST v1b3/projects/{projectId}/templates
 /// Creates a Cloud Dataflow job from a template. Do not enter confidential information when you supply string values using the API. To create a job, we recommend using projects.locations.templates.create with a [regional endpoint] (<https://cloud.google.`com/dataflow/docs/concepts/regional-endpoints`>). Using projects.templates.create is not recommended, because your job will always start in us-central1.
 ///
 /// Returns `ClientRequestBuilder` for customization.
@@ -6140,7 +7172,6 @@ pub fn dataflow_projects_snapshots_get(
 pub fn dataflow_projects_templates_create_builder(
     client: &SimpleHttpClient,
     projectId: &String,
-    body: &CreateJobFromTemplateRequest,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
@@ -6150,15 +7181,13 @@ pub fn dataflow_projects_templates_create_builder(
 
     // Build request
     let builder = client
-        .get(&endpoint_url)
+        .post(&endpoint_url)
         .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
 
-    builder
-        .body_json(body)
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+    Ok(builder)
 }
 
-/// GET v1b3/projects/{projectId}/templates
+/// POST v1b3/projects/{projectId}/templates
 /// Creates a Cloud Dataflow job from a template. Do not enter confidential information when you supply string values using the API. To create a job, we recommend using projects.locations.templates.create with a [regional endpoint] (<https://cloud.google.`com/dataflow/docs/concepts/regional-endpoints`>). Using projects.templates.create is not recommended, because your job will always start in us-central1.
 ///
 /// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
@@ -6232,7 +7261,7 @@ pub fn dataflow_projects_templates_create_task(
         .map_pending(|_| ApiPending::Sending))
 }
 
-/// GET v1b3/projects/{projectId}/templates
+/// POST v1b3/projects/{projectId}/templates
 /// Creates a Cloud Dataflow job from a template. Do not enter confidential information when you supply string values using the API. To create a job, we recommend using projects.locations.templates.create with a [regional endpoint] (<https://cloud.google.`com/dataflow/docs/concepts/regional-endpoints`>). Using projects.templates.create is not recommended, because your job will always start in us-central1.
 ///
 /// Takes a `ClientRequestBuilder`, builds and executes the request,
@@ -6267,11 +7296,9 @@ pub fn dataflow_projects_templates_create_execute(
 pub struct DataflowProjectsTemplatesCreateArgs {
     /// Path parameter: projectId
     pub projectId: String,
-    /// Request body.
-    pub body: CreateJobFromTemplateRequest,
 }
 
-/// GET v1b3/projects/{projectId}/templates
+/// POST v1b3/projects/{projectId}/templates
 /// Creates a Cloud Dataflow job from a template. Do not enter confidential information when you supply string values using the API. To create a job, we recommend using projects.locations.templates.create with a [regional endpoint] (<https://cloud.google.`com/dataflow/docs/concepts/regional-endpoints`>). Using projects.templates.create is not recommended, because your job will always start in us-central1.
 ///
 /// Simplest API - builds and executes the request in one call.
@@ -6289,7 +7316,7 @@ pub fn dataflow_projects_templates_create(
     impl StreamIterator<D = Result<ApiResponse<Job>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = dataflow_projects_templates_create_builder(client, &args.projectId, &args.body)?;
+    let builder = dataflow_projects_templates_create_builder(client, &args.projectId)?;
     dataflow_projects_templates_create_execute(builder)
 }
 
@@ -6302,9 +7329,9 @@ pub fn dataflow_projects_templates_create(
 pub fn dataflow_projects_templates_get_builder(
     client: &SimpleHttpClient,
     projectId: &String,
-    gcsPath: &Option<String>,
-    location: &Option<String>,
-    view: &Option<String>,
+    gcsPath: &Option<Option<String>>,
+    location: &Option<Option<String>>,
+    view: &Option<Option<String>>,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
@@ -6449,11 +7476,11 @@ pub struct DataflowProjectsTemplatesGetArgs {
     /// Path parameter: projectId
     pub projectId: String,
     /// Query parameter: gcsPath
-    pub gcsPath: Option<String>,
+    pub gcsPath: Option<Option<String>>,
     /// Query parameter: location
-    pub location: Option<String>,
+    pub location: Option<Option<String>>,
     /// Query parameter: view
-    pub view: Option<String>,
+    pub view: Option<Option<String>>,
 }
 
 /// GET v1b3/projects/{projectId}/templates:get
@@ -6486,7 +7513,7 @@ pub fn dataflow_projects_templates_get(
     dataflow_projects_templates_get_execute(builder)
 }
 
-/// GET v1b3/projects/{projectId}/templates:launch
+/// POST v1b3/projects/{projectId}/templates:launch
 /// Launches a template. To launch a template, we recommend using projects.locations.templates.launch with a [regional endpoint] (<https://cloud.google.`com/dataflow/docs/concepts/regional-endpoints`>). Using projects.templates.launch is not recommended, because jobs launched from the template will always start in us-central1.
 ///
 /// Returns `ClientRequestBuilder` for customization.
@@ -6495,12 +7522,11 @@ pub fn dataflow_projects_templates_get(
 pub fn dataflow_projects_templates_launch_builder(
     client: &SimpleHttpClient,
     projectId: &String,
-    dynamicTemplate_gcsPath: &Option<String>,
-    dynamicTemplate_stagingLocation: &Option<String>,
-    gcsPath: &Option<String>,
-    location: &Option<String>,
-    validateOnly: &Option<bool>,
-    body: &LaunchTemplateParameters,
+    dynamicTemplate_gcsPath: &Option<Option<String>>,
+    dynamicTemplate_stagingLocation: &Option<Option<String>>,
+    gcsPath: &Option<Option<String>>,
+    location: &Option<Option<String>>,
+    validateOnly: &Option<Option<String>>,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
@@ -6533,15 +7559,13 @@ pub fn dataflow_projects_templates_launch_builder(
     };
 
     let builder = client
-        .get(&url_with_query)
+        .post(&url_with_query)
         .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
 
-    builder
-        .body_json(body)
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+    Ok(builder)
 }
 
-/// GET v1b3/projects/{projectId}/templates:launch
+/// POST v1b3/projects/{projectId}/templates:launch
 /// Launches a template. To launch a template, we recommend using projects.locations.templates.launch with a [regional endpoint] (<https://cloud.google.`com/dataflow/docs/concepts/regional-endpoints`>). Using projects.templates.launch is not recommended, because jobs launched from the template will always start in us-central1.
 ///
 /// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
@@ -6615,7 +7639,7 @@ pub fn dataflow_projects_templates_launch_task(
         .map_pending(|_| ApiPending::Sending))
 }
 
-/// GET v1b3/projects/{projectId}/templates:launch
+/// POST v1b3/projects/{projectId}/templates:launch
 /// Launches a template. To launch a template, we recommend using projects.locations.templates.launch with a [regional endpoint] (<https://cloud.google.`com/dataflow/docs/concepts/regional-endpoints`>). Using projects.templates.launch is not recommended, because jobs launched from the template will always start in us-central1.
 ///
 /// Takes a `ClientRequestBuilder`, builds and executes the request,
@@ -6653,20 +7677,18 @@ pub struct DataflowProjectsTemplatesLaunchArgs {
     /// Path parameter: projectId
     pub projectId: String,
     /// Query parameter: dynamicTemplate_gcsPath
-    pub dynamicTemplate_gcsPath: Option<String>,
+    pub dynamicTemplate_gcsPath: Option<Option<String>>,
     /// Query parameter: dynamicTemplate_stagingLocation
-    pub dynamicTemplate_stagingLocation: Option<String>,
+    pub dynamicTemplate_stagingLocation: Option<Option<String>>,
     /// Query parameter: gcsPath
-    pub gcsPath: Option<String>,
+    pub gcsPath: Option<Option<String>>,
     /// Query parameter: location
-    pub location: Option<String>,
+    pub location: Option<Option<String>>,
     /// Query parameter: validateOnly
-    pub validateOnly: Option<bool>,
-    /// Request body.
-    pub body: LaunchTemplateParameters,
+    pub validateOnly: Option<Option<String>>,
 }
 
-/// GET v1b3/projects/{projectId}/templates:launch
+/// POST v1b3/projects/{projectId}/templates:launch
 /// Launches a template. To launch a template, we recommend using projects.locations.templates.launch with a [regional endpoint] (<https://cloud.google.`com/dataflow/docs/concepts/regional-endpoints`>). Using projects.templates.launch is not recommended, because jobs launched from the template will always start in us-central1.
 ///
 /// Simplest API - builds and executes the request in one call.
@@ -6694,7 +7716,1113 @@ pub fn dataflow_projects_templates_launch(
         &args.gcsPath,
         &args.location,
         &args.validateOnly,
-        &args.body,
     )?;
     dataflow_projects_templates_launch_execute(builder)
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for DeleteSnapshotResponse
+// =============================================================================
+
+/// ResourceIdentifier implementation for DeleteSnapshotResponse with DataflowProjectsDeleteSnapshotsArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<DataflowProjectsDeleteSnapshotsArgs> for DeleteSnapshotResponse {
+    fn generate_resource_id(&self, input: &DataflowProjectsDeleteSnapshotsArgs) -> String {
+        format!("gcp::dataflow::DeleteSnapshotResponse/{}", input.projectId)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::dataflow::DeleteSnapshotResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for SendWorkerMessagesResponse
+// =============================================================================
+
+/// ResourceIdentifier implementation for SendWorkerMessagesResponse with DataflowProjectsWorkerMessagesArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<DataflowProjectsWorkerMessagesArgs> for SendWorkerMessagesResponse {
+    fn generate_resource_id(&self, input: &DataflowProjectsWorkerMessagesArgs) -> String {
+        format!(
+            "gcp::dataflow::SendWorkerMessagesResponse/{}",
+            input.projectId
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::dataflow::SendWorkerMessagesResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for ListJobsResponse
+// =============================================================================
+
+/// ResourceIdentifier implementation for ListJobsResponse with DataflowProjectsJobsAggregatedArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<DataflowProjectsJobsAggregatedArgs> for ListJobsResponse {
+    fn generate_resource_id(&self, input: &DataflowProjectsJobsAggregatedArgs) -> String {
+        format!("gcp::dataflow::ListJobsResponse/{}", input.projectId)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::dataflow::ListJobsResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for Job
+// =============================================================================
+
+/// ResourceIdentifier implementation for Job with DataflowProjectsJobsCreateArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<DataflowProjectsJobsCreateArgs> for Job {
+    fn generate_resource_id(&self, input: &DataflowProjectsJobsCreateArgs) -> String {
+        format!("gcp::dataflow::Job/{}", input.projectId)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::dataflow::Job"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for Job
+// =============================================================================
+
+/// ResourceIdentifier implementation for Job with DataflowProjectsJobsGetArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<DataflowProjectsJobsGetArgs> for Job {
+    fn generate_resource_id(&self, input: &DataflowProjectsJobsGetArgs) -> String {
+        format!("gcp::dataflow::Job/{}/{}", input.projectId, input.jobId)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::dataflow::Job"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for JobMetrics
+// =============================================================================
+
+/// ResourceIdentifier implementation for JobMetrics with DataflowProjectsJobsGetMetricsArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<DataflowProjectsJobsGetMetricsArgs> for JobMetrics {
+    fn generate_resource_id(&self, input: &DataflowProjectsJobsGetMetricsArgs) -> String {
+        format!(
+            "gcp::dataflow::JobMetrics/{}/{}",
+            input.projectId, input.jobId
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::dataflow::JobMetrics"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for ListJobsResponse
+// =============================================================================
+
+/// ResourceIdentifier implementation for ListJobsResponse with DataflowProjectsJobsListArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<DataflowProjectsJobsListArgs> for ListJobsResponse {
+    fn generate_resource_id(&self, input: &DataflowProjectsJobsListArgs) -> String {
+        format!("gcp::dataflow::ListJobsResponse/{}", input.projectId)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::dataflow::ListJobsResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for Snapshot
+// =============================================================================
+
+/// ResourceIdentifier implementation for Snapshot with DataflowProjectsJobsSnapshotArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<DataflowProjectsJobsSnapshotArgs> for Snapshot {
+    fn generate_resource_id(&self, input: &DataflowProjectsJobsSnapshotArgs) -> String {
+        format!(
+            "gcp::dataflow::Snapshot/{}/{}",
+            input.projectId, input.jobId
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::dataflow::Snapshot"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for Job
+// =============================================================================
+
+/// ResourceIdentifier implementation for Job with DataflowProjectsJobsUpdateArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<DataflowProjectsJobsUpdateArgs> for Job {
+    fn generate_resource_id(&self, input: &DataflowProjectsJobsUpdateArgs) -> String {
+        format!("gcp::dataflow::Job/{}/{}", input.projectId, input.jobId)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::dataflow::Job"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for GetDebugConfigResponse
+// =============================================================================
+
+/// ResourceIdentifier implementation for GetDebugConfigResponse with DataflowProjectsJobsDebugGetConfigArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<DataflowProjectsJobsDebugGetConfigArgs> for GetDebugConfigResponse {
+    fn generate_resource_id(&self, input: &DataflowProjectsJobsDebugGetConfigArgs) -> String {
+        format!(
+            "gcp::dataflow::GetDebugConfigResponse/{}/{}",
+            input.projectId, input.jobId
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::dataflow::GetDebugConfigResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for SendDebugCaptureResponse
+// =============================================================================
+
+/// ResourceIdentifier implementation for SendDebugCaptureResponse with DataflowProjectsJobsDebugSendCaptureArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<DataflowProjectsJobsDebugSendCaptureArgs> for SendDebugCaptureResponse {
+    fn generate_resource_id(&self, input: &DataflowProjectsJobsDebugSendCaptureArgs) -> String {
+        format!(
+            "gcp::dataflow::SendDebugCaptureResponse/{}/{}",
+            input.projectId, input.jobId
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::dataflow::SendDebugCaptureResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for ListJobMessagesResponse
+// =============================================================================
+
+/// ResourceIdentifier implementation for ListJobMessagesResponse with DataflowProjectsJobsMessagesListArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<DataflowProjectsJobsMessagesListArgs> for ListJobMessagesResponse {
+    fn generate_resource_id(&self, input: &DataflowProjectsJobsMessagesListArgs) -> String {
+        format!(
+            "gcp::dataflow::ListJobMessagesResponse/{}/{}",
+            input.projectId, input.jobId
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::dataflow::ListJobMessagesResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for LeaseWorkItemResponse
+// =============================================================================
+
+/// ResourceIdentifier implementation for LeaseWorkItemResponse with DataflowProjectsJobsWorkItemsLeaseArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<DataflowProjectsJobsWorkItemsLeaseArgs> for LeaseWorkItemResponse {
+    fn generate_resource_id(&self, input: &DataflowProjectsJobsWorkItemsLeaseArgs) -> String {
+        format!(
+            "gcp::dataflow::LeaseWorkItemResponse/{}/{}",
+            input.projectId, input.jobId
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::dataflow::LeaseWorkItemResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for ReportWorkItemStatusResponse
+// =============================================================================
+
+/// ResourceIdentifier implementation for ReportWorkItemStatusResponse with DataflowProjectsJobsWorkItemsReportStatusArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<DataflowProjectsJobsWorkItemsReportStatusArgs>
+    for ReportWorkItemStatusResponse
+{
+    fn generate_resource_id(
+        &self,
+        input: &DataflowProjectsJobsWorkItemsReportStatusArgs,
+    ) -> String {
+        format!(
+            "gcp::dataflow::ReportWorkItemStatusResponse/{}/{}",
+            input.projectId, input.jobId
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::dataflow::ReportWorkItemStatusResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for SendWorkerMessagesResponse
+// =============================================================================
+
+/// ResourceIdentifier implementation for SendWorkerMessagesResponse with DataflowProjectsLocationsWorkerMessagesArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<DataflowProjectsLocationsWorkerMessagesArgs>
+    for SendWorkerMessagesResponse
+{
+    fn generate_resource_id(&self, input: &DataflowProjectsLocationsWorkerMessagesArgs) -> String {
+        format!(
+            "gcp::dataflow::SendWorkerMessagesResponse/{}/{}",
+            input.projectId, input.location
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::dataflow::SendWorkerMessagesResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for LaunchFlexTemplateResponse
+// =============================================================================
+
+/// ResourceIdentifier implementation for LaunchFlexTemplateResponse with DataflowProjectsLocationsFlexTemplatesLaunchArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<DataflowProjectsLocationsFlexTemplatesLaunchArgs>
+    for LaunchFlexTemplateResponse
+{
+    fn generate_resource_id(
+        &self,
+        input: &DataflowProjectsLocationsFlexTemplatesLaunchArgs,
+    ) -> String {
+        format!(
+            "gcp::dataflow::LaunchFlexTemplateResponse/{}/{}",
+            input.projectId, input.location
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::dataflow::LaunchFlexTemplateResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for Job
+// =============================================================================
+
+/// ResourceIdentifier implementation for Job with DataflowProjectsLocationsJobsCreateArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<DataflowProjectsLocationsJobsCreateArgs> for Job {
+    fn generate_resource_id(&self, input: &DataflowProjectsLocationsJobsCreateArgs) -> String {
+        format!("gcp::dataflow::Job/{}/{}", input.projectId, input.location)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::dataflow::Job"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for Job
+// =============================================================================
+
+/// ResourceIdentifier implementation for Job with DataflowProjectsLocationsJobsGetArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<DataflowProjectsLocationsJobsGetArgs> for Job {
+    fn generate_resource_id(&self, input: &DataflowProjectsLocationsJobsGetArgs) -> String {
+        format!(
+            "gcp::dataflow::Job/{}/{}/{}",
+            input.projectId, input.location, input.jobId
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::dataflow::Job"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for JobExecutionDetails
+// =============================================================================
+
+/// ResourceIdentifier implementation for JobExecutionDetails with DataflowProjectsLocationsJobsGetExecutionDetailsArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<DataflowProjectsLocationsJobsGetExecutionDetailsArgs>
+    for JobExecutionDetails
+{
+    fn generate_resource_id(
+        &self,
+        input: &DataflowProjectsLocationsJobsGetExecutionDetailsArgs,
+    ) -> String {
+        format!(
+            "gcp::dataflow::JobExecutionDetails/{}/{}/{}",
+            input.projectId, input.location, input.jobId
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::dataflow::JobExecutionDetails"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for JobMetrics
+// =============================================================================
+
+/// ResourceIdentifier implementation for JobMetrics with DataflowProjectsLocationsJobsGetMetricsArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<DataflowProjectsLocationsJobsGetMetricsArgs> for JobMetrics {
+    fn generate_resource_id(&self, input: &DataflowProjectsLocationsJobsGetMetricsArgs) -> String {
+        format!(
+            "gcp::dataflow::JobMetrics/{}/{}/{}",
+            input.projectId, input.location, input.jobId
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::dataflow::JobMetrics"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for ListJobsResponse
+// =============================================================================
+
+/// ResourceIdentifier implementation for ListJobsResponse with DataflowProjectsLocationsJobsListArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<DataflowProjectsLocationsJobsListArgs> for ListJobsResponse {
+    fn generate_resource_id(&self, input: &DataflowProjectsLocationsJobsListArgs) -> String {
+        format!(
+            "gcp::dataflow::ListJobsResponse/{}/{}",
+            input.projectId, input.location
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::dataflow::ListJobsResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for Snapshot
+// =============================================================================
+
+/// ResourceIdentifier implementation for Snapshot with DataflowProjectsLocationsJobsSnapshotArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<DataflowProjectsLocationsJobsSnapshotArgs> for Snapshot {
+    fn generate_resource_id(&self, input: &DataflowProjectsLocationsJobsSnapshotArgs) -> String {
+        format!(
+            "gcp::dataflow::Snapshot/{}/{}/{}",
+            input.projectId, input.location, input.jobId
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::dataflow::Snapshot"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for Job
+// =============================================================================
+
+/// ResourceIdentifier implementation for Job with DataflowProjectsLocationsJobsUpdateArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<DataflowProjectsLocationsJobsUpdateArgs> for Job {
+    fn generate_resource_id(&self, input: &DataflowProjectsLocationsJobsUpdateArgs) -> String {
+        format!(
+            "gcp::dataflow::Job/{}/{}/{}",
+            input.projectId, input.location, input.jobId
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::dataflow::Job"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for GetDebugConfigResponse
+// =============================================================================
+
+/// ResourceIdentifier implementation for GetDebugConfigResponse with DataflowProjectsLocationsJobsDebugGetConfigArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<DataflowProjectsLocationsJobsDebugGetConfigArgs>
+    for GetDebugConfigResponse
+{
+    fn generate_resource_id(
+        &self,
+        input: &DataflowProjectsLocationsJobsDebugGetConfigArgs,
+    ) -> String {
+        format!(
+            "gcp::dataflow::GetDebugConfigResponse/{}/{}/{}",
+            input.projectId, input.location, input.jobId
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::dataflow::GetDebugConfigResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for GetWorkerStacktracesResponse
+// =============================================================================
+
+/// ResourceIdentifier implementation for GetWorkerStacktracesResponse with DataflowProjectsLocationsJobsDebugGetWorkerStacktracesArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<DataflowProjectsLocationsJobsDebugGetWorkerStacktracesArgs>
+    for GetWorkerStacktracesResponse
+{
+    fn generate_resource_id(
+        &self,
+        input: &DataflowProjectsLocationsJobsDebugGetWorkerStacktracesArgs,
+    ) -> String {
+        format!(
+            "gcp::dataflow::GetWorkerStacktracesResponse/{}/{}/{}",
+            input.projectId, input.location, input.jobId
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::dataflow::GetWorkerStacktracesResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for SendDebugCaptureResponse
+// =============================================================================
+
+/// ResourceIdentifier implementation for SendDebugCaptureResponse with DataflowProjectsLocationsJobsDebugSendCaptureArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<DataflowProjectsLocationsJobsDebugSendCaptureArgs>
+    for SendDebugCaptureResponse
+{
+    fn generate_resource_id(
+        &self,
+        input: &DataflowProjectsLocationsJobsDebugSendCaptureArgs,
+    ) -> String {
+        format!(
+            "gcp::dataflow::SendDebugCaptureResponse/{}/{}/{}",
+            input.projectId, input.location, input.jobId
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::dataflow::SendDebugCaptureResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for ListJobMessagesResponse
+// =============================================================================
+
+/// ResourceIdentifier implementation for ListJobMessagesResponse with DataflowProjectsLocationsJobsMessagesListArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<DataflowProjectsLocationsJobsMessagesListArgs> for ListJobMessagesResponse {
+    fn generate_resource_id(
+        &self,
+        input: &DataflowProjectsLocationsJobsMessagesListArgs,
+    ) -> String {
+        format!(
+            "gcp::dataflow::ListJobMessagesResponse/{}/{}/{}",
+            input.projectId, input.location, input.jobId
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::dataflow::ListJobMessagesResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for ListSnapshotsResponse
+// =============================================================================
+
+/// ResourceIdentifier implementation for ListSnapshotsResponse with DataflowProjectsLocationsJobsSnapshotsListArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<DataflowProjectsLocationsJobsSnapshotsListArgs> for ListSnapshotsResponse {
+    fn generate_resource_id(
+        &self,
+        input: &DataflowProjectsLocationsJobsSnapshotsListArgs,
+    ) -> String {
+        format!(
+            "gcp::dataflow::ListSnapshotsResponse/{}/{}/{}",
+            input.projectId, input.location, input.jobId
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::dataflow::ListSnapshotsResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for StageExecutionDetails
+// =============================================================================
+
+/// ResourceIdentifier implementation for StageExecutionDetails with DataflowProjectsLocationsJobsStagesGetExecutionDetailsArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<DataflowProjectsLocationsJobsStagesGetExecutionDetailsArgs>
+    for StageExecutionDetails
+{
+    fn generate_resource_id(
+        &self,
+        input: &DataflowProjectsLocationsJobsStagesGetExecutionDetailsArgs,
+    ) -> String {
+        format!(
+            "gcp::dataflow::StageExecutionDetails/{}/{}/{}/{}",
+            input.projectId, input.location, input.jobId, input.stageId
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::dataflow::StageExecutionDetails"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for LeaseWorkItemResponse
+// =============================================================================
+
+/// ResourceIdentifier implementation for LeaseWorkItemResponse with DataflowProjectsLocationsJobsWorkItemsLeaseArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<DataflowProjectsLocationsJobsWorkItemsLeaseArgs> for LeaseWorkItemResponse {
+    fn generate_resource_id(
+        &self,
+        input: &DataflowProjectsLocationsJobsWorkItemsLeaseArgs,
+    ) -> String {
+        format!(
+            "gcp::dataflow::LeaseWorkItemResponse/{}/{}/{}",
+            input.projectId, input.location, input.jobId
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::dataflow::LeaseWorkItemResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for ReportWorkItemStatusResponse
+// =============================================================================
+
+/// ResourceIdentifier implementation for ReportWorkItemStatusResponse with DataflowProjectsLocationsJobsWorkItemsReportStatusArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<DataflowProjectsLocationsJobsWorkItemsReportStatusArgs>
+    for ReportWorkItemStatusResponse
+{
+    fn generate_resource_id(
+        &self,
+        input: &DataflowProjectsLocationsJobsWorkItemsReportStatusArgs,
+    ) -> String {
+        format!(
+            "gcp::dataflow::ReportWorkItemStatusResponse/{}/{}/{}",
+            input.projectId, input.location, input.jobId
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::dataflow::ReportWorkItemStatusResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for DeleteSnapshotResponse
+// =============================================================================
+
+/// ResourceIdentifier implementation for DeleteSnapshotResponse with DataflowProjectsLocationsSnapshotsDeleteArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<DataflowProjectsLocationsSnapshotsDeleteArgs> for DeleteSnapshotResponse {
+    fn generate_resource_id(&self, input: &DataflowProjectsLocationsSnapshotsDeleteArgs) -> String {
+        format!(
+            "gcp::dataflow::DeleteSnapshotResponse/{}/{}/{}",
+            input.projectId, input.location, input.snapshotId
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::dataflow::DeleteSnapshotResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for Snapshot
+// =============================================================================
+
+/// ResourceIdentifier implementation for Snapshot with DataflowProjectsLocationsSnapshotsGetArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<DataflowProjectsLocationsSnapshotsGetArgs> for Snapshot {
+    fn generate_resource_id(&self, input: &DataflowProjectsLocationsSnapshotsGetArgs) -> String {
+        format!(
+            "gcp::dataflow::Snapshot/{}/{}/{}",
+            input.projectId, input.location, input.snapshotId
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::dataflow::Snapshot"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for ListSnapshotsResponse
+// =============================================================================
+
+/// ResourceIdentifier implementation for ListSnapshotsResponse with DataflowProjectsLocationsSnapshotsListArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<DataflowProjectsLocationsSnapshotsListArgs> for ListSnapshotsResponse {
+    fn generate_resource_id(&self, input: &DataflowProjectsLocationsSnapshotsListArgs) -> String {
+        format!(
+            "gcp::dataflow::ListSnapshotsResponse/{}/{}",
+            input.projectId, input.location
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::dataflow::ListSnapshotsResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for Job
+// =============================================================================
+
+/// ResourceIdentifier implementation for Job with DataflowProjectsLocationsTemplatesCreateArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<DataflowProjectsLocationsTemplatesCreateArgs> for Job {
+    fn generate_resource_id(&self, input: &DataflowProjectsLocationsTemplatesCreateArgs) -> String {
+        format!("gcp::dataflow::Job/{}/{}", input.projectId, input.location)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::dataflow::Job"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for GetTemplateResponse
+// =============================================================================
+
+/// ResourceIdentifier implementation for GetTemplateResponse with DataflowProjectsLocationsTemplatesGetArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<DataflowProjectsLocationsTemplatesGetArgs> for GetTemplateResponse {
+    fn generate_resource_id(&self, input: &DataflowProjectsLocationsTemplatesGetArgs) -> String {
+        format!(
+            "gcp::dataflow::GetTemplateResponse/{}/{}",
+            input.projectId, input.location
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::dataflow::GetTemplateResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for LaunchTemplateResponse
+// =============================================================================
+
+/// ResourceIdentifier implementation for LaunchTemplateResponse with DataflowProjectsLocationsTemplatesLaunchArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<DataflowProjectsLocationsTemplatesLaunchArgs> for LaunchTemplateResponse {
+    fn generate_resource_id(&self, input: &DataflowProjectsLocationsTemplatesLaunchArgs) -> String {
+        format!(
+            "gcp::dataflow::LaunchTemplateResponse/{}/{}",
+            input.projectId, input.location
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::dataflow::LaunchTemplateResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for Snapshot
+// =============================================================================
+
+/// ResourceIdentifier implementation for Snapshot with DataflowProjectsSnapshotsGetArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<DataflowProjectsSnapshotsGetArgs> for Snapshot {
+    fn generate_resource_id(&self, input: &DataflowProjectsSnapshotsGetArgs) -> String {
+        format!(
+            "gcp::dataflow::Snapshot/{}/{}",
+            input.projectId, input.snapshotId
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::dataflow::Snapshot"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for ListSnapshotsResponse
+// =============================================================================
+
+/// ResourceIdentifier implementation for ListSnapshotsResponse with DataflowProjectsSnapshotsListArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<DataflowProjectsSnapshotsListArgs> for ListSnapshotsResponse {
+    fn generate_resource_id(&self, input: &DataflowProjectsSnapshotsListArgs) -> String {
+        format!("gcp::dataflow::ListSnapshotsResponse/{}", input.projectId)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::dataflow::ListSnapshotsResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for Job
+// =============================================================================
+
+/// ResourceIdentifier implementation for Job with DataflowProjectsTemplatesCreateArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<DataflowProjectsTemplatesCreateArgs> for Job {
+    fn generate_resource_id(&self, input: &DataflowProjectsTemplatesCreateArgs) -> String {
+        format!("gcp::dataflow::Job/{}", input.projectId)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::dataflow::Job"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for GetTemplateResponse
+// =============================================================================
+
+/// ResourceIdentifier implementation for GetTemplateResponse with DataflowProjectsTemplatesGetArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<DataflowProjectsTemplatesGetArgs> for GetTemplateResponse {
+    fn generate_resource_id(&self, input: &DataflowProjectsTemplatesGetArgs) -> String {
+        format!("gcp::dataflow::GetTemplateResponse/{}", input.projectId)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::dataflow::GetTemplateResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for LaunchTemplateResponse
+// =============================================================================
+
+/// ResourceIdentifier implementation for LaunchTemplateResponse with DataflowProjectsTemplatesLaunchArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<DataflowProjectsTemplatesLaunchArgs> for LaunchTemplateResponse {
+    fn generate_resource_id(&self, input: &DataflowProjectsTemplatesLaunchArgs) -> String {
+        format!("gcp::dataflow::LaunchTemplateResponse/{}", input.projectId)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::dataflow::LaunchTemplateResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
 }

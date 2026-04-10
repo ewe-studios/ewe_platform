@@ -12,16 +12,35 @@
 #![cfg(feature = "gcp")]
 
 use crate::providers::gcp::clients::playdeveloperreporting::{
+    playdeveloperreporting_anomalies_list_builder, playdeveloperreporting_anomalies_list_task,
+    playdeveloperreporting_apps_fetch_release_filter_options_builder, playdeveloperreporting_apps_fetch_release_filter_options_task,
+    playdeveloperreporting_apps_search_builder, playdeveloperreporting_apps_search_task,
+    playdeveloperreporting_vitals_anrrate_get_builder, playdeveloperreporting_vitals_anrrate_get_task,
     playdeveloperreporting_vitals_anrrate_query_builder, playdeveloperreporting_vitals_anrrate_query_task,
+    playdeveloperreporting_vitals_crashrate_get_builder, playdeveloperreporting_vitals_crashrate_get_task,
     playdeveloperreporting_vitals_crashrate_query_builder, playdeveloperreporting_vitals_crashrate_query_task,
+    playdeveloperreporting_vitals_errors_counts_get_builder, playdeveloperreporting_vitals_errors_counts_get_task,
     playdeveloperreporting_vitals_errors_counts_query_builder, playdeveloperreporting_vitals_errors_counts_query_task,
+    playdeveloperreporting_vitals_errors_issues_search_builder, playdeveloperreporting_vitals_errors_issues_search_task,
+    playdeveloperreporting_vitals_errors_reports_search_builder, playdeveloperreporting_vitals_errors_reports_search_task,
+    playdeveloperreporting_vitals_excessivewakeuprate_get_builder, playdeveloperreporting_vitals_excessivewakeuprate_get_task,
     playdeveloperreporting_vitals_excessivewakeuprate_query_builder, playdeveloperreporting_vitals_excessivewakeuprate_query_task,
+    playdeveloperreporting_vitals_lmkrate_get_builder, playdeveloperreporting_vitals_lmkrate_get_task,
     playdeveloperreporting_vitals_lmkrate_query_builder, playdeveloperreporting_vitals_lmkrate_query_task,
+    playdeveloperreporting_vitals_slowrenderingrate_get_builder, playdeveloperreporting_vitals_slowrenderingrate_get_task,
     playdeveloperreporting_vitals_slowrenderingrate_query_builder, playdeveloperreporting_vitals_slowrenderingrate_query_task,
+    playdeveloperreporting_vitals_slowstartrate_get_builder, playdeveloperreporting_vitals_slowstartrate_get_task,
     playdeveloperreporting_vitals_slowstartrate_query_builder, playdeveloperreporting_vitals_slowstartrate_query_task,
+    playdeveloperreporting_vitals_stuckbackgroundwakelockrate_get_builder, playdeveloperreporting_vitals_stuckbackgroundwakelockrate_get_task,
     playdeveloperreporting_vitals_stuckbackgroundwakelockrate_query_builder, playdeveloperreporting_vitals_stuckbackgroundwakelockrate_query_task,
 };
 use crate::providers::gcp::clients::types::{ApiError, ApiPending};
+use crate::providers::gcp::clients::playdeveloperreporting::GooglePlayDeveloperReportingV1beta1AnrRateMetricSet;
+use crate::providers::gcp::clients::playdeveloperreporting::GooglePlayDeveloperReportingV1beta1CrashRateMetricSet;
+use crate::providers::gcp::clients::playdeveloperreporting::GooglePlayDeveloperReportingV1beta1ErrorCountMetricSet;
+use crate::providers::gcp::clients::playdeveloperreporting::GooglePlayDeveloperReportingV1beta1ExcessiveWakeupRateMetricSet;
+use crate::providers::gcp::clients::playdeveloperreporting::GooglePlayDeveloperReportingV1beta1ListAnomaliesResponse;
+use crate::providers::gcp::clients::playdeveloperreporting::GooglePlayDeveloperReportingV1beta1LmkRateMetricSet;
 use crate::providers::gcp::clients::playdeveloperreporting::GooglePlayDeveloperReportingV1beta1QueryAnrRateMetricSetResponse;
 use crate::providers::gcp::clients::playdeveloperreporting::GooglePlayDeveloperReportingV1beta1QueryCrashRateMetricSetResponse;
 use crate::providers::gcp::clients::playdeveloperreporting::GooglePlayDeveloperReportingV1beta1QueryErrorCountMetricSetResponse;
@@ -30,13 +49,33 @@ use crate::providers::gcp::clients::playdeveloperreporting::GooglePlayDeveloperR
 use crate::providers::gcp::clients::playdeveloperreporting::GooglePlayDeveloperReportingV1beta1QuerySlowRenderingRateMetricSetResponse;
 use crate::providers::gcp::clients::playdeveloperreporting::GooglePlayDeveloperReportingV1beta1QuerySlowStartRateMetricSetResponse;
 use crate::providers::gcp::clients::playdeveloperreporting::GooglePlayDeveloperReportingV1beta1QueryStuckBackgroundWakelockRateMetricSetResponse;
+use crate::providers::gcp::clients::playdeveloperreporting::GooglePlayDeveloperReportingV1beta1ReleaseFilterOptions;
+use crate::providers::gcp::clients::playdeveloperreporting::GooglePlayDeveloperReportingV1beta1SearchAccessibleAppsResponse;
+use crate::providers::gcp::clients::playdeveloperreporting::GooglePlayDeveloperReportingV1beta1SearchErrorIssuesResponse;
+use crate::providers::gcp::clients::playdeveloperreporting::GooglePlayDeveloperReportingV1beta1SearchErrorReportsResponse;
+use crate::providers::gcp::clients::playdeveloperreporting::GooglePlayDeveloperReportingV1beta1SlowRenderingRateMetricSet;
+use crate::providers::gcp::clients::playdeveloperreporting::GooglePlayDeveloperReportingV1beta1SlowStartRateMetricSet;
+use crate::providers::gcp::clients::playdeveloperreporting::GooglePlayDeveloperReportingV1beta1StuckBackgroundWakelockRateMetricSet;
+use crate::providers::gcp::clients::playdeveloperreporting::PlaydeveloperreportingAnomaliesListArgs;
+use crate::providers::gcp::clients::playdeveloperreporting::PlaydeveloperreportingAppsFetchReleaseFilterOptionsArgs;
+use crate::providers::gcp::clients::playdeveloperreporting::PlaydeveloperreportingAppsSearchArgs;
+use crate::providers::gcp::clients::playdeveloperreporting::PlaydeveloperreportingVitalsAnrrateGetArgs;
 use crate::providers::gcp::clients::playdeveloperreporting::PlaydeveloperreportingVitalsAnrrateQueryArgs;
+use crate::providers::gcp::clients::playdeveloperreporting::PlaydeveloperreportingVitalsCrashrateGetArgs;
 use crate::providers::gcp::clients::playdeveloperreporting::PlaydeveloperreportingVitalsCrashrateQueryArgs;
+use crate::providers::gcp::clients::playdeveloperreporting::PlaydeveloperreportingVitalsErrorsCountsGetArgs;
 use crate::providers::gcp::clients::playdeveloperreporting::PlaydeveloperreportingVitalsErrorsCountsQueryArgs;
+use crate::providers::gcp::clients::playdeveloperreporting::PlaydeveloperreportingVitalsErrorsIssuesSearchArgs;
+use crate::providers::gcp::clients::playdeveloperreporting::PlaydeveloperreportingVitalsErrorsReportsSearchArgs;
+use crate::providers::gcp::clients::playdeveloperreporting::PlaydeveloperreportingVitalsExcessivewakeuprateGetArgs;
 use crate::providers::gcp::clients::playdeveloperreporting::PlaydeveloperreportingVitalsExcessivewakeuprateQueryArgs;
+use crate::providers::gcp::clients::playdeveloperreporting::PlaydeveloperreportingVitalsLmkrateGetArgs;
 use crate::providers::gcp::clients::playdeveloperreporting::PlaydeveloperreportingVitalsLmkrateQueryArgs;
+use crate::providers::gcp::clients::playdeveloperreporting::PlaydeveloperreportingVitalsSlowrenderingrateGetArgs;
 use crate::providers::gcp::clients::playdeveloperreporting::PlaydeveloperreportingVitalsSlowrenderingrateQueryArgs;
+use crate::providers::gcp::clients::playdeveloperreporting::PlaydeveloperreportingVitalsSlowstartrateGetArgs;
 use crate::providers::gcp::clients::playdeveloperreporting::PlaydeveloperreportingVitalsSlowstartrateQueryArgs;
+use crate::providers::gcp::clients::playdeveloperreporting::PlaydeveloperreportingVitalsStuckbackgroundwakelockrateGetArgs;
 use crate::providers::gcp::clients::playdeveloperreporting::PlaydeveloperreportingVitalsStuckbackgroundwakelockrateQueryArgs;
 use crate::provider_client::{ProviderClient, ProviderError};
 use foundation_core::valtron::{execute, StreamIterator};
@@ -79,9 +118,165 @@ where
         }
     }
 
+    /// Playdeveloperreporting anomalies list.
+    ///
+    /// Read-only operation - no state tracking.
+    ///
+    /// # Arguments
+    ///
+    /// * `args` - Request arguments
+    ///
+    /// # Returns
+    ///
+    /// StreamIterator yielding the GooglePlayDeveloperReportingV1beta1ListAnomaliesResponse result.
+    ///
+    /// # Errors
+    ///
+    /// Returns ProviderError if the API request fails.
+    pub fn playdeveloperreporting_anomalies_list(
+        &self,
+        args: &PlaydeveloperreportingAnomaliesListArgs,
+    ) -> Result<
+        impl StreamIterator<
+            D = Result<GooglePlayDeveloperReportingV1beta1ListAnomaliesResponse, ProviderError<ApiError>>,
+            P = crate::providers::gcp::clients::types::ApiPending,
+        > + Send
+        + 'static,
+        ProviderError<ApiError>,
+    > {
+        let builder = playdeveloperreporting_anomalies_list_builder(
+            &self.http_client,
+            &args.parent,
+            &args.filter,
+            &args.pageSize,
+            &args.pageToken,
+        )
+        .map_err(ProviderError::Api)?;
+
+        let task = playdeveloperreporting_anomalies_list_task(builder)
+            .map_err(ProviderError::Api)?;
+
+        execute(task, None).map_err(|e: String| ProviderError::ExecuteFailed(e.to_string()))
+    }
+
+    /// Playdeveloperreporting apps fetch release filter options.
+    ///
+    /// Read-only operation - no state tracking.
+    ///
+    /// # Arguments
+    ///
+    /// * `args` - Request arguments
+    ///
+    /// # Returns
+    ///
+    /// StreamIterator yielding the GooglePlayDeveloperReportingV1beta1ReleaseFilterOptions result.
+    ///
+    /// # Errors
+    ///
+    /// Returns ProviderError if the API request fails.
+    pub fn playdeveloperreporting_apps_fetch_release_filter_options(
+        &self,
+        args: &PlaydeveloperreportingAppsFetchReleaseFilterOptionsArgs,
+    ) -> Result<
+        impl StreamIterator<
+            D = Result<GooglePlayDeveloperReportingV1beta1ReleaseFilterOptions, ProviderError<ApiError>>,
+            P = crate::providers::gcp::clients::types::ApiPending,
+        > + Send
+        + 'static,
+        ProviderError<ApiError>,
+    > {
+        let builder = playdeveloperreporting_apps_fetch_release_filter_options_builder(
+            &self.http_client,
+            &args.name,
+        )
+        .map_err(ProviderError::Api)?;
+
+        let task = playdeveloperreporting_apps_fetch_release_filter_options_task(builder)
+            .map_err(ProviderError::Api)?;
+
+        execute(task, None).map_err(|e: String| ProviderError::ExecuteFailed(e.to_string()))
+    }
+
+    /// Playdeveloperreporting apps search.
+    ///
+    /// Read-only operation - no state tracking.
+    ///
+    /// # Arguments
+    ///
+    /// * `args` - Request arguments
+    ///
+    /// # Returns
+    ///
+    /// StreamIterator yielding the GooglePlayDeveloperReportingV1beta1SearchAccessibleAppsResponse result.
+    ///
+    /// # Errors
+    ///
+    /// Returns ProviderError if the API request fails.
+    pub fn playdeveloperreporting_apps_search(
+        &self,
+        args: &PlaydeveloperreportingAppsSearchArgs,
+    ) -> Result<
+        impl StreamIterator<
+            D = Result<GooglePlayDeveloperReportingV1beta1SearchAccessibleAppsResponse, ProviderError<ApiError>>,
+            P = crate::providers::gcp::clients::types::ApiPending,
+        > + Send
+        + 'static,
+        ProviderError<ApiError>,
+    > {
+        let builder = playdeveloperreporting_apps_search_builder(
+            &self.http_client,
+            &args.pageSize,
+            &args.pageToken,
+        )
+        .map_err(ProviderError::Api)?;
+
+        let task = playdeveloperreporting_apps_search_task(builder)
+            .map_err(ProviderError::Api)?;
+
+        execute(task, None).map_err(|e: String| ProviderError::ExecuteFailed(e.to_string()))
+    }
+
+    /// Playdeveloperreporting vitals anrrate get.
+    ///
+    /// Read-only operation - no state tracking.
+    ///
+    /// # Arguments
+    ///
+    /// * `args` - Request arguments
+    ///
+    /// # Returns
+    ///
+    /// StreamIterator yielding the GooglePlayDeveloperReportingV1beta1AnrRateMetricSet result.
+    ///
+    /// # Errors
+    ///
+    /// Returns ProviderError if the API request fails.
+    pub fn playdeveloperreporting_vitals_anrrate_get(
+        &self,
+        args: &PlaydeveloperreportingVitalsAnrrateGetArgs,
+    ) -> Result<
+        impl StreamIterator<
+            D = Result<GooglePlayDeveloperReportingV1beta1AnrRateMetricSet, ProviderError<ApiError>>,
+            P = crate::providers::gcp::clients::types::ApiPending,
+        > + Send
+        + 'static,
+        ProviderError<ApiError>,
+    > {
+        let builder = playdeveloperreporting_vitals_anrrate_get_builder(
+            &self.http_client,
+            &args.name,
+        )
+        .map_err(ProviderError::Api)?;
+
+        let task = playdeveloperreporting_vitals_anrrate_get_task(builder)
+            .map_err(ProviderError::Api)?;
+
+        execute(task, None).map_err(|e: String| ProviderError::ExecuteFailed(e.to_string()))
+    }
+
     /// Playdeveloperreporting vitals anrrate query.
     ///
-    /// Automatically stores the result in the state store on success.
+    /// Read-only operation - no state tracking.
     ///
     /// # Arguments
     ///
@@ -93,7 +288,7 @@ where
     ///
     /// # Errors
     ///
-    /// Returns ProviderError if the API request or state storage fails.
+    /// Returns ProviderError if the API request fails.
     pub fn playdeveloperreporting_vitals_anrrate_query(
         &self,
         args: &PlaydeveloperreportingVitalsAnrrateQueryArgs,
@@ -114,17 +309,50 @@ where
         let task = playdeveloperreporting_vitals_anrrate_query_task(builder)
             .map_err(ProviderError::Api)?;
 
-        let state_store = self.client.state_store.clone();
-        let stage = Some(self.client.stage.clone());
+        execute(task, None).map_err(|e: String| ProviderError::ExecuteFailed(e.to_string()))
+    }
 
-        let store_task = StoreStateIdentifierTask::new(task, state_store, args, stage);
+    /// Playdeveloperreporting vitals crashrate get.
+    ///
+    /// Read-only operation - no state tracking.
+    ///
+    /// # Arguments
+    ///
+    /// * `args` - Request arguments
+    ///
+    /// # Returns
+    ///
+    /// StreamIterator yielding the GooglePlayDeveloperReportingV1beta1CrashRateMetricSet result.
+    ///
+    /// # Errors
+    ///
+    /// Returns ProviderError if the API request fails.
+    pub fn playdeveloperreporting_vitals_crashrate_get(
+        &self,
+        args: &PlaydeveloperreportingVitalsCrashrateGetArgs,
+    ) -> Result<
+        impl StreamIterator<
+            D = Result<GooglePlayDeveloperReportingV1beta1CrashRateMetricSet, ProviderError<ApiError>>,
+            P = crate::providers::gcp::clients::types::ApiPending,
+        > + Send
+        + 'static,
+        ProviderError<ApiError>,
+    > {
+        let builder = playdeveloperreporting_vitals_crashrate_get_builder(
+            &self.http_client,
+            &args.name,
+        )
+        .map_err(ProviderError::Api)?;
 
-        execute(store_task, None).map_err(|e: String| ProviderError::ExecuteFailed(e.to_string()))
+        let task = playdeveloperreporting_vitals_crashrate_get_task(builder)
+            .map_err(ProviderError::Api)?;
+
+        execute(task, None).map_err(|e: String| ProviderError::ExecuteFailed(e.to_string()))
     }
 
     /// Playdeveloperreporting vitals crashrate query.
     ///
-    /// Automatically stores the result in the state store on success.
+    /// Read-only operation - no state tracking.
     ///
     /// # Arguments
     ///
@@ -136,7 +364,7 @@ where
     ///
     /// # Errors
     ///
-    /// Returns ProviderError if the API request or state storage fails.
+    /// Returns ProviderError if the API request fails.
     pub fn playdeveloperreporting_vitals_crashrate_query(
         &self,
         args: &PlaydeveloperreportingVitalsCrashrateQueryArgs,
@@ -157,17 +385,50 @@ where
         let task = playdeveloperreporting_vitals_crashrate_query_task(builder)
             .map_err(ProviderError::Api)?;
 
-        let state_store = self.client.state_store.clone();
-        let stage = Some(self.client.stage.clone());
+        execute(task, None).map_err(|e: String| ProviderError::ExecuteFailed(e.to_string()))
+    }
 
-        let store_task = StoreStateIdentifierTask::new(task, state_store, args, stage);
+    /// Playdeveloperreporting vitals errors counts get.
+    ///
+    /// Read-only operation - no state tracking.
+    ///
+    /// # Arguments
+    ///
+    /// * `args` - Request arguments
+    ///
+    /// # Returns
+    ///
+    /// StreamIterator yielding the GooglePlayDeveloperReportingV1beta1ErrorCountMetricSet result.
+    ///
+    /// # Errors
+    ///
+    /// Returns ProviderError if the API request fails.
+    pub fn playdeveloperreporting_vitals_errors_counts_get(
+        &self,
+        args: &PlaydeveloperreportingVitalsErrorsCountsGetArgs,
+    ) -> Result<
+        impl StreamIterator<
+            D = Result<GooglePlayDeveloperReportingV1beta1ErrorCountMetricSet, ProviderError<ApiError>>,
+            P = crate::providers::gcp::clients::types::ApiPending,
+        > + Send
+        + 'static,
+        ProviderError<ApiError>,
+    > {
+        let builder = playdeveloperreporting_vitals_errors_counts_get_builder(
+            &self.http_client,
+            &args.name,
+        )
+        .map_err(ProviderError::Api)?;
 
-        execute(store_task, None).map_err(|e: String| ProviderError::ExecuteFailed(e.to_string()))
+        let task = playdeveloperreporting_vitals_errors_counts_get_task(builder)
+            .map_err(ProviderError::Api)?;
+
+        execute(task, None).map_err(|e: String| ProviderError::ExecuteFailed(e.to_string()))
     }
 
     /// Playdeveloperreporting vitals errors counts query.
     ///
-    /// Automatically stores the result in the state store on success.
+    /// Read-only operation - no state tracking.
     ///
     /// # Arguments
     ///
@@ -179,7 +440,7 @@ where
     ///
     /// # Errors
     ///
-    /// Returns ProviderError if the API request or state storage fails.
+    /// Returns ProviderError if the API request fails.
     pub fn playdeveloperreporting_vitals_errors_counts_query(
         &self,
         args: &PlaydeveloperreportingVitalsErrorsCountsQueryArgs,
@@ -200,17 +461,174 @@ where
         let task = playdeveloperreporting_vitals_errors_counts_query_task(builder)
             .map_err(ProviderError::Api)?;
 
-        let state_store = self.client.state_store.clone();
-        let stage = Some(self.client.stage.clone());
+        execute(task, None).map_err(|e: String| ProviderError::ExecuteFailed(e.to_string()))
+    }
 
-        let store_task = StoreStateIdentifierTask::new(task, state_store, args, stage);
+    /// Playdeveloperreporting vitals errors issues search.
+    ///
+    /// Read-only operation - no state tracking.
+    ///
+    /// # Arguments
+    ///
+    /// * `args` - Request arguments
+    ///
+    /// # Returns
+    ///
+    /// StreamIterator yielding the GooglePlayDeveloperReportingV1beta1SearchErrorIssuesResponse result.
+    ///
+    /// # Errors
+    ///
+    /// Returns ProviderError if the API request fails.
+    pub fn playdeveloperreporting_vitals_errors_issues_search(
+        &self,
+        args: &PlaydeveloperreportingVitalsErrorsIssuesSearchArgs,
+    ) -> Result<
+        impl StreamIterator<
+            D = Result<GooglePlayDeveloperReportingV1beta1SearchErrorIssuesResponse, ProviderError<ApiError>>,
+            P = crate::providers::gcp::clients::types::ApiPending,
+        > + Send
+        + 'static,
+        ProviderError<ApiError>,
+    > {
+        let builder = playdeveloperreporting_vitals_errors_issues_search_builder(
+            &self.http_client,
+            &args.parent,
+            &args.filter,
+            &args.interval.endTime.day,
+            &args.interval.endTime.hours,
+            &args.interval.endTime.minutes,
+            &args.interval.endTime.month,
+            &args.interval.endTime.nanos,
+            &args.interval.endTime.seconds,
+            &args.interval.endTime.timeZone.id,
+            &args.interval.endTime.timeZone.version,
+            &args.interval.endTime.utcOffset,
+            &args.interval.endTime.year,
+            &args.interval.startTime.day,
+            &args.interval.startTime.hours,
+            &args.interval.startTime.minutes,
+            &args.interval.startTime.month,
+            &args.interval.startTime.nanos,
+            &args.interval.startTime.seconds,
+            &args.interval.startTime.timeZone.id,
+            &args.interval.startTime.timeZone.version,
+            &args.interval.startTime.utcOffset,
+            &args.interval.startTime.year,
+            &args.orderBy,
+            &args.pageSize,
+            &args.pageToken,
+            &args.sampleErrorReportLimit,
+        )
+        .map_err(ProviderError::Api)?;
 
-        execute(store_task, None).map_err(|e: String| ProviderError::ExecuteFailed(e.to_string()))
+        let task = playdeveloperreporting_vitals_errors_issues_search_task(builder)
+            .map_err(ProviderError::Api)?;
+
+        execute(task, None).map_err(|e: String| ProviderError::ExecuteFailed(e.to_string()))
+    }
+
+    /// Playdeveloperreporting vitals errors reports search.
+    ///
+    /// Read-only operation - no state tracking.
+    ///
+    /// # Arguments
+    ///
+    /// * `args` - Request arguments
+    ///
+    /// # Returns
+    ///
+    /// StreamIterator yielding the GooglePlayDeveloperReportingV1beta1SearchErrorReportsResponse result.
+    ///
+    /// # Errors
+    ///
+    /// Returns ProviderError if the API request fails.
+    pub fn playdeveloperreporting_vitals_errors_reports_search(
+        &self,
+        args: &PlaydeveloperreportingVitalsErrorsReportsSearchArgs,
+    ) -> Result<
+        impl StreamIterator<
+            D = Result<GooglePlayDeveloperReportingV1beta1SearchErrorReportsResponse, ProviderError<ApiError>>,
+            P = crate::providers::gcp::clients::types::ApiPending,
+        > + Send
+        + 'static,
+        ProviderError<ApiError>,
+    > {
+        let builder = playdeveloperreporting_vitals_errors_reports_search_builder(
+            &self.http_client,
+            &args.parent,
+            &args.filter,
+            &args.interval.endTime.day,
+            &args.interval.endTime.hours,
+            &args.interval.endTime.minutes,
+            &args.interval.endTime.month,
+            &args.interval.endTime.nanos,
+            &args.interval.endTime.seconds,
+            &args.interval.endTime.timeZone.id,
+            &args.interval.endTime.timeZone.version,
+            &args.interval.endTime.utcOffset,
+            &args.interval.endTime.year,
+            &args.interval.startTime.day,
+            &args.interval.startTime.hours,
+            &args.interval.startTime.minutes,
+            &args.interval.startTime.month,
+            &args.interval.startTime.nanos,
+            &args.interval.startTime.seconds,
+            &args.interval.startTime.timeZone.id,
+            &args.interval.startTime.timeZone.version,
+            &args.interval.startTime.utcOffset,
+            &args.interval.startTime.year,
+            &args.pageSize,
+            &args.pageToken,
+        )
+        .map_err(ProviderError::Api)?;
+
+        let task = playdeveloperreporting_vitals_errors_reports_search_task(builder)
+            .map_err(ProviderError::Api)?;
+
+        execute(task, None).map_err(|e: String| ProviderError::ExecuteFailed(e.to_string()))
+    }
+
+    /// Playdeveloperreporting vitals excessivewakeuprate get.
+    ///
+    /// Read-only operation - no state tracking.
+    ///
+    /// # Arguments
+    ///
+    /// * `args` - Request arguments
+    ///
+    /// # Returns
+    ///
+    /// StreamIterator yielding the GooglePlayDeveloperReportingV1beta1ExcessiveWakeupRateMetricSet result.
+    ///
+    /// # Errors
+    ///
+    /// Returns ProviderError if the API request fails.
+    pub fn playdeveloperreporting_vitals_excessivewakeuprate_get(
+        &self,
+        args: &PlaydeveloperreportingVitalsExcessivewakeuprateGetArgs,
+    ) -> Result<
+        impl StreamIterator<
+            D = Result<GooglePlayDeveloperReportingV1beta1ExcessiveWakeupRateMetricSet, ProviderError<ApiError>>,
+            P = crate::providers::gcp::clients::types::ApiPending,
+        > + Send
+        + 'static,
+        ProviderError<ApiError>,
+    > {
+        let builder = playdeveloperreporting_vitals_excessivewakeuprate_get_builder(
+            &self.http_client,
+            &args.name,
+        )
+        .map_err(ProviderError::Api)?;
+
+        let task = playdeveloperreporting_vitals_excessivewakeuprate_get_task(builder)
+            .map_err(ProviderError::Api)?;
+
+        execute(task, None).map_err(|e: String| ProviderError::ExecuteFailed(e.to_string()))
     }
 
     /// Playdeveloperreporting vitals excessivewakeuprate query.
     ///
-    /// Automatically stores the result in the state store on success.
+    /// Read-only operation - no state tracking.
     ///
     /// # Arguments
     ///
@@ -222,7 +640,7 @@ where
     ///
     /// # Errors
     ///
-    /// Returns ProviderError if the API request or state storage fails.
+    /// Returns ProviderError if the API request fails.
     pub fn playdeveloperreporting_vitals_excessivewakeuprate_query(
         &self,
         args: &PlaydeveloperreportingVitalsExcessivewakeuprateQueryArgs,
@@ -243,17 +661,50 @@ where
         let task = playdeveloperreporting_vitals_excessivewakeuprate_query_task(builder)
             .map_err(ProviderError::Api)?;
 
-        let state_store = self.client.state_store.clone();
-        let stage = Some(self.client.stage.clone());
+        execute(task, None).map_err(|e: String| ProviderError::ExecuteFailed(e.to_string()))
+    }
 
-        let store_task = StoreStateIdentifierTask::new(task, state_store, args, stage);
+    /// Playdeveloperreporting vitals lmkrate get.
+    ///
+    /// Read-only operation - no state tracking.
+    ///
+    /// # Arguments
+    ///
+    /// * `args` - Request arguments
+    ///
+    /// # Returns
+    ///
+    /// StreamIterator yielding the GooglePlayDeveloperReportingV1beta1LmkRateMetricSet result.
+    ///
+    /// # Errors
+    ///
+    /// Returns ProviderError if the API request fails.
+    pub fn playdeveloperreporting_vitals_lmkrate_get(
+        &self,
+        args: &PlaydeveloperreportingVitalsLmkrateGetArgs,
+    ) -> Result<
+        impl StreamIterator<
+            D = Result<GooglePlayDeveloperReportingV1beta1LmkRateMetricSet, ProviderError<ApiError>>,
+            P = crate::providers::gcp::clients::types::ApiPending,
+        > + Send
+        + 'static,
+        ProviderError<ApiError>,
+    > {
+        let builder = playdeveloperreporting_vitals_lmkrate_get_builder(
+            &self.http_client,
+            &args.name,
+        )
+        .map_err(ProviderError::Api)?;
 
-        execute(store_task, None).map_err(|e: String| ProviderError::ExecuteFailed(e.to_string()))
+        let task = playdeveloperreporting_vitals_lmkrate_get_task(builder)
+            .map_err(ProviderError::Api)?;
+
+        execute(task, None).map_err(|e: String| ProviderError::ExecuteFailed(e.to_string()))
     }
 
     /// Playdeveloperreporting vitals lmkrate query.
     ///
-    /// Automatically stores the result in the state store on success.
+    /// Read-only operation - no state tracking.
     ///
     /// # Arguments
     ///
@@ -265,7 +716,7 @@ where
     ///
     /// # Errors
     ///
-    /// Returns ProviderError if the API request or state storage fails.
+    /// Returns ProviderError if the API request fails.
     pub fn playdeveloperreporting_vitals_lmkrate_query(
         &self,
         args: &PlaydeveloperreportingVitalsLmkrateQueryArgs,
@@ -286,17 +737,50 @@ where
         let task = playdeveloperreporting_vitals_lmkrate_query_task(builder)
             .map_err(ProviderError::Api)?;
 
-        let state_store = self.client.state_store.clone();
-        let stage = Some(self.client.stage.clone());
+        execute(task, None).map_err(|e: String| ProviderError::ExecuteFailed(e.to_string()))
+    }
 
-        let store_task = StoreStateIdentifierTask::new(task, state_store, args, stage);
+    /// Playdeveloperreporting vitals slowrenderingrate get.
+    ///
+    /// Read-only operation - no state tracking.
+    ///
+    /// # Arguments
+    ///
+    /// * `args` - Request arguments
+    ///
+    /// # Returns
+    ///
+    /// StreamIterator yielding the GooglePlayDeveloperReportingV1beta1SlowRenderingRateMetricSet result.
+    ///
+    /// # Errors
+    ///
+    /// Returns ProviderError if the API request fails.
+    pub fn playdeveloperreporting_vitals_slowrenderingrate_get(
+        &self,
+        args: &PlaydeveloperreportingVitalsSlowrenderingrateGetArgs,
+    ) -> Result<
+        impl StreamIterator<
+            D = Result<GooglePlayDeveloperReportingV1beta1SlowRenderingRateMetricSet, ProviderError<ApiError>>,
+            P = crate::providers::gcp::clients::types::ApiPending,
+        > + Send
+        + 'static,
+        ProviderError<ApiError>,
+    > {
+        let builder = playdeveloperreporting_vitals_slowrenderingrate_get_builder(
+            &self.http_client,
+            &args.name,
+        )
+        .map_err(ProviderError::Api)?;
 
-        execute(store_task, None).map_err(|e: String| ProviderError::ExecuteFailed(e.to_string()))
+        let task = playdeveloperreporting_vitals_slowrenderingrate_get_task(builder)
+            .map_err(ProviderError::Api)?;
+
+        execute(task, None).map_err(|e: String| ProviderError::ExecuteFailed(e.to_string()))
     }
 
     /// Playdeveloperreporting vitals slowrenderingrate query.
     ///
-    /// Automatically stores the result in the state store on success.
+    /// Read-only operation - no state tracking.
     ///
     /// # Arguments
     ///
@@ -308,7 +792,7 @@ where
     ///
     /// # Errors
     ///
-    /// Returns ProviderError if the API request or state storage fails.
+    /// Returns ProviderError if the API request fails.
     pub fn playdeveloperreporting_vitals_slowrenderingrate_query(
         &self,
         args: &PlaydeveloperreportingVitalsSlowrenderingrateQueryArgs,
@@ -329,17 +813,50 @@ where
         let task = playdeveloperreporting_vitals_slowrenderingrate_query_task(builder)
             .map_err(ProviderError::Api)?;
 
-        let state_store = self.client.state_store.clone();
-        let stage = Some(self.client.stage.clone());
+        execute(task, None).map_err(|e: String| ProviderError::ExecuteFailed(e.to_string()))
+    }
 
-        let store_task = StoreStateIdentifierTask::new(task, state_store, args, stage);
+    /// Playdeveloperreporting vitals slowstartrate get.
+    ///
+    /// Read-only operation - no state tracking.
+    ///
+    /// # Arguments
+    ///
+    /// * `args` - Request arguments
+    ///
+    /// # Returns
+    ///
+    /// StreamIterator yielding the GooglePlayDeveloperReportingV1beta1SlowStartRateMetricSet result.
+    ///
+    /// # Errors
+    ///
+    /// Returns ProviderError if the API request fails.
+    pub fn playdeveloperreporting_vitals_slowstartrate_get(
+        &self,
+        args: &PlaydeveloperreportingVitalsSlowstartrateGetArgs,
+    ) -> Result<
+        impl StreamIterator<
+            D = Result<GooglePlayDeveloperReportingV1beta1SlowStartRateMetricSet, ProviderError<ApiError>>,
+            P = crate::providers::gcp::clients::types::ApiPending,
+        > + Send
+        + 'static,
+        ProviderError<ApiError>,
+    > {
+        let builder = playdeveloperreporting_vitals_slowstartrate_get_builder(
+            &self.http_client,
+            &args.name,
+        )
+        .map_err(ProviderError::Api)?;
 
-        execute(store_task, None).map_err(|e: String| ProviderError::ExecuteFailed(e.to_string()))
+        let task = playdeveloperreporting_vitals_slowstartrate_get_task(builder)
+            .map_err(ProviderError::Api)?;
+
+        execute(task, None).map_err(|e: String| ProviderError::ExecuteFailed(e.to_string()))
     }
 
     /// Playdeveloperreporting vitals slowstartrate query.
     ///
-    /// Automatically stores the result in the state store on success.
+    /// Read-only operation - no state tracking.
     ///
     /// # Arguments
     ///
@@ -351,7 +868,7 @@ where
     ///
     /// # Errors
     ///
-    /// Returns ProviderError if the API request or state storage fails.
+    /// Returns ProviderError if the API request fails.
     pub fn playdeveloperreporting_vitals_slowstartrate_query(
         &self,
         args: &PlaydeveloperreportingVitalsSlowstartrateQueryArgs,
@@ -372,17 +889,50 @@ where
         let task = playdeveloperreporting_vitals_slowstartrate_query_task(builder)
             .map_err(ProviderError::Api)?;
 
-        let state_store = self.client.state_store.clone();
-        let stage = Some(self.client.stage.clone());
+        execute(task, None).map_err(|e: String| ProviderError::ExecuteFailed(e.to_string()))
+    }
 
-        let store_task = StoreStateIdentifierTask::new(task, state_store, args, stage);
+    /// Playdeveloperreporting vitals stuckbackgroundwakelockrate get.
+    ///
+    /// Read-only operation - no state tracking.
+    ///
+    /// # Arguments
+    ///
+    /// * `args` - Request arguments
+    ///
+    /// # Returns
+    ///
+    /// StreamIterator yielding the GooglePlayDeveloperReportingV1beta1StuckBackgroundWakelockRateMetricSet result.
+    ///
+    /// # Errors
+    ///
+    /// Returns ProviderError if the API request fails.
+    pub fn playdeveloperreporting_vitals_stuckbackgroundwakelockrate_get(
+        &self,
+        args: &PlaydeveloperreportingVitalsStuckbackgroundwakelockrateGetArgs,
+    ) -> Result<
+        impl StreamIterator<
+            D = Result<GooglePlayDeveloperReportingV1beta1StuckBackgroundWakelockRateMetricSet, ProviderError<ApiError>>,
+            P = crate::providers::gcp::clients::types::ApiPending,
+        > + Send
+        + 'static,
+        ProviderError<ApiError>,
+    > {
+        let builder = playdeveloperreporting_vitals_stuckbackgroundwakelockrate_get_builder(
+            &self.http_client,
+            &args.name,
+        )
+        .map_err(ProviderError::Api)?;
 
-        execute(store_task, None).map_err(|e: String| ProviderError::ExecuteFailed(e.to_string()))
+        let task = playdeveloperreporting_vitals_stuckbackgroundwakelockrate_get_task(builder)
+            .map_err(ProviderError::Api)?;
+
+        execute(task, None).map_err(|e: String| ProviderError::ExecuteFailed(e.to_string()))
     }
 
     /// Playdeveloperreporting vitals stuckbackgroundwakelockrate query.
     ///
-    /// Automatically stores the result in the state store on success.
+    /// Read-only operation - no state tracking.
     ///
     /// # Arguments
     ///
@@ -394,7 +944,7 @@ where
     ///
     /// # Errors
     ///
-    /// Returns ProviderError if the API request or state storage fails.
+    /// Returns ProviderError if the API request fails.
     pub fn playdeveloperreporting_vitals_stuckbackgroundwakelockrate_query(
         &self,
         args: &PlaydeveloperreportingVitalsStuckbackgroundwakelockrateQueryArgs,
@@ -415,12 +965,7 @@ where
         let task = playdeveloperreporting_vitals_stuckbackgroundwakelockrate_query_task(builder)
             .map_err(ProviderError::Api)?;
 
-        let state_store = self.client.state_store.clone();
-        let stage = Some(self.client.stage.clone());
-
-        let store_task = StoreStateIdentifierTask::new(task, state_store, args, stage);
-
-        execute(store_task, None).map_err(|e: String| ProviderError::ExecuteFailed(e.to_string()))
+        execute(task, None).map_err(|e: String| ProviderError::ExecuteFailed(e.to_string()))
     }
 
 }

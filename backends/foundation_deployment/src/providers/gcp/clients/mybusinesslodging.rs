@@ -7,7 +7,6 @@
 
 #![cfg(feature = "gcp")]
 
-
 use crate::providers::gcp::clients::types::*;
 use crate::providers::gcp::resources::*;
 use foundation_core::valtron::{
@@ -17,6 +16,7 @@ use foundation_core::valtron::{
 use foundation_core::wire::simple_http::client::{
     body_reader, ClientRequestBuilder, RequestIntro, SimpleHttpClient, SystemDnsResolver,
 };
+use foundation_db::state::resource_identifier::ResourceIdentifier;
 use foundation_macros::JsonHash;
 use serde::Serialize;
 
@@ -29,10 +29,13 @@ use serde::Serialize;
 pub fn mybusinesslodging_locations_get_lodging_builder(
     client: &SimpleHttpClient,
     name: &String,
-    readMask: &Option<String>,
+    readMask: &Option<Option<String>>,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
-    let endpoint_url = format!("https://mybusinesslodging.googleapis.com/v1/locations/{}/lodging",);
+    let endpoint_url = format!(
+        "https://mybusinesslodging.googleapis.com/v1/locations/{}/lodging",
+        name,
+    );
 
     // Build request
     let mut query_parts = Vec::new();
@@ -163,7 +166,7 @@ pub struct MybusinesslodgingLocationsGetLodgingArgs {
     /// Path parameter: name
     pub name: String,
     /// Query parameter: readMask
-    pub readMask: Option<String>,
+    pub readMask: Option<Option<String>>,
 }
 
 /// GET v1/locations/{locationsId}/lodging
@@ -189,6 +192,178 @@ pub fn mybusinesslodging_locations_get_lodging(
     mybusinesslodging_locations_get_lodging_execute(builder)
 }
 
+/// PATCH v1/locations/{locationsId}/lodging
+/// Updates the Lodging of a specific location.
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `mybusinesslodging_locations_update_lodging_execute()` to send, or `mybusinesslodging_locations_update_lodging` for simplest API.
+
+pub fn mybusinesslodging_locations_update_lodging_builder(
+    client: &SimpleHttpClient,
+    name: &String,
+    updateMask: &Option<Option<String>>,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!(
+        "https://mybusinesslodging.googleapis.com/v1/locations/{}/lodging",
+        name,
+    );
+
+    // Build request
+    let mut query_parts = Vec::new();
+    if let Some(val) = updateMask.as_ref() {
+        query_parts.push(format!("updateMask={}", val));
+    }
+
+    let url_with_query = if query_parts.is_empty() {
+        endpoint_url
+    } else {
+        format!("{}?{}", endpoint_url, query_parts.join("&"))
+    };
+
+    let builder = client
+        .patch(&url_with_query)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// PATCH v1/locations/{locationsId}/lodging
+/// Updates the Lodging of a specific location.
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `mybusinesslodging_locations_update_lodging_execute()` or `mybusinesslodging_locations_update_lodging`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `mybusinesslodging_locations_update_lodging_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn mybusinesslodging_locations_update_lodging_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<Lodging>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: Lodging = serde_json::from_str(&body)
+                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// PATCH v1/locations/{locationsId}/lodging
+/// Updates the Lodging of a specific location.
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `mybusinesslodging_locations_update_lodging_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `mybusinesslodging_locations_update_lodging_task()`.
+/// For the simplest API, use `mybusinesslodging_locations_update_lodging()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `mybusinesslodging_locations_update_lodging_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn mybusinesslodging_locations_update_lodging_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<Lodging>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let task = mybusinesslodging_locations_update_lodging_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`mybusinesslodging_locations_update_lodging`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct MybusinesslodgingLocationsUpdateLodgingArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Query parameter: updateMask
+    pub updateMask: Option<Option<String>>,
+}
+
+/// PATCH v1/locations/{locationsId}/lodging
+/// Updates the Lodging of a specific location.
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `mybusinesslodging_locations_update_lodging_builder()` + `mybusinesslodging_locations_update_lodging_execute()`.
+/// For task-level control, use `mybusinesslodging_locations_update_lodging_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn mybusinesslodging_locations_update_lodging(
+    client: &SimpleHttpClient,
+    args: &MybusinesslodgingLocationsUpdateLodgingArgs,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<Lodging>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let builder =
+        mybusinesslodging_locations_update_lodging_builder(client, &args.name, &args.updateMask)?;
+    mybusinesslodging_locations_update_lodging_execute(builder)
+}
+
 /// GET v1/locations/{locationsId}/lodging:getGoogleUpdated
 /// Returns the Google updated Lodging of a specific location.
 ///
@@ -198,11 +373,12 @@ pub fn mybusinesslodging_locations_get_lodging(
 pub fn mybusinesslodging_locations_lodging_get_google_updated_builder(
     client: &SimpleHttpClient,
     name: &String,
-    readMask: &Option<String>,
+    readMask: &Option<Option<String>>,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
         "https://mybusinesslodging.googleapis.com/v1/locations/{}/lodging:getGoogleUpdated",
+        name,
     );
 
     // Build request
@@ -338,7 +514,7 @@ pub struct MybusinesslodgingLocationsLodgingGetGoogleUpdatedArgs {
     /// Path parameter: name
     pub name: String,
     /// Query parameter: readMask
-    pub readMask: Option<String>,
+    pub readMask: Option<Option<String>>,
 }
 
 /// GET v1/locations/{locationsId}/lodging:getGoogleUpdated
@@ -369,4 +545,81 @@ pub fn mybusinesslodging_locations_lodging_get_google_updated(
         &args.readMask,
     )?;
     mybusinesslodging_locations_lodging_get_google_updated_execute(builder)
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for Lodging
+// =============================================================================
+
+/// ResourceIdentifier implementation for Lodging with MybusinesslodgingLocationsGetLodgingArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<MybusinesslodgingLocationsGetLodgingArgs> for Lodging {
+    fn generate_resource_id(&self, input: &MybusinesslodgingLocationsGetLodgingArgs) -> String {
+        format!("gcp::mybusinesslodging::Lodging/{}", input.name)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::mybusinesslodging::Lodging"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for Lodging
+// =============================================================================
+
+/// ResourceIdentifier implementation for Lodging with MybusinesslodgingLocationsUpdateLodgingArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<MybusinesslodgingLocationsUpdateLodgingArgs> for Lodging {
+    fn generate_resource_id(&self, input: &MybusinesslodgingLocationsUpdateLodgingArgs) -> String {
+        format!("gcp::mybusinesslodging::Lodging/{}", input.name)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::mybusinesslodging::Lodging"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for GetGoogleUpdatedLodgingResponse
+// =============================================================================
+
+/// ResourceIdentifier implementation for GetGoogleUpdatedLodgingResponse with MybusinesslodgingLocationsLodgingGetGoogleUpdatedArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<MybusinesslodgingLocationsLodgingGetGoogleUpdatedArgs>
+    for GetGoogleUpdatedLodgingResponse
+{
+    fn generate_resource_id(
+        &self,
+        input: &MybusinesslodgingLocationsLodgingGetGoogleUpdatedArgs,
+    ) -> String {
+        format!(
+            "gcp::mybusinesslodging::GetGoogleUpdatedLodgingResponse/{}",
+            input.name
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::mybusinesslodging::GetGoogleUpdatedLodgingResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
 }

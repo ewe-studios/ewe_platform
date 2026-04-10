@@ -7,7 +7,6 @@
 
 #![cfg(feature = "gcp")]
 
-
 use crate::providers::gcp::clients::types::*;
 use crate::providers::gcp::resources::*;
 use foundation_core::valtron::{
@@ -17,8 +16,174 @@ use foundation_core::valtron::{
 use foundation_core::wire::simple_http::client::{
     body_reader, ClientRequestBuilder, RequestIntro, SimpleHttpClient, SystemDnsResolver,
 };
+use foundation_db::state::resource_identifier::ResourceIdentifier;
 use foundation_macros::JsonHash;
 use serde::Serialize;
+
+/// GET v1/projects/{projectsId}/locations/{locationsId}
+/// Gets information about a location.
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `saasservicemgmt_projects_locations_get_execute()` to send, or `saasservicemgmt_projects_locations_get` for simplest API.
+
+pub fn saasservicemgmt_projects_locations_get_builder(
+    client: &SimpleHttpClient,
+    name: &String,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!(
+        "https://saasservicemgmt.googleapis.com/v1/projects/{}/locations/{locationsId}",
+        name,
+    );
+
+    // Build request
+    let builder = client
+        .get(&endpoint_url)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// GET v1/projects/{projectsId}/locations/{locationsId}
+/// Gets information about a location.
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `saasservicemgmt_projects_locations_get_execute()` or `saasservicemgmt_projects_locations_get`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `saasservicemgmt_projects_locations_get_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn saasservicemgmt_projects_locations_get_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<GoogleCloudLocationLocation>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: GoogleCloudLocationLocation = serde_json::from_str(&body)
+                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// GET v1/projects/{projectsId}/locations/{locationsId}
+/// Gets information about a location.
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `saasservicemgmt_projects_locations_get_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `saasservicemgmt_projects_locations_get_task()`.
+/// For the simplest API, use `saasservicemgmt_projects_locations_get()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `saasservicemgmt_projects_locations_get_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn saasservicemgmt_projects_locations_get_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<
+            D = Result<ApiResponse<GoogleCloudLocationLocation>, ApiError>,
+            P = ApiPending,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    let task = saasservicemgmt_projects_locations_get_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`saasservicemgmt_projects_locations_get`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct SaasservicemgmtProjectsLocationsGetArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
+/// GET v1/projects/{projectsId}/locations/{locationsId}
+/// Gets information about a location.
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `saasservicemgmt_projects_locations_get_builder()` + `saasservicemgmt_projects_locations_get_execute()`.
+/// For task-level control, use `saasservicemgmt_projects_locations_get_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn saasservicemgmt_projects_locations_get(
+    client: &SimpleHttpClient,
+    args: &SaasservicemgmtProjectsLocationsGetArgs,
+) -> Result<
+    impl StreamIterator<
+            D = Result<ApiResponse<GoogleCloudLocationLocation>, ApiError>,
+            P = ApiPending,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    let builder = saasservicemgmt_projects_locations_get_builder(client, &args.name)?;
+    saasservicemgmt_projects_locations_get_execute(builder)
+}
 
 /// GET v1/projects/{projectsId}/locations
 /// Lists information about the supported locations for this service. This method lists locations based on the resource scope provided in the [ListLocationsRequest.name] field: * **Global locations**: If name is empty, the method lists the public locations available to all projects. * **Project-specific locations**: If name follows the format `projects/{project}`, the method lists locations visible to that specific project. This includes public, private, or other project-specific locations enabled for the project. For `gRPC` and client library implementations, the resource name is passed as the name field. For direct service calls, the resource name is incorporated into the request path based on the specific service implementation and version.
@@ -29,13 +194,16 @@ use serde::Serialize;
 pub fn saasservicemgmt_projects_locations_list_builder(
     client: &SimpleHttpClient,
     name: &String,
-    extraLocationTypes: &Option<String>,
-    filter: &Option<String>,
-    pageSize: &Option<i32>,
-    pageToken: &Option<String>,
+    extraLocationTypes: &Option<Option<String>>,
+    filter: &Option<Option<String>>,
+    pageSize: &Option<Option<String>>,
+    pageToken: &Option<Option<String>>,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
-    let endpoint_url = format!("https://saasservicemgmt.googleapis.com/v1/projects/{}/locations",);
+    let endpoint_url = format!(
+        "https://saasservicemgmt.googleapis.com/v1/projects/{}/locations",
+        name,
+    );
 
     // Build request
     let mut query_parts = Vec::new();
@@ -177,13 +345,13 @@ pub struct SaasservicemgmtProjectsLocationsListArgs {
     /// Path parameter: name
     pub name: String,
     /// Query parameter: extraLocationTypes
-    pub extraLocationTypes: Option<String>,
+    pub extraLocationTypes: Option<Option<String>>,
     /// Query parameter: filter
-    pub filter: Option<String>,
+    pub filter: Option<Option<String>>,
     /// Query parameter: pageSize
-    pub pageSize: Option<i32>,
+    pub pageSize: Option<Option<String>>,
     /// Query parameter: pageToken
-    pub pageToken: Option<String>,
+    pub pageToken: Option<Option<String>>,
 }
 
 /// GET v1/projects/{projectsId}/locations
@@ -215,4 +383,8516 @@ pub fn saasservicemgmt_projects_locations_list(
         &args.pageToken,
     )?;
     saasservicemgmt_projects_locations_list_execute(builder)
+}
+
+/// POST v1/projects/{projectsId}/locations/{locationsId}/releases
+/// Create a new release.
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `saasservicemgmt_projects_locations_releases_create_execute()` to send, or `saasservicemgmt_projects_locations_releases_create` for simplest API.
+
+pub fn saasservicemgmt_projects_locations_releases_create_builder(
+    client: &SimpleHttpClient,
+    parent: &String,
+    releaseId: &Option<Option<String>>,
+    requestId: &Option<Option<String>>,
+    validateOnly: &Option<Option<String>>,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!(
+        "https://saasservicemgmt.googleapis.com/v1/projects/{}/locations/{locationsId}/releases",
+        parent,
+    );
+
+    // Build request
+    let mut query_parts = Vec::new();
+    if let Some(val) = releaseId.as_ref() {
+        query_parts.push(format!("releaseId={}", val));
+    }
+    if let Some(val) = requestId.as_ref() {
+        query_parts.push(format!("requestId={}", val));
+    }
+    if let Some(val) = validateOnly.as_ref() {
+        query_parts.push(format!("validateOnly={}", val));
+    }
+
+    let url_with_query = if query_parts.is_empty() {
+        endpoint_url
+    } else {
+        format!("{}?{}", endpoint_url, query_parts.join("&"))
+    };
+
+    let builder = client
+        .post(&url_with_query)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// POST v1/projects/{projectsId}/locations/{locationsId}/releases
+/// Create a new release.
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `saasservicemgmt_projects_locations_releases_create_execute()` or `saasservicemgmt_projects_locations_releases_create`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `saasservicemgmt_projects_locations_releases_create_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn saasservicemgmt_projects_locations_releases_create_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<Release>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: Release = serde_json::from_str(&body)
+                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// POST v1/projects/{projectsId}/locations/{locationsId}/releases
+/// Create a new release.
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `saasservicemgmt_projects_locations_releases_create_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `saasservicemgmt_projects_locations_releases_create_task()`.
+/// For the simplest API, use `saasservicemgmt_projects_locations_releases_create()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `saasservicemgmt_projects_locations_releases_create_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn saasservicemgmt_projects_locations_releases_create_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<Release>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let task = saasservicemgmt_projects_locations_releases_create_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`saasservicemgmt_projects_locations_releases_create`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct SaasservicemgmtProjectsLocationsReleasesCreateArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Query parameter: releaseId
+    pub releaseId: Option<Option<String>>,
+    /// Query parameter: requestId
+    pub requestId: Option<Option<String>>,
+    /// Query parameter: validateOnly
+    pub validateOnly: Option<Option<String>>,
+}
+
+/// POST v1/projects/{projectsId}/locations/{locationsId}/releases
+/// Create a new release.
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `saasservicemgmt_projects_locations_releases_create_builder()` + `saasservicemgmt_projects_locations_releases_create_execute()`.
+/// For task-level control, use `saasservicemgmt_projects_locations_releases_create_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn saasservicemgmt_projects_locations_releases_create(
+    client: &SimpleHttpClient,
+    args: &SaasservicemgmtProjectsLocationsReleasesCreateArgs,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<Release>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let builder = saasservicemgmt_projects_locations_releases_create_builder(
+        client,
+        &args.parent,
+        &args.releaseId,
+        &args.requestId,
+        &args.validateOnly,
+    )?;
+    saasservicemgmt_projects_locations_releases_create_execute(builder)
+}
+
+/// DELETE v1/projects/{projectsId}/locations/{locationsId}/releases/{releasesId}
+/// Delete a single release.
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `saasservicemgmt_projects_locations_releases_delete_execute()` to send, or `saasservicemgmt_projects_locations_releases_delete` for simplest API.
+
+pub fn saasservicemgmt_projects_locations_releases_delete_builder(
+    client: &SimpleHttpClient,
+    name: &String,
+    etag: &Option<Option<String>>,
+    requestId: &Option<Option<String>>,
+    validateOnly: &Option<Option<String>>,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!(
+        "https://saasservicemgmt.googleapis.com/v1/projects/{}/locations/{locationsId}/releases/{releasesId}",
+        name,
+    );
+
+    // Build request
+    let mut query_parts = Vec::new();
+    if let Some(val) = etag.as_ref() {
+        query_parts.push(format!("etag={}", val));
+    }
+    if let Some(val) = requestId.as_ref() {
+        query_parts.push(format!("requestId={}", val));
+    }
+    if let Some(val) = validateOnly.as_ref() {
+        query_parts.push(format!("validateOnly={}", val));
+    }
+
+    let url_with_query = if query_parts.is_empty() {
+        endpoint_url
+    } else {
+        format!("{}?{}", endpoint_url, query_parts.join("&"))
+    };
+
+    let builder = client
+        .delete(&url_with_query)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// DELETE v1/projects/{projectsId}/locations/{locationsId}/releases/{releasesId}
+/// Delete a single release.
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `saasservicemgmt_projects_locations_releases_delete_execute()` or `saasservicemgmt_projects_locations_releases_delete`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `saasservicemgmt_projects_locations_releases_delete_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn saasservicemgmt_projects_locations_releases_delete_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<Empty>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: Empty = serde_json::from_str(&body)
+                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// DELETE v1/projects/{projectsId}/locations/{locationsId}/releases/{releasesId}
+/// Delete a single release.
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `saasservicemgmt_projects_locations_releases_delete_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `saasservicemgmt_projects_locations_releases_delete_task()`.
+/// For the simplest API, use `saasservicemgmt_projects_locations_releases_delete()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `saasservicemgmt_projects_locations_releases_delete_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn saasservicemgmt_projects_locations_releases_delete_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<Empty>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let task = saasservicemgmt_projects_locations_releases_delete_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`saasservicemgmt_projects_locations_releases_delete`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct SaasservicemgmtProjectsLocationsReleasesDeleteArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Query parameter: etag
+    pub etag: Option<Option<String>>,
+    /// Query parameter: requestId
+    pub requestId: Option<Option<String>>,
+    /// Query parameter: validateOnly
+    pub validateOnly: Option<Option<String>>,
+}
+
+/// DELETE v1/projects/{projectsId}/locations/{locationsId}/releases/{releasesId}
+/// Delete a single release.
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `saasservicemgmt_projects_locations_releases_delete_builder()` + `saasservicemgmt_projects_locations_releases_delete_execute()`.
+/// For task-level control, use `saasservicemgmt_projects_locations_releases_delete_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn saasservicemgmt_projects_locations_releases_delete(
+    client: &SimpleHttpClient,
+    args: &SaasservicemgmtProjectsLocationsReleasesDeleteArgs,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<Empty>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let builder = saasservicemgmt_projects_locations_releases_delete_builder(
+        client,
+        &args.name,
+        &args.etag,
+        &args.requestId,
+        &args.validateOnly,
+    )?;
+    saasservicemgmt_projects_locations_releases_delete_execute(builder)
+}
+
+/// GET v1/projects/{projectsId}/locations/{locationsId}/releases/{releasesId}
+/// Retrieve a single release.
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `saasservicemgmt_projects_locations_releases_get_execute()` to send, or `saasservicemgmt_projects_locations_releases_get` for simplest API.
+
+pub fn saasservicemgmt_projects_locations_releases_get_builder(
+    client: &SimpleHttpClient,
+    name: &String,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!(
+        "https://saasservicemgmt.googleapis.com/v1/projects/{}/locations/{locationsId}/releases/{releasesId}",
+        name,
+    );
+
+    // Build request
+    let builder = client
+        .get(&endpoint_url)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// GET v1/projects/{projectsId}/locations/{locationsId}/releases/{releasesId}
+/// Retrieve a single release.
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `saasservicemgmt_projects_locations_releases_get_execute()` or `saasservicemgmt_projects_locations_releases_get`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `saasservicemgmt_projects_locations_releases_get_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn saasservicemgmt_projects_locations_releases_get_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<Release>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: Release = serde_json::from_str(&body)
+                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// GET v1/projects/{projectsId}/locations/{locationsId}/releases/{releasesId}
+/// Retrieve a single release.
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `saasservicemgmt_projects_locations_releases_get_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `saasservicemgmt_projects_locations_releases_get_task()`.
+/// For the simplest API, use `saasservicemgmt_projects_locations_releases_get()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `saasservicemgmt_projects_locations_releases_get_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn saasservicemgmt_projects_locations_releases_get_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<Release>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let task = saasservicemgmt_projects_locations_releases_get_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`saasservicemgmt_projects_locations_releases_get`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct SaasservicemgmtProjectsLocationsReleasesGetArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
+/// GET v1/projects/{projectsId}/locations/{locationsId}/releases/{releasesId}
+/// Retrieve a single release.
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `saasservicemgmt_projects_locations_releases_get_builder()` + `saasservicemgmt_projects_locations_releases_get_execute()`.
+/// For task-level control, use `saasservicemgmt_projects_locations_releases_get_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn saasservicemgmt_projects_locations_releases_get(
+    client: &SimpleHttpClient,
+    args: &SaasservicemgmtProjectsLocationsReleasesGetArgs,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<Release>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let builder = saasservicemgmt_projects_locations_releases_get_builder(client, &args.name)?;
+    saasservicemgmt_projects_locations_releases_get_execute(builder)
+}
+
+/// GET v1/projects/{projectsId}/locations/{locationsId}/releases
+/// Retrieve a collection of releases.
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `saasservicemgmt_projects_locations_releases_list_execute()` to send, or `saasservicemgmt_projects_locations_releases_list` for simplest API.
+
+pub fn saasservicemgmt_projects_locations_releases_list_builder(
+    client: &SimpleHttpClient,
+    parent: &String,
+    filter: &Option<Option<String>>,
+    orderBy: &Option<Option<String>>,
+    pageSize: &Option<Option<String>>,
+    pageToken: &Option<Option<String>>,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!(
+        "https://saasservicemgmt.googleapis.com/v1/projects/{}/locations/{locationsId}/releases",
+        parent,
+    );
+
+    // Build request
+    let mut query_parts = Vec::new();
+    if let Some(val) = filter.as_ref() {
+        query_parts.push(format!("filter={}", val));
+    }
+    if let Some(val) = orderBy.as_ref() {
+        query_parts.push(format!("orderBy={}", val));
+    }
+    if let Some(val) = pageSize.as_ref() {
+        query_parts.push(format!("pageSize={}", val));
+    }
+    if let Some(val) = pageToken.as_ref() {
+        query_parts.push(format!("pageToken={}", val));
+    }
+
+    let url_with_query = if query_parts.is_empty() {
+        endpoint_url
+    } else {
+        format!("{}?{}", endpoint_url, query_parts.join("&"))
+    };
+
+    let builder = client
+        .get(&url_with_query)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// GET v1/projects/{projectsId}/locations/{locationsId}/releases
+/// Retrieve a collection of releases.
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `saasservicemgmt_projects_locations_releases_list_execute()` or `saasservicemgmt_projects_locations_releases_list`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `saasservicemgmt_projects_locations_releases_list_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn saasservicemgmt_projects_locations_releases_list_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<ListReleasesResponse>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: ListReleasesResponse = serde_json::from_str(&body)
+                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// GET v1/projects/{projectsId}/locations/{locationsId}/releases
+/// Retrieve a collection of releases.
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `saasservicemgmt_projects_locations_releases_list_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `saasservicemgmt_projects_locations_releases_list_task()`.
+/// For the simplest API, use `saasservicemgmt_projects_locations_releases_list()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `saasservicemgmt_projects_locations_releases_list_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn saasservicemgmt_projects_locations_releases_list_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<ListReleasesResponse>, ApiError>, P = ApiPending>
+        + Send
+        + 'static,
+    ApiError,
+> {
+    let task = saasservicemgmt_projects_locations_releases_list_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`saasservicemgmt_projects_locations_releases_list`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct SaasservicemgmtProjectsLocationsReleasesListArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Query parameter: filter
+    pub filter: Option<Option<String>>,
+    /// Query parameter: orderBy
+    pub orderBy: Option<Option<String>>,
+    /// Query parameter: pageSize
+    pub pageSize: Option<Option<String>>,
+    /// Query parameter: pageToken
+    pub pageToken: Option<Option<String>>,
+}
+
+/// GET v1/projects/{projectsId}/locations/{locationsId}/releases
+/// Retrieve a collection of releases.
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `saasservicemgmt_projects_locations_releases_list_builder()` + `saasservicemgmt_projects_locations_releases_list_execute()`.
+/// For task-level control, use `saasservicemgmt_projects_locations_releases_list_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn saasservicemgmt_projects_locations_releases_list(
+    client: &SimpleHttpClient,
+    args: &SaasservicemgmtProjectsLocationsReleasesListArgs,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<ListReleasesResponse>, ApiError>, P = ApiPending>
+        + Send
+        + 'static,
+    ApiError,
+> {
+    let builder = saasservicemgmt_projects_locations_releases_list_builder(
+        client,
+        &args.parent,
+        &args.filter,
+        &args.orderBy,
+        &args.pageSize,
+        &args.pageToken,
+    )?;
+    saasservicemgmt_projects_locations_releases_list_execute(builder)
+}
+
+/// PATCH v1/projects/{projectsId}/locations/{locationsId}/releases/{releasesId}
+/// Update a single release.
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `saasservicemgmt_projects_locations_releases_patch_execute()` to send, or `saasservicemgmt_projects_locations_releases_patch` for simplest API.
+
+pub fn saasservicemgmt_projects_locations_releases_patch_builder(
+    client: &SimpleHttpClient,
+    name: &String,
+    requestId: &Option<Option<String>>,
+    updateMask: &Option<Option<String>>,
+    validateOnly: &Option<Option<String>>,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!(
+        "https://saasservicemgmt.googleapis.com/v1/projects/{}/locations/{locationsId}/releases/{releasesId}",
+        name,
+    );
+
+    // Build request
+    let mut query_parts = Vec::new();
+    if let Some(val) = requestId.as_ref() {
+        query_parts.push(format!("requestId={}", val));
+    }
+    if let Some(val) = updateMask.as_ref() {
+        query_parts.push(format!("updateMask={}", val));
+    }
+    if let Some(val) = validateOnly.as_ref() {
+        query_parts.push(format!("validateOnly={}", val));
+    }
+
+    let url_with_query = if query_parts.is_empty() {
+        endpoint_url
+    } else {
+        format!("{}?{}", endpoint_url, query_parts.join("&"))
+    };
+
+    let builder = client
+        .patch(&url_with_query)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// PATCH v1/projects/{projectsId}/locations/{locationsId}/releases/{releasesId}
+/// Update a single release.
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `saasservicemgmt_projects_locations_releases_patch_execute()` or `saasservicemgmt_projects_locations_releases_patch`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `saasservicemgmt_projects_locations_releases_patch_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn saasservicemgmt_projects_locations_releases_patch_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<Release>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: Release = serde_json::from_str(&body)
+                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// PATCH v1/projects/{projectsId}/locations/{locationsId}/releases/{releasesId}
+/// Update a single release.
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `saasservicemgmt_projects_locations_releases_patch_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `saasservicemgmt_projects_locations_releases_patch_task()`.
+/// For the simplest API, use `saasservicemgmt_projects_locations_releases_patch()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `saasservicemgmt_projects_locations_releases_patch_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn saasservicemgmt_projects_locations_releases_patch_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<Release>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let task = saasservicemgmt_projects_locations_releases_patch_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`saasservicemgmt_projects_locations_releases_patch`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct SaasservicemgmtProjectsLocationsReleasesPatchArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Query parameter: requestId
+    pub requestId: Option<Option<String>>,
+    /// Query parameter: updateMask
+    pub updateMask: Option<Option<String>>,
+    /// Query parameter: validateOnly
+    pub validateOnly: Option<Option<String>>,
+}
+
+/// PATCH v1/projects/{projectsId}/locations/{locationsId}/releases/{releasesId}
+/// Update a single release.
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `saasservicemgmt_projects_locations_releases_patch_builder()` + `saasservicemgmt_projects_locations_releases_patch_execute()`.
+/// For task-level control, use `saasservicemgmt_projects_locations_releases_patch_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn saasservicemgmt_projects_locations_releases_patch(
+    client: &SimpleHttpClient,
+    args: &SaasservicemgmtProjectsLocationsReleasesPatchArgs,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<Release>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let builder = saasservicemgmt_projects_locations_releases_patch_builder(
+        client,
+        &args.name,
+        &args.requestId,
+        &args.updateMask,
+        &args.validateOnly,
+    )?;
+    saasservicemgmt_projects_locations_releases_patch_execute(builder)
+}
+
+/// POST v1/projects/{projectsId}/locations/{locationsId}/rolloutKinds
+/// Create a new rollout kind.
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `saasservicemgmt_projects_locations_rollout_kinds_create_execute()` to send, or `saasservicemgmt_projects_locations_rollout_kinds_create` for simplest API.
+
+pub fn saasservicemgmt_projects_locations_rollout_kinds_create_builder(
+    client: &SimpleHttpClient,
+    parent: &String,
+    requestId: &Option<Option<String>>,
+    rolloutKindId: &Option<Option<String>>,
+    validateOnly: &Option<Option<String>>,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!(
+        "https://saasservicemgmt.googleapis.com/v1/projects/{}/locations/{locationsId}/rolloutKinds",
+        parent,
+    );
+
+    // Build request
+    let mut query_parts = Vec::new();
+    if let Some(val) = requestId.as_ref() {
+        query_parts.push(format!("requestId={}", val));
+    }
+    if let Some(val) = rolloutKindId.as_ref() {
+        query_parts.push(format!("rolloutKindId={}", val));
+    }
+    if let Some(val) = validateOnly.as_ref() {
+        query_parts.push(format!("validateOnly={}", val));
+    }
+
+    let url_with_query = if query_parts.is_empty() {
+        endpoint_url
+    } else {
+        format!("{}?{}", endpoint_url, query_parts.join("&"))
+    };
+
+    let builder = client
+        .post(&url_with_query)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// POST v1/projects/{projectsId}/locations/{locationsId}/rolloutKinds
+/// Create a new rollout kind.
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `saasservicemgmt_projects_locations_rollout_kinds_create_execute()` or `saasservicemgmt_projects_locations_rollout_kinds_create`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `saasservicemgmt_projects_locations_rollout_kinds_create_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn saasservicemgmt_projects_locations_rollout_kinds_create_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<RolloutKind>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: RolloutKind = serde_json::from_str(&body)
+                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// POST v1/projects/{projectsId}/locations/{locationsId}/rolloutKinds
+/// Create a new rollout kind.
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `saasservicemgmt_projects_locations_rollout_kinds_create_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `saasservicemgmt_projects_locations_rollout_kinds_create_task()`.
+/// For the simplest API, use `saasservicemgmt_projects_locations_rollout_kinds_create()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `saasservicemgmt_projects_locations_rollout_kinds_create_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn saasservicemgmt_projects_locations_rollout_kinds_create_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<RolloutKind>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let task = saasservicemgmt_projects_locations_rollout_kinds_create_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`saasservicemgmt_projects_locations_rollout_kinds_create`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct SaasservicemgmtProjectsLocationsRolloutKindsCreateArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Query parameter: requestId
+    pub requestId: Option<Option<String>>,
+    /// Query parameter: rolloutKindId
+    pub rolloutKindId: Option<Option<String>>,
+    /// Query parameter: validateOnly
+    pub validateOnly: Option<Option<String>>,
+}
+
+/// POST v1/projects/{projectsId}/locations/{locationsId}/rolloutKinds
+/// Create a new rollout kind.
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `saasservicemgmt_projects_locations_rollout_kinds_create_builder()` + `saasservicemgmt_projects_locations_rollout_kinds_create_execute()`.
+/// For task-level control, use `saasservicemgmt_projects_locations_rollout_kinds_create_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn saasservicemgmt_projects_locations_rollout_kinds_create(
+    client: &SimpleHttpClient,
+    args: &SaasservicemgmtProjectsLocationsRolloutKindsCreateArgs,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<RolloutKind>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let builder = saasservicemgmt_projects_locations_rollout_kinds_create_builder(
+        client,
+        &args.parent,
+        &args.requestId,
+        &args.rolloutKindId,
+        &args.validateOnly,
+    )?;
+    saasservicemgmt_projects_locations_rollout_kinds_create_execute(builder)
+}
+
+/// DELETE v1/projects/{projectsId}/locations/{locationsId}/rolloutKinds/{rolloutKindsId}
+/// Delete a single rollout kind.
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `saasservicemgmt_projects_locations_rollout_kinds_delete_execute()` to send, or `saasservicemgmt_projects_locations_rollout_kinds_delete` for simplest API.
+
+pub fn saasservicemgmt_projects_locations_rollout_kinds_delete_builder(
+    client: &SimpleHttpClient,
+    name: &String,
+    etag: &Option<Option<String>>,
+    requestId: &Option<Option<String>>,
+    validateOnly: &Option<Option<String>>,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!(
+        "https://saasservicemgmt.googleapis.com/v1/projects/{}/locations/{locationsId}/rolloutKinds/{rolloutKindsId}",
+        name,
+    );
+
+    // Build request
+    let mut query_parts = Vec::new();
+    if let Some(val) = etag.as_ref() {
+        query_parts.push(format!("etag={}", val));
+    }
+    if let Some(val) = requestId.as_ref() {
+        query_parts.push(format!("requestId={}", val));
+    }
+    if let Some(val) = validateOnly.as_ref() {
+        query_parts.push(format!("validateOnly={}", val));
+    }
+
+    let url_with_query = if query_parts.is_empty() {
+        endpoint_url
+    } else {
+        format!("{}?{}", endpoint_url, query_parts.join("&"))
+    };
+
+    let builder = client
+        .delete(&url_with_query)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// DELETE v1/projects/{projectsId}/locations/{locationsId}/rolloutKinds/{rolloutKindsId}
+/// Delete a single rollout kind.
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `saasservicemgmt_projects_locations_rollout_kinds_delete_execute()` or `saasservicemgmt_projects_locations_rollout_kinds_delete`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `saasservicemgmt_projects_locations_rollout_kinds_delete_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn saasservicemgmt_projects_locations_rollout_kinds_delete_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<Empty>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: Empty = serde_json::from_str(&body)
+                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// DELETE v1/projects/{projectsId}/locations/{locationsId}/rolloutKinds/{rolloutKindsId}
+/// Delete a single rollout kind.
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `saasservicemgmt_projects_locations_rollout_kinds_delete_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `saasservicemgmt_projects_locations_rollout_kinds_delete_task()`.
+/// For the simplest API, use `saasservicemgmt_projects_locations_rollout_kinds_delete()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `saasservicemgmt_projects_locations_rollout_kinds_delete_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn saasservicemgmt_projects_locations_rollout_kinds_delete_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<Empty>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let task = saasservicemgmt_projects_locations_rollout_kinds_delete_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`saasservicemgmt_projects_locations_rollout_kinds_delete`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct SaasservicemgmtProjectsLocationsRolloutKindsDeleteArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Query parameter: etag
+    pub etag: Option<Option<String>>,
+    /// Query parameter: requestId
+    pub requestId: Option<Option<String>>,
+    /// Query parameter: validateOnly
+    pub validateOnly: Option<Option<String>>,
+}
+
+/// DELETE v1/projects/{projectsId}/locations/{locationsId}/rolloutKinds/{rolloutKindsId}
+/// Delete a single rollout kind.
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `saasservicemgmt_projects_locations_rollout_kinds_delete_builder()` + `saasservicemgmt_projects_locations_rollout_kinds_delete_execute()`.
+/// For task-level control, use `saasservicemgmt_projects_locations_rollout_kinds_delete_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn saasservicemgmt_projects_locations_rollout_kinds_delete(
+    client: &SimpleHttpClient,
+    args: &SaasservicemgmtProjectsLocationsRolloutKindsDeleteArgs,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<Empty>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let builder = saasservicemgmt_projects_locations_rollout_kinds_delete_builder(
+        client,
+        &args.name,
+        &args.etag,
+        &args.requestId,
+        &args.validateOnly,
+    )?;
+    saasservicemgmt_projects_locations_rollout_kinds_delete_execute(builder)
+}
+
+/// GET v1/projects/{projectsId}/locations/{locationsId}/rolloutKinds/{rolloutKindsId}
+/// Retrieve a single rollout kind.
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `saasservicemgmt_projects_locations_rollout_kinds_get_execute()` to send, or `saasservicemgmt_projects_locations_rollout_kinds_get` for simplest API.
+
+pub fn saasservicemgmt_projects_locations_rollout_kinds_get_builder(
+    client: &SimpleHttpClient,
+    name: &String,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!(
+        "https://saasservicemgmt.googleapis.com/v1/projects/{}/locations/{locationsId}/rolloutKinds/{rolloutKindsId}",
+        name,
+    );
+
+    // Build request
+    let builder = client
+        .get(&endpoint_url)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// GET v1/projects/{projectsId}/locations/{locationsId}/rolloutKinds/{rolloutKindsId}
+/// Retrieve a single rollout kind.
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `saasservicemgmt_projects_locations_rollout_kinds_get_execute()` or `saasservicemgmt_projects_locations_rollout_kinds_get`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `saasservicemgmt_projects_locations_rollout_kinds_get_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn saasservicemgmt_projects_locations_rollout_kinds_get_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<RolloutKind>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: RolloutKind = serde_json::from_str(&body)
+                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// GET v1/projects/{projectsId}/locations/{locationsId}/rolloutKinds/{rolloutKindsId}
+/// Retrieve a single rollout kind.
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `saasservicemgmt_projects_locations_rollout_kinds_get_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `saasservicemgmt_projects_locations_rollout_kinds_get_task()`.
+/// For the simplest API, use `saasservicemgmt_projects_locations_rollout_kinds_get()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `saasservicemgmt_projects_locations_rollout_kinds_get_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn saasservicemgmt_projects_locations_rollout_kinds_get_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<RolloutKind>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let task = saasservicemgmt_projects_locations_rollout_kinds_get_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`saasservicemgmt_projects_locations_rollout_kinds_get`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct SaasservicemgmtProjectsLocationsRolloutKindsGetArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
+/// GET v1/projects/{projectsId}/locations/{locationsId}/rolloutKinds/{rolloutKindsId}
+/// Retrieve a single rollout kind.
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `saasservicemgmt_projects_locations_rollout_kinds_get_builder()` + `saasservicemgmt_projects_locations_rollout_kinds_get_execute()`.
+/// For task-level control, use `saasservicemgmt_projects_locations_rollout_kinds_get_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn saasservicemgmt_projects_locations_rollout_kinds_get(
+    client: &SimpleHttpClient,
+    args: &SaasservicemgmtProjectsLocationsRolloutKindsGetArgs,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<RolloutKind>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let builder = saasservicemgmt_projects_locations_rollout_kinds_get_builder(client, &args.name)?;
+    saasservicemgmt_projects_locations_rollout_kinds_get_execute(builder)
+}
+
+/// GET v1/projects/{projectsId}/locations/{locationsId}/rolloutKinds
+/// Retrieve a collection of rollout kinds.
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `saasservicemgmt_projects_locations_rollout_kinds_list_execute()` to send, or `saasservicemgmt_projects_locations_rollout_kinds_list` for simplest API.
+
+pub fn saasservicemgmt_projects_locations_rollout_kinds_list_builder(
+    client: &SimpleHttpClient,
+    parent: &String,
+    filter: &Option<Option<String>>,
+    orderBy: &Option<Option<String>>,
+    pageSize: &Option<Option<String>>,
+    pageToken: &Option<Option<String>>,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!(
+        "https://saasservicemgmt.googleapis.com/v1/projects/{}/locations/{locationsId}/rolloutKinds",
+        parent,
+    );
+
+    // Build request
+    let mut query_parts = Vec::new();
+    if let Some(val) = filter.as_ref() {
+        query_parts.push(format!("filter={}", val));
+    }
+    if let Some(val) = orderBy.as_ref() {
+        query_parts.push(format!("orderBy={}", val));
+    }
+    if let Some(val) = pageSize.as_ref() {
+        query_parts.push(format!("pageSize={}", val));
+    }
+    if let Some(val) = pageToken.as_ref() {
+        query_parts.push(format!("pageToken={}", val));
+    }
+
+    let url_with_query = if query_parts.is_empty() {
+        endpoint_url
+    } else {
+        format!("{}?{}", endpoint_url, query_parts.join("&"))
+    };
+
+    let builder = client
+        .get(&url_with_query)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// GET v1/projects/{projectsId}/locations/{locationsId}/rolloutKinds
+/// Retrieve a collection of rollout kinds.
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `saasservicemgmt_projects_locations_rollout_kinds_list_execute()` or `saasservicemgmt_projects_locations_rollout_kinds_list`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `saasservicemgmt_projects_locations_rollout_kinds_list_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn saasservicemgmt_projects_locations_rollout_kinds_list_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<ListRolloutKindsResponse>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: ListRolloutKindsResponse = serde_json::from_str(&body)
+                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// GET v1/projects/{projectsId}/locations/{locationsId}/rolloutKinds
+/// Retrieve a collection of rollout kinds.
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `saasservicemgmt_projects_locations_rollout_kinds_list_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `saasservicemgmt_projects_locations_rollout_kinds_list_task()`.
+/// For the simplest API, use `saasservicemgmt_projects_locations_rollout_kinds_list()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `saasservicemgmt_projects_locations_rollout_kinds_list_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn saasservicemgmt_projects_locations_rollout_kinds_list_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<ListRolloutKindsResponse>, ApiError>, P = ApiPending>
+        + Send
+        + 'static,
+    ApiError,
+> {
+    let task = saasservicemgmt_projects_locations_rollout_kinds_list_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`saasservicemgmt_projects_locations_rollout_kinds_list`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct SaasservicemgmtProjectsLocationsRolloutKindsListArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Query parameter: filter
+    pub filter: Option<Option<String>>,
+    /// Query parameter: orderBy
+    pub orderBy: Option<Option<String>>,
+    /// Query parameter: pageSize
+    pub pageSize: Option<Option<String>>,
+    /// Query parameter: pageToken
+    pub pageToken: Option<Option<String>>,
+}
+
+/// GET v1/projects/{projectsId}/locations/{locationsId}/rolloutKinds
+/// Retrieve a collection of rollout kinds.
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `saasservicemgmt_projects_locations_rollout_kinds_list_builder()` + `saasservicemgmt_projects_locations_rollout_kinds_list_execute()`.
+/// For task-level control, use `saasservicemgmt_projects_locations_rollout_kinds_list_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn saasservicemgmt_projects_locations_rollout_kinds_list(
+    client: &SimpleHttpClient,
+    args: &SaasservicemgmtProjectsLocationsRolloutKindsListArgs,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<ListRolloutKindsResponse>, ApiError>, P = ApiPending>
+        + Send
+        + 'static,
+    ApiError,
+> {
+    let builder = saasservicemgmt_projects_locations_rollout_kinds_list_builder(
+        client,
+        &args.parent,
+        &args.filter,
+        &args.orderBy,
+        &args.pageSize,
+        &args.pageToken,
+    )?;
+    saasservicemgmt_projects_locations_rollout_kinds_list_execute(builder)
+}
+
+/// PATCH v1/projects/{projectsId}/locations/{locationsId}/rolloutKinds/{rolloutKindsId}
+/// Update a single rollout kind.
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `saasservicemgmt_projects_locations_rollout_kinds_patch_execute()` to send, or `saasservicemgmt_projects_locations_rollout_kinds_patch` for simplest API.
+
+pub fn saasservicemgmt_projects_locations_rollout_kinds_patch_builder(
+    client: &SimpleHttpClient,
+    name: &String,
+    requestId: &Option<Option<String>>,
+    updateMask: &Option<Option<String>>,
+    validateOnly: &Option<Option<String>>,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!(
+        "https://saasservicemgmt.googleapis.com/v1/projects/{}/locations/{locationsId}/rolloutKinds/{rolloutKindsId}",
+        name,
+    );
+
+    // Build request
+    let mut query_parts = Vec::new();
+    if let Some(val) = requestId.as_ref() {
+        query_parts.push(format!("requestId={}", val));
+    }
+    if let Some(val) = updateMask.as_ref() {
+        query_parts.push(format!("updateMask={}", val));
+    }
+    if let Some(val) = validateOnly.as_ref() {
+        query_parts.push(format!("validateOnly={}", val));
+    }
+
+    let url_with_query = if query_parts.is_empty() {
+        endpoint_url
+    } else {
+        format!("{}?{}", endpoint_url, query_parts.join("&"))
+    };
+
+    let builder = client
+        .patch(&url_with_query)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// PATCH v1/projects/{projectsId}/locations/{locationsId}/rolloutKinds/{rolloutKindsId}
+/// Update a single rollout kind.
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `saasservicemgmt_projects_locations_rollout_kinds_patch_execute()` or `saasservicemgmt_projects_locations_rollout_kinds_patch`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `saasservicemgmt_projects_locations_rollout_kinds_patch_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn saasservicemgmt_projects_locations_rollout_kinds_patch_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<RolloutKind>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: RolloutKind = serde_json::from_str(&body)
+                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// PATCH v1/projects/{projectsId}/locations/{locationsId}/rolloutKinds/{rolloutKindsId}
+/// Update a single rollout kind.
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `saasservicemgmt_projects_locations_rollout_kinds_patch_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `saasservicemgmt_projects_locations_rollout_kinds_patch_task()`.
+/// For the simplest API, use `saasservicemgmt_projects_locations_rollout_kinds_patch()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `saasservicemgmt_projects_locations_rollout_kinds_patch_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn saasservicemgmt_projects_locations_rollout_kinds_patch_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<RolloutKind>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let task = saasservicemgmt_projects_locations_rollout_kinds_patch_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`saasservicemgmt_projects_locations_rollout_kinds_patch`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct SaasservicemgmtProjectsLocationsRolloutKindsPatchArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Query parameter: requestId
+    pub requestId: Option<Option<String>>,
+    /// Query parameter: updateMask
+    pub updateMask: Option<Option<String>>,
+    /// Query parameter: validateOnly
+    pub validateOnly: Option<Option<String>>,
+}
+
+/// PATCH v1/projects/{projectsId}/locations/{locationsId}/rolloutKinds/{rolloutKindsId}
+/// Update a single rollout kind.
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `saasservicemgmt_projects_locations_rollout_kinds_patch_builder()` + `saasservicemgmt_projects_locations_rollout_kinds_patch_execute()`.
+/// For task-level control, use `saasservicemgmt_projects_locations_rollout_kinds_patch_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn saasservicemgmt_projects_locations_rollout_kinds_patch(
+    client: &SimpleHttpClient,
+    args: &SaasservicemgmtProjectsLocationsRolloutKindsPatchArgs,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<RolloutKind>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let builder = saasservicemgmt_projects_locations_rollout_kinds_patch_builder(
+        client,
+        &args.name,
+        &args.requestId,
+        &args.updateMask,
+        &args.validateOnly,
+    )?;
+    saasservicemgmt_projects_locations_rollout_kinds_patch_execute(builder)
+}
+
+/// POST v1/projects/{projectsId}/locations/{locationsId}/rollouts
+/// Create a new rollout.
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `saasservicemgmt_projects_locations_rollouts_create_execute()` to send, or `saasservicemgmt_projects_locations_rollouts_create` for simplest API.
+
+pub fn saasservicemgmt_projects_locations_rollouts_create_builder(
+    client: &SimpleHttpClient,
+    parent: &String,
+    requestId: &Option<Option<String>>,
+    rolloutId: &Option<Option<String>>,
+    validateOnly: &Option<Option<String>>,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!(
+        "https://saasservicemgmt.googleapis.com/v1/projects/{}/locations/{locationsId}/rollouts",
+        parent,
+    );
+
+    // Build request
+    let mut query_parts = Vec::new();
+    if let Some(val) = requestId.as_ref() {
+        query_parts.push(format!("requestId={}", val));
+    }
+    if let Some(val) = rolloutId.as_ref() {
+        query_parts.push(format!("rolloutId={}", val));
+    }
+    if let Some(val) = validateOnly.as_ref() {
+        query_parts.push(format!("validateOnly={}", val));
+    }
+
+    let url_with_query = if query_parts.is_empty() {
+        endpoint_url
+    } else {
+        format!("{}?{}", endpoint_url, query_parts.join("&"))
+    };
+
+    let builder = client
+        .post(&url_with_query)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// POST v1/projects/{projectsId}/locations/{locationsId}/rollouts
+/// Create a new rollout.
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `saasservicemgmt_projects_locations_rollouts_create_execute()` or `saasservicemgmt_projects_locations_rollouts_create`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `saasservicemgmt_projects_locations_rollouts_create_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn saasservicemgmt_projects_locations_rollouts_create_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<Rollout>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: Rollout = serde_json::from_str(&body)
+                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// POST v1/projects/{projectsId}/locations/{locationsId}/rollouts
+/// Create a new rollout.
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `saasservicemgmt_projects_locations_rollouts_create_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `saasservicemgmt_projects_locations_rollouts_create_task()`.
+/// For the simplest API, use `saasservicemgmt_projects_locations_rollouts_create()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `saasservicemgmt_projects_locations_rollouts_create_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn saasservicemgmt_projects_locations_rollouts_create_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<Rollout>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let task = saasservicemgmt_projects_locations_rollouts_create_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`saasservicemgmt_projects_locations_rollouts_create`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct SaasservicemgmtProjectsLocationsRolloutsCreateArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Query parameter: requestId
+    pub requestId: Option<Option<String>>,
+    /// Query parameter: rolloutId
+    pub rolloutId: Option<Option<String>>,
+    /// Query parameter: validateOnly
+    pub validateOnly: Option<Option<String>>,
+}
+
+/// POST v1/projects/{projectsId}/locations/{locationsId}/rollouts
+/// Create a new rollout.
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `saasservicemgmt_projects_locations_rollouts_create_builder()` + `saasservicemgmt_projects_locations_rollouts_create_execute()`.
+/// For task-level control, use `saasservicemgmt_projects_locations_rollouts_create_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn saasservicemgmt_projects_locations_rollouts_create(
+    client: &SimpleHttpClient,
+    args: &SaasservicemgmtProjectsLocationsRolloutsCreateArgs,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<Rollout>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let builder = saasservicemgmt_projects_locations_rollouts_create_builder(
+        client,
+        &args.parent,
+        &args.requestId,
+        &args.rolloutId,
+        &args.validateOnly,
+    )?;
+    saasservicemgmt_projects_locations_rollouts_create_execute(builder)
+}
+
+/// DELETE v1/projects/{projectsId}/locations/{locationsId}/rollouts/{rolloutsId}
+/// Delete a single rollout.
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `saasservicemgmt_projects_locations_rollouts_delete_execute()` to send, or `saasservicemgmt_projects_locations_rollouts_delete` for simplest API.
+
+pub fn saasservicemgmt_projects_locations_rollouts_delete_builder(
+    client: &SimpleHttpClient,
+    name: &String,
+    etag: &Option<Option<String>>,
+    requestId: &Option<Option<String>>,
+    validateOnly: &Option<Option<String>>,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!(
+        "https://saasservicemgmt.googleapis.com/v1/projects/{}/locations/{locationsId}/rollouts/{rolloutsId}",
+        name,
+    );
+
+    // Build request
+    let mut query_parts = Vec::new();
+    if let Some(val) = etag.as_ref() {
+        query_parts.push(format!("etag={}", val));
+    }
+    if let Some(val) = requestId.as_ref() {
+        query_parts.push(format!("requestId={}", val));
+    }
+    if let Some(val) = validateOnly.as_ref() {
+        query_parts.push(format!("validateOnly={}", val));
+    }
+
+    let url_with_query = if query_parts.is_empty() {
+        endpoint_url
+    } else {
+        format!("{}?{}", endpoint_url, query_parts.join("&"))
+    };
+
+    let builder = client
+        .delete(&url_with_query)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// DELETE v1/projects/{projectsId}/locations/{locationsId}/rollouts/{rolloutsId}
+/// Delete a single rollout.
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `saasservicemgmt_projects_locations_rollouts_delete_execute()` or `saasservicemgmt_projects_locations_rollouts_delete`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `saasservicemgmt_projects_locations_rollouts_delete_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn saasservicemgmt_projects_locations_rollouts_delete_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<Empty>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: Empty = serde_json::from_str(&body)
+                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// DELETE v1/projects/{projectsId}/locations/{locationsId}/rollouts/{rolloutsId}
+/// Delete a single rollout.
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `saasservicemgmt_projects_locations_rollouts_delete_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `saasservicemgmt_projects_locations_rollouts_delete_task()`.
+/// For the simplest API, use `saasservicemgmt_projects_locations_rollouts_delete()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `saasservicemgmt_projects_locations_rollouts_delete_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn saasservicemgmt_projects_locations_rollouts_delete_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<Empty>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let task = saasservicemgmt_projects_locations_rollouts_delete_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`saasservicemgmt_projects_locations_rollouts_delete`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct SaasservicemgmtProjectsLocationsRolloutsDeleteArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Query parameter: etag
+    pub etag: Option<Option<String>>,
+    /// Query parameter: requestId
+    pub requestId: Option<Option<String>>,
+    /// Query parameter: validateOnly
+    pub validateOnly: Option<Option<String>>,
+}
+
+/// DELETE v1/projects/{projectsId}/locations/{locationsId}/rollouts/{rolloutsId}
+/// Delete a single rollout.
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `saasservicemgmt_projects_locations_rollouts_delete_builder()` + `saasservicemgmt_projects_locations_rollouts_delete_execute()`.
+/// For task-level control, use `saasservicemgmt_projects_locations_rollouts_delete_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn saasservicemgmt_projects_locations_rollouts_delete(
+    client: &SimpleHttpClient,
+    args: &SaasservicemgmtProjectsLocationsRolloutsDeleteArgs,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<Empty>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let builder = saasservicemgmt_projects_locations_rollouts_delete_builder(
+        client,
+        &args.name,
+        &args.etag,
+        &args.requestId,
+        &args.validateOnly,
+    )?;
+    saasservicemgmt_projects_locations_rollouts_delete_execute(builder)
+}
+
+/// GET v1/projects/{projectsId}/locations/{locationsId}/rollouts/{rolloutsId}
+/// Retrieve a single rollout.
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `saasservicemgmt_projects_locations_rollouts_get_execute()` to send, or `saasservicemgmt_projects_locations_rollouts_get` for simplest API.
+
+pub fn saasservicemgmt_projects_locations_rollouts_get_builder(
+    client: &SimpleHttpClient,
+    name: &String,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!(
+        "https://saasservicemgmt.googleapis.com/v1/projects/{}/locations/{locationsId}/rollouts/{rolloutsId}",
+        name,
+    );
+
+    // Build request
+    let builder = client
+        .get(&endpoint_url)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// GET v1/projects/{projectsId}/locations/{locationsId}/rollouts/{rolloutsId}
+/// Retrieve a single rollout.
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `saasservicemgmt_projects_locations_rollouts_get_execute()` or `saasservicemgmt_projects_locations_rollouts_get`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `saasservicemgmt_projects_locations_rollouts_get_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn saasservicemgmt_projects_locations_rollouts_get_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<Rollout>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: Rollout = serde_json::from_str(&body)
+                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// GET v1/projects/{projectsId}/locations/{locationsId}/rollouts/{rolloutsId}
+/// Retrieve a single rollout.
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `saasservicemgmt_projects_locations_rollouts_get_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `saasservicemgmt_projects_locations_rollouts_get_task()`.
+/// For the simplest API, use `saasservicemgmt_projects_locations_rollouts_get()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `saasservicemgmt_projects_locations_rollouts_get_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn saasservicemgmt_projects_locations_rollouts_get_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<Rollout>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let task = saasservicemgmt_projects_locations_rollouts_get_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`saasservicemgmt_projects_locations_rollouts_get`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct SaasservicemgmtProjectsLocationsRolloutsGetArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
+/// GET v1/projects/{projectsId}/locations/{locationsId}/rollouts/{rolloutsId}
+/// Retrieve a single rollout.
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `saasservicemgmt_projects_locations_rollouts_get_builder()` + `saasservicemgmt_projects_locations_rollouts_get_execute()`.
+/// For task-level control, use `saasservicemgmt_projects_locations_rollouts_get_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn saasservicemgmt_projects_locations_rollouts_get(
+    client: &SimpleHttpClient,
+    args: &SaasservicemgmtProjectsLocationsRolloutsGetArgs,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<Rollout>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let builder = saasservicemgmt_projects_locations_rollouts_get_builder(client, &args.name)?;
+    saasservicemgmt_projects_locations_rollouts_get_execute(builder)
+}
+
+/// GET v1/projects/{projectsId}/locations/{locationsId}/rollouts
+/// Retrieve a collection of rollouts.
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `saasservicemgmt_projects_locations_rollouts_list_execute()` to send, or `saasservicemgmt_projects_locations_rollouts_list` for simplest API.
+
+pub fn saasservicemgmt_projects_locations_rollouts_list_builder(
+    client: &SimpleHttpClient,
+    parent: &String,
+    filter: &Option<Option<String>>,
+    orderBy: &Option<Option<String>>,
+    pageSize: &Option<Option<String>>,
+    pageToken: &Option<Option<String>>,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!(
+        "https://saasservicemgmt.googleapis.com/v1/projects/{}/locations/{locationsId}/rollouts",
+        parent,
+    );
+
+    // Build request
+    let mut query_parts = Vec::new();
+    if let Some(val) = filter.as_ref() {
+        query_parts.push(format!("filter={}", val));
+    }
+    if let Some(val) = orderBy.as_ref() {
+        query_parts.push(format!("orderBy={}", val));
+    }
+    if let Some(val) = pageSize.as_ref() {
+        query_parts.push(format!("pageSize={}", val));
+    }
+    if let Some(val) = pageToken.as_ref() {
+        query_parts.push(format!("pageToken={}", val));
+    }
+
+    let url_with_query = if query_parts.is_empty() {
+        endpoint_url
+    } else {
+        format!("{}?{}", endpoint_url, query_parts.join("&"))
+    };
+
+    let builder = client
+        .get(&url_with_query)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// GET v1/projects/{projectsId}/locations/{locationsId}/rollouts
+/// Retrieve a collection of rollouts.
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `saasservicemgmt_projects_locations_rollouts_list_execute()` or `saasservicemgmt_projects_locations_rollouts_list`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `saasservicemgmt_projects_locations_rollouts_list_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn saasservicemgmt_projects_locations_rollouts_list_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<ListRolloutsResponse>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: ListRolloutsResponse = serde_json::from_str(&body)
+                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// GET v1/projects/{projectsId}/locations/{locationsId}/rollouts
+/// Retrieve a collection of rollouts.
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `saasservicemgmt_projects_locations_rollouts_list_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `saasservicemgmt_projects_locations_rollouts_list_task()`.
+/// For the simplest API, use `saasservicemgmt_projects_locations_rollouts_list()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `saasservicemgmt_projects_locations_rollouts_list_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn saasservicemgmt_projects_locations_rollouts_list_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<ListRolloutsResponse>, ApiError>, P = ApiPending>
+        + Send
+        + 'static,
+    ApiError,
+> {
+    let task = saasservicemgmt_projects_locations_rollouts_list_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`saasservicemgmt_projects_locations_rollouts_list`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct SaasservicemgmtProjectsLocationsRolloutsListArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Query parameter: filter
+    pub filter: Option<Option<String>>,
+    /// Query parameter: orderBy
+    pub orderBy: Option<Option<String>>,
+    /// Query parameter: pageSize
+    pub pageSize: Option<Option<String>>,
+    /// Query parameter: pageToken
+    pub pageToken: Option<Option<String>>,
+}
+
+/// GET v1/projects/{projectsId}/locations/{locationsId}/rollouts
+/// Retrieve a collection of rollouts.
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `saasservicemgmt_projects_locations_rollouts_list_builder()` + `saasservicemgmt_projects_locations_rollouts_list_execute()`.
+/// For task-level control, use `saasservicemgmt_projects_locations_rollouts_list_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn saasservicemgmt_projects_locations_rollouts_list(
+    client: &SimpleHttpClient,
+    args: &SaasservicemgmtProjectsLocationsRolloutsListArgs,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<ListRolloutsResponse>, ApiError>, P = ApiPending>
+        + Send
+        + 'static,
+    ApiError,
+> {
+    let builder = saasservicemgmt_projects_locations_rollouts_list_builder(
+        client,
+        &args.parent,
+        &args.filter,
+        &args.orderBy,
+        &args.pageSize,
+        &args.pageToken,
+    )?;
+    saasservicemgmt_projects_locations_rollouts_list_execute(builder)
+}
+
+/// PATCH v1/projects/{projectsId}/locations/{locationsId}/rollouts/{rolloutsId}
+/// Update a single rollout.
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `saasservicemgmt_projects_locations_rollouts_patch_execute()` to send, or `saasservicemgmt_projects_locations_rollouts_patch` for simplest API.
+
+pub fn saasservicemgmt_projects_locations_rollouts_patch_builder(
+    client: &SimpleHttpClient,
+    name: &String,
+    requestId: &Option<Option<String>>,
+    updateMask: &Option<Option<String>>,
+    validateOnly: &Option<Option<String>>,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!(
+        "https://saasservicemgmt.googleapis.com/v1/projects/{}/locations/{locationsId}/rollouts/{rolloutsId}",
+        name,
+    );
+
+    // Build request
+    let mut query_parts = Vec::new();
+    if let Some(val) = requestId.as_ref() {
+        query_parts.push(format!("requestId={}", val));
+    }
+    if let Some(val) = updateMask.as_ref() {
+        query_parts.push(format!("updateMask={}", val));
+    }
+    if let Some(val) = validateOnly.as_ref() {
+        query_parts.push(format!("validateOnly={}", val));
+    }
+
+    let url_with_query = if query_parts.is_empty() {
+        endpoint_url
+    } else {
+        format!("{}?{}", endpoint_url, query_parts.join("&"))
+    };
+
+    let builder = client
+        .patch(&url_with_query)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// PATCH v1/projects/{projectsId}/locations/{locationsId}/rollouts/{rolloutsId}
+/// Update a single rollout.
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `saasservicemgmt_projects_locations_rollouts_patch_execute()` or `saasservicemgmt_projects_locations_rollouts_patch`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `saasservicemgmt_projects_locations_rollouts_patch_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn saasservicemgmt_projects_locations_rollouts_patch_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<Rollout>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: Rollout = serde_json::from_str(&body)
+                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// PATCH v1/projects/{projectsId}/locations/{locationsId}/rollouts/{rolloutsId}
+/// Update a single rollout.
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `saasservicemgmt_projects_locations_rollouts_patch_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `saasservicemgmt_projects_locations_rollouts_patch_task()`.
+/// For the simplest API, use `saasservicemgmt_projects_locations_rollouts_patch()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `saasservicemgmt_projects_locations_rollouts_patch_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn saasservicemgmt_projects_locations_rollouts_patch_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<Rollout>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let task = saasservicemgmt_projects_locations_rollouts_patch_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`saasservicemgmt_projects_locations_rollouts_patch`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct SaasservicemgmtProjectsLocationsRolloutsPatchArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Query parameter: requestId
+    pub requestId: Option<Option<String>>,
+    /// Query parameter: updateMask
+    pub updateMask: Option<Option<String>>,
+    /// Query parameter: validateOnly
+    pub validateOnly: Option<Option<String>>,
+}
+
+/// PATCH v1/projects/{projectsId}/locations/{locationsId}/rollouts/{rolloutsId}
+/// Update a single rollout.
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `saasservicemgmt_projects_locations_rollouts_patch_builder()` + `saasservicemgmt_projects_locations_rollouts_patch_execute()`.
+/// For task-level control, use `saasservicemgmt_projects_locations_rollouts_patch_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn saasservicemgmt_projects_locations_rollouts_patch(
+    client: &SimpleHttpClient,
+    args: &SaasservicemgmtProjectsLocationsRolloutsPatchArgs,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<Rollout>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let builder = saasservicemgmt_projects_locations_rollouts_patch_builder(
+        client,
+        &args.name,
+        &args.requestId,
+        &args.updateMask,
+        &args.validateOnly,
+    )?;
+    saasservicemgmt_projects_locations_rollouts_patch_execute(builder)
+}
+
+/// POST v1/projects/{projectsId}/locations/{locationsId}/saas
+/// Create a new saas.
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `saasservicemgmt_projects_locations_saas_create_execute()` to send, or `saasservicemgmt_projects_locations_saas_create` for simplest API.
+
+pub fn saasservicemgmt_projects_locations_saas_create_builder(
+    client: &SimpleHttpClient,
+    parent: &String,
+    requestId: &Option<Option<String>>,
+    saasId: &Option<Option<String>>,
+    validateOnly: &Option<Option<String>>,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!(
+        "https://saasservicemgmt.googleapis.com/v1/projects/{}/locations/{locationsId}/saas",
+        parent,
+    );
+
+    // Build request
+    let mut query_parts = Vec::new();
+    if let Some(val) = requestId.as_ref() {
+        query_parts.push(format!("requestId={}", val));
+    }
+    if let Some(val) = saasId.as_ref() {
+        query_parts.push(format!("saasId={}", val));
+    }
+    if let Some(val) = validateOnly.as_ref() {
+        query_parts.push(format!("validateOnly={}", val));
+    }
+
+    let url_with_query = if query_parts.is_empty() {
+        endpoint_url
+    } else {
+        format!("{}?{}", endpoint_url, query_parts.join("&"))
+    };
+
+    let builder = client
+        .post(&url_with_query)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// POST v1/projects/{projectsId}/locations/{locationsId}/saas
+/// Create a new saas.
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `saasservicemgmt_projects_locations_saas_create_execute()` or `saasservicemgmt_projects_locations_saas_create`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `saasservicemgmt_projects_locations_saas_create_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn saasservicemgmt_projects_locations_saas_create_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<Saas>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: Saas = serde_json::from_str(&body)
+                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// POST v1/projects/{projectsId}/locations/{locationsId}/saas
+/// Create a new saas.
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `saasservicemgmt_projects_locations_saas_create_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `saasservicemgmt_projects_locations_saas_create_task()`.
+/// For the simplest API, use `saasservicemgmt_projects_locations_saas_create()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `saasservicemgmt_projects_locations_saas_create_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn saasservicemgmt_projects_locations_saas_create_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<Saas>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let task = saasservicemgmt_projects_locations_saas_create_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`saasservicemgmt_projects_locations_saas_create`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct SaasservicemgmtProjectsLocationsSaasCreateArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Query parameter: requestId
+    pub requestId: Option<Option<String>>,
+    /// Query parameter: saasId
+    pub saasId: Option<Option<String>>,
+    /// Query parameter: validateOnly
+    pub validateOnly: Option<Option<String>>,
+}
+
+/// POST v1/projects/{projectsId}/locations/{locationsId}/saas
+/// Create a new saas.
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `saasservicemgmt_projects_locations_saas_create_builder()` + `saasservicemgmt_projects_locations_saas_create_execute()`.
+/// For task-level control, use `saasservicemgmt_projects_locations_saas_create_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn saasservicemgmt_projects_locations_saas_create(
+    client: &SimpleHttpClient,
+    args: &SaasservicemgmtProjectsLocationsSaasCreateArgs,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<Saas>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let builder = saasservicemgmt_projects_locations_saas_create_builder(
+        client,
+        &args.parent,
+        &args.requestId,
+        &args.saasId,
+        &args.validateOnly,
+    )?;
+    saasservicemgmt_projects_locations_saas_create_execute(builder)
+}
+
+/// DELETE v1/projects/{projectsId}/locations/{locationsId}/saas/{saasId}
+/// Delete a single saas.
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `saasservicemgmt_projects_locations_saas_delete_execute()` to send, or `saasservicemgmt_projects_locations_saas_delete` for simplest API.
+
+pub fn saasservicemgmt_projects_locations_saas_delete_builder(
+    client: &SimpleHttpClient,
+    name: &String,
+    etag: &Option<Option<String>>,
+    requestId: &Option<Option<String>>,
+    validateOnly: &Option<Option<String>>,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!(
+        "https://saasservicemgmt.googleapis.com/v1/projects/{}/locations/{locationsId}/saas/{saasId}",
+        name,
+    );
+
+    // Build request
+    let mut query_parts = Vec::new();
+    if let Some(val) = etag.as_ref() {
+        query_parts.push(format!("etag={}", val));
+    }
+    if let Some(val) = requestId.as_ref() {
+        query_parts.push(format!("requestId={}", val));
+    }
+    if let Some(val) = validateOnly.as_ref() {
+        query_parts.push(format!("validateOnly={}", val));
+    }
+
+    let url_with_query = if query_parts.is_empty() {
+        endpoint_url
+    } else {
+        format!("{}?{}", endpoint_url, query_parts.join("&"))
+    };
+
+    let builder = client
+        .delete(&url_with_query)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// DELETE v1/projects/{projectsId}/locations/{locationsId}/saas/{saasId}
+/// Delete a single saas.
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `saasservicemgmt_projects_locations_saas_delete_execute()` or `saasservicemgmt_projects_locations_saas_delete`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `saasservicemgmt_projects_locations_saas_delete_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn saasservicemgmt_projects_locations_saas_delete_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<Empty>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: Empty = serde_json::from_str(&body)
+                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// DELETE v1/projects/{projectsId}/locations/{locationsId}/saas/{saasId}
+/// Delete a single saas.
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `saasservicemgmt_projects_locations_saas_delete_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `saasservicemgmt_projects_locations_saas_delete_task()`.
+/// For the simplest API, use `saasservicemgmt_projects_locations_saas_delete()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `saasservicemgmt_projects_locations_saas_delete_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn saasservicemgmt_projects_locations_saas_delete_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<Empty>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let task = saasservicemgmt_projects_locations_saas_delete_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`saasservicemgmt_projects_locations_saas_delete`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct SaasservicemgmtProjectsLocationsSaasDeleteArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Query parameter: etag
+    pub etag: Option<Option<String>>,
+    /// Query parameter: requestId
+    pub requestId: Option<Option<String>>,
+    /// Query parameter: validateOnly
+    pub validateOnly: Option<Option<String>>,
+}
+
+/// DELETE v1/projects/{projectsId}/locations/{locationsId}/saas/{saasId}
+/// Delete a single saas.
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `saasservicemgmt_projects_locations_saas_delete_builder()` + `saasservicemgmt_projects_locations_saas_delete_execute()`.
+/// For task-level control, use `saasservicemgmt_projects_locations_saas_delete_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn saasservicemgmt_projects_locations_saas_delete(
+    client: &SimpleHttpClient,
+    args: &SaasservicemgmtProjectsLocationsSaasDeleteArgs,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<Empty>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let builder = saasservicemgmt_projects_locations_saas_delete_builder(
+        client,
+        &args.name,
+        &args.etag,
+        &args.requestId,
+        &args.validateOnly,
+    )?;
+    saasservicemgmt_projects_locations_saas_delete_execute(builder)
+}
+
+/// GET v1/projects/{projectsId}/locations/{locationsId}/saas/{saasId}
+/// Retrieve a single saas.
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `saasservicemgmt_projects_locations_saas_get_execute()` to send, or `saasservicemgmt_projects_locations_saas_get` for simplest API.
+
+pub fn saasservicemgmt_projects_locations_saas_get_builder(
+    client: &SimpleHttpClient,
+    name: &String,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!(
+        "https://saasservicemgmt.googleapis.com/v1/projects/{}/locations/{locationsId}/saas/{saasId}",
+        name,
+    );
+
+    // Build request
+    let builder = client
+        .get(&endpoint_url)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// GET v1/projects/{projectsId}/locations/{locationsId}/saas/{saasId}
+/// Retrieve a single saas.
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `saasservicemgmt_projects_locations_saas_get_execute()` or `saasservicemgmt_projects_locations_saas_get`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `saasservicemgmt_projects_locations_saas_get_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn saasservicemgmt_projects_locations_saas_get_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<Saas>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: Saas = serde_json::from_str(&body)
+                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// GET v1/projects/{projectsId}/locations/{locationsId}/saas/{saasId}
+/// Retrieve a single saas.
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `saasservicemgmt_projects_locations_saas_get_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `saasservicemgmt_projects_locations_saas_get_task()`.
+/// For the simplest API, use `saasservicemgmt_projects_locations_saas_get()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `saasservicemgmt_projects_locations_saas_get_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn saasservicemgmt_projects_locations_saas_get_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<Saas>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let task = saasservicemgmt_projects_locations_saas_get_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`saasservicemgmt_projects_locations_saas_get`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct SaasservicemgmtProjectsLocationsSaasGetArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
+/// GET v1/projects/{projectsId}/locations/{locationsId}/saas/{saasId}
+/// Retrieve a single saas.
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `saasservicemgmt_projects_locations_saas_get_builder()` + `saasservicemgmt_projects_locations_saas_get_execute()`.
+/// For task-level control, use `saasservicemgmt_projects_locations_saas_get_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn saasservicemgmt_projects_locations_saas_get(
+    client: &SimpleHttpClient,
+    args: &SaasservicemgmtProjectsLocationsSaasGetArgs,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<Saas>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let builder = saasservicemgmt_projects_locations_saas_get_builder(client, &args.name)?;
+    saasservicemgmt_projects_locations_saas_get_execute(builder)
+}
+
+/// GET v1/projects/{projectsId}/locations/{locationsId}/saas
+/// Retrieve a collection of saas.
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `saasservicemgmt_projects_locations_saas_list_execute()` to send, or `saasservicemgmt_projects_locations_saas_list` for simplest API.
+
+pub fn saasservicemgmt_projects_locations_saas_list_builder(
+    client: &SimpleHttpClient,
+    parent: &String,
+    filter: &Option<Option<String>>,
+    orderBy: &Option<Option<String>>,
+    pageSize: &Option<Option<String>>,
+    pageToken: &Option<Option<String>>,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!(
+        "https://saasservicemgmt.googleapis.com/v1/projects/{}/locations/{locationsId}/saas",
+        parent,
+    );
+
+    // Build request
+    let mut query_parts = Vec::new();
+    if let Some(val) = filter.as_ref() {
+        query_parts.push(format!("filter={}", val));
+    }
+    if let Some(val) = orderBy.as_ref() {
+        query_parts.push(format!("orderBy={}", val));
+    }
+    if let Some(val) = pageSize.as_ref() {
+        query_parts.push(format!("pageSize={}", val));
+    }
+    if let Some(val) = pageToken.as_ref() {
+        query_parts.push(format!("pageToken={}", val));
+    }
+
+    let url_with_query = if query_parts.is_empty() {
+        endpoint_url
+    } else {
+        format!("{}?{}", endpoint_url, query_parts.join("&"))
+    };
+
+    let builder = client
+        .get(&url_with_query)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// GET v1/projects/{projectsId}/locations/{locationsId}/saas
+/// Retrieve a collection of saas.
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `saasservicemgmt_projects_locations_saas_list_execute()` or `saasservicemgmt_projects_locations_saas_list`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `saasservicemgmt_projects_locations_saas_list_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn saasservicemgmt_projects_locations_saas_list_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<ListSaasResponse>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: ListSaasResponse = serde_json::from_str(&body)
+                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// GET v1/projects/{projectsId}/locations/{locationsId}/saas
+/// Retrieve a collection of saas.
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `saasservicemgmt_projects_locations_saas_list_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `saasservicemgmt_projects_locations_saas_list_task()`.
+/// For the simplest API, use `saasservicemgmt_projects_locations_saas_list()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `saasservicemgmt_projects_locations_saas_list_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn saasservicemgmt_projects_locations_saas_list_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<ListSaasResponse>, ApiError>, P = ApiPending>
+        + Send
+        + 'static,
+    ApiError,
+> {
+    let task = saasservicemgmt_projects_locations_saas_list_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`saasservicemgmt_projects_locations_saas_list`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct SaasservicemgmtProjectsLocationsSaasListArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Query parameter: filter
+    pub filter: Option<Option<String>>,
+    /// Query parameter: orderBy
+    pub orderBy: Option<Option<String>>,
+    /// Query parameter: pageSize
+    pub pageSize: Option<Option<String>>,
+    /// Query parameter: pageToken
+    pub pageToken: Option<Option<String>>,
+}
+
+/// GET v1/projects/{projectsId}/locations/{locationsId}/saas
+/// Retrieve a collection of saas.
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `saasservicemgmt_projects_locations_saas_list_builder()` + `saasservicemgmt_projects_locations_saas_list_execute()`.
+/// For task-level control, use `saasservicemgmt_projects_locations_saas_list_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn saasservicemgmt_projects_locations_saas_list(
+    client: &SimpleHttpClient,
+    args: &SaasservicemgmtProjectsLocationsSaasListArgs,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<ListSaasResponse>, ApiError>, P = ApiPending>
+        + Send
+        + 'static,
+    ApiError,
+> {
+    let builder = saasservicemgmt_projects_locations_saas_list_builder(
+        client,
+        &args.parent,
+        &args.filter,
+        &args.orderBy,
+        &args.pageSize,
+        &args.pageToken,
+    )?;
+    saasservicemgmt_projects_locations_saas_list_execute(builder)
+}
+
+/// PATCH v1/projects/{projectsId}/locations/{locationsId}/saas/{saasId}
+/// Update a single saas.
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `saasservicemgmt_projects_locations_saas_patch_execute()` to send, or `saasservicemgmt_projects_locations_saas_patch` for simplest API.
+
+pub fn saasservicemgmt_projects_locations_saas_patch_builder(
+    client: &SimpleHttpClient,
+    name: &String,
+    requestId: &Option<Option<String>>,
+    updateMask: &Option<Option<String>>,
+    validateOnly: &Option<Option<String>>,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!(
+        "https://saasservicemgmt.googleapis.com/v1/projects/{}/locations/{locationsId}/saas/{saasId}",
+        name,
+    );
+
+    // Build request
+    let mut query_parts = Vec::new();
+    if let Some(val) = requestId.as_ref() {
+        query_parts.push(format!("requestId={}", val));
+    }
+    if let Some(val) = updateMask.as_ref() {
+        query_parts.push(format!("updateMask={}", val));
+    }
+    if let Some(val) = validateOnly.as_ref() {
+        query_parts.push(format!("validateOnly={}", val));
+    }
+
+    let url_with_query = if query_parts.is_empty() {
+        endpoint_url
+    } else {
+        format!("{}?{}", endpoint_url, query_parts.join("&"))
+    };
+
+    let builder = client
+        .patch(&url_with_query)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// PATCH v1/projects/{projectsId}/locations/{locationsId}/saas/{saasId}
+/// Update a single saas.
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `saasservicemgmt_projects_locations_saas_patch_execute()` or `saasservicemgmt_projects_locations_saas_patch`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `saasservicemgmt_projects_locations_saas_patch_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn saasservicemgmt_projects_locations_saas_patch_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<Saas>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: Saas = serde_json::from_str(&body)
+                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// PATCH v1/projects/{projectsId}/locations/{locationsId}/saas/{saasId}
+/// Update a single saas.
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `saasservicemgmt_projects_locations_saas_patch_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `saasservicemgmt_projects_locations_saas_patch_task()`.
+/// For the simplest API, use `saasservicemgmt_projects_locations_saas_patch()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `saasservicemgmt_projects_locations_saas_patch_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn saasservicemgmt_projects_locations_saas_patch_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<Saas>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let task = saasservicemgmt_projects_locations_saas_patch_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`saasservicemgmt_projects_locations_saas_patch`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct SaasservicemgmtProjectsLocationsSaasPatchArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Query parameter: requestId
+    pub requestId: Option<Option<String>>,
+    /// Query parameter: updateMask
+    pub updateMask: Option<Option<String>>,
+    /// Query parameter: validateOnly
+    pub validateOnly: Option<Option<String>>,
+}
+
+/// PATCH v1/projects/{projectsId}/locations/{locationsId}/saas/{saasId}
+/// Update a single saas.
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `saasservicemgmt_projects_locations_saas_patch_builder()` + `saasservicemgmt_projects_locations_saas_patch_execute()`.
+/// For task-level control, use `saasservicemgmt_projects_locations_saas_patch_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn saasservicemgmt_projects_locations_saas_patch(
+    client: &SimpleHttpClient,
+    args: &SaasservicemgmtProjectsLocationsSaasPatchArgs,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<Saas>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let builder = saasservicemgmt_projects_locations_saas_patch_builder(
+        client,
+        &args.name,
+        &args.requestId,
+        &args.updateMask,
+        &args.validateOnly,
+    )?;
+    saasservicemgmt_projects_locations_saas_patch_execute(builder)
+}
+
+/// POST v1/projects/{projectsId}/locations/{locationsId}/tenants
+/// Create a new tenant.
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `saasservicemgmt_projects_locations_tenants_create_execute()` to send, or `saasservicemgmt_projects_locations_tenants_create` for simplest API.
+
+pub fn saasservicemgmt_projects_locations_tenants_create_builder(
+    client: &SimpleHttpClient,
+    parent: &String,
+    requestId: &Option<Option<String>>,
+    tenantId: &Option<Option<String>>,
+    validateOnly: &Option<Option<String>>,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!(
+        "https://saasservicemgmt.googleapis.com/v1/projects/{}/locations/{locationsId}/tenants",
+        parent,
+    );
+
+    // Build request
+    let mut query_parts = Vec::new();
+    if let Some(val) = requestId.as_ref() {
+        query_parts.push(format!("requestId={}", val));
+    }
+    if let Some(val) = tenantId.as_ref() {
+        query_parts.push(format!("tenantId={}", val));
+    }
+    if let Some(val) = validateOnly.as_ref() {
+        query_parts.push(format!("validateOnly={}", val));
+    }
+
+    let url_with_query = if query_parts.is_empty() {
+        endpoint_url
+    } else {
+        format!("{}?{}", endpoint_url, query_parts.join("&"))
+    };
+
+    let builder = client
+        .post(&url_with_query)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// POST v1/projects/{projectsId}/locations/{locationsId}/tenants
+/// Create a new tenant.
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `saasservicemgmt_projects_locations_tenants_create_execute()` or `saasservicemgmt_projects_locations_tenants_create`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `saasservicemgmt_projects_locations_tenants_create_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn saasservicemgmt_projects_locations_tenants_create_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<Tenant>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: Tenant = serde_json::from_str(&body)
+                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// POST v1/projects/{projectsId}/locations/{locationsId}/tenants
+/// Create a new tenant.
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `saasservicemgmt_projects_locations_tenants_create_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `saasservicemgmt_projects_locations_tenants_create_task()`.
+/// For the simplest API, use `saasservicemgmt_projects_locations_tenants_create()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `saasservicemgmt_projects_locations_tenants_create_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn saasservicemgmt_projects_locations_tenants_create_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<Tenant>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let task = saasservicemgmt_projects_locations_tenants_create_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`saasservicemgmt_projects_locations_tenants_create`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct SaasservicemgmtProjectsLocationsTenantsCreateArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Query parameter: requestId
+    pub requestId: Option<Option<String>>,
+    /// Query parameter: tenantId
+    pub tenantId: Option<Option<String>>,
+    /// Query parameter: validateOnly
+    pub validateOnly: Option<Option<String>>,
+}
+
+/// POST v1/projects/{projectsId}/locations/{locationsId}/tenants
+/// Create a new tenant.
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `saasservicemgmt_projects_locations_tenants_create_builder()` + `saasservicemgmt_projects_locations_tenants_create_execute()`.
+/// For task-level control, use `saasservicemgmt_projects_locations_tenants_create_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn saasservicemgmt_projects_locations_tenants_create(
+    client: &SimpleHttpClient,
+    args: &SaasservicemgmtProjectsLocationsTenantsCreateArgs,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<Tenant>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let builder = saasservicemgmt_projects_locations_tenants_create_builder(
+        client,
+        &args.parent,
+        &args.requestId,
+        &args.tenantId,
+        &args.validateOnly,
+    )?;
+    saasservicemgmt_projects_locations_tenants_create_execute(builder)
+}
+
+/// DELETE v1/projects/{projectsId}/locations/{locationsId}/tenants/{tenantsId}
+/// Delete a single tenant.
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `saasservicemgmt_projects_locations_tenants_delete_execute()` to send, or `saasservicemgmt_projects_locations_tenants_delete` for simplest API.
+
+pub fn saasservicemgmt_projects_locations_tenants_delete_builder(
+    client: &SimpleHttpClient,
+    name: &String,
+    etag: &Option<Option<String>>,
+    requestId: &Option<Option<String>>,
+    validateOnly: &Option<Option<String>>,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!(
+        "https://saasservicemgmt.googleapis.com/v1/projects/{}/locations/{locationsId}/tenants/{tenantsId}",
+        name,
+    );
+
+    // Build request
+    let mut query_parts = Vec::new();
+    if let Some(val) = etag.as_ref() {
+        query_parts.push(format!("etag={}", val));
+    }
+    if let Some(val) = requestId.as_ref() {
+        query_parts.push(format!("requestId={}", val));
+    }
+    if let Some(val) = validateOnly.as_ref() {
+        query_parts.push(format!("validateOnly={}", val));
+    }
+
+    let url_with_query = if query_parts.is_empty() {
+        endpoint_url
+    } else {
+        format!("{}?{}", endpoint_url, query_parts.join("&"))
+    };
+
+    let builder = client
+        .delete(&url_with_query)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// DELETE v1/projects/{projectsId}/locations/{locationsId}/tenants/{tenantsId}
+/// Delete a single tenant.
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `saasservicemgmt_projects_locations_tenants_delete_execute()` or `saasservicemgmt_projects_locations_tenants_delete`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `saasservicemgmt_projects_locations_tenants_delete_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn saasservicemgmt_projects_locations_tenants_delete_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<Empty>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: Empty = serde_json::from_str(&body)
+                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// DELETE v1/projects/{projectsId}/locations/{locationsId}/tenants/{tenantsId}
+/// Delete a single tenant.
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `saasservicemgmt_projects_locations_tenants_delete_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `saasservicemgmt_projects_locations_tenants_delete_task()`.
+/// For the simplest API, use `saasservicemgmt_projects_locations_tenants_delete()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `saasservicemgmt_projects_locations_tenants_delete_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn saasservicemgmt_projects_locations_tenants_delete_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<Empty>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let task = saasservicemgmt_projects_locations_tenants_delete_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`saasservicemgmt_projects_locations_tenants_delete`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct SaasservicemgmtProjectsLocationsTenantsDeleteArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Query parameter: etag
+    pub etag: Option<Option<String>>,
+    /// Query parameter: requestId
+    pub requestId: Option<Option<String>>,
+    /// Query parameter: validateOnly
+    pub validateOnly: Option<Option<String>>,
+}
+
+/// DELETE v1/projects/{projectsId}/locations/{locationsId}/tenants/{tenantsId}
+/// Delete a single tenant.
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `saasservicemgmt_projects_locations_tenants_delete_builder()` + `saasservicemgmt_projects_locations_tenants_delete_execute()`.
+/// For task-level control, use `saasservicemgmt_projects_locations_tenants_delete_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn saasservicemgmt_projects_locations_tenants_delete(
+    client: &SimpleHttpClient,
+    args: &SaasservicemgmtProjectsLocationsTenantsDeleteArgs,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<Empty>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let builder = saasservicemgmt_projects_locations_tenants_delete_builder(
+        client,
+        &args.name,
+        &args.etag,
+        &args.requestId,
+        &args.validateOnly,
+    )?;
+    saasservicemgmt_projects_locations_tenants_delete_execute(builder)
+}
+
+/// GET v1/projects/{projectsId}/locations/{locationsId}/tenants/{tenantsId}
+/// Retrieve a single tenant.
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `saasservicemgmt_projects_locations_tenants_get_execute()` to send, or `saasservicemgmt_projects_locations_tenants_get` for simplest API.
+
+pub fn saasservicemgmt_projects_locations_tenants_get_builder(
+    client: &SimpleHttpClient,
+    name: &String,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!(
+        "https://saasservicemgmt.googleapis.com/v1/projects/{}/locations/{locationsId}/tenants/{tenantsId}",
+        name,
+    );
+
+    // Build request
+    let builder = client
+        .get(&endpoint_url)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// GET v1/projects/{projectsId}/locations/{locationsId}/tenants/{tenantsId}
+/// Retrieve a single tenant.
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `saasservicemgmt_projects_locations_tenants_get_execute()` or `saasservicemgmt_projects_locations_tenants_get`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `saasservicemgmt_projects_locations_tenants_get_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn saasservicemgmt_projects_locations_tenants_get_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<Tenant>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: Tenant = serde_json::from_str(&body)
+                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// GET v1/projects/{projectsId}/locations/{locationsId}/tenants/{tenantsId}
+/// Retrieve a single tenant.
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `saasservicemgmt_projects_locations_tenants_get_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `saasservicemgmt_projects_locations_tenants_get_task()`.
+/// For the simplest API, use `saasservicemgmt_projects_locations_tenants_get()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `saasservicemgmt_projects_locations_tenants_get_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn saasservicemgmt_projects_locations_tenants_get_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<Tenant>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let task = saasservicemgmt_projects_locations_tenants_get_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`saasservicemgmt_projects_locations_tenants_get`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct SaasservicemgmtProjectsLocationsTenantsGetArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
+/// GET v1/projects/{projectsId}/locations/{locationsId}/tenants/{tenantsId}
+/// Retrieve a single tenant.
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `saasservicemgmt_projects_locations_tenants_get_builder()` + `saasservicemgmt_projects_locations_tenants_get_execute()`.
+/// For task-level control, use `saasservicemgmt_projects_locations_tenants_get_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn saasservicemgmt_projects_locations_tenants_get(
+    client: &SimpleHttpClient,
+    args: &SaasservicemgmtProjectsLocationsTenantsGetArgs,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<Tenant>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let builder = saasservicemgmt_projects_locations_tenants_get_builder(client, &args.name)?;
+    saasservicemgmt_projects_locations_tenants_get_execute(builder)
+}
+
+/// GET v1/projects/{projectsId}/locations/{locationsId}/tenants
+/// Retrieve a collection of tenants.
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `saasservicemgmt_projects_locations_tenants_list_execute()` to send, or `saasservicemgmt_projects_locations_tenants_list` for simplest API.
+
+pub fn saasservicemgmt_projects_locations_tenants_list_builder(
+    client: &SimpleHttpClient,
+    parent: &String,
+    filter: &Option<Option<String>>,
+    orderBy: &Option<Option<String>>,
+    pageSize: &Option<Option<String>>,
+    pageToken: &Option<Option<String>>,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!(
+        "https://saasservicemgmt.googleapis.com/v1/projects/{}/locations/{locationsId}/tenants",
+        parent,
+    );
+
+    // Build request
+    let mut query_parts = Vec::new();
+    if let Some(val) = filter.as_ref() {
+        query_parts.push(format!("filter={}", val));
+    }
+    if let Some(val) = orderBy.as_ref() {
+        query_parts.push(format!("orderBy={}", val));
+    }
+    if let Some(val) = pageSize.as_ref() {
+        query_parts.push(format!("pageSize={}", val));
+    }
+    if let Some(val) = pageToken.as_ref() {
+        query_parts.push(format!("pageToken={}", val));
+    }
+
+    let url_with_query = if query_parts.is_empty() {
+        endpoint_url
+    } else {
+        format!("{}?{}", endpoint_url, query_parts.join("&"))
+    };
+
+    let builder = client
+        .get(&url_with_query)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// GET v1/projects/{projectsId}/locations/{locationsId}/tenants
+/// Retrieve a collection of tenants.
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `saasservicemgmt_projects_locations_tenants_list_execute()` or `saasservicemgmt_projects_locations_tenants_list`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `saasservicemgmt_projects_locations_tenants_list_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn saasservicemgmt_projects_locations_tenants_list_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<ListTenantsResponse>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: ListTenantsResponse = serde_json::from_str(&body)
+                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// GET v1/projects/{projectsId}/locations/{locationsId}/tenants
+/// Retrieve a collection of tenants.
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `saasservicemgmt_projects_locations_tenants_list_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `saasservicemgmt_projects_locations_tenants_list_task()`.
+/// For the simplest API, use `saasservicemgmt_projects_locations_tenants_list()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `saasservicemgmt_projects_locations_tenants_list_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn saasservicemgmt_projects_locations_tenants_list_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<ListTenantsResponse>, ApiError>, P = ApiPending>
+        + Send
+        + 'static,
+    ApiError,
+> {
+    let task = saasservicemgmt_projects_locations_tenants_list_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`saasservicemgmt_projects_locations_tenants_list`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct SaasservicemgmtProjectsLocationsTenantsListArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Query parameter: filter
+    pub filter: Option<Option<String>>,
+    /// Query parameter: orderBy
+    pub orderBy: Option<Option<String>>,
+    /// Query parameter: pageSize
+    pub pageSize: Option<Option<String>>,
+    /// Query parameter: pageToken
+    pub pageToken: Option<Option<String>>,
+}
+
+/// GET v1/projects/{projectsId}/locations/{locationsId}/tenants
+/// Retrieve a collection of tenants.
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `saasservicemgmt_projects_locations_tenants_list_builder()` + `saasservicemgmt_projects_locations_tenants_list_execute()`.
+/// For task-level control, use `saasservicemgmt_projects_locations_tenants_list_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn saasservicemgmt_projects_locations_tenants_list(
+    client: &SimpleHttpClient,
+    args: &SaasservicemgmtProjectsLocationsTenantsListArgs,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<ListTenantsResponse>, ApiError>, P = ApiPending>
+        + Send
+        + 'static,
+    ApiError,
+> {
+    let builder = saasservicemgmt_projects_locations_tenants_list_builder(
+        client,
+        &args.parent,
+        &args.filter,
+        &args.orderBy,
+        &args.pageSize,
+        &args.pageToken,
+    )?;
+    saasservicemgmt_projects_locations_tenants_list_execute(builder)
+}
+
+/// PATCH v1/projects/{projectsId}/locations/{locationsId}/tenants/{tenantsId}
+/// Update a single tenant.
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `saasservicemgmt_projects_locations_tenants_patch_execute()` to send, or `saasservicemgmt_projects_locations_tenants_patch` for simplest API.
+
+pub fn saasservicemgmt_projects_locations_tenants_patch_builder(
+    client: &SimpleHttpClient,
+    name: &String,
+    requestId: &Option<Option<String>>,
+    updateMask: &Option<Option<String>>,
+    validateOnly: &Option<Option<String>>,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!(
+        "https://saasservicemgmt.googleapis.com/v1/projects/{}/locations/{locationsId}/tenants/{tenantsId}",
+        name,
+    );
+
+    // Build request
+    let mut query_parts = Vec::new();
+    if let Some(val) = requestId.as_ref() {
+        query_parts.push(format!("requestId={}", val));
+    }
+    if let Some(val) = updateMask.as_ref() {
+        query_parts.push(format!("updateMask={}", val));
+    }
+    if let Some(val) = validateOnly.as_ref() {
+        query_parts.push(format!("validateOnly={}", val));
+    }
+
+    let url_with_query = if query_parts.is_empty() {
+        endpoint_url
+    } else {
+        format!("{}?{}", endpoint_url, query_parts.join("&"))
+    };
+
+    let builder = client
+        .patch(&url_with_query)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// PATCH v1/projects/{projectsId}/locations/{locationsId}/tenants/{tenantsId}
+/// Update a single tenant.
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `saasservicemgmt_projects_locations_tenants_patch_execute()` or `saasservicemgmt_projects_locations_tenants_patch`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `saasservicemgmt_projects_locations_tenants_patch_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn saasservicemgmt_projects_locations_tenants_patch_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<Tenant>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: Tenant = serde_json::from_str(&body)
+                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// PATCH v1/projects/{projectsId}/locations/{locationsId}/tenants/{tenantsId}
+/// Update a single tenant.
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `saasservicemgmt_projects_locations_tenants_patch_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `saasservicemgmt_projects_locations_tenants_patch_task()`.
+/// For the simplest API, use `saasservicemgmt_projects_locations_tenants_patch()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `saasservicemgmt_projects_locations_tenants_patch_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn saasservicemgmt_projects_locations_tenants_patch_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<Tenant>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let task = saasservicemgmt_projects_locations_tenants_patch_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`saasservicemgmt_projects_locations_tenants_patch`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct SaasservicemgmtProjectsLocationsTenantsPatchArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Query parameter: requestId
+    pub requestId: Option<Option<String>>,
+    /// Query parameter: updateMask
+    pub updateMask: Option<Option<String>>,
+    /// Query parameter: validateOnly
+    pub validateOnly: Option<Option<String>>,
+}
+
+/// PATCH v1/projects/{projectsId}/locations/{locationsId}/tenants/{tenantsId}
+/// Update a single tenant.
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `saasservicemgmt_projects_locations_tenants_patch_builder()` + `saasservicemgmt_projects_locations_tenants_patch_execute()`.
+/// For task-level control, use `saasservicemgmt_projects_locations_tenants_patch_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn saasservicemgmt_projects_locations_tenants_patch(
+    client: &SimpleHttpClient,
+    args: &SaasservicemgmtProjectsLocationsTenantsPatchArgs,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<Tenant>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let builder = saasservicemgmt_projects_locations_tenants_patch_builder(
+        client,
+        &args.name,
+        &args.requestId,
+        &args.updateMask,
+        &args.validateOnly,
+    )?;
+    saasservicemgmt_projects_locations_tenants_patch_execute(builder)
+}
+
+/// POST v1/projects/{projectsId}/locations/{locationsId}/unitKinds
+/// Create a new unit kind.
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `saasservicemgmt_projects_locations_unit_kinds_create_execute()` to send, or `saasservicemgmt_projects_locations_unit_kinds_create` for simplest API.
+
+pub fn saasservicemgmt_projects_locations_unit_kinds_create_builder(
+    client: &SimpleHttpClient,
+    parent: &String,
+    requestId: &Option<Option<String>>,
+    unitKindId: &Option<Option<String>>,
+    validateOnly: &Option<Option<String>>,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!(
+        "https://saasservicemgmt.googleapis.com/v1/projects/{}/locations/{locationsId}/unitKinds",
+        parent,
+    );
+
+    // Build request
+    let mut query_parts = Vec::new();
+    if let Some(val) = requestId.as_ref() {
+        query_parts.push(format!("requestId={}", val));
+    }
+    if let Some(val) = unitKindId.as_ref() {
+        query_parts.push(format!("unitKindId={}", val));
+    }
+    if let Some(val) = validateOnly.as_ref() {
+        query_parts.push(format!("validateOnly={}", val));
+    }
+
+    let url_with_query = if query_parts.is_empty() {
+        endpoint_url
+    } else {
+        format!("{}?{}", endpoint_url, query_parts.join("&"))
+    };
+
+    let builder = client
+        .post(&url_with_query)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// POST v1/projects/{projectsId}/locations/{locationsId}/unitKinds
+/// Create a new unit kind.
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `saasservicemgmt_projects_locations_unit_kinds_create_execute()` or `saasservicemgmt_projects_locations_unit_kinds_create`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `saasservicemgmt_projects_locations_unit_kinds_create_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn saasservicemgmt_projects_locations_unit_kinds_create_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<UnitKind>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: UnitKind = serde_json::from_str(&body)
+                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// POST v1/projects/{projectsId}/locations/{locationsId}/unitKinds
+/// Create a new unit kind.
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `saasservicemgmt_projects_locations_unit_kinds_create_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `saasservicemgmt_projects_locations_unit_kinds_create_task()`.
+/// For the simplest API, use `saasservicemgmt_projects_locations_unit_kinds_create()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `saasservicemgmt_projects_locations_unit_kinds_create_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn saasservicemgmt_projects_locations_unit_kinds_create_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<UnitKind>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let task = saasservicemgmt_projects_locations_unit_kinds_create_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`saasservicemgmt_projects_locations_unit_kinds_create`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct SaasservicemgmtProjectsLocationsUnitKindsCreateArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Query parameter: requestId
+    pub requestId: Option<Option<String>>,
+    /// Query parameter: unitKindId
+    pub unitKindId: Option<Option<String>>,
+    /// Query parameter: validateOnly
+    pub validateOnly: Option<Option<String>>,
+}
+
+/// POST v1/projects/{projectsId}/locations/{locationsId}/unitKinds
+/// Create a new unit kind.
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `saasservicemgmt_projects_locations_unit_kinds_create_builder()` + `saasservicemgmt_projects_locations_unit_kinds_create_execute()`.
+/// For task-level control, use `saasservicemgmt_projects_locations_unit_kinds_create_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn saasservicemgmt_projects_locations_unit_kinds_create(
+    client: &SimpleHttpClient,
+    args: &SaasservicemgmtProjectsLocationsUnitKindsCreateArgs,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<UnitKind>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let builder = saasservicemgmt_projects_locations_unit_kinds_create_builder(
+        client,
+        &args.parent,
+        &args.requestId,
+        &args.unitKindId,
+        &args.validateOnly,
+    )?;
+    saasservicemgmt_projects_locations_unit_kinds_create_execute(builder)
+}
+
+/// DELETE v1/projects/{projectsId}/locations/{locationsId}/unitKinds/{unitKindsId}
+/// Delete a single unit kind.
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `saasservicemgmt_projects_locations_unit_kinds_delete_execute()` to send, or `saasservicemgmt_projects_locations_unit_kinds_delete` for simplest API.
+
+pub fn saasservicemgmt_projects_locations_unit_kinds_delete_builder(
+    client: &SimpleHttpClient,
+    name: &String,
+    etag: &Option<Option<String>>,
+    requestId: &Option<Option<String>>,
+    validateOnly: &Option<Option<String>>,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!(
+        "https://saasservicemgmt.googleapis.com/v1/projects/{}/locations/{locationsId}/unitKinds/{unitKindsId}",
+        name,
+    );
+
+    // Build request
+    let mut query_parts = Vec::new();
+    if let Some(val) = etag.as_ref() {
+        query_parts.push(format!("etag={}", val));
+    }
+    if let Some(val) = requestId.as_ref() {
+        query_parts.push(format!("requestId={}", val));
+    }
+    if let Some(val) = validateOnly.as_ref() {
+        query_parts.push(format!("validateOnly={}", val));
+    }
+
+    let url_with_query = if query_parts.is_empty() {
+        endpoint_url
+    } else {
+        format!("{}?{}", endpoint_url, query_parts.join("&"))
+    };
+
+    let builder = client
+        .delete(&url_with_query)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// DELETE v1/projects/{projectsId}/locations/{locationsId}/unitKinds/{unitKindsId}
+/// Delete a single unit kind.
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `saasservicemgmt_projects_locations_unit_kinds_delete_execute()` or `saasservicemgmt_projects_locations_unit_kinds_delete`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `saasservicemgmt_projects_locations_unit_kinds_delete_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn saasservicemgmt_projects_locations_unit_kinds_delete_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<Empty>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: Empty = serde_json::from_str(&body)
+                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// DELETE v1/projects/{projectsId}/locations/{locationsId}/unitKinds/{unitKindsId}
+/// Delete a single unit kind.
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `saasservicemgmt_projects_locations_unit_kinds_delete_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `saasservicemgmt_projects_locations_unit_kinds_delete_task()`.
+/// For the simplest API, use `saasservicemgmt_projects_locations_unit_kinds_delete()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `saasservicemgmt_projects_locations_unit_kinds_delete_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn saasservicemgmt_projects_locations_unit_kinds_delete_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<Empty>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let task = saasservicemgmt_projects_locations_unit_kinds_delete_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`saasservicemgmt_projects_locations_unit_kinds_delete`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct SaasservicemgmtProjectsLocationsUnitKindsDeleteArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Query parameter: etag
+    pub etag: Option<Option<String>>,
+    /// Query parameter: requestId
+    pub requestId: Option<Option<String>>,
+    /// Query parameter: validateOnly
+    pub validateOnly: Option<Option<String>>,
+}
+
+/// DELETE v1/projects/{projectsId}/locations/{locationsId}/unitKinds/{unitKindsId}
+/// Delete a single unit kind.
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `saasservicemgmt_projects_locations_unit_kinds_delete_builder()` + `saasservicemgmt_projects_locations_unit_kinds_delete_execute()`.
+/// For task-level control, use `saasservicemgmt_projects_locations_unit_kinds_delete_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn saasservicemgmt_projects_locations_unit_kinds_delete(
+    client: &SimpleHttpClient,
+    args: &SaasservicemgmtProjectsLocationsUnitKindsDeleteArgs,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<Empty>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let builder = saasservicemgmt_projects_locations_unit_kinds_delete_builder(
+        client,
+        &args.name,
+        &args.etag,
+        &args.requestId,
+        &args.validateOnly,
+    )?;
+    saasservicemgmt_projects_locations_unit_kinds_delete_execute(builder)
+}
+
+/// GET v1/projects/{projectsId}/locations/{locationsId}/unitKinds/{unitKindsId}
+/// Retrieve a single unit kind.
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `saasservicemgmt_projects_locations_unit_kinds_get_execute()` to send, or `saasservicemgmt_projects_locations_unit_kinds_get` for simplest API.
+
+pub fn saasservicemgmt_projects_locations_unit_kinds_get_builder(
+    client: &SimpleHttpClient,
+    name: &String,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!(
+        "https://saasservicemgmt.googleapis.com/v1/projects/{}/locations/{locationsId}/unitKinds/{unitKindsId}",
+        name,
+    );
+
+    // Build request
+    let builder = client
+        .get(&endpoint_url)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// GET v1/projects/{projectsId}/locations/{locationsId}/unitKinds/{unitKindsId}
+/// Retrieve a single unit kind.
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `saasservicemgmt_projects_locations_unit_kinds_get_execute()` or `saasservicemgmt_projects_locations_unit_kinds_get`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `saasservicemgmt_projects_locations_unit_kinds_get_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn saasservicemgmt_projects_locations_unit_kinds_get_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<UnitKind>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: UnitKind = serde_json::from_str(&body)
+                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// GET v1/projects/{projectsId}/locations/{locationsId}/unitKinds/{unitKindsId}
+/// Retrieve a single unit kind.
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `saasservicemgmt_projects_locations_unit_kinds_get_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `saasservicemgmt_projects_locations_unit_kinds_get_task()`.
+/// For the simplest API, use `saasservicemgmt_projects_locations_unit_kinds_get()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `saasservicemgmt_projects_locations_unit_kinds_get_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn saasservicemgmt_projects_locations_unit_kinds_get_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<UnitKind>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let task = saasservicemgmt_projects_locations_unit_kinds_get_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`saasservicemgmt_projects_locations_unit_kinds_get`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct SaasservicemgmtProjectsLocationsUnitKindsGetArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
+/// GET v1/projects/{projectsId}/locations/{locationsId}/unitKinds/{unitKindsId}
+/// Retrieve a single unit kind.
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `saasservicemgmt_projects_locations_unit_kinds_get_builder()` + `saasservicemgmt_projects_locations_unit_kinds_get_execute()`.
+/// For task-level control, use `saasservicemgmt_projects_locations_unit_kinds_get_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn saasservicemgmt_projects_locations_unit_kinds_get(
+    client: &SimpleHttpClient,
+    args: &SaasservicemgmtProjectsLocationsUnitKindsGetArgs,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<UnitKind>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let builder = saasservicemgmt_projects_locations_unit_kinds_get_builder(client, &args.name)?;
+    saasservicemgmt_projects_locations_unit_kinds_get_execute(builder)
+}
+
+/// GET v1/projects/{projectsId}/locations/{locationsId}/unitKinds
+/// Retrieve a collection of unit kinds.
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `saasservicemgmt_projects_locations_unit_kinds_list_execute()` to send, or `saasservicemgmt_projects_locations_unit_kinds_list` for simplest API.
+
+pub fn saasservicemgmt_projects_locations_unit_kinds_list_builder(
+    client: &SimpleHttpClient,
+    parent: &String,
+    filter: &Option<Option<String>>,
+    orderBy: &Option<Option<String>>,
+    pageSize: &Option<Option<String>>,
+    pageToken: &Option<Option<String>>,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!(
+        "https://saasservicemgmt.googleapis.com/v1/projects/{}/locations/{locationsId}/unitKinds",
+        parent,
+    );
+
+    // Build request
+    let mut query_parts = Vec::new();
+    if let Some(val) = filter.as_ref() {
+        query_parts.push(format!("filter={}", val));
+    }
+    if let Some(val) = orderBy.as_ref() {
+        query_parts.push(format!("orderBy={}", val));
+    }
+    if let Some(val) = pageSize.as_ref() {
+        query_parts.push(format!("pageSize={}", val));
+    }
+    if let Some(val) = pageToken.as_ref() {
+        query_parts.push(format!("pageToken={}", val));
+    }
+
+    let url_with_query = if query_parts.is_empty() {
+        endpoint_url
+    } else {
+        format!("{}?{}", endpoint_url, query_parts.join("&"))
+    };
+
+    let builder = client
+        .get(&url_with_query)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// GET v1/projects/{projectsId}/locations/{locationsId}/unitKinds
+/// Retrieve a collection of unit kinds.
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `saasservicemgmt_projects_locations_unit_kinds_list_execute()` or `saasservicemgmt_projects_locations_unit_kinds_list`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `saasservicemgmt_projects_locations_unit_kinds_list_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn saasservicemgmt_projects_locations_unit_kinds_list_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<ListUnitKindsResponse>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: ListUnitKindsResponse = serde_json::from_str(&body)
+                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// GET v1/projects/{projectsId}/locations/{locationsId}/unitKinds
+/// Retrieve a collection of unit kinds.
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `saasservicemgmt_projects_locations_unit_kinds_list_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `saasservicemgmt_projects_locations_unit_kinds_list_task()`.
+/// For the simplest API, use `saasservicemgmt_projects_locations_unit_kinds_list()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `saasservicemgmt_projects_locations_unit_kinds_list_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn saasservicemgmt_projects_locations_unit_kinds_list_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<ListUnitKindsResponse>, ApiError>, P = ApiPending>
+        + Send
+        + 'static,
+    ApiError,
+> {
+    let task = saasservicemgmt_projects_locations_unit_kinds_list_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`saasservicemgmt_projects_locations_unit_kinds_list`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct SaasservicemgmtProjectsLocationsUnitKindsListArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Query parameter: filter
+    pub filter: Option<Option<String>>,
+    /// Query parameter: orderBy
+    pub orderBy: Option<Option<String>>,
+    /// Query parameter: pageSize
+    pub pageSize: Option<Option<String>>,
+    /// Query parameter: pageToken
+    pub pageToken: Option<Option<String>>,
+}
+
+/// GET v1/projects/{projectsId}/locations/{locationsId}/unitKinds
+/// Retrieve a collection of unit kinds.
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `saasservicemgmt_projects_locations_unit_kinds_list_builder()` + `saasservicemgmt_projects_locations_unit_kinds_list_execute()`.
+/// For task-level control, use `saasservicemgmt_projects_locations_unit_kinds_list_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn saasservicemgmt_projects_locations_unit_kinds_list(
+    client: &SimpleHttpClient,
+    args: &SaasservicemgmtProjectsLocationsUnitKindsListArgs,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<ListUnitKindsResponse>, ApiError>, P = ApiPending>
+        + Send
+        + 'static,
+    ApiError,
+> {
+    let builder = saasservicemgmt_projects_locations_unit_kinds_list_builder(
+        client,
+        &args.parent,
+        &args.filter,
+        &args.orderBy,
+        &args.pageSize,
+        &args.pageToken,
+    )?;
+    saasservicemgmt_projects_locations_unit_kinds_list_execute(builder)
+}
+
+/// PATCH v1/projects/{projectsId}/locations/{locationsId}/unitKinds/{unitKindsId}
+/// Update a single unit kind.
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `saasservicemgmt_projects_locations_unit_kinds_patch_execute()` to send, or `saasservicemgmt_projects_locations_unit_kinds_patch` for simplest API.
+
+pub fn saasservicemgmt_projects_locations_unit_kinds_patch_builder(
+    client: &SimpleHttpClient,
+    name: &String,
+    requestId: &Option<Option<String>>,
+    updateMask: &Option<Option<String>>,
+    validateOnly: &Option<Option<String>>,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!(
+        "https://saasservicemgmt.googleapis.com/v1/projects/{}/locations/{locationsId}/unitKinds/{unitKindsId}",
+        name,
+    );
+
+    // Build request
+    let mut query_parts = Vec::new();
+    if let Some(val) = requestId.as_ref() {
+        query_parts.push(format!("requestId={}", val));
+    }
+    if let Some(val) = updateMask.as_ref() {
+        query_parts.push(format!("updateMask={}", val));
+    }
+    if let Some(val) = validateOnly.as_ref() {
+        query_parts.push(format!("validateOnly={}", val));
+    }
+
+    let url_with_query = if query_parts.is_empty() {
+        endpoint_url
+    } else {
+        format!("{}?{}", endpoint_url, query_parts.join("&"))
+    };
+
+    let builder = client
+        .patch(&url_with_query)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// PATCH v1/projects/{projectsId}/locations/{locationsId}/unitKinds/{unitKindsId}
+/// Update a single unit kind.
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `saasservicemgmt_projects_locations_unit_kinds_patch_execute()` or `saasservicemgmt_projects_locations_unit_kinds_patch`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `saasservicemgmt_projects_locations_unit_kinds_patch_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn saasservicemgmt_projects_locations_unit_kinds_patch_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<UnitKind>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: UnitKind = serde_json::from_str(&body)
+                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// PATCH v1/projects/{projectsId}/locations/{locationsId}/unitKinds/{unitKindsId}
+/// Update a single unit kind.
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `saasservicemgmt_projects_locations_unit_kinds_patch_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `saasservicemgmt_projects_locations_unit_kinds_patch_task()`.
+/// For the simplest API, use `saasservicemgmt_projects_locations_unit_kinds_patch()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `saasservicemgmt_projects_locations_unit_kinds_patch_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn saasservicemgmt_projects_locations_unit_kinds_patch_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<UnitKind>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let task = saasservicemgmt_projects_locations_unit_kinds_patch_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`saasservicemgmt_projects_locations_unit_kinds_patch`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct SaasservicemgmtProjectsLocationsUnitKindsPatchArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Query parameter: requestId
+    pub requestId: Option<Option<String>>,
+    /// Query parameter: updateMask
+    pub updateMask: Option<Option<String>>,
+    /// Query parameter: validateOnly
+    pub validateOnly: Option<Option<String>>,
+}
+
+/// PATCH v1/projects/{projectsId}/locations/{locationsId}/unitKinds/{unitKindsId}
+/// Update a single unit kind.
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `saasservicemgmt_projects_locations_unit_kinds_patch_builder()` + `saasservicemgmt_projects_locations_unit_kinds_patch_execute()`.
+/// For task-level control, use `saasservicemgmt_projects_locations_unit_kinds_patch_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn saasservicemgmt_projects_locations_unit_kinds_patch(
+    client: &SimpleHttpClient,
+    args: &SaasservicemgmtProjectsLocationsUnitKindsPatchArgs,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<UnitKind>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let builder = saasservicemgmt_projects_locations_unit_kinds_patch_builder(
+        client,
+        &args.name,
+        &args.requestId,
+        &args.updateMask,
+        &args.validateOnly,
+    )?;
+    saasservicemgmt_projects_locations_unit_kinds_patch_execute(builder)
+}
+
+/// POST v1/projects/{projectsId}/locations/{locationsId}/unitOperations
+/// Create a new unit operation.
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `saasservicemgmt_projects_locations_unit_operations_create_execute()` to send, or `saasservicemgmt_projects_locations_unit_operations_create` for simplest API.
+
+pub fn saasservicemgmt_projects_locations_unit_operations_create_builder(
+    client: &SimpleHttpClient,
+    parent: &String,
+    requestId: &Option<Option<String>>,
+    unitOperationId: &Option<Option<String>>,
+    validateOnly: &Option<Option<String>>,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!(
+        "https://saasservicemgmt.googleapis.com/v1/projects/{}/locations/{locationsId}/unitOperations",
+        parent,
+    );
+
+    // Build request
+    let mut query_parts = Vec::new();
+    if let Some(val) = requestId.as_ref() {
+        query_parts.push(format!("requestId={}", val));
+    }
+    if let Some(val) = unitOperationId.as_ref() {
+        query_parts.push(format!("unitOperationId={}", val));
+    }
+    if let Some(val) = validateOnly.as_ref() {
+        query_parts.push(format!("validateOnly={}", val));
+    }
+
+    let url_with_query = if query_parts.is_empty() {
+        endpoint_url
+    } else {
+        format!("{}?{}", endpoint_url, query_parts.join("&"))
+    };
+
+    let builder = client
+        .post(&url_with_query)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// POST v1/projects/{projectsId}/locations/{locationsId}/unitOperations
+/// Create a new unit operation.
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `saasservicemgmt_projects_locations_unit_operations_create_execute()` or `saasservicemgmt_projects_locations_unit_operations_create`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `saasservicemgmt_projects_locations_unit_operations_create_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn saasservicemgmt_projects_locations_unit_operations_create_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<UnitOperation>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: UnitOperation = serde_json::from_str(&body)
+                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// POST v1/projects/{projectsId}/locations/{locationsId}/unitOperations
+/// Create a new unit operation.
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `saasservicemgmt_projects_locations_unit_operations_create_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `saasservicemgmt_projects_locations_unit_operations_create_task()`.
+/// For the simplest API, use `saasservicemgmt_projects_locations_unit_operations_create()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `saasservicemgmt_projects_locations_unit_operations_create_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn saasservicemgmt_projects_locations_unit_operations_create_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<UnitOperation>, ApiError>, P = ApiPending>
+        + Send
+        + 'static,
+    ApiError,
+> {
+    let task = saasservicemgmt_projects_locations_unit_operations_create_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`saasservicemgmt_projects_locations_unit_operations_create`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct SaasservicemgmtProjectsLocationsUnitOperationsCreateArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Query parameter: requestId
+    pub requestId: Option<Option<String>>,
+    /// Query parameter: unitOperationId
+    pub unitOperationId: Option<Option<String>>,
+    /// Query parameter: validateOnly
+    pub validateOnly: Option<Option<String>>,
+}
+
+/// POST v1/projects/{projectsId}/locations/{locationsId}/unitOperations
+/// Create a new unit operation.
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `saasservicemgmt_projects_locations_unit_operations_create_builder()` + `saasservicemgmt_projects_locations_unit_operations_create_execute()`.
+/// For task-level control, use `saasservicemgmt_projects_locations_unit_operations_create_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn saasservicemgmt_projects_locations_unit_operations_create(
+    client: &SimpleHttpClient,
+    args: &SaasservicemgmtProjectsLocationsUnitOperationsCreateArgs,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<UnitOperation>, ApiError>, P = ApiPending>
+        + Send
+        + 'static,
+    ApiError,
+> {
+    let builder = saasservicemgmt_projects_locations_unit_operations_create_builder(
+        client,
+        &args.parent,
+        &args.requestId,
+        &args.unitOperationId,
+        &args.validateOnly,
+    )?;
+    saasservicemgmt_projects_locations_unit_operations_create_execute(builder)
+}
+
+/// DELETE v1/projects/{projectsId}/locations/{locationsId}/unitOperations/{unitOperationsId}
+/// Delete a single unit operation.
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `saasservicemgmt_projects_locations_unit_operations_delete_execute()` to send, or `saasservicemgmt_projects_locations_unit_operations_delete` for simplest API.
+
+pub fn saasservicemgmt_projects_locations_unit_operations_delete_builder(
+    client: &SimpleHttpClient,
+    name: &String,
+    etag: &Option<Option<String>>,
+    requestId: &Option<Option<String>>,
+    validateOnly: &Option<Option<String>>,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!(
+        "https://saasservicemgmt.googleapis.com/v1/projects/{}/locations/{locationsId}/unitOperations/{unitOperationsId}",
+        name,
+    );
+
+    // Build request
+    let mut query_parts = Vec::new();
+    if let Some(val) = etag.as_ref() {
+        query_parts.push(format!("etag={}", val));
+    }
+    if let Some(val) = requestId.as_ref() {
+        query_parts.push(format!("requestId={}", val));
+    }
+    if let Some(val) = validateOnly.as_ref() {
+        query_parts.push(format!("validateOnly={}", val));
+    }
+
+    let url_with_query = if query_parts.is_empty() {
+        endpoint_url
+    } else {
+        format!("{}?{}", endpoint_url, query_parts.join("&"))
+    };
+
+    let builder = client
+        .delete(&url_with_query)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// DELETE v1/projects/{projectsId}/locations/{locationsId}/unitOperations/{unitOperationsId}
+/// Delete a single unit operation.
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `saasservicemgmt_projects_locations_unit_operations_delete_execute()` or `saasservicemgmt_projects_locations_unit_operations_delete`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `saasservicemgmt_projects_locations_unit_operations_delete_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn saasservicemgmt_projects_locations_unit_operations_delete_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<Empty>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: Empty = serde_json::from_str(&body)
+                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// DELETE v1/projects/{projectsId}/locations/{locationsId}/unitOperations/{unitOperationsId}
+/// Delete a single unit operation.
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `saasservicemgmt_projects_locations_unit_operations_delete_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `saasservicemgmt_projects_locations_unit_operations_delete_task()`.
+/// For the simplest API, use `saasservicemgmt_projects_locations_unit_operations_delete()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `saasservicemgmt_projects_locations_unit_operations_delete_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn saasservicemgmt_projects_locations_unit_operations_delete_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<Empty>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let task = saasservicemgmt_projects_locations_unit_operations_delete_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`saasservicemgmt_projects_locations_unit_operations_delete`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct SaasservicemgmtProjectsLocationsUnitOperationsDeleteArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Query parameter: etag
+    pub etag: Option<Option<String>>,
+    /// Query parameter: requestId
+    pub requestId: Option<Option<String>>,
+    /// Query parameter: validateOnly
+    pub validateOnly: Option<Option<String>>,
+}
+
+/// DELETE v1/projects/{projectsId}/locations/{locationsId}/unitOperations/{unitOperationsId}
+/// Delete a single unit operation.
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `saasservicemgmt_projects_locations_unit_operations_delete_builder()` + `saasservicemgmt_projects_locations_unit_operations_delete_execute()`.
+/// For task-level control, use `saasservicemgmt_projects_locations_unit_operations_delete_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn saasservicemgmt_projects_locations_unit_operations_delete(
+    client: &SimpleHttpClient,
+    args: &SaasservicemgmtProjectsLocationsUnitOperationsDeleteArgs,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<Empty>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let builder = saasservicemgmt_projects_locations_unit_operations_delete_builder(
+        client,
+        &args.name,
+        &args.etag,
+        &args.requestId,
+        &args.validateOnly,
+    )?;
+    saasservicemgmt_projects_locations_unit_operations_delete_execute(builder)
+}
+
+/// GET v1/projects/{projectsId}/locations/{locationsId}/unitOperations/{unitOperationsId}
+/// Retrieve a single unit operation.
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `saasservicemgmt_projects_locations_unit_operations_get_execute()` to send, or `saasservicemgmt_projects_locations_unit_operations_get` for simplest API.
+
+pub fn saasservicemgmt_projects_locations_unit_operations_get_builder(
+    client: &SimpleHttpClient,
+    name: &String,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!(
+        "https://saasservicemgmt.googleapis.com/v1/projects/{}/locations/{locationsId}/unitOperations/{unitOperationsId}",
+        name,
+    );
+
+    // Build request
+    let builder = client
+        .get(&endpoint_url)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// GET v1/projects/{projectsId}/locations/{locationsId}/unitOperations/{unitOperationsId}
+/// Retrieve a single unit operation.
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `saasservicemgmt_projects_locations_unit_operations_get_execute()` or `saasservicemgmt_projects_locations_unit_operations_get`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `saasservicemgmt_projects_locations_unit_operations_get_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn saasservicemgmt_projects_locations_unit_operations_get_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<UnitOperation>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: UnitOperation = serde_json::from_str(&body)
+                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// GET v1/projects/{projectsId}/locations/{locationsId}/unitOperations/{unitOperationsId}
+/// Retrieve a single unit operation.
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `saasservicemgmt_projects_locations_unit_operations_get_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `saasservicemgmt_projects_locations_unit_operations_get_task()`.
+/// For the simplest API, use `saasservicemgmt_projects_locations_unit_operations_get()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `saasservicemgmt_projects_locations_unit_operations_get_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn saasservicemgmt_projects_locations_unit_operations_get_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<UnitOperation>, ApiError>, P = ApiPending>
+        + Send
+        + 'static,
+    ApiError,
+> {
+    let task = saasservicemgmt_projects_locations_unit_operations_get_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`saasservicemgmt_projects_locations_unit_operations_get`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct SaasservicemgmtProjectsLocationsUnitOperationsGetArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
+/// GET v1/projects/{projectsId}/locations/{locationsId}/unitOperations/{unitOperationsId}
+/// Retrieve a single unit operation.
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `saasservicemgmt_projects_locations_unit_operations_get_builder()` + `saasservicemgmt_projects_locations_unit_operations_get_execute()`.
+/// For task-level control, use `saasservicemgmt_projects_locations_unit_operations_get_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn saasservicemgmt_projects_locations_unit_operations_get(
+    client: &SimpleHttpClient,
+    args: &SaasservicemgmtProjectsLocationsUnitOperationsGetArgs,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<UnitOperation>, ApiError>, P = ApiPending>
+        + Send
+        + 'static,
+    ApiError,
+> {
+    let builder =
+        saasservicemgmt_projects_locations_unit_operations_get_builder(client, &args.name)?;
+    saasservicemgmt_projects_locations_unit_operations_get_execute(builder)
+}
+
+/// GET v1/projects/{projectsId}/locations/{locationsId}/unitOperations
+/// Retrieve a collection of unit operations.
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `saasservicemgmt_projects_locations_unit_operations_list_execute()` to send, or `saasservicemgmt_projects_locations_unit_operations_list` for simplest API.
+
+pub fn saasservicemgmt_projects_locations_unit_operations_list_builder(
+    client: &SimpleHttpClient,
+    parent: &String,
+    filter: &Option<Option<String>>,
+    orderBy: &Option<Option<String>>,
+    pageSize: &Option<Option<String>>,
+    pageToken: &Option<Option<String>>,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!(
+        "https://saasservicemgmt.googleapis.com/v1/projects/{}/locations/{locationsId}/unitOperations",
+        parent,
+    );
+
+    // Build request
+    let mut query_parts = Vec::new();
+    if let Some(val) = filter.as_ref() {
+        query_parts.push(format!("filter={}", val));
+    }
+    if let Some(val) = orderBy.as_ref() {
+        query_parts.push(format!("orderBy={}", val));
+    }
+    if let Some(val) = pageSize.as_ref() {
+        query_parts.push(format!("pageSize={}", val));
+    }
+    if let Some(val) = pageToken.as_ref() {
+        query_parts.push(format!("pageToken={}", val));
+    }
+
+    let url_with_query = if query_parts.is_empty() {
+        endpoint_url
+    } else {
+        format!("{}?{}", endpoint_url, query_parts.join("&"))
+    };
+
+    let builder = client
+        .get(&url_with_query)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// GET v1/projects/{projectsId}/locations/{locationsId}/unitOperations
+/// Retrieve a collection of unit operations.
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `saasservicemgmt_projects_locations_unit_operations_list_execute()` or `saasservicemgmt_projects_locations_unit_operations_list`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `saasservicemgmt_projects_locations_unit_operations_list_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn saasservicemgmt_projects_locations_unit_operations_list_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<ListUnitOperationsResponse>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: ListUnitOperationsResponse = serde_json::from_str(&body)
+                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// GET v1/projects/{projectsId}/locations/{locationsId}/unitOperations
+/// Retrieve a collection of unit operations.
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `saasservicemgmt_projects_locations_unit_operations_list_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `saasservicemgmt_projects_locations_unit_operations_list_task()`.
+/// For the simplest API, use `saasservicemgmt_projects_locations_unit_operations_list()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `saasservicemgmt_projects_locations_unit_operations_list_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn saasservicemgmt_projects_locations_unit_operations_list_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<
+            D = Result<ApiResponse<ListUnitOperationsResponse>, ApiError>,
+            P = ApiPending,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    let task = saasservicemgmt_projects_locations_unit_operations_list_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`saasservicemgmt_projects_locations_unit_operations_list`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct SaasservicemgmtProjectsLocationsUnitOperationsListArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Query parameter: filter
+    pub filter: Option<Option<String>>,
+    /// Query parameter: orderBy
+    pub orderBy: Option<Option<String>>,
+    /// Query parameter: pageSize
+    pub pageSize: Option<Option<String>>,
+    /// Query parameter: pageToken
+    pub pageToken: Option<Option<String>>,
+}
+
+/// GET v1/projects/{projectsId}/locations/{locationsId}/unitOperations
+/// Retrieve a collection of unit operations.
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `saasservicemgmt_projects_locations_unit_operations_list_builder()` + `saasservicemgmt_projects_locations_unit_operations_list_execute()`.
+/// For task-level control, use `saasservicemgmt_projects_locations_unit_operations_list_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn saasservicemgmt_projects_locations_unit_operations_list(
+    client: &SimpleHttpClient,
+    args: &SaasservicemgmtProjectsLocationsUnitOperationsListArgs,
+) -> Result<
+    impl StreamIterator<
+            D = Result<ApiResponse<ListUnitOperationsResponse>, ApiError>,
+            P = ApiPending,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    let builder = saasservicemgmt_projects_locations_unit_operations_list_builder(
+        client,
+        &args.parent,
+        &args.filter,
+        &args.orderBy,
+        &args.pageSize,
+        &args.pageToken,
+    )?;
+    saasservicemgmt_projects_locations_unit_operations_list_execute(builder)
+}
+
+/// PATCH v1/projects/{projectsId}/locations/{locationsId}/unitOperations/{unitOperationsId}
+/// Update a single unit operation.
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `saasservicemgmt_projects_locations_unit_operations_patch_execute()` to send, or `saasservicemgmt_projects_locations_unit_operations_patch` for simplest API.
+
+pub fn saasservicemgmt_projects_locations_unit_operations_patch_builder(
+    client: &SimpleHttpClient,
+    name: &String,
+    requestId: &Option<Option<String>>,
+    updateMask: &Option<Option<String>>,
+    validateOnly: &Option<Option<String>>,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!(
+        "https://saasservicemgmt.googleapis.com/v1/projects/{}/locations/{locationsId}/unitOperations/{unitOperationsId}",
+        name,
+    );
+
+    // Build request
+    let mut query_parts = Vec::new();
+    if let Some(val) = requestId.as_ref() {
+        query_parts.push(format!("requestId={}", val));
+    }
+    if let Some(val) = updateMask.as_ref() {
+        query_parts.push(format!("updateMask={}", val));
+    }
+    if let Some(val) = validateOnly.as_ref() {
+        query_parts.push(format!("validateOnly={}", val));
+    }
+
+    let url_with_query = if query_parts.is_empty() {
+        endpoint_url
+    } else {
+        format!("{}?{}", endpoint_url, query_parts.join("&"))
+    };
+
+    let builder = client
+        .patch(&url_with_query)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// PATCH v1/projects/{projectsId}/locations/{locationsId}/unitOperations/{unitOperationsId}
+/// Update a single unit operation.
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `saasservicemgmt_projects_locations_unit_operations_patch_execute()` or `saasservicemgmt_projects_locations_unit_operations_patch`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `saasservicemgmt_projects_locations_unit_operations_patch_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn saasservicemgmt_projects_locations_unit_operations_patch_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<UnitOperation>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: UnitOperation = serde_json::from_str(&body)
+                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// PATCH v1/projects/{projectsId}/locations/{locationsId}/unitOperations/{unitOperationsId}
+/// Update a single unit operation.
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `saasservicemgmt_projects_locations_unit_operations_patch_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `saasservicemgmt_projects_locations_unit_operations_patch_task()`.
+/// For the simplest API, use `saasservicemgmt_projects_locations_unit_operations_patch()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `saasservicemgmt_projects_locations_unit_operations_patch_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn saasservicemgmt_projects_locations_unit_operations_patch_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<UnitOperation>, ApiError>, P = ApiPending>
+        + Send
+        + 'static,
+    ApiError,
+> {
+    let task = saasservicemgmt_projects_locations_unit_operations_patch_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`saasservicemgmt_projects_locations_unit_operations_patch`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct SaasservicemgmtProjectsLocationsUnitOperationsPatchArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Query parameter: requestId
+    pub requestId: Option<Option<String>>,
+    /// Query parameter: updateMask
+    pub updateMask: Option<Option<String>>,
+    /// Query parameter: validateOnly
+    pub validateOnly: Option<Option<String>>,
+}
+
+/// PATCH v1/projects/{projectsId}/locations/{locationsId}/unitOperations/{unitOperationsId}
+/// Update a single unit operation.
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `saasservicemgmt_projects_locations_unit_operations_patch_builder()` + `saasservicemgmt_projects_locations_unit_operations_patch_execute()`.
+/// For task-level control, use `saasservicemgmt_projects_locations_unit_operations_patch_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn saasservicemgmt_projects_locations_unit_operations_patch(
+    client: &SimpleHttpClient,
+    args: &SaasservicemgmtProjectsLocationsUnitOperationsPatchArgs,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<UnitOperation>, ApiError>, P = ApiPending>
+        + Send
+        + 'static,
+    ApiError,
+> {
+    let builder = saasservicemgmt_projects_locations_unit_operations_patch_builder(
+        client,
+        &args.name,
+        &args.requestId,
+        &args.updateMask,
+        &args.validateOnly,
+    )?;
+    saasservicemgmt_projects_locations_unit_operations_patch_execute(builder)
+}
+
+/// POST v1/projects/{projectsId}/locations/{locationsId}/units
+/// Create a new unit.
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `saasservicemgmt_projects_locations_units_create_execute()` to send, or `saasservicemgmt_projects_locations_units_create` for simplest API.
+
+pub fn saasservicemgmt_projects_locations_units_create_builder(
+    client: &SimpleHttpClient,
+    parent: &String,
+    requestId: &Option<Option<String>>,
+    unitId: &Option<Option<String>>,
+    validateOnly: &Option<Option<String>>,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!(
+        "https://saasservicemgmt.googleapis.com/v1/projects/{}/locations/{locationsId}/units",
+        parent,
+    );
+
+    // Build request
+    let mut query_parts = Vec::new();
+    if let Some(val) = requestId.as_ref() {
+        query_parts.push(format!("requestId={}", val));
+    }
+    if let Some(val) = unitId.as_ref() {
+        query_parts.push(format!("unitId={}", val));
+    }
+    if let Some(val) = validateOnly.as_ref() {
+        query_parts.push(format!("validateOnly={}", val));
+    }
+
+    let url_with_query = if query_parts.is_empty() {
+        endpoint_url
+    } else {
+        format!("{}?{}", endpoint_url, query_parts.join("&"))
+    };
+
+    let builder = client
+        .post(&url_with_query)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// POST v1/projects/{projectsId}/locations/{locationsId}/units
+/// Create a new unit.
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `saasservicemgmt_projects_locations_units_create_execute()` or `saasservicemgmt_projects_locations_units_create`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `saasservicemgmt_projects_locations_units_create_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn saasservicemgmt_projects_locations_units_create_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<Unit>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: Unit = serde_json::from_str(&body)
+                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// POST v1/projects/{projectsId}/locations/{locationsId}/units
+/// Create a new unit.
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `saasservicemgmt_projects_locations_units_create_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `saasservicemgmt_projects_locations_units_create_task()`.
+/// For the simplest API, use `saasservicemgmt_projects_locations_units_create()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `saasservicemgmt_projects_locations_units_create_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn saasservicemgmt_projects_locations_units_create_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<Unit>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let task = saasservicemgmt_projects_locations_units_create_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`saasservicemgmt_projects_locations_units_create`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct SaasservicemgmtProjectsLocationsUnitsCreateArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Query parameter: requestId
+    pub requestId: Option<Option<String>>,
+    /// Query parameter: unitId
+    pub unitId: Option<Option<String>>,
+    /// Query parameter: validateOnly
+    pub validateOnly: Option<Option<String>>,
+}
+
+/// POST v1/projects/{projectsId}/locations/{locationsId}/units
+/// Create a new unit.
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `saasservicemgmt_projects_locations_units_create_builder()` + `saasservicemgmt_projects_locations_units_create_execute()`.
+/// For task-level control, use `saasservicemgmt_projects_locations_units_create_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn saasservicemgmt_projects_locations_units_create(
+    client: &SimpleHttpClient,
+    args: &SaasservicemgmtProjectsLocationsUnitsCreateArgs,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<Unit>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let builder = saasservicemgmt_projects_locations_units_create_builder(
+        client,
+        &args.parent,
+        &args.requestId,
+        &args.unitId,
+        &args.validateOnly,
+    )?;
+    saasservicemgmt_projects_locations_units_create_execute(builder)
+}
+
+/// DELETE v1/projects/{projectsId}/locations/{locationsId}/units/{unitsId}
+/// Delete a single unit.
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `saasservicemgmt_projects_locations_units_delete_execute()` to send, or `saasservicemgmt_projects_locations_units_delete` for simplest API.
+
+pub fn saasservicemgmt_projects_locations_units_delete_builder(
+    client: &SimpleHttpClient,
+    name: &String,
+    etag: &Option<Option<String>>,
+    requestId: &Option<Option<String>>,
+    validateOnly: &Option<Option<String>>,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!(
+        "https://saasservicemgmt.googleapis.com/v1/projects/{}/locations/{locationsId}/units/{unitsId}",
+        name,
+    );
+
+    // Build request
+    let mut query_parts = Vec::new();
+    if let Some(val) = etag.as_ref() {
+        query_parts.push(format!("etag={}", val));
+    }
+    if let Some(val) = requestId.as_ref() {
+        query_parts.push(format!("requestId={}", val));
+    }
+    if let Some(val) = validateOnly.as_ref() {
+        query_parts.push(format!("validateOnly={}", val));
+    }
+
+    let url_with_query = if query_parts.is_empty() {
+        endpoint_url
+    } else {
+        format!("{}?{}", endpoint_url, query_parts.join("&"))
+    };
+
+    let builder = client
+        .delete(&url_with_query)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// DELETE v1/projects/{projectsId}/locations/{locationsId}/units/{unitsId}
+/// Delete a single unit.
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `saasservicemgmt_projects_locations_units_delete_execute()` or `saasservicemgmt_projects_locations_units_delete`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `saasservicemgmt_projects_locations_units_delete_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn saasservicemgmt_projects_locations_units_delete_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<Empty>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: Empty = serde_json::from_str(&body)
+                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// DELETE v1/projects/{projectsId}/locations/{locationsId}/units/{unitsId}
+/// Delete a single unit.
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `saasservicemgmt_projects_locations_units_delete_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `saasservicemgmt_projects_locations_units_delete_task()`.
+/// For the simplest API, use `saasservicemgmt_projects_locations_units_delete()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `saasservicemgmt_projects_locations_units_delete_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn saasservicemgmt_projects_locations_units_delete_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<Empty>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let task = saasservicemgmt_projects_locations_units_delete_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`saasservicemgmt_projects_locations_units_delete`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct SaasservicemgmtProjectsLocationsUnitsDeleteArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Query parameter: etag
+    pub etag: Option<Option<String>>,
+    /// Query parameter: requestId
+    pub requestId: Option<Option<String>>,
+    /// Query parameter: validateOnly
+    pub validateOnly: Option<Option<String>>,
+}
+
+/// DELETE v1/projects/{projectsId}/locations/{locationsId}/units/{unitsId}
+/// Delete a single unit.
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `saasservicemgmt_projects_locations_units_delete_builder()` + `saasservicemgmt_projects_locations_units_delete_execute()`.
+/// For task-level control, use `saasservicemgmt_projects_locations_units_delete_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn saasservicemgmt_projects_locations_units_delete(
+    client: &SimpleHttpClient,
+    args: &SaasservicemgmtProjectsLocationsUnitsDeleteArgs,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<Empty>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let builder = saasservicemgmt_projects_locations_units_delete_builder(
+        client,
+        &args.name,
+        &args.etag,
+        &args.requestId,
+        &args.validateOnly,
+    )?;
+    saasservicemgmt_projects_locations_units_delete_execute(builder)
+}
+
+/// GET v1/projects/{projectsId}/locations/{locationsId}/units/{unitsId}
+/// Retrieve a single unit.
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `saasservicemgmt_projects_locations_units_get_execute()` to send, or `saasservicemgmt_projects_locations_units_get` for simplest API.
+
+pub fn saasservicemgmt_projects_locations_units_get_builder(
+    client: &SimpleHttpClient,
+    name: &String,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!(
+        "https://saasservicemgmt.googleapis.com/v1/projects/{}/locations/{locationsId}/units/{unitsId}",
+        name,
+    );
+
+    // Build request
+    let builder = client
+        .get(&endpoint_url)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// GET v1/projects/{projectsId}/locations/{locationsId}/units/{unitsId}
+/// Retrieve a single unit.
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `saasservicemgmt_projects_locations_units_get_execute()` or `saasservicemgmt_projects_locations_units_get`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `saasservicemgmt_projects_locations_units_get_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn saasservicemgmt_projects_locations_units_get_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<Unit>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: Unit = serde_json::from_str(&body)
+                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// GET v1/projects/{projectsId}/locations/{locationsId}/units/{unitsId}
+/// Retrieve a single unit.
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `saasservicemgmt_projects_locations_units_get_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `saasservicemgmt_projects_locations_units_get_task()`.
+/// For the simplest API, use `saasservicemgmt_projects_locations_units_get()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `saasservicemgmt_projects_locations_units_get_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn saasservicemgmt_projects_locations_units_get_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<Unit>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let task = saasservicemgmt_projects_locations_units_get_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`saasservicemgmt_projects_locations_units_get`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct SaasservicemgmtProjectsLocationsUnitsGetArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
+/// GET v1/projects/{projectsId}/locations/{locationsId}/units/{unitsId}
+/// Retrieve a single unit.
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `saasservicemgmt_projects_locations_units_get_builder()` + `saasservicemgmt_projects_locations_units_get_execute()`.
+/// For task-level control, use `saasservicemgmt_projects_locations_units_get_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn saasservicemgmt_projects_locations_units_get(
+    client: &SimpleHttpClient,
+    args: &SaasservicemgmtProjectsLocationsUnitsGetArgs,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<Unit>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let builder = saasservicemgmt_projects_locations_units_get_builder(client, &args.name)?;
+    saasservicemgmt_projects_locations_units_get_execute(builder)
+}
+
+/// GET v1/projects/{projectsId}/locations/{locationsId}/units
+/// Retrieve a collection of units.
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `saasservicemgmt_projects_locations_units_list_execute()` to send, or `saasservicemgmt_projects_locations_units_list` for simplest API.
+
+pub fn saasservicemgmt_projects_locations_units_list_builder(
+    client: &SimpleHttpClient,
+    parent: &String,
+    filter: &Option<Option<String>>,
+    orderBy: &Option<Option<String>>,
+    pageSize: &Option<Option<String>>,
+    pageToken: &Option<Option<String>>,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!(
+        "https://saasservicemgmt.googleapis.com/v1/projects/{}/locations/{locationsId}/units",
+        parent,
+    );
+
+    // Build request
+    let mut query_parts = Vec::new();
+    if let Some(val) = filter.as_ref() {
+        query_parts.push(format!("filter={}", val));
+    }
+    if let Some(val) = orderBy.as_ref() {
+        query_parts.push(format!("orderBy={}", val));
+    }
+    if let Some(val) = pageSize.as_ref() {
+        query_parts.push(format!("pageSize={}", val));
+    }
+    if let Some(val) = pageToken.as_ref() {
+        query_parts.push(format!("pageToken={}", val));
+    }
+
+    let url_with_query = if query_parts.is_empty() {
+        endpoint_url
+    } else {
+        format!("{}?{}", endpoint_url, query_parts.join("&"))
+    };
+
+    let builder = client
+        .get(&url_with_query)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// GET v1/projects/{projectsId}/locations/{locationsId}/units
+/// Retrieve a collection of units.
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `saasservicemgmt_projects_locations_units_list_execute()` or `saasservicemgmt_projects_locations_units_list`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `saasservicemgmt_projects_locations_units_list_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn saasservicemgmt_projects_locations_units_list_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<ListUnitsResponse>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: ListUnitsResponse = serde_json::from_str(&body)
+                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// GET v1/projects/{projectsId}/locations/{locationsId}/units
+/// Retrieve a collection of units.
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `saasservicemgmt_projects_locations_units_list_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `saasservicemgmt_projects_locations_units_list_task()`.
+/// For the simplest API, use `saasservicemgmt_projects_locations_units_list()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `saasservicemgmt_projects_locations_units_list_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn saasservicemgmt_projects_locations_units_list_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<ListUnitsResponse>, ApiError>, P = ApiPending>
+        + Send
+        + 'static,
+    ApiError,
+> {
+    let task = saasservicemgmt_projects_locations_units_list_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`saasservicemgmt_projects_locations_units_list`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct SaasservicemgmtProjectsLocationsUnitsListArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Query parameter: filter
+    pub filter: Option<Option<String>>,
+    /// Query parameter: orderBy
+    pub orderBy: Option<Option<String>>,
+    /// Query parameter: pageSize
+    pub pageSize: Option<Option<String>>,
+    /// Query parameter: pageToken
+    pub pageToken: Option<Option<String>>,
+}
+
+/// GET v1/projects/{projectsId}/locations/{locationsId}/units
+/// Retrieve a collection of units.
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `saasservicemgmt_projects_locations_units_list_builder()` + `saasservicemgmt_projects_locations_units_list_execute()`.
+/// For task-level control, use `saasservicemgmt_projects_locations_units_list_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn saasservicemgmt_projects_locations_units_list(
+    client: &SimpleHttpClient,
+    args: &SaasservicemgmtProjectsLocationsUnitsListArgs,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<ListUnitsResponse>, ApiError>, P = ApiPending>
+        + Send
+        + 'static,
+    ApiError,
+> {
+    let builder = saasservicemgmt_projects_locations_units_list_builder(
+        client,
+        &args.parent,
+        &args.filter,
+        &args.orderBy,
+        &args.pageSize,
+        &args.pageToken,
+    )?;
+    saasservicemgmt_projects_locations_units_list_execute(builder)
+}
+
+/// PATCH v1/projects/{projectsId}/locations/{locationsId}/units/{unitsId}
+/// Update a single unit.
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `saasservicemgmt_projects_locations_units_patch_execute()` to send, or `saasservicemgmt_projects_locations_units_patch` for simplest API.
+
+pub fn saasservicemgmt_projects_locations_units_patch_builder(
+    client: &SimpleHttpClient,
+    name: &String,
+    requestId: &Option<Option<String>>,
+    updateMask: &Option<Option<String>>,
+    validateOnly: &Option<Option<String>>,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!(
+        "https://saasservicemgmt.googleapis.com/v1/projects/{}/locations/{locationsId}/units/{unitsId}",
+        name,
+    );
+
+    // Build request
+    let mut query_parts = Vec::new();
+    if let Some(val) = requestId.as_ref() {
+        query_parts.push(format!("requestId={}", val));
+    }
+    if let Some(val) = updateMask.as_ref() {
+        query_parts.push(format!("updateMask={}", val));
+    }
+    if let Some(val) = validateOnly.as_ref() {
+        query_parts.push(format!("validateOnly={}", val));
+    }
+
+    let url_with_query = if query_parts.is_empty() {
+        endpoint_url
+    } else {
+        format!("{}?{}", endpoint_url, query_parts.join("&"))
+    };
+
+    let builder = client
+        .patch(&url_with_query)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// PATCH v1/projects/{projectsId}/locations/{locationsId}/units/{unitsId}
+/// Update a single unit.
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `saasservicemgmt_projects_locations_units_patch_execute()` or `saasservicemgmt_projects_locations_units_patch`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `saasservicemgmt_projects_locations_units_patch_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn saasservicemgmt_projects_locations_units_patch_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<Unit>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: Unit = serde_json::from_str(&body)
+                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// PATCH v1/projects/{projectsId}/locations/{locationsId}/units/{unitsId}
+/// Update a single unit.
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `saasservicemgmt_projects_locations_units_patch_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `saasservicemgmt_projects_locations_units_patch_task()`.
+/// For the simplest API, use `saasservicemgmt_projects_locations_units_patch()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `saasservicemgmt_projects_locations_units_patch_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn saasservicemgmt_projects_locations_units_patch_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<Unit>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let task = saasservicemgmt_projects_locations_units_patch_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`saasservicemgmt_projects_locations_units_patch`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct SaasservicemgmtProjectsLocationsUnitsPatchArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Query parameter: requestId
+    pub requestId: Option<Option<String>>,
+    /// Query parameter: updateMask
+    pub updateMask: Option<Option<String>>,
+    /// Query parameter: validateOnly
+    pub validateOnly: Option<Option<String>>,
+}
+
+/// PATCH v1/projects/{projectsId}/locations/{locationsId}/units/{unitsId}
+/// Update a single unit.
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `saasservicemgmt_projects_locations_units_patch_builder()` + `saasservicemgmt_projects_locations_units_patch_execute()`.
+/// For task-level control, use `saasservicemgmt_projects_locations_units_patch_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn saasservicemgmt_projects_locations_units_patch(
+    client: &SimpleHttpClient,
+    args: &SaasservicemgmtProjectsLocationsUnitsPatchArgs,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<Unit>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let builder = saasservicemgmt_projects_locations_units_patch_builder(
+        client,
+        &args.name,
+        &args.requestId,
+        &args.updateMask,
+        &args.validateOnly,
+    )?;
+    saasservicemgmt_projects_locations_units_patch_execute(builder)
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for GoogleCloudLocationLocation
+// =============================================================================
+
+/// ResourceIdentifier implementation for GoogleCloudLocationLocation with SaasservicemgmtProjectsLocationsGetArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<SaasservicemgmtProjectsLocationsGetArgs> for GoogleCloudLocationLocation {
+    fn generate_resource_id(&self, input: &SaasservicemgmtProjectsLocationsGetArgs) -> String {
+        format!(
+            "gcp::saasservicemgmt::GoogleCloudLocationLocation/{}",
+            input.name
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::saasservicemgmt::GoogleCloudLocationLocation"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for ListLocationsResponse
+// =============================================================================
+
+/// ResourceIdentifier implementation for ListLocationsResponse with SaasservicemgmtProjectsLocationsListArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<SaasservicemgmtProjectsLocationsListArgs> for ListLocationsResponse {
+    fn generate_resource_id(&self, input: &SaasservicemgmtProjectsLocationsListArgs) -> String {
+        format!("gcp::saasservicemgmt::ListLocationsResponse/{}", input.name)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::saasservicemgmt::ListLocationsResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for Release
+// =============================================================================
+
+/// ResourceIdentifier implementation for Release with SaasservicemgmtProjectsLocationsReleasesCreateArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<SaasservicemgmtProjectsLocationsReleasesCreateArgs> for Release {
+    fn generate_resource_id(
+        &self,
+        input: &SaasservicemgmtProjectsLocationsReleasesCreateArgs,
+    ) -> String {
+        format!("gcp::saasservicemgmt::Release/{}", input.parent)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::saasservicemgmt::Release"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for Empty
+// =============================================================================
+
+/// ResourceIdentifier implementation for Empty with SaasservicemgmtProjectsLocationsReleasesDeleteArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<SaasservicemgmtProjectsLocationsReleasesDeleteArgs> for Empty {
+    fn generate_resource_id(
+        &self,
+        input: &SaasservicemgmtProjectsLocationsReleasesDeleteArgs,
+    ) -> String {
+        format!("gcp::saasservicemgmt::Empty/{}", input.name)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::saasservicemgmt::Empty"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for Release
+// =============================================================================
+
+/// ResourceIdentifier implementation for Release with SaasservicemgmtProjectsLocationsReleasesGetArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<SaasservicemgmtProjectsLocationsReleasesGetArgs> for Release {
+    fn generate_resource_id(
+        &self,
+        input: &SaasservicemgmtProjectsLocationsReleasesGetArgs,
+    ) -> String {
+        format!("gcp::saasservicemgmt::Release/{}", input.name)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::saasservicemgmt::Release"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for ListReleasesResponse
+// =============================================================================
+
+/// ResourceIdentifier implementation for ListReleasesResponse with SaasservicemgmtProjectsLocationsReleasesListArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<SaasservicemgmtProjectsLocationsReleasesListArgs> for ListReleasesResponse {
+    fn generate_resource_id(
+        &self,
+        input: &SaasservicemgmtProjectsLocationsReleasesListArgs,
+    ) -> String {
+        format!(
+            "gcp::saasservicemgmt::ListReleasesResponse/{}",
+            input.parent
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::saasservicemgmt::ListReleasesResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for Release
+// =============================================================================
+
+/// ResourceIdentifier implementation for Release with SaasservicemgmtProjectsLocationsReleasesPatchArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<SaasservicemgmtProjectsLocationsReleasesPatchArgs> for Release {
+    fn generate_resource_id(
+        &self,
+        input: &SaasservicemgmtProjectsLocationsReleasesPatchArgs,
+    ) -> String {
+        format!("gcp::saasservicemgmt::Release/{}", input.name)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::saasservicemgmt::Release"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for RolloutKind
+// =============================================================================
+
+/// ResourceIdentifier implementation for RolloutKind with SaasservicemgmtProjectsLocationsRolloutKindsCreateArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<SaasservicemgmtProjectsLocationsRolloutKindsCreateArgs> for RolloutKind {
+    fn generate_resource_id(
+        &self,
+        input: &SaasservicemgmtProjectsLocationsRolloutKindsCreateArgs,
+    ) -> String {
+        format!("gcp::saasservicemgmt::RolloutKind/{}", input.parent)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::saasservicemgmt::RolloutKind"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for Empty
+// =============================================================================
+
+/// ResourceIdentifier implementation for Empty with SaasservicemgmtProjectsLocationsRolloutKindsDeleteArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<SaasservicemgmtProjectsLocationsRolloutKindsDeleteArgs> for Empty {
+    fn generate_resource_id(
+        &self,
+        input: &SaasservicemgmtProjectsLocationsRolloutKindsDeleteArgs,
+    ) -> String {
+        format!("gcp::saasservicemgmt::Empty/{}", input.name)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::saasservicemgmt::Empty"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for RolloutKind
+// =============================================================================
+
+/// ResourceIdentifier implementation for RolloutKind with SaasservicemgmtProjectsLocationsRolloutKindsGetArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<SaasservicemgmtProjectsLocationsRolloutKindsGetArgs> for RolloutKind {
+    fn generate_resource_id(
+        &self,
+        input: &SaasservicemgmtProjectsLocationsRolloutKindsGetArgs,
+    ) -> String {
+        format!("gcp::saasservicemgmt::RolloutKind/{}", input.name)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::saasservicemgmt::RolloutKind"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for ListRolloutKindsResponse
+// =============================================================================
+
+/// ResourceIdentifier implementation for ListRolloutKindsResponse with SaasservicemgmtProjectsLocationsRolloutKindsListArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<SaasservicemgmtProjectsLocationsRolloutKindsListArgs>
+    for ListRolloutKindsResponse
+{
+    fn generate_resource_id(
+        &self,
+        input: &SaasservicemgmtProjectsLocationsRolloutKindsListArgs,
+    ) -> String {
+        format!(
+            "gcp::saasservicemgmt::ListRolloutKindsResponse/{}",
+            input.parent
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::saasservicemgmt::ListRolloutKindsResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for RolloutKind
+// =============================================================================
+
+/// ResourceIdentifier implementation for RolloutKind with SaasservicemgmtProjectsLocationsRolloutKindsPatchArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<SaasservicemgmtProjectsLocationsRolloutKindsPatchArgs> for RolloutKind {
+    fn generate_resource_id(
+        &self,
+        input: &SaasservicemgmtProjectsLocationsRolloutKindsPatchArgs,
+    ) -> String {
+        format!("gcp::saasservicemgmt::RolloutKind/{}", input.name)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::saasservicemgmt::RolloutKind"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for Rollout
+// =============================================================================
+
+/// ResourceIdentifier implementation for Rollout with SaasservicemgmtProjectsLocationsRolloutsCreateArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<SaasservicemgmtProjectsLocationsRolloutsCreateArgs> for Rollout {
+    fn generate_resource_id(
+        &self,
+        input: &SaasservicemgmtProjectsLocationsRolloutsCreateArgs,
+    ) -> String {
+        format!("gcp::saasservicemgmt::Rollout/{}", input.parent)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::saasservicemgmt::Rollout"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for Empty
+// =============================================================================
+
+/// ResourceIdentifier implementation for Empty with SaasservicemgmtProjectsLocationsRolloutsDeleteArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<SaasservicemgmtProjectsLocationsRolloutsDeleteArgs> for Empty {
+    fn generate_resource_id(
+        &self,
+        input: &SaasservicemgmtProjectsLocationsRolloutsDeleteArgs,
+    ) -> String {
+        format!("gcp::saasservicemgmt::Empty/{}", input.name)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::saasservicemgmt::Empty"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for Rollout
+// =============================================================================
+
+/// ResourceIdentifier implementation for Rollout with SaasservicemgmtProjectsLocationsRolloutsGetArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<SaasservicemgmtProjectsLocationsRolloutsGetArgs> for Rollout {
+    fn generate_resource_id(
+        &self,
+        input: &SaasservicemgmtProjectsLocationsRolloutsGetArgs,
+    ) -> String {
+        format!("gcp::saasservicemgmt::Rollout/{}", input.name)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::saasservicemgmt::Rollout"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for ListRolloutsResponse
+// =============================================================================
+
+/// ResourceIdentifier implementation for ListRolloutsResponse with SaasservicemgmtProjectsLocationsRolloutsListArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<SaasservicemgmtProjectsLocationsRolloutsListArgs> for ListRolloutsResponse {
+    fn generate_resource_id(
+        &self,
+        input: &SaasservicemgmtProjectsLocationsRolloutsListArgs,
+    ) -> String {
+        format!(
+            "gcp::saasservicemgmt::ListRolloutsResponse/{}",
+            input.parent
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::saasservicemgmt::ListRolloutsResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for Rollout
+// =============================================================================
+
+/// ResourceIdentifier implementation for Rollout with SaasservicemgmtProjectsLocationsRolloutsPatchArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<SaasservicemgmtProjectsLocationsRolloutsPatchArgs> for Rollout {
+    fn generate_resource_id(
+        &self,
+        input: &SaasservicemgmtProjectsLocationsRolloutsPatchArgs,
+    ) -> String {
+        format!("gcp::saasservicemgmt::Rollout/{}", input.name)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::saasservicemgmt::Rollout"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for Saas
+// =============================================================================
+
+/// ResourceIdentifier implementation for Saas with SaasservicemgmtProjectsLocationsSaasCreateArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<SaasservicemgmtProjectsLocationsSaasCreateArgs> for Saas {
+    fn generate_resource_id(
+        &self,
+        input: &SaasservicemgmtProjectsLocationsSaasCreateArgs,
+    ) -> String {
+        format!("gcp::saasservicemgmt::Saas/{}", input.parent)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::saasservicemgmt::Saas"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for Empty
+// =============================================================================
+
+/// ResourceIdentifier implementation for Empty with SaasservicemgmtProjectsLocationsSaasDeleteArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<SaasservicemgmtProjectsLocationsSaasDeleteArgs> for Empty {
+    fn generate_resource_id(
+        &self,
+        input: &SaasservicemgmtProjectsLocationsSaasDeleteArgs,
+    ) -> String {
+        format!("gcp::saasservicemgmt::Empty/{}", input.name)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::saasservicemgmt::Empty"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for Saas
+// =============================================================================
+
+/// ResourceIdentifier implementation for Saas with SaasservicemgmtProjectsLocationsSaasGetArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<SaasservicemgmtProjectsLocationsSaasGetArgs> for Saas {
+    fn generate_resource_id(&self, input: &SaasservicemgmtProjectsLocationsSaasGetArgs) -> String {
+        format!("gcp::saasservicemgmt::Saas/{}", input.name)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::saasservicemgmt::Saas"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for ListSaasResponse
+// =============================================================================
+
+/// ResourceIdentifier implementation for ListSaasResponse with SaasservicemgmtProjectsLocationsSaasListArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<SaasservicemgmtProjectsLocationsSaasListArgs> for ListSaasResponse {
+    fn generate_resource_id(&self, input: &SaasservicemgmtProjectsLocationsSaasListArgs) -> String {
+        format!("gcp::saasservicemgmt::ListSaasResponse/{}", input.parent)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::saasservicemgmt::ListSaasResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for Saas
+// =============================================================================
+
+/// ResourceIdentifier implementation for Saas with SaasservicemgmtProjectsLocationsSaasPatchArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<SaasservicemgmtProjectsLocationsSaasPatchArgs> for Saas {
+    fn generate_resource_id(
+        &self,
+        input: &SaasservicemgmtProjectsLocationsSaasPatchArgs,
+    ) -> String {
+        format!("gcp::saasservicemgmt::Saas/{}", input.name)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::saasservicemgmt::Saas"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for Tenant
+// =============================================================================
+
+/// ResourceIdentifier implementation for Tenant with SaasservicemgmtProjectsLocationsTenantsCreateArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<SaasservicemgmtProjectsLocationsTenantsCreateArgs> for Tenant {
+    fn generate_resource_id(
+        &self,
+        input: &SaasservicemgmtProjectsLocationsTenantsCreateArgs,
+    ) -> String {
+        format!("gcp::saasservicemgmt::Tenant/{}", input.parent)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::saasservicemgmt::Tenant"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for Empty
+// =============================================================================
+
+/// ResourceIdentifier implementation for Empty with SaasservicemgmtProjectsLocationsTenantsDeleteArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<SaasservicemgmtProjectsLocationsTenantsDeleteArgs> for Empty {
+    fn generate_resource_id(
+        &self,
+        input: &SaasservicemgmtProjectsLocationsTenantsDeleteArgs,
+    ) -> String {
+        format!("gcp::saasservicemgmt::Empty/{}", input.name)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::saasservicemgmt::Empty"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for Tenant
+// =============================================================================
+
+/// ResourceIdentifier implementation for Tenant with SaasservicemgmtProjectsLocationsTenantsGetArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<SaasservicemgmtProjectsLocationsTenantsGetArgs> for Tenant {
+    fn generate_resource_id(
+        &self,
+        input: &SaasservicemgmtProjectsLocationsTenantsGetArgs,
+    ) -> String {
+        format!("gcp::saasservicemgmt::Tenant/{}", input.name)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::saasservicemgmt::Tenant"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for ListTenantsResponse
+// =============================================================================
+
+/// ResourceIdentifier implementation for ListTenantsResponse with SaasservicemgmtProjectsLocationsTenantsListArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<SaasservicemgmtProjectsLocationsTenantsListArgs> for ListTenantsResponse {
+    fn generate_resource_id(
+        &self,
+        input: &SaasservicemgmtProjectsLocationsTenantsListArgs,
+    ) -> String {
+        format!("gcp::saasservicemgmt::ListTenantsResponse/{}", input.parent)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::saasservicemgmt::ListTenantsResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for Tenant
+// =============================================================================
+
+/// ResourceIdentifier implementation for Tenant with SaasservicemgmtProjectsLocationsTenantsPatchArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<SaasservicemgmtProjectsLocationsTenantsPatchArgs> for Tenant {
+    fn generate_resource_id(
+        &self,
+        input: &SaasservicemgmtProjectsLocationsTenantsPatchArgs,
+    ) -> String {
+        format!("gcp::saasservicemgmt::Tenant/{}", input.name)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::saasservicemgmt::Tenant"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for UnitKind
+// =============================================================================
+
+/// ResourceIdentifier implementation for UnitKind with SaasservicemgmtProjectsLocationsUnitKindsCreateArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<SaasservicemgmtProjectsLocationsUnitKindsCreateArgs> for UnitKind {
+    fn generate_resource_id(
+        &self,
+        input: &SaasservicemgmtProjectsLocationsUnitKindsCreateArgs,
+    ) -> String {
+        format!("gcp::saasservicemgmt::UnitKind/{}", input.parent)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::saasservicemgmt::UnitKind"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for Empty
+// =============================================================================
+
+/// ResourceIdentifier implementation for Empty with SaasservicemgmtProjectsLocationsUnitKindsDeleteArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<SaasservicemgmtProjectsLocationsUnitKindsDeleteArgs> for Empty {
+    fn generate_resource_id(
+        &self,
+        input: &SaasservicemgmtProjectsLocationsUnitKindsDeleteArgs,
+    ) -> String {
+        format!("gcp::saasservicemgmt::Empty/{}", input.name)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::saasservicemgmt::Empty"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for UnitKind
+// =============================================================================
+
+/// ResourceIdentifier implementation for UnitKind with SaasservicemgmtProjectsLocationsUnitKindsGetArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<SaasservicemgmtProjectsLocationsUnitKindsGetArgs> for UnitKind {
+    fn generate_resource_id(
+        &self,
+        input: &SaasservicemgmtProjectsLocationsUnitKindsGetArgs,
+    ) -> String {
+        format!("gcp::saasservicemgmt::UnitKind/{}", input.name)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::saasservicemgmt::UnitKind"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for ListUnitKindsResponse
+// =============================================================================
+
+/// ResourceIdentifier implementation for ListUnitKindsResponse with SaasservicemgmtProjectsLocationsUnitKindsListArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<SaasservicemgmtProjectsLocationsUnitKindsListArgs>
+    for ListUnitKindsResponse
+{
+    fn generate_resource_id(
+        &self,
+        input: &SaasservicemgmtProjectsLocationsUnitKindsListArgs,
+    ) -> String {
+        format!(
+            "gcp::saasservicemgmt::ListUnitKindsResponse/{}",
+            input.parent
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::saasservicemgmt::ListUnitKindsResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for UnitKind
+// =============================================================================
+
+/// ResourceIdentifier implementation for UnitKind with SaasservicemgmtProjectsLocationsUnitKindsPatchArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<SaasservicemgmtProjectsLocationsUnitKindsPatchArgs> for UnitKind {
+    fn generate_resource_id(
+        &self,
+        input: &SaasservicemgmtProjectsLocationsUnitKindsPatchArgs,
+    ) -> String {
+        format!("gcp::saasservicemgmt::UnitKind/{}", input.name)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::saasservicemgmt::UnitKind"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for UnitOperation
+// =============================================================================
+
+/// ResourceIdentifier implementation for UnitOperation with SaasservicemgmtProjectsLocationsUnitOperationsCreateArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<SaasservicemgmtProjectsLocationsUnitOperationsCreateArgs>
+    for UnitOperation
+{
+    fn generate_resource_id(
+        &self,
+        input: &SaasservicemgmtProjectsLocationsUnitOperationsCreateArgs,
+    ) -> String {
+        format!("gcp::saasservicemgmt::UnitOperation/{}", input.parent)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::saasservicemgmt::UnitOperation"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for Empty
+// =============================================================================
+
+/// ResourceIdentifier implementation for Empty with SaasservicemgmtProjectsLocationsUnitOperationsDeleteArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<SaasservicemgmtProjectsLocationsUnitOperationsDeleteArgs> for Empty {
+    fn generate_resource_id(
+        &self,
+        input: &SaasservicemgmtProjectsLocationsUnitOperationsDeleteArgs,
+    ) -> String {
+        format!("gcp::saasservicemgmt::Empty/{}", input.name)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::saasservicemgmt::Empty"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for UnitOperation
+// =============================================================================
+
+/// ResourceIdentifier implementation for UnitOperation with SaasservicemgmtProjectsLocationsUnitOperationsGetArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<SaasservicemgmtProjectsLocationsUnitOperationsGetArgs> for UnitOperation {
+    fn generate_resource_id(
+        &self,
+        input: &SaasservicemgmtProjectsLocationsUnitOperationsGetArgs,
+    ) -> String {
+        format!("gcp::saasservicemgmt::UnitOperation/{}", input.name)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::saasservicemgmt::UnitOperation"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for ListUnitOperationsResponse
+// =============================================================================
+
+/// ResourceIdentifier implementation for ListUnitOperationsResponse with SaasservicemgmtProjectsLocationsUnitOperationsListArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<SaasservicemgmtProjectsLocationsUnitOperationsListArgs>
+    for ListUnitOperationsResponse
+{
+    fn generate_resource_id(
+        &self,
+        input: &SaasservicemgmtProjectsLocationsUnitOperationsListArgs,
+    ) -> String {
+        format!(
+            "gcp::saasservicemgmt::ListUnitOperationsResponse/{}",
+            input.parent
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::saasservicemgmt::ListUnitOperationsResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for UnitOperation
+// =============================================================================
+
+/// ResourceIdentifier implementation for UnitOperation with SaasservicemgmtProjectsLocationsUnitOperationsPatchArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<SaasservicemgmtProjectsLocationsUnitOperationsPatchArgs> for UnitOperation {
+    fn generate_resource_id(
+        &self,
+        input: &SaasservicemgmtProjectsLocationsUnitOperationsPatchArgs,
+    ) -> String {
+        format!("gcp::saasservicemgmt::UnitOperation/{}", input.name)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::saasservicemgmt::UnitOperation"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for Unit
+// =============================================================================
+
+/// ResourceIdentifier implementation for Unit with SaasservicemgmtProjectsLocationsUnitsCreateArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<SaasservicemgmtProjectsLocationsUnitsCreateArgs> for Unit {
+    fn generate_resource_id(
+        &self,
+        input: &SaasservicemgmtProjectsLocationsUnitsCreateArgs,
+    ) -> String {
+        format!("gcp::saasservicemgmt::Unit/{}", input.parent)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::saasservicemgmt::Unit"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for Empty
+// =============================================================================
+
+/// ResourceIdentifier implementation for Empty with SaasservicemgmtProjectsLocationsUnitsDeleteArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<SaasservicemgmtProjectsLocationsUnitsDeleteArgs> for Empty {
+    fn generate_resource_id(
+        &self,
+        input: &SaasservicemgmtProjectsLocationsUnitsDeleteArgs,
+    ) -> String {
+        format!("gcp::saasservicemgmt::Empty/{}", input.name)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::saasservicemgmt::Empty"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for Unit
+// =============================================================================
+
+/// ResourceIdentifier implementation for Unit with SaasservicemgmtProjectsLocationsUnitsGetArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<SaasservicemgmtProjectsLocationsUnitsGetArgs> for Unit {
+    fn generate_resource_id(&self, input: &SaasservicemgmtProjectsLocationsUnitsGetArgs) -> String {
+        format!("gcp::saasservicemgmt::Unit/{}", input.name)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::saasservicemgmt::Unit"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for ListUnitsResponse
+// =============================================================================
+
+/// ResourceIdentifier implementation for ListUnitsResponse with SaasservicemgmtProjectsLocationsUnitsListArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<SaasservicemgmtProjectsLocationsUnitsListArgs> for ListUnitsResponse {
+    fn generate_resource_id(
+        &self,
+        input: &SaasservicemgmtProjectsLocationsUnitsListArgs,
+    ) -> String {
+        format!("gcp::saasservicemgmt::ListUnitsResponse/{}", input.parent)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::saasservicemgmt::ListUnitsResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for Unit
+// =============================================================================
+
+/// ResourceIdentifier implementation for Unit with SaasservicemgmtProjectsLocationsUnitsPatchArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<SaasservicemgmtProjectsLocationsUnitsPatchArgs> for Unit {
+    fn generate_resource_id(
+        &self,
+        input: &SaasservicemgmtProjectsLocationsUnitsPatchArgs,
+    ) -> String {
+        format!("gcp::saasservicemgmt::Unit/{}", input.name)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::saasservicemgmt::Unit"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
 }

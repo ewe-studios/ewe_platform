@@ -7,7 +7,6 @@
 
 #![cfg(feature = "gcp")]
 
-
 use crate::providers::gcp::clients::types::*;
 use crate::providers::gcp::resources::*;
 use foundation_core::valtron::{
@@ -17,10 +16,11 @@ use foundation_core::valtron::{
 use foundation_core::wire::simple_http::client::{
     body_reader, ClientRequestBuilder, RequestIntro, SimpleHttpClient, SystemDnsResolver,
 };
+use foundation_db::state::resource_identifier::ResourceIdentifier;
 use foundation_macros::JsonHash;
 use serde::Serialize;
 
-/// GET v3/discovery:client_status
+/// POST v3/discovery:client_status
 ///
 ///
 /// Returns `ClientRequestBuilder` for customization.
@@ -28,7 +28,6 @@ use serde::Serialize;
 
 pub fn trafficdirector_discovery_client_status_builder(
     client: &SimpleHttpClient,
-    body: &ClientStatusRequest,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url =
@@ -36,15 +35,13 @@ pub fn trafficdirector_discovery_client_status_builder(
 
     // Build request
     let builder = client
-        .get(&endpoint_url)
+        .post(&endpoint_url)
         .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
 
-    builder
-        .body_json(body)
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+    Ok(builder)
 }
 
-/// GET v3/discovery:client_status
+/// POST v3/discovery:client_status
 ///
 ///
 /// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
@@ -118,7 +115,7 @@ pub fn trafficdirector_discovery_client_status_task(
         .map_pending(|_| ApiPending::Sending))
 }
 
-/// GET v3/discovery:client_status
+/// POST v3/discovery:client_status
 ///
 ///
 /// Takes a `ClientRequestBuilder`, builds and executes the request,
@@ -150,14 +147,7 @@ pub fn trafficdirector_discovery_client_status_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
-/// Arguments for [`trafficdirector_discovery_client_status`].
-#[derive(Debug, Clone, Serialize, JsonHash)]
-pub struct TrafficdirectorDiscoveryClientStatusArgs {
-    /// Request body.
-    pub body: ClientStatusRequest,
-}
-
-/// GET v3/discovery:client_status
+/// POST v3/discovery:client_status
 ///
 ///
 /// Simplest API - builds and executes the request in one call.
@@ -170,13 +160,35 @@ pub struct TrafficdirectorDiscoveryClientStatusArgs {
 
 pub fn trafficdirector_discovery_client_status(
     client: &SimpleHttpClient,
-    args: &TrafficdirectorDiscoveryClientStatusArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<ClientStatusResponse>, ApiError>, P = ApiPending>
         + Send
         + 'static,
     ApiError,
 > {
-    let builder = trafficdirector_discovery_client_status_builder(client, &args.body)?;
+    let builder = trafficdirector_discovery_client_status_builder(client)?;
     trafficdirector_discovery_client_status_execute(builder)
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for ClientStatusResponse
+// =============================================================================
+
+/// ResourceIdentifier implementation for ClientStatusResponse with TrafficdirectorDiscoveryClientStatusArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<TrafficdirectorDiscoveryClientStatusArgs> for ClientStatusResponse {
+    fn generate_resource_id(&self, input: &TrafficdirectorDiscoveryClientStatusArgs) -> String {
+        "gcp::trafficdirector::ClientStatusResponse".to_string()
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::trafficdirector::ClientStatusResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
 }

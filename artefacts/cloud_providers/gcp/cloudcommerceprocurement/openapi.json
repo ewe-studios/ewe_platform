@@ -518,7 +518,7 @@
       }
     }
   },
-  "revision": "20260329",
+  "revision": "20260405",
   "rootUrl": "https://cloudcommerceprocurement.googleapis.com/",
   "schemas": {
     "Account": {

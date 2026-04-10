@@ -7,7 +7,6 @@
 
 #![cfg(feature = "gcp")]
 
-
 use crate::providers::gcp::clients::types::*;
 use crate::providers::gcp::resources::*;
 use foundation_core::valtron::{
@@ -17,8 +16,166 @@ use foundation_core::valtron::{
 use foundation_core::wire::simple_http::client::{
     body_reader, ClientRequestBuilder, RequestIntro, SimpleHttpClient, SystemDnsResolver,
 };
+use foundation_db::state::resource_identifier::ResourceIdentifier;
 use foundation_macros::JsonHash;
 use serde::Serialize;
+
+/// GET v1/projects/{projectsId}/locations/{locationsId}
+/// Gets information about a location.
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `domains_projects_locations_get_execute()` to send, or `domains_projects_locations_get` for simplest API.
+
+pub fn domains_projects_locations_get_builder(
+    client: &SimpleHttpClient,
+    name: &String,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!(
+        "https://domains.googleapis.com/v1/projects/{}/locations/{locationsId}",
+        name,
+    );
+
+    // Build request
+    let builder = client
+        .get(&endpoint_url)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// GET v1/projects/{projectsId}/locations/{locationsId}
+/// Gets information about a location.
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `domains_projects_locations_get_execute()` or `domains_projects_locations_get`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `domains_projects_locations_get_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn domains_projects_locations_get_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<Location>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: Location = serde_json::from_str(&body)
+                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// GET v1/projects/{projectsId}/locations/{locationsId}
+/// Gets information about a location.
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `domains_projects_locations_get_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `domains_projects_locations_get_task()`.
+/// For the simplest API, use `domains_projects_locations_get()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `domains_projects_locations_get_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn domains_projects_locations_get_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<Location>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let task = domains_projects_locations_get_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`domains_projects_locations_get`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct DomainsProjectsLocationsGetArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
+/// GET v1/projects/{projectsId}/locations/{locationsId}
+/// Gets information about a location.
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `domains_projects_locations_get_builder()` + `domains_projects_locations_get_execute()`.
+/// For task-level control, use `domains_projects_locations_get_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn domains_projects_locations_get(
+    client: &SimpleHttpClient,
+    args: &DomainsProjectsLocationsGetArgs,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<Location>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let builder = domains_projects_locations_get_builder(client, &args.name)?;
+    domains_projects_locations_get_execute(builder)
+}
 
 /// GET v1/projects/{projectsId}/locations
 /// Lists information about the supported locations for this service. This method can be called in two ways: * **List all public locations:** Use the path GET /v1/locations. * **List project-visible locations:** Use the path GET /v1/`projects/{project_id}/locations`. This may include public locations as well as private or other locations specifically visible to the project.
@@ -29,13 +186,16 @@ use serde::Serialize;
 pub fn domains_projects_locations_list_builder(
     client: &SimpleHttpClient,
     name: &String,
-    extraLocationTypes: &Option<String>,
-    filter: &Option<String>,
-    pageSize: &Option<i32>,
-    pageToken: &Option<String>,
+    extraLocationTypes: &Option<Option<String>>,
+    filter: &Option<Option<String>>,
+    pageSize: &Option<Option<String>>,
+    pageToken: &Option<Option<String>>,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
-    let endpoint_url = format!("https://domains.googleapis.com/v1/projects/{}/locations",);
+    let endpoint_url = format!(
+        "https://domains.googleapis.com/v1/projects/{}/locations",
+        name,
+    );
 
     // Build request
     let mut query_parts = Vec::new();
@@ -177,13 +337,13 @@ pub struct DomainsProjectsLocationsListArgs {
     /// Path parameter: name
     pub name: String,
     /// Query parameter: extraLocationTypes
-    pub extraLocationTypes: Option<String>,
+    pub extraLocationTypes: Option<Option<String>>,
     /// Query parameter: filter
-    pub filter: Option<String>,
+    pub filter: Option<Option<String>>,
     /// Query parameter: pageSize
-    pub pageSize: Option<i32>,
+    pub pageSize: Option<Option<String>>,
     /// Query parameter: pageToken
-    pub pageToken: Option<String>,
+    pub pageToken: Option<Option<String>>,
 }
 
 /// GET v1/projects/{projectsId}/locations
@@ -215,4 +375,5167 @@ pub fn domains_projects_locations_list(
         &args.pageToken,
     )?;
     domains_projects_locations_list_execute(builder)
+}
+
+/// GET v1/projects/{projectsId}/locations/{locationsId}/operations/{operationsId}
+/// Gets the latest state of a long-running operation. Clients can use this method to poll the operation result at intervals as recommended by the API service.
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `domains_projects_locations_operations_get_execute()` to send, or `domains_projects_locations_operations_get` for simplest API.
+
+pub fn domains_projects_locations_operations_get_builder(
+    client: &SimpleHttpClient,
+    name: &String,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!(
+        "https://domains.googleapis.com/v1/projects/{}/locations/{locationsId}/operations/{operationsId}",
+        name,
+    );
+
+    // Build request
+    let builder = client
+        .get(&endpoint_url)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// GET v1/projects/{projectsId}/locations/{locationsId}/operations/{operationsId}
+/// Gets the latest state of a long-running operation. Clients can use this method to poll the operation result at intervals as recommended by the API service.
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `domains_projects_locations_operations_get_execute()` or `domains_projects_locations_operations_get`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `domains_projects_locations_operations_get_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn domains_projects_locations_operations_get_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<Operation>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: Operation = serde_json::from_str(&body)
+                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// GET v1/projects/{projectsId}/locations/{locationsId}/operations/{operationsId}
+/// Gets the latest state of a long-running operation. Clients can use this method to poll the operation result at intervals as recommended by the API service.
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `domains_projects_locations_operations_get_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `domains_projects_locations_operations_get_task()`.
+/// For the simplest API, use `domains_projects_locations_operations_get()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `domains_projects_locations_operations_get_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn domains_projects_locations_operations_get_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<Operation>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let task = domains_projects_locations_operations_get_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`domains_projects_locations_operations_get`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct DomainsProjectsLocationsOperationsGetArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
+/// GET v1/projects/{projectsId}/locations/{locationsId}/operations/{operationsId}
+/// Gets the latest state of a long-running operation. Clients can use this method to poll the operation result at intervals as recommended by the API service.
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `domains_projects_locations_operations_get_builder()` + `domains_projects_locations_operations_get_execute()`.
+/// For task-level control, use `domains_projects_locations_operations_get_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn domains_projects_locations_operations_get(
+    client: &SimpleHttpClient,
+    args: &DomainsProjectsLocationsOperationsGetArgs,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<Operation>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let builder = domains_projects_locations_operations_get_builder(client, &args.name)?;
+    domains_projects_locations_operations_get_execute(builder)
+}
+
+/// GET v1/projects/{projectsId}/locations/{locationsId}/operations
+/// Lists operations that match the specified filter in the request. If the server doesn't support this method, it returns UNIMPLEMENTED.
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `domains_projects_locations_operations_list_execute()` to send, or `domains_projects_locations_operations_list` for simplest API.
+
+pub fn domains_projects_locations_operations_list_builder(
+    client: &SimpleHttpClient,
+    name: &String,
+    filter: &Option<Option<String>>,
+    pageSize: &Option<Option<String>>,
+    pageToken: &Option<Option<String>>,
+    returnPartialSuccess: &Option<Option<String>>,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!(
+        "https://domains.googleapis.com/v1/projects/{}/locations/{locationsId}/operations",
+        name,
+    );
+
+    // Build request
+    let mut query_parts = Vec::new();
+    if let Some(val) = filter.as_ref() {
+        query_parts.push(format!("filter={}", val));
+    }
+    if let Some(val) = pageSize.as_ref() {
+        query_parts.push(format!("pageSize={}", val));
+    }
+    if let Some(val) = pageToken.as_ref() {
+        query_parts.push(format!("pageToken={}", val));
+    }
+    if let Some(val) = returnPartialSuccess.as_ref() {
+        query_parts.push(format!("returnPartialSuccess={}", val));
+    }
+
+    let url_with_query = if query_parts.is_empty() {
+        endpoint_url
+    } else {
+        format!("{}?{}", endpoint_url, query_parts.join("&"))
+    };
+
+    let builder = client
+        .get(&url_with_query)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// GET v1/projects/{projectsId}/locations/{locationsId}/operations
+/// Lists operations that match the specified filter in the request. If the server doesn't support this method, it returns UNIMPLEMENTED.
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `domains_projects_locations_operations_list_execute()` or `domains_projects_locations_operations_list`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `domains_projects_locations_operations_list_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn domains_projects_locations_operations_list_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<ListOperationsResponse>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: ListOperationsResponse = serde_json::from_str(&body)
+                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// GET v1/projects/{projectsId}/locations/{locationsId}/operations
+/// Lists operations that match the specified filter in the request. If the server doesn't support this method, it returns UNIMPLEMENTED.
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `domains_projects_locations_operations_list_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `domains_projects_locations_operations_list_task()`.
+/// For the simplest API, use `domains_projects_locations_operations_list()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `domains_projects_locations_operations_list_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn domains_projects_locations_operations_list_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<ListOperationsResponse>, ApiError>, P = ApiPending>
+        + Send
+        + 'static,
+    ApiError,
+> {
+    let task = domains_projects_locations_operations_list_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`domains_projects_locations_operations_list`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct DomainsProjectsLocationsOperationsListArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Query parameter: filter
+    pub filter: Option<Option<String>>,
+    /// Query parameter: pageSize
+    pub pageSize: Option<Option<String>>,
+    /// Query parameter: pageToken
+    pub pageToken: Option<Option<String>>,
+    /// Query parameter: returnPartialSuccess
+    pub returnPartialSuccess: Option<Option<String>>,
+}
+
+/// GET v1/projects/{projectsId}/locations/{locationsId}/operations
+/// Lists operations that match the specified filter in the request. If the server doesn't support this method, it returns UNIMPLEMENTED.
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `domains_projects_locations_operations_list_builder()` + `domains_projects_locations_operations_list_execute()`.
+/// For task-level control, use `domains_projects_locations_operations_list_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn domains_projects_locations_operations_list(
+    client: &SimpleHttpClient,
+    args: &DomainsProjectsLocationsOperationsListArgs,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<ListOperationsResponse>, ApiError>, P = ApiPending>
+        + Send
+        + 'static,
+    ApiError,
+> {
+    let builder = domains_projects_locations_operations_list_builder(
+        client,
+        &args.name,
+        &args.filter,
+        &args.pageSize,
+        &args.pageToken,
+        &args.returnPartialSuccess,
+    )?;
+    domains_projects_locations_operations_list_execute(builder)
+}
+
+/// POST v1/projects/{projectsId}/locations/{locationsId}/registrations/{registrationsId}:configureContactSettings
+/// Updates a Registration's contact settings. Some changes require confirmation by the domain's registrant contact . Caution: Please consider carefully any changes to contact privacy settings when changing from REDACTED_CONTACT_DATA to PUBLIC_CONTACT_DATA. There may be a delay in reflecting updates you make to registrant contact information such that any changes you make to contact privacy (including from REDACTED_CONTACT_DATA to PUBLIC_CONTACT_DATA) will be applied without delay but changes to registrant contact information may take a limited time to be publicized. This means that changes to contact privacy from REDACTED_CONTACT_DATA to PUBLIC_CONTACT_DATA may make the previous registrant contact data public until the modified registrant contact details are published.
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `domains_projects_locations_registrations_configure_contact_settings_execute()` to send, or `domains_projects_locations_registrations_configure_contact_settings` for simplest API.
+
+pub fn domains_projects_locations_registrations_configure_contact_settings_builder(
+    client: &SimpleHttpClient,
+    registration: &String,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!(
+        "https://domains.googleapis.com/v1/projects/{}/locations/{locationsId}/registrations/{registrationsId}:configureContactSettings",
+        registration,
+    );
+
+    // Build request
+    let builder = client
+        .post(&endpoint_url)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// POST v1/projects/{projectsId}/locations/{locationsId}/registrations/{registrationsId}:configureContactSettings
+/// Updates a Registration's contact settings. Some changes require confirmation by the domain's registrant contact . Caution: Please consider carefully any changes to contact privacy settings when changing from REDACTED_CONTACT_DATA to PUBLIC_CONTACT_DATA. There may be a delay in reflecting updates you make to registrant contact information such that any changes you make to contact privacy (including from REDACTED_CONTACT_DATA to PUBLIC_CONTACT_DATA) will be applied without delay but changes to registrant contact information may take a limited time to be publicized. This means that changes to contact privacy from REDACTED_CONTACT_DATA to PUBLIC_CONTACT_DATA may make the previous registrant contact data public until the modified registrant contact details are published.
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `domains_projects_locations_registrations_configure_contact_settings_execute()` or `domains_projects_locations_registrations_configure_contact_settings`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `domains_projects_locations_registrations_configure_contact_settings_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn domains_projects_locations_registrations_configure_contact_settings_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<Operation>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: Operation = serde_json::from_str(&body)
+                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// POST v1/projects/{projectsId}/locations/{locationsId}/registrations/{registrationsId}:configureContactSettings
+/// Updates a Registration's contact settings. Some changes require confirmation by the domain's registrant contact . Caution: Please consider carefully any changes to contact privacy settings when changing from REDACTED_CONTACT_DATA to PUBLIC_CONTACT_DATA. There may be a delay in reflecting updates you make to registrant contact information such that any changes you make to contact privacy (including from REDACTED_CONTACT_DATA to PUBLIC_CONTACT_DATA) will be applied without delay but changes to registrant contact information may take a limited time to be publicized. This means that changes to contact privacy from REDACTED_CONTACT_DATA to PUBLIC_CONTACT_DATA may make the previous registrant contact data public until the modified registrant contact details are published.
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `domains_projects_locations_registrations_configure_contact_settings_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `domains_projects_locations_registrations_configure_contact_settings_task()`.
+/// For the simplest API, use `domains_projects_locations_registrations_configure_contact_settings()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `domains_projects_locations_registrations_configure_contact_settings_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn domains_projects_locations_registrations_configure_contact_settings_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<Operation>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let task = domains_projects_locations_registrations_configure_contact_settings_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`domains_projects_locations_registrations_configure_contact_settings`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct DomainsProjectsLocationsRegistrationsConfigureContactSettingsArgs {
+    /// Path parameter: registration
+    pub registration: String,
+}
+
+/// POST v1/projects/{projectsId}/locations/{locationsId}/registrations/{registrationsId}:configureContactSettings
+/// Updates a Registration's contact settings. Some changes require confirmation by the domain's registrant contact . Caution: Please consider carefully any changes to contact privacy settings when changing from REDACTED_CONTACT_DATA to PUBLIC_CONTACT_DATA. There may be a delay in reflecting updates you make to registrant contact information such that any changes you make to contact privacy (including from REDACTED_CONTACT_DATA to PUBLIC_CONTACT_DATA) will be applied without delay but changes to registrant contact information may take a limited time to be publicized. This means that changes to contact privacy from REDACTED_CONTACT_DATA to PUBLIC_CONTACT_DATA may make the previous registrant contact data public until the modified registrant contact details are published.
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `domains_projects_locations_registrations_configure_contact_settings_builder()` + `domains_projects_locations_registrations_configure_contact_settings_execute()`.
+/// For task-level control, use `domains_projects_locations_registrations_configure_contact_settings_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn domains_projects_locations_registrations_configure_contact_settings(
+    client: &SimpleHttpClient,
+    args: &DomainsProjectsLocationsRegistrationsConfigureContactSettingsArgs,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<Operation>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let builder = domains_projects_locations_registrations_configure_contact_settings_builder(
+        client,
+        &args.registration,
+    )?;
+    domains_projects_locations_registrations_configure_contact_settings_execute(builder)
+}
+
+/// POST v1/projects/{projectsId}/locations/{locationsId}/registrations/{registrationsId}:configureDnsSettings
+/// Updates a Registration's DNS settings.
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `domains_projects_locations_registrations_configure_dns_settings_execute()` to send, or `domains_projects_locations_registrations_configure_dns_settings` for simplest API.
+
+pub fn domains_projects_locations_registrations_configure_dns_settings_builder(
+    client: &SimpleHttpClient,
+    registration: &String,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!(
+        "https://domains.googleapis.com/v1/projects/{}/locations/{locationsId}/registrations/{registrationsId}:configureDnsSettings",
+        registration,
+    );
+
+    // Build request
+    let builder = client
+        .post(&endpoint_url)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// POST v1/projects/{projectsId}/locations/{locationsId}/registrations/{registrationsId}:configureDnsSettings
+/// Updates a Registration's DNS settings.
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `domains_projects_locations_registrations_configure_dns_settings_execute()` or `domains_projects_locations_registrations_configure_dns_settings`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `domains_projects_locations_registrations_configure_dns_settings_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn domains_projects_locations_registrations_configure_dns_settings_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<Operation>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: Operation = serde_json::from_str(&body)
+                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// POST v1/projects/{projectsId}/locations/{locationsId}/registrations/{registrationsId}:configureDnsSettings
+/// Updates a Registration's DNS settings.
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `domains_projects_locations_registrations_configure_dns_settings_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `domains_projects_locations_registrations_configure_dns_settings_task()`.
+/// For the simplest API, use `domains_projects_locations_registrations_configure_dns_settings()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `domains_projects_locations_registrations_configure_dns_settings_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn domains_projects_locations_registrations_configure_dns_settings_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<Operation>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let task = domains_projects_locations_registrations_configure_dns_settings_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`domains_projects_locations_registrations_configure_dns_settings`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct DomainsProjectsLocationsRegistrationsConfigureDnsSettingsArgs {
+    /// Path parameter: registration
+    pub registration: String,
+}
+
+/// POST v1/projects/{projectsId}/locations/{locationsId}/registrations/{registrationsId}:configureDnsSettings
+/// Updates a Registration's DNS settings.
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `domains_projects_locations_registrations_configure_dns_settings_builder()` + `domains_projects_locations_registrations_configure_dns_settings_execute()`.
+/// For task-level control, use `domains_projects_locations_registrations_configure_dns_settings_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn domains_projects_locations_registrations_configure_dns_settings(
+    client: &SimpleHttpClient,
+    args: &DomainsProjectsLocationsRegistrationsConfigureDnsSettingsArgs,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<Operation>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let builder = domains_projects_locations_registrations_configure_dns_settings_builder(
+        client,
+        &args.registration,
+    )?;
+    domains_projects_locations_registrations_configure_dns_settings_execute(builder)
+}
+
+/// POST v1/projects/{projectsId}/locations/{locationsId}/registrations/{registrationsId}:configureManagementSettings
+/// Updates a Registration's management settings.
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `domains_projects_locations_registrations_configure_management_settings_execute()` to send, or `domains_projects_locations_registrations_configure_management_settings` for simplest API.
+
+pub fn domains_projects_locations_registrations_configure_management_settings_builder(
+    client: &SimpleHttpClient,
+    registration: &String,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!(
+        "https://domains.googleapis.com/v1/projects/{}/locations/{locationsId}/registrations/{registrationsId}:configureManagementSettings",
+        registration,
+    );
+
+    // Build request
+    let builder = client
+        .post(&endpoint_url)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// POST v1/projects/{projectsId}/locations/{locationsId}/registrations/{registrationsId}:configureManagementSettings
+/// Updates a Registration's management settings.
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `domains_projects_locations_registrations_configure_management_settings_execute()` or `domains_projects_locations_registrations_configure_management_settings`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `domains_projects_locations_registrations_configure_management_settings_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn domains_projects_locations_registrations_configure_management_settings_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<Operation>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: Operation = serde_json::from_str(&body)
+                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// POST v1/projects/{projectsId}/locations/{locationsId}/registrations/{registrationsId}:configureManagementSettings
+/// Updates a Registration's management settings.
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `domains_projects_locations_registrations_configure_management_settings_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `domains_projects_locations_registrations_configure_management_settings_task()`.
+/// For the simplest API, use `domains_projects_locations_registrations_configure_management_settings()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `domains_projects_locations_registrations_configure_management_settings_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn domains_projects_locations_registrations_configure_management_settings_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<Operation>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let task =
+        domains_projects_locations_registrations_configure_management_settings_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`domains_projects_locations_registrations_configure_management_settings`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct DomainsProjectsLocationsRegistrationsConfigureManagementSettingsArgs {
+    /// Path parameter: registration
+    pub registration: String,
+}
+
+/// POST v1/projects/{projectsId}/locations/{locationsId}/registrations/{registrationsId}:configureManagementSettings
+/// Updates a Registration's management settings.
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `domains_projects_locations_registrations_configure_management_settings_builder()` + `domains_projects_locations_registrations_configure_management_settings_execute()`.
+/// For task-level control, use `domains_projects_locations_registrations_configure_management_settings_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn domains_projects_locations_registrations_configure_management_settings(
+    client: &SimpleHttpClient,
+    args: &DomainsProjectsLocationsRegistrationsConfigureManagementSettingsArgs,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<Operation>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let builder = domains_projects_locations_registrations_configure_management_settings_builder(
+        client,
+        &args.registration,
+    )?;
+    domains_projects_locations_registrations_configure_management_settings_execute(builder)
+}
+
+/// DELETE v1/projects/{projectsId}/locations/{locationsId}/registrations/{registrationsId}
+/// Deletes a Registration resource. This method works on any Registration resource using [Subscription or Commitment billing](/`domains/pricing`#billing-models), provided that the resource was created at least 1 day in the past. When an active registration is successfully deleted, you can continue to use the domain in [Google Domains](<https://domains.google/>) until it expires. The calling user becomes the domain's sole owner in Google Domains, and permissions for the domain are subsequently managed there. The domain does not renew automatically unless the new owner sets up billing in Google Domains. After January 2024 you will only be able to delete Registration resources when state is one of: EXPORTED, EXPIRED,REGISTRATION_FAILED or TRANSFER_FAILED. See [Cloud Domains feature deprecation](<https://cloud.google.`com/domains/docs/deprecations/feature-deprecations`>) for more details.
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `domains_projects_locations_registrations_delete_execute()` to send, or `domains_projects_locations_registrations_delete` for simplest API.
+
+pub fn domains_projects_locations_registrations_delete_builder(
+    client: &SimpleHttpClient,
+    name: &String,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!(
+        "https://domains.googleapis.com/v1/projects/{}/locations/{locationsId}/registrations/{registrationsId}",
+        name,
+    );
+
+    // Build request
+    let builder = client
+        .delete(&endpoint_url)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// DELETE v1/projects/{projectsId}/locations/{locationsId}/registrations/{registrationsId}
+/// Deletes a Registration resource. This method works on any Registration resource using [Subscription or Commitment billing](/`domains/pricing`#billing-models), provided that the resource was created at least 1 day in the past. When an active registration is successfully deleted, you can continue to use the domain in [Google Domains](<https://domains.google/>) until it expires. The calling user becomes the domain's sole owner in Google Domains, and permissions for the domain are subsequently managed there. The domain does not renew automatically unless the new owner sets up billing in Google Domains. After January 2024 you will only be able to delete Registration resources when state is one of: EXPORTED, EXPIRED,REGISTRATION_FAILED or TRANSFER_FAILED. See [Cloud Domains feature deprecation](<https://cloud.google.`com/domains/docs/deprecations/feature-deprecations`>) for more details.
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `domains_projects_locations_registrations_delete_execute()` or `domains_projects_locations_registrations_delete`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `domains_projects_locations_registrations_delete_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn domains_projects_locations_registrations_delete_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<Operation>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: Operation = serde_json::from_str(&body)
+                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// DELETE v1/projects/{projectsId}/locations/{locationsId}/registrations/{registrationsId}
+/// Deletes a Registration resource. This method works on any Registration resource using [Subscription or Commitment billing](/`domains/pricing`#billing-models), provided that the resource was created at least 1 day in the past. When an active registration is successfully deleted, you can continue to use the domain in [Google Domains](<https://domains.google/>) until it expires. The calling user becomes the domain's sole owner in Google Domains, and permissions for the domain are subsequently managed there. The domain does not renew automatically unless the new owner sets up billing in Google Domains. After January 2024 you will only be able to delete Registration resources when state is one of: EXPORTED, EXPIRED,REGISTRATION_FAILED or TRANSFER_FAILED. See [Cloud Domains feature deprecation](<https://cloud.google.`com/domains/docs/deprecations/feature-deprecations`>) for more details.
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `domains_projects_locations_registrations_delete_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `domains_projects_locations_registrations_delete_task()`.
+/// For the simplest API, use `domains_projects_locations_registrations_delete()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `domains_projects_locations_registrations_delete_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn domains_projects_locations_registrations_delete_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<Operation>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let task = domains_projects_locations_registrations_delete_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`domains_projects_locations_registrations_delete`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct DomainsProjectsLocationsRegistrationsDeleteArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
+/// DELETE v1/projects/{projectsId}/locations/{locationsId}/registrations/{registrationsId}
+/// Deletes a Registration resource. This method works on any Registration resource using [Subscription or Commitment billing](/`domains/pricing`#billing-models), provided that the resource was created at least 1 day in the past. When an active registration is successfully deleted, you can continue to use the domain in [Google Domains](<https://domains.google/>) until it expires. The calling user becomes the domain's sole owner in Google Domains, and permissions for the domain are subsequently managed there. The domain does not renew automatically unless the new owner sets up billing in Google Domains. After January 2024 you will only be able to delete Registration resources when state is one of: EXPORTED, EXPIRED,REGISTRATION_FAILED or TRANSFER_FAILED. See [Cloud Domains feature deprecation](<https://cloud.google.`com/domains/docs/deprecations/feature-deprecations`>) for more details.
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `domains_projects_locations_registrations_delete_builder()` + `domains_projects_locations_registrations_delete_execute()`.
+/// For task-level control, use `domains_projects_locations_registrations_delete_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn domains_projects_locations_registrations_delete(
+    client: &SimpleHttpClient,
+    args: &DomainsProjectsLocationsRegistrationsDeleteArgs,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<Operation>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let builder = domains_projects_locations_registrations_delete_builder(client, &args.name)?;
+    domains_projects_locations_registrations_delete_execute(builder)
+}
+
+/// POST v1/projects/{projectsId}/locations/{locationsId}/registrations/{registrationsId}:export
+/// Deprecated: For more information, see [Cloud Domains feature deprecation](<https://cloud.google.`com/domains/docs/deprecations/feature-deprecations`>) Exports a Registration resource, such that it is no longer managed by Cloud Domains. When an active domain is successfully exported, you can continue to use the domain in [Google Domains](<https://domains.google/>) until it expires. The calling user becomes the domain's sole owner in Google Domains, and permissions for the domain are subsequently managed there. The domain does not renew automatically unless the new owner sets up billing in Google Domains.
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `domains_projects_locations_registrations_export_execute()` to send, or `domains_projects_locations_registrations_export` for simplest API.
+
+pub fn domains_projects_locations_registrations_export_builder(
+    client: &SimpleHttpClient,
+    name: &String,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!(
+        "https://domains.googleapis.com/v1/projects/{}/locations/{locationsId}/registrations/{registrationsId}:export",
+        name,
+    );
+
+    // Build request
+    let builder = client
+        .post(&endpoint_url)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// POST v1/projects/{projectsId}/locations/{locationsId}/registrations/{registrationsId}:export
+/// Deprecated: For more information, see [Cloud Domains feature deprecation](<https://cloud.google.`com/domains/docs/deprecations/feature-deprecations`>) Exports a Registration resource, such that it is no longer managed by Cloud Domains. When an active domain is successfully exported, you can continue to use the domain in [Google Domains](<https://domains.google/>) until it expires. The calling user becomes the domain's sole owner in Google Domains, and permissions for the domain are subsequently managed there. The domain does not renew automatically unless the new owner sets up billing in Google Domains.
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `domains_projects_locations_registrations_export_execute()` or `domains_projects_locations_registrations_export`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `domains_projects_locations_registrations_export_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn domains_projects_locations_registrations_export_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<Operation>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: Operation = serde_json::from_str(&body)
+                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// POST v1/projects/{projectsId}/locations/{locationsId}/registrations/{registrationsId}:export
+/// Deprecated: For more information, see [Cloud Domains feature deprecation](<https://cloud.google.`com/domains/docs/deprecations/feature-deprecations`>) Exports a Registration resource, such that it is no longer managed by Cloud Domains. When an active domain is successfully exported, you can continue to use the domain in [Google Domains](<https://domains.google/>) until it expires. The calling user becomes the domain's sole owner in Google Domains, and permissions for the domain are subsequently managed there. The domain does not renew automatically unless the new owner sets up billing in Google Domains.
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `domains_projects_locations_registrations_export_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `domains_projects_locations_registrations_export_task()`.
+/// For the simplest API, use `domains_projects_locations_registrations_export()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `domains_projects_locations_registrations_export_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn domains_projects_locations_registrations_export_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<Operation>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let task = domains_projects_locations_registrations_export_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`domains_projects_locations_registrations_export`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct DomainsProjectsLocationsRegistrationsExportArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
+/// POST v1/projects/{projectsId}/locations/{locationsId}/registrations/{registrationsId}:export
+/// Deprecated: For more information, see [Cloud Domains feature deprecation](<https://cloud.google.`com/domains/docs/deprecations/feature-deprecations`>) Exports a Registration resource, such that it is no longer managed by Cloud Domains. When an active domain is successfully exported, you can continue to use the domain in [Google Domains](<https://domains.google/>) until it expires. The calling user becomes the domain's sole owner in Google Domains, and permissions for the domain are subsequently managed there. The domain does not renew automatically unless the new owner sets up billing in Google Domains.
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `domains_projects_locations_registrations_export_builder()` + `domains_projects_locations_registrations_export_execute()`.
+/// For task-level control, use `domains_projects_locations_registrations_export_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn domains_projects_locations_registrations_export(
+    client: &SimpleHttpClient,
+    args: &DomainsProjectsLocationsRegistrationsExportArgs,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<Operation>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let builder = domains_projects_locations_registrations_export_builder(client, &args.name)?;
+    domains_projects_locations_registrations_export_execute(builder)
+}
+
+/// GET v1/projects/{projectsId}/locations/{locationsId}/registrations/{registrationsId}
+/// Gets the details of a Registration resource.
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `domains_projects_locations_registrations_get_execute()` to send, or `domains_projects_locations_registrations_get` for simplest API.
+
+pub fn domains_projects_locations_registrations_get_builder(
+    client: &SimpleHttpClient,
+    name: &String,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!(
+        "https://domains.googleapis.com/v1/projects/{}/locations/{locationsId}/registrations/{registrationsId}",
+        name,
+    );
+
+    // Build request
+    let builder = client
+        .get(&endpoint_url)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// GET v1/projects/{projectsId}/locations/{locationsId}/registrations/{registrationsId}
+/// Gets the details of a Registration resource.
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `domains_projects_locations_registrations_get_execute()` or `domains_projects_locations_registrations_get`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `domains_projects_locations_registrations_get_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn domains_projects_locations_registrations_get_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<Registration>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: Registration = serde_json::from_str(&body)
+                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// GET v1/projects/{projectsId}/locations/{locationsId}/registrations/{registrationsId}
+/// Gets the details of a Registration resource.
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `domains_projects_locations_registrations_get_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `domains_projects_locations_registrations_get_task()`.
+/// For the simplest API, use `domains_projects_locations_registrations_get()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `domains_projects_locations_registrations_get_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn domains_projects_locations_registrations_get_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<Registration>, ApiError>, P = ApiPending>
+        + Send
+        + 'static,
+    ApiError,
+> {
+    let task = domains_projects_locations_registrations_get_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`domains_projects_locations_registrations_get`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct DomainsProjectsLocationsRegistrationsGetArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
+/// GET v1/projects/{projectsId}/locations/{locationsId}/registrations/{registrationsId}
+/// Gets the details of a Registration resource.
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `domains_projects_locations_registrations_get_builder()` + `domains_projects_locations_registrations_get_execute()`.
+/// For task-level control, use `domains_projects_locations_registrations_get_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn domains_projects_locations_registrations_get(
+    client: &SimpleHttpClient,
+    args: &DomainsProjectsLocationsRegistrationsGetArgs,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<Registration>, ApiError>, P = ApiPending>
+        + Send
+        + 'static,
+    ApiError,
+> {
+    let builder = domains_projects_locations_registrations_get_builder(client, &args.name)?;
+    domains_projects_locations_registrations_get_execute(builder)
+}
+
+/// GET v1/projects/{projectsId}/locations/{locationsId}/registrations/{registrationsId}:getIamPolicy
+/// Gets the access control policy for a resource. Returns an empty policy if the resource exists and does not have a policy set.
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `domains_projects_locations_registrations_get_iam_policy_execute()` to send, or `domains_projects_locations_registrations_get_iam_policy` for simplest API.
+
+pub fn domains_projects_locations_registrations_get_iam_policy_builder(
+    client: &SimpleHttpClient,
+    resource: &String,
+    options_requestedPolicyVersion: &Option<Option<String>>,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!(
+        "https://domains.googleapis.com/v1/projects/{}/locations/{locationsId}/registrations/{registrationsId}:getIamPolicy",
+        resource,
+    );
+
+    // Build request
+    let mut query_parts = Vec::new();
+    if let Some(val) = options_requestedPolicyVersion.as_ref() {
+        query_parts.push(format!("options.requestedPolicyVersion={}", val));
+    }
+
+    let url_with_query = if query_parts.is_empty() {
+        endpoint_url
+    } else {
+        format!("{}?{}", endpoint_url, query_parts.join("&"))
+    };
+
+    let builder = client
+        .get(&url_with_query)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// GET v1/projects/{projectsId}/locations/{locationsId}/registrations/{registrationsId}:getIamPolicy
+/// Gets the access control policy for a resource. Returns an empty policy if the resource exists and does not have a policy set.
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `domains_projects_locations_registrations_get_iam_policy_execute()` or `domains_projects_locations_registrations_get_iam_policy`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `domains_projects_locations_registrations_get_iam_policy_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn domains_projects_locations_registrations_get_iam_policy_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<Policy>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: Policy = serde_json::from_str(&body)
+                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// GET v1/projects/{projectsId}/locations/{locationsId}/registrations/{registrationsId}:getIamPolicy
+/// Gets the access control policy for a resource. Returns an empty policy if the resource exists and does not have a policy set.
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `domains_projects_locations_registrations_get_iam_policy_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `domains_projects_locations_registrations_get_iam_policy_task()`.
+/// For the simplest API, use `domains_projects_locations_registrations_get_iam_policy()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `domains_projects_locations_registrations_get_iam_policy_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn domains_projects_locations_registrations_get_iam_policy_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<Policy>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let task = domains_projects_locations_registrations_get_iam_policy_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`domains_projects_locations_registrations_get_iam_policy`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct DomainsProjectsLocationsRegistrationsGetIamPolicyArgs {
+    /// Path parameter: resource
+    pub resource: String,
+    /// Query parameter: options_requestedPolicyVersion
+    pub options_requestedPolicyVersion: Option<Option<String>>,
+}
+
+/// GET v1/projects/{projectsId}/locations/{locationsId}/registrations/{registrationsId}:getIamPolicy
+/// Gets the access control policy for a resource. Returns an empty policy if the resource exists and does not have a policy set.
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `domains_projects_locations_registrations_get_iam_policy_builder()` + `domains_projects_locations_registrations_get_iam_policy_execute()`.
+/// For task-level control, use `domains_projects_locations_registrations_get_iam_policy_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn domains_projects_locations_registrations_get_iam_policy(
+    client: &SimpleHttpClient,
+    args: &DomainsProjectsLocationsRegistrationsGetIamPolicyArgs,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<Policy>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let builder = domains_projects_locations_registrations_get_iam_policy_builder(
+        client,
+        &args.resource,
+        &args.options_requestedPolicyVersion,
+    )?;
+    domains_projects_locations_registrations_get_iam_policy_execute(builder)
+}
+
+/// POST v1/projects/{projectsId}/locations/{locationsId}/registrations:import
+/// Deprecated: For more information, see [Cloud Domains feature deprecation](<https://cloud.google.`com/domains/docs/deprecations/feature-deprecations`>) Imports a domain name from [Google Domains](<https://domains.google/>) for use in Cloud Domains. To transfer a domain from another registrar, use the TransferDomain method instead. Since individual users can own domains in Google Domains, the calling user must have ownership permission on the domain.
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `domains_projects_locations_registrations_import_execute()` to send, or `domains_projects_locations_registrations_import` for simplest API.
+
+pub fn domains_projects_locations_registrations_import_builder(
+    client: &SimpleHttpClient,
+    parent: &String,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!(
+        "https://domains.googleapis.com/v1/projects/{}/locations/{locationsId}/registrations:import",
+        parent,
+    );
+
+    // Build request
+    let builder = client
+        .post(&endpoint_url)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// POST v1/projects/{projectsId}/locations/{locationsId}/registrations:import
+/// Deprecated: For more information, see [Cloud Domains feature deprecation](<https://cloud.google.`com/domains/docs/deprecations/feature-deprecations`>) Imports a domain name from [Google Domains](<https://domains.google/>) for use in Cloud Domains. To transfer a domain from another registrar, use the TransferDomain method instead. Since individual users can own domains in Google Domains, the calling user must have ownership permission on the domain.
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `domains_projects_locations_registrations_import_execute()` or `domains_projects_locations_registrations_import`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `domains_projects_locations_registrations_import_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn domains_projects_locations_registrations_import_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<Operation>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: Operation = serde_json::from_str(&body)
+                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// POST v1/projects/{projectsId}/locations/{locationsId}/registrations:import
+/// Deprecated: For more information, see [Cloud Domains feature deprecation](<https://cloud.google.`com/domains/docs/deprecations/feature-deprecations`>) Imports a domain name from [Google Domains](<https://domains.google/>) for use in Cloud Domains. To transfer a domain from another registrar, use the TransferDomain method instead. Since individual users can own domains in Google Domains, the calling user must have ownership permission on the domain.
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `domains_projects_locations_registrations_import_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `domains_projects_locations_registrations_import_task()`.
+/// For the simplest API, use `domains_projects_locations_registrations_import()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `domains_projects_locations_registrations_import_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn domains_projects_locations_registrations_import_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<Operation>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let task = domains_projects_locations_registrations_import_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`domains_projects_locations_registrations_import`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct DomainsProjectsLocationsRegistrationsImportArgs {
+    /// Path parameter: parent
+    pub parent: String,
+}
+
+/// POST v1/projects/{projectsId}/locations/{locationsId}/registrations:import
+/// Deprecated: For more information, see [Cloud Domains feature deprecation](<https://cloud.google.`com/domains/docs/deprecations/feature-deprecations`>) Imports a domain name from [Google Domains](<https://domains.google/>) for use in Cloud Domains. To transfer a domain from another registrar, use the TransferDomain method instead. Since individual users can own domains in Google Domains, the calling user must have ownership permission on the domain.
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `domains_projects_locations_registrations_import_builder()` + `domains_projects_locations_registrations_import_execute()`.
+/// For task-level control, use `domains_projects_locations_registrations_import_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn domains_projects_locations_registrations_import(
+    client: &SimpleHttpClient,
+    args: &DomainsProjectsLocationsRegistrationsImportArgs,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<Operation>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let builder = domains_projects_locations_registrations_import_builder(client, &args.parent)?;
+    domains_projects_locations_registrations_import_execute(builder)
+}
+
+/// POST v1/projects/{projectsId}/locations/{locationsId}/registrations/{registrationsId}:initiatePushTransfer
+/// Initiates the Push Transfer process to transfer the domain to another registrar. The process might complete instantly or might require confirmation or additional work. Check the emails sent to the email address of the registrant. The process is aborted after a timeout if it's not completed. This method is only supported for domains that have the REQUIRE_PUSH_TRANSFER property in the list of domain_properties. The domain must also be unlocked before it can be transferred to a different registrar. For more information, see [Transfer a registered domain to another registrar](<https://cloud.google.`com/domains/docs/transfer-domain-to-another-registrar`>).
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `domains_projects_locations_registrations_initiate_push_transfer_execute()` to send, or `domains_projects_locations_registrations_initiate_push_transfer` for simplest API.
+
+pub fn domains_projects_locations_registrations_initiate_push_transfer_builder(
+    client: &SimpleHttpClient,
+    registration: &String,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!(
+        "https://domains.googleapis.com/v1/projects/{}/locations/{locationsId}/registrations/{registrationsId}:initiatePushTransfer",
+        registration,
+    );
+
+    // Build request
+    let builder = client
+        .post(&endpoint_url)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// POST v1/projects/{projectsId}/locations/{locationsId}/registrations/{registrationsId}:initiatePushTransfer
+/// Initiates the Push Transfer process to transfer the domain to another registrar. The process might complete instantly or might require confirmation or additional work. Check the emails sent to the email address of the registrant. The process is aborted after a timeout if it's not completed. This method is only supported for domains that have the REQUIRE_PUSH_TRANSFER property in the list of domain_properties. The domain must also be unlocked before it can be transferred to a different registrar. For more information, see [Transfer a registered domain to another registrar](<https://cloud.google.`com/domains/docs/transfer-domain-to-another-registrar`>).
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `domains_projects_locations_registrations_initiate_push_transfer_execute()` or `domains_projects_locations_registrations_initiate_push_transfer`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `domains_projects_locations_registrations_initiate_push_transfer_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn domains_projects_locations_registrations_initiate_push_transfer_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<Operation>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: Operation = serde_json::from_str(&body)
+                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// POST v1/projects/{projectsId}/locations/{locationsId}/registrations/{registrationsId}:initiatePushTransfer
+/// Initiates the Push Transfer process to transfer the domain to another registrar. The process might complete instantly or might require confirmation or additional work. Check the emails sent to the email address of the registrant. The process is aborted after a timeout if it's not completed. This method is only supported for domains that have the REQUIRE_PUSH_TRANSFER property in the list of domain_properties. The domain must also be unlocked before it can be transferred to a different registrar. For more information, see [Transfer a registered domain to another registrar](<https://cloud.google.`com/domains/docs/transfer-domain-to-another-registrar`>).
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `domains_projects_locations_registrations_initiate_push_transfer_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `domains_projects_locations_registrations_initiate_push_transfer_task()`.
+/// For the simplest API, use `domains_projects_locations_registrations_initiate_push_transfer()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `domains_projects_locations_registrations_initiate_push_transfer_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn domains_projects_locations_registrations_initiate_push_transfer_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<Operation>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let task = domains_projects_locations_registrations_initiate_push_transfer_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`domains_projects_locations_registrations_initiate_push_transfer`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct DomainsProjectsLocationsRegistrationsInitiatePushTransferArgs {
+    /// Path parameter: registration
+    pub registration: String,
+}
+
+/// POST v1/projects/{projectsId}/locations/{locationsId}/registrations/{registrationsId}:initiatePushTransfer
+/// Initiates the Push Transfer process to transfer the domain to another registrar. The process might complete instantly or might require confirmation or additional work. Check the emails sent to the email address of the registrant. The process is aborted after a timeout if it's not completed. This method is only supported for domains that have the REQUIRE_PUSH_TRANSFER property in the list of domain_properties. The domain must also be unlocked before it can be transferred to a different registrar. For more information, see [Transfer a registered domain to another registrar](<https://cloud.google.`com/domains/docs/transfer-domain-to-another-registrar`>).
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `domains_projects_locations_registrations_initiate_push_transfer_builder()` + `domains_projects_locations_registrations_initiate_push_transfer_execute()`.
+/// For task-level control, use `domains_projects_locations_registrations_initiate_push_transfer_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn domains_projects_locations_registrations_initiate_push_transfer(
+    client: &SimpleHttpClient,
+    args: &DomainsProjectsLocationsRegistrationsInitiatePushTransferArgs,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<Operation>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let builder = domains_projects_locations_registrations_initiate_push_transfer_builder(
+        client,
+        &args.registration,
+    )?;
+    domains_projects_locations_registrations_initiate_push_transfer_execute(builder)
+}
+
+/// GET v1/projects/{projectsId}/locations/{locationsId}/registrations
+/// Lists the Registration resources in a project.
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `domains_projects_locations_registrations_list_execute()` to send, or `domains_projects_locations_registrations_list` for simplest API.
+
+pub fn domains_projects_locations_registrations_list_builder(
+    client: &SimpleHttpClient,
+    parent: &String,
+    filter: &Option<Option<String>>,
+    pageSize: &Option<Option<String>>,
+    pageToken: &Option<Option<String>>,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!(
+        "https://domains.googleapis.com/v1/projects/{}/locations/{locationsId}/registrations",
+        parent,
+    );
+
+    // Build request
+    let mut query_parts = Vec::new();
+    if let Some(val) = filter.as_ref() {
+        query_parts.push(format!("filter={}", val));
+    }
+    if let Some(val) = pageSize.as_ref() {
+        query_parts.push(format!("pageSize={}", val));
+    }
+    if let Some(val) = pageToken.as_ref() {
+        query_parts.push(format!("pageToken={}", val));
+    }
+
+    let url_with_query = if query_parts.is_empty() {
+        endpoint_url
+    } else {
+        format!("{}?{}", endpoint_url, query_parts.join("&"))
+    };
+
+    let builder = client
+        .get(&url_with_query)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// GET v1/projects/{projectsId}/locations/{locationsId}/registrations
+/// Lists the Registration resources in a project.
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `domains_projects_locations_registrations_list_execute()` or `domains_projects_locations_registrations_list`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `domains_projects_locations_registrations_list_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn domains_projects_locations_registrations_list_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<ListRegistrationsResponse>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: ListRegistrationsResponse = serde_json::from_str(&body)
+                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// GET v1/projects/{projectsId}/locations/{locationsId}/registrations
+/// Lists the Registration resources in a project.
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `domains_projects_locations_registrations_list_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `domains_projects_locations_registrations_list_task()`.
+/// For the simplest API, use `domains_projects_locations_registrations_list()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `domains_projects_locations_registrations_list_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn domains_projects_locations_registrations_list_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<ListRegistrationsResponse>, ApiError>, P = ApiPending>
+        + Send
+        + 'static,
+    ApiError,
+> {
+    let task = domains_projects_locations_registrations_list_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`domains_projects_locations_registrations_list`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct DomainsProjectsLocationsRegistrationsListArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Query parameter: filter
+    pub filter: Option<Option<String>>,
+    /// Query parameter: pageSize
+    pub pageSize: Option<Option<String>>,
+    /// Query parameter: pageToken
+    pub pageToken: Option<Option<String>>,
+}
+
+/// GET v1/projects/{projectsId}/locations/{locationsId}/registrations
+/// Lists the Registration resources in a project.
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `domains_projects_locations_registrations_list_builder()` + `domains_projects_locations_registrations_list_execute()`.
+/// For task-level control, use `domains_projects_locations_registrations_list_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn domains_projects_locations_registrations_list(
+    client: &SimpleHttpClient,
+    args: &DomainsProjectsLocationsRegistrationsListArgs,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<ListRegistrationsResponse>, ApiError>, P = ApiPending>
+        + Send
+        + 'static,
+    ApiError,
+> {
+    let builder = domains_projects_locations_registrations_list_builder(
+        client,
+        &args.parent,
+        &args.filter,
+        &args.pageSize,
+        &args.pageToken,
+    )?;
+    domains_projects_locations_registrations_list_execute(builder)
+}
+
+/// PATCH v1/projects/{projectsId}/locations/{locationsId}/registrations/{registrationsId}
+/// Updates select fields of a Registration resource, notably labels. To update other fields, use the appropriate custom update method: * To update management settings, see ConfigureManagementSettings * To update DNS configuration, see ConfigureDnsSettings * To update contact information, see ConfigureContactSettings
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `domains_projects_locations_registrations_patch_execute()` to send, or `domains_projects_locations_registrations_patch` for simplest API.
+
+pub fn domains_projects_locations_registrations_patch_builder(
+    client: &SimpleHttpClient,
+    name: &String,
+    updateMask: &Option<Option<String>>,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!(
+        "https://domains.googleapis.com/v1/projects/{}/locations/{locationsId}/registrations/{registrationsId}",
+        name,
+    );
+
+    // Build request
+    let mut query_parts = Vec::new();
+    if let Some(val) = updateMask.as_ref() {
+        query_parts.push(format!("updateMask={}", val));
+    }
+
+    let url_with_query = if query_parts.is_empty() {
+        endpoint_url
+    } else {
+        format!("{}?{}", endpoint_url, query_parts.join("&"))
+    };
+
+    let builder = client
+        .patch(&url_with_query)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// PATCH v1/projects/{projectsId}/locations/{locationsId}/registrations/{registrationsId}
+/// Updates select fields of a Registration resource, notably labels. To update other fields, use the appropriate custom update method: * To update management settings, see ConfigureManagementSettings * To update DNS configuration, see ConfigureDnsSettings * To update contact information, see ConfigureContactSettings
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `domains_projects_locations_registrations_patch_execute()` or `domains_projects_locations_registrations_patch`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `domains_projects_locations_registrations_patch_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn domains_projects_locations_registrations_patch_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<Operation>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: Operation = serde_json::from_str(&body)
+                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// PATCH v1/projects/{projectsId}/locations/{locationsId}/registrations/{registrationsId}
+/// Updates select fields of a Registration resource, notably labels. To update other fields, use the appropriate custom update method: * To update management settings, see ConfigureManagementSettings * To update DNS configuration, see ConfigureDnsSettings * To update contact information, see ConfigureContactSettings
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `domains_projects_locations_registrations_patch_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `domains_projects_locations_registrations_patch_task()`.
+/// For the simplest API, use `domains_projects_locations_registrations_patch()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `domains_projects_locations_registrations_patch_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn domains_projects_locations_registrations_patch_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<Operation>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let task = domains_projects_locations_registrations_patch_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`domains_projects_locations_registrations_patch`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct DomainsProjectsLocationsRegistrationsPatchArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Query parameter: updateMask
+    pub updateMask: Option<Option<String>>,
+}
+
+/// PATCH v1/projects/{projectsId}/locations/{locationsId}/registrations/{registrationsId}
+/// Updates select fields of a Registration resource, notably labels. To update other fields, use the appropriate custom update method: * To update management settings, see ConfigureManagementSettings * To update DNS configuration, see ConfigureDnsSettings * To update contact information, see ConfigureContactSettings
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `domains_projects_locations_registrations_patch_builder()` + `domains_projects_locations_registrations_patch_execute()`.
+/// For task-level control, use `domains_projects_locations_registrations_patch_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn domains_projects_locations_registrations_patch(
+    client: &SimpleHttpClient,
+    args: &DomainsProjectsLocationsRegistrationsPatchArgs,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<Operation>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let builder = domains_projects_locations_registrations_patch_builder(
+        client,
+        &args.name,
+        &args.updateMask,
+    )?;
+    domains_projects_locations_registrations_patch_execute(builder)
+}
+
+/// POST v1/projects/{projectsId}/locations/{locationsId}/registrations:register
+/// Registers a new domain name and creates a corresponding Registration resource. Call RetrieveRegisterParameters first to check availability of the domain name and determine parameters like price that are needed to build a call to this method. A successful call creates a Registration resource in state REGISTRATION_PENDING, which resolves to `ACTIVE` within 1-2 minutes, indicating that the domain was successfully registered. If the resource ends up in state REGISTRATION_FAILED, it indicates that the domain was not registered successfully, and you can safely delete the resource and retry registration.
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `domains_projects_locations_registrations_register_execute()` to send, or `domains_projects_locations_registrations_register` for simplest API.
+
+pub fn domains_projects_locations_registrations_register_builder(
+    client: &SimpleHttpClient,
+    parent: &String,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!(
+        "https://domains.googleapis.com/v1/projects/{}/locations/{locationsId}/registrations:register",
+        parent,
+    );
+
+    // Build request
+    let builder = client
+        .post(&endpoint_url)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// POST v1/projects/{projectsId}/locations/{locationsId}/registrations:register
+/// Registers a new domain name and creates a corresponding Registration resource. Call RetrieveRegisterParameters first to check availability of the domain name and determine parameters like price that are needed to build a call to this method. A successful call creates a Registration resource in state REGISTRATION_PENDING, which resolves to `ACTIVE` within 1-2 minutes, indicating that the domain was successfully registered. If the resource ends up in state REGISTRATION_FAILED, it indicates that the domain was not registered successfully, and you can safely delete the resource and retry registration.
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `domains_projects_locations_registrations_register_execute()` or `domains_projects_locations_registrations_register`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `domains_projects_locations_registrations_register_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn domains_projects_locations_registrations_register_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<Operation>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: Operation = serde_json::from_str(&body)
+                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// POST v1/projects/{projectsId}/locations/{locationsId}/registrations:register
+/// Registers a new domain name and creates a corresponding Registration resource. Call RetrieveRegisterParameters first to check availability of the domain name and determine parameters like price that are needed to build a call to this method. A successful call creates a Registration resource in state REGISTRATION_PENDING, which resolves to `ACTIVE` within 1-2 minutes, indicating that the domain was successfully registered. If the resource ends up in state REGISTRATION_FAILED, it indicates that the domain was not registered successfully, and you can safely delete the resource and retry registration.
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `domains_projects_locations_registrations_register_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `domains_projects_locations_registrations_register_task()`.
+/// For the simplest API, use `domains_projects_locations_registrations_register()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `domains_projects_locations_registrations_register_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn domains_projects_locations_registrations_register_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<Operation>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let task = domains_projects_locations_registrations_register_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`domains_projects_locations_registrations_register`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct DomainsProjectsLocationsRegistrationsRegisterArgs {
+    /// Path parameter: parent
+    pub parent: String,
+}
+
+/// POST v1/projects/{projectsId}/locations/{locationsId}/registrations:register
+/// Registers a new domain name and creates a corresponding Registration resource. Call RetrieveRegisterParameters first to check availability of the domain name and determine parameters like price that are needed to build a call to this method. A successful call creates a Registration resource in state REGISTRATION_PENDING, which resolves to `ACTIVE` within 1-2 minutes, indicating that the domain was successfully registered. If the resource ends up in state REGISTRATION_FAILED, it indicates that the domain was not registered successfully, and you can safely delete the resource and retry registration.
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `domains_projects_locations_registrations_register_builder()` + `domains_projects_locations_registrations_register_execute()`.
+/// For task-level control, use `domains_projects_locations_registrations_register_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn domains_projects_locations_registrations_register(
+    client: &SimpleHttpClient,
+    args: &DomainsProjectsLocationsRegistrationsRegisterArgs,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<Operation>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let builder = domains_projects_locations_registrations_register_builder(client, &args.parent)?;
+    domains_projects_locations_registrations_register_execute(builder)
+}
+
+/// POST v1/projects/{projectsId}/locations/{locationsId}/registrations/{registrationsId}:renewDomain
+/// Renews a recently expired domain. This method can only be called on domains that expired in the previous 30 days. After the renewal, the new expiration time of the domain is one year after the old expiration time and you are charged a yearly_price for the renewal.
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `domains_projects_locations_registrations_renew_domain_execute()` to send, or `domains_projects_locations_registrations_renew_domain` for simplest API.
+
+pub fn domains_projects_locations_registrations_renew_domain_builder(
+    client: &SimpleHttpClient,
+    registration: &String,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!(
+        "https://domains.googleapis.com/v1/projects/{}/locations/{locationsId}/registrations/{registrationsId}:renewDomain",
+        registration,
+    );
+
+    // Build request
+    let builder = client
+        .post(&endpoint_url)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// POST v1/projects/{projectsId}/locations/{locationsId}/registrations/{registrationsId}:renewDomain
+/// Renews a recently expired domain. This method can only be called on domains that expired in the previous 30 days. After the renewal, the new expiration time of the domain is one year after the old expiration time and you are charged a yearly_price for the renewal.
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `domains_projects_locations_registrations_renew_domain_execute()` or `domains_projects_locations_registrations_renew_domain`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `domains_projects_locations_registrations_renew_domain_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn domains_projects_locations_registrations_renew_domain_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<Operation>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: Operation = serde_json::from_str(&body)
+                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// POST v1/projects/{projectsId}/locations/{locationsId}/registrations/{registrationsId}:renewDomain
+/// Renews a recently expired domain. This method can only be called on domains that expired in the previous 30 days. After the renewal, the new expiration time of the domain is one year after the old expiration time and you are charged a yearly_price for the renewal.
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `domains_projects_locations_registrations_renew_domain_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `domains_projects_locations_registrations_renew_domain_task()`.
+/// For the simplest API, use `domains_projects_locations_registrations_renew_domain()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `domains_projects_locations_registrations_renew_domain_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn domains_projects_locations_registrations_renew_domain_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<Operation>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let task = domains_projects_locations_registrations_renew_domain_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`domains_projects_locations_registrations_renew_domain`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct DomainsProjectsLocationsRegistrationsRenewDomainArgs {
+    /// Path parameter: registration
+    pub registration: String,
+}
+
+/// POST v1/projects/{projectsId}/locations/{locationsId}/registrations/{registrationsId}:renewDomain
+/// Renews a recently expired domain. This method can only be called on domains that expired in the previous 30 days. After the renewal, the new expiration time of the domain is one year after the old expiration time and you are charged a yearly_price for the renewal.
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `domains_projects_locations_registrations_renew_domain_builder()` + `domains_projects_locations_registrations_renew_domain_execute()`.
+/// For task-level control, use `domains_projects_locations_registrations_renew_domain_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn domains_projects_locations_registrations_renew_domain(
+    client: &SimpleHttpClient,
+    args: &DomainsProjectsLocationsRegistrationsRenewDomainArgs,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<Operation>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let builder =
+        domains_projects_locations_registrations_renew_domain_builder(client, &args.registration)?;
+    domains_projects_locations_registrations_renew_domain_execute(builder)
+}
+
+/// POST v1/projects/{projectsId}/locations/{locationsId}/registrations/{registrationsId}:resetAuthorizationCode
+/// Resets the authorization code of the Registration to a new random string. You can call this method only after 60 days have elapsed since the initial domain registration. Domains that have the REQUIRE_PUSH_TRANSFER property in the list of domain_properties don't support authorization codes and must use the InitiatePushTransfer method to initiate the process to transfer the domain to a different registrar.
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `domains_projects_locations_registrations_reset_authorization_code_execute()` to send, or `domains_projects_locations_registrations_reset_authorization_code` for simplest API.
+
+pub fn domains_projects_locations_registrations_reset_authorization_code_builder(
+    client: &SimpleHttpClient,
+    registration: &String,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!(
+        "https://domains.googleapis.com/v1/projects/{}/locations/{locationsId}/registrations/{registrationsId}:resetAuthorizationCode",
+        registration,
+    );
+
+    // Build request
+    let builder = client
+        .post(&endpoint_url)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// POST v1/projects/{projectsId}/locations/{locationsId}/registrations/{registrationsId}:resetAuthorizationCode
+/// Resets the authorization code of the Registration to a new random string. You can call this method only after 60 days have elapsed since the initial domain registration. Domains that have the REQUIRE_PUSH_TRANSFER property in the list of domain_properties don't support authorization codes and must use the InitiatePushTransfer method to initiate the process to transfer the domain to a different registrar.
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `domains_projects_locations_registrations_reset_authorization_code_execute()` or `domains_projects_locations_registrations_reset_authorization_code`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `domains_projects_locations_registrations_reset_authorization_code_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn domains_projects_locations_registrations_reset_authorization_code_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<AuthorizationCode>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: AuthorizationCode = serde_json::from_str(&body)
+                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// POST v1/projects/{projectsId}/locations/{locationsId}/registrations/{registrationsId}:resetAuthorizationCode
+/// Resets the authorization code of the Registration to a new random string. You can call this method only after 60 days have elapsed since the initial domain registration. Domains that have the REQUIRE_PUSH_TRANSFER property in the list of domain_properties don't support authorization codes and must use the InitiatePushTransfer method to initiate the process to transfer the domain to a different registrar.
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `domains_projects_locations_registrations_reset_authorization_code_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `domains_projects_locations_registrations_reset_authorization_code_task()`.
+/// For the simplest API, use `domains_projects_locations_registrations_reset_authorization_code()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `domains_projects_locations_registrations_reset_authorization_code_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn domains_projects_locations_registrations_reset_authorization_code_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<AuthorizationCode>, ApiError>, P = ApiPending>
+        + Send
+        + 'static,
+    ApiError,
+> {
+    let task = domains_projects_locations_registrations_reset_authorization_code_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`domains_projects_locations_registrations_reset_authorization_code`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct DomainsProjectsLocationsRegistrationsResetAuthorizationCodeArgs {
+    /// Path parameter: registration
+    pub registration: String,
+}
+
+/// POST v1/projects/{projectsId}/locations/{locationsId}/registrations/{registrationsId}:resetAuthorizationCode
+/// Resets the authorization code of the Registration to a new random string. You can call this method only after 60 days have elapsed since the initial domain registration. Domains that have the REQUIRE_PUSH_TRANSFER property in the list of domain_properties don't support authorization codes and must use the InitiatePushTransfer method to initiate the process to transfer the domain to a different registrar.
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `domains_projects_locations_registrations_reset_authorization_code_builder()` + `domains_projects_locations_registrations_reset_authorization_code_execute()`.
+/// For task-level control, use `domains_projects_locations_registrations_reset_authorization_code_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn domains_projects_locations_registrations_reset_authorization_code(
+    client: &SimpleHttpClient,
+    args: &DomainsProjectsLocationsRegistrationsResetAuthorizationCodeArgs,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<AuthorizationCode>, ApiError>, P = ApiPending>
+        + Send
+        + 'static,
+    ApiError,
+> {
+    let builder = domains_projects_locations_registrations_reset_authorization_code_builder(
+        client,
+        &args.registration,
+    )?;
+    domains_projects_locations_registrations_reset_authorization_code_execute(builder)
+}
+
+/// GET v1/projects/{projectsId}/locations/{locationsId}/registrations/{registrationsId}:retrieveAuthorizationCode
+/// Gets the authorization code of the Registration for the purpose of transferring the domain to another registrar. You can call this method only after 60 days have elapsed since the initial domain registration. Domains that have the REQUIRE_PUSH_TRANSFER property in the list of domain_properties don't support authorization codes and must use the InitiatePushTransfer method to initiate the process to transfer the domain to a different registrar.
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `domains_projects_locations_registrations_retrieve_authorization_code_execute()` to send, or `domains_projects_locations_registrations_retrieve_authorization_code` for simplest API.
+
+pub fn domains_projects_locations_registrations_retrieve_authorization_code_builder(
+    client: &SimpleHttpClient,
+    registration: &String,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!(
+        "https://domains.googleapis.com/v1/projects/{}/locations/{locationsId}/registrations/{registrationsId}:retrieveAuthorizationCode",
+        registration,
+    );
+
+    // Build request
+    let builder = client
+        .get(&endpoint_url)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// GET v1/projects/{projectsId}/locations/{locationsId}/registrations/{registrationsId}:retrieveAuthorizationCode
+/// Gets the authorization code of the Registration for the purpose of transferring the domain to another registrar. You can call this method only after 60 days have elapsed since the initial domain registration. Domains that have the REQUIRE_PUSH_TRANSFER property in the list of domain_properties don't support authorization codes and must use the InitiatePushTransfer method to initiate the process to transfer the domain to a different registrar.
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `domains_projects_locations_registrations_retrieve_authorization_code_execute()` or `domains_projects_locations_registrations_retrieve_authorization_code`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `domains_projects_locations_registrations_retrieve_authorization_code_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn domains_projects_locations_registrations_retrieve_authorization_code_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<AuthorizationCode>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: AuthorizationCode = serde_json::from_str(&body)
+                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// GET v1/projects/{projectsId}/locations/{locationsId}/registrations/{registrationsId}:retrieveAuthorizationCode
+/// Gets the authorization code of the Registration for the purpose of transferring the domain to another registrar. You can call this method only after 60 days have elapsed since the initial domain registration. Domains that have the REQUIRE_PUSH_TRANSFER property in the list of domain_properties don't support authorization codes and must use the InitiatePushTransfer method to initiate the process to transfer the domain to a different registrar.
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `domains_projects_locations_registrations_retrieve_authorization_code_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `domains_projects_locations_registrations_retrieve_authorization_code_task()`.
+/// For the simplest API, use `domains_projects_locations_registrations_retrieve_authorization_code()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `domains_projects_locations_registrations_retrieve_authorization_code_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn domains_projects_locations_registrations_retrieve_authorization_code_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<AuthorizationCode>, ApiError>, P = ApiPending>
+        + Send
+        + 'static,
+    ApiError,
+> {
+    let task = domains_projects_locations_registrations_retrieve_authorization_code_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`domains_projects_locations_registrations_retrieve_authorization_code`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct DomainsProjectsLocationsRegistrationsRetrieveAuthorizationCodeArgs {
+    /// Path parameter: registration
+    pub registration: String,
+}
+
+/// GET v1/projects/{projectsId}/locations/{locationsId}/registrations/{registrationsId}:retrieveAuthorizationCode
+/// Gets the authorization code of the Registration for the purpose of transferring the domain to another registrar. You can call this method only after 60 days have elapsed since the initial domain registration. Domains that have the REQUIRE_PUSH_TRANSFER property in the list of domain_properties don't support authorization codes and must use the InitiatePushTransfer method to initiate the process to transfer the domain to a different registrar.
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `domains_projects_locations_registrations_retrieve_authorization_code_builder()` + `domains_projects_locations_registrations_retrieve_authorization_code_execute()`.
+/// For task-level control, use `domains_projects_locations_registrations_retrieve_authorization_code_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn domains_projects_locations_registrations_retrieve_authorization_code(
+    client: &SimpleHttpClient,
+    args: &DomainsProjectsLocationsRegistrationsRetrieveAuthorizationCodeArgs,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<AuthorizationCode>, ApiError>, P = ApiPending>
+        + Send
+        + 'static,
+    ApiError,
+> {
+    let builder = domains_projects_locations_registrations_retrieve_authorization_code_builder(
+        client,
+        &args.registration,
+    )?;
+    domains_projects_locations_registrations_retrieve_authorization_code_execute(builder)
+}
+
+/// GET v1/projects/{projectsId}/locations/{locationsId}/registrations/{registrationsId}:retrieveGoogleDomainsDnsRecords
+/// Lists the DNS records from the Google Domains DNS zone for domains that use the deprecated google_domains_dns in the Registration's dns_settings.
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `domains_projects_locations_registrations_retrieve_google_domains_dns_records_execute()` to send, or `domains_projects_locations_registrations_retrieve_google_domains_dns_records` for simplest API.
+
+pub fn domains_projects_locations_registrations_retrieve_google_domains_dns_records_builder(
+    client: &SimpleHttpClient,
+    registration: &String,
+    pageSize: &Option<Option<String>>,
+    pageToken: &Option<Option<String>>,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!(
+        "https://domains.googleapis.com/v1/projects/{}/locations/{locationsId}/registrations/{registrationsId}:retrieveGoogleDomainsDnsRecords",
+        registration,
+    );
+
+    // Build request
+    let mut query_parts = Vec::new();
+    if let Some(val) = pageSize.as_ref() {
+        query_parts.push(format!("pageSize={}", val));
+    }
+    if let Some(val) = pageToken.as_ref() {
+        query_parts.push(format!("pageToken={}", val));
+    }
+
+    let url_with_query = if query_parts.is_empty() {
+        endpoint_url
+    } else {
+        format!("{}?{}", endpoint_url, query_parts.join("&"))
+    };
+
+    let builder = client
+        .get(&url_with_query)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// GET v1/projects/{projectsId}/locations/{locationsId}/registrations/{registrationsId}:retrieveGoogleDomainsDnsRecords
+/// Lists the DNS records from the Google Domains DNS zone for domains that use the deprecated google_domains_dns in the Registration's dns_settings.
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `domains_projects_locations_registrations_retrieve_google_domains_dns_records_execute()` or `domains_projects_locations_registrations_retrieve_google_domains_dns_records`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `domains_projects_locations_registrations_retrieve_google_domains_dns_records_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn domains_projects_locations_registrations_retrieve_google_domains_dns_records_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<RetrieveGoogleDomainsDnsRecordsResponse>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: RetrieveGoogleDomainsDnsRecordsResponse =
+                    serde_json::from_str(&body)
+                        .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// GET v1/projects/{projectsId}/locations/{locationsId}/registrations/{registrationsId}:retrieveGoogleDomainsDnsRecords
+/// Lists the DNS records from the Google Domains DNS zone for domains that use the deprecated google_domains_dns in the Registration's dns_settings.
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `domains_projects_locations_registrations_retrieve_google_domains_dns_records_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `domains_projects_locations_registrations_retrieve_google_domains_dns_records_task()`.
+/// For the simplest API, use `domains_projects_locations_registrations_retrieve_google_domains_dns_records()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `domains_projects_locations_registrations_retrieve_google_domains_dns_records_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn domains_projects_locations_registrations_retrieve_google_domains_dns_records_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<
+            D = Result<ApiResponse<RetrieveGoogleDomainsDnsRecordsResponse>, ApiError>,
+            P = ApiPending,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    let task =
+        domains_projects_locations_registrations_retrieve_google_domains_dns_records_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`domains_projects_locations_registrations_retrieve_google_domains_dns_records`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct DomainsProjectsLocationsRegistrationsRetrieveGoogleDomainsDnsRecordsArgs {
+    /// Path parameter: registration
+    pub registration: String,
+    /// Query parameter: pageSize
+    pub pageSize: Option<Option<String>>,
+    /// Query parameter: pageToken
+    pub pageToken: Option<Option<String>>,
+}
+
+/// GET v1/projects/{projectsId}/locations/{locationsId}/registrations/{registrationsId}:retrieveGoogleDomainsDnsRecords
+/// Lists the DNS records from the Google Domains DNS zone for domains that use the deprecated google_domains_dns in the Registration's dns_settings.
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `domains_projects_locations_registrations_retrieve_google_domains_dns_records_builder()` + `domains_projects_locations_registrations_retrieve_google_domains_dns_records_execute()`.
+/// For task-level control, use `domains_projects_locations_registrations_retrieve_google_domains_dns_records_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn domains_projects_locations_registrations_retrieve_google_domains_dns_records(
+    client: &SimpleHttpClient,
+    args: &DomainsProjectsLocationsRegistrationsRetrieveGoogleDomainsDnsRecordsArgs,
+) -> Result<
+    impl StreamIterator<
+            D = Result<ApiResponse<RetrieveGoogleDomainsDnsRecordsResponse>, ApiError>,
+            P = ApiPending,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    let builder =
+        domains_projects_locations_registrations_retrieve_google_domains_dns_records_builder(
+            client,
+            &args.registration,
+            &args.pageSize,
+            &args.pageToken,
+        )?;
+    domains_projects_locations_registrations_retrieve_google_domains_dns_records_execute(builder)
+}
+
+/// GET v1/projects/{projectsId}/locations/{locationsId}/registrations/{registrationsId}:retrieveGoogleDomainsForwardingConfig
+/// Lists the deprecated domain and email forwarding configurations you set up in the deprecated Google Domains UI. The configuration is present only for domains with the google_domains_redirects_data_available set to `true` in the Registration's dns_settings. A forwarding configuration might not work correctly if required DNS records are not present in the domain's authoritative DNS Zone.
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `domains_projects_locations_registrations_retrieve_google_domains_forwarding_config_execute()` to send, or `domains_projects_locations_registrations_retrieve_google_domains_forwarding_config` for simplest API.
+
+pub fn domains_projects_locations_registrations_retrieve_google_domains_forwarding_config_builder(
+    client: &SimpleHttpClient,
+    registration: &String,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!(
+        "https://domains.googleapis.com/v1/projects/{}/locations/{locationsId}/registrations/{registrationsId}:retrieveGoogleDomainsForwardingConfig",
+        registration,
+    );
+
+    // Build request
+    let builder = client
+        .get(&endpoint_url)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// GET v1/projects/{projectsId}/locations/{locationsId}/registrations/{registrationsId}:retrieveGoogleDomainsForwardingConfig
+/// Lists the deprecated domain and email forwarding configurations you set up in the deprecated Google Domains UI. The configuration is present only for domains with the google_domains_redirects_data_available set to `true` in the Registration's dns_settings. A forwarding configuration might not work correctly if required DNS records are not present in the domain's authoritative DNS Zone.
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `domains_projects_locations_registrations_retrieve_google_domains_forwarding_config_execute()` or `domains_projects_locations_registrations_retrieve_google_domains_forwarding_config`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `domains_projects_locations_registrations_retrieve_google_domains_forwarding_config_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn domains_projects_locations_registrations_retrieve_google_domains_forwarding_config_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<RetrieveGoogleDomainsForwardingConfigResponse>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: RetrieveGoogleDomainsForwardingConfigResponse =
+                    serde_json::from_str(&body)
+                        .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// GET v1/projects/{projectsId}/locations/{locationsId}/registrations/{registrationsId}:retrieveGoogleDomainsForwardingConfig
+/// Lists the deprecated domain and email forwarding configurations you set up in the deprecated Google Domains UI. The configuration is present only for domains with the google_domains_redirects_data_available set to `true` in the Registration's dns_settings. A forwarding configuration might not work correctly if required DNS records are not present in the domain's authoritative DNS Zone.
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `domains_projects_locations_registrations_retrieve_google_domains_forwarding_config_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `domains_projects_locations_registrations_retrieve_google_domains_forwarding_config_task()`.
+/// For the simplest API, use `domains_projects_locations_registrations_retrieve_google_domains_forwarding_config()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `domains_projects_locations_registrations_retrieve_google_domains_forwarding_config_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn domains_projects_locations_registrations_retrieve_google_domains_forwarding_config_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<
+            D = Result<ApiResponse<RetrieveGoogleDomainsForwardingConfigResponse>, ApiError>,
+            P = ApiPending,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    let task =
+        domains_projects_locations_registrations_retrieve_google_domains_forwarding_config_task(
+            builder,
+        )?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`domains_projects_locations_registrations_retrieve_google_domains_forwarding_config`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct DomainsProjectsLocationsRegistrationsRetrieveGoogleDomainsForwardingConfigArgs {
+    /// Path parameter: registration
+    pub registration: String,
+}
+
+/// GET v1/projects/{projectsId}/locations/{locationsId}/registrations/{registrationsId}:retrieveGoogleDomainsForwardingConfig
+/// Lists the deprecated domain and email forwarding configurations you set up in the deprecated Google Domains UI. The configuration is present only for domains with the google_domains_redirects_data_available set to `true` in the Registration's dns_settings. A forwarding configuration might not work correctly if required DNS records are not present in the domain's authoritative DNS Zone.
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `domains_projects_locations_registrations_retrieve_google_domains_forwarding_config_builder()` + `domains_projects_locations_registrations_retrieve_google_domains_forwarding_config_execute()`.
+/// For task-level control, use `domains_projects_locations_registrations_retrieve_google_domains_forwarding_config_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn domains_projects_locations_registrations_retrieve_google_domains_forwarding_config(
+    client: &SimpleHttpClient,
+    args: &DomainsProjectsLocationsRegistrationsRetrieveGoogleDomainsForwardingConfigArgs,
+) -> Result<
+    impl StreamIterator<
+            D = Result<ApiResponse<RetrieveGoogleDomainsForwardingConfigResponse>, ApiError>,
+            P = ApiPending,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    let builder =
+        domains_projects_locations_registrations_retrieve_google_domains_forwarding_config_builder(
+            client,
+            &args.registration,
+        )?;
+    domains_projects_locations_registrations_retrieve_google_domains_forwarding_config_execute(
+        builder,
+    )
+}
+
+/// GET v1/projects/{projectsId}/locations/{locationsId}/registrations:retrieveImportableDomains
+/// Deprecated: For more information, see [Cloud Domains feature deprecation](<https://cloud.google.`com/domains/docs/deprecations/feature-deprecations`>) Lists domain names from [Google Domains](<https://domains.google/>) that can be imported to Cloud Domains using the ImportDomain method. Since individual users can own domains in Google Domains, the list of domains returned depends on the individual user making the call. Domains already managed by Cloud Domains are not returned.
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `domains_projects_locations_registrations_retrieve_importable_domains_execute()` to send, or `domains_projects_locations_registrations_retrieve_importable_domains` for simplest API.
+
+pub fn domains_projects_locations_registrations_retrieve_importable_domains_builder(
+    client: &SimpleHttpClient,
+    location: &String,
+    pageSize: &Option<Option<String>>,
+    pageToken: &Option<Option<String>>,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!(
+        "https://domains.googleapis.com/v1/projects/{}/locations/{locationsId}/registrations:retrieveImportableDomains",
+        location,
+    );
+
+    // Build request
+    let mut query_parts = Vec::new();
+    if let Some(val) = pageSize.as_ref() {
+        query_parts.push(format!("pageSize={}", val));
+    }
+    if let Some(val) = pageToken.as_ref() {
+        query_parts.push(format!("pageToken={}", val));
+    }
+
+    let url_with_query = if query_parts.is_empty() {
+        endpoint_url
+    } else {
+        format!("{}?{}", endpoint_url, query_parts.join("&"))
+    };
+
+    let builder = client
+        .get(&url_with_query)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// GET v1/projects/{projectsId}/locations/{locationsId}/registrations:retrieveImportableDomains
+/// Deprecated: For more information, see [Cloud Domains feature deprecation](<https://cloud.google.`com/domains/docs/deprecations/feature-deprecations`>) Lists domain names from [Google Domains](<https://domains.google/>) that can be imported to Cloud Domains using the ImportDomain method. Since individual users can own domains in Google Domains, the list of domains returned depends on the individual user making the call. Domains already managed by Cloud Domains are not returned.
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `domains_projects_locations_registrations_retrieve_importable_domains_execute()` or `domains_projects_locations_registrations_retrieve_importable_domains`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `domains_projects_locations_registrations_retrieve_importable_domains_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn domains_projects_locations_registrations_retrieve_importable_domains_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<RetrieveImportableDomainsResponse>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: RetrieveImportableDomainsResponse = serde_json::from_str(&body)
+                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// GET v1/projects/{projectsId}/locations/{locationsId}/registrations:retrieveImportableDomains
+/// Deprecated: For more information, see [Cloud Domains feature deprecation](<https://cloud.google.`com/domains/docs/deprecations/feature-deprecations`>) Lists domain names from [Google Domains](<https://domains.google/>) that can be imported to Cloud Domains using the ImportDomain method. Since individual users can own domains in Google Domains, the list of domains returned depends on the individual user making the call. Domains already managed by Cloud Domains are not returned.
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `domains_projects_locations_registrations_retrieve_importable_domains_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `domains_projects_locations_registrations_retrieve_importable_domains_task()`.
+/// For the simplest API, use `domains_projects_locations_registrations_retrieve_importable_domains()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `domains_projects_locations_registrations_retrieve_importable_domains_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn domains_projects_locations_registrations_retrieve_importable_domains_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<
+            D = Result<ApiResponse<RetrieveImportableDomainsResponse>, ApiError>,
+            P = ApiPending,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    let task = domains_projects_locations_registrations_retrieve_importable_domains_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`domains_projects_locations_registrations_retrieve_importable_domains`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct DomainsProjectsLocationsRegistrationsRetrieveImportableDomainsArgs {
+    /// Path parameter: location
+    pub location: String,
+    /// Query parameter: pageSize
+    pub pageSize: Option<Option<String>>,
+    /// Query parameter: pageToken
+    pub pageToken: Option<Option<String>>,
+}
+
+/// GET v1/projects/{projectsId}/locations/{locationsId}/registrations:retrieveImportableDomains
+/// Deprecated: For more information, see [Cloud Domains feature deprecation](<https://cloud.google.`com/domains/docs/deprecations/feature-deprecations`>) Lists domain names from [Google Domains](<https://domains.google/>) that can be imported to Cloud Domains using the ImportDomain method. Since individual users can own domains in Google Domains, the list of domains returned depends on the individual user making the call. Domains already managed by Cloud Domains are not returned.
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `domains_projects_locations_registrations_retrieve_importable_domains_builder()` + `domains_projects_locations_registrations_retrieve_importable_domains_execute()`.
+/// For task-level control, use `domains_projects_locations_registrations_retrieve_importable_domains_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn domains_projects_locations_registrations_retrieve_importable_domains(
+    client: &SimpleHttpClient,
+    args: &DomainsProjectsLocationsRegistrationsRetrieveImportableDomainsArgs,
+) -> Result<
+    impl StreamIterator<
+            D = Result<ApiResponse<RetrieveImportableDomainsResponse>, ApiError>,
+            P = ApiPending,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    let builder = domains_projects_locations_registrations_retrieve_importable_domains_builder(
+        client,
+        &args.location,
+        &args.pageSize,
+        &args.pageToken,
+    )?;
+    domains_projects_locations_registrations_retrieve_importable_domains_execute(builder)
+}
+
+/// GET v1/projects/{projectsId}/locations/{locationsId}/registrations:retrieveRegisterParameters
+/// Gets parameters needed to register a new domain name, including price and up-to-date availability. Use the returned values to call RegisterDomain.
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `domains_projects_locations_registrations_retrieve_register_parameters_execute()` to send, or `domains_projects_locations_registrations_retrieve_register_parameters` for simplest API.
+
+pub fn domains_projects_locations_registrations_retrieve_register_parameters_builder(
+    client: &SimpleHttpClient,
+    location: &String,
+    domainName: &Option<Option<String>>,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!(
+        "https://domains.googleapis.com/v1/projects/{}/locations/{locationsId}/registrations:retrieveRegisterParameters",
+        location,
+    );
+
+    // Build request
+    let mut query_parts = Vec::new();
+    if let Some(val) = domainName.as_ref() {
+        query_parts.push(format!("domainName={}", val));
+    }
+
+    let url_with_query = if query_parts.is_empty() {
+        endpoint_url
+    } else {
+        format!("{}?{}", endpoint_url, query_parts.join("&"))
+    };
+
+    let builder = client
+        .get(&url_with_query)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// GET v1/projects/{projectsId}/locations/{locationsId}/registrations:retrieveRegisterParameters
+/// Gets parameters needed to register a new domain name, including price and up-to-date availability. Use the returned values to call RegisterDomain.
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `domains_projects_locations_registrations_retrieve_register_parameters_execute()` or `domains_projects_locations_registrations_retrieve_register_parameters`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `domains_projects_locations_registrations_retrieve_register_parameters_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn domains_projects_locations_registrations_retrieve_register_parameters_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<RetrieveRegisterParametersResponse>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: RetrieveRegisterParametersResponse = serde_json::from_str(&body)
+                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// GET v1/projects/{projectsId}/locations/{locationsId}/registrations:retrieveRegisterParameters
+/// Gets parameters needed to register a new domain name, including price and up-to-date availability. Use the returned values to call RegisterDomain.
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `domains_projects_locations_registrations_retrieve_register_parameters_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `domains_projects_locations_registrations_retrieve_register_parameters_task()`.
+/// For the simplest API, use `domains_projects_locations_registrations_retrieve_register_parameters()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `domains_projects_locations_registrations_retrieve_register_parameters_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn domains_projects_locations_registrations_retrieve_register_parameters_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<
+            D = Result<ApiResponse<RetrieveRegisterParametersResponse>, ApiError>,
+            P = ApiPending,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    let task = domains_projects_locations_registrations_retrieve_register_parameters_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`domains_projects_locations_registrations_retrieve_register_parameters`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct DomainsProjectsLocationsRegistrationsRetrieveRegisterParametersArgs {
+    /// Path parameter: location
+    pub location: String,
+    /// Query parameter: domainName
+    pub domainName: Option<Option<String>>,
+}
+
+/// GET v1/projects/{projectsId}/locations/{locationsId}/registrations:retrieveRegisterParameters
+/// Gets parameters needed to register a new domain name, including price and up-to-date availability. Use the returned values to call RegisterDomain.
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `domains_projects_locations_registrations_retrieve_register_parameters_builder()` + `domains_projects_locations_registrations_retrieve_register_parameters_execute()`.
+/// For task-level control, use `domains_projects_locations_registrations_retrieve_register_parameters_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn domains_projects_locations_registrations_retrieve_register_parameters(
+    client: &SimpleHttpClient,
+    args: &DomainsProjectsLocationsRegistrationsRetrieveRegisterParametersArgs,
+) -> Result<
+    impl StreamIterator<
+            D = Result<ApiResponse<RetrieveRegisterParametersResponse>, ApiError>,
+            P = ApiPending,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    let builder = domains_projects_locations_registrations_retrieve_register_parameters_builder(
+        client,
+        &args.location,
+        &args.domainName,
+    )?;
+    domains_projects_locations_registrations_retrieve_register_parameters_execute(builder)
+}
+
+/// GET v1/projects/{projectsId}/locations/{locationsId}/registrations:retrieveTransferParameters
+/// Deprecated: For more information, see [Cloud Domains feature deprecation](<https://cloud.google.`com/domains/docs/deprecations/feature-deprecations`>) Gets parameters needed to transfer a domain name from another registrar to Cloud Domains. For domains already managed by [Google Domains](<https://domains.google/>), use ImportDomain instead. Use the returned values to call TransferDomain.
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `domains_projects_locations_registrations_retrieve_transfer_parameters_execute()` to send, or `domains_projects_locations_registrations_retrieve_transfer_parameters` for simplest API.
+
+pub fn domains_projects_locations_registrations_retrieve_transfer_parameters_builder(
+    client: &SimpleHttpClient,
+    location: &String,
+    domainName: &Option<Option<String>>,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!(
+        "https://domains.googleapis.com/v1/projects/{}/locations/{locationsId}/registrations:retrieveTransferParameters",
+        location,
+    );
+
+    // Build request
+    let mut query_parts = Vec::new();
+    if let Some(val) = domainName.as_ref() {
+        query_parts.push(format!("domainName={}", val));
+    }
+
+    let url_with_query = if query_parts.is_empty() {
+        endpoint_url
+    } else {
+        format!("{}?{}", endpoint_url, query_parts.join("&"))
+    };
+
+    let builder = client
+        .get(&url_with_query)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// GET v1/projects/{projectsId}/locations/{locationsId}/registrations:retrieveTransferParameters
+/// Deprecated: For more information, see [Cloud Domains feature deprecation](<https://cloud.google.`com/domains/docs/deprecations/feature-deprecations`>) Gets parameters needed to transfer a domain name from another registrar to Cloud Domains. For domains already managed by [Google Domains](<https://domains.google/>), use ImportDomain instead. Use the returned values to call TransferDomain.
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `domains_projects_locations_registrations_retrieve_transfer_parameters_execute()` or `domains_projects_locations_registrations_retrieve_transfer_parameters`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `domains_projects_locations_registrations_retrieve_transfer_parameters_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn domains_projects_locations_registrations_retrieve_transfer_parameters_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<RetrieveTransferParametersResponse>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: RetrieveTransferParametersResponse = serde_json::from_str(&body)
+                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// GET v1/projects/{projectsId}/locations/{locationsId}/registrations:retrieveTransferParameters
+/// Deprecated: For more information, see [Cloud Domains feature deprecation](<https://cloud.google.`com/domains/docs/deprecations/feature-deprecations`>) Gets parameters needed to transfer a domain name from another registrar to Cloud Domains. For domains already managed by [Google Domains](<https://domains.google/>), use ImportDomain instead. Use the returned values to call TransferDomain.
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `domains_projects_locations_registrations_retrieve_transfer_parameters_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `domains_projects_locations_registrations_retrieve_transfer_parameters_task()`.
+/// For the simplest API, use `domains_projects_locations_registrations_retrieve_transfer_parameters()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `domains_projects_locations_registrations_retrieve_transfer_parameters_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn domains_projects_locations_registrations_retrieve_transfer_parameters_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<
+            D = Result<ApiResponse<RetrieveTransferParametersResponse>, ApiError>,
+            P = ApiPending,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    let task = domains_projects_locations_registrations_retrieve_transfer_parameters_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`domains_projects_locations_registrations_retrieve_transfer_parameters`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct DomainsProjectsLocationsRegistrationsRetrieveTransferParametersArgs {
+    /// Path parameter: location
+    pub location: String,
+    /// Query parameter: domainName
+    pub domainName: Option<Option<String>>,
+}
+
+/// GET v1/projects/{projectsId}/locations/{locationsId}/registrations:retrieveTransferParameters
+/// Deprecated: For more information, see [Cloud Domains feature deprecation](<https://cloud.google.`com/domains/docs/deprecations/feature-deprecations`>) Gets parameters needed to transfer a domain name from another registrar to Cloud Domains. For domains already managed by [Google Domains](<https://domains.google/>), use ImportDomain instead. Use the returned values to call TransferDomain.
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `domains_projects_locations_registrations_retrieve_transfer_parameters_builder()` + `domains_projects_locations_registrations_retrieve_transfer_parameters_execute()`.
+/// For task-level control, use `domains_projects_locations_registrations_retrieve_transfer_parameters_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn domains_projects_locations_registrations_retrieve_transfer_parameters(
+    client: &SimpleHttpClient,
+    args: &DomainsProjectsLocationsRegistrationsRetrieveTransferParametersArgs,
+) -> Result<
+    impl StreamIterator<
+            D = Result<ApiResponse<RetrieveTransferParametersResponse>, ApiError>,
+            P = ApiPending,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    let builder = domains_projects_locations_registrations_retrieve_transfer_parameters_builder(
+        client,
+        &args.location,
+        &args.domainName,
+    )?;
+    domains_projects_locations_registrations_retrieve_transfer_parameters_execute(builder)
+}
+
+/// GET v1/projects/{projectsId}/locations/{locationsId}/registrations:searchDomains
+/// Searches for available domain names similar to the provided query. Availability results from this method are approximate; call RetrieveRegisterParameters on a domain before registering to confirm availability.
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `domains_projects_locations_registrations_search_domains_execute()` to send, or `domains_projects_locations_registrations_search_domains` for simplest API.
+
+pub fn domains_projects_locations_registrations_search_domains_builder(
+    client: &SimpleHttpClient,
+    location: &String,
+    query: &Option<Option<String>>,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!(
+        "https://domains.googleapis.com/v1/projects/{}/locations/{locationsId}/registrations:searchDomains",
+        location,
+    );
+
+    // Build request
+    let mut query_parts = Vec::new();
+    if let Some(val) = query.as_ref() {
+        query_parts.push(format!("query={}", val));
+    }
+
+    let url_with_query = if query_parts.is_empty() {
+        endpoint_url
+    } else {
+        format!("{}?{}", endpoint_url, query_parts.join("&"))
+    };
+
+    let builder = client
+        .get(&url_with_query)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// GET v1/projects/{projectsId}/locations/{locationsId}/registrations:searchDomains
+/// Searches for available domain names similar to the provided query. Availability results from this method are approximate; call RetrieveRegisterParameters on a domain before registering to confirm availability.
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `domains_projects_locations_registrations_search_domains_execute()` or `domains_projects_locations_registrations_search_domains`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `domains_projects_locations_registrations_search_domains_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn domains_projects_locations_registrations_search_domains_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<SearchDomainsResponse>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: SearchDomainsResponse = serde_json::from_str(&body)
+                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// GET v1/projects/{projectsId}/locations/{locationsId}/registrations:searchDomains
+/// Searches for available domain names similar to the provided query. Availability results from this method are approximate; call RetrieveRegisterParameters on a domain before registering to confirm availability.
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `domains_projects_locations_registrations_search_domains_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `domains_projects_locations_registrations_search_domains_task()`.
+/// For the simplest API, use `domains_projects_locations_registrations_search_domains()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `domains_projects_locations_registrations_search_domains_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn domains_projects_locations_registrations_search_domains_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<SearchDomainsResponse>, ApiError>, P = ApiPending>
+        + Send
+        + 'static,
+    ApiError,
+> {
+    let task = domains_projects_locations_registrations_search_domains_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`domains_projects_locations_registrations_search_domains`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct DomainsProjectsLocationsRegistrationsSearchDomainsArgs {
+    /// Path parameter: location
+    pub location: String,
+    /// Query parameter: query
+    pub query: Option<Option<String>>,
+}
+
+/// GET v1/projects/{projectsId}/locations/{locationsId}/registrations:searchDomains
+/// Searches for available domain names similar to the provided query. Availability results from this method are approximate; call RetrieveRegisterParameters on a domain before registering to confirm availability.
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `domains_projects_locations_registrations_search_domains_builder()` + `domains_projects_locations_registrations_search_domains_execute()`.
+/// For task-level control, use `domains_projects_locations_registrations_search_domains_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn domains_projects_locations_registrations_search_domains(
+    client: &SimpleHttpClient,
+    args: &DomainsProjectsLocationsRegistrationsSearchDomainsArgs,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<SearchDomainsResponse>, ApiError>, P = ApiPending>
+        + Send
+        + 'static,
+    ApiError,
+> {
+    let builder = domains_projects_locations_registrations_search_domains_builder(
+        client,
+        &args.location,
+        &args.query,
+    )?;
+    domains_projects_locations_registrations_search_domains_execute(builder)
+}
+
+/// POST v1/projects/{projectsId}/locations/{locationsId}/registrations/{registrationsId}:setIamPolicy
+/// Sets the access control policy on the specified resource. Replaces any existing policy. Can return NOT_FOUND, INVALID_ARGUMENT, and PERMISSION_DENIED errors.
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `domains_projects_locations_registrations_set_iam_policy_execute()` to send, or `domains_projects_locations_registrations_set_iam_policy` for simplest API.
+
+pub fn domains_projects_locations_registrations_set_iam_policy_builder(
+    client: &SimpleHttpClient,
+    resource: &String,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!(
+        "https://domains.googleapis.com/v1/projects/{}/locations/{locationsId}/registrations/{registrationsId}:setIamPolicy",
+        resource,
+    );
+
+    // Build request
+    let builder = client
+        .post(&endpoint_url)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// POST v1/projects/{projectsId}/locations/{locationsId}/registrations/{registrationsId}:setIamPolicy
+/// Sets the access control policy on the specified resource. Replaces any existing policy. Can return NOT_FOUND, INVALID_ARGUMENT, and PERMISSION_DENIED errors.
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `domains_projects_locations_registrations_set_iam_policy_execute()` or `domains_projects_locations_registrations_set_iam_policy`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `domains_projects_locations_registrations_set_iam_policy_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn domains_projects_locations_registrations_set_iam_policy_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<Policy>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: Policy = serde_json::from_str(&body)
+                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// POST v1/projects/{projectsId}/locations/{locationsId}/registrations/{registrationsId}:setIamPolicy
+/// Sets the access control policy on the specified resource. Replaces any existing policy. Can return NOT_FOUND, INVALID_ARGUMENT, and PERMISSION_DENIED errors.
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `domains_projects_locations_registrations_set_iam_policy_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `domains_projects_locations_registrations_set_iam_policy_task()`.
+/// For the simplest API, use `domains_projects_locations_registrations_set_iam_policy()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `domains_projects_locations_registrations_set_iam_policy_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn domains_projects_locations_registrations_set_iam_policy_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<Policy>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let task = domains_projects_locations_registrations_set_iam_policy_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`domains_projects_locations_registrations_set_iam_policy`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct DomainsProjectsLocationsRegistrationsSetIamPolicyArgs {
+    /// Path parameter: resource
+    pub resource: String,
+}
+
+/// POST v1/projects/{projectsId}/locations/{locationsId}/registrations/{registrationsId}:setIamPolicy
+/// Sets the access control policy on the specified resource. Replaces any existing policy. Can return NOT_FOUND, INVALID_ARGUMENT, and PERMISSION_DENIED errors.
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `domains_projects_locations_registrations_set_iam_policy_builder()` + `domains_projects_locations_registrations_set_iam_policy_execute()`.
+/// For task-level control, use `domains_projects_locations_registrations_set_iam_policy_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn domains_projects_locations_registrations_set_iam_policy(
+    client: &SimpleHttpClient,
+    args: &DomainsProjectsLocationsRegistrationsSetIamPolicyArgs,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<Policy>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let builder =
+        domains_projects_locations_registrations_set_iam_policy_builder(client, &args.resource)?;
+    domains_projects_locations_registrations_set_iam_policy_execute(builder)
+}
+
+/// POST v1/projects/{projectsId}/locations/{locationsId}/registrations/{registrationsId}:testIamPermissions
+/// Returns permissions that a caller has on the specified resource. If the resource does not exist, this will return an empty set of permissions, not a NOT_FOUND error. Note: This operation is designed to be used for building permission-aware UIs and command-line tools, not for authorization checking. This operation may "fail open" without warning.
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `domains_projects_locations_registrations_test_iam_permissions_execute()` to send, or `domains_projects_locations_registrations_test_iam_permissions` for simplest API.
+
+pub fn domains_projects_locations_registrations_test_iam_permissions_builder(
+    client: &SimpleHttpClient,
+    resource: &String,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!(
+        "https://domains.googleapis.com/v1/projects/{}/locations/{locationsId}/registrations/{registrationsId}:testIamPermissions",
+        resource,
+    );
+
+    // Build request
+    let builder = client
+        .post(&endpoint_url)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// POST v1/projects/{projectsId}/locations/{locationsId}/registrations/{registrationsId}:testIamPermissions
+/// Returns permissions that a caller has on the specified resource. If the resource does not exist, this will return an empty set of permissions, not a NOT_FOUND error. Note: This operation is designed to be used for building permission-aware UIs and command-line tools, not for authorization checking. This operation may "fail open" without warning.
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `domains_projects_locations_registrations_test_iam_permissions_execute()` or `domains_projects_locations_registrations_test_iam_permissions`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `domains_projects_locations_registrations_test_iam_permissions_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn domains_projects_locations_registrations_test_iam_permissions_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<TestIamPermissionsResponse>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: TestIamPermissionsResponse = serde_json::from_str(&body)
+                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// POST v1/projects/{projectsId}/locations/{locationsId}/registrations/{registrationsId}:testIamPermissions
+/// Returns permissions that a caller has on the specified resource. If the resource does not exist, this will return an empty set of permissions, not a NOT_FOUND error. Note: This operation is designed to be used for building permission-aware UIs and command-line tools, not for authorization checking. This operation may "fail open" without warning.
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `domains_projects_locations_registrations_test_iam_permissions_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `domains_projects_locations_registrations_test_iam_permissions_task()`.
+/// For the simplest API, use `domains_projects_locations_registrations_test_iam_permissions()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `domains_projects_locations_registrations_test_iam_permissions_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn domains_projects_locations_registrations_test_iam_permissions_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<
+            D = Result<ApiResponse<TestIamPermissionsResponse>, ApiError>,
+            P = ApiPending,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    let task = domains_projects_locations_registrations_test_iam_permissions_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`domains_projects_locations_registrations_test_iam_permissions`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct DomainsProjectsLocationsRegistrationsTestIamPermissionsArgs {
+    /// Path parameter: resource
+    pub resource: String,
+}
+
+/// POST v1/projects/{projectsId}/locations/{locationsId}/registrations/{registrationsId}:testIamPermissions
+/// Returns permissions that a caller has on the specified resource. If the resource does not exist, this will return an empty set of permissions, not a NOT_FOUND error. Note: This operation is designed to be used for building permission-aware UIs and command-line tools, not for authorization checking. This operation may "fail open" without warning.
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `domains_projects_locations_registrations_test_iam_permissions_builder()` + `domains_projects_locations_registrations_test_iam_permissions_execute()`.
+/// For task-level control, use `domains_projects_locations_registrations_test_iam_permissions_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn domains_projects_locations_registrations_test_iam_permissions(
+    client: &SimpleHttpClient,
+    args: &DomainsProjectsLocationsRegistrationsTestIamPermissionsArgs,
+) -> Result<
+    impl StreamIterator<
+            D = Result<ApiResponse<TestIamPermissionsResponse>, ApiError>,
+            P = ApiPending,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    let builder = domains_projects_locations_registrations_test_iam_permissions_builder(
+        client,
+        &args.resource,
+    )?;
+    domains_projects_locations_registrations_test_iam_permissions_execute(builder)
+}
+
+/// POST v1/projects/{projectsId}/locations/{locationsId}/registrations:transfer
+/// Deprecated: For more information, see [Cloud Domains feature deprecation](<https://cloud.google.`com/domains/docs/deprecations/feature-deprecations`>) Transfers a domain name from another registrar to Cloud Domains. For domains already managed by [Google Domains](<https://domains.google/>), use ImportDomain instead. Before calling this method, go to the domain's current registrar to unlock the domain for transfer and retrieve the domain's transfer authorization code. Then call RetrieveTransferParameters to confirm that the domain is unlocked and to get values needed to build a call to this method. A successful call creates a Registration resource in state TRANSFER_PENDING. It can take several days to complete the transfer process. The registrant can often speed up this process by approving the transfer through the current registrar, either by clicking a link in an email from the registrar or by visiting the registrar's website. A few minutes after transfer approval, the resource transitions to state `ACTIVE`, indicating that the transfer was successful. If the transfer is rejected or the request expires without being approved, the resource can end up in state TRANSFER_FAILED. If transfer fails, you can safely delete the resource and retry the transfer.
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `domains_projects_locations_registrations_transfer_execute()` to send, or `domains_projects_locations_registrations_transfer` for simplest API.
+
+pub fn domains_projects_locations_registrations_transfer_builder(
+    client: &SimpleHttpClient,
+    parent: &String,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!(
+        "https://domains.googleapis.com/v1/projects/{}/locations/{locationsId}/registrations:transfer",
+        parent,
+    );
+
+    // Build request
+    let builder = client
+        .post(&endpoint_url)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// POST v1/projects/{projectsId}/locations/{locationsId}/registrations:transfer
+/// Deprecated: For more information, see [Cloud Domains feature deprecation](<https://cloud.google.`com/domains/docs/deprecations/feature-deprecations`>) Transfers a domain name from another registrar to Cloud Domains. For domains already managed by [Google Domains](<https://domains.google/>), use ImportDomain instead. Before calling this method, go to the domain's current registrar to unlock the domain for transfer and retrieve the domain's transfer authorization code. Then call RetrieveTransferParameters to confirm that the domain is unlocked and to get values needed to build a call to this method. A successful call creates a Registration resource in state TRANSFER_PENDING. It can take several days to complete the transfer process. The registrant can often speed up this process by approving the transfer through the current registrar, either by clicking a link in an email from the registrar or by visiting the registrar's website. A few minutes after transfer approval, the resource transitions to state `ACTIVE`, indicating that the transfer was successful. If the transfer is rejected or the request expires without being approved, the resource can end up in state TRANSFER_FAILED. If transfer fails, you can safely delete the resource and retry the transfer.
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `domains_projects_locations_registrations_transfer_execute()` or `domains_projects_locations_registrations_transfer`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `domains_projects_locations_registrations_transfer_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn domains_projects_locations_registrations_transfer_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<Operation>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: Operation = serde_json::from_str(&body)
+                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// POST v1/projects/{projectsId}/locations/{locationsId}/registrations:transfer
+/// Deprecated: For more information, see [Cloud Domains feature deprecation](<https://cloud.google.`com/domains/docs/deprecations/feature-deprecations`>) Transfers a domain name from another registrar to Cloud Domains. For domains already managed by [Google Domains](<https://domains.google/>), use ImportDomain instead. Before calling this method, go to the domain's current registrar to unlock the domain for transfer and retrieve the domain's transfer authorization code. Then call RetrieveTransferParameters to confirm that the domain is unlocked and to get values needed to build a call to this method. A successful call creates a Registration resource in state TRANSFER_PENDING. It can take several days to complete the transfer process. The registrant can often speed up this process by approving the transfer through the current registrar, either by clicking a link in an email from the registrar or by visiting the registrar's website. A few minutes after transfer approval, the resource transitions to state `ACTIVE`, indicating that the transfer was successful. If the transfer is rejected or the request expires without being approved, the resource can end up in state TRANSFER_FAILED. If transfer fails, you can safely delete the resource and retry the transfer.
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `domains_projects_locations_registrations_transfer_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `domains_projects_locations_registrations_transfer_task()`.
+/// For the simplest API, use `domains_projects_locations_registrations_transfer()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `domains_projects_locations_registrations_transfer_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn domains_projects_locations_registrations_transfer_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<Operation>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let task = domains_projects_locations_registrations_transfer_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`domains_projects_locations_registrations_transfer`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct DomainsProjectsLocationsRegistrationsTransferArgs {
+    /// Path parameter: parent
+    pub parent: String,
+}
+
+/// POST v1/projects/{projectsId}/locations/{locationsId}/registrations:transfer
+/// Deprecated: For more information, see [Cloud Domains feature deprecation](<https://cloud.google.`com/domains/docs/deprecations/feature-deprecations`>) Transfers a domain name from another registrar to Cloud Domains. For domains already managed by [Google Domains](<https://domains.google/>), use ImportDomain instead. Before calling this method, go to the domain's current registrar to unlock the domain for transfer and retrieve the domain's transfer authorization code. Then call RetrieveTransferParameters to confirm that the domain is unlocked and to get values needed to build a call to this method. A successful call creates a Registration resource in state TRANSFER_PENDING. It can take several days to complete the transfer process. The registrant can often speed up this process by approving the transfer through the current registrar, either by clicking a link in an email from the registrar or by visiting the registrar's website. A few minutes after transfer approval, the resource transitions to state `ACTIVE`, indicating that the transfer was successful. If the transfer is rejected or the request expires without being approved, the resource can end up in state TRANSFER_FAILED. If transfer fails, you can safely delete the resource and retry the transfer.
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `domains_projects_locations_registrations_transfer_builder()` + `domains_projects_locations_registrations_transfer_execute()`.
+/// For task-level control, use `domains_projects_locations_registrations_transfer_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn domains_projects_locations_registrations_transfer(
+    client: &SimpleHttpClient,
+    args: &DomainsProjectsLocationsRegistrationsTransferArgs,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<Operation>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let builder = domains_projects_locations_registrations_transfer_builder(client, &args.parent)?;
+    domains_projects_locations_registrations_transfer_execute(builder)
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for Location
+// =============================================================================
+
+/// ResourceIdentifier implementation for Location with DomainsProjectsLocationsGetArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<DomainsProjectsLocationsGetArgs> for Location {
+    fn generate_resource_id(&self, input: &DomainsProjectsLocationsGetArgs) -> String {
+        format!("gcp::domains::Location/{}", input.name)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::domains::Location"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for ListLocationsResponse
+// =============================================================================
+
+/// ResourceIdentifier implementation for ListLocationsResponse with DomainsProjectsLocationsListArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<DomainsProjectsLocationsListArgs> for ListLocationsResponse {
+    fn generate_resource_id(&self, input: &DomainsProjectsLocationsListArgs) -> String {
+        format!("gcp::domains::ListLocationsResponse/{}", input.name)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::domains::ListLocationsResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for Operation
+// =============================================================================
+
+/// ResourceIdentifier implementation for Operation with DomainsProjectsLocationsOperationsGetArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<DomainsProjectsLocationsOperationsGetArgs> for Operation {
+    fn generate_resource_id(&self, input: &DomainsProjectsLocationsOperationsGetArgs) -> String {
+        format!("gcp::domains::Operation/{}", input.name)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::domains::Operation"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for ListOperationsResponse
+// =============================================================================
+
+/// ResourceIdentifier implementation for ListOperationsResponse with DomainsProjectsLocationsOperationsListArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<DomainsProjectsLocationsOperationsListArgs> for ListOperationsResponse {
+    fn generate_resource_id(&self, input: &DomainsProjectsLocationsOperationsListArgs) -> String {
+        format!("gcp::domains::ListOperationsResponse/{}", input.name)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::domains::ListOperationsResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for Operation
+// =============================================================================
+
+/// ResourceIdentifier implementation for Operation with DomainsProjectsLocationsRegistrationsConfigureContactSettingsArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<DomainsProjectsLocationsRegistrationsConfigureContactSettingsArgs>
+    for Operation
+{
+    fn generate_resource_id(
+        &self,
+        input: &DomainsProjectsLocationsRegistrationsConfigureContactSettingsArgs,
+    ) -> String {
+        format!("gcp::domains::Operation/{}", input.registration)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::domains::Operation"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for Operation
+// =============================================================================
+
+/// ResourceIdentifier implementation for Operation with DomainsProjectsLocationsRegistrationsConfigureDnsSettingsArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<DomainsProjectsLocationsRegistrationsConfigureDnsSettingsArgs>
+    for Operation
+{
+    fn generate_resource_id(
+        &self,
+        input: &DomainsProjectsLocationsRegistrationsConfigureDnsSettingsArgs,
+    ) -> String {
+        format!("gcp::domains::Operation/{}", input.registration)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::domains::Operation"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for Operation
+// =============================================================================
+
+/// ResourceIdentifier implementation for Operation with DomainsProjectsLocationsRegistrationsConfigureManagementSettingsArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<DomainsProjectsLocationsRegistrationsConfigureManagementSettingsArgs>
+    for Operation
+{
+    fn generate_resource_id(
+        &self,
+        input: &DomainsProjectsLocationsRegistrationsConfigureManagementSettingsArgs,
+    ) -> String {
+        format!("gcp::domains::Operation/{}", input.registration)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::domains::Operation"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for Operation
+// =============================================================================
+
+/// ResourceIdentifier implementation for Operation with DomainsProjectsLocationsRegistrationsDeleteArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<DomainsProjectsLocationsRegistrationsDeleteArgs> for Operation {
+    fn generate_resource_id(
+        &self,
+        input: &DomainsProjectsLocationsRegistrationsDeleteArgs,
+    ) -> String {
+        format!("gcp::domains::Operation/{}", input.name)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::domains::Operation"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for Operation
+// =============================================================================
+
+/// ResourceIdentifier implementation for Operation with DomainsProjectsLocationsRegistrationsExportArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<DomainsProjectsLocationsRegistrationsExportArgs> for Operation {
+    fn generate_resource_id(
+        &self,
+        input: &DomainsProjectsLocationsRegistrationsExportArgs,
+    ) -> String {
+        format!("gcp::domains::Operation/{}", input.name)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::domains::Operation"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for Registration
+// =============================================================================
+
+/// ResourceIdentifier implementation for Registration with DomainsProjectsLocationsRegistrationsGetArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<DomainsProjectsLocationsRegistrationsGetArgs> for Registration {
+    fn generate_resource_id(&self, input: &DomainsProjectsLocationsRegistrationsGetArgs) -> String {
+        format!("gcp::domains::Registration/{}", input.name)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::domains::Registration"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for Policy
+// =============================================================================
+
+/// ResourceIdentifier implementation for Policy with DomainsProjectsLocationsRegistrationsGetIamPolicyArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<DomainsProjectsLocationsRegistrationsGetIamPolicyArgs> for Policy {
+    fn generate_resource_id(
+        &self,
+        input: &DomainsProjectsLocationsRegistrationsGetIamPolicyArgs,
+    ) -> String {
+        format!("gcp::domains::Policy/{}", input.resource)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::domains::Policy"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for Operation
+// =============================================================================
+
+/// ResourceIdentifier implementation for Operation with DomainsProjectsLocationsRegistrationsImportArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<DomainsProjectsLocationsRegistrationsImportArgs> for Operation {
+    fn generate_resource_id(
+        &self,
+        input: &DomainsProjectsLocationsRegistrationsImportArgs,
+    ) -> String {
+        format!("gcp::domains::Operation/{}", input.parent)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::domains::Operation"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for Operation
+// =============================================================================
+
+/// ResourceIdentifier implementation for Operation with DomainsProjectsLocationsRegistrationsInitiatePushTransferArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<DomainsProjectsLocationsRegistrationsInitiatePushTransferArgs>
+    for Operation
+{
+    fn generate_resource_id(
+        &self,
+        input: &DomainsProjectsLocationsRegistrationsInitiatePushTransferArgs,
+    ) -> String {
+        format!("gcp::domains::Operation/{}", input.registration)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::domains::Operation"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for ListRegistrationsResponse
+// =============================================================================
+
+/// ResourceIdentifier implementation for ListRegistrationsResponse with DomainsProjectsLocationsRegistrationsListArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<DomainsProjectsLocationsRegistrationsListArgs>
+    for ListRegistrationsResponse
+{
+    fn generate_resource_id(
+        &self,
+        input: &DomainsProjectsLocationsRegistrationsListArgs,
+    ) -> String {
+        format!("gcp::domains::ListRegistrationsResponse/{}", input.parent)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::domains::ListRegistrationsResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for Operation
+// =============================================================================
+
+/// ResourceIdentifier implementation for Operation with DomainsProjectsLocationsRegistrationsPatchArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<DomainsProjectsLocationsRegistrationsPatchArgs> for Operation {
+    fn generate_resource_id(
+        &self,
+        input: &DomainsProjectsLocationsRegistrationsPatchArgs,
+    ) -> String {
+        format!("gcp::domains::Operation/{}", input.name)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::domains::Operation"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for Operation
+// =============================================================================
+
+/// ResourceIdentifier implementation for Operation with DomainsProjectsLocationsRegistrationsRegisterArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<DomainsProjectsLocationsRegistrationsRegisterArgs> for Operation {
+    fn generate_resource_id(
+        &self,
+        input: &DomainsProjectsLocationsRegistrationsRegisterArgs,
+    ) -> String {
+        format!("gcp::domains::Operation/{}", input.parent)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::domains::Operation"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for Operation
+// =============================================================================
+
+/// ResourceIdentifier implementation for Operation with DomainsProjectsLocationsRegistrationsRenewDomainArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<DomainsProjectsLocationsRegistrationsRenewDomainArgs> for Operation {
+    fn generate_resource_id(
+        &self,
+        input: &DomainsProjectsLocationsRegistrationsRenewDomainArgs,
+    ) -> String {
+        format!("gcp::domains::Operation/{}", input.registration)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::domains::Operation"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for AuthorizationCode
+// =============================================================================
+
+/// ResourceIdentifier implementation for AuthorizationCode with DomainsProjectsLocationsRegistrationsResetAuthorizationCodeArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<DomainsProjectsLocationsRegistrationsResetAuthorizationCodeArgs>
+    for AuthorizationCode
+{
+    fn generate_resource_id(
+        &self,
+        input: &DomainsProjectsLocationsRegistrationsResetAuthorizationCodeArgs,
+    ) -> String {
+        format!("gcp::domains::AuthorizationCode/{}", input.registration)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::domains::AuthorizationCode"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for AuthorizationCode
+// =============================================================================
+
+/// ResourceIdentifier implementation for AuthorizationCode with DomainsProjectsLocationsRegistrationsRetrieveAuthorizationCodeArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<DomainsProjectsLocationsRegistrationsRetrieveAuthorizationCodeArgs>
+    for AuthorizationCode
+{
+    fn generate_resource_id(
+        &self,
+        input: &DomainsProjectsLocationsRegistrationsRetrieveAuthorizationCodeArgs,
+    ) -> String {
+        format!("gcp::domains::AuthorizationCode/{}", input.registration)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::domains::AuthorizationCode"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for RetrieveGoogleDomainsDnsRecordsResponse
+// =============================================================================
+
+/// ResourceIdentifier implementation for RetrieveGoogleDomainsDnsRecordsResponse with DomainsProjectsLocationsRegistrationsRetrieveGoogleDomainsDnsRecordsArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<DomainsProjectsLocationsRegistrationsRetrieveGoogleDomainsDnsRecordsArgs>
+    for RetrieveGoogleDomainsDnsRecordsResponse
+{
+    fn generate_resource_id(
+        &self,
+        input: &DomainsProjectsLocationsRegistrationsRetrieveGoogleDomainsDnsRecordsArgs,
+    ) -> String {
+        format!(
+            "gcp::domains::RetrieveGoogleDomainsDnsRecordsResponse/{}",
+            input.registration
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::domains::RetrieveGoogleDomainsDnsRecordsResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for RetrieveGoogleDomainsForwardingConfigResponse
+// =============================================================================
+
+/// ResourceIdentifier implementation for RetrieveGoogleDomainsForwardingConfigResponse with DomainsProjectsLocationsRegistrationsRetrieveGoogleDomainsForwardingConfigArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl
+    ResourceIdentifier<
+        DomainsProjectsLocationsRegistrationsRetrieveGoogleDomainsForwardingConfigArgs,
+    > for RetrieveGoogleDomainsForwardingConfigResponse
+{
+    fn generate_resource_id(
+        &self,
+        input: &DomainsProjectsLocationsRegistrationsRetrieveGoogleDomainsForwardingConfigArgs,
+    ) -> String {
+        format!(
+            "gcp::domains::RetrieveGoogleDomainsForwardingConfigResponse/{}",
+            input.registration
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::domains::RetrieveGoogleDomainsForwardingConfigResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for RetrieveImportableDomainsResponse
+// =============================================================================
+
+/// ResourceIdentifier implementation for RetrieveImportableDomainsResponse with DomainsProjectsLocationsRegistrationsRetrieveImportableDomainsArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<DomainsProjectsLocationsRegistrationsRetrieveImportableDomainsArgs>
+    for RetrieveImportableDomainsResponse
+{
+    fn generate_resource_id(
+        &self,
+        input: &DomainsProjectsLocationsRegistrationsRetrieveImportableDomainsArgs,
+    ) -> String {
+        format!(
+            "gcp::domains::RetrieveImportableDomainsResponse/{}",
+            input.location
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::domains::RetrieveImportableDomainsResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for RetrieveRegisterParametersResponse
+// =============================================================================
+
+/// ResourceIdentifier implementation for RetrieveRegisterParametersResponse with DomainsProjectsLocationsRegistrationsRetrieveRegisterParametersArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<DomainsProjectsLocationsRegistrationsRetrieveRegisterParametersArgs>
+    for RetrieveRegisterParametersResponse
+{
+    fn generate_resource_id(
+        &self,
+        input: &DomainsProjectsLocationsRegistrationsRetrieveRegisterParametersArgs,
+    ) -> String {
+        format!(
+            "gcp::domains::RetrieveRegisterParametersResponse/{}",
+            input.location
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::domains::RetrieveRegisterParametersResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for RetrieveTransferParametersResponse
+// =============================================================================
+
+/// ResourceIdentifier implementation for RetrieveTransferParametersResponse with DomainsProjectsLocationsRegistrationsRetrieveTransferParametersArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<DomainsProjectsLocationsRegistrationsRetrieveTransferParametersArgs>
+    for RetrieveTransferParametersResponse
+{
+    fn generate_resource_id(
+        &self,
+        input: &DomainsProjectsLocationsRegistrationsRetrieveTransferParametersArgs,
+    ) -> String {
+        format!(
+            "gcp::domains::RetrieveTransferParametersResponse/{}",
+            input.location
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::domains::RetrieveTransferParametersResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for SearchDomainsResponse
+// =============================================================================
+
+/// ResourceIdentifier implementation for SearchDomainsResponse with DomainsProjectsLocationsRegistrationsSearchDomainsArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<DomainsProjectsLocationsRegistrationsSearchDomainsArgs>
+    for SearchDomainsResponse
+{
+    fn generate_resource_id(
+        &self,
+        input: &DomainsProjectsLocationsRegistrationsSearchDomainsArgs,
+    ) -> String {
+        format!("gcp::domains::SearchDomainsResponse/{}", input.location)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::domains::SearchDomainsResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for Policy
+// =============================================================================
+
+/// ResourceIdentifier implementation for Policy with DomainsProjectsLocationsRegistrationsSetIamPolicyArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<DomainsProjectsLocationsRegistrationsSetIamPolicyArgs> for Policy {
+    fn generate_resource_id(
+        &self,
+        input: &DomainsProjectsLocationsRegistrationsSetIamPolicyArgs,
+    ) -> String {
+        format!("gcp::domains::Policy/{}", input.resource)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::domains::Policy"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for TestIamPermissionsResponse
+// =============================================================================
+
+/// ResourceIdentifier implementation for TestIamPermissionsResponse with DomainsProjectsLocationsRegistrationsTestIamPermissionsArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<DomainsProjectsLocationsRegistrationsTestIamPermissionsArgs>
+    for TestIamPermissionsResponse
+{
+    fn generate_resource_id(
+        &self,
+        input: &DomainsProjectsLocationsRegistrationsTestIamPermissionsArgs,
+    ) -> String {
+        format!(
+            "gcp::domains::TestIamPermissionsResponse/{}",
+            input.resource
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::domains::TestIamPermissionsResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for Operation
+// =============================================================================
+
+/// ResourceIdentifier implementation for Operation with DomainsProjectsLocationsRegistrationsTransferArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<DomainsProjectsLocationsRegistrationsTransferArgs> for Operation {
+    fn generate_resource_id(
+        &self,
+        input: &DomainsProjectsLocationsRegistrationsTransferArgs,
+    ) -> String {
+        format!("gcp::domains::Operation/{}", input.parent)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::domains::Operation"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
 }

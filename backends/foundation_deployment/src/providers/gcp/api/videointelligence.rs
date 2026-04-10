@@ -14,17 +14,24 @@
 use crate::providers::gcp::clients::videointelligence::{
     videointelligence_operations_projects_locations_operations_cancel_builder, videointelligence_operations_projects_locations_operations_cancel_task,
     videointelligence_operations_projects_locations_operations_delete_builder, videointelligence_operations_projects_locations_operations_delete_task,
+    videointelligence_operations_projects_locations_operations_get_builder, videointelligence_operations_projects_locations_operations_get_task,
     videointelligence_projects_locations_operations_cancel_builder, videointelligence_projects_locations_operations_cancel_task,
     videointelligence_projects_locations_operations_delete_builder, videointelligence_projects_locations_operations_delete_task,
+    videointelligence_projects_locations_operations_get_builder, videointelligence_projects_locations_operations_get_task,
+    videointelligence_projects_locations_operations_list_builder, videointelligence_projects_locations_operations_list_task,
     videointelligence_videos_annotate_builder, videointelligence_videos_annotate_task,
 };
 use crate::providers::gcp::clients::types::{ApiError, ApiPending};
+use crate::providers::gcp::clients::videointelligence::GoogleLongrunningListOperationsResponse;
 use crate::providers::gcp::clients::videointelligence::GoogleLongrunningOperation;
 use crate::providers::gcp::clients::videointelligence::GoogleProtobufEmpty;
 use crate::providers::gcp::clients::videointelligence::VideointelligenceOperationsProjectsLocationsOperationsCancelArgs;
 use crate::providers::gcp::clients::videointelligence::VideointelligenceOperationsProjectsLocationsOperationsDeleteArgs;
+use crate::providers::gcp::clients::videointelligence::VideointelligenceOperationsProjectsLocationsOperationsGetArgs;
 use crate::providers::gcp::clients::videointelligence::VideointelligenceProjectsLocationsOperationsCancelArgs;
 use crate::providers::gcp::clients::videointelligence::VideointelligenceProjectsLocationsOperationsDeleteArgs;
+use crate::providers::gcp::clients::videointelligence::VideointelligenceProjectsLocationsOperationsGetArgs;
+use crate::providers::gcp::clients::videointelligence::VideointelligenceProjectsLocationsOperationsListArgs;
 use crate::providers::gcp::clients::videointelligence::VideointelligenceVideosAnnotateArgs;
 use crate::provider_client::{ProviderClient, ProviderError};
 use foundation_core::valtron::{execute, StreamIterator};
@@ -153,6 +160,44 @@ where
         execute(store_task, None).map_err(|e: String| ProviderError::ExecuteFailed(e.to_string()))
     }
 
+    /// Videointelligence operations projects locations operations get.
+    ///
+    /// Read-only operation - no state tracking.
+    ///
+    /// # Arguments
+    ///
+    /// * `args` - Request arguments
+    ///
+    /// # Returns
+    ///
+    /// StreamIterator yielding the GoogleLongrunningOperation result.
+    ///
+    /// # Errors
+    ///
+    /// Returns ProviderError if the API request fails.
+    pub fn videointelligence_operations_projects_locations_operations_get(
+        &self,
+        args: &VideointelligenceOperationsProjectsLocationsOperationsGetArgs,
+    ) -> Result<
+        impl StreamIterator<
+            D = Result<GoogleLongrunningOperation, ProviderError<ApiError>>,
+            P = crate::providers::gcp::clients::types::ApiPending,
+        > + Send
+        + 'static,
+        ProviderError<ApiError>,
+    > {
+        let builder = videointelligence_operations_projects_locations_operations_get_builder(
+            &self.http_client,
+            &args.name,
+        )
+        .map_err(ProviderError::Api)?;
+
+        let task = videointelligence_operations_projects_locations_operations_get_task(builder)
+            .map_err(ProviderError::Api)?;
+
+        execute(task, None).map_err(|e: String| ProviderError::ExecuteFailed(e.to_string()))
+    }
+
     /// Videointelligence projects locations operations cancel.
     ///
     /// Automatically stores the result in the state store on success.
@@ -237,6 +282,86 @@ where
         let store_task = StoreStateIdentifierTask::new(task, state_store, args, stage);
 
         execute(store_task, None).map_err(|e: String| ProviderError::ExecuteFailed(e.to_string()))
+    }
+
+    /// Videointelligence projects locations operations get.
+    ///
+    /// Read-only operation - no state tracking.
+    ///
+    /// # Arguments
+    ///
+    /// * `args` - Request arguments
+    ///
+    /// # Returns
+    ///
+    /// StreamIterator yielding the GoogleLongrunningOperation result.
+    ///
+    /// # Errors
+    ///
+    /// Returns ProviderError if the API request fails.
+    pub fn videointelligence_projects_locations_operations_get(
+        &self,
+        args: &VideointelligenceProjectsLocationsOperationsGetArgs,
+    ) -> Result<
+        impl StreamIterator<
+            D = Result<GoogleLongrunningOperation, ProviderError<ApiError>>,
+            P = crate::providers::gcp::clients::types::ApiPending,
+        > + Send
+        + 'static,
+        ProviderError<ApiError>,
+    > {
+        let builder = videointelligence_projects_locations_operations_get_builder(
+            &self.http_client,
+            &args.name,
+        )
+        .map_err(ProviderError::Api)?;
+
+        let task = videointelligence_projects_locations_operations_get_task(builder)
+            .map_err(ProviderError::Api)?;
+
+        execute(task, None).map_err(|e: String| ProviderError::ExecuteFailed(e.to_string()))
+    }
+
+    /// Videointelligence projects locations operations list.
+    ///
+    /// Read-only operation - no state tracking.
+    ///
+    /// # Arguments
+    ///
+    /// * `args` - Request arguments
+    ///
+    /// # Returns
+    ///
+    /// StreamIterator yielding the GoogleLongrunningListOperationsResponse result.
+    ///
+    /// # Errors
+    ///
+    /// Returns ProviderError if the API request fails.
+    pub fn videointelligence_projects_locations_operations_list(
+        &self,
+        args: &VideointelligenceProjectsLocationsOperationsListArgs,
+    ) -> Result<
+        impl StreamIterator<
+            D = Result<GoogleLongrunningListOperationsResponse, ProviderError<ApiError>>,
+            P = crate::providers::gcp::clients::types::ApiPending,
+        > + Send
+        + 'static,
+        ProviderError<ApiError>,
+    > {
+        let builder = videointelligence_projects_locations_operations_list_builder(
+            &self.http_client,
+            &args.name,
+            &args.filter,
+            &args.pageSize,
+            &args.pageToken,
+            &args.returnPartialSuccess,
+        )
+        .map_err(ProviderError::Api)?;
+
+        let task = videointelligence_projects_locations_operations_list_task(builder)
+            .map_err(ProviderError::Api)?;
+
+        execute(task, None).map_err(|e: String| ProviderError::ExecuteFailed(e.to_string()))
     }
 
     /// Videointelligence videos annotate.

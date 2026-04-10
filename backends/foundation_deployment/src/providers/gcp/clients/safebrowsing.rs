@@ -7,7 +7,6 @@
 
 #![cfg(feature = "gcp")]
 
-
 use crate::providers::gcp::clients::types::*;
 use crate::providers::gcp::resources::*;
 use foundation_core::valtron::{
@@ -17,6 +16,7 @@ use foundation_core::valtron::{
 use foundation_core::wire::simple_http::client::{
     body_reader, ClientRequestBuilder, RequestIntro, SimpleHttpClient, SystemDnsResolver,
 };
+use foundation_db::state::resource_identifier::ResourceIdentifier;
 use foundation_macros::JsonHash;
 use serde::Serialize;
 
@@ -29,9 +29,9 @@ use serde::Serialize;
 pub fn safebrowsing_hash_list_get_builder(
     client: &SimpleHttpClient,
     name: &String,
-    sizeConstraints_maxDatabaseEntries: &Option<i32>,
-    sizeConstraints_maxUpdateEntries: &Option<i32>,
-    version: &Option<String>,
+    sizeConstraints_maxDatabaseEntries: &Option<Option<String>>,
+    sizeConstraints_maxUpdateEntries: &Option<Option<String>>,
+    version: &Option<Option<String>>,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!("https://safebrowsing.googleapis.com/v5/hashList/{}", name,);
@@ -175,11 +175,11 @@ pub struct SafebrowsingHashListGetArgs {
     /// Path parameter: name
     pub name: String,
     /// Query parameter: sizeConstraints_maxDatabaseEntries
-    pub sizeConstraints_maxDatabaseEntries: Option<i32>,
+    pub sizeConstraints_maxDatabaseEntries: Option<Option<String>>,
     /// Query parameter: sizeConstraints_maxUpdateEntries
-    pub sizeConstraints_maxUpdateEntries: Option<i32>,
+    pub sizeConstraints_maxUpdateEntries: Option<Option<String>>,
     /// Query parameter: version
-    pub version: Option<String>,
+    pub version: Option<Option<String>>,
 }
 
 /// GET v5/hashList/{name}
@@ -222,10 +222,10 @@ pub fn safebrowsing_hash_list_get(
 
 pub fn safebrowsing_hash_lists_batch_get_builder(
     client: &SimpleHttpClient,
-    names: &Option<String>,
-    sizeConstraints_maxDatabaseEntries: &Option<i32>,
-    sizeConstraints_maxUpdateEntries: &Option<i32>,
-    version: &Option<String>,
+    names: &Option<Option<String>>,
+    sizeConstraints_maxDatabaseEntries: &Option<Option<String>>,
+    sizeConstraints_maxUpdateEntries: &Option<Option<String>>,
+    version: &Option<Option<String>>,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!("https://safebrowsing.googleapis.com/v5/hashLists:batchGet",);
@@ -377,13 +377,13 @@ pub fn safebrowsing_hash_lists_batch_get_execute(
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct SafebrowsingHashListsBatchGetArgs {
     /// Query parameter: names
-    pub names: Option<String>,
+    pub names: Option<Option<String>>,
     /// Query parameter: sizeConstraints_maxDatabaseEntries
-    pub sizeConstraints_maxDatabaseEntries: Option<i32>,
+    pub sizeConstraints_maxDatabaseEntries: Option<Option<String>>,
     /// Query parameter: sizeConstraints_maxUpdateEntries
-    pub sizeConstraints_maxUpdateEntries: Option<i32>,
+    pub sizeConstraints_maxUpdateEntries: Option<Option<String>>,
     /// Query parameter: version
-    pub version: Option<String>,
+    pub version: Option<Option<String>>,
 }
 
 /// GET v5/hashLists:batchGet
@@ -429,8 +429,8 @@ pub fn safebrowsing_hash_lists_batch_get(
 
 pub fn safebrowsing_hash_lists_list_builder(
     client: &SimpleHttpClient,
-    pageSize: &Option<i32>,
-    pageToken: &Option<String>,
+    pageSize: &Option<Option<String>>,
+    pageToken: &Option<Option<String>>,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!("https://safebrowsing.googleapis.com/v5/hashLists",);
@@ -573,9 +573,9 @@ pub fn safebrowsing_hash_lists_list_execute(
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct SafebrowsingHashListsListArgs {
     /// Query parameter: pageSize
-    pub pageSize: Option<i32>,
+    pub pageSize: Option<Option<String>>,
     /// Query parameter: pageToken
-    pub pageToken: Option<String>,
+    pub pageToken: Option<Option<String>>,
 }
 
 /// GET v5/hashLists
@@ -612,7 +612,7 @@ pub fn safebrowsing_hash_lists_list(
 
 pub fn safebrowsing_hashes_search_builder(
     client: &SimpleHttpClient,
-    hashPrefixes: &Option<String>,
+    hashPrefixes: &Option<Option<String>>,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!("https://safebrowsing.googleapis.com/v5/hashes:search",);
@@ -749,7 +749,7 @@ pub fn safebrowsing_hashes_search_execute(
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct SafebrowsingHashesSearchArgs {
     /// Query parameter: hashPrefixes
-    pub hashPrefixes: Option<String>,
+    pub hashPrefixes: Option<Option<String>>,
 }
 
 /// GET v5/hashes:search
@@ -786,7 +786,7 @@ pub fn safebrowsing_hashes_search(
 
 pub fn safebrowsing_urls_search_builder(
     client: &SimpleHttpClient,
-    urls: &Option<String>,
+    urls: &Option<Option<String>>,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!("https://safebrowsing.googleapis.com/v5/urls:search",);
@@ -923,7 +923,7 @@ pub fn safebrowsing_urls_search_execute(
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct SafebrowsingUrlsSearchArgs {
     /// Query parameter: urls
-    pub urls: Option<String>,
+    pub urls: Option<Option<String>>,
 }
 
 /// GET v5/urls:search
@@ -950,4 +950,130 @@ pub fn safebrowsing_urls_search(
 > {
     let builder = safebrowsing_urls_search_builder(client, &args.urls)?;
     safebrowsing_urls_search_execute(builder)
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for GoogleSecuritySafebrowsingV5HashList
+// =============================================================================
+
+/// ResourceIdentifier implementation for GoogleSecuritySafebrowsingV5HashList with SafebrowsingHashListGetArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<SafebrowsingHashListGetArgs> for GoogleSecuritySafebrowsingV5HashList {
+    fn generate_resource_id(&self, input: &SafebrowsingHashListGetArgs) -> String {
+        format!(
+            "gcp::safebrowsing::GoogleSecuritySafebrowsingV5HashList/{}",
+            input.name
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::safebrowsing::GoogleSecuritySafebrowsingV5HashList"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for GoogleSecuritySafebrowsingV5BatchGetHashListsResponse
+// =============================================================================
+
+/// ResourceIdentifier implementation for GoogleSecuritySafebrowsingV5BatchGetHashListsResponse with SafebrowsingHashListsBatchGetArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<SafebrowsingHashListsBatchGetArgs>
+    for GoogleSecuritySafebrowsingV5BatchGetHashListsResponse
+{
+    fn generate_resource_id(&self, input: &SafebrowsingHashListsBatchGetArgs) -> String {
+        "gcp::safebrowsing::GoogleSecuritySafebrowsingV5BatchGetHashListsResponse".to_string()
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::safebrowsing::GoogleSecuritySafebrowsingV5BatchGetHashListsResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for GoogleSecuritySafebrowsingV5ListHashListsResponse
+// =============================================================================
+
+/// ResourceIdentifier implementation for GoogleSecuritySafebrowsingV5ListHashListsResponse with SafebrowsingHashListsListArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<SafebrowsingHashListsListArgs>
+    for GoogleSecuritySafebrowsingV5ListHashListsResponse
+{
+    fn generate_resource_id(&self, input: &SafebrowsingHashListsListArgs) -> String {
+        "gcp::safebrowsing::GoogleSecuritySafebrowsingV5ListHashListsResponse".to_string()
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::safebrowsing::GoogleSecuritySafebrowsingV5ListHashListsResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for GoogleSecuritySafebrowsingV5SearchHashesResponse
+// =============================================================================
+
+/// ResourceIdentifier implementation for GoogleSecuritySafebrowsingV5SearchHashesResponse with SafebrowsingHashesSearchArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<SafebrowsingHashesSearchArgs>
+    for GoogleSecuritySafebrowsingV5SearchHashesResponse
+{
+    fn generate_resource_id(&self, input: &SafebrowsingHashesSearchArgs) -> String {
+        "gcp::safebrowsing::GoogleSecuritySafebrowsingV5SearchHashesResponse".to_string()
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::safebrowsing::GoogleSecuritySafebrowsingV5SearchHashesResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for GoogleSecuritySafebrowsingV5SearchUrlsResponse
+// =============================================================================
+
+/// ResourceIdentifier implementation for GoogleSecuritySafebrowsingV5SearchUrlsResponse with SafebrowsingUrlsSearchArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<SafebrowsingUrlsSearchArgs>
+    for GoogleSecuritySafebrowsingV5SearchUrlsResponse
+{
+    fn generate_resource_id(&self, input: &SafebrowsingUrlsSearchArgs) -> String {
+        "gcp::safebrowsing::GoogleSecuritySafebrowsingV5SearchUrlsResponse".to_string()
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::safebrowsing::GoogleSecuritySafebrowsingV5SearchUrlsResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
 }

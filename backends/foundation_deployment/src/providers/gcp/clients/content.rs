@@ -7,7 +7,6 @@
 
 #![cfg(feature = "gcp")]
 
-
 use crate::providers::gcp::clients::types::*;
 use crate::providers::gcp::resources::*;
 use foundation_core::valtron::{
@@ -17,6 +16,7 @@ use foundation_core::valtron::{
 use foundation_core::wire::simple_http::client::{
     body_reader, ClientRequestBuilder, RequestIntro, SimpleHttpClient, SystemDnsResolver,
 };
+use foundation_db::state::resource_identifier::ResourceIdentifier;
 use foundation_macros::JsonHash;
 use serde::Serialize;
 
@@ -170,7 +170,7 @@ pub fn content_accounts_authinfo(
     content_accounts_authinfo_execute(builder)
 }
 
-/// GET {merchantId}/accounts/{accountId}/claimwebsite
+/// POST {merchantId}/accounts/{accountId}/claimwebsite
 /// Claims the website of a Merchant Center sub-account. Merchant accounts with approved third-party CSSs aren't required to claim a website.
 ///
 /// Returns `ClientRequestBuilder` for customization.
@@ -180,7 +180,7 @@ pub fn content_accounts_claimwebsite_builder(
     client: &SimpleHttpClient,
     merchantId: &String,
     accountId: &String,
-    overwrite: &Option<bool>,
+    overwrite: &Option<Option<String>>,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
@@ -201,13 +201,13 @@ pub fn content_accounts_claimwebsite_builder(
     };
 
     let builder = client
-        .get(&url_with_query)
+        .post(&url_with_query)
         .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
 
     Ok(builder)
 }
 
-/// GET {merchantId}/accounts/{accountId}/claimwebsite
+/// POST {merchantId}/accounts/{accountId}/claimwebsite
 /// Claims the website of a Merchant Center sub-account. Merchant accounts with approved third-party CSSs aren't required to claim a website.
 ///
 /// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
@@ -281,7 +281,7 @@ pub fn content_accounts_claimwebsite_task(
         .map_pending(|_| ApiPending::Sending))
 }
 
-/// GET {merchantId}/accounts/{accountId}/claimwebsite
+/// POST {merchantId}/accounts/{accountId}/claimwebsite
 /// Claims the website of a Merchant Center sub-account. Merchant accounts with approved third-party CSSs aren't required to claim a website.
 ///
 /// Takes a `ClientRequestBuilder`, builds and executes the request,
@@ -323,10 +323,10 @@ pub struct ContentAccountsClaimwebsiteArgs {
     /// Path parameter: accountId
     pub accountId: String,
     /// Query parameter: overwrite
-    pub overwrite: Option<bool>,
+    pub overwrite: Option<Option<String>>,
 }
 
-/// GET {merchantId}/accounts/{accountId}/claimwebsite
+/// POST {merchantId}/accounts/{accountId}/claimwebsite
 /// Claims the website of a Merchant Center sub-account. Merchant accounts with approved third-party CSSs aren't required to claim a website.
 ///
 /// Simplest API - builds and executes the request in one call.
@@ -357,7 +357,7 @@ pub fn content_accounts_claimwebsite(
     content_accounts_claimwebsite_execute(builder)
 }
 
-/// GET accounts/batch
+/// POST accounts/batch
 /// Retrieves, inserts, updates, and deletes multiple Merchant Center (sub-)accounts in a single request.
 ///
 /// Returns `ClientRequestBuilder` for customization.
@@ -365,7 +365,6 @@ pub fn content_accounts_claimwebsite(
 
 pub fn content_accounts_custombatch_builder(
     client: &SimpleHttpClient,
-    body: &AccountsCustomBatchRequest,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url =
@@ -373,15 +372,13 @@ pub fn content_accounts_custombatch_builder(
 
     // Build request
     let builder = client
-        .get(&endpoint_url)
+        .post(&endpoint_url)
         .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
 
-    builder
-        .body_json(body)
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+    Ok(builder)
 }
 
-/// GET accounts/batch
+/// POST accounts/batch
 /// Retrieves, inserts, updates, and deletes multiple Merchant Center (sub-)accounts in a single request.
 ///
 /// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
@@ -455,7 +452,7 @@ pub fn content_accounts_custombatch_task(
         .map_pending(|_| ApiPending::Sending))
 }
 
-/// GET accounts/batch
+/// POST accounts/batch
 /// Retrieves, inserts, updates, and deletes multiple Merchant Center (sub-)accounts in a single request.
 ///
 /// Takes a `ClientRequestBuilder`, builds and executes the request,
@@ -489,14 +486,7 @@ pub fn content_accounts_custombatch_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
-/// Arguments for [`content_accounts_custombatch`].
-#[derive(Debug, Clone, Serialize, JsonHash)]
-pub struct ContentAccountsCustombatchArgs {
-    /// Request body.
-    pub body: AccountsCustomBatchRequest,
-}
-
-/// GET accounts/batch
+/// POST accounts/batch
 /// Retrieves, inserts, updates, and deletes multiple Merchant Center (sub-)accounts in a single request.
 ///
 /// Simplest API - builds and executes the request in one call.
@@ -509,7 +499,6 @@ pub struct ContentAccountsCustombatchArgs {
 
 pub fn content_accounts_custombatch(
     client: &SimpleHttpClient,
-    args: &ContentAccountsCustombatchArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<AccountsCustomBatchResponse>, ApiError>,
@@ -518,11 +507,11 @@ pub fn content_accounts_custombatch(
         + 'static,
     ApiError,
 > {
-    let builder = content_accounts_custombatch_builder(client, &args.body)?;
+    let builder = content_accounts_custombatch_builder(client)?;
     content_accounts_custombatch_execute(builder)
 }
 
-/// GET {merchantId}/accounts/{accountId}
+/// DELETE {merchantId}/accounts/{accountId}
 /// Deletes a Merchant Center sub-account.
 ///
 /// Returns `ClientRequestBuilder` for customization.
@@ -532,7 +521,7 @@ pub fn content_accounts_delete_builder(
     client: &SimpleHttpClient,
     merchantId: &String,
     accountId: &String,
-    force: &Option<bool>,
+    force: &Option<Option<String>>,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
@@ -553,13 +542,13 @@ pub fn content_accounts_delete_builder(
     };
 
     let builder = client
-        .get(&url_with_query)
+        .delete(&url_with_query)
         .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
 
     Ok(builder)
 }
 
-/// GET {merchantId}/accounts/{accountId}
+/// DELETE {merchantId}/accounts/{accountId}
 /// Deletes a Merchant Center sub-account.
 ///
 /// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
@@ -630,7 +619,7 @@ pub fn content_accounts_delete_task(
         .map_pending(|_| ApiPending::Sending))
 }
 
-/// GET {merchantId}/accounts/{accountId}
+/// DELETE {merchantId}/accounts/{accountId}
 /// Deletes a Merchant Center sub-account.
 ///
 /// Takes a `ClientRequestBuilder`, builds and executes the request,
@@ -668,10 +657,10 @@ pub struct ContentAccountsDeleteArgs {
     /// Path parameter: accountId
     pub accountId: String,
     /// Query parameter: force
-    pub force: Option<bool>,
+    pub force: Option<Option<String>>,
 }
 
-/// GET {merchantId}/accounts/{accountId}
+/// DELETE {merchantId}/accounts/{accountId}
 /// Deletes a Merchant Center sub-account.
 ///
 /// Simplest API - builds and executes the request in one call.
@@ -694,7 +683,182 @@ pub fn content_accounts_delete(
     content_accounts_delete_execute(builder)
 }
 
-/// GET {merchantId}/accounts
+/// GET {merchantId}/accounts/{accountId}
+/// Retrieves a Merchant Center account.
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `content_accounts_get_execute()` to send, or `content_accounts_get` for simplest API.
+
+pub fn content_accounts_get_builder(
+    client: &SimpleHttpClient,
+    merchantId: &String,
+    accountId: &String,
+    view: &Option<Option<String>>,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!(
+        "https://shoppingcontent.googleapis.com/content/v2.1/{}/accounts/{}",
+        merchantId, accountId,
+    );
+
+    // Build request
+    let mut query_parts = Vec::new();
+    if let Some(val) = view.as_ref() {
+        query_parts.push(format!("view={}", val));
+    }
+
+    let url_with_query = if query_parts.is_empty() {
+        endpoint_url
+    } else {
+        format!("{}?{}", endpoint_url, query_parts.join("&"))
+    };
+
+    let builder = client
+        .get(&url_with_query)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// GET {merchantId}/accounts/{accountId}
+/// Retrieves a Merchant Center account.
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `content_accounts_get_execute()` or `content_accounts_get`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `content_accounts_get_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn content_accounts_get_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<Account>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: Account = serde_json::from_str(&body)
+                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// GET {merchantId}/accounts/{accountId}
+/// Retrieves a Merchant Center account.
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `content_accounts_get_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `content_accounts_get_task()`.
+/// For the simplest API, use `content_accounts_get()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `content_accounts_get_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn content_accounts_get_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<Account>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let task = content_accounts_get_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`content_accounts_get`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct ContentAccountsGetArgs {
+    /// Path parameter: merchantId
+    pub merchantId: String,
+    /// Path parameter: accountId
+    pub accountId: String,
+    /// Query parameter: view
+    pub view: Option<Option<String>>,
+}
+
+/// GET {merchantId}/accounts/{accountId}
+/// Retrieves a Merchant Center account.
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `content_accounts_get_builder()` + `content_accounts_get_execute()`.
+/// For task-level control, use `content_accounts_get_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn content_accounts_get(
+    client: &SimpleHttpClient,
+    args: &ContentAccountsGetArgs,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<Account>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let builder =
+        content_accounts_get_builder(client, &args.merchantId, &args.accountId, &args.view)?;
+    content_accounts_get_execute(builder)
+}
+
+/// POST {merchantId}/accounts
 /// Creates a Merchant Center sub-account.
 ///
 /// Returns `ClientRequestBuilder` for customization.
@@ -703,7 +867,6 @@ pub fn content_accounts_delete(
 pub fn content_accounts_insert_builder(
     client: &SimpleHttpClient,
     merchantId: &String,
-    body: &Account,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
@@ -713,15 +876,13 @@ pub fn content_accounts_insert_builder(
 
     // Build request
     let builder = client
-        .get(&endpoint_url)
+        .post(&endpoint_url)
         .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
 
-    builder
-        .body_json(body)
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+    Ok(builder)
 }
 
-/// GET {merchantId}/accounts
+/// POST {merchantId}/accounts
 /// Creates a Merchant Center sub-account.
 ///
 /// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
@@ -795,7 +956,7 @@ pub fn content_accounts_insert_task(
         .map_pending(|_| ApiPending::Sending))
 }
 
-/// GET {merchantId}/accounts
+/// POST {merchantId}/accounts
 /// Creates a Merchant Center sub-account.
 ///
 /// Takes a `ClientRequestBuilder`, builds and executes the request,
@@ -830,11 +991,9 @@ pub fn content_accounts_insert_execute(
 pub struct ContentAccountsInsertArgs {
     /// Path parameter: merchantId
     pub merchantId: String,
-    /// Request body.
-    pub body: Account,
 }
 
-/// GET {merchantId}/accounts
+/// POST {merchantId}/accounts
 /// Creates a Merchant Center sub-account.
 ///
 /// Simplest API - builds and executes the request in one call.
@@ -852,11 +1011,11 @@ pub fn content_accounts_insert(
     impl StreamIterator<D = Result<ApiResponse<Account>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = content_accounts_insert_builder(client, &args.merchantId, &args.body)?;
+    let builder = content_accounts_insert_builder(client, &args.merchantId)?;
     content_accounts_insert_execute(builder)
 }
 
-/// GET {merchantId}/accounts/{accountId}/link
+/// POST {merchantId}/accounts/{accountId}/link
 /// Performs an action on a link between two Merchant Center accounts, namely `accountId` and `linkedAccountId`.
 ///
 /// Returns `ClientRequestBuilder` for customization.
@@ -866,7 +1025,6 @@ pub fn content_accounts_link_builder(
     client: &SimpleHttpClient,
     merchantId: &String,
     accountId: &String,
-    body: &AccountsLinkRequest,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
@@ -876,15 +1034,13 @@ pub fn content_accounts_link_builder(
 
     // Build request
     let builder = client
-        .get(&endpoint_url)
+        .post(&endpoint_url)
         .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
 
-    builder
-        .body_json(body)
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+    Ok(builder)
 }
 
-/// GET {merchantId}/accounts/{accountId}/link
+/// POST {merchantId}/accounts/{accountId}/link
 /// Performs an action on a link between two Merchant Center accounts, namely `accountId` and `linkedAccountId`.
 ///
 /// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
@@ -958,7 +1114,7 @@ pub fn content_accounts_link_task(
         .map_pending(|_| ApiPending::Sending))
 }
 
-/// GET {merchantId}/accounts/{accountId}/link
+/// POST {merchantId}/accounts/{accountId}/link
 /// Performs an action on a link between two Merchant Center accounts, namely `accountId` and `linkedAccountId`.
 ///
 /// Takes a `ClientRequestBuilder`, builds and executes the request,
@@ -997,11 +1153,9 @@ pub struct ContentAccountsLinkArgs {
     pub merchantId: String,
     /// Path parameter: accountId
     pub accountId: String,
-    /// Request body.
-    pub body: AccountsLinkRequest,
 }
 
-/// GET {merchantId}/accounts/{accountId}/link
+/// POST {merchantId}/accounts/{accountId}/link
 /// Performs an action on a link between two Merchant Center accounts, namely `accountId` and `linkedAccountId`.
 ///
 /// Simplest API - builds and executes the request in one call.
@@ -1021,9 +1175,215 @@ pub fn content_accounts_link(
         + 'static,
     ApiError,
 > {
-    let builder =
-        content_accounts_link_builder(client, &args.merchantId, &args.accountId, &args.body)?;
+    let builder = content_accounts_link_builder(client, &args.merchantId, &args.accountId)?;
     content_accounts_link_execute(builder)
+}
+
+/// GET {merchantId}/accounts
+/// Lists the sub-accounts in your Merchant Center account.
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `content_accounts_list_execute()` to send, or `content_accounts_list` for simplest API.
+
+pub fn content_accounts_list_builder(
+    client: &SimpleHttpClient,
+    merchantId: &String,
+    label: &Option<Option<String>>,
+    maxResults: &Option<Option<String>>,
+    name: &Option<Option<String>>,
+    pageToken: &Option<Option<String>>,
+    view: &Option<Option<String>>,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!(
+        "https://shoppingcontent.googleapis.com/content/v2.1/{}/accounts",
+        merchantId,
+    );
+
+    // Build request
+    let mut query_parts = Vec::new();
+    if let Some(val) = label.as_ref() {
+        query_parts.push(format!("label={}", val));
+    }
+    if let Some(val) = maxResults.as_ref() {
+        query_parts.push(format!("maxResults={}", val));
+    }
+    if let Some(val) = name.as_ref() {
+        query_parts.push(format!("name={}", val));
+    }
+    if let Some(val) = pageToken.as_ref() {
+        query_parts.push(format!("pageToken={}", val));
+    }
+    if let Some(val) = view.as_ref() {
+        query_parts.push(format!("view={}", val));
+    }
+
+    let url_with_query = if query_parts.is_empty() {
+        endpoint_url
+    } else {
+        format!("{}?{}", endpoint_url, query_parts.join("&"))
+    };
+
+    let builder = client
+        .get(&url_with_query)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// GET {merchantId}/accounts
+/// Lists the sub-accounts in your Merchant Center account.
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `content_accounts_list_execute()` or `content_accounts_list`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `content_accounts_list_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn content_accounts_list_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<AccountsListResponse>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: AccountsListResponse = serde_json::from_str(&body)
+                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// GET {merchantId}/accounts
+/// Lists the sub-accounts in your Merchant Center account.
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `content_accounts_list_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `content_accounts_list_task()`.
+/// For the simplest API, use `content_accounts_list()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `content_accounts_list_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn content_accounts_list_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<AccountsListResponse>, ApiError>, P = ApiPending>
+        + Send
+        + 'static,
+    ApiError,
+> {
+    let task = content_accounts_list_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`content_accounts_list`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct ContentAccountsListArgs {
+    /// Path parameter: merchantId
+    pub merchantId: String,
+    /// Query parameter: label
+    pub label: Option<Option<String>>,
+    /// Query parameter: maxResults
+    pub maxResults: Option<Option<String>>,
+    /// Query parameter: name
+    pub name: Option<Option<String>>,
+    /// Query parameter: pageToken
+    pub pageToken: Option<Option<String>>,
+    /// Query parameter: view
+    pub view: Option<Option<String>>,
+}
+
+/// GET {merchantId}/accounts
+/// Lists the sub-accounts in your Merchant Center account.
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `content_accounts_list_builder()` + `content_accounts_list_execute()`.
+/// For task-level control, use `content_accounts_list_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn content_accounts_list(
+    client: &SimpleHttpClient,
+    args: &ContentAccountsListArgs,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<AccountsListResponse>, ApiError>, P = ApiPending>
+        + Send
+        + 'static,
+    ApiError,
+> {
+    let builder = content_accounts_list_builder(
+        client,
+        &args.merchantId,
+        &args.label,
+        &args.maxResults,
+        &args.name,
+        &args.pageToken,
+        &args.view,
+    )?;
+    content_accounts_list_execute(builder)
 }
 
 /// GET {merchantId}/accounts/{accountId}/listlinks
@@ -1036,8 +1396,8 @@ pub fn content_accounts_listlinks_builder(
     client: &SimpleHttpClient,
     merchantId: &String,
     accountId: &String,
-    maxResults: &Option<i32>,
-    pageToken: &Option<String>,
+    maxResults: &Option<Option<String>>,
+    pageToken: &Option<Option<String>>,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
@@ -1181,9 +1541,9 @@ pub struct ContentAccountsListlinksArgs {
     /// Path parameter: accountId
     pub accountId: String,
     /// Query parameter: maxResults
-    pub maxResults: Option<i32>,
+    pub maxResults: Option<Option<String>>,
     /// Query parameter: pageToken
-    pub pageToken: Option<String>,
+    pub pageToken: Option<Option<String>>,
 }
 
 /// GET {merchantId}/accounts/{accountId}/listlinks
@@ -1216,7 +1576,7 @@ pub fn content_accounts_listlinks(
     content_accounts_listlinks_execute(builder)
 }
 
-/// GET {merchantId}/accounts/{accountId}/requestphoneverification
+/// POST {merchantId}/accounts/{accountId}/requestphoneverification
 /// Request verification code to start phone verification.
 ///
 /// Returns `ClientRequestBuilder` for customization.
@@ -1226,7 +1586,6 @@ pub fn content_accounts_requestphoneverification_builder(
     client: &SimpleHttpClient,
     merchantId: &String,
     accountId: &String,
-    body: &RequestPhoneVerificationRequest,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
@@ -1237,15 +1596,13 @@ pub fn content_accounts_requestphoneverification_builder(
 
     // Build request
     let builder = client
-        .get(&endpoint_url)
+        .post(&endpoint_url)
         .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
 
-    builder
-        .body_json(body)
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+    Ok(builder)
 }
 
-/// GET {merchantId}/accounts/{accountId}/requestphoneverification
+/// POST {merchantId}/accounts/{accountId}/requestphoneverification
 /// Request verification code to start phone verification.
 ///
 /// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
@@ -1319,7 +1676,7 @@ pub fn content_accounts_requestphoneverification_task(
         .map_pending(|_| ApiPending::Sending))
 }
 
-/// GET {merchantId}/accounts/{accountId}/requestphoneverification
+/// POST {merchantId}/accounts/{accountId}/requestphoneverification
 /// Request verification code to start phone verification.
 ///
 /// Takes a `ClientRequestBuilder`, builds and executes the request,
@@ -1360,11 +1717,9 @@ pub struct ContentAccountsRequestphoneverificationArgs {
     pub merchantId: String,
     /// Path parameter: accountId
     pub accountId: String,
-    /// Request body.
-    pub body: RequestPhoneVerificationRequest,
 }
 
-/// GET {merchantId}/accounts/{accountId}/requestphoneverification
+/// POST {merchantId}/accounts/{accountId}/requestphoneverification
 /// Request verification code to start phone verification.
 ///
 /// Simplest API - builds and executes the request in one call.
@@ -1390,12 +1745,171 @@ pub fn content_accounts_requestphoneverification(
         client,
         &args.merchantId,
         &args.accountId,
-        &args.body,
     )?;
     content_accounts_requestphoneverification_execute(builder)
 }
 
-/// GET {merchantId}/accounts/{accountId}/updatelabels
+/// PUT {merchantId}/accounts/{accountId}
+/// Updates a Merchant Center account. Any fields that are not provided are deleted from the resource.
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `content_accounts_update_execute()` to send, or `content_accounts_update` for simplest API.
+
+pub fn content_accounts_update_builder(
+    client: &SimpleHttpClient,
+    merchantId: &String,
+    accountId: &String,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!(
+        "https://shoppingcontent.googleapis.com/content/v2.1/{}/accounts/{}",
+        merchantId, accountId,
+    );
+
+    // Build request
+    let builder = client
+        .put(&endpoint_url)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// PUT {merchantId}/accounts/{accountId}
+/// Updates a Merchant Center account. Any fields that are not provided are deleted from the resource.
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `content_accounts_update_execute()` or `content_accounts_update`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `content_accounts_update_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn content_accounts_update_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<Account>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: Account = serde_json::from_str(&body)
+                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// PUT {merchantId}/accounts/{accountId}
+/// Updates a Merchant Center account. Any fields that are not provided are deleted from the resource.
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `content_accounts_update_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `content_accounts_update_task()`.
+/// For the simplest API, use `content_accounts_update()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `content_accounts_update_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn content_accounts_update_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<Account>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let task = content_accounts_update_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`content_accounts_update`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct ContentAccountsUpdateArgs {
+    /// Path parameter: merchantId
+    pub merchantId: String,
+    /// Path parameter: accountId
+    pub accountId: String,
+}
+
+/// PUT {merchantId}/accounts/{accountId}
+/// Updates a Merchant Center account. Any fields that are not provided are deleted from the resource.
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `content_accounts_update_builder()` + `content_accounts_update_execute()`.
+/// For task-level control, use `content_accounts_update_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn content_accounts_update(
+    client: &SimpleHttpClient,
+    args: &ContentAccountsUpdateArgs,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<Account>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let builder = content_accounts_update_builder(client, &args.merchantId, &args.accountId)?;
+    content_accounts_update_execute(builder)
+}
+
+/// POST {merchantId}/accounts/{accountId}/updatelabels
 /// Updates labels that are assigned to the Merchant Center account by CSS user.
 ///
 /// Returns `ClientRequestBuilder` for customization.
@@ -1405,7 +1919,6 @@ pub fn content_accounts_updatelabels_builder(
     client: &SimpleHttpClient,
     merchantId: &String,
     accountId: &String,
-    body: &AccountsUpdateLabelsRequest,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
@@ -1415,15 +1928,13 @@ pub fn content_accounts_updatelabels_builder(
 
     // Build request
     let builder = client
-        .get(&endpoint_url)
+        .post(&endpoint_url)
         .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
 
-    builder
-        .body_json(body)
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+    Ok(builder)
 }
 
-/// GET {merchantId}/accounts/{accountId}/updatelabels
+/// POST {merchantId}/accounts/{accountId}/updatelabels
 /// Updates labels that are assigned to the Merchant Center account by CSS user.
 ///
 /// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
@@ -1497,7 +2008,7 @@ pub fn content_accounts_updatelabels_task(
         .map_pending(|_| ApiPending::Sending))
 }
 
-/// GET {merchantId}/accounts/{accountId}/updatelabels
+/// POST {merchantId}/accounts/{accountId}/updatelabels
 /// Updates labels that are assigned to the Merchant Center account by CSS user.
 ///
 /// Takes a `ClientRequestBuilder`, builds and executes the request,
@@ -1538,11 +2049,9 @@ pub struct ContentAccountsUpdatelabelsArgs {
     pub merchantId: String,
     /// Path parameter: accountId
     pub accountId: String,
-    /// Request body.
-    pub body: AccountsUpdateLabelsRequest,
 }
 
-/// GET {merchantId}/accounts/{accountId}/updatelabels
+/// POST {merchantId}/accounts/{accountId}/updatelabels
 /// Updates labels that are assigned to the Merchant Center account by CSS user.
 ///
 /// Simplest API - builds and executes the request in one call.
@@ -1564,16 +2073,11 @@ pub fn content_accounts_updatelabels(
         + 'static,
     ApiError,
 > {
-    let builder = content_accounts_updatelabels_builder(
-        client,
-        &args.merchantId,
-        &args.accountId,
-        &args.body,
-    )?;
+    let builder = content_accounts_updatelabels_builder(client, &args.merchantId, &args.accountId)?;
     content_accounts_updatelabels_execute(builder)
 }
 
-/// GET {merchantId}/accounts/{accountId}/verifyphonenumber
+/// POST {merchantId}/accounts/{accountId}/verifyphonenumber
 /// Validates verification code to verify phone number for the account. If successful this will overwrite the value of accounts.businessinformation.`phoneNumber`. Only verified phone number will replace an existing verified phone number.
 ///
 /// Returns `ClientRequestBuilder` for customization.
@@ -1583,7 +2087,6 @@ pub fn content_accounts_verifyphonenumber_builder(
     client: &SimpleHttpClient,
     merchantId: &String,
     accountId: &String,
-    body: &VerifyPhoneNumberRequest,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
@@ -1593,15 +2096,13 @@ pub fn content_accounts_verifyphonenumber_builder(
 
     // Build request
     let builder = client
-        .get(&endpoint_url)
+        .post(&endpoint_url)
         .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
 
-    builder
-        .body_json(body)
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+    Ok(builder)
 }
 
-/// GET {merchantId}/accounts/{accountId}/verifyphonenumber
+/// POST {merchantId}/accounts/{accountId}/verifyphonenumber
 /// Validates verification code to verify phone number for the account. If successful this will overwrite the value of accounts.businessinformation.`phoneNumber`. Only verified phone number will replace an existing verified phone number.
 ///
 /// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
@@ -1675,7 +2176,7 @@ pub fn content_accounts_verifyphonenumber_task(
         .map_pending(|_| ApiPending::Sending))
 }
 
-/// GET {merchantId}/accounts/{accountId}/verifyphonenumber
+/// POST {merchantId}/accounts/{accountId}/verifyphonenumber
 /// Validates verification code to verify phone number for the account. If successful this will overwrite the value of accounts.businessinformation.`phoneNumber`. Only verified phone number will replace an existing verified phone number.
 ///
 /// Takes a `ClientRequestBuilder`, builds and executes the request,
@@ -1714,11 +2215,9 @@ pub struct ContentAccountsVerifyphonenumberArgs {
     pub merchantId: String,
     /// Path parameter: accountId
     pub accountId: String,
-    /// Request body.
-    pub body: VerifyPhoneNumberRequest,
 }
 
-/// GET {merchantId}/accounts/{accountId}/verifyphonenumber
+/// POST {merchantId}/accounts/{accountId}/verifyphonenumber
 /// Validates verification code to verify phone number for the account. If successful this will overwrite the value of accounts.businessinformation.`phoneNumber`. Only verified phone number will replace an existing verified phone number.
 ///
 /// Simplest API - builds and executes the request in one call.
@@ -1738,16 +2237,12 @@ pub fn content_accounts_verifyphonenumber(
         + 'static,
     ApiError,
 > {
-    let builder = content_accounts_verifyphonenumber_builder(
-        client,
-        &args.merchantId,
-        &args.accountId,
-        &args.body,
-    )?;
+    let builder =
+        content_accounts_verifyphonenumber_builder(client, &args.merchantId, &args.accountId)?;
     content_accounts_verifyphonenumber_execute(builder)
 }
 
-/// GET accounts/{accountId}/credentials
+/// POST accounts/{accountId}/credentials
 /// Uploads credentials for the Merchant Center account. If credentials already exist for this Merchant Center account and purpose, this method updates them.
 ///
 /// Returns `ClientRequestBuilder` for customization.
@@ -1756,7 +2251,6 @@ pub fn content_accounts_verifyphonenumber(
 pub fn content_accounts_credentials_create_builder(
     client: &SimpleHttpClient,
     accountId: &String,
-    body: &AccountCredentials,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
@@ -1766,15 +2260,13 @@ pub fn content_accounts_credentials_create_builder(
 
     // Build request
     let builder = client
-        .get(&endpoint_url)
+        .post(&endpoint_url)
         .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
 
-    builder
-        .body_json(body)
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+    Ok(builder)
 }
 
-/// GET accounts/{accountId}/credentials
+/// POST accounts/{accountId}/credentials
 /// Uploads credentials for the Merchant Center account. If credentials already exist for this Merchant Center account and purpose, this method updates them.
 ///
 /// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
@@ -1848,7 +2340,7 @@ pub fn content_accounts_credentials_create_task(
         .map_pending(|_| ApiPending::Sending))
 }
 
-/// GET accounts/{accountId}/credentials
+/// POST accounts/{accountId}/credentials
 /// Uploads credentials for the Merchant Center account. If credentials already exist for this Merchant Center account and purpose, this method updates them.
 ///
 /// Takes a `ClientRequestBuilder`, builds and executes the request,
@@ -1885,11 +2377,9 @@ pub fn content_accounts_credentials_create_execute(
 pub struct ContentAccountsCredentialsCreateArgs {
     /// Path parameter: accountId
     pub accountId: String,
-    /// Request body.
-    pub body: AccountCredentials,
 }
 
-/// GET accounts/{accountId}/credentials
+/// POST accounts/{accountId}/credentials
 /// Uploads credentials for the Merchant Center account. If credentials already exist for this Merchant Center account and purpose, this method updates them.
 ///
 /// Simplest API - builds and executes the request in one call.
@@ -1909,11 +2399,11 @@ pub fn content_accounts_credentials_create(
         + 'static,
     ApiError,
 > {
-    let builder = content_accounts_credentials_create_builder(client, &args.accountId, &args.body)?;
+    let builder = content_accounts_credentials_create_builder(client, &args.accountId)?;
     content_accounts_credentials_create_execute(builder)
 }
 
-/// GET accounts/{accountId}/labels
+/// POST accounts/{accountId}/labels
 /// Creates a new label, not assigned to any account.
 ///
 /// Returns `ClientRequestBuilder` for customization.
@@ -1922,7 +2412,6 @@ pub fn content_accounts_credentials_create(
 pub fn content_accounts_labels_create_builder(
     client: &SimpleHttpClient,
     accountId: &String,
-    body: &AccountLabel,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
@@ -1932,15 +2421,13 @@ pub fn content_accounts_labels_create_builder(
 
     // Build request
     let builder = client
-        .get(&endpoint_url)
+        .post(&endpoint_url)
         .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
 
-    builder
-        .body_json(body)
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+    Ok(builder)
 }
 
-/// GET accounts/{accountId}/labels
+/// POST accounts/{accountId}/labels
 /// Creates a new label, not assigned to any account.
 ///
 /// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
@@ -2014,7 +2501,7 @@ pub fn content_accounts_labels_create_task(
         .map_pending(|_| ApiPending::Sending))
 }
 
-/// GET accounts/{accountId}/labels
+/// POST accounts/{accountId}/labels
 /// Creates a new label, not assigned to any account.
 ///
 /// Takes a `ClientRequestBuilder`, builds and executes the request,
@@ -2051,11 +2538,9 @@ pub fn content_accounts_labels_create_execute(
 pub struct ContentAccountsLabelsCreateArgs {
     /// Path parameter: accountId
     pub accountId: String,
-    /// Request body.
-    pub body: AccountLabel,
 }
 
-/// GET accounts/{accountId}/labels
+/// POST accounts/{accountId}/labels
 /// Creates a new label, not assigned to any account.
 ///
 /// Simplest API - builds and executes the request in one call.
@@ -2075,11 +2560,11 @@ pub fn content_accounts_labels_create(
         + 'static,
     ApiError,
 > {
-    let builder = content_accounts_labels_create_builder(client, &args.accountId, &args.body)?;
+    let builder = content_accounts_labels_create_builder(client, &args.accountId)?;
     content_accounts_labels_create_execute(builder)
 }
 
-/// GET accounts/{accountId}/labels/{labelId}
+/// DELETE accounts/{accountId}/labels/{labelId}
 /// Deletes a label and removes it from all accounts to which it was assigned.
 ///
 /// Returns `ClientRequestBuilder` for customization.
@@ -2098,13 +2583,13 @@ pub fn content_accounts_labels_delete_builder(
 
     // Build request
     let builder = client
-        .get(&endpoint_url)
+        .delete(&endpoint_url)
         .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
 
     Ok(builder)
 }
 
-/// GET accounts/{accountId}/labels/{labelId}
+/// DELETE accounts/{accountId}/labels/{labelId}
 /// Deletes a label and removes it from all accounts to which it was assigned.
 ///
 /// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
@@ -2175,7 +2660,7 @@ pub fn content_accounts_labels_delete_task(
         .map_pending(|_| ApiPending::Sending))
 }
 
-/// GET accounts/{accountId}/labels/{labelId}
+/// DELETE accounts/{accountId}/labels/{labelId}
 /// Deletes a label and removes it from all accounts to which it was assigned.
 ///
 /// Takes a `ClientRequestBuilder`, builds and executes the request,
@@ -2214,7 +2699,7 @@ pub struct ContentAccountsLabelsDeleteArgs {
     pub labelId: String,
 }
 
-/// GET accounts/{accountId}/labels/{labelId}
+/// DELETE accounts/{accountId}/labels/{labelId}
 /// Deletes a label and removes it from all accounts to which it was assigned.
 ///
 /// Simplest API - builds and executes the request in one call.
@@ -2236,7 +2721,357 @@ pub fn content_accounts_labels_delete(
     content_accounts_labels_delete_execute(builder)
 }
 
-/// GET accounts/{accountId}/returncarrier
+/// GET accounts/{accountId}/labels
+/// Lists the labels assigned to an account.
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `content_accounts_labels_list_execute()` to send, or `content_accounts_labels_list` for simplest API.
+
+pub fn content_accounts_labels_list_builder(
+    client: &SimpleHttpClient,
+    accountId: &String,
+    pageSize: &Option<Option<String>>,
+    pageToken: &Option<Option<String>>,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!(
+        "https://shoppingcontent.googleapis.com/content/v2.1/accounts/{}/labels",
+        accountId,
+    );
+
+    // Build request
+    let mut query_parts = Vec::new();
+    if let Some(val) = pageSize.as_ref() {
+        query_parts.push(format!("pageSize={}", val));
+    }
+    if let Some(val) = pageToken.as_ref() {
+        query_parts.push(format!("pageToken={}", val));
+    }
+
+    let url_with_query = if query_parts.is_empty() {
+        endpoint_url
+    } else {
+        format!("{}?{}", endpoint_url, query_parts.join("&"))
+    };
+
+    let builder = client
+        .get(&url_with_query)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// GET accounts/{accountId}/labels
+/// Lists the labels assigned to an account.
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `content_accounts_labels_list_execute()` or `content_accounts_labels_list`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `content_accounts_labels_list_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn content_accounts_labels_list_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<ListAccountLabelsResponse>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: ListAccountLabelsResponse = serde_json::from_str(&body)
+                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// GET accounts/{accountId}/labels
+/// Lists the labels assigned to an account.
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `content_accounts_labels_list_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `content_accounts_labels_list_task()`.
+/// For the simplest API, use `content_accounts_labels_list()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `content_accounts_labels_list_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn content_accounts_labels_list_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<ListAccountLabelsResponse>, ApiError>, P = ApiPending>
+        + Send
+        + 'static,
+    ApiError,
+> {
+    let task = content_accounts_labels_list_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`content_accounts_labels_list`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct ContentAccountsLabelsListArgs {
+    /// Path parameter: accountId
+    pub accountId: String,
+    /// Query parameter: pageSize
+    pub pageSize: Option<Option<String>>,
+    /// Query parameter: pageToken
+    pub pageToken: Option<Option<String>>,
+}
+
+/// GET accounts/{accountId}/labels
+/// Lists the labels assigned to an account.
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `content_accounts_labels_list_builder()` + `content_accounts_labels_list_execute()`.
+/// For task-level control, use `content_accounts_labels_list_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn content_accounts_labels_list(
+    client: &SimpleHttpClient,
+    args: &ContentAccountsLabelsListArgs,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<ListAccountLabelsResponse>, ApiError>, P = ApiPending>
+        + Send
+        + 'static,
+    ApiError,
+> {
+    let builder = content_accounts_labels_list_builder(
+        client,
+        &args.accountId,
+        &args.pageSize,
+        &args.pageToken,
+    )?;
+    content_accounts_labels_list_execute(builder)
+}
+
+/// PATCH accounts/{accountId}/labels/{labelId}
+/// Updates a label.
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `content_accounts_labels_patch_execute()` to send, or `content_accounts_labels_patch` for simplest API.
+
+pub fn content_accounts_labels_patch_builder(
+    client: &SimpleHttpClient,
+    accountId: &String,
+    labelId: &String,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!(
+        "https://shoppingcontent.googleapis.com/content/v2.1/accounts/{}/labels/{}",
+        accountId, labelId,
+    );
+
+    // Build request
+    let builder = client
+        .patch(&endpoint_url)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// PATCH accounts/{accountId}/labels/{labelId}
+/// Updates a label.
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `content_accounts_labels_patch_execute()` or `content_accounts_labels_patch`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `content_accounts_labels_patch_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn content_accounts_labels_patch_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<AccountLabel>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: AccountLabel = serde_json::from_str(&body)
+                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// PATCH accounts/{accountId}/labels/{labelId}
+/// Updates a label.
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `content_accounts_labels_patch_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `content_accounts_labels_patch_task()`.
+/// For the simplest API, use `content_accounts_labels_patch()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `content_accounts_labels_patch_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn content_accounts_labels_patch_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<AccountLabel>, ApiError>, P = ApiPending>
+        + Send
+        + 'static,
+    ApiError,
+> {
+    let task = content_accounts_labels_patch_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`content_accounts_labels_patch`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct ContentAccountsLabelsPatchArgs {
+    /// Path parameter: accountId
+    pub accountId: String,
+    /// Path parameter: labelId
+    pub labelId: String,
+}
+
+/// PATCH accounts/{accountId}/labels/{labelId}
+/// Updates a label.
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `content_accounts_labels_patch_builder()` + `content_accounts_labels_patch_execute()`.
+/// For task-level control, use `content_accounts_labels_patch_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn content_accounts_labels_patch(
+    client: &SimpleHttpClient,
+    args: &ContentAccountsLabelsPatchArgs,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<AccountLabel>, ApiError>, P = ApiPending>
+        + Send
+        + 'static,
+    ApiError,
+> {
+    let builder = content_accounts_labels_patch_builder(client, &args.accountId, &args.labelId)?;
+    content_accounts_labels_patch_execute(builder)
+}
+
+/// POST accounts/{accountId}/returncarrier
 /// Links return carrier to a merchant account.
 ///
 /// Returns `ClientRequestBuilder` for customization.
@@ -2245,7 +3080,6 @@ pub fn content_accounts_labels_delete(
 pub fn content_accounts_returncarrier_create_builder(
     client: &SimpleHttpClient,
     accountId: &String,
-    body: &AccountReturnCarrier,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
@@ -2255,15 +3089,13 @@ pub fn content_accounts_returncarrier_create_builder(
 
     // Build request
     let builder = client
-        .get(&endpoint_url)
+        .post(&endpoint_url)
         .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
 
-    builder
-        .body_json(body)
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+    Ok(builder)
 }
 
-/// GET accounts/{accountId}/returncarrier
+/// POST accounts/{accountId}/returncarrier
 /// Links return carrier to a merchant account.
 ///
 /// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
@@ -2337,7 +3169,7 @@ pub fn content_accounts_returncarrier_create_task(
         .map_pending(|_| ApiPending::Sending))
 }
 
-/// GET accounts/{accountId}/returncarrier
+/// POST accounts/{accountId}/returncarrier
 /// Links return carrier to a merchant account.
 ///
 /// Takes a `ClientRequestBuilder`, builds and executes the request,
@@ -2374,11 +3206,9 @@ pub fn content_accounts_returncarrier_create_execute(
 pub struct ContentAccountsReturncarrierCreateArgs {
     /// Path parameter: accountId
     pub accountId: String,
-    /// Request body.
-    pub body: AccountReturnCarrier,
 }
 
-/// GET accounts/{accountId}/returncarrier
+/// POST accounts/{accountId}/returncarrier
 /// Links return carrier to a merchant account.
 ///
 /// Simplest API - builds and executes the request in one call.
@@ -2398,12 +3228,11 @@ pub fn content_accounts_returncarrier_create(
         + 'static,
     ApiError,
 > {
-    let builder =
-        content_accounts_returncarrier_create_builder(client, &args.accountId, &args.body)?;
+    let builder = content_accounts_returncarrier_create_builder(client, &args.accountId)?;
     content_accounts_returncarrier_create_execute(builder)
 }
 
-/// GET accounts/{accountId}/returncarrier/{carrierAccountId}
+/// DELETE accounts/{accountId}/returncarrier/{carrierAccountId}
 /// Delete a return carrier in the merchant account.
 ///
 /// Returns `ClientRequestBuilder` for customization.
@@ -2422,13 +3251,13 @@ pub fn content_accounts_returncarrier_delete_builder(
 
     // Build request
     let builder = client
-        .get(&endpoint_url)
+        .delete(&endpoint_url)
         .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
 
     Ok(builder)
 }
 
-/// GET accounts/{accountId}/returncarrier/{carrierAccountId}
+/// DELETE accounts/{accountId}/returncarrier/{carrierAccountId}
 /// Delete a return carrier in the merchant account.
 ///
 /// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
@@ -2499,7 +3328,7 @@ pub fn content_accounts_returncarrier_delete_task(
         .map_pending(|_| ApiPending::Sending))
 }
 
-/// GET accounts/{accountId}/returncarrier/{carrierAccountId}
+/// DELETE accounts/{accountId}/returncarrier/{carrierAccountId}
 /// Delete a return carrier in the merchant account.
 ///
 /// Takes a `ClientRequestBuilder`, builds and executes the request,
@@ -2538,7 +3367,7 @@ pub struct ContentAccountsReturncarrierDeleteArgs {
     pub carrierAccountId: String,
 }
 
-/// GET accounts/{accountId}/returncarrier/{carrierAccountId}
+/// DELETE accounts/{accountId}/returncarrier/{carrierAccountId}
 /// Delete a return carrier in the merchant account.
 ///
 /// Simplest API - builds and executes the request in one call.
@@ -2564,7 +3393,340 @@ pub fn content_accounts_returncarrier_delete(
     content_accounts_returncarrier_delete_execute(builder)
 }
 
-/// GET accountstatuses/batch
+/// GET accounts/{accountId}/returncarrier
+/// Lists available return carriers in the merchant account.
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `content_accounts_returncarrier_list_execute()` to send, or `content_accounts_returncarrier_list` for simplest API.
+
+pub fn content_accounts_returncarrier_list_builder(
+    client: &SimpleHttpClient,
+    accountId: &String,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!(
+        "https://shoppingcontent.googleapis.com/content/v2.1/accounts/{}/returncarrier",
+        accountId,
+    );
+
+    // Build request
+    let builder = client
+        .get(&endpoint_url)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// GET accounts/{accountId}/returncarrier
+/// Lists available return carriers in the merchant account.
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `content_accounts_returncarrier_list_execute()` or `content_accounts_returncarrier_list`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `content_accounts_returncarrier_list_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn content_accounts_returncarrier_list_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<ListAccountReturnCarrierResponse>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: ListAccountReturnCarrierResponse = serde_json::from_str(&body)
+                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// GET accounts/{accountId}/returncarrier
+/// Lists available return carriers in the merchant account.
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `content_accounts_returncarrier_list_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `content_accounts_returncarrier_list_task()`.
+/// For the simplest API, use `content_accounts_returncarrier_list()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `content_accounts_returncarrier_list_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn content_accounts_returncarrier_list_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<
+            D = Result<ApiResponse<ListAccountReturnCarrierResponse>, ApiError>,
+            P = ApiPending,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    let task = content_accounts_returncarrier_list_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`content_accounts_returncarrier_list`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct ContentAccountsReturncarrierListArgs {
+    /// Path parameter: accountId
+    pub accountId: String,
+}
+
+/// GET accounts/{accountId}/returncarrier
+/// Lists available return carriers in the merchant account.
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `content_accounts_returncarrier_list_builder()` + `content_accounts_returncarrier_list_execute()`.
+/// For task-level control, use `content_accounts_returncarrier_list_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn content_accounts_returncarrier_list(
+    client: &SimpleHttpClient,
+    args: &ContentAccountsReturncarrierListArgs,
+) -> Result<
+    impl StreamIterator<
+            D = Result<ApiResponse<ListAccountReturnCarrierResponse>, ApiError>,
+            P = ApiPending,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    let builder = content_accounts_returncarrier_list_builder(client, &args.accountId)?;
+    content_accounts_returncarrier_list_execute(builder)
+}
+
+/// PATCH accounts/{accountId}/returncarrier/{carrierAccountId}
+/// Updates a return carrier in the merchant account.
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `content_accounts_returncarrier_patch_execute()` to send, or `content_accounts_returncarrier_patch` for simplest API.
+
+pub fn content_accounts_returncarrier_patch_builder(
+    client: &SimpleHttpClient,
+    accountId: &String,
+    carrierAccountId: &String,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!(
+        "https://shoppingcontent.googleapis.com/content/v2.1/accounts/{}/returncarrier/{}",
+        accountId, carrierAccountId,
+    );
+
+    // Build request
+    let builder = client
+        .patch(&endpoint_url)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// PATCH accounts/{accountId}/returncarrier/{carrierAccountId}
+/// Updates a return carrier in the merchant account.
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `content_accounts_returncarrier_patch_execute()` or `content_accounts_returncarrier_patch`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `content_accounts_returncarrier_patch_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn content_accounts_returncarrier_patch_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<AccountReturnCarrier>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: AccountReturnCarrier = serde_json::from_str(&body)
+                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// PATCH accounts/{accountId}/returncarrier/{carrierAccountId}
+/// Updates a return carrier in the merchant account.
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `content_accounts_returncarrier_patch_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `content_accounts_returncarrier_patch_task()`.
+/// For the simplest API, use `content_accounts_returncarrier_patch()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `content_accounts_returncarrier_patch_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn content_accounts_returncarrier_patch_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<AccountReturnCarrier>, ApiError>, P = ApiPending>
+        + Send
+        + 'static,
+    ApiError,
+> {
+    let task = content_accounts_returncarrier_patch_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`content_accounts_returncarrier_patch`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct ContentAccountsReturncarrierPatchArgs {
+    /// Path parameter: accountId
+    pub accountId: String,
+    /// Path parameter: carrierAccountId
+    pub carrierAccountId: String,
+}
+
+/// PATCH accounts/{accountId}/returncarrier/{carrierAccountId}
+/// Updates a return carrier in the merchant account.
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `content_accounts_returncarrier_patch_builder()` + `content_accounts_returncarrier_patch_execute()`.
+/// For task-level control, use `content_accounts_returncarrier_patch_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn content_accounts_returncarrier_patch(
+    client: &SimpleHttpClient,
+    args: &ContentAccountsReturncarrierPatchArgs,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<AccountReturnCarrier>, ApiError>, P = ApiPending>
+        + Send
+        + 'static,
+    ApiError,
+> {
+    let builder = content_accounts_returncarrier_patch_builder(
+        client,
+        &args.accountId,
+        &args.carrierAccountId,
+    )?;
+    content_accounts_returncarrier_patch_execute(builder)
+}
+
+/// POST accountstatuses/batch
 /// Retrieves multiple Merchant Center account statuses in a single request.
 ///
 /// Returns `ClientRequestBuilder` for customization.
@@ -2572,7 +3734,6 @@ pub fn content_accounts_returncarrier_delete(
 
 pub fn content_accountstatuses_custombatch_builder(
     client: &SimpleHttpClient,
-    body: &AccountstatusesCustomBatchRequest,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url =
@@ -2580,15 +3741,13 @@ pub fn content_accountstatuses_custombatch_builder(
 
     // Build request
     let builder = client
-        .get(&endpoint_url)
+        .post(&endpoint_url)
         .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
 
-    builder
-        .body_json(body)
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+    Ok(builder)
 }
 
-/// GET accountstatuses/batch
+/// POST accountstatuses/batch
 /// Retrieves multiple Merchant Center account statuses in a single request.
 ///
 /// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
@@ -2662,7 +3821,7 @@ pub fn content_accountstatuses_custombatch_task(
         .map_pending(|_| ApiPending::Sending))
 }
 
-/// GET accountstatuses/batch
+/// POST accountstatuses/batch
 /// Retrieves multiple Merchant Center account statuses in a single request.
 ///
 /// Takes a `ClientRequestBuilder`, builds and executes the request,
@@ -2696,14 +3855,7 @@ pub fn content_accountstatuses_custombatch_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
-/// Arguments for [`content_accountstatuses_custombatch`].
-#[derive(Debug, Clone, Serialize, JsonHash)]
-pub struct ContentAccountstatusesCustombatchArgs {
-    /// Request body.
-    pub body: AccountstatusesCustomBatchRequest,
-}
-
-/// GET accountstatuses/batch
+/// POST accountstatuses/batch
 /// Retrieves multiple Merchant Center account statuses in a single request.
 ///
 /// Simplest API - builds and executes the request in one call.
@@ -2716,7 +3868,6 @@ pub struct ContentAccountstatusesCustombatchArgs {
 
 pub fn content_accountstatuses_custombatch(
     client: &SimpleHttpClient,
-    args: &ContentAccountstatusesCustombatchArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<AccountstatusesCustomBatchResponse>, ApiError>,
@@ -2725,7 +3876,7 @@ pub fn content_accountstatuses_custombatch(
         + 'static,
     ApiError,
 > {
-    let builder = content_accountstatuses_custombatch_builder(client, &args.body)?;
+    let builder = content_accountstatuses_custombatch_builder(client)?;
     content_accountstatuses_custombatch_execute(builder)
 }
 
@@ -2739,7 +3890,7 @@ pub fn content_accountstatuses_get_builder(
     client: &SimpleHttpClient,
     merchantId: &String,
     accountId: &String,
-    destinations: &Option<String>,
+    destinations: &Option<Option<String>>,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
@@ -2880,7 +4031,7 @@ pub struct ContentAccountstatusesGetArgs {
     /// Path parameter: accountId
     pub accountId: String,
     /// Query parameter: destinations
-    pub destinations: Option<String>,
+    pub destinations: Option<Option<String>>,
 }
 
 /// GET {merchantId}/accountstatuses/{accountId}
@@ -2921,10 +4072,10 @@ pub fn content_accountstatuses_get(
 pub fn content_accountstatuses_list_builder(
     client: &SimpleHttpClient,
     merchantId: &String,
-    destinations: &Option<String>,
-    maxResults: &Option<i32>,
-    name: &Option<String>,
-    pageToken: &Option<String>,
+    destinations: &Option<Option<String>>,
+    maxResults: &Option<Option<String>>,
+    name: &Option<Option<String>>,
+    pageToken: &Option<Option<String>>,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
@@ -3074,13 +4225,13 @@ pub struct ContentAccountstatusesListArgs {
     /// Path parameter: merchantId
     pub merchantId: String,
     /// Query parameter: destinations
-    pub destinations: Option<String>,
+    pub destinations: Option<Option<String>>,
     /// Query parameter: maxResults
-    pub maxResults: Option<i32>,
+    pub maxResults: Option<Option<String>>,
     /// Query parameter: name
-    pub name: Option<String>,
+    pub name: Option<Option<String>>,
     /// Query parameter: pageToken
-    pub pageToken: Option<String>,
+    pub pageToken: Option<Option<String>>,
 }
 
 /// GET {merchantId}/accountstatuses
@@ -3116,7 +4267,7 @@ pub fn content_accountstatuses_list(
     content_accountstatuses_list_execute(builder)
 }
 
-/// GET accounttax/batch
+/// POST accounttax/batch
 /// Retrieves and updates tax settings of multiple accounts in a single request.
 ///
 /// Returns `ClientRequestBuilder` for customization.
@@ -3124,7 +4275,6 @@ pub fn content_accountstatuses_list(
 
 pub fn content_accounttax_custombatch_builder(
     client: &SimpleHttpClient,
-    body: &AccounttaxCustomBatchRequest,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url =
@@ -3132,15 +4282,13 @@ pub fn content_accounttax_custombatch_builder(
 
     // Build request
     let builder = client
-        .get(&endpoint_url)
+        .post(&endpoint_url)
         .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
 
-    builder
-        .body_json(body)
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+    Ok(builder)
 }
 
-/// GET accounttax/batch
+/// POST accounttax/batch
 /// Retrieves and updates tax settings of multiple accounts in a single request.
 ///
 /// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
@@ -3214,7 +4362,7 @@ pub fn content_accounttax_custombatch_task(
         .map_pending(|_| ApiPending::Sending))
 }
 
-/// GET accounttax/batch
+/// POST accounttax/batch
 /// Retrieves and updates tax settings of multiple accounts in a single request.
 ///
 /// Takes a `ClientRequestBuilder`, builds and executes the request,
@@ -3248,14 +4396,7 @@ pub fn content_accounttax_custombatch_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
-/// Arguments for [`content_accounttax_custombatch`].
-#[derive(Debug, Clone, Serialize, JsonHash)]
-pub struct ContentAccounttaxCustombatchArgs {
-    /// Request body.
-    pub body: AccounttaxCustomBatchRequest,
-}
-
-/// GET accounttax/batch
+/// POST accounttax/batch
 /// Retrieves and updates tax settings of multiple accounts in a single request.
 ///
 /// Simplest API - builds and executes the request in one call.
@@ -3268,7 +4409,6 @@ pub struct ContentAccounttaxCustombatchArgs {
 
 pub fn content_accounttax_custombatch(
     client: &SimpleHttpClient,
-    args: &ContentAccounttaxCustombatchArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<AccounttaxCustomBatchResponse>, ApiError>,
@@ -3277,7 +4417,7 @@ pub fn content_accounttax_custombatch(
         + 'static,
     ApiError,
 > {
-    let builder = content_accounttax_custombatch_builder(client, &args.body)?;
+    let builder = content_accounttax_custombatch_builder(client)?;
     content_accounttax_custombatch_execute(builder)
 }
 
@@ -3450,8 +4590,8 @@ pub fn content_accounttax_get(
 pub fn content_accounttax_list_builder(
     client: &SimpleHttpClient,
     merchantId: &String,
-    maxResults: &Option<i32>,
-    pageToken: &Option<String>,
+    maxResults: &Option<Option<String>>,
+    pageToken: &Option<Option<String>>,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
@@ -3593,9 +4733,9 @@ pub struct ContentAccounttaxListArgs {
     /// Path parameter: merchantId
     pub merchantId: String,
     /// Query parameter: maxResults
-    pub maxResults: Option<i32>,
+    pub maxResults: Option<Option<String>>,
     /// Query parameter: pageToken
-    pub pageToken: Option<String>,
+    pub pageToken: Option<Option<String>>,
 }
 
 /// GET {merchantId}/accounttax
@@ -3627,7 +4767,167 @@ pub fn content_accounttax_list(
     content_accounttax_list_execute(builder)
 }
 
-/// GET {merchantId}/collections
+/// PUT {merchantId}/accounttax/{accountId}
+/// Updates the tax settings of the account. Any fields that are not provided are deleted from the resource.
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `content_accounttax_update_execute()` to send, or `content_accounttax_update` for simplest API.
+
+pub fn content_accounttax_update_builder(
+    client: &SimpleHttpClient,
+    merchantId: &String,
+    accountId: &String,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!(
+        "https://shoppingcontent.googleapis.com/content/v2.1/{}/accounttax/{}",
+        merchantId, accountId,
+    );
+
+    // Build request
+    let builder = client
+        .put(&endpoint_url)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// PUT {merchantId}/accounttax/{accountId}
+/// Updates the tax settings of the account. Any fields that are not provided are deleted from the resource.
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `content_accounttax_update_execute()` or `content_accounttax_update`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `content_accounttax_update_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn content_accounttax_update_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<AccountTax>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: AccountTax = serde_json::from_str(&body)
+                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// PUT {merchantId}/accounttax/{accountId}
+/// Updates the tax settings of the account. Any fields that are not provided are deleted from the resource.
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `content_accounttax_update_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `content_accounttax_update_task()`.
+/// For the simplest API, use `content_accounttax_update()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `content_accounttax_update_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn content_accounttax_update_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<AccountTax>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let task = content_accounttax_update_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`content_accounttax_update`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct ContentAccounttaxUpdateArgs {
+    /// Path parameter: merchantId
+    pub merchantId: String,
+    /// Path parameter: accountId
+    pub accountId: String,
+}
+
+/// PUT {merchantId}/accounttax/{accountId}
+/// Updates the tax settings of the account. Any fields that are not provided are deleted from the resource.
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `content_accounttax_update_builder()` + `content_accounttax_update_execute()`.
+/// For task-level control, use `content_accounttax_update_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn content_accounttax_update(
+    client: &SimpleHttpClient,
+    args: &ContentAccounttaxUpdateArgs,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<AccountTax>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let builder = content_accounttax_update_builder(client, &args.merchantId, &args.accountId)?;
+    content_accounttax_update_execute(builder)
+}
+
+/// POST {merchantId}/collections
 /// Uploads a collection to your Merchant Center account. If a collection with the same `collectionId` already exists, this method updates that entry. In each update, the collection is completely replaced by the fields in the body of the update request.
 ///
 /// Returns `ClientRequestBuilder` for customization.
@@ -3636,7 +4936,6 @@ pub fn content_accounttax_list(
 pub fn content_collections_create_builder(
     client: &SimpleHttpClient,
     merchantId: &String,
-    body: &Collection,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
@@ -3646,15 +4945,13 @@ pub fn content_collections_create_builder(
 
     // Build request
     let builder = client
-        .get(&endpoint_url)
+        .post(&endpoint_url)
         .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
 
-    builder
-        .body_json(body)
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+    Ok(builder)
 }
 
-/// GET {merchantId}/collections
+/// POST {merchantId}/collections
 /// Uploads a collection to your Merchant Center account. If a collection with the same `collectionId` already exists, this method updates that entry. In each update, the collection is completely replaced by the fields in the body of the update request.
 ///
 /// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
@@ -3728,7 +5025,7 @@ pub fn content_collections_create_task(
         .map_pending(|_| ApiPending::Sending))
 }
 
-/// GET {merchantId}/collections
+/// POST {merchantId}/collections
 /// Uploads a collection to your Merchant Center account. If a collection with the same `collectionId` already exists, this method updates that entry. In each update, the collection is completely replaced by the fields in the body of the update request.
 ///
 /// Takes a `ClientRequestBuilder`, builds and executes the request,
@@ -3763,11 +5060,9 @@ pub fn content_collections_create_execute(
 pub struct ContentCollectionsCreateArgs {
     /// Path parameter: merchantId
     pub merchantId: String,
-    /// Request body.
-    pub body: Collection,
 }
 
-/// GET {merchantId}/collections
+/// POST {merchantId}/collections
 /// Uploads a collection to your Merchant Center account. If a collection with the same `collectionId` already exists, this method updates that entry. In each update, the collection is completely replaced by the fields in the body of the update request.
 ///
 /// Simplest API - builds and executes the request in one call.
@@ -3785,11 +5080,11 @@ pub fn content_collections_create(
     impl StreamIterator<D = Result<ApiResponse<Collection>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = content_collections_create_builder(client, &args.merchantId, &args.body)?;
+    let builder = content_collections_create_builder(client, &args.merchantId)?;
     content_collections_create_execute(builder)
 }
 
-/// GET {merchantId}/collections/{collectionId}
+/// DELETE {merchantId}/collections/{collectionId}
 /// Deletes a collection from your Merchant Center account.
 ///
 /// Returns `ClientRequestBuilder` for customization.
@@ -3808,13 +5103,13 @@ pub fn content_collections_delete_builder(
 
     // Build request
     let builder = client
-        .get(&endpoint_url)
+        .delete(&endpoint_url)
         .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
 
     Ok(builder)
 }
 
-/// GET {merchantId}/collections/{collectionId}
+/// DELETE {merchantId}/collections/{collectionId}
 /// Deletes a collection from your Merchant Center account.
 ///
 /// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
@@ -3885,7 +5180,7 @@ pub fn content_collections_delete_task(
         .map_pending(|_| ApiPending::Sending))
 }
 
-/// GET {merchantId}/collections/{collectionId}
+/// DELETE {merchantId}/collections/{collectionId}
 /// Deletes a collection from your Merchant Center account.
 ///
 /// Takes a `ClientRequestBuilder`, builds and executes the request,
@@ -3924,7 +5219,7 @@ pub struct ContentCollectionsDeleteArgs {
     pub collectionId: String,
 }
 
-/// GET {merchantId}/collections/{collectionId}
+/// DELETE {merchantId}/collections/{collectionId}
 /// Deletes a collection from your Merchant Center account.
 ///
 /// Simplest API - builds and executes the request in one call.
@@ -3944,6 +5239,352 @@ pub fn content_collections_delete(
 > {
     let builder = content_collections_delete_builder(client, &args.merchantId, &args.collectionId)?;
     content_collections_delete_execute(builder)
+}
+
+/// GET {merchantId}/collections/{collectionId}
+/// Retrieves a collection from your Merchant Center account.
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `content_collections_get_execute()` to send, or `content_collections_get` for simplest API.
+
+pub fn content_collections_get_builder(
+    client: &SimpleHttpClient,
+    merchantId: &String,
+    collectionId: &String,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!(
+        "https://shoppingcontent.googleapis.com/content/v2.1/{}/collections/{}",
+        merchantId, collectionId,
+    );
+
+    // Build request
+    let builder = client
+        .get(&endpoint_url)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// GET {merchantId}/collections/{collectionId}
+/// Retrieves a collection from your Merchant Center account.
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `content_collections_get_execute()` or `content_collections_get`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `content_collections_get_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn content_collections_get_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<Collection>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: Collection = serde_json::from_str(&body)
+                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// GET {merchantId}/collections/{collectionId}
+/// Retrieves a collection from your Merchant Center account.
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `content_collections_get_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `content_collections_get_task()`.
+/// For the simplest API, use `content_collections_get()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `content_collections_get_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn content_collections_get_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<Collection>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let task = content_collections_get_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`content_collections_get`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct ContentCollectionsGetArgs {
+    /// Path parameter: merchantId
+    pub merchantId: String,
+    /// Path parameter: collectionId
+    pub collectionId: String,
+}
+
+/// GET {merchantId}/collections/{collectionId}
+/// Retrieves a collection from your Merchant Center account.
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `content_collections_get_builder()` + `content_collections_get_execute()`.
+/// For task-level control, use `content_collections_get_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn content_collections_get(
+    client: &SimpleHttpClient,
+    args: &ContentCollectionsGetArgs,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<Collection>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let builder = content_collections_get_builder(client, &args.merchantId, &args.collectionId)?;
+    content_collections_get_execute(builder)
+}
+
+/// GET {merchantId}/collections
+/// Lists the collections in your Merchant Center account. The response might contain fewer items than specified by page_size. Rely on next_page_token to determine if there are more items to be requested.
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `content_collections_list_execute()` to send, or `content_collections_list` for simplest API.
+
+pub fn content_collections_list_builder(
+    client: &SimpleHttpClient,
+    merchantId: &String,
+    pageSize: &Option<Option<String>>,
+    pageToken: &Option<Option<String>>,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!(
+        "https://shoppingcontent.googleapis.com/content/v2.1/{}/collections",
+        merchantId,
+    );
+
+    // Build request
+    let mut query_parts = Vec::new();
+    if let Some(val) = pageSize.as_ref() {
+        query_parts.push(format!("pageSize={}", val));
+    }
+    if let Some(val) = pageToken.as_ref() {
+        query_parts.push(format!("pageToken={}", val));
+    }
+
+    let url_with_query = if query_parts.is_empty() {
+        endpoint_url
+    } else {
+        format!("{}?{}", endpoint_url, query_parts.join("&"))
+    };
+
+    let builder = client
+        .get(&url_with_query)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// GET {merchantId}/collections
+/// Lists the collections in your Merchant Center account. The response might contain fewer items than specified by page_size. Rely on next_page_token to determine if there are more items to be requested.
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `content_collections_list_execute()` or `content_collections_list`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `content_collections_list_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn content_collections_list_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<ListCollectionsResponse>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: ListCollectionsResponse = serde_json::from_str(&body)
+                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// GET {merchantId}/collections
+/// Lists the collections in your Merchant Center account. The response might contain fewer items than specified by page_size. Rely on next_page_token to determine if there are more items to be requested.
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `content_collections_list_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `content_collections_list_task()`.
+/// For the simplest API, use `content_collections_list()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `content_collections_list_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn content_collections_list_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<ListCollectionsResponse>, ApiError>, P = ApiPending>
+        + Send
+        + 'static,
+    ApiError,
+> {
+    let task = content_collections_list_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`content_collections_list`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct ContentCollectionsListArgs {
+    /// Path parameter: merchantId
+    pub merchantId: String,
+    /// Query parameter: pageSize
+    pub pageSize: Option<Option<String>>,
+    /// Query parameter: pageToken
+    pub pageToken: Option<Option<String>>,
+}
+
+/// GET {merchantId}/collections
+/// Lists the collections in your Merchant Center account. The response might contain fewer items than specified by page_size. Rely on next_page_token to determine if there are more items to be requested.
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `content_collections_list_builder()` + `content_collections_list_execute()`.
+/// For task-level control, use `content_collections_list_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn content_collections_list(
+    client: &SimpleHttpClient,
+    args: &ContentCollectionsListArgs,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<ListCollectionsResponse>, ApiError>, P = ApiPending>
+        + Send
+        + 'static,
+    ApiError,
+> {
+    let builder = content_collections_list_builder(
+        client,
+        &args.merchantId,
+        &args.pageSize,
+        &args.pageToken,
+    )?;
+    content_collections_list_execute(builder)
 }
 
 /// GET {merchantId}/collectionstatuses/{collectionId}
@@ -4120,8 +5761,8 @@ pub fn content_collectionstatuses_get(
 pub fn content_collectionstatuses_list_builder(
     client: &SimpleHttpClient,
     merchantId: &String,
-    pageSize: &Option<i32>,
-    pageToken: &Option<String>,
+    pageSize: &Option<Option<String>>,
+    pageToken: &Option<Option<String>>,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
@@ -4265,9 +5906,9 @@ pub struct ContentCollectionstatusesListArgs {
     /// Path parameter: merchantId
     pub merchantId: String,
     /// Query parameter: pageSize
-    pub pageSize: Option<i32>,
+    pub pageSize: Option<Option<String>>,
     /// Query parameter: pageToken
-    pub pageToken: Option<String>,
+    pub pageToken: Option<Option<String>>,
 }
 
 /// GET {merchantId}/collectionstatuses
@@ -4301,7 +5942,7 @@ pub fn content_collectionstatuses_list(
     content_collectionstatuses_list_execute(builder)
 }
 
-/// GET {merchantId}/conversionsources
+/// POST {merchantId}/conversionsources
 /// Creates a new conversion source.
 ///
 /// Returns `ClientRequestBuilder` for customization.
@@ -4310,7 +5951,6 @@ pub fn content_collectionstatuses_list(
 pub fn content_conversionsources_create_builder(
     client: &SimpleHttpClient,
     merchantId: &String,
-    body: &ConversionSource,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
@@ -4320,15 +5960,13 @@ pub fn content_conversionsources_create_builder(
 
     // Build request
     let builder = client
-        .get(&endpoint_url)
+        .post(&endpoint_url)
         .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
 
-    builder
-        .body_json(body)
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+    Ok(builder)
 }
 
-/// GET {merchantId}/conversionsources
+/// POST {merchantId}/conversionsources
 /// Creates a new conversion source.
 ///
 /// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
@@ -4402,7 +6040,7 @@ pub fn content_conversionsources_create_task(
         .map_pending(|_| ApiPending::Sending))
 }
 
-/// GET {merchantId}/conversionsources
+/// POST {merchantId}/conversionsources
 /// Creates a new conversion source.
 ///
 /// Takes a `ClientRequestBuilder`, builds and executes the request,
@@ -4439,11 +6077,9 @@ pub fn content_conversionsources_create_execute(
 pub struct ContentConversionsourcesCreateArgs {
     /// Path parameter: merchantId
     pub merchantId: String,
-    /// Request body.
-    pub body: ConversionSource,
 }
 
-/// GET {merchantId}/conversionsources
+/// POST {merchantId}/conversionsources
 /// Creates a new conversion source.
 ///
 /// Simplest API - builds and executes the request in one call.
@@ -4463,11 +6099,11 @@ pub fn content_conversionsources_create(
         + 'static,
     ApiError,
 > {
-    let builder = content_conversionsources_create_builder(client, &args.merchantId, &args.body)?;
+    let builder = content_conversionsources_create_builder(client, &args.merchantId)?;
     content_conversionsources_create_execute(builder)
 }
 
-/// GET {merchantId}/conversionsources/{conversionSourceId}
+/// DELETE {merchantId}/conversionsources/{conversionSourceId}
 /// Archives an existing conversion source. It will be recoverable for 30 days. This archiving behavior is not typical in the Content API and unique to this service.
 ///
 /// Returns `ClientRequestBuilder` for customization.
@@ -4486,13 +6122,13 @@ pub fn content_conversionsources_delete_builder(
 
     // Build request
     let builder = client
-        .get(&endpoint_url)
+        .delete(&endpoint_url)
         .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
 
     Ok(builder)
 }
 
-/// GET {merchantId}/conversionsources/{conversionSourceId}
+/// DELETE {merchantId}/conversionsources/{conversionSourceId}
 /// Archives an existing conversion source. It will be recoverable for 30 days. This archiving behavior is not typical in the Content API and unique to this service.
 ///
 /// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
@@ -4563,7 +6199,7 @@ pub fn content_conversionsources_delete_task(
         .map_pending(|_| ApiPending::Sending))
 }
 
-/// GET {merchantId}/conversionsources/{conversionSourceId}
+/// DELETE {merchantId}/conversionsources/{conversionSourceId}
 /// Archives an existing conversion source. It will be recoverable for 30 days. This archiving behavior is not typical in the Content API and unique to this service.
 ///
 /// Takes a `ClientRequestBuilder`, builds and executes the request,
@@ -4602,7 +6238,7 @@ pub struct ContentConversionsourcesDeleteArgs {
     pub conversionSourceId: String,
 }
 
-/// GET {merchantId}/conversionsources/{conversionSourceId}
+/// DELETE {merchantId}/conversionsources/{conversionSourceId}
 /// Archives an existing conversion source. It will be recoverable for 30 days. This archiving behavior is not typical in the Content API and unique to this service.
 ///
 /// Simplest API - builds and executes the request in one call.
@@ -4628,7 +6264,552 @@ pub fn content_conversionsources_delete(
     content_conversionsources_delete_execute(builder)
 }
 
-/// GET {merchantId}/conversionsources/{conversionSourceId}:undelete
+/// GET {merchantId}/conversionsources/{conversionSourceId}
+/// Fetches a conversion source.
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `content_conversionsources_get_execute()` to send, or `content_conversionsources_get` for simplest API.
+
+pub fn content_conversionsources_get_builder(
+    client: &SimpleHttpClient,
+    merchantId: &String,
+    conversionSourceId: &String,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!(
+        "https://shoppingcontent.googleapis.com/content/v2.1/{}/conversionsources/{}",
+        merchantId, conversionSourceId,
+    );
+
+    // Build request
+    let builder = client
+        .get(&endpoint_url)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// GET {merchantId}/conversionsources/{conversionSourceId}
+/// Fetches a conversion source.
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `content_conversionsources_get_execute()` or `content_conversionsources_get`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `content_conversionsources_get_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn content_conversionsources_get_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<ConversionSource>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: ConversionSource = serde_json::from_str(&body)
+                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// GET {merchantId}/conversionsources/{conversionSourceId}
+/// Fetches a conversion source.
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `content_conversionsources_get_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `content_conversionsources_get_task()`.
+/// For the simplest API, use `content_conversionsources_get()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `content_conversionsources_get_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn content_conversionsources_get_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<ConversionSource>, ApiError>, P = ApiPending>
+        + Send
+        + 'static,
+    ApiError,
+> {
+    let task = content_conversionsources_get_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`content_conversionsources_get`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct ContentConversionsourcesGetArgs {
+    /// Path parameter: merchantId
+    pub merchantId: String,
+    /// Path parameter: conversionSourceId
+    pub conversionSourceId: String,
+}
+
+/// GET {merchantId}/conversionsources/{conversionSourceId}
+/// Fetches a conversion source.
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `content_conversionsources_get_builder()` + `content_conversionsources_get_execute()`.
+/// For task-level control, use `content_conversionsources_get_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn content_conversionsources_get(
+    client: &SimpleHttpClient,
+    args: &ContentConversionsourcesGetArgs,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<ConversionSource>, ApiError>, P = ApiPending>
+        + Send
+        + 'static,
+    ApiError,
+> {
+    let builder =
+        content_conversionsources_get_builder(client, &args.merchantId, &args.conversionSourceId)?;
+    content_conversionsources_get_execute(builder)
+}
+
+/// GET {merchantId}/conversionsources
+/// Retrieves the list of conversion sources the caller has access to.
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `content_conversionsources_list_execute()` to send, or `content_conversionsources_list` for simplest API.
+
+pub fn content_conversionsources_list_builder(
+    client: &SimpleHttpClient,
+    merchantId: &String,
+    pageSize: &Option<Option<String>>,
+    pageToken: &Option<Option<String>>,
+    showDeleted: &Option<Option<String>>,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!(
+        "https://shoppingcontent.googleapis.com/content/v2.1/{}/conversionsources",
+        merchantId,
+    );
+
+    // Build request
+    let mut query_parts = Vec::new();
+    if let Some(val) = pageSize.as_ref() {
+        query_parts.push(format!("pageSize={}", val));
+    }
+    if let Some(val) = pageToken.as_ref() {
+        query_parts.push(format!("pageToken={}", val));
+    }
+    if let Some(val) = showDeleted.as_ref() {
+        query_parts.push(format!("showDeleted={}", val));
+    }
+
+    let url_with_query = if query_parts.is_empty() {
+        endpoint_url
+    } else {
+        format!("{}?{}", endpoint_url, query_parts.join("&"))
+    };
+
+    let builder = client
+        .get(&url_with_query)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// GET {merchantId}/conversionsources
+/// Retrieves the list of conversion sources the caller has access to.
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `content_conversionsources_list_execute()` or `content_conversionsources_list`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `content_conversionsources_list_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn content_conversionsources_list_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<ListConversionSourcesResponse>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: ListConversionSourcesResponse = serde_json::from_str(&body)
+                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// GET {merchantId}/conversionsources
+/// Retrieves the list of conversion sources the caller has access to.
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `content_conversionsources_list_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `content_conversionsources_list_task()`.
+/// For the simplest API, use `content_conversionsources_list()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `content_conversionsources_list_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn content_conversionsources_list_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<
+            D = Result<ApiResponse<ListConversionSourcesResponse>, ApiError>,
+            P = ApiPending,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    let task = content_conversionsources_list_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`content_conversionsources_list`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct ContentConversionsourcesListArgs {
+    /// Path parameter: merchantId
+    pub merchantId: String,
+    /// Query parameter: pageSize
+    pub pageSize: Option<Option<String>>,
+    /// Query parameter: pageToken
+    pub pageToken: Option<Option<String>>,
+    /// Query parameter: showDeleted
+    pub showDeleted: Option<Option<String>>,
+}
+
+/// GET {merchantId}/conversionsources
+/// Retrieves the list of conversion sources the caller has access to.
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `content_conversionsources_list_builder()` + `content_conversionsources_list_execute()`.
+/// For task-level control, use `content_conversionsources_list_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn content_conversionsources_list(
+    client: &SimpleHttpClient,
+    args: &ContentConversionsourcesListArgs,
+) -> Result<
+    impl StreamIterator<
+            D = Result<ApiResponse<ListConversionSourcesResponse>, ApiError>,
+            P = ApiPending,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    let builder = content_conversionsources_list_builder(
+        client,
+        &args.merchantId,
+        &args.pageSize,
+        &args.pageToken,
+        &args.showDeleted,
+    )?;
+    content_conversionsources_list_execute(builder)
+}
+
+/// PATCH {merchantId}/conversionsources/{conversionSourceId}
+/// Updates information of an existing conversion source.
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `content_conversionsources_patch_execute()` to send, or `content_conversionsources_patch` for simplest API.
+
+pub fn content_conversionsources_patch_builder(
+    client: &SimpleHttpClient,
+    merchantId: &String,
+    conversionSourceId: &String,
+    updateMask: &Option<Option<String>>,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!(
+        "https://shoppingcontent.googleapis.com/content/v2.1/{}/conversionsources/{}",
+        merchantId, conversionSourceId,
+    );
+
+    // Build request
+    let mut query_parts = Vec::new();
+    if let Some(val) = updateMask.as_ref() {
+        query_parts.push(format!("updateMask={}", val));
+    }
+
+    let url_with_query = if query_parts.is_empty() {
+        endpoint_url
+    } else {
+        format!("{}?{}", endpoint_url, query_parts.join("&"))
+    };
+
+    let builder = client
+        .patch(&url_with_query)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// PATCH {merchantId}/conversionsources/{conversionSourceId}
+/// Updates information of an existing conversion source.
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `content_conversionsources_patch_execute()` or `content_conversionsources_patch`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `content_conversionsources_patch_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn content_conversionsources_patch_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<ConversionSource>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: ConversionSource = serde_json::from_str(&body)
+                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// PATCH {merchantId}/conversionsources/{conversionSourceId}
+/// Updates information of an existing conversion source.
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `content_conversionsources_patch_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `content_conversionsources_patch_task()`.
+/// For the simplest API, use `content_conversionsources_patch()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `content_conversionsources_patch_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn content_conversionsources_patch_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<ConversionSource>, ApiError>, P = ApiPending>
+        + Send
+        + 'static,
+    ApiError,
+> {
+    let task = content_conversionsources_patch_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`content_conversionsources_patch`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct ContentConversionsourcesPatchArgs {
+    /// Path parameter: merchantId
+    pub merchantId: String,
+    /// Path parameter: conversionSourceId
+    pub conversionSourceId: String,
+    /// Query parameter: updateMask
+    pub updateMask: Option<Option<String>>,
+}
+
+/// PATCH {merchantId}/conversionsources/{conversionSourceId}
+/// Updates information of an existing conversion source.
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `content_conversionsources_patch_builder()` + `content_conversionsources_patch_execute()`.
+/// For task-level control, use `content_conversionsources_patch_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn content_conversionsources_patch(
+    client: &SimpleHttpClient,
+    args: &ContentConversionsourcesPatchArgs,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<ConversionSource>, ApiError>, P = ApiPending>
+        + Send
+        + 'static,
+    ApiError,
+> {
+    let builder = content_conversionsources_patch_builder(
+        client,
+        &args.merchantId,
+        &args.conversionSourceId,
+        &args.updateMask,
+    )?;
+    content_conversionsources_patch_execute(builder)
+}
+
+/// POST {merchantId}/conversionsources/{conversionSourceId}:undelete
 /// Re-enables an archived conversion source.
 ///
 /// Returns `ClientRequestBuilder` for customization.
@@ -4638,7 +6819,6 @@ pub fn content_conversionsources_undelete_builder(
     client: &SimpleHttpClient,
     merchantId: &String,
     conversionSourceId: &String,
-    body: &UndeleteConversionSourceRequest,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
@@ -4648,15 +6828,13 @@ pub fn content_conversionsources_undelete_builder(
 
     // Build request
     let builder = client
-        .get(&endpoint_url)
+        .post(&endpoint_url)
         .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
 
-    builder
-        .body_json(body)
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+    Ok(builder)
 }
 
-/// GET {merchantId}/conversionsources/{conversionSourceId}:undelete
+/// POST {merchantId}/conversionsources/{conversionSourceId}:undelete
 /// Re-enables an archived conversion source.
 ///
 /// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
@@ -4727,7 +6905,7 @@ pub fn content_conversionsources_undelete_task(
         .map_pending(|_| ApiPending::Sending))
 }
 
-/// GET {merchantId}/conversionsources/{conversionSourceId}:undelete
+/// POST {merchantId}/conversionsources/{conversionSourceId}:undelete
 /// Re-enables an archived conversion source.
 ///
 /// Takes a `ClientRequestBuilder`, builds and executes the request,
@@ -4764,11 +6942,9 @@ pub struct ContentConversionsourcesUndeleteArgs {
     pub merchantId: String,
     /// Path parameter: conversionSourceId
     pub conversionSourceId: String,
-    /// Request body.
-    pub body: UndeleteConversionSourceRequest,
 }
 
-/// GET {merchantId}/conversionsources/{conversionSourceId}:undelete
+/// POST {merchantId}/conversionsources/{conversionSourceId}:undelete
 /// Re-enables an archived conversion source.
 ///
 /// Simplest API - builds and executes the request in one call.
@@ -4790,7 +6966,6 @@ pub fn content_conversionsources_undelete(
         client,
         &args.merchantId,
         &args.conversionSourceId,
-        &args.body,
     )?;
     content_conversionsources_undelete_execute(builder)
 }
@@ -4964,8 +7139,8 @@ pub fn content_csses_get(
 pub fn content_csses_list_builder(
     client: &SimpleHttpClient,
     cssGroupId: &String,
-    pageSize: &Option<i32>,
-    pageToken: &Option<String>,
+    pageSize: &Option<Option<String>>,
+    pageToken: &Option<Option<String>>,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
@@ -5107,9 +7282,9 @@ pub struct ContentCssesListArgs {
     /// Path parameter: cssGroupId
     pub cssGroupId: String,
     /// Query parameter: pageSize
-    pub pageSize: Option<i32>,
+    pub pageSize: Option<Option<String>>,
     /// Query parameter: pageToken
-    pub pageToken: Option<String>,
+    pub pageToken: Option<Option<String>>,
 }
 
 /// GET {cssGroupId}/csses
@@ -5137,7 +7312,7 @@ pub fn content_csses_list(
     content_csses_list_execute(builder)
 }
 
-/// GET {cssGroupId}/csses/{cssDomainId}/updatelabels
+/// POST {cssGroupId}/csses/{cssDomainId}/updatelabels
 /// Updates labels that are assigned to a CSS domain by its CSS group.
 ///
 /// Returns `ClientRequestBuilder` for customization.
@@ -5147,7 +7322,6 @@ pub fn content_csses_updatelabels_builder(
     client: &SimpleHttpClient,
     cssGroupId: &String,
     cssDomainId: &String,
-    body: &LabelIds,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
@@ -5157,15 +7331,13 @@ pub fn content_csses_updatelabels_builder(
 
     // Build request
     let builder = client
-        .get(&endpoint_url)
+        .post(&endpoint_url)
         .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
 
-    builder
-        .body_json(body)
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+    Ok(builder)
 }
 
-/// GET {cssGroupId}/csses/{cssDomainId}/updatelabels
+/// POST {cssGroupId}/csses/{cssDomainId}/updatelabels
 /// Updates labels that are assigned to a CSS domain by its CSS group.
 ///
 /// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
@@ -5239,7 +7411,7 @@ pub fn content_csses_updatelabels_task(
         .map_pending(|_| ApiPending::Sending))
 }
 
-/// GET {cssGroupId}/csses/{cssDomainId}/updatelabels
+/// POST {cssGroupId}/csses/{cssDomainId}/updatelabels
 /// Updates labels that are assigned to a CSS domain by its CSS group.
 ///
 /// Takes a `ClientRequestBuilder`, builds and executes the request,
@@ -5276,11 +7448,9 @@ pub struct ContentCssesUpdatelabelsArgs {
     pub cssGroupId: String,
     /// Path parameter: cssDomainId
     pub cssDomainId: String,
-    /// Request body.
-    pub body: LabelIds,
 }
 
-/// GET {cssGroupId}/csses/{cssDomainId}/updatelabels
+/// POST {cssGroupId}/csses/{cssDomainId}/updatelabels
 /// Updates labels that are assigned to a CSS domain by its CSS group.
 ///
 /// Simplest API - builds and executes the request in one call.
@@ -5298,16 +7468,11 @@ pub fn content_csses_updatelabels(
     impl StreamIterator<D = Result<ApiResponse<Css>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = content_csses_updatelabels_builder(
-        client,
-        &args.cssGroupId,
-        &args.cssDomainId,
-        &args.body,
-    )?;
+    let builder = content_csses_updatelabels_builder(client, &args.cssGroupId, &args.cssDomainId)?;
     content_csses_updatelabels_execute(builder)
 }
 
-/// GET datafeeds/batch
+/// POST datafeeds/batch
 /// Deletes, fetches, gets, inserts and updates multiple datafeeds in a single request.
 ///
 /// Returns `ClientRequestBuilder` for customization.
@@ -5315,7 +7480,6 @@ pub fn content_csses_updatelabels(
 
 pub fn content_datafeeds_custombatch_builder(
     client: &SimpleHttpClient,
-    body: &DatafeedsCustomBatchRequest,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url =
@@ -5323,15 +7487,13 @@ pub fn content_datafeeds_custombatch_builder(
 
     // Build request
     let builder = client
-        .get(&endpoint_url)
+        .post(&endpoint_url)
         .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
 
-    builder
-        .body_json(body)
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+    Ok(builder)
 }
 
-/// GET datafeeds/batch
+/// POST datafeeds/batch
 /// Deletes, fetches, gets, inserts and updates multiple datafeeds in a single request.
 ///
 /// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
@@ -5405,7 +7567,7 @@ pub fn content_datafeeds_custombatch_task(
         .map_pending(|_| ApiPending::Sending))
 }
 
-/// GET datafeeds/batch
+/// POST datafeeds/batch
 /// Deletes, fetches, gets, inserts and updates multiple datafeeds in a single request.
 ///
 /// Takes a `ClientRequestBuilder`, builds and executes the request,
@@ -5439,14 +7601,7 @@ pub fn content_datafeeds_custombatch_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
-/// Arguments for [`content_datafeeds_custombatch`].
-#[derive(Debug, Clone, Serialize, JsonHash)]
-pub struct ContentDatafeedsCustombatchArgs {
-    /// Request body.
-    pub body: DatafeedsCustomBatchRequest,
-}
-
-/// GET datafeeds/batch
+/// POST datafeeds/batch
 /// Deletes, fetches, gets, inserts and updates multiple datafeeds in a single request.
 ///
 /// Simplest API - builds and executes the request in one call.
@@ -5459,7 +7614,6 @@ pub struct ContentDatafeedsCustombatchArgs {
 
 pub fn content_datafeeds_custombatch(
     client: &SimpleHttpClient,
-    args: &ContentDatafeedsCustombatchArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<DatafeedsCustomBatchResponse>, ApiError>,
@@ -5468,11 +7622,11 @@ pub fn content_datafeeds_custombatch(
         + 'static,
     ApiError,
 > {
-    let builder = content_datafeeds_custombatch_builder(client, &args.body)?;
+    let builder = content_datafeeds_custombatch_builder(client)?;
     content_datafeeds_custombatch_execute(builder)
 }
 
-/// GET {merchantId}/datafeeds/{datafeedId}
+/// DELETE {merchantId}/datafeeds/{datafeedId}
 /// Deletes a datafeed configuration from your Merchant Center account.
 ///
 /// Returns `ClientRequestBuilder` for customization.
@@ -5491,13 +7645,13 @@ pub fn content_datafeeds_delete_builder(
 
     // Build request
     let builder = client
-        .get(&endpoint_url)
+        .delete(&endpoint_url)
         .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
 
     Ok(builder)
 }
 
-/// GET {merchantId}/datafeeds/{datafeedId}
+/// DELETE {merchantId}/datafeeds/{datafeedId}
 /// Deletes a datafeed configuration from your Merchant Center account.
 ///
 /// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
@@ -5568,7 +7722,7 @@ pub fn content_datafeeds_delete_task(
         .map_pending(|_| ApiPending::Sending))
 }
 
-/// GET {merchantId}/datafeeds/{datafeedId}
+/// DELETE {merchantId}/datafeeds/{datafeedId}
 /// Deletes a datafeed configuration from your Merchant Center account.
 ///
 /// Takes a `ClientRequestBuilder`, builds and executes the request,
@@ -5607,7 +7761,7 @@ pub struct ContentDatafeedsDeleteArgs {
     pub datafeedId: String,
 }
 
-/// GET {merchantId}/datafeeds/{datafeedId}
+/// DELETE {merchantId}/datafeeds/{datafeedId}
 /// Deletes a datafeed configuration from your Merchant Center account.
 ///
 /// Simplest API - builds and executes the request in one call.
@@ -5629,7 +7783,7 @@ pub fn content_datafeeds_delete(
     content_datafeeds_delete_execute(builder)
 }
 
-/// GET {merchantId}/datafeeds/{datafeedId}/fetchNow
+/// POST {merchantId}/datafeeds/{datafeedId}/fetchNow
 /// Invokes a fetch for the datafeed in your Merchant Center account. If you need to call this method more than once per day, we recommend you use the [Products service](<https://developers.google.`com/shopping-content/reference/rest/v2`.1/products>) to update your product data.
 ///
 /// Returns `ClientRequestBuilder` for customization.
@@ -5648,13 +7802,13 @@ pub fn content_datafeeds_fetchnow_builder(
 
     // Build request
     let builder = client
-        .get(&endpoint_url)
+        .post(&endpoint_url)
         .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
 
     Ok(builder)
 }
 
-/// GET {merchantId}/datafeeds/{datafeedId}/fetchNow
+/// POST {merchantId}/datafeeds/{datafeedId}/fetchNow
 /// Invokes a fetch for the datafeed in your Merchant Center account. If you need to call this method more than once per day, we recommend you use the [Products service](<https://developers.google.`com/shopping-content/reference/rest/v2`.1/products>) to update your product data.
 ///
 /// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
@@ -5728,7 +7882,7 @@ pub fn content_datafeeds_fetchnow_task(
         .map_pending(|_| ApiPending::Sending))
 }
 
-/// GET {merchantId}/datafeeds/{datafeedId}/fetchNow
+/// POST {merchantId}/datafeeds/{datafeedId}/fetchNow
 /// Invokes a fetch for the datafeed in your Merchant Center account. If you need to call this method more than once per day, we recommend you use the [Products service](<https://developers.google.`com/shopping-content/reference/rest/v2`.1/products>) to update your product data.
 ///
 /// Takes a `ClientRequestBuilder`, builds and executes the request,
@@ -5769,7 +7923,7 @@ pub struct ContentDatafeedsFetchnowArgs {
     pub datafeedId: String,
 }
 
-/// GET {merchantId}/datafeeds/{datafeedId}/fetchNow
+/// POST {merchantId}/datafeeds/{datafeedId}/fetchNow
 /// Invokes a fetch for the datafeed in your Merchant Center account. If you need to call this method more than once per day, we recommend you use the [Products service](<https://developers.google.`com/shopping-content/reference/rest/v2`.1/products>) to update your product data.
 ///
 /// Simplest API - builds and executes the request in one call.
@@ -5793,7 +7947,167 @@ pub fn content_datafeeds_fetchnow(
     content_datafeeds_fetchnow_execute(builder)
 }
 
-/// GET {merchantId}/datafeeds
+/// GET {merchantId}/datafeeds/{datafeedId}
+/// Retrieves a datafeed configuration from your Merchant Center account.
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `content_datafeeds_get_execute()` to send, or `content_datafeeds_get` for simplest API.
+
+pub fn content_datafeeds_get_builder(
+    client: &SimpleHttpClient,
+    merchantId: &String,
+    datafeedId: &String,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!(
+        "https://shoppingcontent.googleapis.com/content/v2.1/{}/datafeeds/{}",
+        merchantId, datafeedId,
+    );
+
+    // Build request
+    let builder = client
+        .get(&endpoint_url)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// GET {merchantId}/datafeeds/{datafeedId}
+/// Retrieves a datafeed configuration from your Merchant Center account.
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `content_datafeeds_get_execute()` or `content_datafeeds_get`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `content_datafeeds_get_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn content_datafeeds_get_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<Datafeed>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: Datafeed = serde_json::from_str(&body)
+                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// GET {merchantId}/datafeeds/{datafeedId}
+/// Retrieves a datafeed configuration from your Merchant Center account.
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `content_datafeeds_get_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `content_datafeeds_get_task()`.
+/// For the simplest API, use `content_datafeeds_get()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `content_datafeeds_get_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn content_datafeeds_get_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<Datafeed>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let task = content_datafeeds_get_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`content_datafeeds_get`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct ContentDatafeedsGetArgs {
+    /// Path parameter: merchantId
+    pub merchantId: String,
+    /// Path parameter: datafeedId
+    pub datafeedId: String,
+}
+
+/// GET {merchantId}/datafeeds/{datafeedId}
+/// Retrieves a datafeed configuration from your Merchant Center account.
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `content_datafeeds_get_builder()` + `content_datafeeds_get_execute()`.
+/// For task-level control, use `content_datafeeds_get_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn content_datafeeds_get(
+    client: &SimpleHttpClient,
+    args: &ContentDatafeedsGetArgs,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<Datafeed>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let builder = content_datafeeds_get_builder(client, &args.merchantId, &args.datafeedId)?;
+    content_datafeeds_get_execute(builder)
+}
+
+/// POST {merchantId}/datafeeds
 /// Registers a datafeed configuration with your Merchant Center account.
 ///
 /// Returns `ClientRequestBuilder` for customization.
@@ -5802,7 +8116,6 @@ pub fn content_datafeeds_fetchnow(
 pub fn content_datafeeds_insert_builder(
     client: &SimpleHttpClient,
     merchantId: &String,
-    body: &Datafeed,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
@@ -5812,15 +8125,13 @@ pub fn content_datafeeds_insert_builder(
 
     // Build request
     let builder = client
-        .get(&endpoint_url)
+        .post(&endpoint_url)
         .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
 
-    builder
-        .body_json(body)
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+    Ok(builder)
 }
 
-/// GET {merchantId}/datafeeds
+/// POST {merchantId}/datafeeds
 /// Registers a datafeed configuration with your Merchant Center account.
 ///
 /// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
@@ -5894,7 +8205,7 @@ pub fn content_datafeeds_insert_task(
         .map_pending(|_| ApiPending::Sending))
 }
 
-/// GET {merchantId}/datafeeds
+/// POST {merchantId}/datafeeds
 /// Registers a datafeed configuration with your Merchant Center account.
 ///
 /// Takes a `ClientRequestBuilder`, builds and executes the request,
@@ -5929,11 +8240,9 @@ pub fn content_datafeeds_insert_execute(
 pub struct ContentDatafeedsInsertArgs {
     /// Path parameter: merchantId
     pub merchantId: String,
-    /// Request body.
-    pub body: Datafeed,
 }
 
-/// GET {merchantId}/datafeeds
+/// POST {merchantId}/datafeeds
 /// Registers a datafeed configuration with your Merchant Center account.
 ///
 /// Simplest API - builds and executes the request in one call.
@@ -5951,11 +8260,357 @@ pub fn content_datafeeds_insert(
     impl StreamIterator<D = Result<ApiResponse<Datafeed>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = content_datafeeds_insert_builder(client, &args.merchantId, &args.body)?;
+    let builder = content_datafeeds_insert_builder(client, &args.merchantId)?;
     content_datafeeds_insert_execute(builder)
 }
 
-/// GET datafeedstatuses/batch
+/// GET {merchantId}/datafeeds
+/// Lists the configurations for datafeeds in your Merchant Center account.
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `content_datafeeds_list_execute()` to send, or `content_datafeeds_list` for simplest API.
+
+pub fn content_datafeeds_list_builder(
+    client: &SimpleHttpClient,
+    merchantId: &String,
+    maxResults: &Option<Option<String>>,
+    pageToken: &Option<Option<String>>,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!(
+        "https://shoppingcontent.googleapis.com/content/v2.1/{}/datafeeds",
+        merchantId,
+    );
+
+    // Build request
+    let mut query_parts = Vec::new();
+    if let Some(val) = maxResults.as_ref() {
+        query_parts.push(format!("maxResults={}", val));
+    }
+    if let Some(val) = pageToken.as_ref() {
+        query_parts.push(format!("pageToken={}", val));
+    }
+
+    let url_with_query = if query_parts.is_empty() {
+        endpoint_url
+    } else {
+        format!("{}?{}", endpoint_url, query_parts.join("&"))
+    };
+
+    let builder = client
+        .get(&url_with_query)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// GET {merchantId}/datafeeds
+/// Lists the configurations for datafeeds in your Merchant Center account.
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `content_datafeeds_list_execute()` or `content_datafeeds_list`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `content_datafeeds_list_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn content_datafeeds_list_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<DatafeedsListResponse>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: DatafeedsListResponse = serde_json::from_str(&body)
+                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// GET {merchantId}/datafeeds
+/// Lists the configurations for datafeeds in your Merchant Center account.
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `content_datafeeds_list_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `content_datafeeds_list_task()`.
+/// For the simplest API, use `content_datafeeds_list()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `content_datafeeds_list_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn content_datafeeds_list_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<DatafeedsListResponse>, ApiError>, P = ApiPending>
+        + Send
+        + 'static,
+    ApiError,
+> {
+    let task = content_datafeeds_list_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`content_datafeeds_list`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct ContentDatafeedsListArgs {
+    /// Path parameter: merchantId
+    pub merchantId: String,
+    /// Query parameter: maxResults
+    pub maxResults: Option<Option<String>>,
+    /// Query parameter: pageToken
+    pub pageToken: Option<Option<String>>,
+}
+
+/// GET {merchantId}/datafeeds
+/// Lists the configurations for datafeeds in your Merchant Center account.
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `content_datafeeds_list_builder()` + `content_datafeeds_list_execute()`.
+/// For task-level control, use `content_datafeeds_list_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn content_datafeeds_list(
+    client: &SimpleHttpClient,
+    args: &ContentDatafeedsListArgs,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<DatafeedsListResponse>, ApiError>, P = ApiPending>
+        + Send
+        + 'static,
+    ApiError,
+> {
+    let builder = content_datafeeds_list_builder(
+        client,
+        &args.merchantId,
+        &args.maxResults,
+        &args.pageToken,
+    )?;
+    content_datafeeds_list_execute(builder)
+}
+
+/// PUT {merchantId}/datafeeds/{datafeedId}
+/// Updates a datafeed configuration of your Merchant Center account. Any fields that are not provided are deleted from the resource.
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `content_datafeeds_update_execute()` to send, or `content_datafeeds_update` for simplest API.
+
+pub fn content_datafeeds_update_builder(
+    client: &SimpleHttpClient,
+    merchantId: &String,
+    datafeedId: &String,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!(
+        "https://shoppingcontent.googleapis.com/content/v2.1/{}/datafeeds/{}",
+        merchantId, datafeedId,
+    );
+
+    // Build request
+    let builder = client
+        .put(&endpoint_url)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// PUT {merchantId}/datafeeds/{datafeedId}
+/// Updates a datafeed configuration of your Merchant Center account. Any fields that are not provided are deleted from the resource.
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `content_datafeeds_update_execute()` or `content_datafeeds_update`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `content_datafeeds_update_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn content_datafeeds_update_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<Datafeed>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: Datafeed = serde_json::from_str(&body)
+                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// PUT {merchantId}/datafeeds/{datafeedId}
+/// Updates a datafeed configuration of your Merchant Center account. Any fields that are not provided are deleted from the resource.
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `content_datafeeds_update_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `content_datafeeds_update_task()`.
+/// For the simplest API, use `content_datafeeds_update()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `content_datafeeds_update_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn content_datafeeds_update_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<Datafeed>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let task = content_datafeeds_update_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`content_datafeeds_update`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct ContentDatafeedsUpdateArgs {
+    /// Path parameter: merchantId
+    pub merchantId: String,
+    /// Path parameter: datafeedId
+    pub datafeedId: String,
+}
+
+/// PUT {merchantId}/datafeeds/{datafeedId}
+/// Updates a datafeed configuration of your Merchant Center account. Any fields that are not provided are deleted from the resource.
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `content_datafeeds_update_builder()` + `content_datafeeds_update_execute()`.
+/// For task-level control, use `content_datafeeds_update_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn content_datafeeds_update(
+    client: &SimpleHttpClient,
+    args: &ContentDatafeedsUpdateArgs,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<Datafeed>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let builder = content_datafeeds_update_builder(client, &args.merchantId, &args.datafeedId)?;
+    content_datafeeds_update_execute(builder)
+}
+
+/// POST datafeedstatuses/batch
 /// Gets multiple Merchant Center datafeed statuses in a single request.
 ///
 /// Returns `ClientRequestBuilder` for customization.
@@ -5963,7 +8618,6 @@ pub fn content_datafeeds_insert(
 
 pub fn content_datafeedstatuses_custombatch_builder(
     client: &SimpleHttpClient,
-    body: &DatafeedstatusesCustomBatchRequest,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url =
@@ -5971,15 +8625,13 @@ pub fn content_datafeedstatuses_custombatch_builder(
 
     // Build request
     let builder = client
-        .get(&endpoint_url)
+        .post(&endpoint_url)
         .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
 
-    builder
-        .body_json(body)
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+    Ok(builder)
 }
 
-/// GET datafeedstatuses/batch
+/// POST datafeedstatuses/batch
 /// Gets multiple Merchant Center datafeed statuses in a single request.
 ///
 /// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
@@ -6053,7 +8705,7 @@ pub fn content_datafeedstatuses_custombatch_task(
         .map_pending(|_| ApiPending::Sending))
 }
 
-/// GET datafeedstatuses/batch
+/// POST datafeedstatuses/batch
 /// Gets multiple Merchant Center datafeed statuses in a single request.
 ///
 /// Takes a `ClientRequestBuilder`, builds and executes the request,
@@ -6087,14 +8739,7 @@ pub fn content_datafeedstatuses_custombatch_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
-/// Arguments for [`content_datafeedstatuses_custombatch`].
-#[derive(Debug, Clone, Serialize, JsonHash)]
-pub struct ContentDatafeedstatusesCustombatchArgs {
-    /// Request body.
-    pub body: DatafeedstatusesCustomBatchRequest,
-}
-
-/// GET datafeedstatuses/batch
+/// POST datafeedstatuses/batch
 /// Gets multiple Merchant Center datafeed statuses in a single request.
 ///
 /// Simplest API - builds and executes the request in one call.
@@ -6107,7 +8752,6 @@ pub struct ContentDatafeedstatusesCustombatchArgs {
 
 pub fn content_datafeedstatuses_custombatch(
     client: &SimpleHttpClient,
-    args: &ContentDatafeedstatusesCustombatchArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<DatafeedstatusesCustomBatchResponse>, ApiError>,
@@ -6116,7 +8760,7 @@ pub fn content_datafeedstatuses_custombatch(
         + 'static,
     ApiError,
 > {
-    let builder = content_datafeedstatuses_custombatch_builder(client, &args.body)?;
+    let builder = content_datafeedstatuses_custombatch_builder(client)?;
     content_datafeedstatuses_custombatch_execute(builder)
 }
 
@@ -6130,9 +8774,9 @@ pub fn content_datafeedstatuses_get_builder(
     client: &SimpleHttpClient,
     merchantId: &String,
     datafeedId: &String,
-    country: &Option<String>,
-    feedLabel: &Option<String>,
-    language: &Option<String>,
+    country: &Option<Option<String>>,
+    feedLabel: &Option<Option<String>>,
+    language: &Option<Option<String>>,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
@@ -6279,11 +8923,11 @@ pub struct ContentDatafeedstatusesGetArgs {
     /// Path parameter: datafeedId
     pub datafeedId: String,
     /// Query parameter: country
-    pub country: Option<String>,
+    pub country: Option<Option<String>>,
     /// Query parameter: feedLabel
-    pub feedLabel: Option<String>,
+    pub feedLabel: Option<Option<String>>,
     /// Query parameter: language
-    pub language: Option<String>,
+    pub language: Option<Option<String>>,
 }
 
 /// GET {merchantId}/datafeedstatuses/{datafeedId}
@@ -6326,8 +8970,8 @@ pub fn content_datafeedstatuses_get(
 pub fn content_datafeedstatuses_list_builder(
     client: &SimpleHttpClient,
     merchantId: &String,
-    maxResults: &Option<i32>,
-    pageToken: &Option<String>,
+    maxResults: &Option<Option<String>>,
+    pageToken: &Option<Option<String>>,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
@@ -6471,9 +9115,9 @@ pub struct ContentDatafeedstatusesListArgs {
     /// Path parameter: merchantId
     pub merchantId: String,
     /// Query parameter: maxResults
-    pub maxResults: Option<i32>,
+    pub maxResults: Option<Option<String>>,
     /// Query parameter: pageToken
-    pub pageToken: Option<String>,
+    pub pageToken: Option<Option<String>>,
 }
 
 /// GET {merchantId}/datafeedstatuses
@@ -6668,7 +9312,7 @@ pub fn content_freelistingsprogram_get(
     content_freelistingsprogram_get_execute(builder)
 }
 
-/// GET {merchantId}/freelistingsprogram/requestreview
+/// POST {merchantId}/freelistingsprogram/requestreview
 /// Requests a review of free listings in a specific region. This method deprecated. Use the MerchantSupportService to view product and account issues and request a review.
 ///
 /// Returns `ClientRequestBuilder` for customization.
@@ -6677,7 +9321,6 @@ pub fn content_freelistingsprogram_get(
 pub fn content_freelistingsprogram_requestreview_builder(
     client: &SimpleHttpClient,
     merchantId: &String,
-    body: &RequestReviewFreeListingsRequest,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
@@ -6687,15 +9330,13 @@ pub fn content_freelistingsprogram_requestreview_builder(
 
     // Build request
     let builder = client
-        .get(&endpoint_url)
+        .post(&endpoint_url)
         .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
 
-    builder
-        .body_json(body)
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+    Ok(builder)
 }
 
-/// GET {merchantId}/freelistingsprogram/requestreview
+/// POST {merchantId}/freelistingsprogram/requestreview
 /// Requests a review of free listings in a specific region. This method deprecated. Use the MerchantSupportService to view product and account issues and request a review.
 ///
 /// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
@@ -6766,7 +9407,7 @@ pub fn content_freelistingsprogram_requestreview_task(
         .map_pending(|_| ApiPending::Sending))
 }
 
-/// GET {merchantId}/freelistingsprogram/requestreview
+/// POST {merchantId}/freelistingsprogram/requestreview
 /// Requests a review of free listings in a specific region. This method deprecated. Use the MerchantSupportService to view product and account issues and request a review.
 ///
 /// Takes a `ClientRequestBuilder`, builds and executes the request,
@@ -6801,11 +9442,9 @@ pub fn content_freelistingsprogram_requestreview_execute(
 pub struct ContentFreelistingsprogramRequestreviewArgs {
     /// Path parameter: merchantId
     pub merchantId: String,
-    /// Request body.
-    pub body: RequestReviewFreeListingsRequest,
 }
 
-/// GET {merchantId}/freelistingsprogram/requestreview
+/// POST {merchantId}/freelistingsprogram/requestreview
 /// Requests a review of free listings in a specific region. This method deprecated. Use the MerchantSupportService to view product and account issues and request a review.
 ///
 /// Simplest API - builds and executes the request in one call.
@@ -6823,12 +9462,11 @@ pub fn content_freelistingsprogram_requestreview(
     impl StreamIterator<D = Result<ApiResponse<()>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder =
-        content_freelistingsprogram_requestreview_builder(client, &args.merchantId, &args.body)?;
+    let builder = content_freelistingsprogram_requestreview_builder(client, &args.merchantId)?;
     content_freelistingsprogram_requestreview_execute(builder)
 }
 
-/// GET {merchantId}/freelistingsprogram/checkoutsettings
+/// DELETE {merchantId}/freelistingsprogram/checkoutsettings
 /// Deletes Checkout settings and unenrolls merchant from Checkout program.
 ///
 /// Returns `ClientRequestBuilder` for customization.
@@ -6846,13 +9484,13 @@ pub fn content_freelistingsprogram_checkoutsettings_delete_builder(
 
     // Build request
     let builder = client
-        .get(&endpoint_url)
+        .delete(&endpoint_url)
         .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
 
     Ok(builder)
 }
 
-/// GET {merchantId}/freelistingsprogram/checkoutsettings
+/// DELETE {merchantId}/freelistingsprogram/checkoutsettings
 /// Deletes Checkout settings and unenrolls merchant from Checkout program.
 ///
 /// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
@@ -6923,7 +9561,7 @@ pub fn content_freelistingsprogram_checkoutsettings_delete_task(
         .map_pending(|_| ApiPending::Sending))
 }
 
-/// GET {merchantId}/freelistingsprogram/checkoutsettings
+/// DELETE {merchantId}/freelistingsprogram/checkoutsettings
 /// Deletes Checkout settings and unenrolls merchant from Checkout program.
 ///
 /// Takes a `ClientRequestBuilder`, builds and executes the request,
@@ -6960,7 +9598,7 @@ pub struct ContentFreelistingsprogramCheckoutsettingsDeleteArgs {
     pub merchantId: String,
 }
 
-/// GET {merchantId}/freelistingsprogram/checkoutsettings
+/// DELETE {merchantId}/freelistingsprogram/checkoutsettings
 /// Deletes Checkout settings and unenrolls merchant from Checkout program.
 ///
 /// Simplest API - builds and executes the request in one call.
@@ -6983,7 +9621,331 @@ pub fn content_freelistingsprogram_checkoutsettings_delete(
     content_freelistingsprogram_checkoutsettings_delete_execute(builder)
 }
 
-/// GET liasettings/batch
+/// GET {merchantId}/freelistingsprogram/checkoutsettings
+/// Gets Checkout settings for the given merchant. This includes information about review state, enrollment state and URL settings.
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `content_freelistingsprogram_checkoutsettings_get_execute()` to send, or `content_freelistingsprogram_checkoutsettings_get` for simplest API.
+
+pub fn content_freelistingsprogram_checkoutsettings_get_builder(
+    client: &SimpleHttpClient,
+    merchantId: &String,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!(
+        "https://shoppingcontent.googleapis.com/content/v2.1/{}/freelistingsprogram/checkoutsettings",
+        merchantId,
+    );
+
+    // Build request
+    let builder = client
+        .get(&endpoint_url)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// GET {merchantId}/freelistingsprogram/checkoutsettings
+/// Gets Checkout settings for the given merchant. This includes information about review state, enrollment state and URL settings.
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `content_freelistingsprogram_checkoutsettings_get_execute()` or `content_freelistingsprogram_checkoutsettings_get`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `content_freelistingsprogram_checkoutsettings_get_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn content_freelistingsprogram_checkoutsettings_get_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<CheckoutSettings>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: CheckoutSettings = serde_json::from_str(&body)
+                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// GET {merchantId}/freelistingsprogram/checkoutsettings
+/// Gets Checkout settings for the given merchant. This includes information about review state, enrollment state and URL settings.
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `content_freelistingsprogram_checkoutsettings_get_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `content_freelistingsprogram_checkoutsettings_get_task()`.
+/// For the simplest API, use `content_freelistingsprogram_checkoutsettings_get()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `content_freelistingsprogram_checkoutsettings_get_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn content_freelistingsprogram_checkoutsettings_get_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<CheckoutSettings>, ApiError>, P = ApiPending>
+        + Send
+        + 'static,
+    ApiError,
+> {
+    let task = content_freelistingsprogram_checkoutsettings_get_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`content_freelistingsprogram_checkoutsettings_get`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct ContentFreelistingsprogramCheckoutsettingsGetArgs {
+    /// Path parameter: merchantId
+    pub merchantId: String,
+}
+
+/// GET {merchantId}/freelistingsprogram/checkoutsettings
+/// Gets Checkout settings for the given merchant. This includes information about review state, enrollment state and URL settings.
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `content_freelistingsprogram_checkoutsettings_get_builder()` + `content_freelistingsprogram_checkoutsettings_get_execute()`.
+/// For task-level control, use `content_freelistingsprogram_checkoutsettings_get_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn content_freelistingsprogram_checkoutsettings_get(
+    client: &SimpleHttpClient,
+    args: &ContentFreelistingsprogramCheckoutsettingsGetArgs,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<CheckoutSettings>, ApiError>, P = ApiPending>
+        + Send
+        + 'static,
+    ApiError,
+> {
+    let builder =
+        content_freelistingsprogram_checkoutsettings_get_builder(client, &args.merchantId)?;
+    content_freelistingsprogram_checkoutsettings_get_execute(builder)
+}
+
+/// POST {merchantId}/freelistingsprogram/checkoutsettings
+/// Enrolls merchant in Checkout program.
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `content_freelistingsprogram_checkoutsettings_insert_execute()` to send, or `content_freelistingsprogram_checkoutsettings_insert` for simplest API.
+
+pub fn content_freelistingsprogram_checkoutsettings_insert_builder(
+    client: &SimpleHttpClient,
+    merchantId: &String,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!(
+        "https://shoppingcontent.googleapis.com/content/v2.1/{}/freelistingsprogram/checkoutsettings",
+        merchantId,
+    );
+
+    // Build request
+    let builder = client
+        .post(&endpoint_url)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// POST {merchantId}/freelistingsprogram/checkoutsettings
+/// Enrolls merchant in Checkout program.
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `content_freelistingsprogram_checkoutsettings_insert_execute()` or `content_freelistingsprogram_checkoutsettings_insert`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `content_freelistingsprogram_checkoutsettings_insert_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn content_freelistingsprogram_checkoutsettings_insert_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<CheckoutSettings>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: CheckoutSettings = serde_json::from_str(&body)
+                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// POST {merchantId}/freelistingsprogram/checkoutsettings
+/// Enrolls merchant in Checkout program.
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `content_freelistingsprogram_checkoutsettings_insert_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `content_freelistingsprogram_checkoutsettings_insert_task()`.
+/// For the simplest API, use `content_freelistingsprogram_checkoutsettings_insert()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `content_freelistingsprogram_checkoutsettings_insert_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn content_freelistingsprogram_checkoutsettings_insert_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<CheckoutSettings>, ApiError>, P = ApiPending>
+        + Send
+        + 'static,
+    ApiError,
+> {
+    let task = content_freelistingsprogram_checkoutsettings_insert_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`content_freelistingsprogram_checkoutsettings_insert`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct ContentFreelistingsprogramCheckoutsettingsInsertArgs {
+    /// Path parameter: merchantId
+    pub merchantId: String,
+}
+
+/// POST {merchantId}/freelistingsprogram/checkoutsettings
+/// Enrolls merchant in Checkout program.
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `content_freelistingsprogram_checkoutsettings_insert_builder()` + `content_freelistingsprogram_checkoutsettings_insert_execute()`.
+/// For task-level control, use `content_freelistingsprogram_checkoutsettings_insert_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn content_freelistingsprogram_checkoutsettings_insert(
+    client: &SimpleHttpClient,
+    args: &ContentFreelistingsprogramCheckoutsettingsInsertArgs,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<CheckoutSettings>, ApiError>, P = ApiPending>
+        + Send
+        + 'static,
+    ApiError,
+> {
+    let builder =
+        content_freelistingsprogram_checkoutsettings_insert_builder(client, &args.merchantId)?;
+    content_freelistingsprogram_checkoutsettings_insert_execute(builder)
+}
+
+/// POST liasettings/batch
 /// Retrieves `and/or` updates the LIA settings of multiple accounts in a single request.
 ///
 /// Returns `ClientRequestBuilder` for customization.
@@ -6991,7 +9953,6 @@ pub fn content_freelistingsprogram_checkoutsettings_delete(
 
 pub fn content_liasettings_custombatch_builder(
     client: &SimpleHttpClient,
-    body: &LiasettingsCustomBatchRequest,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url =
@@ -6999,15 +9960,13 @@ pub fn content_liasettings_custombatch_builder(
 
     // Build request
     let builder = client
-        .get(&endpoint_url)
+        .post(&endpoint_url)
         .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
 
-    builder
-        .body_json(body)
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+    Ok(builder)
 }
 
-/// GET liasettings/batch
+/// POST liasettings/batch
 /// Retrieves `and/or` updates the LIA settings of multiple accounts in a single request.
 ///
 /// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
@@ -7081,7 +10040,7 @@ pub fn content_liasettings_custombatch_task(
         .map_pending(|_| ApiPending::Sending))
 }
 
-/// GET liasettings/batch
+/// POST liasettings/batch
 /// Retrieves `and/or` updates the LIA settings of multiple accounts in a single request.
 ///
 /// Takes a `ClientRequestBuilder`, builds and executes the request,
@@ -7115,14 +10074,7 @@ pub fn content_liasettings_custombatch_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
-/// Arguments for [`content_liasettings_custombatch`].
-#[derive(Debug, Clone, Serialize, JsonHash)]
-pub struct ContentLiasettingsCustombatchArgs {
-    /// Request body.
-    pub body: LiasettingsCustomBatchRequest,
-}
-
-/// GET liasettings/batch
+/// POST liasettings/batch
 /// Retrieves `and/or` updates the LIA settings of multiple accounts in a single request.
 ///
 /// Simplest API - builds and executes the request in one call.
@@ -7135,7 +10087,6 @@ pub struct ContentLiasettingsCustombatchArgs {
 
 pub fn content_liasettings_custombatch(
     client: &SimpleHttpClient,
-    args: &ContentLiasettingsCustombatchArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<LiasettingsCustomBatchResponse>, ApiError>,
@@ -7144,7 +10095,7 @@ pub fn content_liasettings_custombatch(
         + 'static,
     ApiError,
 > {
-    let builder = content_liasettings_custombatch_builder(client, &args.body)?;
+    let builder = content_liasettings_custombatch_builder(client)?;
     content_liasettings_custombatch_execute(builder)
 }
 
@@ -7491,8 +10442,8 @@ pub fn content_liasettings_getaccessiblegmbaccounts(
 pub fn content_liasettings_list_builder(
     client: &SimpleHttpClient,
     merchantId: &String,
-    maxResults: &Option<i32>,
-    pageToken: &Option<String>,
+    maxResults: &Option<Option<String>>,
+    pageToken: &Option<Option<String>>,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
@@ -7634,9 +10585,9 @@ pub struct ContentLiasettingsListArgs {
     /// Path parameter: merchantId
     pub merchantId: String,
     /// Query parameter: maxResults
-    pub maxResults: Option<i32>,
+    pub maxResults: Option<Option<String>>,
     /// Query parameter: pageToken
-    pub pageToken: Option<String>,
+    pub pageToken: Option<Option<String>>,
 }
 
 /// GET {merchantId}/liasettings
@@ -7824,7 +10775,194 @@ pub fn content_liasettings_listposdataproviders(
     content_liasettings_listposdataproviders_execute(builder)
 }
 
-/// GET {merchantId}/liasettings/{accountId}/requestinventoryverification/{country}
+/// POST {merchantId}/liasettings/{accountId}/requestgmbaccess
+/// Requests access to a specified Business Profile.
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `content_liasettings_requestgmbaccess_execute()` to send, or `content_liasettings_requestgmbaccess` for simplest API.
+
+pub fn content_liasettings_requestgmbaccess_builder(
+    client: &SimpleHttpClient,
+    merchantId: &String,
+    accountId: &String,
+    gmbEmail: &Option<Option<String>>,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!(
+        "https://shoppingcontent.googleapis.com/content/v2.1/{}/liasettings/{}/requestgmbaccess",
+        merchantId, accountId,
+    );
+
+    // Build request
+    let mut query_parts = Vec::new();
+    if let Some(val) = gmbEmail.as_ref() {
+        query_parts.push(format!("gmbEmail={}", val));
+    }
+
+    let url_with_query = if query_parts.is_empty() {
+        endpoint_url
+    } else {
+        format!("{}?{}", endpoint_url, query_parts.join("&"))
+    };
+
+    let builder = client
+        .post(&url_with_query)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// POST {merchantId}/liasettings/{accountId}/requestgmbaccess
+/// Requests access to a specified Business Profile.
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `content_liasettings_requestgmbaccess_execute()` or `content_liasettings_requestgmbaccess`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `content_liasettings_requestgmbaccess_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn content_liasettings_requestgmbaccess_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<LiasettingsRequestGmbAccessResponse>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: LiasettingsRequestGmbAccessResponse = serde_json::from_str(&body)
+                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// POST {merchantId}/liasettings/{accountId}/requestgmbaccess
+/// Requests access to a specified Business Profile.
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `content_liasettings_requestgmbaccess_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `content_liasettings_requestgmbaccess_task()`.
+/// For the simplest API, use `content_liasettings_requestgmbaccess()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `content_liasettings_requestgmbaccess_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn content_liasettings_requestgmbaccess_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<
+            D = Result<ApiResponse<LiasettingsRequestGmbAccessResponse>, ApiError>,
+            P = ApiPending,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    let task = content_liasettings_requestgmbaccess_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`content_liasettings_requestgmbaccess`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct ContentLiasettingsRequestgmbaccessArgs {
+    /// Path parameter: merchantId
+    pub merchantId: String,
+    /// Path parameter: accountId
+    pub accountId: String,
+    /// Query parameter: gmbEmail
+    pub gmbEmail: Option<Option<String>>,
+}
+
+/// POST {merchantId}/liasettings/{accountId}/requestgmbaccess
+/// Requests access to a specified Business Profile.
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `content_liasettings_requestgmbaccess_builder()` + `content_liasettings_requestgmbaccess_execute()`.
+/// For task-level control, use `content_liasettings_requestgmbaccess_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn content_liasettings_requestgmbaccess(
+    client: &SimpleHttpClient,
+    args: &ContentLiasettingsRequestgmbaccessArgs,
+) -> Result<
+    impl StreamIterator<
+            D = Result<ApiResponse<LiasettingsRequestGmbAccessResponse>, ApiError>,
+            P = ApiPending,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    let builder = content_liasettings_requestgmbaccess_builder(
+        client,
+        &args.merchantId,
+        &args.accountId,
+        &args.gmbEmail,
+    )?;
+    content_liasettings_requestgmbaccess_execute(builder)
+}
+
+/// POST {merchantId}/liasettings/{accountId}/requestinventoryverification/{country}
 /// Requests inventory validation for the specified country.
 ///
 /// Returns `ClientRequestBuilder` for customization.
@@ -7846,13 +10984,13 @@ pub fn content_liasettings_requestinventoryverification_builder(
 
     // Build request
     let builder = client
-        .get(&endpoint_url)
+        .post(&endpoint_url)
         .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
 
     Ok(builder)
 }
 
-/// GET {merchantId}/liasettings/{accountId}/requestinventoryverification/{country}
+/// POST {merchantId}/liasettings/{accountId}/requestinventoryverification/{country}
 /// Requests inventory validation for the specified country.
 ///
 /// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
@@ -7927,7 +11065,7 @@ pub fn content_liasettings_requestinventoryverification_task(
         .map_pending(|_| ApiPending::Sending))
 }
 
-/// GET {merchantId}/liasettings/{accountId}/requestinventoryverification/{country}
+/// POST {merchantId}/liasettings/{accountId}/requestinventoryverification/{country}
 /// Requests inventory validation for the specified country.
 ///
 /// Takes a `ClientRequestBuilder`, builds and executes the request,
@@ -7972,7 +11110,7 @@ pub struct ContentLiasettingsRequestinventoryverificationArgs {
     pub country: String,
 }
 
-/// GET {merchantId}/liasettings/{accountId}/requestinventoryverification/{country}
+/// POST {merchantId}/liasettings/{accountId}/requestinventoryverification/{country}
 /// Requests inventory validation for the specified country.
 ///
 /// Simplest API - builds and executes the request in one call.
@@ -8003,7 +11141,220 @@ pub fn content_liasettings_requestinventoryverification(
     content_liasettings_requestinventoryverification_execute(builder)
 }
 
-/// GET {merchantId}/liasettings/{accountId}/setomnichannelexperience
+/// POST {merchantId}/liasettings/{accountId}/setinventoryverificationcontact
+/// Sets the inventory verification contact for the specified country.
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `content_liasettings_setinventoryverificationcontact_execute()` to send, or `content_liasettings_setinventoryverificationcontact` for simplest API.
+
+pub fn content_liasettings_setinventoryverificationcontact_builder(
+    client: &SimpleHttpClient,
+    merchantId: &String,
+    accountId: &String,
+    contactEmail: &Option<Option<String>>,
+    contactName: &Option<Option<String>>,
+    country: &Option<Option<String>>,
+    language: &Option<Option<String>>,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!(
+        "https://shoppingcontent.googleapis.com/content/v2.1/{}/liasettings/{}/setinventoryverificationcontact",
+        merchantId,
+        accountId,
+    );
+
+    // Build request
+    let mut query_parts = Vec::new();
+    if let Some(val) = contactEmail.as_ref() {
+        query_parts.push(format!("contactEmail={}", val));
+    }
+    if let Some(val) = contactName.as_ref() {
+        query_parts.push(format!("contactName={}", val));
+    }
+    if let Some(val) = country.as_ref() {
+        query_parts.push(format!("country={}", val));
+    }
+    if let Some(val) = language.as_ref() {
+        query_parts.push(format!("language={}", val));
+    }
+
+    let url_with_query = if query_parts.is_empty() {
+        endpoint_url
+    } else {
+        format!("{}?{}", endpoint_url, query_parts.join("&"))
+    };
+
+    let builder = client
+        .post(&url_with_query)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// POST {merchantId}/liasettings/{accountId}/setinventoryverificationcontact
+/// Sets the inventory verification contact for the specified country.
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `content_liasettings_setinventoryverificationcontact_execute()` or `content_liasettings_setinventoryverificationcontact`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `content_liasettings_setinventoryverificationcontact_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn content_liasettings_setinventoryverificationcontact_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<
+                ApiResponse<LiasettingsSetInventoryVerificationContactResponse>,
+                ApiError,
+            >,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: LiasettingsSetInventoryVerificationContactResponse =
+                    serde_json::from_str(&body)
+                        .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// POST {merchantId}/liasettings/{accountId}/setinventoryverificationcontact
+/// Sets the inventory verification contact for the specified country.
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `content_liasettings_setinventoryverificationcontact_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `content_liasettings_setinventoryverificationcontact_task()`.
+/// For the simplest API, use `content_liasettings_setinventoryverificationcontact()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `content_liasettings_setinventoryverificationcontact_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn content_liasettings_setinventoryverificationcontact_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<
+            D = Result<ApiResponse<LiasettingsSetInventoryVerificationContactResponse>, ApiError>,
+            P = ApiPending,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    let task = content_liasettings_setinventoryverificationcontact_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`content_liasettings_setinventoryverificationcontact`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct ContentLiasettingsSetinventoryverificationcontactArgs {
+    /// Path parameter: merchantId
+    pub merchantId: String,
+    /// Path parameter: accountId
+    pub accountId: String,
+    /// Query parameter: contactEmail
+    pub contactEmail: Option<Option<String>>,
+    /// Query parameter: contactName
+    pub contactName: Option<Option<String>>,
+    /// Query parameter: country
+    pub country: Option<Option<String>>,
+    /// Query parameter: language
+    pub language: Option<Option<String>>,
+}
+
+/// POST {merchantId}/liasettings/{accountId}/setinventoryverificationcontact
+/// Sets the inventory verification contact for the specified country.
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `content_liasettings_setinventoryverificationcontact_builder()` + `content_liasettings_setinventoryverificationcontact_execute()`.
+/// For task-level control, use `content_liasettings_setinventoryverificationcontact_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn content_liasettings_setinventoryverificationcontact(
+    client: &SimpleHttpClient,
+    args: &ContentLiasettingsSetinventoryverificationcontactArgs,
+) -> Result<
+    impl StreamIterator<
+            D = Result<ApiResponse<LiasettingsSetInventoryVerificationContactResponse>, ApiError>,
+            P = ApiPending,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    let builder = content_liasettings_setinventoryverificationcontact_builder(
+        client,
+        &args.merchantId,
+        &args.accountId,
+        &args.contactEmail,
+        &args.contactName,
+        &args.country,
+        &args.language,
+    )?;
+    content_liasettings_setinventoryverificationcontact_execute(builder)
+}
+
+/// POST {merchantId}/liasettings/{accountId}/setomnichannelexperience
 /// Sets the omnichannel experience for the specified country. Only supported for merchants whose POS data provider is trusted to enable the corresponding experience. For more context, see these help articles [about LFP](<https://support.google.`com/merchants/answer/7676652`>) and [how to get started](<https://support.google.`com/merchants/answer/7676578`>) with it.
 ///
 /// Returns `ClientRequestBuilder` for customization.
@@ -8013,9 +11364,9 @@ pub fn content_liasettings_setomnichannelexperience_builder(
     client: &SimpleHttpClient,
     merchantId: &String,
     accountId: &String,
-    country: &Option<String>,
-    lsfType: &Option<String>,
-    pickupTypes: &Option<String>,
+    country: &Option<Option<String>>,
+    lsfType: &Option<Option<String>>,
+    pickupTypes: &Option<Option<String>>,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
@@ -8043,13 +11394,13 @@ pub fn content_liasettings_setomnichannelexperience_builder(
     };
 
     let builder = client
-        .get(&url_with_query)
+        .post(&url_with_query)
         .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
 
     Ok(builder)
 }
 
-/// GET {merchantId}/liasettings/{accountId}/setomnichannelexperience
+/// POST {merchantId}/liasettings/{accountId}/setomnichannelexperience
 /// Sets the omnichannel experience for the specified country. Only supported for merchants whose POS data provider is trusted to enable the corresponding experience. For more context, see these help articles [about LFP](<https://support.google.`com/merchants/answer/7676652`>) and [how to get started](<https://support.google.`com/merchants/answer/7676578`>) with it.
 ///
 /// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
@@ -8123,7 +11474,7 @@ pub fn content_liasettings_setomnichannelexperience_task(
         .map_pending(|_| ApiPending::Sending))
 }
 
-/// GET {merchantId}/liasettings/{accountId}/setomnichannelexperience
+/// POST {merchantId}/liasettings/{accountId}/setomnichannelexperience
 /// Sets the omnichannel experience for the specified country. Only supported for merchants whose POS data provider is trusted to enable the corresponding experience. For more context, see these help articles [about LFP](<https://support.google.`com/merchants/answer/7676652`>) and [how to get started](<https://support.google.`com/merchants/answer/7676578`>) with it.
 ///
 /// Takes a `ClientRequestBuilder`, builds and executes the request,
@@ -8163,14 +11514,14 @@ pub struct ContentLiasettingsSetomnichannelexperienceArgs {
     /// Path parameter: accountId
     pub accountId: String,
     /// Query parameter: country
-    pub country: Option<String>,
+    pub country: Option<Option<String>>,
     /// Query parameter: lsfType
-    pub lsfType: Option<String>,
+    pub lsfType: Option<Option<String>>,
     /// Query parameter: pickupTypes
-    pub pickupTypes: Option<String>,
+    pub pickupTypes: Option<Option<String>>,
 }
 
-/// GET {merchantId}/liasettings/{accountId}/setomnichannelexperience
+/// POST {merchantId}/liasettings/{accountId}/setomnichannelexperience
 /// Sets the omnichannel experience for the specified country. Only supported for merchants whose POS data provider is trusted to enable the corresponding experience. For more context, see these help articles [about LFP](<https://support.google.`com/merchants/answer/7676652`>) and [how to get started](<https://support.google.`com/merchants/answer/7676578`>) with it.
 ///
 /// Simplest API - builds and executes the request in one call.
@@ -8201,7 +11552,368 @@ pub fn content_liasettings_setomnichannelexperience(
     content_liasettings_setomnichannelexperience_execute(builder)
 }
 
-/// GET localinventory/batch
+/// POST {merchantId}/liasettings/{accountId}/setposdataprovider
+/// Sets the POS data provider for the specified country.
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `content_liasettings_setposdataprovider_execute()` to send, or `content_liasettings_setposdataprovider` for simplest API.
+
+pub fn content_liasettings_setposdataprovider_builder(
+    client: &SimpleHttpClient,
+    merchantId: &String,
+    accountId: &String,
+    country: &Option<Option<String>>,
+    posDataProviderId: &Option<Option<String>>,
+    posExternalAccountId: &Option<Option<String>>,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!(
+        "https://shoppingcontent.googleapis.com/content/v2.1/{}/liasettings/{}/setposdataprovider",
+        merchantId, accountId,
+    );
+
+    // Build request
+    let mut query_parts = Vec::new();
+    if let Some(val) = country.as_ref() {
+        query_parts.push(format!("country={}", val));
+    }
+    if let Some(val) = posDataProviderId.as_ref() {
+        query_parts.push(format!("posDataProviderId={}", val));
+    }
+    if let Some(val) = posExternalAccountId.as_ref() {
+        query_parts.push(format!("posExternalAccountId={}", val));
+    }
+
+    let url_with_query = if query_parts.is_empty() {
+        endpoint_url
+    } else {
+        format!("{}?{}", endpoint_url, query_parts.join("&"))
+    };
+
+    let builder = client
+        .post(&url_with_query)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// POST {merchantId}/liasettings/{accountId}/setposdataprovider
+/// Sets the POS data provider for the specified country.
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `content_liasettings_setposdataprovider_execute()` or `content_liasettings_setposdataprovider`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `content_liasettings_setposdataprovider_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn content_liasettings_setposdataprovider_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<LiasettingsSetPosDataProviderResponse>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: LiasettingsSetPosDataProviderResponse = serde_json::from_str(&body)
+                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// POST {merchantId}/liasettings/{accountId}/setposdataprovider
+/// Sets the POS data provider for the specified country.
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `content_liasettings_setposdataprovider_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `content_liasettings_setposdataprovider_task()`.
+/// For the simplest API, use `content_liasettings_setposdataprovider()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `content_liasettings_setposdataprovider_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn content_liasettings_setposdataprovider_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<
+            D = Result<ApiResponse<LiasettingsSetPosDataProviderResponse>, ApiError>,
+            P = ApiPending,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    let task = content_liasettings_setposdataprovider_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`content_liasettings_setposdataprovider`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct ContentLiasettingsSetposdataproviderArgs {
+    /// Path parameter: merchantId
+    pub merchantId: String,
+    /// Path parameter: accountId
+    pub accountId: String,
+    /// Query parameter: country
+    pub country: Option<Option<String>>,
+    /// Query parameter: posDataProviderId
+    pub posDataProviderId: Option<Option<String>>,
+    /// Query parameter: posExternalAccountId
+    pub posExternalAccountId: Option<Option<String>>,
+}
+
+/// POST {merchantId}/liasettings/{accountId}/setposdataprovider
+/// Sets the POS data provider for the specified country.
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `content_liasettings_setposdataprovider_builder()` + `content_liasettings_setposdataprovider_execute()`.
+/// For task-level control, use `content_liasettings_setposdataprovider_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn content_liasettings_setposdataprovider(
+    client: &SimpleHttpClient,
+    args: &ContentLiasettingsSetposdataproviderArgs,
+) -> Result<
+    impl StreamIterator<
+            D = Result<ApiResponse<LiasettingsSetPosDataProviderResponse>, ApiError>,
+            P = ApiPending,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    let builder = content_liasettings_setposdataprovider_builder(
+        client,
+        &args.merchantId,
+        &args.accountId,
+        &args.country,
+        &args.posDataProviderId,
+        &args.posExternalAccountId,
+    )?;
+    content_liasettings_setposdataprovider_execute(builder)
+}
+
+/// PUT {merchantId}/liasettings/{accountId}
+/// Updates the LIA settings of the account. Any fields that are not provided are deleted from the resource.
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `content_liasettings_update_execute()` to send, or `content_liasettings_update` for simplest API.
+
+pub fn content_liasettings_update_builder(
+    client: &SimpleHttpClient,
+    merchantId: &String,
+    accountId: &String,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!(
+        "https://shoppingcontent.googleapis.com/content/v2.1/{}/liasettings/{}",
+        merchantId, accountId,
+    );
+
+    // Build request
+    let builder = client
+        .put(&endpoint_url)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// PUT {merchantId}/liasettings/{accountId}
+/// Updates the LIA settings of the account. Any fields that are not provided are deleted from the resource.
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `content_liasettings_update_execute()` or `content_liasettings_update`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `content_liasettings_update_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn content_liasettings_update_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<LiaSettings>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: LiaSettings = serde_json::from_str(&body)
+                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// PUT {merchantId}/liasettings/{accountId}
+/// Updates the LIA settings of the account. Any fields that are not provided are deleted from the resource.
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `content_liasettings_update_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `content_liasettings_update_task()`.
+/// For the simplest API, use `content_liasettings_update()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `content_liasettings_update_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn content_liasettings_update_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<LiaSettings>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let task = content_liasettings_update_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`content_liasettings_update`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct ContentLiasettingsUpdateArgs {
+    /// Path parameter: merchantId
+    pub merchantId: String,
+    /// Path parameter: accountId
+    pub accountId: String,
+}
+
+/// PUT {merchantId}/liasettings/{accountId}
+/// Updates the LIA settings of the account. Any fields that are not provided are deleted from the resource.
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `content_liasettings_update_builder()` + `content_liasettings_update_execute()`.
+/// For task-level control, use `content_liasettings_update_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn content_liasettings_update(
+    client: &SimpleHttpClient,
+    args: &ContentLiasettingsUpdateArgs,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<LiaSettings>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let builder = content_liasettings_update_builder(client, &args.merchantId, &args.accountId)?;
+    content_liasettings_update_execute(builder)
+}
+
+/// POST localinventory/batch
 /// Updates local inventory for multiple products or stores in a single request.
 ///
 /// Returns `ClientRequestBuilder` for customization.
@@ -8209,7 +11921,6 @@ pub fn content_liasettings_setomnichannelexperience(
 
 pub fn content_localinventory_custombatch_builder(
     client: &SimpleHttpClient,
-    body: &LocalinventoryCustomBatchRequest,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url =
@@ -8217,15 +11928,13 @@ pub fn content_localinventory_custombatch_builder(
 
     // Build request
     let builder = client
-        .get(&endpoint_url)
+        .post(&endpoint_url)
         .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
 
-    builder
-        .body_json(body)
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+    Ok(builder)
 }
 
-/// GET localinventory/batch
+/// POST localinventory/batch
 /// Updates local inventory for multiple products or stores in a single request.
 ///
 /// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
@@ -8299,7 +12008,7 @@ pub fn content_localinventory_custombatch_task(
         .map_pending(|_| ApiPending::Sending))
 }
 
-/// GET localinventory/batch
+/// POST localinventory/batch
 /// Updates local inventory for multiple products or stores in a single request.
 ///
 /// Takes a `ClientRequestBuilder`, builds and executes the request,
@@ -8333,14 +12042,7 @@ pub fn content_localinventory_custombatch_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
-/// Arguments for [`content_localinventory_custombatch`].
-#[derive(Debug, Clone, Serialize, JsonHash)]
-pub struct ContentLocalinventoryCustombatchArgs {
-    /// Request body.
-    pub body: LocalinventoryCustomBatchRequest,
-}
-
-/// GET localinventory/batch
+/// POST localinventory/batch
 /// Updates local inventory for multiple products or stores in a single request.
 ///
 /// Simplest API - builds and executes the request in one call.
@@ -8353,7 +12055,6 @@ pub struct ContentLocalinventoryCustombatchArgs {
 
 pub fn content_localinventory_custombatch(
     client: &SimpleHttpClient,
-    args: &ContentLocalinventoryCustombatchArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<LocalinventoryCustomBatchResponse>, ApiError>,
@@ -8362,11 +12063,11 @@ pub fn content_localinventory_custombatch(
         + 'static,
     ApiError,
 > {
-    let builder = content_localinventory_custombatch_builder(client, &args.body)?;
+    let builder = content_localinventory_custombatch_builder(client)?;
     content_localinventory_custombatch_execute(builder)
 }
 
-/// GET {merchantId}/products/{productId}/localinventory
+/// POST {merchantId}/products/{productId}/localinventory
 /// Updates the local inventory of a product in your Merchant Center account.
 ///
 /// Returns `ClientRequestBuilder` for customization.
@@ -8376,7 +12077,6 @@ pub fn content_localinventory_insert_builder(
     client: &SimpleHttpClient,
     merchantId: &String,
     productId: &String,
-    body: &LocalInventory,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
@@ -8386,15 +12086,13 @@ pub fn content_localinventory_insert_builder(
 
     // Build request
     let builder = client
-        .get(&endpoint_url)
+        .post(&endpoint_url)
         .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
 
-    builder
-        .body_json(body)
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+    Ok(builder)
 }
 
-/// GET {merchantId}/products/{productId}/localinventory
+/// POST {merchantId}/products/{productId}/localinventory
 /// Updates the local inventory of a product in your Merchant Center account.
 ///
 /// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
@@ -8468,7 +12166,7 @@ pub fn content_localinventory_insert_task(
         .map_pending(|_| ApiPending::Sending))
 }
 
-/// GET {merchantId}/products/{productId}/localinventory
+/// POST {merchantId}/products/{productId}/localinventory
 /// Updates the local inventory of a product in your Merchant Center account.
 ///
 /// Takes a `ClientRequestBuilder`, builds and executes the request,
@@ -8507,11 +12205,9 @@ pub struct ContentLocalinventoryInsertArgs {
     pub merchantId: String,
     /// Path parameter: productId
     pub productId: String,
-    /// Request body.
-    pub body: LocalInventory,
 }
 
-/// GET {merchantId}/products/{productId}/localinventory
+/// POST {merchantId}/products/{productId}/localinventory
 /// Updates the local inventory of a product in your Merchant Center account.
 ///
 /// Simplest API - builds and executes the request in one call.
@@ -8531,16 +12227,11 @@ pub fn content_localinventory_insert(
         + 'static,
     ApiError,
 > {
-    let builder = content_localinventory_insert_builder(
-        client,
-        &args.merchantId,
-        &args.productId,
-        &args.body,
-    )?;
+    let builder = content_localinventory_insert_builder(client, &args.merchantId, &args.productId)?;
     content_localinventory_insert_execute(builder)
 }
 
-/// GET {merchantId}/merchantsupport/renderaccountissues
+/// POST {merchantId}/merchantsupport/renderaccountissues
 /// Provide a list of merchant's issues with a support content and available actions. This content and actions are meant to be rendered and shown in third-party applications.
 ///
 /// Returns `ClientRequestBuilder` for customization.
@@ -8549,9 +12240,8 @@ pub fn content_localinventory_insert(
 pub fn content_merchantsupport_renderaccountissues_builder(
     client: &SimpleHttpClient,
     merchantId: &String,
-    languageCode: &Option<String>,
-    timeZone: &Option<String>,
-    body: &RenderAccountIssuesRequestPayload,
+    languageCode: &Option<Option<String>>,
+    timeZone: &Option<Option<String>>,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
@@ -8575,15 +12265,13 @@ pub fn content_merchantsupport_renderaccountissues_builder(
     };
 
     let builder = client
-        .get(&url_with_query)
+        .post(&url_with_query)
         .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
 
-    builder
-        .body_json(body)
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+    Ok(builder)
 }
 
-/// GET {merchantId}/merchantsupport/renderaccountissues
+/// POST {merchantId}/merchantsupport/renderaccountissues
 /// Provide a list of merchant's issues with a support content and available actions. This content and actions are meant to be rendered and shown in third-party applications.
 ///
 /// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
@@ -8657,7 +12345,7 @@ pub fn content_merchantsupport_renderaccountissues_task(
         .map_pending(|_| ApiPending::Sending))
 }
 
-/// GET {merchantId}/merchantsupport/renderaccountissues
+/// POST {merchantId}/merchantsupport/renderaccountissues
 /// Provide a list of merchant's issues with a support content and available actions. This content and actions are meant to be rendered and shown in third-party applications.
 ///
 /// Takes a `ClientRequestBuilder`, builds and executes the request,
@@ -8697,14 +12385,12 @@ pub struct ContentMerchantsupportRenderaccountissuesArgs {
     /// Path parameter: merchantId
     pub merchantId: String,
     /// Query parameter: languageCode
-    pub languageCode: Option<String>,
+    pub languageCode: Option<Option<String>>,
     /// Query parameter: timeZone
-    pub timeZone: Option<String>,
-    /// Request body.
-    pub body: RenderAccountIssuesRequestPayload,
+    pub timeZone: Option<Option<String>>,
 }
 
-/// GET {merchantId}/merchantsupport/renderaccountissues
+/// POST {merchantId}/merchantsupport/renderaccountissues
 /// Provide a list of merchant's issues with a support content and available actions. This content and actions are meant to be rendered and shown in third-party applications.
 ///
 /// Simplest API - builds and executes the request in one call.
@@ -8731,12 +12417,11 @@ pub fn content_merchantsupport_renderaccountissues(
         &args.merchantId,
         &args.languageCode,
         &args.timeZone,
-        &args.body,
     )?;
     content_merchantsupport_renderaccountissues_execute(builder)
 }
 
-/// GET {merchantId}/merchantsupport/renderproductissues/{productId}
+/// POST {merchantId}/merchantsupport/renderproductissues/{productId}
 /// Provide a list of issues for merchant's product with a support content and available actions. This content and actions are meant to be rendered and shown in third-party applications.
 ///
 /// Returns `ClientRequestBuilder` for customization.
@@ -8746,9 +12431,8 @@ pub fn content_merchantsupport_renderproductissues_builder(
     client: &SimpleHttpClient,
     merchantId: &String,
     productId: &String,
-    languageCode: &Option<String>,
-    timeZone: &Option<String>,
-    body: &RenderProductIssuesRequestPayload,
+    languageCode: &Option<Option<String>>,
+    timeZone: &Option<Option<String>>,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
@@ -8773,15 +12457,13 @@ pub fn content_merchantsupport_renderproductissues_builder(
     };
 
     let builder = client
-        .get(&url_with_query)
+        .post(&url_with_query)
         .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
 
-    builder
-        .body_json(body)
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+    Ok(builder)
 }
 
-/// GET {merchantId}/merchantsupport/renderproductissues/{productId}
+/// POST {merchantId}/merchantsupport/renderproductissues/{productId}
 /// Provide a list of issues for merchant's product with a support content and available actions. This content and actions are meant to be rendered and shown in third-party applications.
 ///
 /// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
@@ -8855,7 +12537,7 @@ pub fn content_merchantsupport_renderproductissues_task(
         .map_pending(|_| ApiPending::Sending))
 }
 
-/// GET {merchantId}/merchantsupport/renderproductissues/{productId}
+/// POST {merchantId}/merchantsupport/renderproductissues/{productId}
 /// Provide a list of issues for merchant's product with a support content and available actions. This content and actions are meant to be rendered and shown in third-party applications.
 ///
 /// Takes a `ClientRequestBuilder`, builds and executes the request,
@@ -8897,14 +12579,12 @@ pub struct ContentMerchantsupportRenderproductissuesArgs {
     /// Path parameter: productId
     pub productId: String,
     /// Query parameter: languageCode
-    pub languageCode: Option<String>,
+    pub languageCode: Option<Option<String>>,
     /// Query parameter: timeZone
-    pub timeZone: Option<String>,
-    /// Request body.
-    pub body: RenderProductIssuesRequestPayload,
+    pub timeZone: Option<Option<String>>,
 }
 
-/// GET {merchantId}/merchantsupport/renderproductissues/{productId}
+/// POST {merchantId}/merchantsupport/renderproductissues/{productId}
 /// Provide a list of issues for merchant's product with a support content and available actions. This content and actions are meant to be rendered and shown in third-party applications.
 ///
 /// Simplest API - builds and executes the request in one call.
@@ -8932,12 +12612,11 @@ pub fn content_merchantsupport_renderproductissues(
         &args.productId,
         &args.languageCode,
         &args.timeZone,
-        &args.body,
     )?;
     content_merchantsupport_renderproductissues_execute(builder)
 }
 
-/// GET {merchantId}/merchantsupport/triggeraction
+/// POST {merchantId}/merchantsupport/triggeraction
 /// Start an action. The action can be requested by merchants in third-party application. Before merchants can request the action, the third-party application needs to show them action specific content and display a user input form. You can request access using [Trigger action allowlist form](<https://docs.google.`com/forms/d/e/1FAIpQLSfeV_sBW9MBQv9BMTV6JZ1g11PGHLdHsrefca-9h0LmpU7CUg/viewform`?usp=sharing>). The action can be successfully started only once all required inputs are provided. If any required input is missing, or invalid value was provided, the service will return 400 error. Validation errors will contain Ids for all problematic field together with translated, human readable error messages that can be shown to the user.
 ///
 /// Returns `ClientRequestBuilder` for customization.
@@ -8946,8 +12625,7 @@ pub fn content_merchantsupport_renderproductissues(
 pub fn content_merchantsupport_triggeraction_builder(
     client: &SimpleHttpClient,
     merchantId: &String,
-    languageCode: &Option<String>,
-    body: &TriggerActionPayload,
+    languageCode: &Option<Option<String>>,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
@@ -8968,15 +12646,13 @@ pub fn content_merchantsupport_triggeraction_builder(
     };
 
     let builder = client
-        .get(&url_with_query)
+        .post(&url_with_query)
         .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
 
-    builder
-        .body_json(body)
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+    Ok(builder)
 }
 
-/// GET {merchantId}/merchantsupport/triggeraction
+/// POST {merchantId}/merchantsupport/triggeraction
 /// Start an action. The action can be requested by merchants in third-party application. Before merchants can request the action, the third-party application needs to show them action specific content and display a user input form. You can request access using [Trigger action allowlist form](<https://docs.google.`com/forms/d/e/1FAIpQLSfeV_sBW9MBQv9BMTV6JZ1g11PGHLdHsrefca-9h0LmpU7CUg/viewform`?usp=sharing>). The action can be successfully started only once all required inputs are provided. If any required input is missing, or invalid value was provided, the service will return 400 error. Validation errors will contain Ids for all problematic field together with translated, human readable error messages that can be shown to the user.
 ///
 /// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
@@ -9050,7 +12726,7 @@ pub fn content_merchantsupport_triggeraction_task(
         .map_pending(|_| ApiPending::Sending))
 }
 
-/// GET {merchantId}/merchantsupport/triggeraction
+/// POST {merchantId}/merchantsupport/triggeraction
 /// Start an action. The action can be requested by merchants in third-party application. Before merchants can request the action, the third-party application needs to show them action specific content and display a user input form. You can request access using [Trigger action allowlist form](<https://docs.google.`com/forms/d/e/1FAIpQLSfeV_sBW9MBQv9BMTV6JZ1g11PGHLdHsrefca-9h0LmpU7CUg/viewform`?usp=sharing>). The action can be successfully started only once all required inputs are provided. If any required input is missing, or invalid value was provided, the service will return 400 error. Validation errors will contain Ids for all problematic field together with translated, human readable error messages that can be shown to the user.
 ///
 /// Takes a `ClientRequestBuilder`, builds and executes the request,
@@ -9088,12 +12764,10 @@ pub struct ContentMerchantsupportTriggeractionArgs {
     /// Path parameter: merchantId
     pub merchantId: String,
     /// Query parameter: languageCode
-    pub languageCode: Option<String>,
-    /// Request body.
-    pub body: TriggerActionPayload,
+    pub languageCode: Option<Option<String>>,
 }
 
-/// GET {merchantId}/merchantsupport/triggeraction
+/// POST {merchantId}/merchantsupport/triggeraction
 /// Start an action. The action can be requested by merchants in third-party application. Before merchants can request the action, the third-party application needs to show them action specific content and display a user input form. You can request access using [Trigger action allowlist form](<https://docs.google.`com/forms/d/e/1FAIpQLSfeV_sBW9MBQv9BMTV6JZ1g11PGHLdHsrefca-9h0LmpU7CUg/viewform`?usp=sharing>). The action can be successfully started only once all required inputs are provided. If any required input is missing, or invalid value was provided, the service will return 400 error. Validation errors will contain Ids for all problematic field together with translated, human readable error messages that can be shown to the user.
 ///
 /// Simplest API - builds and executes the request in one call.
@@ -9117,12 +12791,11 @@ pub fn content_merchantsupport_triggeraction(
         client,
         &args.merchantId,
         &args.languageCode,
-        &args.body,
     )?;
     content_merchantsupport_triggeraction_execute(builder)
 }
 
-/// GET {merchantId}/ordertrackingsignals
+/// POST {merchantId}/ordertrackingsignals
 /// Creates new order tracking signal.
 ///
 /// Returns `ClientRequestBuilder` for customization.
@@ -9131,7 +12804,6 @@ pub fn content_merchantsupport_triggeraction(
 pub fn content_ordertrackingsignals_create_builder(
     client: &SimpleHttpClient,
     merchantId: &String,
-    body: &OrderTrackingSignal,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
@@ -9141,15 +12813,13 @@ pub fn content_ordertrackingsignals_create_builder(
 
     // Build request
     let builder = client
-        .get(&endpoint_url)
+        .post(&endpoint_url)
         .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
 
-    builder
-        .body_json(body)
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+    Ok(builder)
 }
 
-/// GET {merchantId}/ordertrackingsignals
+/// POST {merchantId}/ordertrackingsignals
 /// Creates new order tracking signal.
 ///
 /// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
@@ -9223,7 +12893,7 @@ pub fn content_ordertrackingsignals_create_task(
         .map_pending(|_| ApiPending::Sending))
 }
 
-/// GET {merchantId}/ordertrackingsignals
+/// POST {merchantId}/ordertrackingsignals
 /// Creates new order tracking signal.
 ///
 /// Takes a `ClientRequestBuilder`, builds and executes the request,
@@ -9260,11 +12930,9 @@ pub fn content_ordertrackingsignals_create_execute(
 pub struct ContentOrdertrackingsignalsCreateArgs {
     /// Path parameter: merchantId
     pub merchantId: String,
-    /// Request body.
-    pub body: OrderTrackingSignal,
 }
 
-/// GET {merchantId}/ordertrackingsignals
+/// POST {merchantId}/ordertrackingsignals
 /// Creates new order tracking signal.
 ///
 /// Simplest API - builds and executes the request in one call.
@@ -9284,12 +12952,11 @@ pub fn content_ordertrackingsignals_create(
         + 'static,
     ApiError,
 > {
-    let builder =
-        content_ordertrackingsignals_create_builder(client, &args.merchantId, &args.body)?;
+    let builder = content_ordertrackingsignals_create_builder(client, &args.merchantId)?;
     content_ordertrackingsignals_create_execute(builder)
 }
 
-/// GET pos/batch
+/// POST pos/batch
 /// Batches multiple POS-related calls in a single request.
 ///
 /// Returns `ClientRequestBuilder` for customization.
@@ -9297,22 +12964,19 @@ pub fn content_ordertrackingsignals_create(
 
 pub fn content_pos_custombatch_builder(
     client: &SimpleHttpClient,
-    body: &PosCustomBatchRequest,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!("https://shoppingcontent.googleapis.com/content/v2.1/pos/batch",);
 
     // Build request
     let builder = client
-        .get(&endpoint_url)
+        .post(&endpoint_url)
         .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
 
-    builder
-        .body_json(body)
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+    Ok(builder)
 }
 
-/// GET pos/batch
+/// POST pos/batch
 /// Batches multiple POS-related calls in a single request.
 ///
 /// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
@@ -9386,7 +13050,7 @@ pub fn content_pos_custombatch_task(
         .map_pending(|_| ApiPending::Sending))
 }
 
-/// GET pos/batch
+/// POST pos/batch
 /// Batches multiple POS-related calls in a single request.
 ///
 /// Takes a `ClientRequestBuilder`, builds and executes the request,
@@ -9418,14 +13082,7 @@ pub fn content_pos_custombatch_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
-/// Arguments for [`content_pos_custombatch`].
-#[derive(Debug, Clone, Serialize, JsonHash)]
-pub struct ContentPosCustombatchArgs {
-    /// Request body.
-    pub body: PosCustomBatchRequest,
-}
-
-/// GET pos/batch
+/// POST pos/batch
 /// Batches multiple POS-related calls in a single request.
 ///
 /// Simplest API - builds and executes the request in one call.
@@ -9438,18 +13095,17 @@ pub struct ContentPosCustombatchArgs {
 
 pub fn content_pos_custombatch(
     client: &SimpleHttpClient,
-    args: &ContentPosCustombatchArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<PosCustomBatchResponse>, ApiError>, P = ApiPending>
         + Send
         + 'static,
     ApiError,
 > {
-    let builder = content_pos_custombatch_builder(client, &args.body)?;
+    let builder = content_pos_custombatch_builder(client)?;
     content_pos_custombatch_execute(builder)
 }
 
-/// GET {merchantId}/pos/{targetMerchantId}/store/{storeCode}
+/// DELETE {merchantId}/pos/{targetMerchantId}/store/{storeCode}
 /// Deletes a store for the given merchant.
 ///
 /// Returns `ClientRequestBuilder` for customization.
@@ -9469,13 +13125,13 @@ pub fn content_pos_delete_builder(
 
     // Build request
     let builder = client
-        .get(&endpoint_url)
+        .delete(&endpoint_url)
         .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
 
     Ok(builder)
 }
 
-/// GET {merchantId}/pos/{targetMerchantId}/store/{storeCode}
+/// DELETE {merchantId}/pos/{targetMerchantId}/store/{storeCode}
 /// Deletes a store for the given merchant.
 ///
 /// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
@@ -9546,7 +13202,7 @@ pub fn content_pos_delete_task(
         .map_pending(|_| ApiPending::Sending))
 }
 
-/// GET {merchantId}/pos/{targetMerchantId}/store/{storeCode}
+/// DELETE {merchantId}/pos/{targetMerchantId}/store/{storeCode}
 /// Deletes a store for the given merchant.
 ///
 /// Takes a `ClientRequestBuilder`, builds and executes the request,
@@ -9587,7 +13243,7 @@ pub struct ContentPosDeleteArgs {
     pub storeCode: String,
 }
 
-/// GET {merchantId}/pos/{targetMerchantId}/store/{storeCode}
+/// DELETE {merchantId}/pos/{targetMerchantId}/store/{storeCode}
 /// Deletes a store for the given merchant.
 ///
 /// Simplest API - builds and executes the request in one call.
@@ -9614,7 +13270,175 @@ pub fn content_pos_delete(
     content_pos_delete_execute(builder)
 }
 
-/// GET {merchantId}/pos/{targetMerchantId}/store
+/// GET {merchantId}/pos/{targetMerchantId}/store/{storeCode}
+/// Retrieves information about the given store.
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `content_pos_get_execute()` to send, or `content_pos_get` for simplest API.
+
+pub fn content_pos_get_builder(
+    client: &SimpleHttpClient,
+    merchantId: &String,
+    targetMerchantId: &String,
+    storeCode: &String,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!(
+        "https://shoppingcontent.googleapis.com/content/v2.1/{}/pos/{}/store/{}",
+        merchantId, targetMerchantId, storeCode,
+    );
+
+    // Build request
+    let builder = client
+        .get(&endpoint_url)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// GET {merchantId}/pos/{targetMerchantId}/store/{storeCode}
+/// Retrieves information about the given store.
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `content_pos_get_execute()` or `content_pos_get`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `content_pos_get_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn content_pos_get_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<PosStore>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: PosStore = serde_json::from_str(&body)
+                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// GET {merchantId}/pos/{targetMerchantId}/store/{storeCode}
+/// Retrieves information about the given store.
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `content_pos_get_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `content_pos_get_task()`.
+/// For the simplest API, use `content_pos_get()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `content_pos_get_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn content_pos_get_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<PosStore>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let task = content_pos_get_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`content_pos_get`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct ContentPosGetArgs {
+    /// Path parameter: merchantId
+    pub merchantId: String,
+    /// Path parameter: targetMerchantId
+    pub targetMerchantId: String,
+    /// Path parameter: storeCode
+    pub storeCode: String,
+}
+
+/// GET {merchantId}/pos/{targetMerchantId}/store/{storeCode}
+/// Retrieves information about the given store.
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `content_pos_get_builder()` + `content_pos_get_execute()`.
+/// For task-level control, use `content_pos_get_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn content_pos_get(
+    client: &SimpleHttpClient,
+    args: &ContentPosGetArgs,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<PosStore>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let builder = content_pos_get_builder(
+        client,
+        &args.merchantId,
+        &args.targetMerchantId,
+        &args.storeCode,
+    )?;
+    content_pos_get_execute(builder)
+}
+
+/// POST {merchantId}/pos/{targetMerchantId}/store
 /// Creates a store for the given merchant.
 ///
 /// Returns `ClientRequestBuilder` for customization.
@@ -9624,7 +13448,6 @@ pub fn content_pos_insert_builder(
     client: &SimpleHttpClient,
     merchantId: &String,
     targetMerchantId: &String,
-    body: &PosStore,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
@@ -9634,15 +13457,13 @@ pub fn content_pos_insert_builder(
 
     // Build request
     let builder = client
-        .get(&endpoint_url)
+        .post(&endpoint_url)
         .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
 
-    builder
-        .body_json(body)
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+    Ok(builder)
 }
 
-/// GET {merchantId}/pos/{targetMerchantId}/store
+/// POST {merchantId}/pos/{targetMerchantId}/store
 /// Creates a store for the given merchant.
 ///
 /// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
@@ -9716,7 +13537,7 @@ pub fn content_pos_insert_task(
         .map_pending(|_| ApiPending::Sending))
 }
 
-/// GET {merchantId}/pos/{targetMerchantId}/store
+/// POST {merchantId}/pos/{targetMerchantId}/store
 /// Creates a store for the given merchant.
 ///
 /// Takes a `ClientRequestBuilder`, builds and executes the request,
@@ -9753,11 +13574,9 @@ pub struct ContentPosInsertArgs {
     pub merchantId: String,
     /// Path parameter: targetMerchantId
     pub targetMerchantId: String,
-    /// Request body.
-    pub body: PosStore,
 }
 
-/// GET {merchantId}/pos/{targetMerchantId}/store
+/// POST {merchantId}/pos/{targetMerchantId}/store
 /// Creates a store for the given merchant.
 ///
 /// Simplest API - builds and executes the request in one call.
@@ -9775,12 +13594,11 @@ pub fn content_pos_insert(
     impl StreamIterator<D = Result<ApiResponse<PosStore>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder =
-        content_pos_insert_builder(client, &args.merchantId, &args.targetMerchantId, &args.body)?;
+    let builder = content_pos_insert_builder(client, &args.merchantId, &args.targetMerchantId)?;
     content_pos_insert_execute(builder)
 }
 
-/// GET {merchantId}/pos/{targetMerchantId}/inventory
+/// POST {merchantId}/pos/{targetMerchantId}/inventory
 /// Submit inventory for the given merchant.
 ///
 /// Returns `ClientRequestBuilder` for customization.
@@ -9790,7 +13608,6 @@ pub fn content_pos_inventory_builder(
     client: &SimpleHttpClient,
     merchantId: &String,
     targetMerchantId: &String,
-    body: &PosInventoryRequest,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
@@ -9800,15 +13617,13 @@ pub fn content_pos_inventory_builder(
 
     // Build request
     let builder = client
-        .get(&endpoint_url)
+        .post(&endpoint_url)
         .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
 
-    builder
-        .body_json(body)
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+    Ok(builder)
 }
 
-/// GET {merchantId}/pos/{targetMerchantId}/inventory
+/// POST {merchantId}/pos/{targetMerchantId}/inventory
 /// Submit inventory for the given merchant.
 ///
 /// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
@@ -9882,7 +13697,7 @@ pub fn content_pos_inventory_task(
         .map_pending(|_| ApiPending::Sending))
 }
 
-/// GET {merchantId}/pos/{targetMerchantId}/inventory
+/// POST {merchantId}/pos/{targetMerchantId}/inventory
 /// Submit inventory for the given merchant.
 ///
 /// Takes a `ClientRequestBuilder`, builds and executes the request,
@@ -9921,11 +13736,9 @@ pub struct ContentPosInventoryArgs {
     pub merchantId: String,
     /// Path parameter: targetMerchantId
     pub targetMerchantId: String,
-    /// Request body.
-    pub body: PosInventoryRequest,
 }
 
-/// GET {merchantId}/pos/{targetMerchantId}/inventory
+/// POST {merchantId}/pos/{targetMerchantId}/inventory
 /// Submit inventory for the given merchant.
 ///
 /// Simplest API - builds and executes the request in one call.
@@ -9945,16 +13758,175 @@ pub fn content_pos_inventory(
         + 'static,
     ApiError,
 > {
-    let builder = content_pos_inventory_builder(
-        client,
-        &args.merchantId,
-        &args.targetMerchantId,
-        &args.body,
-    )?;
+    let builder = content_pos_inventory_builder(client, &args.merchantId, &args.targetMerchantId)?;
     content_pos_inventory_execute(builder)
 }
 
-/// GET {merchantId}/pos/{targetMerchantId}/sale
+/// GET {merchantId}/pos/{targetMerchantId}/store
+/// Lists the stores of the target merchant.
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `content_pos_list_execute()` to send, or `content_pos_list` for simplest API.
+
+pub fn content_pos_list_builder(
+    client: &SimpleHttpClient,
+    merchantId: &String,
+    targetMerchantId: &String,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!(
+        "https://shoppingcontent.googleapis.com/content/v2.1/{}/pos/{}/store",
+        merchantId, targetMerchantId,
+    );
+
+    // Build request
+    let builder = client
+        .get(&endpoint_url)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// GET {merchantId}/pos/{targetMerchantId}/store
+/// Lists the stores of the target merchant.
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `content_pos_list_execute()` or `content_pos_list`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `content_pos_list_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn content_pos_list_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<PosListResponse>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: PosListResponse = serde_json::from_str(&body)
+                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// GET {merchantId}/pos/{targetMerchantId}/store
+/// Lists the stores of the target merchant.
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `content_pos_list_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `content_pos_list_task()`.
+/// For the simplest API, use `content_pos_list()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `content_pos_list_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn content_pos_list_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<PosListResponse>, ApiError>, P = ApiPending>
+        + Send
+        + 'static,
+    ApiError,
+> {
+    let task = content_pos_list_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`content_pos_list`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct ContentPosListArgs {
+    /// Path parameter: merchantId
+    pub merchantId: String,
+    /// Path parameter: targetMerchantId
+    pub targetMerchantId: String,
+}
+
+/// GET {merchantId}/pos/{targetMerchantId}/store
+/// Lists the stores of the target merchant.
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `content_pos_list_builder()` + `content_pos_list_execute()`.
+/// For task-level control, use `content_pos_list_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn content_pos_list(
+    client: &SimpleHttpClient,
+    args: &ContentPosListArgs,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<PosListResponse>, ApiError>, P = ApiPending>
+        + Send
+        + 'static,
+    ApiError,
+> {
+    let builder = content_pos_list_builder(client, &args.merchantId, &args.targetMerchantId)?;
+    content_pos_list_execute(builder)
+}
+
+/// POST {merchantId}/pos/{targetMerchantId}/sale
 /// Submit a sale event for the given merchant.
 ///
 /// Returns `ClientRequestBuilder` for customization.
@@ -9964,7 +13936,6 @@ pub fn content_pos_sale_builder(
     client: &SimpleHttpClient,
     merchantId: &String,
     targetMerchantId: &String,
-    body: &PosSaleRequest,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
@@ -9974,15 +13945,13 @@ pub fn content_pos_sale_builder(
 
     // Build request
     let builder = client
-        .get(&endpoint_url)
+        .post(&endpoint_url)
         .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
 
-    builder
-        .body_json(body)
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+    Ok(builder)
 }
 
-/// GET {merchantId}/pos/{targetMerchantId}/sale
+/// POST {merchantId}/pos/{targetMerchantId}/sale
 /// Submit a sale event for the given merchant.
 ///
 /// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
@@ -10056,7 +14025,7 @@ pub fn content_pos_sale_task(
         .map_pending(|_| ApiPending::Sending))
 }
 
-/// GET {merchantId}/pos/{targetMerchantId}/sale
+/// POST {merchantId}/pos/{targetMerchantId}/sale
 /// Submit a sale event for the given merchant.
 ///
 /// Takes a `ClientRequestBuilder`, builds and executes the request,
@@ -10095,11 +14064,9 @@ pub struct ContentPosSaleArgs {
     pub merchantId: String,
     /// Path parameter: targetMerchantId
     pub targetMerchantId: String,
-    /// Request body.
-    pub body: PosSaleRequest,
 }
 
-/// GET {merchantId}/pos/{targetMerchantId}/sale
+/// POST {merchantId}/pos/{targetMerchantId}/sale
 /// Submit a sale event for the given merchant.
 ///
 /// Simplest API - builds and executes the request in one call.
@@ -10119,12 +14086,11 @@ pub fn content_pos_sale(
         + 'static,
     ApiError,
 > {
-    let builder =
-        content_pos_sale_builder(client, &args.merchantId, &args.targetMerchantId, &args.body)?;
+    let builder = content_pos_sale_builder(client, &args.merchantId, &args.targetMerchantId)?;
     content_pos_sale_execute(builder)
 }
 
-/// GET {merchantId}/productdeliverytime
+/// POST {merchantId}/productdeliverytime
 /// Creates or updates the delivery time of a product.
 ///
 /// Returns `ClientRequestBuilder` for customization.
@@ -10133,7 +14099,6 @@ pub fn content_pos_sale(
 pub fn content_productdeliverytime_create_builder(
     client: &SimpleHttpClient,
     merchantId: &String,
-    body: &ProductDeliveryTime,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
@@ -10143,15 +14108,13 @@ pub fn content_productdeliverytime_create_builder(
 
     // Build request
     let builder = client
-        .get(&endpoint_url)
+        .post(&endpoint_url)
         .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
 
-    builder
-        .body_json(body)
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+    Ok(builder)
 }
 
-/// GET {merchantId}/productdeliverytime
+/// POST {merchantId}/productdeliverytime
 /// Creates or updates the delivery time of a product.
 ///
 /// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
@@ -10225,7 +14188,7 @@ pub fn content_productdeliverytime_create_task(
         .map_pending(|_| ApiPending::Sending))
 }
 
-/// GET {merchantId}/productdeliverytime
+/// POST {merchantId}/productdeliverytime
 /// Creates or updates the delivery time of a product.
 ///
 /// Takes a `ClientRequestBuilder`, builds and executes the request,
@@ -10262,11 +14225,9 @@ pub fn content_productdeliverytime_create_execute(
 pub struct ContentProductdeliverytimeCreateArgs {
     /// Path parameter: merchantId
     pub merchantId: String,
-    /// Request body.
-    pub body: ProductDeliveryTime,
 }
 
-/// GET {merchantId}/productdeliverytime
+/// POST {merchantId}/productdeliverytime
 /// Creates or updates the delivery time of a product.
 ///
 /// Simplest API - builds and executes the request in one call.
@@ -10286,11 +14247,11 @@ pub fn content_productdeliverytime_create(
         + 'static,
     ApiError,
 > {
-    let builder = content_productdeliverytime_create_builder(client, &args.merchantId, &args.body)?;
+    let builder = content_productdeliverytime_create_builder(client, &args.merchantId)?;
     content_productdeliverytime_create_execute(builder)
 }
 
-/// GET {merchantId}/productdeliverytime/{productId}
+/// DELETE {merchantId}/productdeliverytime/{productId}
 /// Deletes the delivery time of a product.
 ///
 /// Returns `ClientRequestBuilder` for customization.
@@ -10309,13 +14270,13 @@ pub fn content_productdeliverytime_delete_builder(
 
     // Build request
     let builder = client
-        .get(&endpoint_url)
+        .delete(&endpoint_url)
         .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
 
     Ok(builder)
 }
 
-/// GET {merchantId}/productdeliverytime/{productId}
+/// DELETE {merchantId}/productdeliverytime/{productId}
 /// Deletes the delivery time of a product.
 ///
 /// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
@@ -10386,7 +14347,7 @@ pub fn content_productdeliverytime_delete_task(
         .map_pending(|_| ApiPending::Sending))
 }
 
-/// GET {merchantId}/productdeliverytime/{productId}
+/// DELETE {merchantId}/productdeliverytime/{productId}
 /// Deletes the delivery time of a product.
 ///
 /// Takes a `ClientRequestBuilder`, builds and executes the request,
@@ -10425,7 +14386,7 @@ pub struct ContentProductdeliverytimeDeleteArgs {
     pub productId: String,
 }
 
-/// GET {merchantId}/productdeliverytime/{productId}
+/// DELETE {merchantId}/productdeliverytime/{productId}
 /// Deletes the delivery time of a product.
 ///
 /// Simplest API - builds and executes the request in one call.
@@ -10448,7 +14409,172 @@ pub fn content_productdeliverytime_delete(
     content_productdeliverytime_delete_execute(builder)
 }
 
-/// GET products/batch
+/// GET {merchantId}/productdeliverytime/{productId}
+/// Gets `productDeliveryTime` by `productId`.
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `content_productdeliverytime_get_execute()` to send, or `content_productdeliverytime_get` for simplest API.
+
+pub fn content_productdeliverytime_get_builder(
+    client: &SimpleHttpClient,
+    merchantId: &String,
+    productId: &String,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!(
+        "https://shoppingcontent.googleapis.com/content/v2.1/{}/productdeliverytime/{}",
+        merchantId, productId,
+    );
+
+    // Build request
+    let builder = client
+        .get(&endpoint_url)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// GET {merchantId}/productdeliverytime/{productId}
+/// Gets `productDeliveryTime` by `productId`.
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `content_productdeliverytime_get_execute()` or `content_productdeliverytime_get`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `content_productdeliverytime_get_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn content_productdeliverytime_get_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<ProductDeliveryTime>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: ProductDeliveryTime = serde_json::from_str(&body)
+                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// GET {merchantId}/productdeliverytime/{productId}
+/// Gets `productDeliveryTime` by `productId`.
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `content_productdeliverytime_get_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `content_productdeliverytime_get_task()`.
+/// For the simplest API, use `content_productdeliverytime_get()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `content_productdeliverytime_get_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn content_productdeliverytime_get_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<ProductDeliveryTime>, ApiError>, P = ApiPending>
+        + Send
+        + 'static,
+    ApiError,
+> {
+    let task = content_productdeliverytime_get_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`content_productdeliverytime_get`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct ContentProductdeliverytimeGetArgs {
+    /// Path parameter: merchantId
+    pub merchantId: String,
+    /// Path parameter: productId
+    pub productId: String,
+}
+
+/// GET {merchantId}/productdeliverytime/{productId}
+/// Gets `productDeliveryTime` by `productId`.
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `content_productdeliverytime_get_builder()` + `content_productdeliverytime_get_execute()`.
+/// For task-level control, use `content_productdeliverytime_get_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn content_productdeliverytime_get(
+    client: &SimpleHttpClient,
+    args: &ContentProductdeliverytimeGetArgs,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<ProductDeliveryTime>, ApiError>, P = ApiPending>
+        + Send
+        + 'static,
+    ApiError,
+> {
+    let builder =
+        content_productdeliverytime_get_builder(client, &args.merchantId, &args.productId)?;
+    content_productdeliverytime_get_execute(builder)
+}
+
+/// POST products/batch
 /// Retrieves, inserts, and deletes multiple products in a single request.
 ///
 /// Returns `ClientRequestBuilder` for customization.
@@ -10456,7 +14582,6 @@ pub fn content_productdeliverytime_delete(
 
 pub fn content_products_custombatch_builder(
     client: &SimpleHttpClient,
-    body: &ProductsCustomBatchRequest,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url =
@@ -10464,15 +14589,13 @@ pub fn content_products_custombatch_builder(
 
     // Build request
     let builder = client
-        .get(&endpoint_url)
+        .post(&endpoint_url)
         .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
 
-    builder
-        .body_json(body)
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+    Ok(builder)
 }
 
-/// GET products/batch
+/// POST products/batch
 /// Retrieves, inserts, and deletes multiple products in a single request.
 ///
 /// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
@@ -10546,7 +14669,7 @@ pub fn content_products_custombatch_task(
         .map_pending(|_| ApiPending::Sending))
 }
 
-/// GET products/batch
+/// POST products/batch
 /// Retrieves, inserts, and deletes multiple products in a single request.
 ///
 /// Takes a `ClientRequestBuilder`, builds and executes the request,
@@ -10580,14 +14703,7 @@ pub fn content_products_custombatch_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
-/// Arguments for [`content_products_custombatch`].
-#[derive(Debug, Clone, Serialize, JsonHash)]
-pub struct ContentProductsCustombatchArgs {
-    /// Request body.
-    pub body: ProductsCustomBatchRequest,
-}
-
-/// GET products/batch
+/// POST products/batch
 /// Retrieves, inserts, and deletes multiple products in a single request.
 ///
 /// Simplest API - builds and executes the request in one call.
@@ -10600,7 +14716,6 @@ pub struct ContentProductsCustombatchArgs {
 
 pub fn content_products_custombatch(
     client: &SimpleHttpClient,
-    args: &ContentProductsCustombatchArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<ProductsCustomBatchResponse>, ApiError>,
@@ -10609,11 +14724,11 @@ pub fn content_products_custombatch(
         + 'static,
     ApiError,
 > {
-    let builder = content_products_custombatch_builder(client, &args.body)?;
+    let builder = content_products_custombatch_builder(client)?;
     content_products_custombatch_execute(builder)
 }
 
-/// GET {merchantId}/products/{productId}
+/// DELETE {merchantId}/products/{productId}
 /// Deletes a product from your Merchant Center account.
 ///
 /// Returns `ClientRequestBuilder` for customization.
@@ -10623,7 +14738,7 @@ pub fn content_products_delete_builder(
     client: &SimpleHttpClient,
     merchantId: &String,
     productId: &String,
-    feedId: &Option<String>,
+    feedId: &Option<Option<String>>,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
@@ -10644,13 +14759,13 @@ pub fn content_products_delete_builder(
     };
 
     let builder = client
-        .get(&url_with_query)
+        .delete(&url_with_query)
         .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
 
     Ok(builder)
 }
 
-/// GET {merchantId}/products/{productId}
+/// DELETE {merchantId}/products/{productId}
 /// Deletes a product from your Merchant Center account.
 ///
 /// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
@@ -10721,7 +14836,7 @@ pub fn content_products_delete_task(
         .map_pending(|_| ApiPending::Sending))
 }
 
-/// GET {merchantId}/products/{productId}
+/// DELETE {merchantId}/products/{productId}
 /// Deletes a product from your Merchant Center account.
 ///
 /// Takes a `ClientRequestBuilder`, builds and executes the request,
@@ -10759,10 +14874,10 @@ pub struct ContentProductsDeleteArgs {
     /// Path parameter: productId
     pub productId: String,
     /// Query parameter: feedId
-    pub feedId: Option<String>,
+    pub feedId: Option<Option<String>>,
 }
 
-/// GET {merchantId}/products/{productId}
+/// DELETE {merchantId}/products/{productId}
 /// Deletes a product from your Merchant Center account.
 ///
 /// Simplest API - builds and executes the request in one call.
@@ -10785,7 +14900,167 @@ pub fn content_products_delete(
     content_products_delete_execute(builder)
 }
 
-/// GET {merchantId}/products
+/// GET {merchantId}/products/{productId}
+/// Retrieves a product from your Merchant Center account.
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `content_products_get_execute()` to send, or `content_products_get` for simplest API.
+
+pub fn content_products_get_builder(
+    client: &SimpleHttpClient,
+    merchantId: &String,
+    productId: &String,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!(
+        "https://shoppingcontent.googleapis.com/content/v2.1/{}/products/{}",
+        merchantId, productId,
+    );
+
+    // Build request
+    let builder = client
+        .get(&endpoint_url)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// GET {merchantId}/products/{productId}
+/// Retrieves a product from your Merchant Center account.
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `content_products_get_execute()` or `content_products_get`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `content_products_get_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn content_products_get_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<Product>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: Product = serde_json::from_str(&body)
+                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// GET {merchantId}/products/{productId}
+/// Retrieves a product from your Merchant Center account.
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `content_products_get_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `content_products_get_task()`.
+/// For the simplest API, use `content_products_get()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `content_products_get_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn content_products_get_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<Product>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let task = content_products_get_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`content_products_get`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct ContentProductsGetArgs {
+    /// Path parameter: merchantId
+    pub merchantId: String,
+    /// Path parameter: productId
+    pub productId: String,
+}
+
+/// GET {merchantId}/products/{productId}
+/// Retrieves a product from your Merchant Center account.
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `content_products_get_builder()` + `content_products_get_execute()`.
+/// For task-level control, use `content_products_get_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn content_products_get(
+    client: &SimpleHttpClient,
+    args: &ContentProductsGetArgs,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<Product>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let builder = content_products_get_builder(client, &args.merchantId, &args.productId)?;
+    content_products_get_execute(builder)
+}
+
+/// POST {merchantId}/products
 /// Uploads a product to your Merchant Center account. If an item with the same channel, `contentLanguage`, `offerId`, and `targetCountry` already exists, this method updates that entry.
 ///
 /// Returns `ClientRequestBuilder` for customization.
@@ -10794,8 +15069,7 @@ pub fn content_products_delete(
 pub fn content_products_insert_builder(
     client: &SimpleHttpClient,
     merchantId: &String,
-    feedId: &Option<String>,
-    body: &Product,
+    feedId: &Option<Option<String>>,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
@@ -10816,15 +15090,13 @@ pub fn content_products_insert_builder(
     };
 
     let builder = client
-        .get(&url_with_query)
+        .post(&url_with_query)
         .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
 
-    builder
-        .body_json(body)
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+    Ok(builder)
 }
 
-/// GET {merchantId}/products
+/// POST {merchantId}/products
 /// Uploads a product to your Merchant Center account. If an item with the same channel, `contentLanguage`, `offerId`, and `targetCountry` already exists, this method updates that entry.
 ///
 /// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
@@ -10898,7 +15170,7 @@ pub fn content_products_insert_task(
         .map_pending(|_| ApiPending::Sending))
 }
 
-/// GET {merchantId}/products
+/// POST {merchantId}/products
 /// Uploads a product to your Merchant Center account. If an item with the same channel, `contentLanguage`, `offerId`, and `targetCountry` already exists, this method updates that entry.
 ///
 /// Takes a `ClientRequestBuilder`, builds and executes the request,
@@ -10934,12 +15206,10 @@ pub struct ContentProductsInsertArgs {
     /// Path parameter: merchantId
     pub merchantId: String,
     /// Query parameter: feedId
-    pub feedId: Option<String>,
-    /// Request body.
-    pub body: Product,
+    pub feedId: Option<Option<String>>,
 }
 
-/// GET {merchantId}/products
+/// POST {merchantId}/products
 /// Uploads a product to your Merchant Center account. If an item with the same channel, `contentLanguage`, `offerId`, and `targetCountry` already exists, this method updates that entry.
 ///
 /// Simplest API - builds and executes the request in one call.
@@ -10957,12 +15227,372 @@ pub fn content_products_insert(
     impl StreamIterator<D = Result<ApiResponse<Product>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder =
-        content_products_insert_builder(client, &args.merchantId, &args.feedId, &args.body)?;
+    let builder = content_products_insert_builder(client, &args.merchantId, &args.feedId)?;
     content_products_insert_execute(builder)
 }
 
-/// GET productstatuses/batch
+/// GET {merchantId}/products
+/// Lists the products in your Merchant Center account. The response might contain fewer items than specified by `maxResults`. Rely on `nextPageToken` to determine if there are more items to be requested.
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `content_products_list_execute()` to send, or `content_products_list` for simplest API.
+
+pub fn content_products_list_builder(
+    client: &SimpleHttpClient,
+    merchantId: &String,
+    maxResults: &Option<Option<String>>,
+    pageToken: &Option<Option<String>>,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!(
+        "https://shoppingcontent.googleapis.com/content/v2.1/{}/products",
+        merchantId,
+    );
+
+    // Build request
+    let mut query_parts = Vec::new();
+    if let Some(val) = maxResults.as_ref() {
+        query_parts.push(format!("maxResults={}", val));
+    }
+    if let Some(val) = pageToken.as_ref() {
+        query_parts.push(format!("pageToken={}", val));
+    }
+
+    let url_with_query = if query_parts.is_empty() {
+        endpoint_url
+    } else {
+        format!("{}?{}", endpoint_url, query_parts.join("&"))
+    };
+
+    let builder = client
+        .get(&url_with_query)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// GET {merchantId}/products
+/// Lists the products in your Merchant Center account. The response might contain fewer items than specified by `maxResults`. Rely on `nextPageToken` to determine if there are more items to be requested.
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `content_products_list_execute()` or `content_products_list`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `content_products_list_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn content_products_list_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<ProductsListResponse>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: ProductsListResponse = serde_json::from_str(&body)
+                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// GET {merchantId}/products
+/// Lists the products in your Merchant Center account. The response might contain fewer items than specified by `maxResults`. Rely on `nextPageToken` to determine if there are more items to be requested.
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `content_products_list_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `content_products_list_task()`.
+/// For the simplest API, use `content_products_list()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `content_products_list_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn content_products_list_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<ProductsListResponse>, ApiError>, P = ApiPending>
+        + Send
+        + 'static,
+    ApiError,
+> {
+    let task = content_products_list_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`content_products_list`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct ContentProductsListArgs {
+    /// Path parameter: merchantId
+    pub merchantId: String,
+    /// Query parameter: maxResults
+    pub maxResults: Option<Option<String>>,
+    /// Query parameter: pageToken
+    pub pageToken: Option<Option<String>>,
+}
+
+/// GET {merchantId}/products
+/// Lists the products in your Merchant Center account. The response might contain fewer items than specified by `maxResults`. Rely on `nextPageToken` to determine if there are more items to be requested.
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `content_products_list_builder()` + `content_products_list_execute()`.
+/// For task-level control, use `content_products_list_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn content_products_list(
+    client: &SimpleHttpClient,
+    args: &ContentProductsListArgs,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<ProductsListResponse>, ApiError>, P = ApiPending>
+        + Send
+        + 'static,
+    ApiError,
+> {
+    let builder =
+        content_products_list_builder(client, &args.merchantId, &args.maxResults, &args.pageToken)?;
+    content_products_list_execute(builder)
+}
+
+/// PATCH {merchantId}/products/{productId}
+/// Updates an existing product in your Merchant Center account. Only updates attributes provided in the request.
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `content_products_update_execute()` to send, or `content_products_update` for simplest API.
+
+pub fn content_products_update_builder(
+    client: &SimpleHttpClient,
+    merchantId: &String,
+    productId: &String,
+    updateMask: &Option<Option<String>>,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!(
+        "https://shoppingcontent.googleapis.com/content/v2.1/{}/products/{}",
+        merchantId, productId,
+    );
+
+    // Build request
+    let mut query_parts = Vec::new();
+    if let Some(val) = updateMask.as_ref() {
+        query_parts.push(format!("updateMask={}", val));
+    }
+
+    let url_with_query = if query_parts.is_empty() {
+        endpoint_url
+    } else {
+        format!("{}?{}", endpoint_url, query_parts.join("&"))
+    };
+
+    let builder = client
+        .patch(&url_with_query)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// PATCH {merchantId}/products/{productId}
+/// Updates an existing product in your Merchant Center account. Only updates attributes provided in the request.
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `content_products_update_execute()` or `content_products_update`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `content_products_update_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn content_products_update_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<Product>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: Product = serde_json::from_str(&body)
+                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// PATCH {merchantId}/products/{productId}
+/// Updates an existing product in your Merchant Center account. Only updates attributes provided in the request.
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `content_products_update_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `content_products_update_task()`.
+/// For the simplest API, use `content_products_update()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `content_products_update_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn content_products_update_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<Product>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let task = content_products_update_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`content_products_update`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct ContentProductsUpdateArgs {
+    /// Path parameter: merchantId
+    pub merchantId: String,
+    /// Path parameter: productId
+    pub productId: String,
+    /// Query parameter: updateMask
+    pub updateMask: Option<Option<String>>,
+}
+
+/// PATCH {merchantId}/products/{productId}
+/// Updates an existing product in your Merchant Center account. Only updates attributes provided in the request.
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `content_products_update_builder()` + `content_products_update_execute()`.
+/// For task-level control, use `content_products_update_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn content_products_update(
+    client: &SimpleHttpClient,
+    args: &ContentProductsUpdateArgs,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<Product>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let builder = content_products_update_builder(
+        client,
+        &args.merchantId,
+        &args.productId,
+        &args.updateMask,
+    )?;
+    content_products_update_execute(builder)
+}
+
+/// POST productstatuses/batch
 /// Gets the statuses of multiple products in a single request.
 ///
 /// Returns `ClientRequestBuilder` for customization.
@@ -10970,7 +15600,6 @@ pub fn content_products_insert(
 
 pub fn content_productstatuses_custombatch_builder(
     client: &SimpleHttpClient,
-    body: &ProductstatusesCustomBatchRequest,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url =
@@ -10978,15 +15607,13 @@ pub fn content_productstatuses_custombatch_builder(
 
     // Build request
     let builder = client
-        .get(&endpoint_url)
+        .post(&endpoint_url)
         .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
 
-    builder
-        .body_json(body)
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+    Ok(builder)
 }
 
-/// GET productstatuses/batch
+/// POST productstatuses/batch
 /// Gets the statuses of multiple products in a single request.
 ///
 /// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
@@ -11060,7 +15687,7 @@ pub fn content_productstatuses_custombatch_task(
         .map_pending(|_| ApiPending::Sending))
 }
 
-/// GET productstatuses/batch
+/// POST productstatuses/batch
 /// Gets the statuses of multiple products in a single request.
 ///
 /// Takes a `ClientRequestBuilder`, builds and executes the request,
@@ -11094,14 +15721,7 @@ pub fn content_productstatuses_custombatch_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
-/// Arguments for [`content_productstatuses_custombatch`].
-#[derive(Debug, Clone, Serialize, JsonHash)]
-pub struct ContentProductstatusesCustombatchArgs {
-    /// Request body.
-    pub body: ProductstatusesCustomBatchRequest,
-}
-
-/// GET productstatuses/batch
+/// POST productstatuses/batch
 /// Gets the statuses of multiple products in a single request.
 ///
 /// Simplest API - builds and executes the request in one call.
@@ -11114,7 +15734,6 @@ pub struct ContentProductstatusesCustombatchArgs {
 
 pub fn content_productstatuses_custombatch(
     client: &SimpleHttpClient,
-    args: &ContentProductstatusesCustombatchArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<ProductstatusesCustomBatchResponse>, ApiError>,
@@ -11123,7 +15742,7 @@ pub fn content_productstatuses_custombatch(
         + 'static,
     ApiError,
 > {
-    let builder = content_productstatuses_custombatch_builder(client, &args.body)?;
+    let builder = content_productstatuses_custombatch_builder(client)?;
     content_productstatuses_custombatch_execute(builder)
 }
 
@@ -11137,7 +15756,7 @@ pub fn content_productstatuses_get_builder(
     client: &SimpleHttpClient,
     merchantId: &String,
     productId: &String,
-    destinations: &Option<String>,
+    destinations: &Option<Option<String>>,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
@@ -11278,7 +15897,7 @@ pub struct ContentProductstatusesGetArgs {
     /// Path parameter: productId
     pub productId: String,
     /// Query parameter: destinations
-    pub destinations: Option<String>,
+    pub destinations: Option<Option<String>>,
 }
 
 /// GET {merchantId}/productstatuses/{productId}
@@ -11319,9 +15938,9 @@ pub fn content_productstatuses_get(
 pub fn content_productstatuses_list_builder(
     client: &SimpleHttpClient,
     merchantId: &String,
-    destinations: &Option<String>,
-    maxResults: &Option<i32>,
-    pageToken: &Option<String>,
+    destinations: &Option<Option<String>>,
+    maxResults: &Option<Option<String>>,
+    pageToken: &Option<Option<String>>,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
@@ -11468,11 +16087,11 @@ pub struct ContentProductstatusesListArgs {
     /// Path parameter: merchantId
     pub merchantId: String,
     /// Query parameter: destinations
-    pub destinations: Option<String>,
+    pub destinations: Option<Option<String>>,
     /// Query parameter: maxResults
-    pub maxResults: Option<i32>,
+    pub maxResults: Option<Option<String>>,
     /// Query parameter: pageToken
-    pub pageToken: Option<String>,
+    pub pageToken: Option<Option<String>>,
 }
 
 /// GET {merchantId}/productstatuses
@@ -11507,7 +16126,7 @@ pub fn content_productstatuses_list(
     content_productstatuses_list_execute(builder)
 }
 
-/// GET {merchantId}/promotions
+/// POST {merchantId}/promotions
 /// Inserts a promotion for your Merchant Center account. If the promotion already exists, then it updates the promotion instead. To [end or delete] (<https://developers.google.`com/shopping-content/guides/promotions`#end_a_promotion>) a promotion update the time period of the promotion to a time that has already passed.
 ///
 /// Returns `ClientRequestBuilder` for customization.
@@ -11516,7 +16135,6 @@ pub fn content_productstatuses_list(
 pub fn content_promotions_create_builder(
     client: &SimpleHttpClient,
     merchantId: &String,
-    body: &Promotion,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
@@ -11526,15 +16144,13 @@ pub fn content_promotions_create_builder(
 
     // Build request
     let builder = client
-        .get(&endpoint_url)
+        .post(&endpoint_url)
         .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
 
-    builder
-        .body_json(body)
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+    Ok(builder)
 }
 
-/// GET {merchantId}/promotions
+/// POST {merchantId}/promotions
 /// Inserts a promotion for your Merchant Center account. If the promotion already exists, then it updates the promotion instead. To [end or delete] (<https://developers.google.`com/shopping-content/guides/promotions`#end_a_promotion>) a promotion update the time period of the promotion to a time that has already passed.
 ///
 /// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
@@ -11608,7 +16224,7 @@ pub fn content_promotions_create_task(
         .map_pending(|_| ApiPending::Sending))
 }
 
-/// GET {merchantId}/promotions
+/// POST {merchantId}/promotions
 /// Inserts a promotion for your Merchant Center account. If the promotion already exists, then it updates the promotion instead. To [end or delete] (<https://developers.google.`com/shopping-content/guides/promotions`#end_a_promotion>) a promotion update the time period of the promotion to a time that has already passed.
 ///
 /// Takes a `ClientRequestBuilder`, builds and executes the request,
@@ -11643,11 +16259,9 @@ pub fn content_promotions_create_execute(
 pub struct ContentPromotionsCreateArgs {
     /// Path parameter: merchantId
     pub merchantId: String,
-    /// Request body.
-    pub body: Promotion,
 }
 
-/// GET {merchantId}/promotions
+/// POST {merchantId}/promotions
 /// Inserts a promotion for your Merchant Center account. If the promotion already exists, then it updates the promotion instead. To [end or delete] (<https://developers.google.`com/shopping-content/guides/promotions`#end_a_promotion>) a promotion update the time period of the promotion to a time that has already passed.
 ///
 /// Simplest API - builds and executes the request in one call.
@@ -11665,7 +16279,7 @@ pub fn content_promotions_create(
     impl StreamIterator<D = Result<ApiResponse<Promotion>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = content_promotions_create_builder(client, &args.merchantId, &args.body)?;
+    let builder = content_promotions_create_builder(client, &args.merchantId)?;
     content_promotions_create_execute(builder)
 }
 
@@ -11827,6 +16441,206 @@ pub fn content_promotions_get(
 > {
     let builder = content_promotions_get_builder(client, &args.merchantId, &args.id)?;
     content_promotions_get_execute(builder)
+}
+
+/// GET {merchantId}/promotions
+/// List all promotions from your Merchant Center account.
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `content_promotions_list_execute()` to send, or `content_promotions_list` for simplest API.
+
+pub fn content_promotions_list_builder(
+    client: &SimpleHttpClient,
+    merchantId: &String,
+    countryCode: &Option<Option<String>>,
+    languageCode: &Option<Option<String>>,
+    pageSize: &Option<Option<String>>,
+    pageToken: &Option<Option<String>>,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!(
+        "https://shoppingcontent.googleapis.com/content/v2.1/{}/promotions",
+        merchantId,
+    );
+
+    // Build request
+    let mut query_parts = Vec::new();
+    if let Some(val) = countryCode.as_ref() {
+        query_parts.push(format!("countryCode={}", val));
+    }
+    if let Some(val) = languageCode.as_ref() {
+        query_parts.push(format!("languageCode={}", val));
+    }
+    if let Some(val) = pageSize.as_ref() {
+        query_parts.push(format!("pageSize={}", val));
+    }
+    if let Some(val) = pageToken.as_ref() {
+        query_parts.push(format!("pageToken={}", val));
+    }
+
+    let url_with_query = if query_parts.is_empty() {
+        endpoint_url
+    } else {
+        format!("{}?{}", endpoint_url, query_parts.join("&"))
+    };
+
+    let builder = client
+        .get(&url_with_query)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// GET {merchantId}/promotions
+/// List all promotions from your Merchant Center account.
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `content_promotions_list_execute()` or `content_promotions_list`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `content_promotions_list_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn content_promotions_list_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<ListPromotionResponse>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: ListPromotionResponse = serde_json::from_str(&body)
+                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// GET {merchantId}/promotions
+/// List all promotions from your Merchant Center account.
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `content_promotions_list_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `content_promotions_list_task()`.
+/// For the simplest API, use `content_promotions_list()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `content_promotions_list_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn content_promotions_list_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<ListPromotionResponse>, ApiError>, P = ApiPending>
+        + Send
+        + 'static,
+    ApiError,
+> {
+    let task = content_promotions_list_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`content_promotions_list`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct ContentPromotionsListArgs {
+    /// Path parameter: merchantId
+    pub merchantId: String,
+    /// Query parameter: countryCode
+    pub countryCode: Option<Option<String>>,
+    /// Query parameter: languageCode
+    pub languageCode: Option<Option<String>>,
+    /// Query parameter: pageSize
+    pub pageSize: Option<Option<String>>,
+    /// Query parameter: pageToken
+    pub pageToken: Option<Option<String>>,
+}
+
+/// GET {merchantId}/promotions
+/// List all promotions from your Merchant Center account.
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `content_promotions_list_builder()` + `content_promotions_list_execute()`.
+/// For task-level control, use `content_promotions_list_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn content_promotions_list(
+    client: &SimpleHttpClient,
+    args: &ContentPromotionsListArgs,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<ListPromotionResponse>, ApiError>, P = ApiPending>
+        + Send
+        + 'static,
+    ApiError,
+> {
+    let builder = content_promotions_list_builder(
+        client,
+        &args.merchantId,
+        &args.countryCode,
+        &args.languageCode,
+        &args.pageSize,
+        &args.pageToken,
+    )?;
+    content_promotions_list_execute(builder)
 }
 
 /// GET {merchantId}/pubsubnotificationsettings
@@ -11994,6 +16808,171 @@ pub fn content_pubsubnotificationsettings_get(
     content_pubsubnotificationsettings_get_execute(builder)
 }
 
+/// PUT {merchantId}/pubsubnotificationsettings
+/// Register a Merchant Center account for pubsub notifications. Note that cloud topic name shouldn't be provided as part of the request.
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `content_pubsubnotificationsettings_update_execute()` to send, or `content_pubsubnotificationsettings_update` for simplest API.
+
+pub fn content_pubsubnotificationsettings_update_builder(
+    client: &SimpleHttpClient,
+    merchantId: &String,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!(
+        "https://shoppingcontent.googleapis.com/content/v2.1/{}/pubsubnotificationsettings",
+        merchantId,
+    );
+
+    // Build request
+    let builder = client
+        .put(&endpoint_url)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// PUT {merchantId}/pubsubnotificationsettings
+/// Register a Merchant Center account for pubsub notifications. Note that cloud topic name shouldn't be provided as part of the request.
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `content_pubsubnotificationsettings_update_execute()` or `content_pubsubnotificationsettings_update`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `content_pubsubnotificationsettings_update_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn content_pubsubnotificationsettings_update_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<PubsubNotificationSettings>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: PubsubNotificationSettings = serde_json::from_str(&body)
+                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// PUT {merchantId}/pubsubnotificationsettings
+/// Register a Merchant Center account for pubsub notifications. Note that cloud topic name shouldn't be provided as part of the request.
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `content_pubsubnotificationsettings_update_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `content_pubsubnotificationsettings_update_task()`.
+/// For the simplest API, use `content_pubsubnotificationsettings_update()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `content_pubsubnotificationsettings_update_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn content_pubsubnotificationsettings_update_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<
+            D = Result<ApiResponse<PubsubNotificationSettings>, ApiError>,
+            P = ApiPending,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    let task = content_pubsubnotificationsettings_update_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`content_pubsubnotificationsettings_update`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct ContentPubsubnotificationsettingsUpdateArgs {
+    /// Path parameter: merchantId
+    pub merchantId: String,
+}
+
+/// PUT {merchantId}/pubsubnotificationsettings
+/// Register a Merchant Center account for pubsub notifications. Note that cloud topic name shouldn't be provided as part of the request.
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `content_pubsubnotificationsettings_update_builder()` + `content_pubsubnotificationsettings_update_execute()`.
+/// For task-level control, use `content_pubsubnotificationsettings_update_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn content_pubsubnotificationsettings_update(
+    client: &SimpleHttpClient,
+    args: &ContentPubsubnotificationsettingsUpdateArgs,
+) -> Result<
+    impl StreamIterator<
+            D = Result<ApiResponse<PubsubNotificationSettings>, ApiError>,
+            P = ApiPending,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    let builder = content_pubsubnotificationsettings_update_builder(client, &args.merchantId)?;
+    content_pubsubnotificationsettings_update_execute(builder)
+}
+
 /// GET {merchantId}/quotas
 /// Lists the daily call quota and usage per method for your Merchant Center account.
 ///
@@ -12003,8 +16982,8 @@ pub fn content_pubsubnotificationsettings_get(
 pub fn content_quotas_list_builder(
     client: &SimpleHttpClient,
     merchantId: &String,
-    pageSize: &Option<i32>,
-    pageToken: &Option<String>,
+    pageSize: &Option<Option<String>>,
+    pageToken: &Option<Option<String>>,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
@@ -12146,9 +17125,9 @@ pub struct ContentQuotasListArgs {
     /// Path parameter: merchantId
     pub merchantId: String,
     /// Query parameter: pageSize
-    pub pageSize: Option<i32>,
+    pub pageSize: Option<Option<String>>,
     /// Query parameter: pageToken
-    pub pageToken: Option<String>,
+    pub pageToken: Option<Option<String>>,
 }
 
 /// GET {merchantId}/quotas
@@ -12185,8 +17164,8 @@ pub fn content_quotas_list(
 pub fn content_recommendations_generate_builder(
     client: &SimpleHttpClient,
     merchantId: &String,
-    allowedTag: &Option<String>,
-    languageCode: &Option<String>,
+    allowedTag: &Option<Option<String>>,
+    languageCode: &Option<Option<String>>,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
@@ -12330,9 +17309,9 @@ pub struct ContentRecommendationsGenerateArgs {
     /// Path parameter: merchantId
     pub merchantId: String,
     /// Query parameter: allowedTag
-    pub allowedTag: Option<String>,
+    pub allowedTag: Option<Option<String>>,
     /// Query parameter: languageCode
-    pub languageCode: Option<String>,
+    pub languageCode: Option<Option<String>>,
 }
 
 /// GET {merchantId}/recommendations/generate
@@ -12366,7 +17345,7 @@ pub fn content_recommendations_generate(
     content_recommendations_generate_execute(builder)
 }
 
-/// GET {merchantId}/recommendations/reportInteraction
+/// POST {merchantId}/recommendations/reportInteraction
 /// Reports an interaction on a recommendation for a merchant.
 ///
 /// Returns `ClientRequestBuilder` for customization.
@@ -12375,7 +17354,6 @@ pub fn content_recommendations_generate(
 pub fn content_recommendations_report_interaction_builder(
     client: &SimpleHttpClient,
     merchantId: &String,
-    body: &ReportInteractionRequest,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
@@ -12385,15 +17363,13 @@ pub fn content_recommendations_report_interaction_builder(
 
     // Build request
     let builder = client
-        .get(&endpoint_url)
+        .post(&endpoint_url)
         .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
 
-    builder
-        .body_json(body)
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+    Ok(builder)
 }
 
-/// GET {merchantId}/recommendations/reportInteraction
+/// POST {merchantId}/recommendations/reportInteraction
 /// Reports an interaction on a recommendation for a merchant.
 ///
 /// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
@@ -12464,7 +17440,7 @@ pub fn content_recommendations_report_interaction_task(
         .map_pending(|_| ApiPending::Sending))
 }
 
-/// GET {merchantId}/recommendations/reportInteraction
+/// POST {merchantId}/recommendations/reportInteraction
 /// Reports an interaction on a recommendation for a merchant.
 ///
 /// Takes a `ClientRequestBuilder`, builds and executes the request,
@@ -12499,11 +17475,9 @@ pub fn content_recommendations_report_interaction_execute(
 pub struct ContentRecommendationsReportInteractionArgs {
     /// Path parameter: merchantId
     pub merchantId: String,
-    /// Request body.
-    pub body: ReportInteractionRequest,
 }
 
-/// GET {merchantId}/recommendations/reportInteraction
+/// POST {merchantId}/recommendations/reportInteraction
 /// Reports an interaction on a recommendation for a merchant.
 ///
 /// Simplest API - builds and executes the request in one call.
@@ -12521,12 +17495,11 @@ pub fn content_recommendations_report_interaction(
     impl StreamIterator<D = Result<ApiResponse<()>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder =
-        content_recommendations_report_interaction_builder(client, &args.merchantId, &args.body)?;
+    let builder = content_recommendations_report_interaction_builder(client, &args.merchantId)?;
     content_recommendations_report_interaction_execute(builder)
 }
 
-/// GET regionalinventory/batch
+/// POST regionalinventory/batch
 /// Updates regional inventory for multiple products or regions in a single request.
 ///
 /// Returns `ClientRequestBuilder` for customization.
@@ -12534,7 +17507,6 @@ pub fn content_recommendations_report_interaction(
 
 pub fn content_regionalinventory_custombatch_builder(
     client: &SimpleHttpClient,
-    body: &RegionalinventoryCustomBatchRequest,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url =
@@ -12542,15 +17514,13 @@ pub fn content_regionalinventory_custombatch_builder(
 
     // Build request
     let builder = client
-        .get(&endpoint_url)
+        .post(&endpoint_url)
         .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
 
-    builder
-        .body_json(body)
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+    Ok(builder)
 }
 
-/// GET regionalinventory/batch
+/// POST regionalinventory/batch
 /// Updates regional inventory for multiple products or regions in a single request.
 ///
 /// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
@@ -12624,7 +17594,7 @@ pub fn content_regionalinventory_custombatch_task(
         .map_pending(|_| ApiPending::Sending))
 }
 
-/// GET regionalinventory/batch
+/// POST regionalinventory/batch
 /// Updates regional inventory for multiple products or regions in a single request.
 ///
 /// Takes a `ClientRequestBuilder`, builds and executes the request,
@@ -12658,14 +17628,7 @@ pub fn content_regionalinventory_custombatch_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
-/// Arguments for [`content_regionalinventory_custombatch`].
-#[derive(Debug, Clone, Serialize, JsonHash)]
-pub struct ContentRegionalinventoryCustombatchArgs {
-    /// Request body.
-    pub body: RegionalinventoryCustomBatchRequest,
-}
-
-/// GET regionalinventory/batch
+/// POST regionalinventory/batch
 /// Updates regional inventory for multiple products or regions in a single request.
 ///
 /// Simplest API - builds and executes the request in one call.
@@ -12678,7 +17641,6 @@ pub struct ContentRegionalinventoryCustombatchArgs {
 
 pub fn content_regionalinventory_custombatch(
     client: &SimpleHttpClient,
-    args: &ContentRegionalinventoryCustombatchArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<RegionalinventoryCustomBatchResponse>, ApiError>,
@@ -12687,11 +17649,11 @@ pub fn content_regionalinventory_custombatch(
         + 'static,
     ApiError,
 > {
-    let builder = content_regionalinventory_custombatch_builder(client, &args.body)?;
+    let builder = content_regionalinventory_custombatch_builder(client)?;
     content_regionalinventory_custombatch_execute(builder)
 }
 
-/// GET {merchantId}/products/{productId}/regionalinventory
+/// POST {merchantId}/products/{productId}/regionalinventory
 /// Updates the regional inventory of a product in your Merchant Center account. If a regional inventory with the same region ID already exists, this method updates that entry.
 ///
 /// Returns `ClientRequestBuilder` for customization.
@@ -12701,7 +17663,6 @@ pub fn content_regionalinventory_insert_builder(
     client: &SimpleHttpClient,
     merchantId: &String,
     productId: &String,
-    body: &RegionalInventory,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
@@ -12711,15 +17672,13 @@ pub fn content_regionalinventory_insert_builder(
 
     // Build request
     let builder = client
-        .get(&endpoint_url)
+        .post(&endpoint_url)
         .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
 
-    builder
-        .body_json(body)
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+    Ok(builder)
 }
 
-/// GET {merchantId}/products/{productId}/regionalinventory
+/// POST {merchantId}/products/{productId}/regionalinventory
 /// Updates the regional inventory of a product in your Merchant Center account. If a regional inventory with the same region ID already exists, this method updates that entry.
 ///
 /// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
@@ -12793,7 +17752,7 @@ pub fn content_regionalinventory_insert_task(
         .map_pending(|_| ApiPending::Sending))
 }
 
-/// GET {merchantId}/products/{productId}/regionalinventory
+/// POST {merchantId}/products/{productId}/regionalinventory
 /// Updates the regional inventory of a product in your Merchant Center account. If a regional inventory with the same region ID already exists, this method updates that entry.
 ///
 /// Takes a `ClientRequestBuilder`, builds and executes the request,
@@ -12832,11 +17791,9 @@ pub struct ContentRegionalinventoryInsertArgs {
     pub merchantId: String,
     /// Path parameter: productId
     pub productId: String,
-    /// Request body.
-    pub body: RegionalInventory,
 }
 
-/// GET {merchantId}/products/{productId}/regionalinventory
+/// POST {merchantId}/products/{productId}/regionalinventory
 /// Updates the regional inventory of a product in your Merchant Center account. If a regional inventory with the same region ID already exists, this method updates that entry.
 ///
 /// Simplest API - builds and executes the request in one call.
@@ -12856,16 +17813,12 @@ pub fn content_regionalinventory_insert(
         + 'static,
     ApiError,
 > {
-    let builder = content_regionalinventory_insert_builder(
-        client,
-        &args.merchantId,
-        &args.productId,
-        &args.body,
-    )?;
+    let builder =
+        content_regionalinventory_insert_builder(client, &args.merchantId, &args.productId)?;
     content_regionalinventory_insert_execute(builder)
 }
 
-/// GET {merchantId}/regions
+/// POST {merchantId}/regions
 /// Creates a region definition in your Merchant Center account.
 ///
 /// Returns `ClientRequestBuilder` for customization.
@@ -12874,8 +17827,7 @@ pub fn content_regionalinventory_insert(
 pub fn content_regions_create_builder(
     client: &SimpleHttpClient,
     merchantId: &String,
-    regionId: &Option<String>,
-    body: &Region,
+    regionId: &Option<Option<String>>,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
@@ -12896,15 +17848,13 @@ pub fn content_regions_create_builder(
     };
 
     let builder = client
-        .get(&url_with_query)
+        .post(&url_with_query)
         .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
 
-    builder
-        .body_json(body)
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+    Ok(builder)
 }
 
-/// GET {merchantId}/regions
+/// POST {merchantId}/regions
 /// Creates a region definition in your Merchant Center account.
 ///
 /// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
@@ -12978,7 +17928,7 @@ pub fn content_regions_create_task(
         .map_pending(|_| ApiPending::Sending))
 }
 
-/// GET {merchantId}/regions
+/// POST {merchantId}/regions
 /// Creates a region definition in your Merchant Center account.
 ///
 /// Takes a `ClientRequestBuilder`, builds and executes the request,
@@ -13014,12 +17964,10 @@ pub struct ContentRegionsCreateArgs {
     /// Path parameter: merchantId
     pub merchantId: String,
     /// Query parameter: regionId
-    pub regionId: Option<String>,
-    /// Request body.
-    pub body: Region,
+    pub regionId: Option<Option<String>>,
 }
 
-/// GET {merchantId}/regions
+/// POST {merchantId}/regions
 /// Creates a region definition in your Merchant Center account.
 ///
 /// Simplest API - builds and executes the request in one call.
@@ -13037,12 +17985,11 @@ pub fn content_regions_create(
     impl StreamIterator<D = Result<ApiResponse<Region>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder =
-        content_regions_create_builder(client, &args.merchantId, &args.regionId, &args.body)?;
+    let builder = content_regions_create_builder(client, &args.merchantId, &args.regionId)?;
     content_regions_create_execute(builder)
 }
 
-/// GET {merchantId}/regions/{regionId}
+/// DELETE {merchantId}/regions/{regionId}
 /// Deletes a region definition from your Merchant Center account.
 ///
 /// Returns `ClientRequestBuilder` for customization.
@@ -13061,13 +18008,13 @@ pub fn content_regions_delete_builder(
 
     // Build request
     let builder = client
-        .get(&endpoint_url)
+        .delete(&endpoint_url)
         .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
 
     Ok(builder)
 }
 
-/// GET {merchantId}/regions/{regionId}
+/// DELETE {merchantId}/regions/{regionId}
 /// Deletes a region definition from your Merchant Center account.
 ///
 /// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
@@ -13138,7 +18085,7 @@ pub fn content_regions_delete_task(
         .map_pending(|_| ApiPending::Sending))
 }
 
-/// GET {merchantId}/regions/{regionId}
+/// DELETE {merchantId}/regions/{regionId}
 /// Deletes a region definition from your Merchant Center account.
 ///
 /// Takes a `ClientRequestBuilder`, builds and executes the request,
@@ -13177,7 +18124,7 @@ pub struct ContentRegionsDeleteArgs {
     pub regionId: String,
 }
 
-/// GET {merchantId}/regions/{regionId}
+/// DELETE {merchantId}/regions/{regionId}
 /// Deletes a region definition from your Merchant Center account.
 ///
 /// Simplest API - builds and executes the request in one call.
@@ -13199,7 +18146,524 @@ pub fn content_regions_delete(
     content_regions_delete_execute(builder)
 }
 
-/// GET {merchantId}/reports/search
+/// GET {merchantId}/regions/{regionId}
+/// Retrieves a region defined in your Merchant Center account.
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `content_regions_get_execute()` to send, or `content_regions_get` for simplest API.
+
+pub fn content_regions_get_builder(
+    client: &SimpleHttpClient,
+    merchantId: &String,
+    regionId: &String,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!(
+        "https://shoppingcontent.googleapis.com/content/v2.1/{}/regions/{}",
+        merchantId, regionId,
+    );
+
+    // Build request
+    let builder = client
+        .get(&endpoint_url)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// GET {merchantId}/regions/{regionId}
+/// Retrieves a region defined in your Merchant Center account.
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `content_regions_get_execute()` or `content_regions_get`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `content_regions_get_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn content_regions_get_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<Region>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: Region = serde_json::from_str(&body)
+                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// GET {merchantId}/regions/{regionId}
+/// Retrieves a region defined in your Merchant Center account.
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `content_regions_get_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `content_regions_get_task()`.
+/// For the simplest API, use `content_regions_get()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `content_regions_get_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn content_regions_get_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<Region>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let task = content_regions_get_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`content_regions_get`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct ContentRegionsGetArgs {
+    /// Path parameter: merchantId
+    pub merchantId: String,
+    /// Path parameter: regionId
+    pub regionId: String,
+}
+
+/// GET {merchantId}/regions/{regionId}
+/// Retrieves a region defined in your Merchant Center account.
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `content_regions_get_builder()` + `content_regions_get_execute()`.
+/// For task-level control, use `content_regions_get_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn content_regions_get(
+    client: &SimpleHttpClient,
+    args: &ContentRegionsGetArgs,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<Region>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let builder = content_regions_get_builder(client, &args.merchantId, &args.regionId)?;
+    content_regions_get_execute(builder)
+}
+
+/// GET {merchantId}/regions
+/// Lists the regions in your Merchant Center account.
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `content_regions_list_execute()` to send, or `content_regions_list` for simplest API.
+
+pub fn content_regions_list_builder(
+    client: &SimpleHttpClient,
+    merchantId: &String,
+    pageSize: &Option<Option<String>>,
+    pageToken: &Option<Option<String>>,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!(
+        "https://shoppingcontent.googleapis.com/content/v2.1/{}/regions",
+        merchantId,
+    );
+
+    // Build request
+    let mut query_parts = Vec::new();
+    if let Some(val) = pageSize.as_ref() {
+        query_parts.push(format!("pageSize={}", val));
+    }
+    if let Some(val) = pageToken.as_ref() {
+        query_parts.push(format!("pageToken={}", val));
+    }
+
+    let url_with_query = if query_parts.is_empty() {
+        endpoint_url
+    } else {
+        format!("{}?{}", endpoint_url, query_parts.join("&"))
+    };
+
+    let builder = client
+        .get(&url_with_query)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// GET {merchantId}/regions
+/// Lists the regions in your Merchant Center account.
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `content_regions_list_execute()` or `content_regions_list`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `content_regions_list_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn content_regions_list_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<ListRegionsResponse>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: ListRegionsResponse = serde_json::from_str(&body)
+                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// GET {merchantId}/regions
+/// Lists the regions in your Merchant Center account.
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `content_regions_list_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `content_regions_list_task()`.
+/// For the simplest API, use `content_regions_list()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `content_regions_list_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn content_regions_list_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<ListRegionsResponse>, ApiError>, P = ApiPending>
+        + Send
+        + 'static,
+    ApiError,
+> {
+    let task = content_regions_list_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`content_regions_list`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct ContentRegionsListArgs {
+    /// Path parameter: merchantId
+    pub merchantId: String,
+    /// Query parameter: pageSize
+    pub pageSize: Option<Option<String>>,
+    /// Query parameter: pageToken
+    pub pageToken: Option<Option<String>>,
+}
+
+/// GET {merchantId}/regions
+/// Lists the regions in your Merchant Center account.
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `content_regions_list_builder()` + `content_regions_list_execute()`.
+/// For task-level control, use `content_regions_list_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn content_regions_list(
+    client: &SimpleHttpClient,
+    args: &ContentRegionsListArgs,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<ListRegionsResponse>, ApiError>, P = ApiPending>
+        + Send
+        + 'static,
+    ApiError,
+> {
+    let builder =
+        content_regions_list_builder(client, &args.merchantId, &args.pageSize, &args.pageToken)?;
+    content_regions_list_execute(builder)
+}
+
+/// PATCH {merchantId}/regions/{regionId}
+/// Updates a region definition in your Merchant Center account.
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `content_regions_patch_execute()` to send, or `content_regions_patch` for simplest API.
+
+pub fn content_regions_patch_builder(
+    client: &SimpleHttpClient,
+    merchantId: &String,
+    regionId: &String,
+    updateMask: &Option<Option<String>>,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!(
+        "https://shoppingcontent.googleapis.com/content/v2.1/{}/regions/{}",
+        merchantId, regionId,
+    );
+
+    // Build request
+    let mut query_parts = Vec::new();
+    if let Some(val) = updateMask.as_ref() {
+        query_parts.push(format!("updateMask={}", val));
+    }
+
+    let url_with_query = if query_parts.is_empty() {
+        endpoint_url
+    } else {
+        format!("{}?{}", endpoint_url, query_parts.join("&"))
+    };
+
+    let builder = client
+        .patch(&url_with_query)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// PATCH {merchantId}/regions/{regionId}
+/// Updates a region definition in your Merchant Center account.
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `content_regions_patch_execute()` or `content_regions_patch`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `content_regions_patch_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn content_regions_patch_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<Region>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: Region = serde_json::from_str(&body)
+                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// PATCH {merchantId}/regions/{regionId}
+/// Updates a region definition in your Merchant Center account.
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `content_regions_patch_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `content_regions_patch_task()`.
+/// For the simplest API, use `content_regions_patch()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `content_regions_patch_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn content_regions_patch_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<Region>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let task = content_regions_patch_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`content_regions_patch`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct ContentRegionsPatchArgs {
+    /// Path parameter: merchantId
+    pub merchantId: String,
+    /// Path parameter: regionId
+    pub regionId: String,
+    /// Query parameter: updateMask
+    pub updateMask: Option<Option<String>>,
+}
+
+/// PATCH {merchantId}/regions/{regionId}
+/// Updates a region definition in your Merchant Center account.
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `content_regions_patch_builder()` + `content_regions_patch_execute()`.
+/// For task-level control, use `content_regions_patch_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn content_regions_patch(
+    client: &SimpleHttpClient,
+    args: &ContentRegionsPatchArgs,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<Region>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let builder =
+        content_regions_patch_builder(client, &args.merchantId, &args.regionId, &args.updateMask)?;
+    content_regions_patch_execute(builder)
+}
+
+/// POST {merchantId}/reports/search
 /// Retrieves merchant performance metrics matching the search query and optionally segmented by selected dimensions.
 ///
 /// Returns `ClientRequestBuilder` for customization.
@@ -13208,7 +18672,6 @@ pub fn content_regions_delete(
 pub fn content_reports_search_builder(
     client: &SimpleHttpClient,
     merchantId: &String,
-    body: &SearchRequest,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
@@ -13218,15 +18681,13 @@ pub fn content_reports_search_builder(
 
     // Build request
     let builder = client
-        .get(&endpoint_url)
+        .post(&endpoint_url)
         .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
 
-    builder
-        .body_json(body)
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+    Ok(builder)
 }
 
-/// GET {merchantId}/reports/search
+/// POST {merchantId}/reports/search
 /// Retrieves merchant performance metrics matching the search query and optionally segmented by selected dimensions.
 ///
 /// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
@@ -13300,7 +18761,7 @@ pub fn content_reports_search_task(
         .map_pending(|_| ApiPending::Sending))
 }
 
-/// GET {merchantId}/reports/search
+/// POST {merchantId}/reports/search
 /// Retrieves merchant performance metrics matching the search query and optionally segmented by selected dimensions.
 ///
 /// Takes a `ClientRequestBuilder`, builds and executes the request,
@@ -13337,11 +18798,9 @@ pub fn content_reports_search_execute(
 pub struct ContentReportsSearchArgs {
     /// Path parameter: merchantId
     pub merchantId: String,
-    /// Request body.
-    pub body: SearchRequest,
 }
 
-/// GET {merchantId}/reports/search
+/// POST {merchantId}/reports/search
 /// Retrieves merchant performance metrics matching the search query and optionally segmented by selected dimensions.
 ///
 /// Simplest API - builds and executes the request in one call.
@@ -13361,11 +18820,11 @@ pub fn content_reports_search(
         + 'static,
     ApiError,
 > {
-    let builder = content_reports_search_builder(client, &args.merchantId, &args.body)?;
+    let builder = content_reports_search_builder(client, &args.merchantId)?;
     content_reports_search_execute(builder)
 }
 
-/// GET {merchantId}/returnpolicyonline
+/// POST {merchantId}/returnpolicyonline
 /// Creates a new return policy.
 ///
 /// Returns `ClientRequestBuilder` for customization.
@@ -13374,7 +18833,6 @@ pub fn content_reports_search(
 pub fn content_returnpolicyonline_create_builder(
     client: &SimpleHttpClient,
     merchantId: &String,
-    body: &ReturnPolicyOnline,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
@@ -13384,15 +18842,13 @@ pub fn content_returnpolicyonline_create_builder(
 
     // Build request
     let builder = client
-        .get(&endpoint_url)
+        .post(&endpoint_url)
         .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
 
-    builder
-        .body_json(body)
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+    Ok(builder)
 }
 
-/// GET {merchantId}/returnpolicyonline
+/// POST {merchantId}/returnpolicyonline
 /// Creates a new return policy.
 ///
 /// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
@@ -13466,7 +18922,7 @@ pub fn content_returnpolicyonline_create_task(
         .map_pending(|_| ApiPending::Sending))
 }
 
-/// GET {merchantId}/returnpolicyonline
+/// POST {merchantId}/returnpolicyonline
 /// Creates a new return policy.
 ///
 /// Takes a `ClientRequestBuilder`, builds and executes the request,
@@ -13503,11 +18959,9 @@ pub fn content_returnpolicyonline_create_execute(
 pub struct ContentReturnpolicyonlineCreateArgs {
     /// Path parameter: merchantId
     pub merchantId: String,
-    /// Request body.
-    pub body: ReturnPolicyOnline,
 }
 
-/// GET {merchantId}/returnpolicyonline
+/// POST {merchantId}/returnpolicyonline
 /// Creates a new return policy.
 ///
 /// Simplest API - builds and executes the request in one call.
@@ -13527,11 +18981,11 @@ pub fn content_returnpolicyonline_create(
         + 'static,
     ApiError,
 > {
-    let builder = content_returnpolicyonline_create_builder(client, &args.merchantId, &args.body)?;
+    let builder = content_returnpolicyonline_create_builder(client, &args.merchantId)?;
     content_returnpolicyonline_create_execute(builder)
 }
 
-/// GET {merchantId}/returnpolicyonline/{returnPolicyId}
+/// DELETE {merchantId}/returnpolicyonline/{returnPolicyId}
 /// Deletes an existing return policy.
 ///
 /// Returns `ClientRequestBuilder` for customization.
@@ -13550,13 +19004,13 @@ pub fn content_returnpolicyonline_delete_builder(
 
     // Build request
     let builder = client
-        .get(&endpoint_url)
+        .delete(&endpoint_url)
         .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
 
     Ok(builder)
 }
 
-/// GET {merchantId}/returnpolicyonline/{returnPolicyId}
+/// DELETE {merchantId}/returnpolicyonline/{returnPolicyId}
 /// Deletes an existing return policy.
 ///
 /// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
@@ -13627,7 +19081,7 @@ pub fn content_returnpolicyonline_delete_task(
         .map_pending(|_| ApiPending::Sending))
 }
 
-/// GET {merchantId}/returnpolicyonline/{returnPolicyId}
+/// DELETE {merchantId}/returnpolicyonline/{returnPolicyId}
 /// Deletes an existing return policy.
 ///
 /// Takes a `ClientRequestBuilder`, builds and executes the request,
@@ -13666,7 +19120,7 @@ pub struct ContentReturnpolicyonlineDeleteArgs {
     pub returnPolicyId: String,
 }
 
-/// GET {merchantId}/returnpolicyonline/{returnPolicyId}
+/// DELETE {merchantId}/returnpolicyonline/{returnPolicyId}
 /// Deletes an existing return policy.
 ///
 /// Simplest API - builds and executes the request in one call.
@@ -13689,7 +19143,502 @@ pub fn content_returnpolicyonline_delete(
     content_returnpolicyonline_delete_execute(builder)
 }
 
-/// GET shippingsettings/batch
+/// GET {merchantId}/returnpolicyonline/{returnPolicyId}
+/// Gets an existing return policy.
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `content_returnpolicyonline_get_execute()` to send, or `content_returnpolicyonline_get` for simplest API.
+
+pub fn content_returnpolicyonline_get_builder(
+    client: &SimpleHttpClient,
+    merchantId: &String,
+    returnPolicyId: &String,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!(
+        "https://shoppingcontent.googleapis.com/content/v2.1/{}/returnpolicyonline/{}",
+        merchantId, returnPolicyId,
+    );
+
+    // Build request
+    let builder = client
+        .get(&endpoint_url)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// GET {merchantId}/returnpolicyonline/{returnPolicyId}
+/// Gets an existing return policy.
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `content_returnpolicyonline_get_execute()` or `content_returnpolicyonline_get`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `content_returnpolicyonline_get_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn content_returnpolicyonline_get_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<ReturnPolicyOnline>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: ReturnPolicyOnline = serde_json::from_str(&body)
+                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// GET {merchantId}/returnpolicyonline/{returnPolicyId}
+/// Gets an existing return policy.
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `content_returnpolicyonline_get_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `content_returnpolicyonline_get_task()`.
+/// For the simplest API, use `content_returnpolicyonline_get()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `content_returnpolicyonline_get_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn content_returnpolicyonline_get_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<ReturnPolicyOnline>, ApiError>, P = ApiPending>
+        + Send
+        + 'static,
+    ApiError,
+> {
+    let task = content_returnpolicyonline_get_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`content_returnpolicyonline_get`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct ContentReturnpolicyonlineGetArgs {
+    /// Path parameter: merchantId
+    pub merchantId: String,
+    /// Path parameter: returnPolicyId
+    pub returnPolicyId: String,
+}
+
+/// GET {merchantId}/returnpolicyonline/{returnPolicyId}
+/// Gets an existing return policy.
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `content_returnpolicyonline_get_builder()` + `content_returnpolicyonline_get_execute()`.
+/// For task-level control, use `content_returnpolicyonline_get_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn content_returnpolicyonline_get(
+    client: &SimpleHttpClient,
+    args: &ContentReturnpolicyonlineGetArgs,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<ReturnPolicyOnline>, ApiError>, P = ApiPending>
+        + Send
+        + 'static,
+    ApiError,
+> {
+    let builder =
+        content_returnpolicyonline_get_builder(client, &args.merchantId, &args.returnPolicyId)?;
+    content_returnpolicyonline_get_execute(builder)
+}
+
+/// GET {merchantId}/returnpolicyonline
+/// Lists all existing return policies.
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `content_returnpolicyonline_list_execute()` to send, or `content_returnpolicyonline_list` for simplest API.
+
+pub fn content_returnpolicyonline_list_builder(
+    client: &SimpleHttpClient,
+    merchantId: &String,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!(
+        "https://shoppingcontent.googleapis.com/content/v2.1/{}/returnpolicyonline",
+        merchantId,
+    );
+
+    // Build request
+    let builder = client
+        .get(&endpoint_url)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// GET {merchantId}/returnpolicyonline
+/// Lists all existing return policies.
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `content_returnpolicyonline_list_execute()` or `content_returnpolicyonline_list`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `content_returnpolicyonline_list_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn content_returnpolicyonline_list_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<ListReturnPolicyOnlineResponse>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: ListReturnPolicyOnlineResponse = serde_json::from_str(&body)
+                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// GET {merchantId}/returnpolicyonline
+/// Lists all existing return policies.
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `content_returnpolicyonline_list_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `content_returnpolicyonline_list_task()`.
+/// For the simplest API, use `content_returnpolicyonline_list()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `content_returnpolicyonline_list_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn content_returnpolicyonline_list_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<
+            D = Result<ApiResponse<ListReturnPolicyOnlineResponse>, ApiError>,
+            P = ApiPending,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    let task = content_returnpolicyonline_list_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`content_returnpolicyonline_list`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct ContentReturnpolicyonlineListArgs {
+    /// Path parameter: merchantId
+    pub merchantId: String,
+}
+
+/// GET {merchantId}/returnpolicyonline
+/// Lists all existing return policies.
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `content_returnpolicyonline_list_builder()` + `content_returnpolicyonline_list_execute()`.
+/// For task-level control, use `content_returnpolicyonline_list_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn content_returnpolicyonline_list(
+    client: &SimpleHttpClient,
+    args: &ContentReturnpolicyonlineListArgs,
+) -> Result<
+    impl StreamIterator<
+            D = Result<ApiResponse<ListReturnPolicyOnlineResponse>, ApiError>,
+            P = ApiPending,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    let builder = content_returnpolicyonline_list_builder(client, &args.merchantId)?;
+    content_returnpolicyonline_list_execute(builder)
+}
+
+/// PATCH {merchantId}/returnpolicyonline/{returnPolicyId}
+/// Updates an existing return policy.
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `content_returnpolicyonline_patch_execute()` to send, or `content_returnpolicyonline_patch` for simplest API.
+
+pub fn content_returnpolicyonline_patch_builder(
+    client: &SimpleHttpClient,
+    merchantId: &String,
+    returnPolicyId: &String,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!(
+        "https://shoppingcontent.googleapis.com/content/v2.1/{}/returnpolicyonline/{}",
+        merchantId, returnPolicyId,
+    );
+
+    // Build request
+    let builder = client
+        .patch(&endpoint_url)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// PATCH {merchantId}/returnpolicyonline/{returnPolicyId}
+/// Updates an existing return policy.
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `content_returnpolicyonline_patch_execute()` or `content_returnpolicyonline_patch`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `content_returnpolicyonline_patch_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn content_returnpolicyonline_patch_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<ReturnPolicyOnline>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: ReturnPolicyOnline = serde_json::from_str(&body)
+                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// PATCH {merchantId}/returnpolicyonline/{returnPolicyId}
+/// Updates an existing return policy.
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `content_returnpolicyonline_patch_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `content_returnpolicyonline_patch_task()`.
+/// For the simplest API, use `content_returnpolicyonline_patch()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `content_returnpolicyonline_patch_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn content_returnpolicyonline_patch_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<ReturnPolicyOnline>, ApiError>, P = ApiPending>
+        + Send
+        + 'static,
+    ApiError,
+> {
+    let task = content_returnpolicyonline_patch_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`content_returnpolicyonline_patch`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct ContentReturnpolicyonlinePatchArgs {
+    /// Path parameter: merchantId
+    pub merchantId: String,
+    /// Path parameter: returnPolicyId
+    pub returnPolicyId: String,
+}
+
+/// PATCH {merchantId}/returnpolicyonline/{returnPolicyId}
+/// Updates an existing return policy.
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `content_returnpolicyonline_patch_builder()` + `content_returnpolicyonline_patch_execute()`.
+/// For task-level control, use `content_returnpolicyonline_patch_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn content_returnpolicyonline_patch(
+    client: &SimpleHttpClient,
+    args: &ContentReturnpolicyonlinePatchArgs,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<ReturnPolicyOnline>, ApiError>, P = ApiPending>
+        + Send
+        + 'static,
+    ApiError,
+> {
+    let builder =
+        content_returnpolicyonline_patch_builder(client, &args.merchantId, &args.returnPolicyId)?;
+    content_returnpolicyonline_patch_execute(builder)
+}
+
+/// POST shippingsettings/batch
 /// Retrieves and updates the shipping settings of multiple accounts in a single request.
 ///
 /// Returns `ClientRequestBuilder` for customization.
@@ -13697,7 +19646,6 @@ pub fn content_returnpolicyonline_delete(
 
 pub fn content_shippingsettings_custombatch_builder(
     client: &SimpleHttpClient,
-    body: &ShippingsettingsCustomBatchRequest,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url =
@@ -13705,15 +19653,13 @@ pub fn content_shippingsettings_custombatch_builder(
 
     // Build request
     let builder = client
-        .get(&endpoint_url)
+        .post(&endpoint_url)
         .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
 
-    builder
-        .body_json(body)
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+    Ok(builder)
 }
 
-/// GET shippingsettings/batch
+/// POST shippingsettings/batch
 /// Retrieves and updates the shipping settings of multiple accounts in a single request.
 ///
 /// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
@@ -13787,7 +19733,7 @@ pub fn content_shippingsettings_custombatch_task(
         .map_pending(|_| ApiPending::Sending))
 }
 
-/// GET shippingsettings/batch
+/// POST shippingsettings/batch
 /// Retrieves and updates the shipping settings of multiple accounts in a single request.
 ///
 /// Takes a `ClientRequestBuilder`, builds and executes the request,
@@ -13821,14 +19767,7 @@ pub fn content_shippingsettings_custombatch_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
-/// Arguments for [`content_shippingsettings_custombatch`].
-#[derive(Debug, Clone, Serialize, JsonHash)]
-pub struct ContentShippingsettingsCustombatchArgs {
-    /// Request body.
-    pub body: ShippingsettingsCustomBatchRequest,
-}
-
-/// GET shippingsettings/batch
+/// POST shippingsettings/batch
 /// Retrieves and updates the shipping settings of multiple accounts in a single request.
 ///
 /// Simplest API - builds and executes the request in one call.
@@ -13841,7 +19780,6 @@ pub struct ContentShippingsettingsCustombatchArgs {
 
 pub fn content_shippingsettings_custombatch(
     client: &SimpleHttpClient,
-    args: &ContentShippingsettingsCustombatchArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<ShippingsettingsCustomBatchResponse>, ApiError>,
@@ -13850,7 +19788,7 @@ pub fn content_shippingsettings_custombatch(
         + 'static,
     ApiError,
 > {
-    let builder = content_shippingsettings_custombatch_builder(client, &args.body)?;
+    let builder = content_shippingsettings_custombatch_builder(client)?;
     content_shippingsettings_custombatch_execute(builder)
 }
 
@@ -14529,8 +20467,8 @@ pub fn content_shippingsettings_getsupportedpickupservices(
 pub fn content_shippingsettings_list_builder(
     client: &SimpleHttpClient,
     merchantId: &String,
-    maxResults: &Option<i32>,
-    pageToken: &Option<String>,
+    maxResults: &Option<Option<String>>,
+    pageToken: &Option<Option<String>>,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
@@ -14674,9 +20612,9 @@ pub struct ContentShippingsettingsListArgs {
     /// Path parameter: merchantId
     pub merchantId: String,
     /// Query parameter: maxResults
-    pub maxResults: Option<i32>,
+    pub maxResults: Option<Option<String>>,
     /// Query parameter: pageToken
-    pub pageToken: Option<String>,
+    pub pageToken: Option<Option<String>>,
 }
 
 /// GET {merchantId}/shippingsettings
@@ -14708,6 +20646,171 @@ pub fn content_shippingsettings_list(
         &args.pageToken,
     )?;
     content_shippingsettings_list_execute(builder)
+}
+
+/// PUT {merchantId}/shippingsettings/{accountId}
+/// Updates the shipping settings of the account. Any fields that are not provided are deleted from the resource.
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `content_shippingsettings_update_execute()` to send, or `content_shippingsettings_update` for simplest API.
+
+pub fn content_shippingsettings_update_builder(
+    client: &SimpleHttpClient,
+    merchantId: &String,
+    accountId: &String,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!(
+        "https://shoppingcontent.googleapis.com/content/v2.1/{}/shippingsettings/{}",
+        merchantId, accountId,
+    );
+
+    // Build request
+    let builder = client
+        .put(&endpoint_url)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// PUT {merchantId}/shippingsettings/{accountId}
+/// Updates the shipping settings of the account. Any fields that are not provided are deleted from the resource.
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `content_shippingsettings_update_execute()` or `content_shippingsettings_update`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `content_shippingsettings_update_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn content_shippingsettings_update_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<ShippingSettings>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: ShippingSettings = serde_json::from_str(&body)
+                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// PUT {merchantId}/shippingsettings/{accountId}
+/// Updates the shipping settings of the account. Any fields that are not provided are deleted from the resource.
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `content_shippingsettings_update_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `content_shippingsettings_update_task()`.
+/// For the simplest API, use `content_shippingsettings_update()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `content_shippingsettings_update_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn content_shippingsettings_update_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<ShippingSettings>, ApiError>, P = ApiPending>
+        + Send
+        + 'static,
+    ApiError,
+> {
+    let task = content_shippingsettings_update_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`content_shippingsettings_update`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct ContentShippingsettingsUpdateArgs {
+    /// Path parameter: merchantId
+    pub merchantId: String,
+    /// Path parameter: accountId
+    pub accountId: String,
+}
+
+/// PUT {merchantId}/shippingsettings/{accountId}
+/// Updates the shipping settings of the account. Any fields that are not provided are deleted from the resource.
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `content_shippingsettings_update_builder()` + `content_shippingsettings_update_execute()`.
+/// For task-level control, use `content_shippingsettings_update_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn content_shippingsettings_update(
+    client: &SimpleHttpClient,
+    args: &ContentShippingsettingsUpdateArgs,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<ShippingSettings>, ApiError>, P = ApiPending>
+        + Send
+        + 'static,
+    ApiError,
+> {
+    let builder =
+        content_shippingsettings_update_builder(client, &args.merchantId, &args.accountId)?;
+    content_shippingsettings_update_execute(builder)
 }
 
 /// GET {merchantId}/shoppingadsprogram
@@ -14871,7 +20974,7 @@ pub fn content_shoppingadsprogram_get(
     content_shoppingadsprogram_get_execute(builder)
 }
 
-/// GET {merchantId}/shoppingadsprogram/requestreview
+/// POST {merchantId}/shoppingadsprogram/requestreview
 /// Requests a review of Shopping ads in a specific region. This method deprecated. Use the MerchantSupportService to view product and account issues and request a review.
 ///
 /// Returns `ClientRequestBuilder` for customization.
@@ -14880,7 +20983,6 @@ pub fn content_shoppingadsprogram_get(
 pub fn content_shoppingadsprogram_requestreview_builder(
     client: &SimpleHttpClient,
     merchantId: &String,
-    body: &RequestReviewShoppingAdsRequest,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
@@ -14890,15 +20992,13 @@ pub fn content_shoppingadsprogram_requestreview_builder(
 
     // Build request
     let builder = client
-        .get(&endpoint_url)
+        .post(&endpoint_url)
         .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
 
-    builder
-        .body_json(body)
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+    Ok(builder)
 }
 
-/// GET {merchantId}/shoppingadsprogram/requestreview
+/// POST {merchantId}/shoppingadsprogram/requestreview
 /// Requests a review of Shopping ads in a specific region. This method deprecated. Use the MerchantSupportService to view product and account issues and request a review.
 ///
 /// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
@@ -14969,7 +21069,7 @@ pub fn content_shoppingadsprogram_requestreview_task(
         .map_pending(|_| ApiPending::Sending))
 }
 
-/// GET {merchantId}/shoppingadsprogram/requestreview
+/// POST {merchantId}/shoppingadsprogram/requestreview
 /// Requests a review of Shopping ads in a specific region. This method deprecated. Use the MerchantSupportService to view product and account issues and request a review.
 ///
 /// Takes a `ClientRequestBuilder`, builds and executes the request,
@@ -15004,11 +21104,9 @@ pub fn content_shoppingadsprogram_requestreview_execute(
 pub struct ContentShoppingadsprogramRequestreviewArgs {
     /// Path parameter: merchantId
     pub merchantId: String,
-    /// Request body.
-    pub body: RequestReviewShoppingAdsRequest,
 }
 
-/// GET {merchantId}/shoppingadsprogram/requestreview
+/// POST {merchantId}/shoppingadsprogram/requestreview
 /// Requests a review of Shopping ads in a specific region. This method deprecated. Use the MerchantSupportService to view product and account issues and request a review.
 ///
 /// Simplest API - builds and executes the request in one call.
@@ -15026,7 +21124,2790 @@ pub fn content_shoppingadsprogram_requestreview(
     impl StreamIterator<D = Result<ApiResponse<()>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder =
-        content_shoppingadsprogram_requestreview_builder(client, &args.merchantId, &args.body)?;
+    let builder = content_shoppingadsprogram_requestreview_builder(client, &args.merchantId)?;
     content_shoppingadsprogram_requestreview_execute(builder)
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for AccountsAuthInfoResponse
+// =============================================================================
+
+/// ResourceIdentifier implementation for AccountsAuthInfoResponse with ContentAccountsAuthinfoArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<ContentAccountsAuthinfoArgs> for AccountsAuthInfoResponse {
+    fn generate_resource_id(&self, input: &ContentAccountsAuthinfoArgs) -> String {
+        "gcp::content::AccountsAuthInfoResponse".to_string()
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::content::AccountsAuthInfoResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for AccountsClaimWebsiteResponse
+// =============================================================================
+
+/// ResourceIdentifier implementation for AccountsClaimWebsiteResponse with ContentAccountsClaimwebsiteArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<ContentAccountsClaimwebsiteArgs> for AccountsClaimWebsiteResponse {
+    fn generate_resource_id(&self, input: &ContentAccountsClaimwebsiteArgs) -> String {
+        format!(
+            "gcp::content::AccountsClaimWebsiteResponse/{}/{}",
+            input.merchantId, input.accountId
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::content::AccountsClaimWebsiteResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for AccountsCustomBatchResponse
+// =============================================================================
+
+/// ResourceIdentifier implementation for AccountsCustomBatchResponse with ContentAccountsCustombatchArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<ContentAccountsCustombatchArgs> for AccountsCustomBatchResponse {
+    fn generate_resource_id(&self, input: &ContentAccountsCustombatchArgs) -> String {
+        "gcp::content::AccountsCustomBatchResponse".to_string()
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::content::AccountsCustomBatchResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for Account
+// =============================================================================
+
+/// ResourceIdentifier implementation for Account with ContentAccountsGetArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<ContentAccountsGetArgs> for Account {
+    fn generate_resource_id(&self, input: &ContentAccountsGetArgs) -> String {
+        format!(
+            "gcp::content::Account/{}/{}",
+            input.merchantId, input.accountId
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::content::Account"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for Account
+// =============================================================================
+
+/// ResourceIdentifier implementation for Account with ContentAccountsInsertArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<ContentAccountsInsertArgs> for Account {
+    fn generate_resource_id(&self, input: &ContentAccountsInsertArgs) -> String {
+        format!("gcp::content::Account/{}", input.merchantId)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::content::Account"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for AccountsLinkResponse
+// =============================================================================
+
+/// ResourceIdentifier implementation for AccountsLinkResponse with ContentAccountsLinkArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<ContentAccountsLinkArgs> for AccountsLinkResponse {
+    fn generate_resource_id(&self, input: &ContentAccountsLinkArgs) -> String {
+        format!(
+            "gcp::content::AccountsLinkResponse/{}/{}",
+            input.merchantId, input.accountId
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::content::AccountsLinkResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for AccountsListResponse
+// =============================================================================
+
+/// ResourceIdentifier implementation for AccountsListResponse with ContentAccountsListArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<ContentAccountsListArgs> for AccountsListResponse {
+    fn generate_resource_id(&self, input: &ContentAccountsListArgs) -> String {
+        format!("gcp::content::AccountsListResponse/{}", input.merchantId)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::content::AccountsListResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for AccountsListLinksResponse
+// =============================================================================
+
+/// ResourceIdentifier implementation for AccountsListLinksResponse with ContentAccountsListlinksArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<ContentAccountsListlinksArgs> for AccountsListLinksResponse {
+    fn generate_resource_id(&self, input: &ContentAccountsListlinksArgs) -> String {
+        format!(
+            "gcp::content::AccountsListLinksResponse/{}/{}",
+            input.merchantId, input.accountId
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::content::AccountsListLinksResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for RequestPhoneVerificationResponse
+// =============================================================================
+
+/// ResourceIdentifier implementation for RequestPhoneVerificationResponse with ContentAccountsRequestphoneverificationArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<ContentAccountsRequestphoneverificationArgs>
+    for RequestPhoneVerificationResponse
+{
+    fn generate_resource_id(&self, input: &ContentAccountsRequestphoneverificationArgs) -> String {
+        format!(
+            "gcp::content::RequestPhoneVerificationResponse/{}/{}",
+            input.merchantId, input.accountId
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::content::RequestPhoneVerificationResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for Account
+// =============================================================================
+
+/// ResourceIdentifier implementation for Account with ContentAccountsUpdateArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<ContentAccountsUpdateArgs> for Account {
+    fn generate_resource_id(&self, input: &ContentAccountsUpdateArgs) -> String {
+        format!(
+            "gcp::content::Account/{}/{}",
+            input.merchantId, input.accountId
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::content::Account"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for AccountsUpdateLabelsResponse
+// =============================================================================
+
+/// ResourceIdentifier implementation for AccountsUpdateLabelsResponse with ContentAccountsUpdatelabelsArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<ContentAccountsUpdatelabelsArgs> for AccountsUpdateLabelsResponse {
+    fn generate_resource_id(&self, input: &ContentAccountsUpdatelabelsArgs) -> String {
+        format!(
+            "gcp::content::AccountsUpdateLabelsResponse/{}/{}",
+            input.merchantId, input.accountId
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::content::AccountsUpdateLabelsResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for VerifyPhoneNumberResponse
+// =============================================================================
+
+/// ResourceIdentifier implementation for VerifyPhoneNumberResponse with ContentAccountsVerifyphonenumberArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<ContentAccountsVerifyphonenumberArgs> for VerifyPhoneNumberResponse {
+    fn generate_resource_id(&self, input: &ContentAccountsVerifyphonenumberArgs) -> String {
+        format!(
+            "gcp::content::VerifyPhoneNumberResponse/{}/{}",
+            input.merchantId, input.accountId
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::content::VerifyPhoneNumberResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for AccountCredentials
+// =============================================================================
+
+/// ResourceIdentifier implementation for AccountCredentials with ContentAccountsCredentialsCreateArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<ContentAccountsCredentialsCreateArgs> for AccountCredentials {
+    fn generate_resource_id(&self, input: &ContentAccountsCredentialsCreateArgs) -> String {
+        format!("gcp::content::AccountCredentials/{}", input.accountId)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::content::AccountCredentials"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for AccountLabel
+// =============================================================================
+
+/// ResourceIdentifier implementation for AccountLabel with ContentAccountsLabelsCreateArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<ContentAccountsLabelsCreateArgs> for AccountLabel {
+    fn generate_resource_id(&self, input: &ContentAccountsLabelsCreateArgs) -> String {
+        format!("gcp::content::AccountLabel/{}", input.accountId)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::content::AccountLabel"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for ListAccountLabelsResponse
+// =============================================================================
+
+/// ResourceIdentifier implementation for ListAccountLabelsResponse with ContentAccountsLabelsListArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<ContentAccountsLabelsListArgs> for ListAccountLabelsResponse {
+    fn generate_resource_id(&self, input: &ContentAccountsLabelsListArgs) -> String {
+        format!(
+            "gcp::content::ListAccountLabelsResponse/{}",
+            input.accountId
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::content::ListAccountLabelsResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for AccountLabel
+// =============================================================================
+
+/// ResourceIdentifier implementation for AccountLabel with ContentAccountsLabelsPatchArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<ContentAccountsLabelsPatchArgs> for AccountLabel {
+    fn generate_resource_id(&self, input: &ContentAccountsLabelsPatchArgs) -> String {
+        format!(
+            "gcp::content::AccountLabel/{}/{}",
+            input.accountId, input.labelId
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::content::AccountLabel"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for AccountReturnCarrier
+// =============================================================================
+
+/// ResourceIdentifier implementation for AccountReturnCarrier with ContentAccountsReturncarrierCreateArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<ContentAccountsReturncarrierCreateArgs> for AccountReturnCarrier {
+    fn generate_resource_id(&self, input: &ContentAccountsReturncarrierCreateArgs) -> String {
+        format!("gcp::content::AccountReturnCarrier/{}", input.accountId)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::content::AccountReturnCarrier"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for ListAccountReturnCarrierResponse
+// =============================================================================
+
+/// ResourceIdentifier implementation for ListAccountReturnCarrierResponse with ContentAccountsReturncarrierListArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<ContentAccountsReturncarrierListArgs> for ListAccountReturnCarrierResponse {
+    fn generate_resource_id(&self, input: &ContentAccountsReturncarrierListArgs) -> String {
+        format!(
+            "gcp::content::ListAccountReturnCarrierResponse/{}",
+            input.accountId
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::content::ListAccountReturnCarrierResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for AccountReturnCarrier
+// =============================================================================
+
+/// ResourceIdentifier implementation for AccountReturnCarrier with ContentAccountsReturncarrierPatchArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<ContentAccountsReturncarrierPatchArgs> for AccountReturnCarrier {
+    fn generate_resource_id(&self, input: &ContentAccountsReturncarrierPatchArgs) -> String {
+        format!(
+            "gcp::content::AccountReturnCarrier/{}/{}",
+            input.accountId, input.carrierAccountId
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::content::AccountReturnCarrier"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for AccountstatusesCustomBatchResponse
+// =============================================================================
+
+/// ResourceIdentifier implementation for AccountstatusesCustomBatchResponse with ContentAccountstatusesCustombatchArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<ContentAccountstatusesCustombatchArgs>
+    for AccountstatusesCustomBatchResponse
+{
+    fn generate_resource_id(&self, input: &ContentAccountstatusesCustombatchArgs) -> String {
+        "gcp::content::AccountstatusesCustomBatchResponse".to_string()
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::content::AccountstatusesCustomBatchResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for AccountStatus
+// =============================================================================
+
+/// ResourceIdentifier implementation for AccountStatus with ContentAccountstatusesGetArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<ContentAccountstatusesGetArgs> for AccountStatus {
+    fn generate_resource_id(&self, input: &ContentAccountstatusesGetArgs) -> String {
+        format!(
+            "gcp::content::AccountStatus/{}/{}",
+            input.merchantId, input.accountId
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::content::AccountStatus"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for AccountstatusesListResponse
+// =============================================================================
+
+/// ResourceIdentifier implementation for AccountstatusesListResponse with ContentAccountstatusesListArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<ContentAccountstatusesListArgs> for AccountstatusesListResponse {
+    fn generate_resource_id(&self, input: &ContentAccountstatusesListArgs) -> String {
+        format!(
+            "gcp::content::AccountstatusesListResponse/{}",
+            input.merchantId
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::content::AccountstatusesListResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for AccounttaxCustomBatchResponse
+// =============================================================================
+
+/// ResourceIdentifier implementation for AccounttaxCustomBatchResponse with ContentAccounttaxCustombatchArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<ContentAccounttaxCustombatchArgs> for AccounttaxCustomBatchResponse {
+    fn generate_resource_id(&self, input: &ContentAccounttaxCustombatchArgs) -> String {
+        "gcp::content::AccounttaxCustomBatchResponse".to_string()
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::content::AccounttaxCustomBatchResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for AccountTax
+// =============================================================================
+
+/// ResourceIdentifier implementation for AccountTax with ContentAccounttaxGetArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<ContentAccounttaxGetArgs> for AccountTax {
+    fn generate_resource_id(&self, input: &ContentAccounttaxGetArgs) -> String {
+        format!(
+            "gcp::content::AccountTax/{}/{}",
+            input.merchantId, input.accountId
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::content::AccountTax"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for AccounttaxListResponse
+// =============================================================================
+
+/// ResourceIdentifier implementation for AccounttaxListResponse with ContentAccounttaxListArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<ContentAccounttaxListArgs> for AccounttaxListResponse {
+    fn generate_resource_id(&self, input: &ContentAccounttaxListArgs) -> String {
+        format!("gcp::content::AccounttaxListResponse/{}", input.merchantId)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::content::AccounttaxListResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for AccountTax
+// =============================================================================
+
+/// ResourceIdentifier implementation for AccountTax with ContentAccounttaxUpdateArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<ContentAccounttaxUpdateArgs> for AccountTax {
+    fn generate_resource_id(&self, input: &ContentAccounttaxUpdateArgs) -> String {
+        format!(
+            "gcp::content::AccountTax/{}/{}",
+            input.merchantId, input.accountId
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::content::AccountTax"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for Collection
+// =============================================================================
+
+/// ResourceIdentifier implementation for Collection with ContentCollectionsCreateArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<ContentCollectionsCreateArgs> for Collection {
+    fn generate_resource_id(&self, input: &ContentCollectionsCreateArgs) -> String {
+        format!("gcp::content::Collection/{}", input.merchantId)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::content::Collection"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for Collection
+// =============================================================================
+
+/// ResourceIdentifier implementation for Collection with ContentCollectionsGetArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<ContentCollectionsGetArgs> for Collection {
+    fn generate_resource_id(&self, input: &ContentCollectionsGetArgs) -> String {
+        format!(
+            "gcp::content::Collection/{}/{}",
+            input.merchantId, input.collectionId
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::content::Collection"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for ListCollectionsResponse
+// =============================================================================
+
+/// ResourceIdentifier implementation for ListCollectionsResponse with ContentCollectionsListArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<ContentCollectionsListArgs> for ListCollectionsResponse {
+    fn generate_resource_id(&self, input: &ContentCollectionsListArgs) -> String {
+        format!("gcp::content::ListCollectionsResponse/{}", input.merchantId)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::content::ListCollectionsResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for CollectionStatus
+// =============================================================================
+
+/// ResourceIdentifier implementation for CollectionStatus with ContentCollectionstatusesGetArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<ContentCollectionstatusesGetArgs> for CollectionStatus {
+    fn generate_resource_id(&self, input: &ContentCollectionstatusesGetArgs) -> String {
+        format!(
+            "gcp::content::CollectionStatus/{}/{}",
+            input.merchantId, input.collectionId
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::content::CollectionStatus"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for ListCollectionStatusesResponse
+// =============================================================================
+
+/// ResourceIdentifier implementation for ListCollectionStatusesResponse with ContentCollectionstatusesListArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<ContentCollectionstatusesListArgs> for ListCollectionStatusesResponse {
+    fn generate_resource_id(&self, input: &ContentCollectionstatusesListArgs) -> String {
+        format!(
+            "gcp::content::ListCollectionStatusesResponse/{}",
+            input.merchantId
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::content::ListCollectionStatusesResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for ConversionSource
+// =============================================================================
+
+/// ResourceIdentifier implementation for ConversionSource with ContentConversionsourcesCreateArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<ContentConversionsourcesCreateArgs> for ConversionSource {
+    fn generate_resource_id(&self, input: &ContentConversionsourcesCreateArgs) -> String {
+        format!("gcp::content::ConversionSource/{}", input.merchantId)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::content::ConversionSource"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for ConversionSource
+// =============================================================================
+
+/// ResourceIdentifier implementation for ConversionSource with ContentConversionsourcesGetArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<ContentConversionsourcesGetArgs> for ConversionSource {
+    fn generate_resource_id(&self, input: &ContentConversionsourcesGetArgs) -> String {
+        format!(
+            "gcp::content::ConversionSource/{}/{}",
+            input.merchantId, input.conversionSourceId
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::content::ConversionSource"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for ListConversionSourcesResponse
+// =============================================================================
+
+/// ResourceIdentifier implementation for ListConversionSourcesResponse with ContentConversionsourcesListArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<ContentConversionsourcesListArgs> for ListConversionSourcesResponse {
+    fn generate_resource_id(&self, input: &ContentConversionsourcesListArgs) -> String {
+        format!(
+            "gcp::content::ListConversionSourcesResponse/{}",
+            input.merchantId
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::content::ListConversionSourcesResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for ConversionSource
+// =============================================================================
+
+/// ResourceIdentifier implementation for ConversionSource with ContentConversionsourcesPatchArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<ContentConversionsourcesPatchArgs> for ConversionSource {
+    fn generate_resource_id(&self, input: &ContentConversionsourcesPatchArgs) -> String {
+        format!(
+            "gcp::content::ConversionSource/{}/{}",
+            input.merchantId, input.conversionSourceId
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::content::ConversionSource"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for Css
+// =============================================================================
+
+/// ResourceIdentifier implementation for Css with ContentCssesGetArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<ContentCssesGetArgs> for Css {
+    fn generate_resource_id(&self, input: &ContentCssesGetArgs) -> String {
+        format!(
+            "gcp::content::Css/{}/{}",
+            input.cssGroupId, input.cssDomainId
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::content::Css"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for ListCssesResponse
+// =============================================================================
+
+/// ResourceIdentifier implementation for ListCssesResponse with ContentCssesListArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<ContentCssesListArgs> for ListCssesResponse {
+    fn generate_resource_id(&self, input: &ContentCssesListArgs) -> String {
+        format!("gcp::content::ListCssesResponse/{}", input.cssGroupId)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::content::ListCssesResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for Css
+// =============================================================================
+
+/// ResourceIdentifier implementation for Css with ContentCssesUpdatelabelsArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<ContentCssesUpdatelabelsArgs> for Css {
+    fn generate_resource_id(&self, input: &ContentCssesUpdatelabelsArgs) -> String {
+        format!(
+            "gcp::content::Css/{}/{}",
+            input.cssGroupId, input.cssDomainId
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::content::Css"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for DatafeedsCustomBatchResponse
+// =============================================================================
+
+/// ResourceIdentifier implementation for DatafeedsCustomBatchResponse with ContentDatafeedsCustombatchArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<ContentDatafeedsCustombatchArgs> for DatafeedsCustomBatchResponse {
+    fn generate_resource_id(&self, input: &ContentDatafeedsCustombatchArgs) -> String {
+        "gcp::content::DatafeedsCustomBatchResponse".to_string()
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::content::DatafeedsCustomBatchResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for DatafeedsFetchNowResponse
+// =============================================================================
+
+/// ResourceIdentifier implementation for DatafeedsFetchNowResponse with ContentDatafeedsFetchnowArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<ContentDatafeedsFetchnowArgs> for DatafeedsFetchNowResponse {
+    fn generate_resource_id(&self, input: &ContentDatafeedsFetchnowArgs) -> String {
+        format!(
+            "gcp::content::DatafeedsFetchNowResponse/{}/{}",
+            input.merchantId, input.datafeedId
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::content::DatafeedsFetchNowResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for Datafeed
+// =============================================================================
+
+/// ResourceIdentifier implementation for Datafeed with ContentDatafeedsGetArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<ContentDatafeedsGetArgs> for Datafeed {
+    fn generate_resource_id(&self, input: &ContentDatafeedsGetArgs) -> String {
+        format!(
+            "gcp::content::Datafeed/{}/{}",
+            input.merchantId, input.datafeedId
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::content::Datafeed"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for Datafeed
+// =============================================================================
+
+/// ResourceIdentifier implementation for Datafeed with ContentDatafeedsInsertArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<ContentDatafeedsInsertArgs> for Datafeed {
+    fn generate_resource_id(&self, input: &ContentDatafeedsInsertArgs) -> String {
+        format!("gcp::content::Datafeed/{}", input.merchantId)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::content::Datafeed"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for DatafeedsListResponse
+// =============================================================================
+
+/// ResourceIdentifier implementation for DatafeedsListResponse with ContentDatafeedsListArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<ContentDatafeedsListArgs> for DatafeedsListResponse {
+    fn generate_resource_id(&self, input: &ContentDatafeedsListArgs) -> String {
+        format!("gcp::content::DatafeedsListResponse/{}", input.merchantId)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::content::DatafeedsListResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for Datafeed
+// =============================================================================
+
+/// ResourceIdentifier implementation for Datafeed with ContentDatafeedsUpdateArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<ContentDatafeedsUpdateArgs> for Datafeed {
+    fn generate_resource_id(&self, input: &ContentDatafeedsUpdateArgs) -> String {
+        format!(
+            "gcp::content::Datafeed/{}/{}",
+            input.merchantId, input.datafeedId
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::content::Datafeed"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for DatafeedstatusesCustomBatchResponse
+// =============================================================================
+
+/// ResourceIdentifier implementation for DatafeedstatusesCustomBatchResponse with ContentDatafeedstatusesCustombatchArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<ContentDatafeedstatusesCustombatchArgs>
+    for DatafeedstatusesCustomBatchResponse
+{
+    fn generate_resource_id(&self, input: &ContentDatafeedstatusesCustombatchArgs) -> String {
+        "gcp::content::DatafeedstatusesCustomBatchResponse".to_string()
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::content::DatafeedstatusesCustomBatchResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for DatafeedStatus
+// =============================================================================
+
+/// ResourceIdentifier implementation for DatafeedStatus with ContentDatafeedstatusesGetArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<ContentDatafeedstatusesGetArgs> for DatafeedStatus {
+    fn generate_resource_id(&self, input: &ContentDatafeedstatusesGetArgs) -> String {
+        format!(
+            "gcp::content::DatafeedStatus/{}/{}",
+            input.merchantId, input.datafeedId
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::content::DatafeedStatus"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for DatafeedstatusesListResponse
+// =============================================================================
+
+/// ResourceIdentifier implementation for DatafeedstatusesListResponse with ContentDatafeedstatusesListArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<ContentDatafeedstatusesListArgs> for DatafeedstatusesListResponse {
+    fn generate_resource_id(&self, input: &ContentDatafeedstatusesListArgs) -> String {
+        format!(
+            "gcp::content::DatafeedstatusesListResponse/{}",
+            input.merchantId
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::content::DatafeedstatusesListResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for FreeListingsProgramStatus
+// =============================================================================
+
+/// ResourceIdentifier implementation for FreeListingsProgramStatus with ContentFreelistingsprogramGetArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<ContentFreelistingsprogramGetArgs> for FreeListingsProgramStatus {
+    fn generate_resource_id(&self, input: &ContentFreelistingsprogramGetArgs) -> String {
+        format!(
+            "gcp::content::FreeListingsProgramStatus/{}",
+            input.merchantId
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::content::FreeListingsProgramStatus"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for CheckoutSettings
+// =============================================================================
+
+/// ResourceIdentifier implementation for CheckoutSettings with ContentFreelistingsprogramCheckoutsettingsGetArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<ContentFreelistingsprogramCheckoutsettingsGetArgs> for CheckoutSettings {
+    fn generate_resource_id(
+        &self,
+        input: &ContentFreelistingsprogramCheckoutsettingsGetArgs,
+    ) -> String {
+        format!("gcp::content::CheckoutSettings/{}", input.merchantId)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::content::CheckoutSettings"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for CheckoutSettings
+// =============================================================================
+
+/// ResourceIdentifier implementation for CheckoutSettings with ContentFreelistingsprogramCheckoutsettingsInsertArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<ContentFreelistingsprogramCheckoutsettingsInsertArgs> for CheckoutSettings {
+    fn generate_resource_id(
+        &self,
+        input: &ContentFreelistingsprogramCheckoutsettingsInsertArgs,
+    ) -> String {
+        format!("gcp::content::CheckoutSettings/{}", input.merchantId)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::content::CheckoutSettings"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for LiasettingsCustomBatchResponse
+// =============================================================================
+
+/// ResourceIdentifier implementation for LiasettingsCustomBatchResponse with ContentLiasettingsCustombatchArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<ContentLiasettingsCustombatchArgs> for LiasettingsCustomBatchResponse {
+    fn generate_resource_id(&self, input: &ContentLiasettingsCustombatchArgs) -> String {
+        "gcp::content::LiasettingsCustomBatchResponse".to_string()
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::content::LiasettingsCustomBatchResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for LiaSettings
+// =============================================================================
+
+/// ResourceIdentifier implementation for LiaSettings with ContentLiasettingsGetArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<ContentLiasettingsGetArgs> for LiaSettings {
+    fn generate_resource_id(&self, input: &ContentLiasettingsGetArgs) -> String {
+        format!(
+            "gcp::content::LiaSettings/{}/{}",
+            input.merchantId, input.accountId
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::content::LiaSettings"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for LiasettingsGetAccessibleGmbAccountsResponse
+// =============================================================================
+
+/// ResourceIdentifier implementation for LiasettingsGetAccessibleGmbAccountsResponse with ContentLiasettingsGetaccessiblegmbaccountsArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<ContentLiasettingsGetaccessiblegmbaccountsArgs>
+    for LiasettingsGetAccessibleGmbAccountsResponse
+{
+    fn generate_resource_id(
+        &self,
+        input: &ContentLiasettingsGetaccessiblegmbaccountsArgs,
+    ) -> String {
+        format!(
+            "gcp::content::LiasettingsGetAccessibleGmbAccountsResponse/{}/{}",
+            input.merchantId, input.accountId
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::content::LiasettingsGetAccessibleGmbAccountsResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for LiasettingsListResponse
+// =============================================================================
+
+/// ResourceIdentifier implementation for LiasettingsListResponse with ContentLiasettingsListArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<ContentLiasettingsListArgs> for LiasettingsListResponse {
+    fn generate_resource_id(&self, input: &ContentLiasettingsListArgs) -> String {
+        format!("gcp::content::LiasettingsListResponse/{}", input.merchantId)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::content::LiasettingsListResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for LiasettingsListPosDataProvidersResponse
+// =============================================================================
+
+/// ResourceIdentifier implementation for LiasettingsListPosDataProvidersResponse with ContentLiasettingsListposdataprovidersArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<ContentLiasettingsListposdataprovidersArgs>
+    for LiasettingsListPosDataProvidersResponse
+{
+    fn generate_resource_id(&self, input: &ContentLiasettingsListposdataprovidersArgs) -> String {
+        "gcp::content::LiasettingsListPosDataProvidersResponse".to_string()
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::content::LiasettingsListPosDataProvidersResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for LiasettingsRequestGmbAccessResponse
+// =============================================================================
+
+/// ResourceIdentifier implementation for LiasettingsRequestGmbAccessResponse with ContentLiasettingsRequestgmbaccessArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<ContentLiasettingsRequestgmbaccessArgs>
+    for LiasettingsRequestGmbAccessResponse
+{
+    fn generate_resource_id(&self, input: &ContentLiasettingsRequestgmbaccessArgs) -> String {
+        format!(
+            "gcp::content::LiasettingsRequestGmbAccessResponse/{}/{}",
+            input.merchantId, input.accountId
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::content::LiasettingsRequestGmbAccessResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for LiasettingsRequestInventoryVerificationResponse
+// =============================================================================
+
+/// ResourceIdentifier implementation for LiasettingsRequestInventoryVerificationResponse with ContentLiasettingsRequestinventoryverificationArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<ContentLiasettingsRequestinventoryverificationArgs>
+    for LiasettingsRequestInventoryVerificationResponse
+{
+    fn generate_resource_id(
+        &self,
+        input: &ContentLiasettingsRequestinventoryverificationArgs,
+    ) -> String {
+        format!(
+            "gcp::content::LiasettingsRequestInventoryVerificationResponse/{}/{}/{}",
+            input.merchantId, input.accountId, input.country
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::content::LiasettingsRequestInventoryVerificationResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for LiasettingsSetInventoryVerificationContactResponse
+// =============================================================================
+
+/// ResourceIdentifier implementation for LiasettingsSetInventoryVerificationContactResponse with ContentLiasettingsSetinventoryverificationcontactArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<ContentLiasettingsSetinventoryverificationcontactArgs>
+    for LiasettingsSetInventoryVerificationContactResponse
+{
+    fn generate_resource_id(
+        &self,
+        input: &ContentLiasettingsSetinventoryverificationcontactArgs,
+    ) -> String {
+        format!(
+            "gcp::content::LiasettingsSetInventoryVerificationContactResponse/{}/{}",
+            input.merchantId, input.accountId
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::content::LiasettingsSetInventoryVerificationContactResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for LiaOmnichannelExperience
+// =============================================================================
+
+/// ResourceIdentifier implementation for LiaOmnichannelExperience with ContentLiasettingsSetomnichannelexperienceArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<ContentLiasettingsSetomnichannelexperienceArgs>
+    for LiaOmnichannelExperience
+{
+    fn generate_resource_id(
+        &self,
+        input: &ContentLiasettingsSetomnichannelexperienceArgs,
+    ) -> String {
+        format!(
+            "gcp::content::LiaOmnichannelExperience/{}/{}",
+            input.merchantId, input.accountId
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::content::LiaOmnichannelExperience"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for LiasettingsSetPosDataProviderResponse
+// =============================================================================
+
+/// ResourceIdentifier implementation for LiasettingsSetPosDataProviderResponse with ContentLiasettingsSetposdataproviderArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<ContentLiasettingsSetposdataproviderArgs>
+    for LiasettingsSetPosDataProviderResponse
+{
+    fn generate_resource_id(&self, input: &ContentLiasettingsSetposdataproviderArgs) -> String {
+        format!(
+            "gcp::content::LiasettingsSetPosDataProviderResponse/{}/{}",
+            input.merchantId, input.accountId
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::content::LiasettingsSetPosDataProviderResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for LiaSettings
+// =============================================================================
+
+/// ResourceIdentifier implementation for LiaSettings with ContentLiasettingsUpdateArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<ContentLiasettingsUpdateArgs> for LiaSettings {
+    fn generate_resource_id(&self, input: &ContentLiasettingsUpdateArgs) -> String {
+        format!(
+            "gcp::content::LiaSettings/{}/{}",
+            input.merchantId, input.accountId
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::content::LiaSettings"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for LocalinventoryCustomBatchResponse
+// =============================================================================
+
+/// ResourceIdentifier implementation for LocalinventoryCustomBatchResponse with ContentLocalinventoryCustombatchArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<ContentLocalinventoryCustombatchArgs>
+    for LocalinventoryCustomBatchResponse
+{
+    fn generate_resource_id(&self, input: &ContentLocalinventoryCustombatchArgs) -> String {
+        "gcp::content::LocalinventoryCustomBatchResponse".to_string()
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::content::LocalinventoryCustomBatchResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for LocalInventory
+// =============================================================================
+
+/// ResourceIdentifier implementation for LocalInventory with ContentLocalinventoryInsertArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<ContentLocalinventoryInsertArgs> for LocalInventory {
+    fn generate_resource_id(&self, input: &ContentLocalinventoryInsertArgs) -> String {
+        format!(
+            "gcp::content::LocalInventory/{}/{}",
+            input.merchantId, input.productId
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::content::LocalInventory"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for RenderAccountIssuesResponse
+// =============================================================================
+
+/// ResourceIdentifier implementation for RenderAccountIssuesResponse with ContentMerchantsupportRenderaccountissuesArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<ContentMerchantsupportRenderaccountissuesArgs>
+    for RenderAccountIssuesResponse
+{
+    fn generate_resource_id(
+        &self,
+        input: &ContentMerchantsupportRenderaccountissuesArgs,
+    ) -> String {
+        format!(
+            "gcp::content::RenderAccountIssuesResponse/{}",
+            input.merchantId
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::content::RenderAccountIssuesResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for RenderProductIssuesResponse
+// =============================================================================
+
+/// ResourceIdentifier implementation for RenderProductIssuesResponse with ContentMerchantsupportRenderproductissuesArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<ContentMerchantsupportRenderproductissuesArgs>
+    for RenderProductIssuesResponse
+{
+    fn generate_resource_id(
+        &self,
+        input: &ContentMerchantsupportRenderproductissuesArgs,
+    ) -> String {
+        format!(
+            "gcp::content::RenderProductIssuesResponse/{}/{}",
+            input.merchantId, input.productId
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::content::RenderProductIssuesResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for TriggerActionResponse
+// =============================================================================
+
+/// ResourceIdentifier implementation for TriggerActionResponse with ContentMerchantsupportTriggeractionArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<ContentMerchantsupportTriggeractionArgs> for TriggerActionResponse {
+    fn generate_resource_id(&self, input: &ContentMerchantsupportTriggeractionArgs) -> String {
+        format!("gcp::content::TriggerActionResponse/{}", input.merchantId)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::content::TriggerActionResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for OrderTrackingSignal
+// =============================================================================
+
+/// ResourceIdentifier implementation for OrderTrackingSignal with ContentOrdertrackingsignalsCreateArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<ContentOrdertrackingsignalsCreateArgs> for OrderTrackingSignal {
+    fn generate_resource_id(&self, input: &ContentOrdertrackingsignalsCreateArgs) -> String {
+        format!("gcp::content::OrderTrackingSignal/{}", input.merchantId)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::content::OrderTrackingSignal"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for PosCustomBatchResponse
+// =============================================================================
+
+/// ResourceIdentifier implementation for PosCustomBatchResponse with ContentPosCustombatchArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<ContentPosCustombatchArgs> for PosCustomBatchResponse {
+    fn generate_resource_id(&self, input: &ContentPosCustombatchArgs) -> String {
+        "gcp::content::PosCustomBatchResponse".to_string()
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::content::PosCustomBatchResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for PosStore
+// =============================================================================
+
+/// ResourceIdentifier implementation for PosStore with ContentPosGetArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<ContentPosGetArgs> for PosStore {
+    fn generate_resource_id(&self, input: &ContentPosGetArgs) -> String {
+        format!(
+            "gcp::content::PosStore/{}/{}/{}",
+            input.merchantId, input.targetMerchantId, input.storeCode
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::content::PosStore"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for PosStore
+// =============================================================================
+
+/// ResourceIdentifier implementation for PosStore with ContentPosInsertArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<ContentPosInsertArgs> for PosStore {
+    fn generate_resource_id(&self, input: &ContentPosInsertArgs) -> String {
+        format!(
+            "gcp::content::PosStore/{}/{}",
+            input.merchantId, input.targetMerchantId
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::content::PosStore"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for PosInventoryResponse
+// =============================================================================
+
+/// ResourceIdentifier implementation for PosInventoryResponse with ContentPosInventoryArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<ContentPosInventoryArgs> for PosInventoryResponse {
+    fn generate_resource_id(&self, input: &ContentPosInventoryArgs) -> String {
+        format!(
+            "gcp::content::PosInventoryResponse/{}/{}",
+            input.merchantId, input.targetMerchantId
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::content::PosInventoryResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for PosListResponse
+// =============================================================================
+
+/// ResourceIdentifier implementation for PosListResponse with ContentPosListArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<ContentPosListArgs> for PosListResponse {
+    fn generate_resource_id(&self, input: &ContentPosListArgs) -> String {
+        format!(
+            "gcp::content::PosListResponse/{}/{}",
+            input.merchantId, input.targetMerchantId
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::content::PosListResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for PosSaleResponse
+// =============================================================================
+
+/// ResourceIdentifier implementation for PosSaleResponse with ContentPosSaleArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<ContentPosSaleArgs> for PosSaleResponse {
+    fn generate_resource_id(&self, input: &ContentPosSaleArgs) -> String {
+        format!(
+            "gcp::content::PosSaleResponse/{}/{}",
+            input.merchantId, input.targetMerchantId
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::content::PosSaleResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for ProductDeliveryTime
+// =============================================================================
+
+/// ResourceIdentifier implementation for ProductDeliveryTime with ContentProductdeliverytimeCreateArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<ContentProductdeliverytimeCreateArgs> for ProductDeliveryTime {
+    fn generate_resource_id(&self, input: &ContentProductdeliverytimeCreateArgs) -> String {
+        format!("gcp::content::ProductDeliveryTime/{}", input.merchantId)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::content::ProductDeliveryTime"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for ProductDeliveryTime
+// =============================================================================
+
+/// ResourceIdentifier implementation for ProductDeliveryTime with ContentProductdeliverytimeGetArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<ContentProductdeliverytimeGetArgs> for ProductDeliveryTime {
+    fn generate_resource_id(&self, input: &ContentProductdeliverytimeGetArgs) -> String {
+        format!(
+            "gcp::content::ProductDeliveryTime/{}/{}",
+            input.merchantId, input.productId
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::content::ProductDeliveryTime"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for ProductsCustomBatchResponse
+// =============================================================================
+
+/// ResourceIdentifier implementation for ProductsCustomBatchResponse with ContentProductsCustombatchArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<ContentProductsCustombatchArgs> for ProductsCustomBatchResponse {
+    fn generate_resource_id(&self, input: &ContentProductsCustombatchArgs) -> String {
+        "gcp::content::ProductsCustomBatchResponse".to_string()
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::content::ProductsCustomBatchResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for Product
+// =============================================================================
+
+/// ResourceIdentifier implementation for Product with ContentProductsGetArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<ContentProductsGetArgs> for Product {
+    fn generate_resource_id(&self, input: &ContentProductsGetArgs) -> String {
+        format!(
+            "gcp::content::Product/{}/{}",
+            input.merchantId, input.productId
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::content::Product"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for Product
+// =============================================================================
+
+/// ResourceIdentifier implementation for Product with ContentProductsInsertArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<ContentProductsInsertArgs> for Product {
+    fn generate_resource_id(&self, input: &ContentProductsInsertArgs) -> String {
+        format!("gcp::content::Product/{}", input.merchantId)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::content::Product"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for ProductsListResponse
+// =============================================================================
+
+/// ResourceIdentifier implementation for ProductsListResponse with ContentProductsListArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<ContentProductsListArgs> for ProductsListResponse {
+    fn generate_resource_id(&self, input: &ContentProductsListArgs) -> String {
+        format!("gcp::content::ProductsListResponse/{}", input.merchantId)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::content::ProductsListResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for Product
+// =============================================================================
+
+/// ResourceIdentifier implementation for Product with ContentProductsUpdateArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<ContentProductsUpdateArgs> for Product {
+    fn generate_resource_id(&self, input: &ContentProductsUpdateArgs) -> String {
+        format!(
+            "gcp::content::Product/{}/{}",
+            input.merchantId, input.productId
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::content::Product"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for ProductstatusesCustomBatchResponse
+// =============================================================================
+
+/// ResourceIdentifier implementation for ProductstatusesCustomBatchResponse with ContentProductstatusesCustombatchArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<ContentProductstatusesCustombatchArgs>
+    for ProductstatusesCustomBatchResponse
+{
+    fn generate_resource_id(&self, input: &ContentProductstatusesCustombatchArgs) -> String {
+        "gcp::content::ProductstatusesCustomBatchResponse".to_string()
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::content::ProductstatusesCustomBatchResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for ProductStatus
+// =============================================================================
+
+/// ResourceIdentifier implementation for ProductStatus with ContentProductstatusesGetArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<ContentProductstatusesGetArgs> for ProductStatus {
+    fn generate_resource_id(&self, input: &ContentProductstatusesGetArgs) -> String {
+        format!(
+            "gcp::content::ProductStatus/{}/{}",
+            input.merchantId, input.productId
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::content::ProductStatus"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for ProductstatusesListResponse
+// =============================================================================
+
+/// ResourceIdentifier implementation for ProductstatusesListResponse with ContentProductstatusesListArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<ContentProductstatusesListArgs> for ProductstatusesListResponse {
+    fn generate_resource_id(&self, input: &ContentProductstatusesListArgs) -> String {
+        format!(
+            "gcp::content::ProductstatusesListResponse/{}",
+            input.merchantId
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::content::ProductstatusesListResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for Promotion
+// =============================================================================
+
+/// ResourceIdentifier implementation for Promotion with ContentPromotionsCreateArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<ContentPromotionsCreateArgs> for Promotion {
+    fn generate_resource_id(&self, input: &ContentPromotionsCreateArgs) -> String {
+        format!("gcp::content::Promotion/{}", input.merchantId)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::content::Promotion"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for Promotion
+// =============================================================================
+
+/// ResourceIdentifier implementation for Promotion with ContentPromotionsGetArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<ContentPromotionsGetArgs> for Promotion {
+    fn generate_resource_id(&self, input: &ContentPromotionsGetArgs) -> String {
+        format!("gcp::content::Promotion/{}/{}", input.merchantId, input.id)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::content::Promotion"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for ListPromotionResponse
+// =============================================================================
+
+/// ResourceIdentifier implementation for ListPromotionResponse with ContentPromotionsListArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<ContentPromotionsListArgs> for ListPromotionResponse {
+    fn generate_resource_id(&self, input: &ContentPromotionsListArgs) -> String {
+        format!("gcp::content::ListPromotionResponse/{}", input.merchantId)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::content::ListPromotionResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for PubsubNotificationSettings
+// =============================================================================
+
+/// ResourceIdentifier implementation for PubsubNotificationSettings with ContentPubsubnotificationsettingsGetArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<ContentPubsubnotificationsettingsGetArgs> for PubsubNotificationSettings {
+    fn generate_resource_id(&self, input: &ContentPubsubnotificationsettingsGetArgs) -> String {
+        format!(
+            "gcp::content::PubsubNotificationSettings/{}",
+            input.merchantId
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::content::PubsubNotificationSettings"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for PubsubNotificationSettings
+// =============================================================================
+
+/// ResourceIdentifier implementation for PubsubNotificationSettings with ContentPubsubnotificationsettingsUpdateArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<ContentPubsubnotificationsettingsUpdateArgs>
+    for PubsubNotificationSettings
+{
+    fn generate_resource_id(&self, input: &ContentPubsubnotificationsettingsUpdateArgs) -> String {
+        format!(
+            "gcp::content::PubsubNotificationSettings/{}",
+            input.merchantId
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::content::PubsubNotificationSettings"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for ListMethodQuotasResponse
+// =============================================================================
+
+/// ResourceIdentifier implementation for ListMethodQuotasResponse with ContentQuotasListArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<ContentQuotasListArgs> for ListMethodQuotasResponse {
+    fn generate_resource_id(&self, input: &ContentQuotasListArgs) -> String {
+        format!(
+            "gcp::content::ListMethodQuotasResponse/{}",
+            input.merchantId
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::content::ListMethodQuotasResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for GenerateRecommendationsResponse
+// =============================================================================
+
+/// ResourceIdentifier implementation for GenerateRecommendationsResponse with ContentRecommendationsGenerateArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<ContentRecommendationsGenerateArgs> for GenerateRecommendationsResponse {
+    fn generate_resource_id(&self, input: &ContentRecommendationsGenerateArgs) -> String {
+        format!(
+            "gcp::content::GenerateRecommendationsResponse/{}",
+            input.merchantId
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::content::GenerateRecommendationsResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for RegionalinventoryCustomBatchResponse
+// =============================================================================
+
+/// ResourceIdentifier implementation for RegionalinventoryCustomBatchResponse with ContentRegionalinventoryCustombatchArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<ContentRegionalinventoryCustombatchArgs>
+    for RegionalinventoryCustomBatchResponse
+{
+    fn generate_resource_id(&self, input: &ContentRegionalinventoryCustombatchArgs) -> String {
+        "gcp::content::RegionalinventoryCustomBatchResponse".to_string()
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::content::RegionalinventoryCustomBatchResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for RegionalInventory
+// =============================================================================
+
+/// ResourceIdentifier implementation for RegionalInventory with ContentRegionalinventoryInsertArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<ContentRegionalinventoryInsertArgs> for RegionalInventory {
+    fn generate_resource_id(&self, input: &ContentRegionalinventoryInsertArgs) -> String {
+        format!(
+            "gcp::content::RegionalInventory/{}/{}",
+            input.merchantId, input.productId
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::content::RegionalInventory"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for Region
+// =============================================================================
+
+/// ResourceIdentifier implementation for Region with ContentRegionsCreateArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<ContentRegionsCreateArgs> for Region {
+    fn generate_resource_id(&self, input: &ContentRegionsCreateArgs) -> String {
+        format!("gcp::content::Region/{}", input.merchantId)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::content::Region"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for Region
+// =============================================================================
+
+/// ResourceIdentifier implementation for Region with ContentRegionsGetArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<ContentRegionsGetArgs> for Region {
+    fn generate_resource_id(&self, input: &ContentRegionsGetArgs) -> String {
+        format!(
+            "gcp::content::Region/{}/{}",
+            input.merchantId, input.regionId
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::content::Region"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for ListRegionsResponse
+// =============================================================================
+
+/// ResourceIdentifier implementation for ListRegionsResponse with ContentRegionsListArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<ContentRegionsListArgs> for ListRegionsResponse {
+    fn generate_resource_id(&self, input: &ContentRegionsListArgs) -> String {
+        format!("gcp::content::ListRegionsResponse/{}", input.merchantId)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::content::ListRegionsResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for Region
+// =============================================================================
+
+/// ResourceIdentifier implementation for Region with ContentRegionsPatchArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<ContentRegionsPatchArgs> for Region {
+    fn generate_resource_id(&self, input: &ContentRegionsPatchArgs) -> String {
+        format!(
+            "gcp::content::Region/{}/{}",
+            input.merchantId, input.regionId
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::content::Region"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for SearchResponse
+// =============================================================================
+
+/// ResourceIdentifier implementation for SearchResponse with ContentReportsSearchArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<ContentReportsSearchArgs> for SearchResponse {
+    fn generate_resource_id(&self, input: &ContentReportsSearchArgs) -> String {
+        format!("gcp::content::SearchResponse/{}", input.merchantId)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::content::SearchResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for ReturnPolicyOnline
+// =============================================================================
+
+/// ResourceIdentifier implementation for ReturnPolicyOnline with ContentReturnpolicyonlineCreateArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<ContentReturnpolicyonlineCreateArgs> for ReturnPolicyOnline {
+    fn generate_resource_id(&self, input: &ContentReturnpolicyonlineCreateArgs) -> String {
+        format!("gcp::content::ReturnPolicyOnline/{}", input.merchantId)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::content::ReturnPolicyOnline"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for ReturnPolicyOnline
+// =============================================================================
+
+/// ResourceIdentifier implementation for ReturnPolicyOnline with ContentReturnpolicyonlineGetArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<ContentReturnpolicyonlineGetArgs> for ReturnPolicyOnline {
+    fn generate_resource_id(&self, input: &ContentReturnpolicyonlineGetArgs) -> String {
+        format!(
+            "gcp::content::ReturnPolicyOnline/{}/{}",
+            input.merchantId, input.returnPolicyId
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::content::ReturnPolicyOnline"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for ListReturnPolicyOnlineResponse
+// =============================================================================
+
+/// ResourceIdentifier implementation for ListReturnPolicyOnlineResponse with ContentReturnpolicyonlineListArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<ContentReturnpolicyonlineListArgs> for ListReturnPolicyOnlineResponse {
+    fn generate_resource_id(&self, input: &ContentReturnpolicyonlineListArgs) -> String {
+        format!(
+            "gcp::content::ListReturnPolicyOnlineResponse/{}",
+            input.merchantId
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::content::ListReturnPolicyOnlineResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for ReturnPolicyOnline
+// =============================================================================
+
+/// ResourceIdentifier implementation for ReturnPolicyOnline with ContentReturnpolicyonlinePatchArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<ContentReturnpolicyonlinePatchArgs> for ReturnPolicyOnline {
+    fn generate_resource_id(&self, input: &ContentReturnpolicyonlinePatchArgs) -> String {
+        format!(
+            "gcp::content::ReturnPolicyOnline/{}/{}",
+            input.merchantId, input.returnPolicyId
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::content::ReturnPolicyOnline"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for ShippingsettingsCustomBatchResponse
+// =============================================================================
+
+/// ResourceIdentifier implementation for ShippingsettingsCustomBatchResponse with ContentShippingsettingsCustombatchArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<ContentShippingsettingsCustombatchArgs>
+    for ShippingsettingsCustomBatchResponse
+{
+    fn generate_resource_id(&self, input: &ContentShippingsettingsCustombatchArgs) -> String {
+        "gcp::content::ShippingsettingsCustomBatchResponse".to_string()
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::content::ShippingsettingsCustomBatchResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for ShippingSettings
+// =============================================================================
+
+/// ResourceIdentifier implementation for ShippingSettings with ContentShippingsettingsGetArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<ContentShippingsettingsGetArgs> for ShippingSettings {
+    fn generate_resource_id(&self, input: &ContentShippingsettingsGetArgs) -> String {
+        format!(
+            "gcp::content::ShippingSettings/{}/{}",
+            input.merchantId, input.accountId
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::content::ShippingSettings"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for ShippingsettingsGetSupportedCarriersResponse
+// =============================================================================
+
+/// ResourceIdentifier implementation for ShippingsettingsGetSupportedCarriersResponse with ContentShippingsettingsGetsupportedcarriersArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<ContentShippingsettingsGetsupportedcarriersArgs>
+    for ShippingsettingsGetSupportedCarriersResponse
+{
+    fn generate_resource_id(
+        &self,
+        input: &ContentShippingsettingsGetsupportedcarriersArgs,
+    ) -> String {
+        format!(
+            "gcp::content::ShippingsettingsGetSupportedCarriersResponse/{}",
+            input.merchantId
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::content::ShippingsettingsGetSupportedCarriersResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for ShippingsettingsGetSupportedHolidaysResponse
+// =============================================================================
+
+/// ResourceIdentifier implementation for ShippingsettingsGetSupportedHolidaysResponse with ContentShippingsettingsGetsupportedholidaysArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<ContentShippingsettingsGetsupportedholidaysArgs>
+    for ShippingsettingsGetSupportedHolidaysResponse
+{
+    fn generate_resource_id(
+        &self,
+        input: &ContentShippingsettingsGetsupportedholidaysArgs,
+    ) -> String {
+        format!(
+            "gcp::content::ShippingsettingsGetSupportedHolidaysResponse/{}",
+            input.merchantId
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::content::ShippingsettingsGetSupportedHolidaysResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for ShippingsettingsGetSupportedPickupServicesResponse
+// =============================================================================
+
+/// ResourceIdentifier implementation for ShippingsettingsGetSupportedPickupServicesResponse with ContentShippingsettingsGetsupportedpickupservicesArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<ContentShippingsettingsGetsupportedpickupservicesArgs>
+    for ShippingsettingsGetSupportedPickupServicesResponse
+{
+    fn generate_resource_id(
+        &self,
+        input: &ContentShippingsettingsGetsupportedpickupservicesArgs,
+    ) -> String {
+        format!(
+            "gcp::content::ShippingsettingsGetSupportedPickupServicesResponse/{}",
+            input.merchantId
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::content::ShippingsettingsGetSupportedPickupServicesResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for ShippingsettingsListResponse
+// =============================================================================
+
+/// ResourceIdentifier implementation for ShippingsettingsListResponse with ContentShippingsettingsListArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<ContentShippingsettingsListArgs> for ShippingsettingsListResponse {
+    fn generate_resource_id(&self, input: &ContentShippingsettingsListArgs) -> String {
+        format!(
+            "gcp::content::ShippingsettingsListResponse/{}",
+            input.merchantId
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::content::ShippingsettingsListResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for ShippingSettings
+// =============================================================================
+
+/// ResourceIdentifier implementation for ShippingSettings with ContentShippingsettingsUpdateArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<ContentShippingsettingsUpdateArgs> for ShippingSettings {
+    fn generate_resource_id(&self, input: &ContentShippingsettingsUpdateArgs) -> String {
+        format!(
+            "gcp::content::ShippingSettings/{}/{}",
+            input.merchantId, input.accountId
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::content::ShippingSettings"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for ShoppingAdsProgramStatus
+// =============================================================================
+
+/// ResourceIdentifier implementation for ShoppingAdsProgramStatus with ContentShoppingadsprogramGetArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<ContentShoppingadsprogramGetArgs> for ShoppingAdsProgramStatus {
+    fn generate_resource_id(&self, input: &ContentShoppingadsprogramGetArgs) -> String {
+        format!(
+            "gcp::content::ShoppingAdsProgramStatus/{}",
+            input.merchantId
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::content::ShoppingAdsProgramStatus"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
 }

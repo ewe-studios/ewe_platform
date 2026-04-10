@@ -7,7 +7,6 @@
 
 #![cfg(feature = "gcp")]
 
-
 use crate::providers::gcp::clients::types::*;
 use crate::providers::gcp::resources::*;
 use foundation_core::valtron::{
@@ -17,6 +16,7 @@ use foundation_core::valtron::{
 use foundation_core::wire::simple_http::client::{
     body_reader, ClientRequestBuilder, RequestIntro, SimpleHttpClient, SystemDnsResolver,
 };
+use foundation_db::state::resource_identifier::ResourceIdentifier;
 use foundation_macros::JsonHash;
 use serde::Serialize;
 
@@ -28,8 +28,8 @@ use serde::Serialize;
 
 pub fn webrisk_hashes_search_builder(
     client: &SimpleHttpClient,
-    hashPrefix: &Option<String>,
-    threatTypes: &Option<String>,
+    hashPrefix: &Option<Option<String>>,
+    threatTypes: &Option<Option<String>>,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!("https://webrisk.googleapis.com/v1/hashes:search",);
@@ -168,9 +168,9 @@ pub fn webrisk_hashes_search_execute(
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct WebriskHashesSearchArgs {
     /// Query parameter: hashPrefix
-    pub hashPrefix: Option<String>,
+    pub hashPrefix: Option<Option<String>>,
     /// Query parameter: threatTypes
-    pub threatTypes: Option<String>,
+    pub threatTypes: Option<Option<String>>,
 }
 
 /// GET v1/hashes:search
@@ -199,6 +199,493 @@ pub fn webrisk_hashes_search(
     webrisk_hashes_search_execute(builder)
 }
 
+/// POST v1/projects/{projectsId}/operations/{operationsId}:cancel
+/// Starts asynchronous cancellation on a long-running operation. The server makes a best effort to cancel the operation, but success is not guaranteed. If the server doesn't support this method, it returns google.rpc.Code.UNIMPLEMENTED. Clients can use Operations.GetOperation or other methods to check whether the cancellation succeeded or whether the operation completed despite cancellation. On successful cancellation, the operation is not deleted; instead, it becomes an operation with an Operation.error value with a google.rpc.Status.code of 1, corresponding to Code.CANCELLED.
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `webrisk_projects_operations_cancel_execute()` to send, or `webrisk_projects_operations_cancel` for simplest API.
+
+pub fn webrisk_projects_operations_cancel_builder(
+    client: &SimpleHttpClient,
+    name: &String,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!(
+        "https://webrisk.googleapis.com/v1/projects/{}/operations/{operationsId}:cancel",
+        name,
+    );
+
+    // Build request
+    let builder = client
+        .post(&endpoint_url)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// POST v1/projects/{projectsId}/operations/{operationsId}:cancel
+/// Starts asynchronous cancellation on a long-running operation. The server makes a best effort to cancel the operation, but success is not guaranteed. If the server doesn't support this method, it returns google.rpc.Code.UNIMPLEMENTED. Clients can use Operations.GetOperation or other methods to check whether the cancellation succeeded or whether the operation completed despite cancellation. On successful cancellation, the operation is not deleted; instead, it becomes an operation with an Operation.error value with a google.rpc.Status.code of 1, corresponding to Code.CANCELLED.
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `webrisk_projects_operations_cancel_execute()` or `webrisk_projects_operations_cancel`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `webrisk_projects_operations_cancel_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn webrisk_projects_operations_cancel_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<GoogleProtobufEmpty>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: GoogleProtobufEmpty = serde_json::from_str(&body)
+                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// POST v1/projects/{projectsId}/operations/{operationsId}:cancel
+/// Starts asynchronous cancellation on a long-running operation. The server makes a best effort to cancel the operation, but success is not guaranteed. If the server doesn't support this method, it returns google.rpc.Code.UNIMPLEMENTED. Clients can use Operations.GetOperation or other methods to check whether the cancellation succeeded or whether the operation completed despite cancellation. On successful cancellation, the operation is not deleted; instead, it becomes an operation with an Operation.error value with a google.rpc.Status.code of 1, corresponding to Code.CANCELLED.
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `webrisk_projects_operations_cancel_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `webrisk_projects_operations_cancel_task()`.
+/// For the simplest API, use `webrisk_projects_operations_cancel()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `webrisk_projects_operations_cancel_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn webrisk_projects_operations_cancel_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<GoogleProtobufEmpty>, ApiError>, P = ApiPending>
+        + Send
+        + 'static,
+    ApiError,
+> {
+    let task = webrisk_projects_operations_cancel_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`webrisk_projects_operations_cancel`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct WebriskProjectsOperationsCancelArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
+/// POST v1/projects/{projectsId}/operations/{operationsId}:cancel
+/// Starts asynchronous cancellation on a long-running operation. The server makes a best effort to cancel the operation, but success is not guaranteed. If the server doesn't support this method, it returns google.rpc.Code.UNIMPLEMENTED. Clients can use Operations.GetOperation or other methods to check whether the cancellation succeeded or whether the operation completed despite cancellation. On successful cancellation, the operation is not deleted; instead, it becomes an operation with an Operation.error value with a google.rpc.Status.code of 1, corresponding to Code.CANCELLED.
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `webrisk_projects_operations_cancel_builder()` + `webrisk_projects_operations_cancel_execute()`.
+/// For task-level control, use `webrisk_projects_operations_cancel_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn webrisk_projects_operations_cancel(
+    client: &SimpleHttpClient,
+    args: &WebriskProjectsOperationsCancelArgs,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<GoogleProtobufEmpty>, ApiError>, P = ApiPending>
+        + Send
+        + 'static,
+    ApiError,
+> {
+    let builder = webrisk_projects_operations_cancel_builder(client, &args.name)?;
+    webrisk_projects_operations_cancel_execute(builder)
+}
+
+/// DELETE v1/projects/{projectsId}/operations/{operationsId}
+/// Deletes a long-running operation. This method indicates that the client is no longer interested in the operation result. It does not cancel the operation. If the server doesn't support this method, it returns google.rpc.Code.UNIMPLEMENTED.
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `webrisk_projects_operations_delete_execute()` to send, or `webrisk_projects_operations_delete` for simplest API.
+
+pub fn webrisk_projects_operations_delete_builder(
+    client: &SimpleHttpClient,
+    name: &String,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!(
+        "https://webrisk.googleapis.com/v1/projects/{}/operations/{operationsId}",
+        name,
+    );
+
+    // Build request
+    let builder = client
+        .delete(&endpoint_url)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// DELETE v1/projects/{projectsId}/operations/{operationsId}
+/// Deletes a long-running operation. This method indicates that the client is no longer interested in the operation result. It does not cancel the operation. If the server doesn't support this method, it returns google.rpc.Code.UNIMPLEMENTED.
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `webrisk_projects_operations_delete_execute()` or `webrisk_projects_operations_delete`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `webrisk_projects_operations_delete_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn webrisk_projects_operations_delete_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<GoogleProtobufEmpty>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: GoogleProtobufEmpty = serde_json::from_str(&body)
+                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// DELETE v1/projects/{projectsId}/operations/{operationsId}
+/// Deletes a long-running operation. This method indicates that the client is no longer interested in the operation result. It does not cancel the operation. If the server doesn't support this method, it returns google.rpc.Code.UNIMPLEMENTED.
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `webrisk_projects_operations_delete_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `webrisk_projects_operations_delete_task()`.
+/// For the simplest API, use `webrisk_projects_operations_delete()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `webrisk_projects_operations_delete_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn webrisk_projects_operations_delete_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<GoogleProtobufEmpty>, ApiError>, P = ApiPending>
+        + Send
+        + 'static,
+    ApiError,
+> {
+    let task = webrisk_projects_operations_delete_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`webrisk_projects_operations_delete`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct WebriskProjectsOperationsDeleteArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
+/// DELETE v1/projects/{projectsId}/operations/{operationsId}
+/// Deletes a long-running operation. This method indicates that the client is no longer interested in the operation result. It does not cancel the operation. If the server doesn't support this method, it returns google.rpc.Code.UNIMPLEMENTED.
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `webrisk_projects_operations_delete_builder()` + `webrisk_projects_operations_delete_execute()`.
+/// For task-level control, use `webrisk_projects_operations_delete_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn webrisk_projects_operations_delete(
+    client: &SimpleHttpClient,
+    args: &WebriskProjectsOperationsDeleteArgs,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<GoogleProtobufEmpty>, ApiError>, P = ApiPending>
+        + Send
+        + 'static,
+    ApiError,
+> {
+    let builder = webrisk_projects_operations_delete_builder(client, &args.name)?;
+    webrisk_projects_operations_delete_execute(builder)
+}
+
+/// GET v1/projects/{projectsId}/operations/{operationsId}
+/// Gets the latest state of a long-running operation. Clients can use this method to poll the operation result at intervals as recommended by the API service.
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `webrisk_projects_operations_get_execute()` to send, or `webrisk_projects_operations_get` for simplest API.
+
+pub fn webrisk_projects_operations_get_builder(
+    client: &SimpleHttpClient,
+    name: &String,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!(
+        "https://webrisk.googleapis.com/v1/projects/{}/operations/{operationsId}",
+        name,
+    );
+
+    // Build request
+    let builder = client
+        .get(&endpoint_url)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// GET v1/projects/{projectsId}/operations/{operationsId}
+/// Gets the latest state of a long-running operation. Clients can use this method to poll the operation result at intervals as recommended by the API service.
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `webrisk_projects_operations_get_execute()` or `webrisk_projects_operations_get`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `webrisk_projects_operations_get_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn webrisk_projects_operations_get_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<GoogleLongrunningOperation>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: GoogleLongrunningOperation = serde_json::from_str(&body)
+                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// GET v1/projects/{projectsId}/operations/{operationsId}
+/// Gets the latest state of a long-running operation. Clients can use this method to poll the operation result at intervals as recommended by the API service.
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `webrisk_projects_operations_get_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `webrisk_projects_operations_get_task()`.
+/// For the simplest API, use `webrisk_projects_operations_get()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `webrisk_projects_operations_get_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn webrisk_projects_operations_get_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<
+            D = Result<ApiResponse<GoogleLongrunningOperation>, ApiError>,
+            P = ApiPending,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    let task = webrisk_projects_operations_get_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`webrisk_projects_operations_get`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct WebriskProjectsOperationsGetArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
+/// GET v1/projects/{projectsId}/operations/{operationsId}
+/// Gets the latest state of a long-running operation. Clients can use this method to poll the operation result at intervals as recommended by the API service.
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `webrisk_projects_operations_get_builder()` + `webrisk_projects_operations_get_execute()`.
+/// For task-level control, use `webrisk_projects_operations_get_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn webrisk_projects_operations_get(
+    client: &SimpleHttpClient,
+    args: &WebriskProjectsOperationsGetArgs,
+) -> Result<
+    impl StreamIterator<
+            D = Result<ApiResponse<GoogleLongrunningOperation>, ApiError>,
+            P = ApiPending,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    let builder = webrisk_projects_operations_get_builder(client, &args.name)?;
+    webrisk_projects_operations_get_execute(builder)
+}
+
 /// GET v1/projects/{projectsId}/operations
 /// Lists operations that match the specified filter in the request. If the server doesn't support this method, it returns UNIMPLEMENTED.
 ///
@@ -208,13 +695,16 @@ pub fn webrisk_hashes_search(
 pub fn webrisk_projects_operations_list_builder(
     client: &SimpleHttpClient,
     name: &String,
-    filter: &Option<String>,
-    pageSize: &Option<i32>,
-    pageToken: &Option<String>,
-    returnPartialSuccess: &Option<bool>,
+    filter: &Option<Option<String>>,
+    pageSize: &Option<Option<String>>,
+    pageToken: &Option<Option<String>>,
+    returnPartialSuccess: &Option<Option<String>>,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
-    let endpoint_url = format!("https://webrisk.googleapis.com/v1/projects/{}/operations",);
+    let endpoint_url = format!(
+        "https://webrisk.googleapis.com/v1/projects/{}/operations",
+        name,
+    );
 
     // Build request
     let mut query_parts = Vec::new();
@@ -359,13 +849,13 @@ pub struct WebriskProjectsOperationsListArgs {
     /// Path parameter: name
     pub name: String,
     /// Query parameter: filter
-    pub filter: Option<String>,
+    pub filter: Option<Option<String>>,
     /// Query parameter: pageSize
-    pub pageSize: Option<i32>,
+    pub pageSize: Option<Option<String>>,
     /// Query parameter: pageToken
-    pub pageToken: Option<String>,
+    pub pageToken: Option<Option<String>>,
     /// Query parameter: returnPartialSuccess
-    pub returnPartialSuccess: Option<bool>,
+    pub returnPartialSuccess: Option<Option<String>>,
 }
 
 /// GET v1/projects/{projectsId}/operations
@@ -401,7 +891,7 @@ pub fn webrisk_projects_operations_list(
     webrisk_projects_operations_list_execute(builder)
 }
 
-/// GET v1/projects/{projectsId}/submissions
+/// POST v1/projects/{projectsId}/submissions
 /// Creates a Submission of a URI suspected of containing phishing content to be reviewed. If the result verifies the existence of malicious phishing content, the site will be added to the [Google's Social Engineering lists](<https://support.google.`com/webmasters/answer/6350487/`>) in order to protect users that could get exposed to this threat in the future. Only allowlisted projects can use this method during Early Access. Please reach out to Sales or your customer engineer to obtain access.
 ///
 /// Returns `ClientRequestBuilder` for customization.
@@ -410,22 +900,22 @@ pub fn webrisk_projects_operations_list(
 pub fn webrisk_projects_submissions_create_builder(
     client: &SimpleHttpClient,
     parent: &String,
-    body: &GoogleCloudWebriskV1Submission,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
-    let endpoint_url = format!("https://webrisk.googleapis.com/v1/projects/{}/submissions",);
+    let endpoint_url = format!(
+        "https://webrisk.googleapis.com/v1/projects/{}/submissions",
+        parent,
+    );
 
     // Build request
     let builder = client
-        .get(&endpoint_url)
+        .post(&endpoint_url)
         .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
 
-    builder
-        .body_json(body)
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+    Ok(builder)
 }
 
-/// GET v1/projects/{projectsId}/submissions
+/// POST v1/projects/{projectsId}/submissions
 /// Creates a Submission of a URI suspected of containing phishing content to be reviewed. If the result verifies the existence of malicious phishing content, the site will be added to the [Google's Social Engineering lists](<https://support.google.`com/webmasters/answer/6350487/`>) in order to protect users that could get exposed to this threat in the future. Only allowlisted projects can use this method during Early Access. Please reach out to Sales or your customer engineer to obtain access.
 ///
 /// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
@@ -499,7 +989,7 @@ pub fn webrisk_projects_submissions_create_task(
         .map_pending(|_| ApiPending::Sending))
 }
 
-/// GET v1/projects/{projectsId}/submissions
+/// POST v1/projects/{projectsId}/submissions
 /// Creates a Submission of a URI suspected of containing phishing content to be reviewed. If the result verifies the existence of malicious phishing content, the site will be added to the [Google's Social Engineering lists](<https://support.google.`com/webmasters/answer/6350487/`>) in order to protect users that could get exposed to this threat in the future. Only allowlisted projects can use this method during Early Access. Please reach out to Sales or your customer engineer to obtain access.
 ///
 /// Takes a `ClientRequestBuilder`, builds and executes the request,
@@ -538,11 +1028,9 @@ pub fn webrisk_projects_submissions_create_execute(
 pub struct WebriskProjectsSubmissionsCreateArgs {
     /// Path parameter: parent
     pub parent: String,
-    /// Request body.
-    pub body: GoogleCloudWebriskV1Submission,
 }
 
-/// GET v1/projects/{projectsId}/submissions
+/// POST v1/projects/{projectsId}/submissions
 /// Creates a Submission of a URI suspected of containing phishing content to be reviewed. If the result verifies the existence of malicious phishing content, the site will be added to the [Google's Social Engineering lists](<https://support.google.`com/webmasters/answer/6350487/`>) in order to protect users that could get exposed to this threat in the future. Only allowlisted projects can use this method during Early Access. Please reach out to Sales or your customer engineer to obtain access.
 ///
 /// Simplest API - builds and executes the request in one call.
@@ -564,7 +1052,7 @@ pub fn webrisk_projects_submissions_create(
         + 'static,
     ApiError,
 > {
-    let builder = webrisk_projects_submissions_create_builder(client, &args.parent, &args.body)?;
+    let builder = webrisk_projects_submissions_create_builder(client, &args.parent)?;
     webrisk_projects_submissions_create_execute(builder)
 }
 
@@ -576,11 +1064,11 @@ pub fn webrisk_projects_submissions_create(
 
 pub fn webrisk_threat_lists_compute_diff_builder(
     client: &SimpleHttpClient,
-    constraints_maxDatabaseEntries: &Option<i32>,
-    constraints_maxDiffEntries: &Option<i32>,
-    constraints_supportedCompressions: &Option<String>,
-    threatType: &Option<String>,
-    versionToken: &Option<String>,
+    constraints_maxDatabaseEntries: &Option<Option<String>>,
+    constraints_maxDiffEntries: &Option<Option<String>>,
+    constraints_supportedCompressions: &Option<Option<String>>,
+    threatType: &Option<Option<String>>,
+    versionToken: &Option<Option<String>>,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!("https://webrisk.googleapis.com/v1/threatLists:computeDiff",);
@@ -732,15 +1220,15 @@ pub fn webrisk_threat_lists_compute_diff_execute(
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct WebriskThreatListsComputeDiffArgs {
     /// Query parameter: constraints_maxDatabaseEntries
-    pub constraints_maxDatabaseEntries: Option<i32>,
+    pub constraints_maxDatabaseEntries: Option<Option<String>>,
     /// Query parameter: constraints_maxDiffEntries
-    pub constraints_maxDiffEntries: Option<i32>,
+    pub constraints_maxDiffEntries: Option<Option<String>>,
     /// Query parameter: constraints_supportedCompressions
-    pub constraints_supportedCompressions: Option<String>,
+    pub constraints_supportedCompressions: Option<Option<String>>,
     /// Query parameter: threatType
-    pub threatType: Option<String>,
+    pub threatType: Option<Option<String>>,
     /// Query parameter: versionToken
-    pub versionToken: Option<String>,
+    pub versionToken: Option<Option<String>>,
 }
 
 /// GET v1/threatLists:computeDiff
@@ -784,8 +1272,8 @@ pub fn webrisk_threat_lists_compute_diff(
 
 pub fn webrisk_uris_search_builder(
     client: &SimpleHttpClient,
-    threatTypes: &Option<String>,
-    uri: &Option<String>,
+    threatTypes: &Option<Option<String>>,
+    uri: &Option<Option<String>>,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!("https://webrisk.googleapis.com/v1/uris:search",);
@@ -924,9 +1412,9 @@ pub fn webrisk_uris_search_execute(
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct WebriskUrisSearchArgs {
     /// Query parameter: threatTypes
-    pub threatTypes: Option<String>,
+    pub threatTypes: Option<Option<String>>,
     /// Query parameter: uri
-    pub uri: Option<String>,
+    pub uri: Option<Option<String>>,
 }
 
 /// GET v1/uris:search
@@ -953,4 +1441,198 @@ pub fn webrisk_uris_search(
 > {
     let builder = webrisk_uris_search_builder(client, &args.threatTypes, &args.uri)?;
     webrisk_uris_search_execute(builder)
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for GoogleCloudWebriskV1SearchHashesResponse
+// =============================================================================
+
+/// ResourceIdentifier implementation for GoogleCloudWebriskV1SearchHashesResponse with WebriskHashesSearchArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<WebriskHashesSearchArgs> for GoogleCloudWebriskV1SearchHashesResponse {
+    fn generate_resource_id(&self, input: &WebriskHashesSearchArgs) -> String {
+        "gcp::webrisk::GoogleCloudWebriskV1SearchHashesResponse".to_string()
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::webrisk::GoogleCloudWebriskV1SearchHashesResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for GoogleProtobufEmpty
+// =============================================================================
+
+/// ResourceIdentifier implementation for GoogleProtobufEmpty with WebriskProjectsOperationsCancelArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<WebriskProjectsOperationsCancelArgs> for GoogleProtobufEmpty {
+    fn generate_resource_id(&self, input: &WebriskProjectsOperationsCancelArgs) -> String {
+        format!("gcp::webrisk::GoogleProtobufEmpty/{}", input.name)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::webrisk::GoogleProtobufEmpty"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for GoogleProtobufEmpty
+// =============================================================================
+
+/// ResourceIdentifier implementation for GoogleProtobufEmpty with WebriskProjectsOperationsDeleteArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<WebriskProjectsOperationsDeleteArgs> for GoogleProtobufEmpty {
+    fn generate_resource_id(&self, input: &WebriskProjectsOperationsDeleteArgs) -> String {
+        format!("gcp::webrisk::GoogleProtobufEmpty/{}", input.name)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::webrisk::GoogleProtobufEmpty"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for GoogleLongrunningOperation
+// =============================================================================
+
+/// ResourceIdentifier implementation for GoogleLongrunningOperation with WebriskProjectsOperationsGetArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<WebriskProjectsOperationsGetArgs> for GoogleLongrunningOperation {
+    fn generate_resource_id(&self, input: &WebriskProjectsOperationsGetArgs) -> String {
+        format!("gcp::webrisk::GoogleLongrunningOperation/{}", input.name)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::webrisk::GoogleLongrunningOperation"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for GoogleLongrunningListOperationsResponse
+// =============================================================================
+
+/// ResourceIdentifier implementation for GoogleLongrunningListOperationsResponse with WebriskProjectsOperationsListArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<WebriskProjectsOperationsListArgs>
+    for GoogleLongrunningListOperationsResponse
+{
+    fn generate_resource_id(&self, input: &WebriskProjectsOperationsListArgs) -> String {
+        format!(
+            "gcp::webrisk::GoogleLongrunningListOperationsResponse/{}",
+            input.name
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::webrisk::GoogleLongrunningListOperationsResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for GoogleCloudWebriskV1Submission
+// =============================================================================
+
+/// ResourceIdentifier implementation for GoogleCloudWebriskV1Submission with WebriskProjectsSubmissionsCreateArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<WebriskProjectsSubmissionsCreateArgs> for GoogleCloudWebriskV1Submission {
+    fn generate_resource_id(&self, input: &WebriskProjectsSubmissionsCreateArgs) -> String {
+        format!(
+            "gcp::webrisk::GoogleCloudWebriskV1Submission/{}",
+            input.parent
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::webrisk::GoogleCloudWebriskV1Submission"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for GoogleCloudWebriskV1ComputeThreatListDiffResponse
+// =============================================================================
+
+/// ResourceIdentifier implementation for GoogleCloudWebriskV1ComputeThreatListDiffResponse with WebriskThreatListsComputeDiffArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<WebriskThreatListsComputeDiffArgs>
+    for GoogleCloudWebriskV1ComputeThreatListDiffResponse
+{
+    fn generate_resource_id(&self, input: &WebriskThreatListsComputeDiffArgs) -> String {
+        "gcp::webrisk::GoogleCloudWebriskV1ComputeThreatListDiffResponse".to_string()
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::webrisk::GoogleCloudWebriskV1ComputeThreatListDiffResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for GoogleCloudWebriskV1SearchUrisResponse
+// =============================================================================
+
+/// ResourceIdentifier implementation for GoogleCloudWebriskV1SearchUrisResponse with WebriskUrisSearchArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<WebriskUrisSearchArgs> for GoogleCloudWebriskV1SearchUrisResponse {
+    fn generate_resource_id(&self, input: &WebriskUrisSearchArgs) -> String {
+        "gcp::webrisk::GoogleCloudWebriskV1SearchUrisResponse".to_string()
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::webrisk::GoogleCloudWebriskV1SearchUrisResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
 }
